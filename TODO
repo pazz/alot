@@ -7,7 +7,7 @@ There is a lot to be done, most of it is not going to be hard:
 * build a prompt for ng.ui.
   ui.prompt(promptprefix='>>')
   keep in mind tabcompletion?
-  it would be cool if we had a cmdline like vim or mutt when pressing ":".
+  It would be cool if we had a cmdline like vim or mutt when pressing ":".
   ng.command.Commands already have typenames, calling them from a prompt could
   use the command.factory to build one and pass it to ui.apply_command.
 
@@ -28,5 +28,5 @@ There is a lot to be done, most of it is not going to be hard:
 
 * remove direct calls to logging (use ui.logging instead)
 
-* packaging? last time i checked "PIPifying" a project wasn't hard, a bit of fumbling with a setup.py?
+* packaging? Last time i checked "PIPifying" a project wasn't hard, a bit of fumbling with a setup.py?
 

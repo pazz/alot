@@ -1,5 +1,5 @@
 This is a proposal for a terminal gui for notmuch mail, written in python.
-Currently, it is more a sketch of a framework, so let me explayin the key ideas here:
+Currently, it is more a sketch of a framework, so let me explain the key ideas here:
 
 * OOP approach using python 
 * aim at the look and feel of sup for now
@@ -9,11 +9,11 @@ Currently, it is more a sketch of a framework, so let me explayin the key ideas 
   obviously the cnotmuch bindings: https://bitbucket.org/spaetz/cnotmuch/
   (urwid-satext: http://wiki.goffi.org/wiki/Urwid-satext
 
-You need the cnotmuch python bindings and urwid to run it. i run it like this 
+You need the cnotmuch python bindings and urwid to run it. I run it like this 
 > python ng.py -l debug.log -d debug
 and "tail -f debug.log" in another window. See settings.py for global bindings.
 
-Here is an overview of the current airchitecture.
+Here is an overview of the current architecture.
 
 ng.ui.UI 
 contains the main component: it
@@ -21,43 +21,43 @@ contains the main component: it
  - contains a logging.logger that can be used for log/debug messages like so: ui.logger.info('hello logworld')
  - sets up and updates the header/footer/body widgets
  - is able to open/close/focus buffers (there's a list ui.buffers of currently known buffers, and a ui.current_buffer, pointing to the focussed one)
- - handles global keybindings. see below for more on bindings.
+ - handles global keybindings. See below for more on bindings.
  - can apply (and further down the road undo/redo) commands (see command.py)
  - should be able to open a prompt/dialogs? for user input. This is still missing
 
 ng.db.DBManager 
 is the door to the notmuch index. Currently, it has very limited functionality, but should be able to to this:
  - store the connection settings (index path and whether or not we use a read_only connection..)
- - two basic moethods for reading from and writing to the index. lets call it dbman.query(querystring) and dbman.update(updatestring).
+ - two basic methods for reading from and writing to the index. Lets call it dbman.query(querystring) and dbman.update(updatestring).
    query will return a notmuch.Query object, i haven't bothered with update so far.
  - a method for all interesting operations on the index These will use self.query/update accordingly. See dbman.count_messages for a simple example
 
 ng.buffer.Buffer
 Is used as a baseclass for different types of buffers, or displaymodi if you like. So far there's only a SearchBuffer (might be a bad name)
-that displays the result of a search for mailthreads, and a BufferListBuffer, that displays a list of buffers.
-Technically, ng.buffer.Buffer inherits from urwid.AttrMap. this is done so that it can be directly be set as the body-part of the 
+that displays the result of a search for mail threads, and a BufferListBuffer, that displays a list of buffers.
+Technically, ng.buffer.Buffer inherits from urwid.AttrMap. This is done so that it can be directly be set as the body-part of the 
 main gui, thereby intercepting (and filter/handle according to local bindings) the keypresses. A Buffer
  - is a widget, that can be drawn,focussed etc as all widgets.
  - has a pointer to the main ui, a typename, (e.g. searchresults, display single thread, envelope, logmode) and knows how to summaryse itselt.
-   this is currently done as self.info(), and shoulld probably be self.__str__().
+   This is currently done as self.info(), and shoulld probably be self.__str__().
  - knows how to handle local (mode-specific) keybindings (self.bindings see below)
 
 ng.commands.Command
-Again, a baseclass for different commands. A command is an object that represents an atomic action. it will only be
-be applied once (and is then stored in a undo-list somewhere). it
+Again, a baseclass for different commands. A command is an object that represents an atomic action. It will only be
+be applied once (and is then stored in a undo-list somewhere). It
  - has a typename, that is used to identify a type of command for the command factory
  - can be applied using cmd.apply with a fixed interface: I  assume we want at least pointers to the main ui and the dbman objects here
  - should countain a help-info about what it does (to aumagically create dynamic help-buffers later on)
  - should know if its undoable, and if so, implement undo() and redo()
  - points to pre and post hooks. This might get tricky with undoable cmds.. The idea is, that a cmd gets applied (see ng.ui.UI.apply_command),
-   also its pre and posthooks are called if defined. these should have the same signature as cmd.apply(). see settings.hooks for an example.
-There's a number of commands i already implemented. each one should be created by the ng.command.factory (which also attaches the hooks)
+   also its pre and posthooks are called if defined. These should have the same signature as cmd.apply(). See settings.hooks for an example.
+There's a number of commands i already implemented. Each one should be created by the ng.command.factory (which also attaches the hooks)
 
 ng.widgets
 contains the urwid.Widgets i use do draw notmuch objects. There's a Threadline widget for example, that knows how to 
 present a notmuch.thread object as a textline. Should be pretty self explanatory, definately needs some love.
 These inherit from AttrMap, which is not very clean i guess, but they must be "selectable" so that we can use them in a urwid.ListBox 
-(which displays a list and can focus elements). since ThreadlineWidget is selectable it must include a dummy keypress method.
+(which displays a list and can focus elements). Since ThreadlineWidget is selectable it must include a dummy keypress method.
 
 ng.hooks
 this should later on include methods that look for and call? hooks.
@@ -70,16 +70,16 @@ Contains urwid.ListWalker derived classes that implement a listwalker (the conte
 that dynamically allocates its content. The thing is that if one makes a query for all threads in the index and naively
 creating a ng.widgets.ThreadlineWidget for each and placing them in a urwid.Listbox (actually a urwid.SimplieListWalker, and /that/ in a listbox),
 one this will potentially eat up your memory and take a long time. So ng.walker.IteratorWalker will dynamically
-create its next element from the next element of the iterator. for now, there's a NotmuchIteratorWalker class
-that does the same for notmuch's one-time iteratotors. this is almost certainly a bad idea methinks.
+create its next element from the next element of the iterator. For now, there's a NotmuchIteratorWalker class
+that does the same for notmuch's one-time iterators. This is almost certainly a bad idea methinks.
 
 Bindings
 Are currently a hash in objects of the classes ng.ui.UI and ng.buffer.Buffer.
-Obviously, a key is first handed to the currrent buffer and in case it doesnt handle it,
-it will be handeled by the main UI.
+Obviously, a key is first handed to the current buffer and in case it doesn't handle it,
+it will be handled by the main UI.
 Each buffer-subclass comes with its own default local bindings which whi might want to overwrite at some point.
 I guess we should have a "map" command that takes a buffertype, a key and something to call.
 For now, a key in the binding hash is a string that represents a keypress (urwid style: 'shift j', 'k' etc are valid).
-the value is then a pair of (commandtypestring, parameterhash), that is used by the command.factory to instanciate
-a command with of tyoe commandtypestring with parameters parameterhash. See self.bindings in ng.buffer.BufferListBuffer
+The value is then a pair of (commandtypestring, parameterhash), that is used by the command.factory to instantiate
+a command with of type commandtypestring with parameters parameterhash. See self.bindings in ng.buffer.BufferListBuffer
 for an example.
