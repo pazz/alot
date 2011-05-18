@@ -8,6 +8,10 @@ class DBManager():
         q = self.query(querystring)
         return q.count_messages()
 
+    def search_threads(self,querystring):
+        q = self.query(querystring)
+        return q.search_threads()
+
     def query(self,querystring):
         mode = Database.MODE.READ_ONLY
         db = Database(path=self.path,mode=mode)

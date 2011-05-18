@@ -96,8 +96,7 @@ class SearchBuffer(Buffer):
         logging.info("querystring: %s"%self.querystring)
         self.result_count = self.dbman.count_messages(self.querystring)
         logging.info("count: %d"%self.result_count)
-        q = self.dbman.query(self.querystring)
-        threads = q.search_threads()
+        threads = self.dbman.search_threads(self.querystring)
         self.threadlist = urwid.ListBox(IteratorWalker(threads,widgets.ThreadlineWidget))
         self.original_widget = self.threadlist
 

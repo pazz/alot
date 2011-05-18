@@ -101,4 +101,3 @@ class UI:
                 except:
                     self.logger.error('posthook failed')
                     raise
-
