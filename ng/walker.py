@@ -25,21 +25,22 @@ class IteratorWalker(urwid.ListWalker):
         return self._get_at_pos(start_from - 1)
 
     def _get_at_pos(self, pos):
-        if pos < 0:
-            return None, None
 
-        if self.empty:
+        if pos < 0: #pos too low
             return None, None
-        if len(self.lines) > pos:
+        elif pos > len(self.lines): #pos too high
+            return None, None
+        elif len(self.lines) > pos: #pos already cached
             return self.lines[pos], pos
-
-        assert pos == len(self.lines), "out of order request?"
-
-        widget = self._get_next_item()
-        if widget:
-            return widget, pos
-        else:
-            return None, None
+        else: #pos not cached yet, look at next item from iterator
+            if self.empty: #iterator is empty
+                return None, None
+            else:
+                widget = self._get_next_item()
+                if widget:
+                    return widget, pos
+                else:
+                    return None, None
 
     def _get_next_item(self):
         try:
