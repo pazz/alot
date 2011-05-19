@@ -14,12 +14,23 @@ class UI:
         self.logger.debug('setup gui')
         self.mainframe = urwid.Frame(urwid.SolidFill(' '))
         self.mainloop = urwid.MainLoop(self.mainframe, settings.palette,
-                unhandled_input=self.handle_input)
+                unhandled_input=self.keypress)
         #self.mainloop.screen.set_terminal_properties(colors=256)
         self.mainloop.screen.set_terminal_properties(colors=16)
 
         self.logger.debug('setup bindings')
-        self.bindings = settings.bindings
+        self.bindings = {
+            'i': ('open_inbox',{}),
+            'u': ('open_unread',{}),
+            'x': ('buffer_close',{}),
+            'tab': ('buffer_next',{}),
+            'shift tab': ('buffer_prev',{}),
+            #'\\': ('search',{}),
+            'q': ('shutdown',{}),
+            ';': ('buffer_list',{}),
+            's': ('shell',{}),
+            'v': ('editlog',{}),
+        }
 
         cmd = command.factory('open_unread')
         self.apply_command(cmd)
@@ -75,10 +86,11 @@ class UI:
         footer=urwid.AttrMap(urwid.Columns([footerleft,footerright]), 'footer')
         self.mainframe.set_footer(footer)
 
-    def handle_input(self,input):
-        if self.bindings.has_key(input):
-            self.logger.debug('got input: %s'%input)
-            cmd = command.factory(self.bindings[input])
+    def keypress(self,key):
+        if self.bindings.has_key(key):
+            logging.debug("got globally bounded key: %s"%key)
+            cmdname,parms = self.bindings[key]
+            cmd = command.factory(cmdname,**parms)
             self.apply_command(cmd)
         else:
             self.logger.info('unhandeled input: %s'%input)

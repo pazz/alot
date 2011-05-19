@@ -10,18 +10,6 @@ palette = [
     ('background', '', 'black', '', 'g7', '#d06'),
 ]
 
-bindings = {
-        'i': 'open_inbox',
-        'u': 'open_unread',
-        'x': 'buffer_close',
-        'tab': 'buffer_next',
-        'shift tab': 'buffer_prev',
-        #'\\': 'search',
-        'q': 'shutdown',
-        ';': 'buffer_list',
-        's': 'shell',
-        'v': 'editlog',
-        }
 
 hooks = {
         'pre-shutdown': lambda ui: ui.logger.info('goodbye!'),
