@@ -1,4 +1,4 @@
-from urwid import Text,AttrMap
+from urwid import Text,AttrMap,Edit,Columns
 import logging
 
 class ThreadlineWidget(AttrMap):
@@ -31,3 +31,13 @@ class BufferlineWidget(Text):
     def get_buffer(self):
         return self.buffer
 
+class PromptWidget(AttrMap):
+    def __init__(self,prefix):
+        leftpart = Text(prefix,align='left')
+        self.editpart = Edit()
+        both = Columns(
+            [
+                ('fixed', len(prefix)+1, leftpart),
+                ('weight', 1, self.editpart),
+            ])
+        AttrMap.__init__(self,both, 'prompt','prompt')

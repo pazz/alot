@@ -25,7 +25,7 @@ class UI:
             'x': ('buffer_close',{}),
             'tab': ('buffer_next',{}),
             'shift tab': ('buffer_prev',{}),
-            #'\\': ('search',{}),
+            '\\': ('open_search',{}),
             'q': ('shutdown',{}),
             ';': ('buffer_list',{}),
             's': ('shell',{}),
@@ -37,9 +37,48 @@ class UI:
         self.mainloop.run()
 
     def shutdown(self):
+        """
+        close the ui. this is _not_ the main shutdown procedure:
+        there is a shutdown command that will eventually call this.
+        """
         raise urwid.ExitMainLoop()
 
+    def prompt(self, prefix):
+        self.logger.info('PROMPT')
+
+        def restore():
+            self.mainframe.set_focus('body')
+            self.update_footer()
+
+        p = widgets.PromptWidget(prefix)
+        self.mainframe.set_footer(p)
+        #set body unfocussable
+        self.mainframe.set_focus('footer')
+
+        keypress = self.keypress
+        def restore():
+            self.keypress = keypress
+            self.mainframe.set_focus('body')
+            self.update_footer()
+        def keypress_during_prompt(self, size, key):
+            if key=='enter':
+                result = p.get_input()
+                self.logger.info('enter: %s'%result)
+                restore()
+                yield result
+            elif key in ['escape','tab']:
+                self.logger.info('cancel')
+                restore()
+                yield None
+            else:
+                yield p.keypress(size,key)
+        self.keypress = keypress_during_prompt
+
     def buffer_open(self,b):
+        """
+        register and focus new buffer
+        """
+
         self.buffers.append(b)
         self.buffer_focus(b)
 
@@ -66,6 +105,9 @@ class UI:
         self.logger.debug('current_buffer: %s'%self.current_buffer)
 
     def buffer_focus(self,b):
+        """
+        focus given buffer. must be contained in self.buffers
+        """
         if b not in self.buffers:
             self.logger.error('tried to focus unknown buffer')
         else:
@@ -74,15 +116,26 @@ class UI:
             self.update()
 
     def update(self):
-        i = self.buffers.index(self.current_buffer)
+        """
+        redraw interface
+        """
+        #header
         head = urwid.Text('notmuch gui')
         h=urwid.AttrMap(head, 'header')
+
+        #body
         self.mainframe.set_header(h)
         self.mainframe.set_body(self.current_buffer)
-        #self.mainframe.set_body(self.current_buffer.widget)
 
-        footerleft = urwid.Text('%d: %s'%(i,self.current_buffer))
-        footerright = urwid.Text('%d total messages'%self.dbman.count_messages('*'))
+        #footer
+        self.update_footer()
+
+    def update_footer(self):
+        i = self.buffers.index(self.current_buffer)
+        lefttxt = '%d: %s'%(i,self.current_buffer)
+        footerleft = urwid.Text(lefttxt,align='left')
+        righttxt = 'total messages: %d'%self.dbman.count_messages('*')
+        footerright = urwid.Text(righttxt,align='right')
         footer=urwid.AttrMap(urwid.Columns([footerleft,footerright]), 'footer')
         self.mainframe.set_footer(footer)
 

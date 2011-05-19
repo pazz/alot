@@ -16,15 +16,20 @@ class ShutdownCommand(Command):
         ui.shutdown()
 
 class SearchCommand(Command):
-    def __init__(self,query=None,**kwargs):
+    def __init__(self,query,**kwargs):
         self.query = query
         Command.__init__(self,**kwargs)
     def apply(self,ui):
-        #get query fron input?
-        if not self.query:
-            self.query='*'
         sb = buffer.SearchBuffer(ui,self.query)
         ui.buffer_open(sb)
+
+class SearchPromptCommand(Command):
+    def apply(self,ui):
+        querystring = ui.prompt('search threads:')
+        ui.logger.info("got %s"%querystring)
+        if querystring:
+            cmd = command.factory('search',{'query': querystring})
+            ui.apply_command(cmd)
 
 class EditCommand(Command):
     def apply(self,ui):
@@ -87,6 +92,7 @@ commands =  {
         'buffer_prev': (BufferFocusCommand,{'offset': -1}),
         'open_inbox': (SearchCommand,{'query':'tag:inbox'}),
         'open_unread': (SearchCommand,{'query':'tag:unread'}),
+        'open_search': (SearchPromptCommand,{}),
         'search': (SearchCommand,{}),
         'shutdown': (ShutdownCommand,{}),
         'shell': (OpenPythonShellCommand,{}),

@@ -24,6 +24,7 @@ class Buffer(urwid.AttrMap):
         #call and store it directly for a local cmd history
         self.ui.apply_command(cmd)
         #self.refresh()
+
     def keypress(self,size,key):
         if self.bindings.has_key(key):
             logging.debug("%s: handeles key: %s"%(self.typename,key))
@@ -89,7 +90,7 @@ class SearchBuffer(Buffer):
         self.result_count = 0
         #self.widget=createWalker(...
         self.refresh()
-        Buffer.__init__(self,ui,self.original_widget,'threadlist')
+        Buffer.__init__(self,ui,self.original_widget,'search')
         self.bindings = {
                 'enter': ('thread_open',{'thread': self.get_selected_thread}),
                 }

@@ -2,6 +2,7 @@
 palette = [
     ('header', 'white', 'dark blue', 'bold', '#ffa', ''),
     ('footer', 'white', 'dark blue', 'bold', '', ''),
+    ('prompt', 'light gray', 'black', '', 'g50', '#60a'),
     ('threadline', 'light gray', 'black', '', 'g50', '#60a'),
     ('threadline_focus', 'white', 'dark gray', '', '#ffa', '#60d'),
     ('bufferlist_results_even', 'light gray', 'black', '', 'g50', '#60a'),
