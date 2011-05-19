@@ -12,12 +12,14 @@ class Buffer(urwid.AttrMap):
         self.typename = name
         self.bindings = {}
         urwid.AttrMap.__init__(self,widget,{})
-    def info(self):
+
         return ""
     def refresh(self):
         pass
+
     def __str__(self):
-        return "[%s] %s" % (self.typename,self.info())
+        return "[%s]" % (self.typename)
+
     def apply_command(self,cmd):
         #call and store it directly for a local cmd history
         self.ui.apply_command(cmd)
@@ -100,8 +102,8 @@ class SearchBuffer(Buffer):
         self.threadlist = urwid.ListBox(IteratorWalker(threads,widgets.ThreadlineWidget))
         self.original_widget = self.threadlist
 
-    def info(self):
-        return "for %s, (%d)" %(self.querystring,self.result_count)
+    def __str__(self):
+        return "[%s] for %s, (%d)" % (self.typename,self.querystring,self.result_count)
 
     def get_selected_thread(self):
         (linewidget,size) = self.threadlist.get_focus()
