@@ -28,7 +28,7 @@ class SearchPromptCommand(Command):
         querystring = ui.prompt('search threads:')
         ui.logger.info("got %s"%querystring)
         if querystring:
-            cmd = command.factory('search',{'query': querystring})
+            cmd = factory('search',query=querystring)
             ui.apply_command(cmd)
 
 class EditCommand(Command):

@@ -2,6 +2,7 @@ import urwid
 import settings
 from ng.buffer import *
 from ng import command
+from ng.widgets import PromptWidget
 
 class UI:
     buffers = []
@@ -44,35 +45,30 @@ class UI:
         raise urwid.ExitMainLoop()
 
     def prompt(self, prefix):
-        self.logger.info('PROMPT')
+        self.logger.info('open prompt')
 
-        def restore():
-            self.mainframe.set_focus('body')
-            self.update_footer()
-
-        p = widgets.PromptWidget(prefix)
+        p = PromptWidget(prefix)
+        footer = self.mainframe.get_footer()
         self.mainframe.set_footer(p)
-        #set body unfocussable
         self.mainframe.set_focus('footer')
-
-        keypress = self.keypress
-        def restore():
-            self.keypress = keypress
-            self.mainframe.set_focus('body')
-            self.update_footer()
-        def keypress_during_prompt(self, size, key):
-            if key=='enter':
-                result = p.get_input()
-                self.logger.info('enter: %s'%result)
-                restore()
-                yield result
-            elif key in ['escape','tab']:
-                self.logger.info('cancel')
-                restore()
-                yield None
-            else:
-                yield p.keypress(size,key)
-        self.keypress = keypress_during_prompt
+        self.mainloop.draw_screen()
+        while True:
+            keys = None
+            while not keys:
+                keys = self.mainloop.screen.get_input()
+            for k in keys:
+                if k == 'enter':
+                    self.mainframe.set_footer(footer)
+                    self.mainframe.set_focus('body')
+                    return p.get_input()
+                if k in ['escape','tab']:
+                    self.mainframe.set_footer(footer)
+                    self.mainframe.set_focus('body')
+                    return None
+                else:
+                    size=(20,) #don't know why they want a size here
+                    p.editpart.keypress( size, k )
+                    self.mainloop.draw_screen()
 
     def buffer_open(self,b):
         """

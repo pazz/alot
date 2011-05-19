@@ -32,7 +32,7 @@ class BufferlineWidget(Text):
         return self.buffer
 
 class PromptWidget(AttrMap):
-    def __init__(self,prefix):
+    def __init__(self, prefix):
         leftpart = Text(prefix,align='left')
         self.editpart = Edit()
         both = Columns(
@@ -41,3 +41,9 @@ class PromptWidget(AttrMap):
                 ('weight', 1, self.editpart),
             ])
         AttrMap.__init__(self,both, 'prompt','prompt')
+
+    def set_input(self,txt):
+        return self.editpart.set_edit_text(txt)
+
+    def get_input(self):
+        return self.editpart.get_edit_text()
