@@ -52,7 +52,7 @@ class PromptWidget(AttrMap):
 class MessageWidget(AttrMap):
     def __init__(self,message):
         self.message = message
-        txt = Text(message.get_header('Subject'))
+        txt = Text(message.__str__())
         AttrMap.__init__(self,txt, 'message','message_focus')
 
     def selectable(self):

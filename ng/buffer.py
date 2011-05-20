@@ -108,24 +108,28 @@ class SearchBuffer(Buffer):
 
 class SingleThreadBuffer(Buffer):
     def __init__(self,ui,thread):
-        self.thread = thread
+        self.read_thread(thread)
         self.refresh()
         Buffer.__init__(self,ui,self.original_widget,'search')
         self.bindings = {
                 'enter': ('edit',{'path': self.get_selected_message_file}),
                 }
+    def read_thread(self,thread):
+        self.message_count = thread.get_total_messages()
+        self.subject = thread.get_subject()
+        self.messages = []
+        for m in thread.get_toplevel_messages():
+            self.messages.append(m)
 
     def refresh(self):
         msgs = []
-        #should do this recursively..
-        self.message_count = self.thread.get_total_messages()
-        for m in self.thread.get_toplevel_messages():
+        for m in self.messages:
             msgs.append(widgets.MessageWidget(m))
         self.messagelist = urwid.ListBox(msgs)
         self.original_widget = self.messagelist
 
     def __str__(self):
-        return "[%s] %s, (%d)" %(self.typename,self.thread.get_subject(),self.message_count)
+        return "[%s] %s, (%d)" %(self.typename,self.subject,self.message_count)
 
     def get_selected_message(self):
         (messagewidget,size) = self.messagelist.get_focus()
