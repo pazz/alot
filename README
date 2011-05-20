@@ -5,14 +5,15 @@ The key ideas are:
 * aim at the look and feel of sup for now
 * use libraries whenever possible. 
   urwid: http://excess.org/urwid/ 
-  mailbox: http://docs.python.org/library/mailbox.html
   The cnotmuch bindings: https://bitbucket.org/spaetz/cnotmuch/ should i use notmuch instead?
-  (urwid-satext: http://wiki.goffi.org/wiki/Urwid-satext
-  configparser?
+  (mailbox: http://docs.python.org/library/mailbox.html)
+  (urwid-satext: http://wiki.goffi.org/wiki/Urwid-satext)
+  (configparser)
 
 You need the cnotmuch python bindings and urwid to run it. I run it like this 
 > python ng.py -l debug.log -d debug
 and "tail -f debug.log" in another window.
+
 At the moment you can play with the global bindings
 i, open inbox
 u, open unread 
@@ -21,9 +22,11 @@ s, python shell
 v, opens log in vim
 x, closes current buffer
 tab, tabs between buffers
+;, opens bufferlist
 
-and uffer specific bindings:
-in search: enter, in bufferlist d
+and buffer specific bindings:
+in search: enter, select thread, (look at log, not implemented) 
+in bufferlist: d, removes selected buffer, enter selects.
 
 
 Here is an overview of the current architecture.
