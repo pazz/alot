@@ -4,7 +4,7 @@ There is a lot to be done, most of it is not going to be hard:
 
 * build a prompt for ng.ui.
   ui.prompt(promptprefix='>>')
-  keep in mind tabcompletion?
+  keep in mind tabcompletion? (AdvancedEdit from urwid-satext..)
   It would be cool if we had a cmdline like vim or mutt when pressing ":".
   ng.command.Commands already have typenames, calling them from a prompt could
   use the command.factory to build one and pass it to ui.apply_command.

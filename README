@@ -6,7 +6,7 @@ The key ideas are:
 * use libraries whenever possible. 
   urwid: http://excess.org/urwid/ 
   mailbox: http://docs.python.org/library/mailbox.html
-  obviously the cnotmuch bindings: https://bitbucket.org/spaetz/cnotmuch/
+  The cnotmuch bindings: https://bitbucket.org/spaetz/cnotmuch/ should i use notmuch instead?
   (urwid-satext: http://wiki.goffi.org/wiki/Urwid-satext
   configparser?
 
@@ -110,7 +110,7 @@ element of the iterator. For now, there's a NotmuchIteratorWalker class that
 does the same for notmuch's one-time iterators. This is almost certainly a bad
 idea methinks.
 
-Bindings
+Key Bindings
 Are currently a hash in objects of the classes ng.ui.UI and ng.buffer.Buffer.
 Obviously, a key is first handed to the current buffer and in case it doesn't
 handle it, it will be handled by the main UI.  Each buffer-subclass comes with
