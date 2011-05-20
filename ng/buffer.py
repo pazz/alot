@@ -1,10 +1,8 @@
 import urwid
-import logging
-from cnotmuch.notmuch import Database, Query, Messages, Message
 import widgets
 import db
 import command
-from walker import NotmuchIteratorWalker,IteratorWalker
+from walker import IteratorWalker
 
 class Buffer(urwid.AttrMap):
     def __init__(self,ui,widget,name):
@@ -27,12 +25,11 @@ class Buffer(urwid.AttrMap):
 
     def keypress(self,size,key):
         if self.bindings.has_key(key):
-            logging.debug("%s: handeles key: %s"%(self.typename,key))
+            self.ui.logger.debug("%s: handeles key: %s"%(self.typename,key))
             cmdname,parms = self.bindings[key]
             cmd = command.factory(cmdname,**parms)
             self.apply_command(cmd)
         else:
-            logging.debug(key)
             if key == 'j':
                 key='down'
             elif key == 'k':
@@ -92,13 +89,11 @@ class SearchBuffer(Buffer):
         self.refresh()
         Buffer.__init__(self,ui,self.original_widget,'search')
         self.bindings = {
-                'enter': ('thread_open',{'thread': self.get_selected_thread}),
+                'enter': ('open_thread',{'thread': self.get_selected_thread}),
                 }
 
     def refresh(self):
-        logging.info("querystring: %s"%self.querystring)
         self.result_count = self.dbman.count_messages(self.querystring)
-        logging.info("count: %d"%self.result_count)
         threads = self.dbman.search_threads(self.querystring)
         self.threadlist = urwid.ListBox(IteratorWalker(threads,widgets.ThreadlineWidget))
         self.original_widget = self.threadlist
@@ -107,6 +102,34 @@ class SearchBuffer(Buffer):
         return "[%s] for %s, (%d)" % (self.typename,self.querystring,self.result_count)
 
     def get_selected_thread(self):
-        (linewidget,size) = self.threadlist.get_focus()
-        threadlinewidget = linewidget.original_widget
-        return threadlinewidget.get_thread()
+        (threadlinewidget,size) = self.threadlist.get_focus()
+        t=threadlinewidget.get_thread()
+        return t
+
+class SingleThreadBuffer(Buffer):
+    def __init__(self,ui,thread):
+        self.thread = thread
+        self.refresh()
+        Buffer.__init__(self,ui,self.original_widget,'search')
+        self.bindings = {
+                'enter': ('edit',{'path': self.get_selected_message_file}),
+                }
+
+    def refresh(self):
+        msgs = []
+        #should do this recursively..
+        self.message_count = self.thread.get_total_messages()
+        for m in self.thread.get_toplevel_messages():
+            msgs.append(widgets.MessageWidget(m))
+        self.messagelist = urwid.ListBox(msgs)
+        self.original_widget = self.messagelist
+
+    def __str__(self):
+        return "[%s] %s, (%d)" %(self.typename,self.thread.get_subject(),self.message_count)
+
+    def get_selected_message(self):
+        (messagewidget,size) = self.messagelist.get_focus()
+        return messagewidget.get_message()
+
+    def get_selected_message_file(self):
+        return self.get_selected_message().get_filename()

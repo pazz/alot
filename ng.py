@@ -9,7 +9,7 @@ if __name__ == "__main__":
     parser.add_argument('-ro','--read-only', action='store_true', help='open db in read only mode')
     parser.add_argument('--dbpath', help='path to notmuch index')
     parser.add_argument('-d','--debug-level', default='info', help='one of DEBUG,INFO,WARNING,ERROR')
-    parser.add_argument('-l','--logfile', help='logfile', default='ng.log')
+    parser.add_argument('-l','--logfile', help='logfile', default='debug.log')
     args = parser.parse_args()
 
     dbman = DBManager(path=args.dbpath,ro=args.read_only)

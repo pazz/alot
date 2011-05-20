@@ -134,7 +134,7 @@ class UI:
 
     def keypress(self,key):
         if self.bindings.has_key(key):
-            logging.debug("got globally bounded key: %s"%key)
+            self.logger.debug("got globally bounded key: %s"%key)
             cmdname,parms = self.bindings[key]
             cmd = command.factory(cmdname,**parms)
             self.apply_command(cmd)
@@ -150,7 +150,7 @@ class UI:
                 except:
                     self.logger.error('prehook failed')
                     raise
-            self.logger.debug('apply command')
+            self.logger.debug('apply command: %s'%cmd)
             cmd.apply(self)
             if cmd.posthook:
                 self.logger.debug('calling post-hook')

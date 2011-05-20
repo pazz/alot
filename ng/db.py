@@ -1,4 +1,4 @@
-from cnotmuch.notmuch import Database, Query, Messages, Message
+from notmuch import Database, Query, Messages, Message
 class DBManager():
     def __init__(self,path=None,ro=False):
         self.ro = ro
@@ -26,3 +26,11 @@ class DBManager():
             mode = Database.MODE.READ_WRITE
             db = Database(path=self.path,mode=mode)
             return None #do stuff
+
+def extract_messages_from_thread(thread):
+    msgs = []
+    #should do this recursively..
+    for m in thread.get_toplevel_messages():
+        msgs.append(m)
+    return msgs
+

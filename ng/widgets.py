@@ -15,6 +15,7 @@ class ThreadlineWidget(AttrMap):
         return key
 
     def get_thread(self):
+        logging.error('THREAD: %s'%self.thread)
         return self.thread
 
 class BufferlineWidget(Text):
@@ -47,3 +48,18 @@ class PromptWidget(AttrMap):
 
     def get_input(self):
         return self.editpart.get_edit_text()
+
+class MessageWidget(AttrMap):
+    def __init__(self,message):
+        self.message = message
+        txt = Text(message.get_header('Subject'))
+        AttrMap.__init__(self,txt, 'message','message_focus')
+
+    def selectable(self):
+        return True
+
+    def keypress(self, size, key):
+        return key
+
+    def get_message(self):
+        return self.message
