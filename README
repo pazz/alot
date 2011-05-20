@@ -1,5 +1,5 @@
 This is a proposal for a terminal gui for notmuch mail, written in python.
-Currently, it is more a sketch of a framework, so let me explain the key ideas here:
+The key ideas are:
 
 * OOP approach using python 
 * aim at the look and feel of sup for now
@@ -8,35 +8,54 @@ Currently, it is more a sketch of a framework, so let me explain the key ideas h
   mailbox: http://docs.python.org/library/mailbox.html
   obviously the cnotmuch bindings: https://bitbucket.org/spaetz/cnotmuch/
   (urwid-satext: http://wiki.goffi.org/wiki/Urwid-satext
+  configparser?
 
 You need the cnotmuch python bindings and urwid to run it. I run it like this 
 > python ng.py -l debug.log -d debug
-and "tail -f debug.log" in another window. See settings.py for global bindings.
+and "tail -f debug.log" in another window.
+At the moment you can play with the global bindings
+i, open inbox
+u, open unread 
+s, python shell
+/, prompts and stars search
+v, opens log in vim
+x, closes current buffer
+tab, tabs between buffers
+
+and uffer specific bindings:
+in search: enter, in bufferlist d
+
 
 Here is an overview of the current architecture.
 
 ng.ui.UI 
 contains the main component: it
  - handles the urwid.MainLoop that manages the screen etc.
- - contains a logging.logger that can be used for log/debug messages like so: ui.logger.info('hello logworld')
+ - contains a logging.logger that can be used for log/debug messages like so:
+   ui.logger.info('hello logworld')
  - sets up and updates the header/footer/body widgets
- - is able to open/close/focus buffers (there's a list ui.buffers of currently known buffers, and a ui.current_buffer, pointing to the focussed one)
+ - is able to open/close/focus buffers (there's a list ui.buffers of currently
+   known buffers, and a ui.current_buffer, pointing to the focussed one)
  - handles global keybindings. See below for more on bindings.
  - can apply (and further down the road undo/redo) commands (see command.py)
- - should be able to open a prompt/dialogs? for user input. This is still missing
+ - is able to open a prompt/dialogs
 
 ng.db.DBManager 
-is the door to the notmuch index. Currently, it has very limited functionality, but should be able to to this:
- - store the connection settings (index path and whether or not we use a read_only connection..)
- - two basic methods for reading from and writing to the index. Lets call it dbman.query(querystring) and dbman.update(updatestring).
-   query will return a notmuch.Query object, i haven't bothered with update so far.
- - a method for all interesting operations on the index These will use self.query/update accordingly. See dbman.count_messages for a simple example
+interface to the notmuch index. Currently, it has very limited functionality,
+but should be able to to this:
+ - store the connection settings (index path and whether or not we use a
+   read_only connection..)
+ - two basic methods for reading from and writing to the index. Lets call it
+   dbman.query(querystring) and dbman.update(updatestring).  query will return
+   a notmuch.Query object, i haven't bothered with update so far.
+ - a method for all interesting operations on the index These will use
+   self.query/update accordingly. See dbman.count_messages for a simple example
 
 ng.buffer.Buffer
 Is used as a base class for different types of buffers, or display-modi if you
 like. So far there's only a SearchBuffer (might be a bad name) that displays
 the result of a search for mail threads, and a BufferListBuffer, that displays
-a list of buffers.  Technically, ng.buffer.Buffer inherits from urwid.AttrMap.
+a list of buffers. Technically, ng.buffer.Buffer inherits from urwid.AttrMap.
 This is done so that it can be directly be set as the body-part of the main
 gui, thereby intercepting (and filter/handle according to local bindings) the
 key presses. A Buffer
