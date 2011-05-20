@@ -129,6 +129,7 @@ commands =  {
 def factory(cmdname,**kwargs):
     if commands.has_key(cmdname):
         cmdclass,parms = commands[cmdname]
+        parms=parms.copy()
         parms.update(kwargs)
         for key, value in kwargs.items():
             if callable(value):

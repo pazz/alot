@@ -80,8 +80,6 @@ class UI:
 
     def buffer_close(self,b):
         buffers = self.buffers
-        self.logger.debug('buffers: %s'%buffers)
-        self.logger.debug('current_buffer: %s'%self.current_buffer)
         if b not in buffers:
             self.logger.error('tried to close unknown buffer: %s. \n\ni have:%s'%(b,self.buffers))
         elif len(buffers)==1:
@@ -90,15 +88,14 @@ class UI:
             self.apply_command(cmd)
         else:
             if self.current_buffer == b:
-                self.logger.debug('closing current buffer %s'%b)
+                self.logger.debug('UI: closing current buffer %s'%b)
                 index = buffers.index(b)
                 buffers.remove(b)
                 self.current_buffer = buffers[index%len(buffers)]
             else:
-                self.logger.debug('closing current buffer %d:%s'%(buffers.index(b),b))
+                self.logger.debug('closing buffer %d:%s'%(buffers.index(b),b))
+                index = buffers.index(b)
                 buffers.remove(b)
-        self.logger.debug('buffers: %s'%buffers)
-        self.logger.debug('current_buffer: %s'%self.current_buffer)
 
     def buffer_focus(self,b):
         """
