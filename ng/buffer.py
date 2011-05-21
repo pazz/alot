@@ -112,7 +112,7 @@ class SingleThreadBuffer(Buffer):
         self.refresh()
         Buffer.__init__(self,ui,self.original_widget,'search')
         self.bindings = {
-                'enter': ('edit',{'path': self.get_selected_message_file}),
+                'enter': ('call_pager',{'path': self.get_selected_message_file}),
                 }
     def read_thread(self,thread):
         self.message_count = thread.get_total_messages()

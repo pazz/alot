@@ -30,10 +30,10 @@ class UI:
             'q': ('shutdown',{}),
             ';': ('buffer_list',{}),
             's': ('shell',{}),
-            'v': ('editlog',{}),
+            'v': ('view_log',{}),
         }
 
-        cmd = command.factory('open_unread')
+        cmd = command.factory('open_inbox')
         self.apply_command(cmd)
         self.mainloop.run()
 
