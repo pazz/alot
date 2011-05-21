@@ -112,12 +112,12 @@ class UI:
         """
         redraw interface
         """
-        #header
-        head = urwid.Text('notmuch gui')
-        h=urwid.AttrMap(head, 'header')
+        #who needs a header?
+        #head = urwid.Text('notmuch gui')
+        #h=urwid.AttrMap(head, 'header')
+        #self.mainframe.set_header(h)
 
         #body
-        self.mainframe.set_header(h)
         self.mainframe.set_body(self.current_buffer)
 
         #footer

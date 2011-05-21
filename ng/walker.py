@@ -25,7 +25,6 @@ class IteratorWalker(urwid.ListWalker):
         return self._get_at_pos(start_from - 1)
 
     def _get_at_pos(self, pos):
-
         if pos < 0: #pos too low
             return None, None
         elif pos > len(self.lines): #pos too high

@@ -123,8 +123,10 @@ class SingleThreadBuffer(Buffer):
 
     def refresh(self):
         msgs = []
+        i=1
         for m in self.messages:
-            msgs.append(widgets.MessageWidget(m))
+            msgs.append(widgets.MessageWidget(m,even=(i%2==0)))
+            i+=1
         self.messagelist = urwid.ListBox(msgs)
         self.original_widget = self.messagelist
 
