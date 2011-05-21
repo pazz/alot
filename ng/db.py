@@ -27,10 +27,3 @@ class DBManager():
             db = Database(path=self.path,mode=mode)
             return None #do stuff
 
-def extract_messages_from_thread(thread):
-    msgs = []
-    #should do this recursively..
-    for m in thread.get_toplevel_messages():
-        msgs.append(m)
-    return msgs
-

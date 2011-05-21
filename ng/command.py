@@ -61,11 +61,29 @@ class EditCommand(Command):
         Command.__init__(self,**kwargs)
 
     def apply(self,ui):
-        cmd = settings.editor_cmd%self.path
-        ui.logger.info('call editor')
+        cmd = ExternalCommand(settings.editor_cmd%self.path)
+        ui.apply_command(cmd)
+
+class PagerCommand(Command):
+    """opens pager"""
+
+    def __init__(self,path,**kwargs):
+        self.path = path
+        Command.__init__(self,**kwargs)
+
+    def apply(self,ui):
+        cmd = ExternalCommand(settings.pager_cmd%self.path)
+        ui.apply_command(cmd)
+
+class ExternalCommand(Command):
+    """calls external command"""
+    def __init__(self,commandstring,**kwargs):
+        self.commandstring = commandstring
+        Command.__init__(self,**kwargs)
+    def apply(self,ui):
         ui.mainloop.screen.stop()
         #should be done asynchronously
-        os.system(cmd)
+        os.system(self.commandstring)
         ui.mainloop.screen.start()
 
 class OpenPythonShellCommand(Command):
@@ -134,8 +152,9 @@ commands =  {
         'search': (SearchCommand,{}),
         'shutdown': (ShutdownCommand,{}),
         'shell': (OpenPythonShellCommand,{}),
-        'editlog': (EditCommand,{'path':'debug.log'}),
-        'edit': (EditCommand,{}),
+        'view_log': (PagerCommand,{'path':'debug.log'}),
+        'call_editor': (EditCommand,{}),
+        'call_pager': (PagerCommand,{}),
         }
 
 def factory(cmdname,**kwargs):

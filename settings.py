@@ -1,4 +1,5 @@
 editor_cmd = "/usr/bin/vim -f -c 'set filetype=mail' %s"
+pager_cmd = "/usr/bin/view -f -c 'set filetype=mail' %s"
 palette = [
     ('header', 'white', 'dark blue', 'bold', '#ffa', ''),
     ('footer', 'white', 'dark blue', 'bold', '', ''),
