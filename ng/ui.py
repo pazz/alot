@@ -12,9 +12,12 @@ class UI:
         self.logger = log
         self.dbman = db
 
+        self.logger.error(args)
         self.logger.debug('setup gui')
         self.mainframe = urwid.Frame(urwid.SolidFill(' '))
-        self.mainloop = urwid.MainLoop(self.mainframe, settings.palette,
+        self.mainloop = urwid.MainLoop(self.mainframe, 
+                settings.palette,
+                handle_mouse=args['handle_mouse'],
                 unhandled_input=self.keypress)
         #self.mainloop.screen.set_terminal_properties(colors=256)
         self.mainloop.screen.set_terminal_properties(colors=16)
@@ -129,7 +132,10 @@ class UI:
         footerleft = urwid.Text(lefttxt,align='left')
         righttxt = 'total messages: %d'%self.dbman.count_messages('*')
         footerright = urwid.Text(righttxt,align='right')
-        footer=urwid.AttrMap(urwid.Columns([footerleft,footerright]), 'footer')
+        columns = urwid.Columns([
+            footerleft,
+            ('fixed',len(righttxt),footerright)])
+        footer = urwid.AttrMap(columns,'footer')
         self.mainframe.set_footer(footer)
 
     def keypress(self,key):
@@ -139,7 +145,7 @@ class UI:
             cmd = command.factory(cmdname,**parms)
             self.apply_command(cmd)
         else:
-            self.logger.info('unhandeled input: %s'%input)
+            self.logger.debug('unhandeled input: %s'%input)
 
     def apply_command(self,cmd):
         if cmd:

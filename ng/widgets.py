@@ -1,14 +1,54 @@
 from urwid import Text,AttrMap,Edit,Columns,ListBox,Pile,WidgetWrap
 from walker import IteratorWalker
 import email
+from datetime import datetime
 import settings
+from helper import shorten
 
 class ThreadlineWidget(AttrMap):
     def __init__(self,thread):
         self.thread = thread
-        self.markup = thread.__str__()
-        txt = Text(thread.__str__(),wrap='clip')
-        AttrMap.__init__(self,txt, 'threadline','threadline_focus')
+
+        self.datetime = datetime.fromtimestamp(thread.get_newest_date())
+        datestring=self.datetime.strftime('%B %d,%I:%M')
+        datestring+=self.datetime.strftime('%p').lower()
+        self.date_w = AttrMap(Text(datestring),'threadline_date')
+
+        mailcountstring = "(%d)"%self.thread.get_total_messages()
+        self.mailcount_w = AttrMap(Text(mailcountstring),'threadline_mailcount')
+
+        tagsstring = " ".join(self.thread.get_tags())
+        self.tags_w = AttrMap(Text(tagsstring),'threadline_tags')
+
+        authorsstring = shorten(thread.get_authors(),settings.authors_maxlength)
+        self.authors_w = AttrMap(Text(authorsstring),'threadline_authors')
+
+        self.subject_w = AttrMap(Text(thread.get_subject(),wrap='clip'),'threadline_subject')
+
+        self.columns = Columns([
+            ('fixed',len(datestring),self.date_w),
+            ('fixed',len(mailcountstring),self.mailcount_w),
+            ('fixed',len(tagsstring),self.tags_w),
+            ('fixed',len(authorsstring),self.authors_w),
+            self.subject_w,
+            ],
+            dividechars=1)
+        AttrMap.__init__(self,self.columns, 'threadline','threadline_focus')
+
+    def render(self, size, focus=False):
+        if focus:
+            self.date_w.set_attr_map({None:'threadline_date_linefocus'})
+            self.mailcount_w.set_attr_map({None:'threadline_mailcount_linefocus'})
+            self.tags_w.set_attr_map({None:'threadline_tags_linefocus'})
+            self.authors_w.set_attr_map({None:'threadline_authors_linefocus'})
+            self.subject_w.set_attr_map({None:'threadline_subject_linefocus'})
+        else:
+            self.date_w.set_attr_map({None:'threadline_date'})
+            self.mailcount_w.set_attr_map({None:'threadline_mailcount'})
+            self.tags_w.set_attr_map({None:'threadline_tags'})
+            self.authors_w.set_attr_map({None:'threadline_authors'})
+            self.subject_w.set_attr_map({None:'threadline_subject'})
+        return AttrMap.render(self,size,focus)
 
     def selectable(self):
         return True
