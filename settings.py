@@ -26,7 +26,7 @@ palette = [
     ('bufferlist_results_odd', 'light gray', 'black', '', 'g38', '#808'),
     ('bufferlist_focus', 'white', 'dark gray', '', '#ffa', '#60d'),
 ]
-displayed_headers=[
+displayed_headers = [
         'From',
         'To',
         'Cc',
