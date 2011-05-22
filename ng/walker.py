@@ -5,7 +5,6 @@ from notmuch import NotmuchError
 
 
 class IteratorWalker(urwid.ListWalker):
-
     def __init__(self, it, containerclass):
         self.it = it
         self.containerclass = containerclass

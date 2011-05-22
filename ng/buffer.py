@@ -12,8 +12,6 @@ class Buffer(urwid.AttrMap):
         self.bindings = {}
         urwid.AttrMap.__init__(self, widget, {})
 
-        return ""
-
     def refresh(self):
         pass
 
@@ -32,16 +30,11 @@ class Buffer(urwid.AttrMap):
             cmd = command.factory(cmdname, **parms)
             self.apply_command(cmd)
         else:
-            if key == 'j':
-                key = 'down'
-            elif key == 'k':
-                key = 'up'
-            elif key == 'h':
-                key = 'left'
-            elif key == 'l':
-                key = 'right'
-            elif key == ' ':
-                key = 'page down'
+            if key == 'j': key = 'down'
+            elif key == 'k': key = 'up'
+            elif key == 'h': key = 'left'
+            elif key == 'l': key = 'right'
+            elif key == ' ': key = 'page down'
             return self.original_widget.keypress(size, key)
 
 
@@ -64,18 +57,14 @@ class BufferListBuffer(Buffer):
         return self.ui.buffers.index(b)
 
     def refresh(self):
-        lines = []
-        i = 0
-        for b in filter(self.filtfun, self.ui.buffers):
+        lines = list()
+        for (num, b) in enumerate(filter(self.filtfun, self.ui.buffers)):
             line = widgets.BufferlineWidget(b)
-            if (i % 2 == 1):
-                attr = 'bufferlist_results_odd'
-            else:
-                attr = 'bufferlist_results_even'
+            if (num % 2) == 0: attr = 'bufferlist_results_even'
+            else: attr = 'bufferlist_results_odd'
             buf = urwid.AttrMap(line, attr, 'bufferlist_focus')
             num = urwid.Text('%3d:' % self.index_of(b))
             lines.append(urwid.Columns([('fixed', 4, num), buf]))
-            i += 1
         self.bufferlist = urwid.ListBox(urwid.SimpleListWalker(lines))
         self.original_widget = self.bufferlist
 
@@ -112,8 +101,7 @@ class SearchBuffer(Buffer):
 
     def get_selected_thread(self):
         (threadlinewidget, size) = self.threadlist.get_focus()
-        t = threadlinewidget.get_thread()
-        return t
+        return  threadlinewidget.get_thread()
 
 
 class SingleThreadBuffer(Buffer):
@@ -129,16 +117,13 @@ class SingleThreadBuffer(Buffer):
     def read_thread(self, thread):
         self.message_count = thread.get_total_messages()
         self.subject = thread.get_subject()
-        self.messages = []
-        for m in thread.get_toplevel_messages():
-            self.messages.append(m)
+        # list() throws an error
+        self.messages = [m for m in thread.get_toplevel_messages()]
 
     def refresh(self):
-        msgs = []
-        i = 1
-        for m in self.messages:
-            msgs.append(widgets.MessageWidget(m, even=(i % 2 == 0)))
-            i += 1
+        msgs = list()
+        for (num, m) in enumerate(self.messages, 1):
+            msgs.append(widgets.MessageWidget(m, even=(num % 2 == 0)))
         self.messagelist = urwid.ListBox(msgs)
         self.original_widget = self.messagelist
 

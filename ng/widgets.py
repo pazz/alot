@@ -138,18 +138,20 @@ class MessageWidget(WidgetWrap):
 
     def read_mail(self, message):
         #what about crypto?
-        f = open(message.get_filename())
-        eml = email.message_from_file(f)
-        f.close()
+        try:
+            f_mail = open(message.get_filename())
+        except EnvironmentError:
+            eml = email.message_from_string('Unable to open the file')
+        else:
+            eml = email.message_from_file(f_mail)
+            f_mail.close()
         return eml
 
 
 class MessageLineWidget(WidgetWrap):
     def __init__(self, message):
         self.message = message
-        headertxt = message.__str__()
-        txt = Text(headertxt)
-        WidgetWrap.__init__(self, txt)
+        WidgetWrap.__init__(self, Text(str(message)))
 
     def selectable(self):
         return True
@@ -166,8 +168,7 @@ class MessageHeaderWidget(WidgetWrap):
             if eml.has_key(l):
                 headerlines.append('%s:%s' % (l, eml.get(l)))
         headertxt = '\n'.join(headerlines)
-        txt = Text(headertxt)
-        WidgetWrap.__init__(self, txt)
+        WidgetWrap.__init__(self, Text(headertxt))
 
     def selectable(self):
         return True
@@ -179,11 +180,8 @@ class MessageHeaderWidget(WidgetWrap):
 class MessageBodyWidget(WidgetWrap):
     def __init__(self, eml):
         self.eml = eml
-        bodytxt = ""
-        for l in email.iterators.body_line_iterator(self.eml):
-            bodytxt += l
-        txt = Text(bodytxt)
-        WidgetWrap.__init__(self, txt)
+        bodytxt = ''.join(email.iterators.body_line_iterator(self.eml))
+        WidgetWrap.__init__(self, Text(bodytxt))
 
     def selectable(self):
         return True
