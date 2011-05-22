@@ -37,7 +37,7 @@ class UI:
             'v': ('view_log', {}),
         }
 
-        cmd = command.factory('open_inbox')
+        cmd = command.factory('search', query=args['search'])
         self.apply_command(cmd)
         self.mainloop.run()
 
@@ -142,7 +142,7 @@ class UI:
         self.mainframe.set_footer(footer)
 
     def keypress(self, key):
-        if self.bindings.has_key(key):
+        if key in self.bindings:
             self.logger.debug("got globally bounded key: %s" % key)
             (cmdname, parms) = self.bindings[key]
             cmd = command.factory(cmdname, **parms)

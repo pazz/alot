@@ -17,6 +17,8 @@ def parse_args():
                         help='one of DEBUG,INFO,WARNING,ERROR')
     parser.add_argument('-l', '--logfile', default='debug.log',
                         help='logfile')
+    parser.add_argument('-s', '--search', default='tag:inbox',
+                        help='initial searchstring')
     return parser.parse_args()
 
 
@@ -28,7 +30,8 @@ def main():
     logger = logging.getLogger()
     ui = UI(db=dbman,
             log=logger,
-            handle_mouse=args.handle_mouse)
+            handle_mouse=args.handle_mouse,
+            search=args.search)
 
 if __name__ == "__main__":
     main()
