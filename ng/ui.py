@@ -4,18 +4,19 @@ import settings
 from ng import command
 from ng.widgets import PromptWidget
 
+
 class UI:
     buffers = []
     current_buffer = None
 
-    def __init__(self,db,log,**args):
+    def __init__(self, db, log, **args):
         self.logger = log
         self.dbman = db
 
         self.logger.error(args)
         self.logger.debug('setup gui')
         self.mainframe = urwid.Frame(urwid.SolidFill(' '))
-        self.mainloop = urwid.MainLoop(self.mainframe, 
+        self.mainloop = urwid.MainLoop(self.mainframe,
                 settings.palette,
                 handle_mouse=args['handle_mouse'],
                 unhandled_input=self.keypress)
@@ -24,16 +25,16 @@ class UI:
 
         self.logger.debug('setup bindings')
         self.bindings = {
-            'i': ('open_inbox',{}),
-            'u': ('open_unread',{}),
-            'x': ('buffer_close',{}),
-            'tab': ('buffer_next',{}),
-            'shift tab': ('buffer_prev',{}),
-            '\\': ('open_search',{}),
-            'q': ('shutdown',{}),
-            ';': ('buffer_list',{}),
-            's': ('shell',{}),
-            'v': ('view_log',{}),
+            'i': ('open_inbox', {}),
+            'u': ('open_unread', {}),
+            'x': ('buffer_close', {}),
+            'tab': ('buffer_next', {}),
+            'shift tab': ('buffer_prev', {}),
+            '\\': ('open_search', {}),
+            'q': ('shutdown', {}),
+            ';': ('buffer_list', {}),
+            's': ('shell', {}),
+            'v': ('view_log', {}),
         }
 
         cmd = command.factory('open_inbox')
@@ -64,43 +65,42 @@ class UI:
                     self.mainframe.set_footer(footer)
                     self.mainframe.set_focus('body')
                     return p.get_input()
-                if k in ['escape','tab']:
+                if k in ['escape', 'tab']:
                     self.mainframe.set_footer(footer)
                     self.mainframe.set_focus('body')
                     return None
                 else:
-                    size=(20,) #don't know why they want a size here
-                    p.editpart.keypress( size, k )
+                    size = (20,)  # don't know why they want a size here
+                    p.editpart.keypress(size, k)
                     self.mainloop.draw_screen()
 
-    def buffer_open(self,b):
+    def buffer_open(self, b):
         """
         register and focus new buffer
         """
-
         self.buffers.append(b)
         self.buffer_focus(b)
 
-    def buffer_close(self,b):
+    def buffer_close(self, b):
         buffers = self.buffers
         if b not in buffers:
-            self.logger.error('tried to close unknown buffer: %s. \n\ni have:%s'%(b,self.buffers))
-        elif len(buffers)==1:
+            self.logger.error('tried to close unknown buffer: %s. \n\ni have:%s' % (b, self.buffers))
+        elif len(buffers) == 1:
             self.logger.info('closing the last buffer, exiting')
             cmd = command.factory('shutdown')
             self.apply_command(cmd)
         else:
             if self.current_buffer == b:
-                self.logger.debug('UI: closing current buffer %s'%b)
+                self.logger.debug('UI: closing current buffer %s' % b)
                 index = buffers.index(b)
                 buffers.remove(b)
-                self.current_buffer = buffers[index%len(buffers)]
+                self.current_buffer = buffers[index % len(buffers)]
             else:
-                self.logger.debug('closing buffer %d:%s'%(buffers.index(b),b))
+                self.logger.debug('closing buffer %d:%s' % (buffers.index(b), b))
                 index = buffers.index(b)
                 buffers.remove(b)
 
-    def buffer_focus(self,b):
+    def buffer_focus(self, b):
         """
         focus given buffer. must be contained in self.buffers
         """
@@ -128,26 +128,26 @@ class UI:
 
     def update_footer(self):
         i = self.buffers.index(self.current_buffer)
-        lefttxt = '%d: %s'%(i,self.current_buffer)
-        footerleft = urwid.Text(lefttxt,align='left')
-        righttxt = 'total messages: %d'%self.dbman.count_messages('*')
-        footerright = urwid.Text(righttxt,align='right')
+        lefttxt = '%d: %s' % (i, self.current_buffer)
+        footerleft = urwid.Text(lefttxt, align='left')
+        righttxt = 'total messages: %d' % self.dbman.count_messages('*')
+        footerright = urwid.Text(righttxt, align='right')
         columns = urwid.Columns([
             footerleft,
-            ('fixed',len(righttxt),footerright)])
-        footer = urwid.AttrMap(columns,'footer')
+            ('fixed', len(righttxt), footerright)])
+        footer = urwid.AttrMap(columns, 'footer')
         self.mainframe.set_footer(footer)
 
-    def keypress(self,key):
+    def keypress(self, key):
         if self.bindings.has_key(key):
-            self.logger.debug("got globally bounded key: %s"%key)
-            cmdname,parms = self.bindings[key]
-            cmd = command.factory(cmdname,**parms)
+            self.logger.debug("got globally bounded key: %s" % key)
+            (cmdname, parms) = self.bindings[key]
+            cmd = command.factory(cmdname, **parms)
             self.apply_command(cmd)
         else:
-            self.logger.debug('unhandeled input: %s'%input)
+            self.logger.debug('unhandeled input: %s' % input)
 
-    def apply_command(self,cmd):
+    def apply_command(self, cmd):
         if cmd:
             if cmd.prehook:
                 self.logger.debug('calling pre-hook')
@@ -156,7 +156,7 @@ class UI:
                 except:
                     self.logger.error('prehook failed')
                     raise
-            self.logger.debug('apply command: %s'%cmd)
+            self.logger.debug('apply command: %s' % cmd)
             cmd.apply(self)
             if cmd.posthook:
                 self.logger.debug('calling post-hook')

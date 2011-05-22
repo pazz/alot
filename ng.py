@@ -5,6 +5,7 @@ import logging
 from ng.db import DBManager
 from ng.ui import UI
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-r','--read-only',
