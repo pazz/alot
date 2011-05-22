@@ -117,7 +117,8 @@ class SingleThreadBuffer(Buffer):
     def read_thread(self, thread):
         self.message_count = thread.get_total_messages()
         self.subject = thread.get_subject()
-        self.messages = list(thread.get_toplevel_messages())
+        # list() throws an error
+        self.messages = [m for m in thread.get_toplevel_messages()]
 
     def refresh(self):
         msgs = list()
