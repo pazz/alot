@@ -57,18 +57,14 @@ class BufferListBuffer(Buffer):
         return self.ui.buffers.index(b)
 
     def refresh(self):
-        lines = []
-        i = 0
-        for b in filter(self.filtfun, self.ui.buffers):
+        lines = list()
+        for (num, b) in enumerate(filter(self.filtfun, self.ui.buffers)):
             line = widgets.BufferlineWidget(b)
-            if (i % 2 == 1):
-                attr = 'bufferlist_results_odd'
-            else:
-                attr = 'bufferlist_results_even'
+            if (num % 2) == 0: attr = 'bufferlist_results_even'
+            else: attr = 'bufferlist_results_odd'
             buf = urwid.AttrMap(line, attr, 'bufferlist_focus')
             num = urwid.Text('%3d:' % self.index_of(b))
             lines.append(urwid.Columns([('fixed', 4, num), buf]))
-            i += 1
         self.bufferlist = urwid.ListBox(urwid.SimpleListWalker(lines))
         self.original_widget = self.bufferlist
 
@@ -121,16 +117,12 @@ class SingleThreadBuffer(Buffer):
     def read_thread(self, thread):
         self.message_count = thread.get_total_messages()
         self.subject = thread.get_subject()
-        self.messages = []
-        for m in thread.get_toplevel_messages():
-            self.messages.append(m)
+        self.messages = list(thread.get_toplevel_messages())
 
     def refresh(self):
-        msgs = []
-        i = 1
-        for m in self.messages:
-            msgs.append(widgets.MessageWidget(m, even=(i % 2 == 0)))
-            i += 1
+        msgs = list()
+        for (num, m) in enumerate(self.messages, 1):
+            msgs.append(widgets.MessageWidget(m, even=(num % 2 == 0)))
         self.messagelist = urwid.ListBox(msgs)
         self.original_widget = self.messagelist
 
