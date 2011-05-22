@@ -1,5 +1,9 @@
 editor_cmd = "/usr/bin/vim -f -c 'set filetype=mail' %s"
 pager_cmd = "/usr/bin/view -f -c 'set filetype=mail' %s"
+terminal_cmd = 'urxvt -T notmuch -e %s'
+spawn_editor = True
+spawn_pager = True
+
 palette = [
     ('header', 'white', 'dark blue', 'bold', '#ffa', ''),
     ('footer', 'white', 'dark blue', 'bold', '', ''),
@@ -35,6 +39,7 @@ displayed_headers = [
         ]
 
 authors_maxlength = 30
+
 
 hooks = {
         'pre-shutdown': lambda ui: ui.logger.info('goodbye!'),

@@ -1,5 +1,7 @@
 import os
 import logging
+import threading
+import subprocess
 
 import buffer
 import hooks
@@ -65,39 +67,69 @@ class EditCommand(Command):
     opens editor
     TODO tempfile handling etc
     """
-    def __init__(self, path, **kwargs):
+    def __init__(self, path, spawn=False, **kwargs):
         self.path = path
+        self.spawn = settings.spawn_editor or spawn
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        cmd = ExternalCommand(settings.editor_cmd % self.path)
+        def afterwards():
+            ui.logger.info('Editor was closed')
+        cmd = ExternalCommand(settings.editor_cmd % self.path,
+                              spawn=self.spawn,
+                              onExit=afterwards)
         ui.apply_command(cmd)
 
 
 class PagerCommand(Command):
     """opens pager"""
 
-    def __init__(self, path, **kwargs):
+    def __init__(self, path, spawn=False, **kwargs):
         self.path = path
+        self.spawn = settings.spawn_pager or spawn
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        cmd = ExternalCommand(settings.pager_cmd % self.path)
+        def afterwards():
+            ui.logger.info('pager was closed')
+        cmd = ExternalCommand(settings.pager_cmd %self.path,
+                              spawn=self.spawn,
+                              onExit=afterwards)
         ui.apply_command(cmd)
 
 
 class ExternalCommand(Command):
     """calls external command"""
-    def __init__(self, commandstring, **kwargs):
+    def __init__(self, commandstring, spawn=False, refocus=True, onExit=None, **kwargs):
         self.commandstring = commandstring
+        self.spawn = spawn
+        self.refocus = refocus
+        self.onExit = onExit
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        ui.mainloop.screen.stop()
-        #should be done asynchronously
-        os.system(self.commandstring)
-        ui.mainloop.screen.start()
+        def call(onExit, popenArgs):
+            callerbuffer = ui.current_buffer
+            ui.logger.info('CALLERBUFFER: %s'%callerbuffer)
+            proc = subprocess.Popen(*popenArgs,shell=True)
+            proc.wait()
+            if callable(onExit):
+                onExit()
+            if self.refocus and callerbuffer in ui.buffers:
+                ui.logger.info('TRY TO REFOCUS: %s'%callerbuffer)
+                ui.buffer_focus(callerbuffer)
+            return
 
+        if self.spawn:
+            cmd = settings.terminal_cmd % self.commandstring
+            thread = threading.Thread(target=call, args=(self.onExit, (cmd,)))
+            thread.start()
+        else:
+            ui.mainloop.screen.stop()
+            cmd = self.commandstring
+            logging.debug(cmd)
+            call(self.onExit,(cmd,))
+            ui.mainloop.screen.start()
 
 class OpenPythonShellCommand(Command):
     """
@@ -191,6 +223,7 @@ def factory(cmdname, **kwargs):
                     parms[key] = None
             else:
                 parms[key] = value
+        logging.debug(parms)
 
         prehook = hooks.get_hook('pre-' + cmdname)
         if prehook:
