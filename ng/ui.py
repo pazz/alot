@@ -84,7 +84,8 @@ class UI:
     def buffer_close(self, b):
         buffers = self.buffers
         if b not in buffers:
-            self.logger.error('tried to close unknown buffer: %s. \n\ni have:%s' % (b, self.buffers))
+            string = 'tried to close unknown buffer: %s. \n\ni have:%s'
+            self.logger.error(string % (b, self.buffers))
         elif len(buffers) == 1:
             self.logger.info('closing the last buffer, exiting')
             cmd = command.factory('shutdown')
@@ -96,7 +97,8 @@ class UI:
                 buffers.remove(b)
                 self.current_buffer = buffers[index % len(buffers)]
             else:
-                self.logger.debug('closing buffer %d:%s' % (buffers.index(b), b))
+                string = 'closing buffer %d:%s'
+                self.logger.debug(string % (buffers.index(b), b))
                 index = buffers.index(b)
                 buffers.remove(b)
 

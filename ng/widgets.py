@@ -22,15 +22,20 @@ class ThreadlineWidget(AttrMap):
         self.date_w = AttrMap(Text(datestring), 'threadline_date')
 
         mailcountstring = "(%d)" % self.thread.get_total_messages()
-        self.mailcount_w = AttrMap(Text(mailcountstring), 'threadline_mailcount')
+        self.mailcount_w = AttrMap(Text(mailcountstring),
+                                   'threadline_mailcount')
 
         tagsstring = " ".join(self.thread.get_tags())
-        self.tags_w = AttrMap(Text(tagsstring), 'threadline_tags')
+        self.tags_w = AttrMap(Text(tagsstring),
+                              'threadline_tags')
 
-        authorsstring = shorten(thread.get_authors(), settings.authors_maxlength)
-        self.authors_w = AttrMap(Text(authorsstring), 'threadline_authors')
+        authorsstring = shorten(thread.get_authors(),
+                                settings.authors_maxlength)
+        self.authors_w = AttrMap(Text(authorsstring),
+                                 'threadline_authors')
 
-        self.subject_w = AttrMap(Text(thread.get_subject(), wrap='clip'), 'threadline_subject')
+        self.subject_w = AttrMap(Text(thread.get_subject(), wrap='clip'),
+                                 'threadline_subject')
 
         self.columns = Columns([
             ('fixed', len(datestring), self.date_w),

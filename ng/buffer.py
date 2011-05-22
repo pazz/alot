@@ -54,9 +54,11 @@ class BufferListBuffer(Buffer):
         self.refresh()
         Buffer.__init__(self, ui, self.original_widget, 'bufferlist')
         self.bindings = {
-                'd': ('buffer_close', {'buffer': self.get_selected_buffer}),
-                'enter': ('buffer_focus', {'buffer': self.get_selected_buffer}),
-                }
+                         'd': ('buffer_close',
+                               {'buffer': self.get_selected_buffer}),
+                         'enter': ('buffer_focus',
+                                   {'buffer': self.get_selected_buffer}),
+                         }
 
     def index_of(self, b):
         return self.ui.buffers.index(b)
@@ -100,11 +102,13 @@ class SearchBuffer(Buffer):
     def refresh(self):
         self.result_count = self.dbman.count_messages(self.querystring)
         threads = self.dbman.search_threads(self.querystring)
-        self.threadlist = urwid.ListBox(IteratorWalker(threads, widgets.ThreadlineWidget))
+        iterator = IteratorWalker(threads, widgets.ThreadlineWidget)
+        self.threadlist = urwid.ListBox(iterator)
         self.original_widget = self.threadlist
 
     def __str__(self):
-        return "[%s] for %s, (%d)" % (self.typename, self.querystring, self.result_count)
+        string = "[%s] for %s, (%d)"
+        return string % (self.typename, self.querystring, self.result_count)
 
     def get_selected_thread(self):
         (threadlinewidget, size) = self.threadlist.get_focus()
@@ -118,8 +122,9 @@ class SingleThreadBuffer(Buffer):
         self.refresh()
         Buffer.__init__(self, ui, self.original_widget, 'search')
         self.bindings = {
-                'enter': ('call_pager', {'path': self.get_selected_message_file}),
-                }
+                         'enter': ('call_pager',
+                                   {'path': self.get_selected_message_file}),
+                         }
 
     def read_thread(self, thread):
         self.message_count = thread.get_total_messages()
@@ -138,7 +143,8 @@ class SingleThreadBuffer(Buffer):
         self.original_widget = self.messagelist
 
     def __str__(self):
-        return "[%s] %s, (%d)" % (self.typename, self.subject, self.message_count)
+        string = "[%s] %s, (%d)"
+        return string % (self.typename, self.subject, self.message_count)
 
     def get_selected_message(self):
         (messagewidget, size) = self.messagelist.get_focus()
