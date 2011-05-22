@@ -30,16 +30,11 @@ class Buffer(urwid.AttrMap):
             cmd = command.factory(cmdname, **parms)
             self.apply_command(cmd)
         else:
-            if key == 'j':
-                key = 'down'
-            elif key == 'k':
-                key = 'up'
-            elif key == 'h':
-                key = 'left'
-            elif key == 'l':
-                key = 'right'
-            elif key == ' ':
-                key = 'page down'
+            if key == 'j': key = 'down'
+            elif key == 'k': key = 'up'
+            elif key == 'h': key = 'left'
+            elif key == 'l': key = 'right'
+            elif key == ' ': key = 'page down'
             return self.original_widget.keypress(size, key)
 
 
