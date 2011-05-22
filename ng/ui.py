@@ -65,7 +65,7 @@ class UI:
                     self.mainframe.set_footer(footer)
                     self.mainframe.set_focus('body')
                     return p.get_input()
-                if k in ['escape', 'tab']:
+                if k in ('escape', 'tab'):
                     self.mainframe.set_footer(footer)
                     self.mainframe.set_focus('body')
                     return None

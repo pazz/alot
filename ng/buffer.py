@@ -12,8 +12,6 @@ class Buffer(urwid.AttrMap):
         self.bindings = {}
         urwid.AttrMap.__init__(self, widget, {})
 
-        return ""
-
     def refresh(self):
         pass
 
@@ -112,8 +110,7 @@ class SearchBuffer(Buffer):
 
     def get_selected_thread(self):
         (threadlinewidget, size) = self.threadlist.get_focus()
-        t = threadlinewidget.get_thread()
-        return t
+        return  threadlinewidget.get_thread()
 
 
 class SingleThreadBuffer(Buffer):

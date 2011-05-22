@@ -22,7 +22,6 @@ class DBManager():
     def update(self, updatestring):
         if self.ro:
             self.logger.error('I\'m in RO mode')
-            return None
         else:
             self.logger.error('DB updates not implemented yet')
             mode = Database.MODE.READ_WRITE

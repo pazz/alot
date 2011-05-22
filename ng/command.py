@@ -1,4 +1,5 @@
 import os
+import code
 import logging
 
 import buffer
@@ -15,7 +16,7 @@ class Command:
         self.help = self.__doc__
 
     def apply(self, caller):
-        return
+        pass
 
 
 class ShutdownCommand(Command):
@@ -104,7 +105,6 @@ class OpenPythonShellCommand(Command):
     opens an interactive shell for introspection
     """
     def apply(self, ui):
-        import code
         ui.mainloop.screen.stop()
         code.interact(local=locals())
         ui.mainloop.screen.start()
@@ -191,13 +191,14 @@ def factory(cmdname, **kwargs):
                     parms[key] = None
             else:
                 parms[key] = value
-
         prehook = hooks.get_hook('pre-' + cmdname)
         if prehook:
             parms['prehook'] = prehook
+
         posthook = hooks.get_hook('post-' + cmdname)
         if posthook:
             parms['posthook'] = hooks.get_hook('post-' + cmdname)
+
         logging.debug('cmd parms %s' % parms)
         return cmdclass(**parms)
     else:
