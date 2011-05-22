@@ -65,7 +65,7 @@ class UI:
                     self.mainframe.set_footer(footer)
                     self.mainframe.set_focus('body')
                     return p.get_input()
-                if k in ['escape', 'tab']:
+                if k in ('escape', 'tab'):
                     self.mainframe.set_footer(footer)
                     self.mainframe.set_focus('body')
                     return None
@@ -156,8 +156,7 @@ class UI:
                 try:
                     cmd.prehook(self)
                 except:
-                    self.logger.error('prehook failed')
-                    raise
+                    self.logger.exception('prehook failed')
             self.logger.debug('apply command: %s' % cmd)
             cmd.apply(self)
             if cmd.posthook:
@@ -165,5 +164,4 @@ class UI:
                 try:
                     cmd.posthook(self)
                 except:
-                    self.logger.error('posthook failed')
-                    raise
+                    self.logger.exception('posthook failed')
