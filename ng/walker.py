@@ -1,6 +1,8 @@
 import urwid
 import logging
-from cnotmuch.notmuch import NotmuchError, STATUS
+
+from notmuch import NotmuchError
+
 
 class IteratorWalker(urwid.ListWalker):
 
@@ -25,21 +27,21 @@ class IteratorWalker(urwid.ListWalker):
         return self._get_at_pos(start_from - 1)
 
     def _get_at_pos(self, pos):
-        if pos < 0: #pos too low
-            return None, None
-        elif pos > len(self.lines): #pos too high
-            return None, None
-        elif len(self.lines) > pos: #pos already cached
-            return self.lines[pos], pos
-        else: #pos not cached yet, look at next item from iterator
-            if self.empty: #iterator is empty
-                return None, None
+        if pos < 0:  # pos too low
+            return (None, None)
+        elif pos > len(self.lines):  # pos too high
+            return (None, None)
+        elif len(self.lines) > pos:  # pos already cached
+            return (self.lines[pos], pos)
+        else:  # pos not cached yet, look at next item from iterator
+            if self.empty:  # iterator is empty
+                return (None, None)
             else:
                 widget = self._get_next_item()
                 if widget:
-                    return widget, pos
+                    return (widget, pos)
                 else:
-                    return None, None
+                    return (None, None)
 
     def _get_next_item(self):
         try:
@@ -51,12 +53,13 @@ class IteratorWalker(urwid.ListWalker):
             self.empty = True
         return next_widget
 
+
 class NotmuchIteratorWalker(IteratorWalker):
     def _get_next_item(self):
         logging.error("it still there")
         try:
             next_obj = self.it.next()
-            logging.error("next obj: %s"%next_obj)
+            logging.error("next obj: %s" % next_obj)
             next_widget = self.containerclass(next_obj)
             self.lines.append(next_widget)
         except NotmuchError:
