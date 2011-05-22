@@ -1,6 +1,6 @@
 import urwid
+
 import settings
-from ng.buffer import *
 from ng import command
 from ng.widgets import PromptWidget
 

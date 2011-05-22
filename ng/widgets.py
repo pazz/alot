@@ -1,7 +1,13 @@
-from urwid import Text,AttrMap,Edit,Columns,ListBox,Pile,WidgetWrap
-from walker import IteratorWalker
+from urwid import Text
+from urwid import Edit
+from urwid import Pile
+from urwid import Columns
+from urwid import AttrMap
+from urwid import WidgetWrap
+
 import email
 from datetime import datetime
+
 import settings
 from helper import shorten
 

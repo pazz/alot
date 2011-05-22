@@ -1,6 +1,7 @@
 import urwid
 import logging
-from cnotmuch.notmuch import NotmuchError, STATUS
+
+from notmuch import NotmuchError
 
 class IteratorWalker(urwid.ListWalker):
 

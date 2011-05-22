@@ -1,6 +1,6 @@
 import urwid
+
 import widgets
-import db
 import command
 from walker import IteratorWalker
 

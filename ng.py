@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import argparse
 import logging
+
 from ng.db import DBManager
 from ng.ui import UI
 

@@ -1,4 +1,5 @@
-from notmuch import Database, Query, Messages, Message
+from notmuch import Database
+
 class DBManager():
     def __init__(self,path=None,ro=False):
         self.ro = ro

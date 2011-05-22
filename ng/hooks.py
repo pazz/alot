@@ -1,5 +1,6 @@
-import settings
 import logging
+
+import settings
 
 defaulthooks = {}
 

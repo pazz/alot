@@ -1,9 +1,9 @@
-import urwid
+import os
 import logging
+
 import buffer
 import hooks
 import settings
-import os
 
 class Command:
     """base class for commands"""
