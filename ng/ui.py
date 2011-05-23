@@ -72,6 +72,7 @@ class UI:
                 else:
                     size = (20,)  # don't know why they want a size here
                     p.editpart.keypress(size, k)
+                    self.mainloop.draw_screen()
 
     def buffer_open(self, b):
         """
