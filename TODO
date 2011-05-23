@@ -28,17 +28,14 @@ There is a lot to be done, most of it is not going to be hard:
 
 * packaging? Last time i checked "PIPifying" a project wasn't hard, a bit of fumbling with a setup.py?
 
-* get first querystring from cmdline arg
-
 * undo for commands
 
 * gg, g5j.. combos like in vim
-
-* define terminal cmd in settings, make external calls asynchronous and optionally run in terminal:
-  e.g. editor pops up in new window by setting term=urxvt .
 
 * searchbuffer: unseen tag -> msg bold
 * archive,watch,new toggles and label prompt in searchbuffer
 
 * help strings in commands and help buffer
+
+* taglist buffer
 
