@@ -2,8 +2,8 @@
 import argparse
 import logging
 
-from ng.db import DBManager
-from ng.ui import UI
+from alot.db import DBManager
+from alot.ui import UI
 
 
 def parse_args():

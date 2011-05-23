@@ -1,8 +1,8 @@
 import urwid
 
 import settings
-from ng import command
-from ng.widgets import PromptWidget
+from alot import command
+from alot.widgets import PromptWidget
 
 
 class UI:
