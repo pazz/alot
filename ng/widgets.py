@@ -165,7 +165,7 @@ class MessageHeaderWidget(WidgetWrap):
         self.eml = eml
         headerlines = []
         for l in settings.displayed_headers:
-            if eml.has_key(l):
+            if l in eml:
                 headerlines.append('%s:%s' % (l, eml.get(l)))
         headertxt = '\n'.join(headerlines)
         WidgetWrap.__init__(self, Text(headertxt))

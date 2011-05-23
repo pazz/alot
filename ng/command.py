@@ -211,7 +211,7 @@ commands = {
 
 
 def factory(cmdname, **kwargs):
-    if commands.has_key(cmdname):
+    if cmdname in commands:
         (cmdclass, parms) = commands[cmdname]
         parms = parms.copy()
         parms.update(kwargs)

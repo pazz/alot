@@ -24,7 +24,7 @@ class Buffer(urwid.AttrMap):
         #self.refresh()
 
     def keypress(self, size, key):
-        if self.bindings.has_key(key):
+        if key in self.bindings:
             self.ui.logger.debug("%s: handeles key: %s" % (self.typename, key))
             (cmdname, parms) = self.bindings[key]
             cmd = command.factory(cmdname, **parms)
