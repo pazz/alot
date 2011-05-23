@@ -12,7 +12,7 @@ class Buffer(urwid.AttrMap):
         self.bindings = {}
         urwid.AttrMap.__init__(self, widget, {})
 
-    def refresh(self):
+    def rebuild(self):
         pass
 
     def __str__(self):
@@ -21,7 +21,7 @@ class Buffer(urwid.AttrMap):
     def apply_command(self, cmd):
         #call and store it directly for a local cmd history
         self.ui.apply_command(cmd)
-        #self.refresh()
+        #self.rebuild()
 
     def keypress(self, size, key):
         if key in self.bindings:
@@ -44,7 +44,8 @@ class BufferListBuffer(Buffer):
         self.ui = ui
         #better create a walker obj that has a pointer to ui.bufferlist
         #self.widget=createWalker(...
-        self.refresh()
+        self.isinitialized = False
+        self.rebuild()
         Buffer.__init__(self, ui, self.original_widget, 'bufferlist')
         self.bindings = {
                          'd': ('buffer_close',
@@ -56,9 +57,16 @@ class BufferListBuffer(Buffer):
     def index_of(self, b):
         return self.ui.buffers.index(b)
 
-    def refresh(self):
+    def rebuild(self):
+        if self.isinitialized:
+            focusposition = self.bufferlist.get_focus()[1]
+        else:
+            focusposition = 0
+            self.isinitialized = True
+
         lines = list()
-        for (num, b) in enumerate(filter(self.filtfun, self.ui.buffers)):
+        displayedbuffers = filter(self.filtfun, self.ui.buffers)
+        for (num, b) in enumerate(displayedbuffers):
             line = widgets.BufferlineWidget(b)
             if (num % 2) == 0: attr = 'bufferlist_results_even'
             else: attr = 'bufferlist_results_odd'
@@ -68,8 +76,10 @@ class BufferListBuffer(Buffer):
         self.bufferlist = urwid.ListBox(urwid.SimpleListWalker(lines))
         self.original_widget = self.bufferlist
 
+        self.bufferlist.set_focus(focusposition%len(displayedbuffers))
+
     def get_selected_buffer(self):
-        (linewidget, size) = self.bufferlist.get_focus()
+        (linewidget, pos) = self.bufferlist.get_focus()
         bufferlinewidget = linewidget.get_focus().original_widget
         return bufferlinewidget.get_buffer()
 
@@ -82,13 +92,13 @@ class SearchBuffer(Buffer):
         self.querystring = initialquery
         self.result_count = 0
         #self.widget=createWalker(...
-        self.refresh()
+        self.rebuild()
         Buffer.__init__(self, ui, self.original_widget, 'search')
         self.bindings = {
                 'enter': ('open_thread', {'thread': self.get_selected_thread}),
                 }
 
-    def refresh(self):
+    def rebuild(self):
         self.result_count = self.dbman.count_messages(self.querystring)
         threads = self.dbman.search_threads(self.querystring)
         iterator = IteratorWalker(threads, widgets.ThreadlineWidget)
@@ -107,7 +117,7 @@ class SearchBuffer(Buffer):
 class SingleThreadBuffer(Buffer):
     def __init__(self, ui, thread):
         self.read_thread(thread)
-        self.refresh()
+        self.rebuild()
         Buffer.__init__(self, ui, self.original_widget, 'search')
         self.bindings = {
                          'enter': ('call_pager',
@@ -120,7 +130,7 @@ class SingleThreadBuffer(Buffer):
         # list() throws an error
         self.messages = [m for m in thread.get_toplevel_messages()]
 
-    def refresh(self):
+    def rebuild(self):
         msgs = list()
         for (num, m) in enumerate(self.messages, 1):
             msgs.append(widgets.MessageWidget(m, even=(num % 2 == 0)))

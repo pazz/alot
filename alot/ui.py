@@ -3,6 +3,7 @@ import urwid
 import settings
 from alot import command
 from alot.widgets import PromptWidget
+from alot.buffer import BufferListBuffer
 
 
 class UI:
@@ -110,7 +111,8 @@ class UI:
             self.logger.error('tried to focus unknown buffer')
         else:
             self.current_buffer = b
-            self.current_buffer.refresh()
+            if isinstance(self.current_buffer,BufferListBuffer):
+                self.current_buffer.rebuild()
             self.update()
             if self.mainloop.screen._started:
                 self.mainloop.draw_screen()

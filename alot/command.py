@@ -187,7 +187,7 @@ class BufferListCommand(Command):
     def apply(self, ui):
         b = buffer.BufferListBuffer(ui, self.filtfun)
         ui.buffers.append(b)
-        b.refresh()
+        b.rebuild()
         ui.buffer_focus(b)
 
 
