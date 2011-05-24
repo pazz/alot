@@ -147,3 +147,39 @@ class SingleThreadBuffer(Buffer):
 
     def get_selected_message_file(self):
         return self.get_selected_message().get_filename()
+
+
+class TagListBuffer(Buffer):
+    def __init__(self, ui, alltags=[], filtfun=None):
+        self.filtfun = filtfun
+        self.ui = ui
+        self.tags = alltags
+        self.isinitialized = False
+        self.rebuild()
+        Buffer.__init__(self, ui, self.original_widget, 'taglist')
+        self.bindings = {'enter': ('search',
+                                   {'query': self.get_selected_tag}),
+                         }
+
+    def rebuild(self):
+        if self.isinitialized:
+            focusposition = self.taglist.get_focus()[1]
+        else:
+            focusposition = 0
+            self.isinitialized = True
+
+        lines = list()
+        displayedtags = filter(self.filtfun, self.tags)
+        for (num, b) in enumerate(displayedtags):
+            line = widgets.TagWidget(b)
+            tag_w = urwid.AttrMap(line, 'taglist_tag', 'taglist_focus')
+            lines.append(tag_w)
+        self.taglist = urwid.ListBox(urwid.SimpleListWalker(lines))
+        self.original_widget = self.taglist
+
+        self.taglist.set_focus(focusposition%len(displayedtags))
+
+    def get_selected_tag(self):
+        (attrwidget, pos) = self.taglist.get_focus()
+        tagwidget = attrwidget.original_widget
+        return 'tag:'+tagwidget.get_tag()

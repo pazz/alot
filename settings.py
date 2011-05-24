@@ -29,6 +29,9 @@ palette = [
     ('bufferlist_results_even', 'light gray', 'black', '', 'g50', '#60a'),
     ('bufferlist_results_odd', 'light gray', 'black', '', 'g38', '#808'),
     ('bufferlist_focus', 'white', 'dark gray', '', '#ffa', '#60d'),
+
+    ('taglist_tag', 'light gray', 'black', '', '#ffa', '#60d'),
+    ('taglist_focus', 'white', 'dark gray', '', '#ffa', '#60d'),
 ]
 displayed_headers = [
         'From',

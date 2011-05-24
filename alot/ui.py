@@ -34,6 +34,7 @@ class UI:
             '\\': ('open_search', {}),
             'q': ('shutdown', {}),
             ';': ('buffer_list', {}),
+            'L': ('open_taglist', {}),
             's': ('shell', {}),
             'v': ('view_log', {}),
         }

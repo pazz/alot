@@ -190,6 +190,20 @@ class BufferListCommand(Command):
         b.rebuild()
         ui.buffer_focus(b)
 
+class TagListCommand(Command):
+    """
+    open a taglist
+    """
+    def __init__(self, filtfun=None, **kwargs):
+        self.filtfun = filtfun
+        Command.__init__(self, **kwargs)
+
+    def apply(self, ui):
+        tags = ui.dbman.get_all_tags()
+        b = buffer.TagListBuffer(ui, tags, self.filtfun)
+        ui.buffers.append(b)
+        b.rebuild()
+        ui.buffer_focus(b)
 
 commands = {
         'buffer_close': (BufferCloseCommand, {}),
@@ -207,6 +221,7 @@ commands = {
         'view_log': (PagerCommand, {'path': 'debug.log'}),
         'call_editor': (EditCommand, {}),
         'call_pager': (PagerCommand, {}),
+        'open_taglist': (TagListCommand, {}),
         }
 
 

@@ -14,6 +14,14 @@ class DBManager():
         q = self.query(querystring)
         return q.search_threads()
 
+    def get_all_tags(self):
+        mode = Database.MODE.READ_ONLY
+        db = Database(path=self.path, mode=mode)
+        tags = list()
+        for t in db.get_all_tags():
+            tags.append(t)
+        return tags
+
     def query(self, querystring):
         mode = Database.MODE.READ_ONLY
         db = Database(path=self.path, mode=mode)

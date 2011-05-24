@@ -86,6 +86,20 @@ class BufferlineWidget(Text):
     def get_buffer(self):
         return self.buffer
 
+class TagWidget(Text):
+    def __init__(self, tag):
+        self.tag = tag
+        Text.__init__(self, tag, wrap='clip')
+
+    def selectable(self):
+        return True
+
+    def keypress(self, size, key):
+        return key
+
+    def get_tag(self):
+        return self.tag
+
 
 class PromptWidget(AttrMap):
     def __init__(self, prefix):
