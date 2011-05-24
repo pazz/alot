@@ -29,8 +29,8 @@ class ThreadlineWidget(AttrMap):
         self.tags_w = AttrMap(Text(tagsstring),
                               'threadline_tags')
 
-        authorsstring = shorten(thread.get_authors(),
-                                settings.authors_maxlength)
+        authors = thread.get_authors() or '(None)'
+        authorsstring = shorten(authors, settings.authors_maxlength)
         self.authors_w = AttrMap(Text(authorsstring),
                                  'threadline_authors')
 
