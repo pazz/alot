@@ -10,6 +10,7 @@ from datetime import datetime
 
 import settings
 from helper import shorten
+from helper import pretty_datetime
 
 
 class ThreadlineWidget(AttrMap):
@@ -17,8 +18,7 @@ class ThreadlineWidget(AttrMap):
         self.thread = thread
 
         self.datetime = datetime.fromtimestamp(thread.get_newest_date())
-        datestring = self.datetime.strftime('%B %d,%I:%M')
-        datestring += self.datetime.strftime('%p').lower()
+        datestring = pretty_datetime(self.datetime)
         self.date_w = AttrMap(Text(datestring), 'threadline_date')
 
         mailcountstring = "(%d)" % self.thread.get_total_messages()
