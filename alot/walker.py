@@ -51,16 +51,3 @@ class IteratorWalker(urwid.ListWalker):
             next_widget = None
             self.empty = True
         return next_widget
-
-
-class NotmuchIteratorWalker(IteratorWalker):
-    def _get_next_item(self):
-        logging.error("it still there")
-        try:
-            next_obj = self.it.next()
-            logging.error("next obj: %s" % next_obj)
-            next_widget = self.containerclass(next_obj)
-            self.lines.append(next_widget)
-        except NotmuchError:
-            next_widget = None
-        return next_widget

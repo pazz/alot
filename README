@@ -109,9 +109,7 @@ creating a ng.widgets.ThreadlineWidget for each and placing them in a
 urwid.Listbox (actually a urwid.SimplieListWalker, and /that/ in a listbox),
 one this will potentially eat up your memory and take a long time. So
 ng.walker.IteratorWalker will dynamically create its next element from the next
-element of the iterator. For now, there's a NotmuchIteratorWalker class that
-does the same for notmuch's one-time iterators. This is almost certainly a bad
-idea methinks.
+element of the iterator. 
 
 Key Bindings
 Are currently a hash in objects of the classes ng.ui.UI and ng.buffer.Buffer.
