@@ -223,7 +223,9 @@ class ToggleThreadTagCommand(Command):
             ui.dbman.tag_thread(self.thread, [self.tag])
         #refresh selected threadline
         widget = ui.current_buffer.get_selected_threadline()
-        widget.rebuild()
+        widget.reload_tag(ui.dbman) #threads seem to cache their tags
+        widget.rebuild() #rebuild and redraw the line
+        #TODO: remove line from searchlist if thread doesn't match the query
 
 commands = {
         'buffer_close': (BufferCloseCommand, {}),

@@ -19,6 +19,11 @@ class ThreadlineWidget(AttrMap):
         self.rebuild()
         AttrMap.__init__(self, self.columns, 'threadline', 'threadline_focus')
 
+    def reload_tag(self,dbman):
+        tid = self.thread.get_thread_id()
+        q = dbman.query('thread:'+tid)
+        self.thread = q.search_threads().next()
+
     def rebuild(self):
         self.datetime = datetime.fromtimestamp(self.thread.get_newest_date())
         datestring = pretty_datetime(self.datetime)
@@ -48,6 +53,8 @@ class ThreadlineWidget(AttrMap):
             self.subject_w,
             ],
             dividechars=1)
+        self.original_widget = self.columns
+
     def render(self, size, focus=False):
         if focus:
             self.date_w.set_attr_map({None: 'threadline_date_linefocus'})
