@@ -16,8 +16,11 @@ from helper import pretty_datetime
 class ThreadlineWidget(AttrMap):
     def __init__(self, thread):
         self.thread = thread
+        self.rebuild()
+        AttrMap.__init__(self, self.columns, 'threadline', 'threadline_focus')
 
-        self.datetime = datetime.fromtimestamp(thread.get_newest_date())
+    def rebuild(self):
+        self.datetime = datetime.fromtimestamp(self.thread.get_newest_date())
         datestring = pretty_datetime(self.datetime)
         self.date_w = AttrMap(Text(datestring), 'threadline_date')
 
@@ -29,12 +32,12 @@ class ThreadlineWidget(AttrMap):
         self.tags_w = AttrMap(Text(tagsstring),
                               'threadline_tags')
 
-        authors = thread.get_authors() or '(None)'
+        authors = self.thread.get_authors() or '(None)'
         authorsstring = shorten(authors, settings.authors_maxlength)
         self.authors_w = AttrMap(Text(authorsstring),
                                  'threadline_authors')
 
-        self.subject_w = AttrMap(Text(thread.get_subject(), wrap='clip'),
+        self.subject_w = AttrMap(Text(self.thread.get_subject(), wrap='clip'),
                                  'threadline_subject')
 
         self.columns = Columns([
@@ -45,8 +48,6 @@ class ThreadlineWidget(AttrMap):
             self.subject_w,
             ],
             dividechars=1)
-        AttrMap.__init__(self, self.columns, 'threadline', 'threadline_focus')
-
     def render(self, size, focus=False):
         if focus:
             self.date_w.set_attr_map({None: 'threadline_date_linefocus'})

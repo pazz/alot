@@ -96,6 +96,8 @@ class SearchBuffer(Buffer):
         Buffer.__init__(self, ui, self.original_widget, 'search')
         self.bindings = {
                 'enter': ('open_thread', {'thread': self.get_selected_thread}),
+                'a': ('toggle_thread_tag', {'thread': self.get_selected_thread,
+                                            'tag': 'inbox'}),
                 }
 
     def rebuild(self):
@@ -109,9 +111,13 @@ class SearchBuffer(Buffer):
         string = "[%s] for %s, (%d)"
         return string % (self.typename, self.querystring, self.result_count)
 
-    def get_selected_thread(self):
+    def get_selected_threadline(self):
         (threadlinewidget, size) = self.threadlist.get_focus()
-        return  threadlinewidget.get_thread()
+        return threadlinewidget
+
+    def get_selected_thread(self):
+        threadlinewidget = self.get_selected_threadline()
+        return threadlinewidget.get_thread()
 
 
 class SingleThreadBuffer(Buffer):

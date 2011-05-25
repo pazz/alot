@@ -1,4 +1,5 @@
 from notmuch import Database
+import logging
 
 
 class DBManager():
@@ -22,16 +23,34 @@ class DBManager():
             tags.append(t)
         return tags
 
-    def query(self, querystring):
-        mode = Database.MODE.READ_ONLY
+    def tag_message(self, msg, tags, untag=False):
+        logging.debug('tag msg %s %s %s'%(tags,untag,msg))
+        msg.freeze()
+        if untag:
+            for tag in tags:
+                msg.remove_tag(tag)
+                logging.debug('untag %s'%tags)
+        else:
+            for tag in tags:
+                msg.add_tag(tag)
+                logging.debug('tag %s'%tags)
+        msg.thaw()
+
+    def tag_thread(self, thread, tags, untag=False):
+        tid = thread.get_thread_id()
+        q = self.query('thread:'+tid, writeable=True)
+        for msg in q.search_messages():
+            msg.freeze()
+            self.tag_message(msg, tags, untag=untag)
+            msg.thaw()
+
+    def untag_thread(self, thread, *tags):
+        return self.tag_thread(thread, *tags, untag=True)
+
+    def query(self, querystring, writeable=False):
+        if writeable:
+            mode = Database.MODE.READ_WRITE
+        else:
+            mode = Database.MODE.READ_ONLY
         db = Database(path=self.path, mode=mode)
         return db.create_query(querystring)
-
-    def update(self, updatestring):
-        if self.ro:
-            self.logger.error('I\'m in RO mode')
-        else:
-            self.logger.error('DB updates not implemented yet')
-            mode = Database.MODE.READ_WRITE
-            db = Database(path=self.path, mode=mode)
-            return None  # do stuff

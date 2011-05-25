@@ -205,6 +205,26 @@ class TagListCommand(Command):
         b.rebuild()
         ui.buffer_focus(b)
 
+
+class ToggleThreadTagCommand(Command):
+    """
+    opens editor
+    TODO tempfile handling etc
+    """
+    def __init__(self, thread, tag, **kwargs):
+        self.thread = thread
+        self.tag = tag
+        Command.__init__(self, **kwargs)
+
+    def apply(self, ui):
+        if self.tag in self.thread.get_tags():
+            ui.dbman.untag_thread(self.thread, [self.tag])
+        else:
+            ui.dbman.tag_thread(self.thread, [self.tag])
+        #refresh selected threadline
+        widget = ui.current_buffer.get_selected_threadline()
+        widget.rebuild()
+
 commands = {
         'buffer_close': (BufferCloseCommand, {}),
         'buffer_list': (BufferListCommand, {}),
@@ -222,6 +242,7 @@ commands = {
         'call_editor': (EditCommand, {}),
         'call_pager': (PagerCommand, {}),
         'open_taglist': (TagListCommand, {}),
+        'toggle_thread_tag': (ToggleThreadTagCommand, {'tag': 'inbox'})
         }
 
 
