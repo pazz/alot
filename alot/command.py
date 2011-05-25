@@ -208,8 +208,6 @@ class TagListCommand(Command):
 
 class ToggleThreadTagCommand(Command):
     """
-    opens editor
-    TODO tempfile handling etc
     """
     def __init__(self, thread, tag, **kwargs):
         self.thread = thread
@@ -222,10 +220,19 @@ class ToggleThreadTagCommand(Command):
         else:
             ui.dbman.tag_thread(self.thread, [self.tag])
         #refresh selected threadline
-        widget = ui.current_buffer.get_selected_threadline()
-        widget.reload_tag(ui.dbman) #threads seem to cache their tags
-        widget.rebuild() #rebuild and redraw the line
+        sbuffer = ui.current_buffer
+        threadwidget = sbuffer.get_selected_threadline()
+        threadwidget.reload_tag(ui.dbman) #threads seem to cache their tags
+        threadwidget.rebuild() #rebuild and redraw the line
         #TODO: remove line from searchlist if thread doesn't match the query
+        #qs="(%s) AND thread:%s"%(sbuffer.querystring,self.thread.get_thread_id())
+        #if ui.dbman.count_messages(qs) == 0:
+        #    ui.logger.debug('remove: %s'%self.thread)
+        #    #sbuffer.threadlist.remove(threadwidget)
+        #sbuffer.rebuild()
+
+
+
 
 commands = {
         'buffer_close': (BufferCloseCommand, {}),

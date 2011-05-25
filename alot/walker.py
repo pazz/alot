@@ -25,6 +25,11 @@ class IteratorWalker(urwid.ListWalker):
     def get_prev(self, start_from):
         return self._get_at_pos(start_from - 1)
 
+    def remove(self, obj):
+        self.lines.remove(obj)
+        self.set_focus(self.focus % len(self.lines))
+
+
     def _get_at_pos(self, pos):
         if pos < 0:  # pos too low
             return (None, None)
@@ -47,6 +52,7 @@ class IteratorWalker(urwid.ListWalker):
             next_obj = self.it.next()
             next_widget = self.containerclass(next_obj)
             self.lines.append(next_widget)
+            logging.debug('READ NEW ITEM')
         except StopIteration:
             next_widget = None
             self.empty = True

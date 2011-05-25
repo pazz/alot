@@ -35,6 +35,8 @@ class Buffer(urwid.AttrMap):
             elif key == 'h': key = 'left'
             elif key == 'l': key = 'right'
             elif key == ' ': key = 'page down'
+            elif key == 'r': self.rebuild()
+            elif key == 't': self.debug()
             return self.original_widget.keypress(size, key)
 
 
@@ -42,8 +44,6 @@ class BufferListBuffer(Buffer):
     def __init__(self, ui, filtfun=None):
         self.filtfun = filtfun
         self.ui = ui
-        #better create a walker obj that has a pointer to ui.bufferlist
-        #self.widget=createWalker(...
         self.isinitialized = False
         self.rebuild()
         Buffer.__init__(self, ui, self.original_widget, 'bufferlist')
@@ -89,11 +89,13 @@ class SearchBuffer(Buffer):
 
     def __init__(self, ui, initialquery=''):
         self.dbman = ui.dbman
+        self.ui = ui
         self.querystring = initialquery
         self.result_count = 0
-        #self.widget=createWalker(...
+        self.isinitialized = False
         self.rebuild()
         Buffer.__init__(self, ui, self.original_widget, 'search')
+        self.ui.logger.info("\n\n"+self.typename)
         self.bindings = {
                 'enter': ('open_thread', {'thread': self.get_selected_thread}),
                 'a': ('toggle_thread_tag', {'thread': self.get_selected_thread,
@@ -101,11 +103,26 @@ class SearchBuffer(Buffer):
                 }
 
     def rebuild(self):
+        if self.isinitialized:
+            focusposition = self.threadlist.get_focus()[1]
+        else:
+            focusposition = 0
+            self.isinitialized = True
+        self.ui.logger.debug("focuspos: %d"%focusposition)
+
         self.result_count = self.dbman.count_messages(self.querystring)
+        self.ui.logger.debug("resultcount: %d"%self.result_count)
         threads = self.dbman.search_threads(self.querystring)
-        iterator = IteratorWalker(threads, widgets.ThreadlineWidget)
-        self.threadlist = urwid.ListBox(iterator)
-        self.original_widget = self.threadlist
+        self.ui.logger.debug("real len:%d"%len(self.dbman.search_threads(self.querystring)))
+        self.threadlist = IteratorWalker(threads, widgets.ThreadlineWidget)
+        self.ui.logger.debug(self.threadlist.lines)
+        self.original_widget = urwid.ListBox(self.threadlist)
+        self.ui.logger.debug(self.threadlist.lines)
+
+        self.threadlist.set_focus(focusposition)
+
+    def debug(self):
+        self.ui.logger.debug(self.threadlist.lines)
 
     def __str__(self):
         string = "[%s] for %s, (%d)"
