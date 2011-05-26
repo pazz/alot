@@ -5,7 +5,8 @@ from notmuch import NotmuchError
 
 
 class IteratorWalker(urwid.ListWalker):
-    def __init__(self, it, containerclass):
+    def __init__(self, it, containerclass, **kwargs):
+        self.kwargs = kwargs
         self.it = it
         self.containerclass = containerclass
         self.lines = []
@@ -50,7 +51,7 @@ class IteratorWalker(urwid.ListWalker):
     def _get_next_item(self):
         try:
             next_obj = self.it.next()
-            next_widget = self.containerclass(next_obj)
+            next_widget = self.containerclass(next_obj, **self.kwargs)
             self.lines.append(next_widget)
             logging.debug('READ NEW ITEM')
         except StopIteration:
