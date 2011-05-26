@@ -11,7 +11,7 @@ The key ideas are:
   (configparser)
 
 You need the notmuch python bindings and urwid to run it. I run it like this 
-> python ng.py -l debug.log -d debug
+> python alot.py -l debug.log -d debug
 and "tail -f debug.log" in another window.
 
 At the moment you can play with the global bindings

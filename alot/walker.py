@@ -1,5 +1,4 @@
 import urwid
-import logging
 
 from notmuch import NotmuchError
 
@@ -53,7 +52,6 @@ class IteratorWalker(urwid.ListWalker):
             next_obj = self.it.next()
             next_widget = self.containerclass(next_obj, **self.kwargs)
             self.lines.append(next_widget)
-            logging.debug('READ NEW ITEM')
         except StopIteration:
             next_widget = None
             self.empty = True
