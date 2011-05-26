@@ -14,33 +14,25 @@ from helper import pretty_datetime
 
 
 class ThreadlineWidget(AttrMap):
-    def __init__(self, thread):
-        self.thread = thread
+    def __init__(self, tid, dbman):
+        self.dbman = dbman
+        self.thread = dbman.get_thread(tid)
         self.rebuild()
         AttrMap.__init__(self, self.columns, 'threadline', 'threadline_focus')
 
-    def reload_tag(self,dbman):
-        tid = self.thread.get_thread_id()
-        q = dbman.query('thread:'+tid)
-        self.thread = q.search_threads().next()
-
     def rebuild(self):
-        self.datetime = datetime.fromtimestamp(self.thread.get_newest_date())
-        datestring = pretty_datetime(self.datetime)
+        datestring = pretty_datetime(self.thread.get_newest_date())
         self.date_w = AttrMap(Text(datestring), 'threadline_date')
 
         mailcountstring = "(%d)" % self.thread.get_total_messages()
-        self.mailcount_w = AttrMap(Text(mailcountstring),
-                                   'threadline_mailcount')
+        self.mailcount_w = AttrMap(Text(mailcountstring), 'threadline_mailcount')
 
         tagsstring = " ".join(self.thread.get_tags())
-        self.tags_w = AttrMap(Text(tagsstring),
-                              'threadline_tags')
+        self.tags_w = AttrMap(Text(tagsstring), 'threadline_tags')
 
         authors = self.thread.get_authors() or '(None)'
         authorsstring = shorten(authors, settings.authors_maxlength)
-        self.authors_w = AttrMap(Text(authorsstring),
-                                 'threadline_authors')
+        self.authors_w = AttrMap(Text(authorsstring), 'threadline_authors')
 
         self.subject_w = AttrMap(Text(self.thread.get_subject(), wrap='clip'),
                                  'threadline_subject')

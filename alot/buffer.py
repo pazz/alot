@@ -108,13 +108,11 @@ class SearchBuffer(Buffer):
         else:
             focusposition = 0
             self.isinitialized = True
-        self.ui.logger.debug("focuspos: %d"%focusposition)
 
         self.result_count = self.dbman.count_messages(self.querystring)
-        self.ui.logger.debug("resultcount: %d"%self.result_count)
-        threads = self.dbman.search_threads(self.querystring)
-        self.ui.logger.debug("real len:%d"%len(self.dbman.search_threads(self.querystring)))
-        self.threadlist = IteratorWalker(threads, widgets.ThreadlineWidget)
+        tids = self.dbman.search_thread_ids(self.querystring)
+        self.threadlist = IteratorWalker(tids.__iter__(), widgets.ThreadlineWidget,
+                                         dbman=self.dbman)
         self.ui.logger.debug(self.threadlist.lines)
         self.original_widget = urwid.ListBox(self.threadlist)
         self.ui.logger.debug(self.threadlist.lines)

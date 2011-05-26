@@ -216,20 +216,20 @@ class ToggleThreadTagCommand(Command):
 
     def apply(self, ui):
         if self.tag in self.thread.get_tags():
-            ui.dbman.untag_thread(self.thread, [self.tag])
+            self.thread.remove_tags([self.tag])
         else:
-            ui.dbman.tag_thread(self.thread, [self.tag])
+            self.thread.add_tags([self.tag])
         #refresh selected threadline
         sbuffer = ui.current_buffer
         threadwidget = sbuffer.get_selected_threadline()
-        threadwidget.reload_tag(ui.dbman) #threads seem to cache their tags
+        #threadwidget.reload_tag(ui.dbman) #threads seem to cache their tags
         threadwidget.rebuild() #rebuild and redraw the line
         #TODO: remove line from searchlist if thread doesn't match the query
         #qs="(%s) AND thread:%s"%(sbuffer.querystring,self.thread.get_thread_id())
         #if ui.dbman.count_messages(qs) == 0:
         #    ui.logger.debug('remove: %s'%self.thread)
         #    #sbuffer.threadlist.remove(threadwidget)
-        #sbuffer.rebuild()
+        sbuffer.rebuild()
 
 
 
