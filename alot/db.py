@@ -1,8 +1,10 @@
 from notmuch import Database
+from datetime import datetime
 import logging
+import email
 
 
-class DBManager():
+class DBManager:
     def __init__(self, path=None, ro=False):
         self.ro = ro
         self.path = path
@@ -54,3 +56,66 @@ class DBManager():
             mode = Database.MODE.READ_ONLY
         db = Database(path=self.path, mode=mode)
         return db.create_query(querystring)
+
+    def get_message(self,mid, writeable=False):
+        q = self.query('id:'+mid, writeable=writeable)
+        #TODO raise exceptions here in 0<case msgcount>1
+        return q.search_messages().next()
+
+    def get_thread(self,tid, writeable=False):
+        q = self.query('thread:'+tid, writeable=writeable)
+        #TODO raise exceptions here in 0<case msgcount>1
+        return q.search_threads().next()
+
+class Thread:
+    def __init__(self, dbman, thread, precache=False):
+        self.dbman = dbman
+        self.tid = thread.get_thread_id()
+        if precache:
+            self.read_thread()
+
+    def read_thread(self):
+        thread = dbman.get_thread(self.tid)
+        self.strrep = thread.__str__()
+        self.total_messages = thread.get_total_messages()
+        self.toplevel_messages = []
+        for m in thread.get_toplevel_messages():
+            self.toplevel_messages.append(Message(dbman,m))
+        self.authors = thread.get_authors()
+        self.subject = thread.get_subject()
+        self.oldest = datetime.fromtimestamp(self.thread.get_oldest_date())
+        self.newest = datetime.fromtimestamp(self.thread.get_newest_date())
+        self.tags = []
+        for t in thread.get_tags():
+            self.tags.append(t.__str__())
+
+class Message:
+    def __init__(self,dbman, msg, precache=False):
+        self.dbman = dbman
+        self.mid = msg.get_message_id()
+        if precache:
+            self.read_msg()
+
+    def read_msg(self)
+        msg = self.dbman.get_msg(self.mid)
+        self.strrep = msg.__str__()
+        self.replies = []
+        for m in msg.get_replies():
+            self.replies.append(Message(dbman,m))
+        self.filename = msg.get_filename()
+        self.email = self.read_mail(self.filename)
+        self.tags = []
+        for t in thread.get_tags():
+            self.tags.append(t.__str__())
+
+    def read_mail(self, message):
+        try:
+            f_mail = open(message.get_filename())
+        except EnvironmentError:
+            eml = email.message_from_string('Unable to open the file')
+        else:
+            eml = email.message_from_file(f_mail)
+            f_mail.close()
+        return eml
+
+
