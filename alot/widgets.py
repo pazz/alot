@@ -122,14 +122,13 @@ class PromptWidget(AttrMap):
 class MessageWidget(WidgetWrap):
     def __init__(self, message, even=False):
         self.message = message
-        self.email = self.read_mail(message)
         if even:
             lineattr = 'messageline_even'
         else:
             lineattr = 'messageline_odd'
 
-        self.bodyw = MessageBodyWidget(self.email)
-        self.headerw = MessageHeaderWidget(self.email)
+        self.bodyw = MessageBodyWidget(self.message.get_email())
+        self.headerw = MessageHeaderWidget(self.message.get_email())
         self.linew = MessageLineWidget(self.message)
         pile = Pile([
             AttrMap(self.linew, lineattr),
@@ -148,18 +147,7 @@ class MessageWidget(WidgetWrap):
         return self.message
 
     def get_email(self):
-        return self.eml
-
-    def read_mail(self, message):
-        #what about crypto?
-        try:
-            f_mail = open(message.get_filename())
-        except EnvironmentError:
-            eml = email.message_from_string('Unable to open the file')
-        else:
-            eml = email.message_from_file(f_mail)
-            f_mail.close()
-        return eml
+        return self.message.get_email()
 
 
 class MessageLineWidget(WidgetWrap):

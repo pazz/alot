@@ -88,11 +88,7 @@ class Thread:
         return self.subject
 
     def get_toplevel_messages(self):
-        tl = []
-        for mid in self.topmessages:
-            msg = self.dbman.get_message(mid)
-            tl.append(Message(self.dbman,msg))
-        return tl
+        return [self.dbman.get_message(mid) for mid in self.topmessages]
 
     def get_newest_date(self):
         return self.newest
@@ -108,16 +104,19 @@ class Message:
         self.dbman = dbman
         self.mid = msg.get_message_id()
         self.strrep = msg.__str__()
-        self.replies = [m.get_message_id() for m in msg.get_replies()]
+
+        self.email = None #will be read upon first use
+        r = msg.get_replies() #not iterable if None
+        if r:
+            self.replies = [m.get_message_id() for m in msg.get_replies()]
+        else:
+            self.replies = []
+
         self.filename = msg.get_filename()
         self.tags = [ t.__str__() for t in msg.get_tags()]
 
     def get_replies(self):
-        r = []
-        for mid in self.replies:
-            msg = self.dbman.get_message(mid)
-            r.append(Message(self.dbman,msg))
-        return r
+        return [self.dbman.get_message(mid) for mid in self.replies]
 
     def get_tags(self):
         return self.tags
@@ -131,9 +130,9 @@ class Message:
     def __str__(self):
         return self.strrep
 
-    def read_mail(self, message):
+    def read_mail(self, filename):
         try:
-            f_mail = open(message.get_filename())
+            f_mail = open(filename)
         except EnvironmentError:
             eml = email.message_from_string('Unable to open the file')
         else:
