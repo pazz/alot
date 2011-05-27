@@ -14,8 +14,7 @@ class DBManager:
 
     def search_thread_ids(self, querystring):
         threads = self.query(querystring).search_threads()
-        tid_list = [thread.get_thread_id() for thread in threads]
-        return tid_list
+        return [thread.get_thread_id() for thread in threads]
 
     def get_message(self, mid, writeable=False):
         query = self.query('id:' + mid, writeable=writeable)
@@ -52,7 +51,7 @@ class Thread:
         self.subject = thread.get_subject()
         self.oldest = datetime.fromtimestamp(thread.get_oldest_date())
         self.newest = datetime.fromtimestamp(thread.get_newest_date())
-        self.tags = [str(tag) for tag in thread.get_tags()]
+        self.tags = set([str(tag) for tag in thread.get_tags()])
 
     def add_tags(self, tags):
         query = self.dbman.query('thread:' + self.tid, writeable=True)
@@ -60,8 +59,8 @@ class Thread:
             msg.freeze()
             for tag in tags:
                 msg.add_tag(tag)
+                self.tags.add(tag)
             msg.thaw()
-        self.tags += [tag for tag in tags if tag not in self.tags]
 
     def remove_tags(self, tags):
         qguery = self.dbman.query('thread:' + self.tid, writeable=True)
@@ -69,14 +68,17 @@ class Thread:
             msg.freeze()
             for tag in tags:
                 msg.remove_tag(tag)
+                try: self.tags.remove(tag)
+                except KeyError: pass # tag not in self.tags
             msg.thaw()
-        self.tags = [tag for tag in self.tags if tag not in tags]
 
     def get_thread_id(self):
         return self.tid
 
     def get_tags(self):
-        return self.tags
+        # sets do not always behave like lists.
+        # so returning a list as it might be expected
+        return list(self.tags)
 
     def get_authors(self):
         return self.authors
@@ -108,7 +110,7 @@ class Message:
         self.strrep = str(msg)
         self.replies = [m.get_message_id() for m in msg.get_replies()]
         self.filename = msg.get_filename()
-        self.tags = [str(tag) for tag in msg.get_tags()]
+        self.tags = set([str(tag) for tag in msg.get_tags()])
 
     def __str__(self):
         return self.strrep
@@ -121,7 +123,9 @@ class Message:
         return replies
 
     def get_tags(self):
-        return self.tags
+        # sets do not always behave like lists.
+        # so returning a list as it might be expected
+        return list(self.tags)
 
     def get_email(self):
         if not self.email:
@@ -144,15 +148,16 @@ class Message:
         msg.freeze()
         for tag in tags:
             msg.add_tag(tag)
+            self.tags.add(tag)
             logging.debug('tag %s' % tags)
         msg.thaw()
-        self.tags += [tag for tag in tags if tag not in self.tags]
 
     def remove_tags(self, tags):
         msg = self.dbman.get_message(self.mid)
         msg.freeze()
         for tag in tags:
             msg.remove_tag(tag)
+            try: self.tags.remove(tag)
+            except KeyError: pass # tag not in self.tags
             logging.debug('untag %s' % tags)
         msg.thaw()
-        self.tags = [tag for tag in self.tags if tag not in tags]
