@@ -9,14 +9,14 @@ def shorten(string, maxlen):
 
 
 def pretty_datetime(d):
-    s = ""
+    string = ""
     today = date.today()
     if today == d.date():
-        s = d.strftime('%H:%M%P')
+        string = d.strftime('%H:%M%P')
     elif d.date() == today - timedelta(1):
-        s = 'Yest.%2d' % d.hour + d.strftime('%P')
+        string = 'Yest.%2d' % d.hour + d.strftime('%P')
     elif d.year != today.year:
-        s = d.strftime('%b %Y')
+        string = d.strftime('%b %Y')
     else:
-        s = d.strftime('%b %d')
-    return s.rjust(10)
+        string = d.strftime('%b %d')
+    return string.rjust(10)

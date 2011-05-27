@@ -133,11 +133,11 @@ class SearchBuffer(Buffer):
     def get_selected_thread(self):
         threadlinewidget = self.get_selected_threadline()
         self.ui.logger.debug('get selected')
-        t = None
+        thread = None
         if threadlinewidget:
             self.ui.logger.debug('WIDGET THERE')
-            t = threadlinewidget.get_thread()
-        return t
+            thread = threadlinewidget.get_thread()
+        return thread
 
 
 class SingleThreadBuffer(Buffer):

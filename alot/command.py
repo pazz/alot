@@ -172,9 +172,9 @@ class BufferFocusCommand(Command):
     def apply(self, ui):
         if not self.buffer:
             self.buffer = ui.current_buffer
-        i = ui.buffers.index(self.buffer)
-        l = len(ui.buffers)
-        ui.buffer_focus(ui.buffers[(i + self.offset) % l])
+        idx = ui.buffers.index(self.buffer)
+        num = len(ui.buffers)
+        ui.buffer_focus(ui.buffers[(idx + self.offset) % lnum])
 
 
 class BufferListCommand(Command):
@@ -186,10 +186,10 @@ class BufferListCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        b = buffer.BufferListBuffer(ui, self.filtfun)
-        ui.buffers.append(b)
-        b.rebuild()
-        ui.buffer_focus(b)
+        buf = buffer.BufferListBuffer(ui, self.filtfun)
+        ui.buffers.append(buf)
+        buf.rebuild()
+        ui.buffer_focus(buf)
 
 
 class TagListCommand(Command):
@@ -202,10 +202,10 @@ class TagListCommand(Command):
 
     def apply(self, ui):
         tags = ui.dbman.get_all_tags()
-        b = buffer.TagListBuffer(ui, tags, self.filtfun)
-        ui.buffers.append(b)
-        b.rebuild()
-        ui.buffer_focus(b)
+        buf = buffer.TagListBuffer(ui, tags, self.filtfun)
+        ui.buffers.append(buf)
+        buf.rebuild()
+        ui.buffer_focus(buf)
 
 
 class ToggleThreadTagCommand(Command):

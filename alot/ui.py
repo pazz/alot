@@ -53,27 +53,27 @@ class UI:
     def prompt(self, prefix):
         self.logger.info('open prompt')
 
-        p = PromptWidget(prefix)
+        prefix_widget = PromptWidget(prefix)
         footer = self.mainframe.get_footer()
-        self.mainframe.set_footer(p)
+        self.mainframe.set_footer(prefix_widget)
         self.mainframe.set_focus('footer')
         self.mainloop.draw_screen()
         while True:
             keys = None
             while not keys:
                 keys = self.mainloop.screen.get_input()
-            for k in keys:
-                if k == 'enter':
+            for key in keys:
+                if key == 'enter':
                     self.mainframe.set_footer(footer)
                     self.mainframe.set_focus('body')
-                    return p.get_input()
-                if k in ('escape', 'tab'):
+                    return prefix_widget.get_input()
+                if key in ('escape', 'tab'):
                     self.mainframe.set_footer(footer)
                     self.mainframe.set_focus('body')
                     return None
                 else:
                     size = (20,)  # don't know why they want a size here
-                    p.editpart.keypress(size, k)
+                    prefix_widget.editpart.keypress(size, key)
                     self.mainloop.draw_screen()
 
     def buffer_open(self, b):
@@ -83,35 +83,35 @@ class UI:
         self.buffers.append(b)
         self.buffer_focus(b)
 
-    def buffer_close(self, b):
+    def buffer_close(self, buf):
         buffers = self.buffers
-        if b not in buffers:
+        if buf not in buffers:
             string = 'tried to close unknown buffer: %s. \n\ni have:%s'
-            self.logger.error(string % (b, self.buffers))
+            self.logger.error(string % (buf, self.buffers))
         elif len(buffers) == 1:
             self.logger.info('closing the last buffer, exiting')
             cmd = command.factory('shutdown')
             self.apply_command(cmd)
         else:
-            if self.current_buffer == b:
-                self.logger.debug('UI: closing current buffer %s' % b)
-                index = buffers.index(b)
-                buffers.remove(b)
+            if self.current_buffer == buf:
+                self.logger.debug('UI: closing current buffer %s' % buf)
+                index = buffers.index(buf)
+                buffers.remove(buf)
                 self.current_buffer = buffers[index % len(buffers)]
             else:
                 string = 'closing buffer %d:%s'
-                self.logger.debug(string % (buffers.index(b), b))
-                index = buffers.index(b)
-                buffers.remove(b)
+                self.logger.debug(string % (buffers.index(buf), buf))
+                index = buffers.index(buf)
+                buffers.remove(buf)
 
-    def buffer_focus(self, b):
+    def buffer_focus(self, buf):
         """
         focus given buffer. must be contained in self.buffers
         """
-        if b not in self.buffers:
+        if buf not in self.buffers:
             self.logger.error('tried to focus unknown buffer')
         else:
-            self.current_buffer = b
+            self.current_buffer = buf
             if isinstance(self.current_buffer, BufferListBuffer):
                 self.current_buffer.rebuild()
             self.update()
@@ -134,8 +134,8 @@ class UI:
         self.update_footer()
 
     def update_footer(self):
-        i = self.buffers.index(self.current_buffer)
-        lefttxt = '%d: %s' % (i, self.current_buffer)
+        idx = self.buffers.index(self.current_buffer)
+        lefttxt = '%d: %s' % (idx, self.current_buffer)
         footerleft = urwid.Text(lefttxt, align='left')
         righttxt = 'total messages: %d' % self.dbman.count_messages('*')
         footerright = urwid.Text(righttxt, align='right')

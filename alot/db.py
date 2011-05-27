@@ -10,31 +10,27 @@ class DBManager:
         self.path = path
 
     def count_messages(self, querystring):
-        q = self.query(querystring)
-        return q.count_messages()
+        return self.query(querystring).count_messages()
 
     def search_thread_ids(self, querystring):
-        q = self.query(querystring)
-        tid_list = [t.get_thread_id() for t in q.search_threads()]
+        threads = self.query(querystring).search_threads()
+        tid_list = [thread.get_thread_id() for thread in threads]
         return tid_list
 
     def get_message(self, mid, writeable=False):
-        q = self.query('id:' + mid, writeable=writeable)
+        query = self.query('id:' + mid, writeable=writeable)
         # TODO raise exceptions here in 0<case msgcount>1
-        return Message(self, q.search_messages().next())
+        return Message(self, query.search_messages().next())
 
     def get_thread(self, tid, writeable=False):
-        q = self.query('thread:' + tid, writeable=writeable)
+        query = self.query('thread:' + tid, writeable=writeable)
         #TODO raise exceptions here in 0<case msgcount>1
-        return Thread(self, q.search_threads().next())
+        return Thread(self, query.search_threads().next())
 
     def get_all_tags(self):
         mode = Database.MODE.READ_ONLY
         db = Database(path=self.path, mode=mode)
-        tags = list()
-        for t in db.get_all_tags():
-            tags.append(t)
-        return tags
+        return [tag for tag in db.get_all_tags()]
 
     def query(self, querystring, writeable=False):
         if writeable:
@@ -59,22 +55,22 @@ class Thread:
         self.tags = [str(tag) for tag in thread.get_tags()]
 
     def add_tags(self, tags):
-        q = self.dbman.query('thread:' + self.tid, writeable=True)
-        for msg in q.search_messages():
+        query = self.dbman.query('thread:' + self.tid, writeable=True)
+        for msg in query.search_messages():
             msg.freeze()
-            for t in tags:
-                msg.add_tag(t)
+            for tag in tags:
+                msg.add_tag(tag)
             msg.thaw()
-        self.tags += [t for t in tags if t not in self.tags]
+        self.tags += [tag for tag in tags if tag not in self.tags]
 
     def remove_tags(self, tags):
-        q = self.dbman.query('thread:' + self.tid, writeable=True)
+        qguery = self.dbman.query('thread:' + self.tid, writeable=True)
         for msg in q.search_messages():
             msg.freeze()
-            for t in tags:
-                msg.remove_tag(t)
+            for tag in tags:
+                msg.remove_tag(tag)
             msg.thaw()
-        self.tags = [t for t in self.tags if t not in tags]
+        self.tags = [tag for tag in self.tags if tag not in tags]
 
     def get_thread_id(self):
         return self.tid
@@ -118,11 +114,11 @@ class Message:
         return self.strrep
 
     def get_replies(self):
-        r = []
+        replies = []
         for mid in self.replies:
             msg = self.dbman.get_message(mid)
-            r.append(Message(self.dbman, msg))
-        return r
+            replies.append(Message(self.dbman, msg))
+        return replies
 
     def get_tags(self):
         return self.tags
@@ -150,7 +146,7 @@ class Message:
             msg.add_tag(tag)
             logging.debug('tag %s' % tags)
         msg.thaw()
-        self.tags += [t for t in tags if t not in self.tags]
+        self.tags += [tag for tag in tags if tag not in self.tags]
 
     def remove_tags(self, tags):
         msg = self.dbman.get_message(self.mid)
@@ -159,4 +155,4 @@ class Message:
             msg.remove_tag(tag)
             logging.debug('untag %s' % tags)
         msg.thaw()
-        self.tags = [t for t in self.tags if t not in tags]
+        self.tags = [tag for tag in self.tags if tag not in tags]
