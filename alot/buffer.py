@@ -87,7 +87,7 @@ class BufferListBuffer(Buffer):
 
     def get_selected_buffer(self):
         (linewidget, pos) = self.bufferlist.get_focus()
-        bufferlinewidget = linewidget.get_focus().body
+        bufferlinewidget = linewidget.get_focus().original_widget
         return bufferlinewidget.get_buffer()
 
 
@@ -135,10 +135,8 @@ class SearchBuffer(Buffer):
 
     def get_selected_thread(self):
         threadlinewidget = self.get_selected_threadline()
-        self.ui.logger.debug('get selected')
         t = None
         if threadlinewidget:
-            self.ui.logger.debug('WIDGET THERE')
             t = threadlinewidget.get_thread()
         return t
 
