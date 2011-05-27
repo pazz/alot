@@ -75,7 +75,7 @@ class ThreadlineWidget(AttrMap):
 class BufferlineWidget(Text):
     def __init__(self, buffer):
         self.buffer = buffer
-        Text.__init__(self, buffer.__str__(), wrap='clip')
+        Text.__init__(self, str(buffer), wrap='clip')
 
     def selectable(self):
         return True
@@ -85,6 +85,7 @@ class BufferlineWidget(Text):
 
     def get_buffer(self):
         return self.buffer
+
 
 class TagWidget(Text):
     def __init__(self, tag):
@@ -166,9 +167,9 @@ class MessageHeaderWidget(WidgetWrap):
     def __init__(self, eml):
         self.eml = eml
         headerlines = []
-        for l in settings.displayed_headers:
-            if l in eml:
-                headerlines.append('%s:%s' % (l, eml.get(l)))
+        for line in settings.displayed_headers:
+            if line in eml:
+                headerlines.append('%s:%s' % (line, eml.get(line)))
         headertxt = '\n'.join(headerlines)
         WidgetWrap.__init__(self, Text(headertxt))
 

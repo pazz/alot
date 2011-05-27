@@ -12,6 +12,7 @@ class Buffer:
         self.bindings = {}
         self.body = widget
 
+<<<<<<< HEAD
     def rebuild(self):
         pass
 
@@ -21,11 +22,16 @@ class Buffer:
     def selectable(self):
         return self.body.selectable()
 
+=======
+>>>>>>> e76e53e8f50ddd8795c7d6e209883cda2131ab66
     def __str__(self):
         return "[%s]" % (self.typename)
 
+    def rebuild(self):
+        pass
+
     def apply_command(self, cmd):
-        #call and store it directly for a local cmd history
+        # call and store it directly for a local cmd history
         self.ui.apply_command(cmd)
 
     def keypress(self, size, key):
@@ -36,8 +42,8 @@ class Buffer:
                 cmd = command.factory(cmdname, **parms)
                 self.apply_command(cmd)
             except AssertionError as e:
-                self.ui.logger.info("could not instanciate command %s(%s): %s"
-                                    %(cmdname,parms,e))
+                string = "could not instanciate command %s(%s): %s"
+                logger.exception(string % (cmdname, parms))
         else:
             if key == 'j': key = 'down'
             elif key == 'k': key = 'up'
@@ -82,8 +88,14 @@ class BufferListBuffer(Buffer):
             num = urwid.Text('%3d:' % self.index_of(b))
             lines.append(urwid.Columns([('fixed', 4, num), buf]))
         self.bufferlist = urwid.ListBox(urwid.SimpleListWalker(lines))
+<<<<<<< HEAD
         self.bufferlist.set_focus(focusposition%len(displayedbuffers))
         self.body = self.bufferlist
+=======
+        self.original_widget = self.bufferlist
+
+        self.bufferlist.set_focus(focusposition % len(displayedbuffers))
+>>>>>>> e76e53e8f50ddd8795c7d6e209883cda2131ab66
 
     def get_selected_buffer(self):
         (linewidget, pos) = self.bufferlist.get_focus()
@@ -101,12 +113,21 @@ class SearchBuffer(Buffer):
         self.result_count = 0
         self.isinitialized = False
         self.rebuild()
+<<<<<<< HEAD
         Buffer.__init__(self, ui, self.body, 'search')
+=======
+        Buffer.__init__(self, ui, self.original_widget, 'search')
+        self.ui.logger.info("\n\n" + self.typename)
+>>>>>>> e76e53e8f50ddd8795c7d6e209883cda2131ab66
         self.bindings = {
                 'enter': ('open_thread', {'thread': self.get_selected_thread}),
                 'a': ('toggle_thread_tag', {'thread': self.get_selected_thread,
                                             'tag': 'inbox'}),
                 }
+
+    def __str__(self):
+        string = "[%s] for %s, (%d)"
+        return string % (self.typename, self.querystring, self.result_count)
 
     def rebuild(self):
         if self.isinitialized:
@@ -117,7 +138,8 @@ class SearchBuffer(Buffer):
 
         self.result_count = self.dbman.count_messages(self.querystring)
         self.tids = self.dbman.search_thread_ids(self.querystring)
-        self.threadlist = IteratorWalker(self.tids.__iter__(), widgets.ThreadlineWidget,
+        self.threadlist = IteratorWalker(iter(self.tids),
+                                         widgets.ThreadlineWidget,
                                          dbman=self.dbman)
         self.listbox = urwid.ListBox(self.threadlist)
         self.body = self.listbox
@@ -125,20 +147,25 @@ class SearchBuffer(Buffer):
     def debug(self):
         self.ui.logger.debug(self.threadlist.lines)
 
-    def __str__(self):
-        string = "[%s] for %s, (%d)"
-        return string % (self.typename, self.querystring, self.result_count)
-
     def get_selected_threadline(self):
         (threadlinewidget, size) = self.threadlist.get_focus()
         return threadlinewidget
 
     def get_selected_thread(self):
         threadlinewidget = self.get_selected_threadline()
+<<<<<<< HEAD
         t = None
         if threadlinewidget:
             t = threadlinewidget.get_thread()
         return t
+=======
+        self.ui.logger.debug('get selected')
+        thread = None
+        if threadlinewidget:
+            self.ui.logger.debug('WIDGET THERE')
+            thread = threadlinewidget.get_thread()
+        return thread
+>>>>>>> e76e53e8f50ddd8795c7d6e209883cda2131ab66
 
 
 class SingleThreadBuffer(Buffer):
@@ -150,6 +177,10 @@ class SingleThreadBuffer(Buffer):
                          'enter': ('call_pager',
                                    {'path': self.get_selected_message_file}),
                          }
+
+    def __str__(self):
+        string = "[%s] %s, (%d)"
+        return string % (self.typename, self.subject, self.message_count)
 
     def read_thread(self, thread):
         self.message_count = thread.get_total_messages()
@@ -163,10 +194,6 @@ class SingleThreadBuffer(Buffer):
             msgs.append(widgets.MessageWidget(m, even=(num % 2 == 0)))
         self.messagelist = urwid.ListBox(msgs)
         self.body = self.messagelist
-
-    def __str__(self):
-        string = "[%s] %s, (%d)"
-        return string % (self.typename, self.subject, self.message_count)
 
     def get_selected_message(self):
         (messagewidget, size) = self.messagelist.get_focus()
@@ -204,9 +231,14 @@ class TagListBuffer(Buffer):
         self.taglist = urwid.ListBox(urwid.SimpleListWalker(lines))
         self.body = self.taglist
 
-        self.taglist.set_focus(focusposition%len(displayedtags))
+        self.taglist.set_focus(focusposition % len(displayedtags))
 
     def get_selected_tag(self):
         (attrwidget, pos) = self.taglist.get_focus()
+<<<<<<< HEAD
         tagwidget = attrwidget.body
         return 'tag:'+tagwidget.get_tag()
+=======
+        tagwidget = attrwidget.original_widget
+        return 'tag:' + tagwidget.get_tag()
+>>>>>>> e76e53e8f50ddd8795c7d6e209883cda2131ab66
