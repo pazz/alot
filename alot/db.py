@@ -63,8 +63,8 @@ class Thread:
             msg.thaw()
 
     def remove_tags(self, tags):
-        qguery = self.dbman.query('thread:' + self.tid, writeable=True)
-        for msg in q.search_messages():
+        query = self.dbman.query('thread:' + self.tid, writeable=True)
+        for msg in query.search_messages():
             msg.freeze()
             for tag in tags:
                 msg.remove_tag(tag)

@@ -174,7 +174,7 @@ class BufferFocusCommand(Command):
             self.buffer = ui.current_buffer
         idx = ui.buffers.index(self.buffer)
         num = len(ui.buffers)
-        ui.buffer_focus(ui.buffers[(idx + self.offset) % lnum])
+        ui.buffer_focus(ui.buffers[(idx + self.offset) % num])
 
 
 class BufferListCommand(Command):

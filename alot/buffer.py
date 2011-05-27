@@ -12,20 +12,14 @@ class Buffer:
         self.bindings = {}
         self.body = widget
 
-<<<<<<< HEAD
-    def rebuild(self):
-        pass
+    def __str__(self):
+        return "[%s]" % (self.typename)
 
     def render(self, size, focus=False):
         return self.body.render(size, focus)
 
     def selectable(self):
         return self.body.selectable()
-
-=======
->>>>>>> e76e53e8f50ddd8795c7d6e209883cda2131ab66
-    def __str__(self):
-        return "[%s]" % (self.typename)
 
     def rebuild(self):
         pass
@@ -88,14 +82,8 @@ class BufferListBuffer(Buffer):
             num = urwid.Text('%3d:' % self.index_of(b))
             lines.append(urwid.Columns([('fixed', 4, num), buf]))
         self.bufferlist = urwid.ListBox(urwid.SimpleListWalker(lines))
-<<<<<<< HEAD
         self.bufferlist.set_focus(focusposition%len(displayedbuffers))
         self.body = self.bufferlist
-=======
-        self.original_widget = self.bufferlist
-
-        self.bufferlist.set_focus(focusposition % len(displayedbuffers))
->>>>>>> e76e53e8f50ddd8795c7d6e209883cda2131ab66
 
     def get_selected_buffer(self):
         (linewidget, pos) = self.bufferlist.get_focus()
@@ -113,12 +101,7 @@ class SearchBuffer(Buffer):
         self.result_count = 0
         self.isinitialized = False
         self.rebuild()
-<<<<<<< HEAD
         Buffer.__init__(self, ui, self.body, 'search')
-=======
-        Buffer.__init__(self, ui, self.original_widget, 'search')
-        self.ui.logger.info("\n\n" + self.typename)
->>>>>>> e76e53e8f50ddd8795c7d6e209883cda2131ab66
         self.bindings = {
                 'enter': ('open_thread', {'thread': self.get_selected_thread}),
                 'a': ('toggle_thread_tag', {'thread': self.get_selected_thread,
@@ -153,19 +136,10 @@ class SearchBuffer(Buffer):
 
     def get_selected_thread(self):
         threadlinewidget = self.get_selected_threadline()
-<<<<<<< HEAD
-        t = None
-        if threadlinewidget:
-            t = threadlinewidget.get_thread()
-        return t
-=======
-        self.ui.logger.debug('get selected')
         thread = None
         if threadlinewidget:
-            self.ui.logger.debug('WIDGET THERE')
             thread = threadlinewidget.get_thread()
         return thread
->>>>>>> e76e53e8f50ddd8795c7d6e209883cda2131ab66
 
 
 class SingleThreadBuffer(Buffer):
@@ -235,10 +209,5 @@ class TagListBuffer(Buffer):
 
     def get_selected_tag(self):
         (attrwidget, pos) = self.taglist.get_focus()
-<<<<<<< HEAD
         tagwidget = attrwidget.body
-        return 'tag:'+tagwidget.get_tag()
-=======
-        tagwidget = attrwidget.original_widget
         return 'tag:' + tagwidget.get_tag()
->>>>>>> e76e53e8f50ddd8795c7d6e209883cda2131ab66
