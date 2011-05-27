@@ -29,7 +29,7 @@ class Buffer(urwid.AttrMap):
             try:
                 cmd = command.factory(cmdname, **parms)
                 self.apply_command(cmd)
-            except Exception as e:
+            except AssertionError as e:
                 self.ui.logger.info("could not instanciate command %s(%s): %s"
                                     %(cmdname,parms,e))
         else:
@@ -115,11 +115,8 @@ class SearchBuffer(Buffer):
         self.tids = self.dbman.search_thread_ids(self.querystring)
         self.threadlist = IteratorWalker(self.tids.__iter__(), widgets.ThreadlineWidget,
                                          dbman=self.dbman)
-        self.ui.logger.debug(len(self.tids))
-        self.original_widget = urwid.ListBox(self.threadlist)
-        self.ui.logger.debug(self.threadlist.lines)
-
-        self.threadlist.set_focus(focusposition)
+        self.listbox = urwid.ListBox(self.threadlist)
+        self.original_widget = self.listbox
 
     def debug(self):
         self.ui.logger.debug(self.threadlist.lines)
