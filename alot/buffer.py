@@ -21,14 +21,17 @@ class Buffer(urwid.AttrMap):
     def apply_command(self, cmd):
         #call and store it directly for a local cmd history
         self.ui.apply_command(cmd)
-        #self.rebuild()
 
     def keypress(self, size, key):
         if key in self.bindings:
-            self.ui.logger.debug("%s: handeles key: %s" % (self.typename, key))
+            self.ui.logger.debug("%s: handels key: %s" % (self.typename, key))
             (cmdname, parms) = self.bindings[key]
-            cmd = command.factory(cmdname, **parms)
-            self.apply_command(cmd)
+            try:
+                cmd = command.factory(cmdname, **parms)
+                self.apply_command(cmd)
+            except Exception as e:
+                self.ui.logger.info("could not instanciate command %s(%s): %s"
+                                    %(cmdname,parms,e))
         else:
             if key == 'j': key = 'down'
             elif key == 'k': key = 'up'
@@ -36,7 +39,6 @@ class Buffer(urwid.AttrMap):
             elif key == 'l': key = 'right'
             elif key == ' ': key = 'page down'
             elif key == 'r': self.rebuild()
-            elif key == 't': self.debug()
             return self.original_widget.keypress(size, key)
 
 
@@ -132,7 +134,12 @@ class SearchBuffer(Buffer):
 
     def get_selected_thread(self):
         threadlinewidget = self.get_selected_threadline()
-        return threadlinewidget.get_thread()
+        self.ui.logger.debug('get selected')
+        t = None
+        if threadlinewidget:
+            self.ui.logger.debug('WIDGET THERE')
+            t = threadlinewidget.get_thread()
+        return t
 
 
 class SingleThreadBuffer(Buffer):

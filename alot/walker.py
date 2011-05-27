@@ -27,7 +27,8 @@ class IteratorWalker(urwid.ListWalker):
 
     def remove(self, obj):
         self.lines.remove(obj)
-        self.set_focus(self.focus % len(self.lines))
+        if self.lines:
+            self.set_focus(self.focus % len(self.lines))
         self._modified()
 
     def _get_at_pos(self, pos):

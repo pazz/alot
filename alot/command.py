@@ -210,6 +210,7 @@ class ToggleThreadTagCommand(Command):
     """
     """
     def __init__(self, thread, tag, **kwargs):
+        assert thread
         self.thread = thread
         self.tag = tag
         Command.__init__(self, **kwargs)
