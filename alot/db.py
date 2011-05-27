@@ -73,7 +73,7 @@ class Thread:
             for t in tags:
                 msg.remove_tag(t)
             msg.thaw()
-        self.tags = [t for t in self.tags if t in tags]
+        self.tags = [t for t in self.tags if t not in tags]
 
     def get_tags(self):
         return self.tags
@@ -138,7 +138,7 @@ class Message:
             f_mail.close()
         return eml
 
-    def add_tags(self, tags, untag=False):
+    def add_tags(self, tags):
         msg = self.dbman.get_message(self.mid)
         msg.freeze()
         for tag in tags:
@@ -154,4 +154,4 @@ class Message:
             msg.remove_tag(tag)
             logging.debug('untag %s'%tags)
         msg.thaw()
-        self.tags = [t for t in self.tags if t in tags]
+        self.tags = [t for t in self.tags if t not in tags]

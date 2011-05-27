@@ -229,7 +229,7 @@ class ToggleThreadTagCommand(Command):
         #if ui.dbman.count_messages(qs) == 0:
         #    ui.logger.debug('remove: %s'%self.thread)
         #    #sbuffer.threadlist.remove(threadwidget)
-        sbuffer.rebuild()
+        #sbuffer.rebuild()
 
 
 
