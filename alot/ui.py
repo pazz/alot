@@ -28,6 +28,7 @@ class UI:
         self.bindings = {
             'i': ('open_inbox', {}),
             'u': ('open_unread', {}),
+            'H': ('search', {'query': 'heiko'}),
             'x': ('buffer_close', {}),
             'tab': ('buffer_next', {}),
             'shift tab': ('buffer_prev', {}),
@@ -115,8 +116,8 @@ class UI:
             if isinstance(self.current_buffer,BufferListBuffer):
                 self.current_buffer.rebuild()
             self.update()
-            if self.mainloop.screen._started:
-                self.mainloop.draw_screen()
+            #if self.mainloop.screen._started:
+            #    self.mainloop.draw_screen()
 
     def update(self):
         """

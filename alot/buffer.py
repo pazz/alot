@@ -5,15 +5,21 @@ import command
 from walker import IteratorWalker
 
 
-class Buffer(urwid.AttrMap):
+class Buffer:
     def __init__(self, ui, widget, name):
         self.ui = ui
         self.typename = name
         self.bindings = {}
-        urwid.AttrMap.__init__(self, widget, {})
+        self.body = widget
 
     def rebuild(self):
         pass
+
+    def render(self, size, focus=False):
+        return self.body.render(size, focus)
+
+    def selectable(self):
+        return self.body.selectable()
 
     def __str__(self):
         return "[%s]" % (self.typename)
@@ -39,7 +45,7 @@ class Buffer(urwid.AttrMap):
             elif key == 'l': key = 'right'
             elif key == ' ': key = 'page down'
             elif key == 'r': self.rebuild()
-            return self.original_widget.keypress(size, key)
+            return self.body.keypress(size, key)
 
 
 class BufferListBuffer(Buffer):
@@ -48,7 +54,7 @@ class BufferListBuffer(Buffer):
         self.ui = ui
         self.isinitialized = False
         self.rebuild()
-        Buffer.__init__(self, ui, self.original_widget, 'bufferlist')
+        Buffer.__init__(self, ui, self.body, 'bufferlist')
         self.bindings = {
                          'd': ('buffer_close',
                                {'buffer': self.get_selected_buffer}),
@@ -76,13 +82,12 @@ class BufferListBuffer(Buffer):
             num = urwid.Text('%3d:' % self.index_of(b))
             lines.append(urwid.Columns([('fixed', 4, num), buf]))
         self.bufferlist = urwid.ListBox(urwid.SimpleListWalker(lines))
-        self.original_widget = self.bufferlist
-
         self.bufferlist.set_focus(focusposition%len(displayedbuffers))
+        self.body = self.bufferlist
 
     def get_selected_buffer(self):
         (linewidget, pos) = self.bufferlist.get_focus()
-        bufferlinewidget = linewidget.get_focus().original_widget
+        bufferlinewidget = linewidget.get_focus().body
         return bufferlinewidget.get_buffer()
 
 
@@ -96,8 +101,7 @@ class SearchBuffer(Buffer):
         self.result_count = 0
         self.isinitialized = False
         self.rebuild()
-        Buffer.__init__(self, ui, self.original_widget, 'search')
-        self.ui.logger.info("\n\n"+self.typename)
+        Buffer.__init__(self, ui, self.body, 'search')
         self.bindings = {
                 'enter': ('open_thread', {'thread': self.get_selected_thread}),
                 'a': ('toggle_thread_tag', {'thread': self.get_selected_thread,
@@ -116,7 +120,7 @@ class SearchBuffer(Buffer):
         self.threadlist = IteratorWalker(self.tids.__iter__(), widgets.ThreadlineWidget,
                                          dbman=self.dbman)
         self.listbox = urwid.ListBox(self.threadlist)
-        self.original_widget = self.listbox
+        self.body = self.listbox
 
     def debug(self):
         self.ui.logger.debug(self.threadlist.lines)
@@ -143,7 +147,7 @@ class SingleThreadBuffer(Buffer):
     def __init__(self, ui, thread):
         self.read_thread(thread)
         self.rebuild()
-        Buffer.__init__(self, ui, self.original_widget, 'search')
+        Buffer.__init__(self, ui, self.body, 'search')
         self.bindings = {
                          'enter': ('call_pager',
                                    {'path': self.get_selected_message_file}),
@@ -160,7 +164,7 @@ class SingleThreadBuffer(Buffer):
         for (num, m) in enumerate(self.messages, 1):
             msgs.append(widgets.MessageWidget(m, even=(num % 2 == 0)))
         self.messagelist = urwid.ListBox(msgs)
-        self.original_widget = self.messagelist
+        self.body = self.messagelist
 
     def __str__(self):
         string = "[%s] %s, (%d)"
@@ -181,7 +185,7 @@ class TagListBuffer(Buffer):
         self.tags = alltags
         self.isinitialized = False
         self.rebuild()
-        Buffer.__init__(self, ui, self.original_widget, 'taglist')
+        Buffer.__init__(self, ui, self.body, 'taglist')
         self.bindings = {'enter': ('search',
                                    {'query': self.get_selected_tag}),
                          }
@@ -200,11 +204,11 @@ class TagListBuffer(Buffer):
             tag_w = urwid.AttrMap(line, 'taglist_tag', 'taglist_focus')
             lines.append(tag_w)
         self.taglist = urwid.ListBox(urwid.SimpleListWalker(lines))
-        self.original_widget = self.taglist
+        self.body = self.taglist
 
         self.taglist.set_focus(focusposition%len(displayedtags))
 
     def get_selected_tag(self):
         (attrwidget, pos) = self.taglist.get_focus()
-        tagwidget = attrwidget.original_widget
+        tagwidget = attrwidget.body
         return 'tag:'+tagwidget.get_tag()
