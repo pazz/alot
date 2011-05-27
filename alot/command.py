@@ -224,12 +224,14 @@ class ToggleThreadTagCommand(Command):
         threadwidget = sbuffer.get_selected_threadline()
         #threadwidget.reload_tag(ui.dbman) #threads seem to cache their tags
         threadwidget.rebuild() #rebuild and redraw the line
-        #TODO: remove line from searchlist if thread doesn't match the query
-        #qs="(%s) AND thread:%s"%(sbuffer.querystring,self.thread.get_thread_id())
-        #if ui.dbman.count_messages(qs) == 0:
-        #    ui.logger.debug('remove: %s'%self.thread)
-        #    #sbuffer.threadlist.remove(threadwidget)
-        #sbuffer.rebuild()
+        #remove line from searchlist if thread doesn't match the query
+        qs="(%s) AND thread:%s"%(sbuffer.querystring,self.thread.get_thread_id())
+        msg_count = ui.dbman.count_messages(qs)
+        if ui.dbman.count_messages(qs) == 0:
+            ui.logger.debug('remove: %s'%self.thread)
+            sbuffer.threadlist.remove(threadwidget)
+            sbuffer.result_count -= self.thread.get_total_messages()
+            ui.update_footer()
 
 
 

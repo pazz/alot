@@ -75,6 +75,9 @@ class Thread:
             msg.thaw()
         self.tags = [t for t in self.tags if t not in tags]
 
+    def get_thread_id(self):
+        return self.tid
+
     def get_tags(self):
         return self.tags
 

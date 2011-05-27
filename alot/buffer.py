@@ -110,10 +110,10 @@ class SearchBuffer(Buffer):
             self.isinitialized = True
 
         self.result_count = self.dbman.count_messages(self.querystring)
-        tids = self.dbman.search_thread_ids(self.querystring)
-        self.threadlist = IteratorWalker(tids.__iter__(), widgets.ThreadlineWidget,
+        self.tids = self.dbman.search_thread_ids(self.querystring)
+        self.threadlist = IteratorWalker(self.tids.__iter__(), widgets.ThreadlineWidget,
                                          dbman=self.dbman)
-        self.ui.logger.debug(self.threadlist.lines)
+        self.ui.logger.debug(len(self.tids))
         self.original_widget = urwid.ListBox(self.threadlist)
         self.ui.logger.debug(self.threadlist.lines)
 
