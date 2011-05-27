@@ -12,14 +12,14 @@ class Buffer(urwid.AttrMap):
         self.bindings = {}
         urwid.AttrMap.__init__(self, widget, {})
 
-    def rebuild(self):
-        pass
-
     def __str__(self):
         return "[%s]" % (self.typename)
 
+    def rebuild(self):
+        pass
+
     def apply_command(self, cmd):
-        #call and store it directly for a local cmd history
+        # call and store it directly for a local cmd history
         self.ui.apply_command(cmd)
 
     def keypress(self, size, key):
@@ -104,6 +104,10 @@ class SearchBuffer(Buffer):
                                             'tag': 'inbox'}),
                 }
 
+    def __str__(self):
+        string = "[%s] for %s, (%d)"
+        return string % (self.typename, self.querystring, self.result_count)
+
     def rebuild(self):
         if self.isinitialized:
             focusposition = self.threadlist.get_focus()[1]
@@ -121,10 +125,6 @@ class SearchBuffer(Buffer):
 
     def debug(self):
         self.ui.logger.debug(self.threadlist.lines)
-
-    def __str__(self):
-        string = "[%s] for %s, (%d)"
-        return string % (self.typename, self.querystring, self.result_count)
 
     def get_selected_threadline(self):
         (threadlinewidget, size) = self.threadlist.get_focus()
@@ -150,6 +150,10 @@ class SingleThreadBuffer(Buffer):
                                    {'path': self.get_selected_message_file}),
                          }
 
+    def __str__(self):
+        string = "[%s] %s, (%d)"
+        return string % (self.typename, self.subject, self.message_count)
+
     def read_thread(self, thread):
         self.message_count = thread.get_total_messages()
         self.subject = thread.get_subject()
@@ -162,10 +166,6 @@ class SingleThreadBuffer(Buffer):
             msgs.append(widgets.MessageWidget(m, even=(num % 2 == 0)))
         self.messagelist = urwid.ListBox(msgs)
         self.original_widget = self.messagelist
-
-    def __str__(self):
-        string = "[%s] %s, (%d)"
-        return string % (self.typename, self.subject, self.message_count)
 
     def get_selected_message(self):
         (messagewidget, size) = self.messagelist.get_focus()

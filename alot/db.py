@@ -114,6 +114,9 @@ class Message:
         self.filename = msg.get_filename()
         self.tags = [str(tag) for tag in msg.get_tags()]
 
+    def __str__(self):
+        return self.strrep
+
     def get_replies(self):
         r = []
         for mid in self.replies:
@@ -129,9 +132,6 @@ class Message:
             self.email = self.read_mail(self.filename)
         return self.email
         # self.email = self.read_mail(self.filename)
-
-    def __str__(self):
-        return self.strrep
 
     def read_mail(self, message):
         try:
