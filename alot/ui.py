@@ -112,7 +112,7 @@ class UI:
             self.logger.error('tried to focus unknown buffer')
         else:
             self.current_buffer = b
-            if isinstance(self.current_buffer,BufferListBuffer):
+            if isinstance(self.current_buffer, BufferListBuffer):
                 self.current_buffer.rebuild()
             self.update()
             if self.mainloop.screen._started:

@@ -30,8 +30,8 @@ class Buffer(urwid.AttrMap):
                 cmd = command.factory(cmdname, **parms)
                 self.apply_command(cmd)
             except AssertionError as e:
-                self.ui.logger.info("could not instanciate command %s(%s): %s"
-                                    %(cmdname,parms,e))
+                string = "could not instanciate command %s(%s): %s"
+                logger.exception(string % (cmdname, parms))
         else:
             if key == 'j': key = 'down'
             elif key == 'k': key = 'up'
@@ -78,7 +78,7 @@ class BufferListBuffer(Buffer):
         self.bufferlist = urwid.ListBox(urwid.SimpleListWalker(lines))
         self.original_widget = self.bufferlist
 
-        self.bufferlist.set_focus(focusposition%len(displayedbuffers))
+        self.bufferlist.set_focus(focusposition % len(displayedbuffers))
 
     def get_selected_buffer(self):
         (linewidget, pos) = self.bufferlist.get_focus()
@@ -97,7 +97,7 @@ class SearchBuffer(Buffer):
         self.isinitialized = False
         self.rebuild()
         Buffer.__init__(self, ui, self.original_widget, 'search')
-        self.ui.logger.info("\n\n"+self.typename)
+        self.ui.logger.info("\n\n" + self.typename)
         self.bindings = {
                 'enter': ('open_thread', {'thread': self.get_selected_thread}),
                 'a': ('toggle_thread_tag', {'thread': self.get_selected_thread,
@@ -113,7 +113,8 @@ class SearchBuffer(Buffer):
 
         self.result_count = self.dbman.count_messages(self.querystring)
         self.tids = self.dbman.search_thread_ids(self.querystring)
-        self.threadlist = IteratorWalker(self.tids.__iter__(), widgets.ThreadlineWidget,
+        self.threadlist = IteratorWalker(iter(self.tids),
+                                         widgets.ThreadlineWidget,
                                          dbman=self.dbman)
         self.listbox = urwid.ListBox(self.threadlist)
         self.original_widget = self.listbox
@@ -202,9 +203,9 @@ class TagListBuffer(Buffer):
         self.taglist = urwid.ListBox(urwid.SimpleListWalker(lines))
         self.original_widget = self.taglist
 
-        self.taglist.set_focus(focusposition%len(displayedtags))
+        self.taglist.set_focus(focusposition % len(displayedtags))
 
     def get_selected_tag(self):
         (attrwidget, pos) = self.taglist.get_focus()
         tagwidget = attrwidget.original_widget
-        return 'tag:'+tagwidget.get_tag()
+        return 'tag:' + tagwidget.get_tag()

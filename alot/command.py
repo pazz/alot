@@ -93,7 +93,7 @@ class PagerCommand(Command):
     def apply(self, ui):
         def afterwards():
             ui.logger.info('pager was closed')
-        cmd = ExternalCommand(settings.pager_cmd %self.path,
+        cmd = ExternalCommand(settings.pager_cmd % self.path,
                               spawn=self.spawn,
                               onExit=afterwards)
         ui.apply_command(cmd)
@@ -111,13 +111,13 @@ class ExternalCommand(Command):
     def apply(self, ui):
         def call(onExit, popenArgs):
             callerbuffer = ui.current_buffer
-            ui.logger.info('CALLERBUFFER: %s'%callerbuffer)
-            proc = subprocess.Popen(*popenArgs,shell=True)
+            ui.logger.info('CALLERBUFFER: %s' % callerbuffer)
+            proc = subprocess.Popen(*popenArgs, shell=True)
             proc.wait()
             if callable(onExit):
                 onExit()
             if self.refocus and callerbuffer in ui.buffers:
-                ui.logger.info('TRY TO REFOCUS: %s'%callerbuffer)
+                ui.logger.info('TRY TO REFOCUS: %s' % callerbuffer)
                 ui.buffer_focus(callerbuffer)
             return
 
@@ -129,8 +129,9 @@ class ExternalCommand(Command):
             ui.mainloop.screen.stop()
             cmd = self.commandstring
             logging.debug(cmd)
-            call(self.onExit,(cmd,))
+            call(self.onExit, (cmd,))
             ui.mainloop.screen.start()
+
 
 class OpenPythonShellCommand(Command):
     """
@@ -190,6 +191,7 @@ class BufferListCommand(Command):
         b.rebuild()
         ui.buffer_focus(b)
 
+
 class TagListCommand(Command):
     """
     open a taglist
@@ -220,21 +222,20 @@ class ToggleThreadTagCommand(Command):
             self.thread.remove_tags([self.tag])
         else:
             self.thread.add_tags([self.tag])
-        #refresh selected threadline
+        # refresh selected threadline
         sbuffer = ui.current_buffer
         threadwidget = sbuffer.get_selected_threadline()
-        #threadwidget.reload_tag(ui.dbman) #threads seem to cache their tags
-        threadwidget.rebuild() #rebuild and redraw the line
+        #threadwidget.reload_tag(ui.dbman)  # threads seem to cache their tags
+        threadwidget.rebuild()  # rebuild and redraw the line
         #remove line from searchlist if thread doesn't match the query
-        qs="(%s) AND thread:%s"%(sbuffer.querystring,self.thread.get_thread_id())
+        qs = "(%s) AND thread:%s" % (sbuffer.querystring,
+                                     self.thread.get_thread_id())
         msg_count = ui.dbman.count_messages(qs)
         if ui.dbman.count_messages(qs) == 0:
-            ui.logger.debug('remove: %s'%self.thread)
+            ui.logger.debug('remove: %s' % self.thread)
             sbuffer.threadlist.remove(threadwidget)
             sbuffer.result_count -= self.thread.get_total_messages()
             ui.update_footer()
-
-
 
 
 commands = {

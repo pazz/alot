@@ -18,15 +18,16 @@ class DBManager:
         tid_list = [t.get_thread_id() for t in q.search_threads()]
         return tid_list
 
-    def get_message(self,mid, writeable=False):
-        q = self.query('id:'+mid, writeable=writeable)
-        #TODO raise exceptions here in 0<case msgcount>1
+    def get_message(self, mid, writeable=False):
+        q = self.query('id:' + mid, writeable=writeable)
+        # TODO raise exceptions here in 0<case msgcount>1
         return Message(self, q.search_messages().next())
 
-    def get_thread(self,tid, writeable=False):
-        q = self.query('thread:'+tid, writeable=writeable)
+    def get_thread(self, tid, writeable=False):
+        q = self.query('thread:' + tid, writeable=writeable)
         #TODO raise exceptions here in 0<case msgcount>1
         return Thread(self, q.search_threads().next())
+
     def get_all_tags(self):
         mode = Database.MODE.READ_ONLY
         db = Database(path=self.path, mode=mode)
@@ -48,17 +49,17 @@ class Thread:
     def __init__(self, dbman, thread):
         self.dbman = dbman
         self.tid = thread.get_thread_id()
-        self.strrep = "WRAPPER:"+thread.__str__()
+        self.strrep = "WRAPPER:" + str(thread)
         self.total_messages = thread.get_total_messages()
         self.topmessages = [m.get_message_id() for m in thread.get_toplevel_messages()]
         self.authors = thread.get_authors()
         self.subject = thread.get_subject()
         self.oldest = datetime.fromtimestamp(thread.get_oldest_date())
         self.newest = datetime.fromtimestamp(thread.get_newest_date())
-        self.tags = [ t.__str__() for t in thread.get_tags()]
+        self.tags = [str(tag) for tag in thread.get_tags()]
 
     def add_tags(self, tags):
-        q = self.dbman.query('thread:'+self.tid, writeable=True)
+        q = self.dbman.query('thread:' + self.tid, writeable=True)
         for msg in q.search_messages():
             msg.freeze()
             for t in tags:
@@ -67,7 +68,7 @@ class Thread:
         self.tags += [t for t in tags if t not in self.tags]
 
     def remove_tags(self, tags):
-        q = self.dbman.query('thread:'+self.tid, writeable=True)
+        q = self.dbman.query('thread:' + self.tid, writeable=True)
         for msg in q.search_messages():
             msg.freeze()
             for t in tags:
@@ -88,10 +89,10 @@ class Thread:
         return self.subject
 
     def get_toplevel_messages(self):
-        tl = []
+        tl = list()
         for mid in self.topmessages:
             msg = self.dbman.get_message(mid)
-            tl.append(Message(self.dbman,msg))
+            tl.append(Message(self.dbman, msg))
         return tl
 
     def get_newest_date(self):
@@ -103,20 +104,21 @@ class Thread:
     def get_total_messages(self):
         return self.total_messages
 
+
 class Message:
-    def __init__(self,dbman, msg):
+    def __init__(self, dbman, msg):
         self.dbman = dbman
         self.mid = msg.get_message_id()
-        self.strrep = msg.__str__()
+        self.strrep = str(msg)
         self.replies = [m.get_message_id() for m in msg.get_replies()]
         self.filename = msg.get_filename()
-        self.tags = [ t.__str__() for t in msg.get_tags()]
+        self.tags = [str(tag) for tag in msg.get_tags()]
 
     def get_replies(self):
         r = []
         for mid in self.replies:
             msg = self.dbman.get_message(mid)
-            r.append(Message(self.dbman,msg))
+            r.append(Message(self.dbman, msg))
         return r
 
     def get_tags(self):
@@ -126,8 +128,8 @@ class Message:
         if not self.email:
             self.email = self.read_mail(self.filename)
         return self.email
+        # self.email = self.read_mail(self.filename)
 
-        self.email = self.read_mail(self.filename)
     def __str__(self):
         return self.strrep
 
@@ -146,7 +148,7 @@ class Message:
         msg.freeze()
         for tag in tags:
             msg.add_tag(tag)
-            logging.debug('tag %s'%tags)
+            logging.debug('tag %s' % tags)
         msg.thaw()
         self.tags += [t for t in tags if t not in self.tags]
 
@@ -155,6 +157,6 @@ class Message:
         msg.freeze()
         for tag in tags:
             msg.remove_tag(tag)
-            logging.debug('untag %s'%tags)
+            logging.debug('untag %s' % tags)
         msg.thaw()
         self.tags = [t for t in self.tags if t not in tags]
