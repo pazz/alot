@@ -39,10 +39,14 @@ class Buffer:
                 string = "could not instanciate command %s(%s): %s"
                 logger.exception(string % (cmdname, parms))
         else:
-            if key == 'j': key = 'down'
-            elif key == 'k': key = 'up'
-            elif key == ' ': key = 'page down'
-            elif key == 'r': self.rebuild()
+            if key == 'j':
+                key = 'down'
+            elif key == 'k':
+                key = 'up'
+            elif key == ' ':
+                key = 'page down'
+            elif key == 'r':
+                self.rebuild()
             return self.body.keypress(size, key)
 
 
@@ -74,13 +78,15 @@ class BufferListBuffer(Buffer):
         displayedbuffers = filter(self.filtfun, self.ui.buffers)
         for (num, b) in enumerate(displayedbuffers):
             line = widgets.BufferlineWidget(b)
-            if (num % 2) == 0: attr = 'bufferlist_results_even'
-            else: attr = 'bufferlist_results_odd'
+            if (num % 2) == 0:
+                attr = 'bufferlist_results_even'
+            else:
+                attr = 'bufferlist_results_odd'
             buf = urwid.AttrMap(line, attr, 'bufferlist_focus')
             num = urwid.Text('%3d:' % self.index_of(b))
             lines.append(urwid.Columns([('fixed', 4, num), buf]))
         self.bufferlist = urwid.ListBox(urwid.SimpleListWalker(lines))
-        self.bufferlist.set_focus(focusposition%len(displayedbuffers))
+        self.bufferlist.set_focus(focusposition % len(displayedbuffers))
         self.body = self.bufferlist
 
     def get_selected_buffer(self):
@@ -161,17 +167,18 @@ class SingleThreadBuffer(Buffer):
     def _build_pile(self, acc, msg, depth=0):
         acc.append((depth, msg))
         for m in msg.get_replies():
-            self._build_pile(acc, m, depth+1)
+            self._build_pile(acc, m, depth + 1)
 
     def rebuild(self):
         msgs = list()
         for (num, (depth, m)) in enumerate(self.messages, 1):
-            mwidget = widgets.MessageWidget(m, even=(num % 2 == 0), folded=False)
+            mwidget = widgets.MessageWidget(m, even=(num % 2 == 0),
+                                            folded=False)
             # a spacer of width 0 breaks urwid.Columns
             if depth == 0:
                 msgs.append(urwid.Columns([mwidget]))
             else:
-                spacer = urwid.Text(' '*depth)
+                spacer = urwid.Text(' ' * depth)
                 msgs.append(urwid.Columns([('fixed', depth, spacer), mwidget]))
         self.messagelist = urwid.ListBox(msgs)
         self.body = self.messagelist

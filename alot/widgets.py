@@ -26,7 +26,8 @@ class ThreadlineWidget(AttrMap):
         self.date_w = AttrMap(Text(datestring), 'threadline_date')
 
         mailcountstring = "(%d)" % self.thread.get_total_messages()
-        self.mailcount_w = AttrMap(Text(mailcountstring), 'threadline_mailcount')
+        self.mailcount_w = AttrMap(Text(mailcountstring),
+                                   'threadline_mailcount')
 
         tagsstring = " ".join(self.thread.get_tags())
         self.tags_w = AttrMap(Text(tagsstring), 'threadline_tags')
@@ -52,7 +53,8 @@ class ThreadlineWidget(AttrMap):
     def render(self, size, focus=False):
         if focus:
             self.date_w.set_attr_map({None: 'threadline_date_linefocus'})
-            self.mailcount_w.set_attr_map({None: 'threadline_mailcount_linefocus'})
+            self.mailcount_w.set_attr_map({None:
+                                           'threadline_mailcount_linefocus'})
             self.tags_w.set_attr_map({None: 'threadline_tags_linefocus'})
             self.authors_w.set_attr_map({None: 'threadline_authors_linefocus'})
             self.subject_w.set_attr_map({None: 'threadline_subject_linefocus'})
@@ -133,7 +135,7 @@ class MessageWidget(WidgetWrap):
         self.sumw = MessageSummaryWidget(self.message)
         self.headerw = MessageHeaderWidget(self.message.get_email())
         self.bodyw = MessageBodyWidget(self.message.get_email())
-        self.displayed_list = [ AttrMap(self.sumw, sumattr) ]
+        self.displayed_list = [AttrMap(self.sumw, sumattr)]
         if not folded:
             self.displayed_list.append(self.bodyw)
         self.body = Pile(self.displayed_list)
@@ -147,7 +149,7 @@ class MessageWidget(WidgetWrap):
         if self.headerw in self.displayed_list:
             self.displayed_list.remove(self.headerw)
         else:
-            self.displayed_list.insert(1,self.headerw)
+            self.displayed_list.insert(1, self.headerw)
         self.rebuild()
 
     def toggle_body(self):

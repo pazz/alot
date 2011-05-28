@@ -5,42 +5,43 @@ spawn_editor = True
 spawn_pager = True
 
 palette = [
-    ('header', 'white', 'dark blue', 'bold', '#ffa', ''),
+    ('header', 'white', 'dark blue', 'bold', '', ''),
     ('footer', 'white', 'dark blue', 'bold', '', ''),
-    ('prompt', 'light gray', 'black', '', 'g50', '#60a'),
-    ('threadline', 'light gray', '', '', 'g50', '#60a'),
+    ('prompt', 'light gray', 'black', '', '', ''),
+    ('threadline', 'light gray', '', '', '', ''),
     ('threadline_focus', 'white', 'dark gray', '', '', ''),
 
     ('threadline_date', 'light gray', '', '', '', ''),
     ('threadline_mailcount', 'light gray', '', '', '', ''),
     ('threadline_tags', 'yellow', '', '', '', ''),
-    ('threadline_authors', 'dark green', '', '', 'g50', '#60a'),
-    ('threadline_subject', 'light gray', '', '', 'g50', '#60a'),
-    ('threadline_date_linefocus', 'light gray', 'dark gray', '', '', ''),
+    ('threadline_authors', 'dark green', '', '', '', ''),
+    ('threadline_subject', 'light gray', '', '', '', ''),
+    ('threadline_date_linefocus', 'light gray', 'dgray', '', '', ''),
     ('threadline_mailcount_linefocus', 'light gray', 'dark gray', '', '', ''),
     ('threadline_tags_linefocus', 'yellow,bold', 'dark gray', '', '', ''),
-    ('threadline_authors_linefocus', 'dark green', 'dark gray', '', 'g50', '#60a'),
-    ('threadline_subject_linefocus', 'light gray', 'dark gray', '', 'g50', '#60a'),
+    ('threadline_authors_linefocus', 'dark green', 'dark gray', '', '', ''),
+    ('threadline_subject_linefocus', 'light gray', 'dark gray', '', '', ''),
 
-    ('messagesummary_even', 'white', 'light blue', '', '#ffa', '#60d'),
-    ('messagesummary_odd', 'white', 'dark blue', '', '#ffa', '#60d'),
-    ('messagesummary_focus', 'white', 'black', '', '#ffa', '#60d'),
-    ('message_header', 'white', 'dark gray', '', '#ffa', '#60d'),
-    ('message_body', 'light gray', 'black', '', '#ffa', '#60d'),
-    ('bufferlist_results_even', 'light gray', 'black', '', 'g50', '#60a'),
-    ('bufferlist_results_odd', 'light gray', 'black', '', 'g38', '#808'),
-    ('bufferlist_focus', 'white', 'dark gray', '', '#ffa', '#60d'),
+    ('messagesummary_even', 'white', 'light blue', '', '', ''),
+    ('messagesummary_odd', 'white', 'dark blue', '', '', ''),
+    ('messagesummary_focus', 'white', 'black', '', '', ''),
+    ('message_header', 'white', 'dark gray', '', '', ''),
+    ('message_body', 'light gray', 'black', '', '', ''),
 
-    ('taglist_tag', 'light gray', 'black', '', '#ffa', '#60d'),
-    ('taglist_focus', 'white', 'dark gray', '', '#ffa', '#60d'),
+    ('bufferlist_results_even', 'light gray', 'black', '', '', ''),
+    ('bufferlist_results_odd', 'light gray', 'black', '', '', ''),
+    ('bufferlist_focus', 'white', 'dark gray', '', '#ffa', ''),
+
+    ('taglist_tag', 'light gray', 'black', '', '', ''),
+    ('taglist_focus', 'white', 'dark gray', '', '', ''),
 ]
 displayed_headers = [
-        'From',
-        'To',
-        'Cc',
-        'Bcc',
-        'Subject'
-        ]
+    'From',
+    'To',
+    'Cc',
+    'Bcc',
+    'Subject',
+]
 
 authors_maxlength = 30
 

@@ -101,7 +101,8 @@ class PagerCommand(Command):
 
 class ExternalCommand(Command):
     """calls external command"""
-    def __init__(self, commandstring, spawn=False, refocus=True, onExit=None, **kwargs):
+    def __init__(self, commandstring, spawn=False, refocus=True,
+                 onExit=None, **kwargs):
         self.commandstring = commandstring
         self.spawn = spawn
         self.refocus = refocus
@@ -255,7 +256,7 @@ commands = {
         'call_editor': (EditCommand, {}),
         'call_pager': (PagerCommand, {}),
         'open_taglist': (TagListCommand, {}),
-        'toggle_thread_tag': (ToggleThreadTagCommand, {'tag': 'inbox'})
+        'toggle_thread_tag': (ToggleThreadTagCommand, {'tag': 'inbox'}),
         }
 
 

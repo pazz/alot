@@ -68,8 +68,10 @@ class Thread:
             msg.freeze()
             for tag in tags:
                 msg.remove_tag(tag)
-                try: self.tags.remove(tag)
-                except KeyError: pass # tag not in self.tags
+                try:
+                    self.tags.remove(tag)
+                except KeyError:
+                    pass  # tag not in self.tags
             msg.thaw()
 
     def get_thread_id(self):
@@ -105,8 +107,8 @@ class Message:
         self.mid = msg.get_message_id()
         self.strrep = str(msg)
 
-        self.email = None #will be read upon first use
-        r = msg.get_replies() #not iterable if None
+        self.email = None  # will be read upon first use
+        r = msg.get_replies()  # not iterable if None
         if r:
             self.replies = [m.get_message_id() for m in msg.get_replies()]
         else:
@@ -157,7 +159,9 @@ class Message:
         msg.freeze()
         for tag in tags:
             msg.remove_tag(tag)
-            try: self.tags.remove(tag)
-            except KeyError: pass # tag not in self.tags
+            try:
+                self.tags.remove(tag)
+            except KeyError:
+                pass  # tag not in self.tags
             logging.debug('untag %s' % tags)
         msg.thaw()

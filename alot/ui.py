@@ -115,8 +115,6 @@ class UI:
             if isinstance(self.current_buffer, BufferListBuffer):
                 self.current_buffer.rebuild()
             self.update()
-            #if self.mainloop.screen._started:
-            #    self.mainloop.draw_screen()
 
     def update(self):
         """
