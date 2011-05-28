@@ -237,6 +237,7 @@ class ToggleThreadTagCommand(Command):
             sbuffer.result_count -= self.thread.get_total_messages()
             ui.update_footer()
 
+
 class ThreadTagPromptCommand(Command):
     """prompt the user for labels, then tag thread"""
 
@@ -247,10 +248,10 @@ class ThreadTagPromptCommand(Command):
 
     def apply(self, ui):
         initial_tagstring = ','.join(self.thread.get_tags())
-        tagsstring = ui.prompt('label thread:',text=initial_tagstring)
+        tagsstring = ui.prompt('label thread:', text=initial_tagstring)
         if tagsstring != None:  # esc -> None, enter could return ''
-            tags = filter(lambda x: x,tagsstring.split(','))
-            ui.logger.info("got %s:%s" % (tagsstring,tags))
+            tags = filter(lambda x: x, tagsstring.split(','))
+            ui.logger.info("got %s:%s" % (tagsstring, tags))
             self.thread.set_tags(tags)
 
         # refresh selected threadline

@@ -24,8 +24,7 @@ class UI:
         self.mainloop.screen.set_terminal_properties(colors=16)
 
         self.logger.debug('setup bindings')
-        self.bindings = {
-            'i': ('search', {'query': 'tag:inbox' }),
+        self.bindings = {'i': ('search', {'query': 'tag:inbox'}),
             'u': ('search', {'query': 'tag:unread'}),
             'x': ('buffer_close', {}),
             'tab': ('buffer_next', {}),
@@ -52,7 +51,7 @@ class UI:
     def prompt(self, prefix='>', text=''):
         self.logger.info('open prompt')
 
-        prefix_widget = PromptWidget(prefix,text)
+        prefix_widget = PromptWidget(prefix, text)
         footer = self.mainframe.get_footer()
         self.mainframe.set_footer(prefix_widget)
         self.mainframe.set_focus('footer')

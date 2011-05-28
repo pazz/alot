@@ -48,7 +48,7 @@ class ThreadlineWidget(AttrMap):
         if subjectstring:
             cols.append(self.subject_w)
 
-        self.columns = Columns(cols,dividechars=1)
+        self.columns = Columns(cols, dividechars=1)
         self.original_widget = self.columns
 
     def render(self, size, focus=False):

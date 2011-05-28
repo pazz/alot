@@ -62,8 +62,8 @@ class BufferListBuffer(Buffer):
         Buffer.__init__(self, ui, self.body, 'bufferlist')
         self._autoparms = {'buffer': self.get_selected_buffer}
         self.bindings = {
-                         'd': ('buffer_close',{}),
-                         'enter': ('buffer_focus',{}),
+            'd': ('buffer_close', {}),
+            'enter': ('buffer_focus', {}),
         }
 
     def index_of(self, b):
@@ -110,11 +110,11 @@ class SearchBuffer(Buffer):
         Buffer.__init__(self, ui, self.body, 'search')
         self._autoparms = {'thread': self.get_selected_thread}
         self.bindings = {
-                'enter': ('open_thread', {}),
-                'l': ('thread_tag_prompt', {}),
-                'a': ('toggle_thread_tag', {'tag': 'inbox'}),
-                '&': ('toggle_thread_tag', {'tag': 'killed'}),
-                }
+            'enter': ('open_thread', {}),
+            'l': ('thread_tag_prompt', {}),
+            'a': ('toggle_thread_tag', {'tag': 'inbox'}),
+            '&': ('toggle_thread_tag', {'tag': 'killed'}),
+        }
 
     def __str__(self):
         string = "[%s] for %s, (%d)"
@@ -196,9 +196,9 @@ class TagListBuffer(Buffer):
         self.isinitialized = False
         self.rebuild()
         Buffer.__init__(self, ui, self.body, 'taglist')
-
         self._autoparms = {'query': self.get_selected_tag}
-        self.bindings = {'enter': ('search', {}),
+        self.bindings = {
+            'enter': ('search', {}),
         }
 
     def rebuild(self):

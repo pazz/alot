@@ -33,7 +33,7 @@ class DBManager:
         :returns:  Message -- the message.
 
         """
-        return Message(self,self.find_message(mid))
+        return Message(self, self.find_message(mid))
 
     def get_thread(self, tid, writeable=False):
         query = self.query('thread:' + tid, writeable=writeable)
@@ -108,7 +108,7 @@ class Thread:
 
     def set_tags(self, tags):
         query = self.dbman.query('thread:' + self.tid, writeable=True)
-        self.tags= set()
+        self.tags = set()
         for msg in query.search_messages():
             msg.freeze()
             msg.remove_all_tags()
