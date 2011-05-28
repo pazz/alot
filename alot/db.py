@@ -76,32 +76,46 @@ class Thread:
         self.newest = datetime.fromtimestamp(thread.get_newest_date())
         self.tags = set([str(tag) for tag in thread.get_tags()])
 
-    def add_tags(self, tags):
-        query = self.dbman.query('thread:' + self.tid, writeable=True)
-        for msg in query.search_messages():
-            msg.freeze()
-            for tag in tags:
-                msg.add_tag(tag)
-                self.tags.add(tag)
-            msg.thaw()
-
-    def remove_tags(self, tags):
-        query = self.dbman.query('thread:' + self.tid, writeable=True)
-        for msg in query.search_messages():
-            msg.freeze()
-            for tag in tags:
-                msg.remove_tag(tag)
-                try:
-                    self.tags.remove(tag)
-                except KeyError:
-                    pass  # tag not in self.tags
-            msg.thaw()
-
     def get_thread_id(self):
         return self.tid
 
     def get_tags(self):
         return list(self.tags)
+
+    def add_tags(self, tags):
+        tags = filter(lambda x: x not in self.tags, tags)
+        if tags:
+            query = self.dbman.query('thread:' + self.tid, writeable=True)
+            for msg in query.search_messages():
+                msg.freeze()
+                for tag in tags:
+                    msg.add_tag(tag)
+                msg.thaw()
+            for tag in tags:
+                self.tags.add(tag)
+
+    def remove_tags(self, tags):
+        tags = filter(lambda x: x in self.tags, tags)
+        if tags:
+            query = self.dbman.query('thread:' + self.tid, writeable=True)
+            for msg in query.search_messages():
+                msg.freeze()
+                for tag in tags:
+                    msg.remove_tag(tag)
+                msg.thaw()
+            for tag in tags:
+                self.tags.remove(tag)
+
+    def set_tags(self, tags):
+        query = self.dbman.query('thread:' + self.tid, writeable=True)
+        self.tags= set()
+        for msg in query.search_messages():
+            msg.freeze()
+            msg.remove_all_tags()
+            for tag in tags:
+                msg.add_tag(tag)
+                self.tags.add(tag)
+            msg.thaw()
 
     def get_authors(self):
         return self.authors

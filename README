@@ -33,6 +33,7 @@ Here the buffer-specific bindings:
 Searchbuffer: 
 enter, opens single thread view for select thread,
 a, toggles "inbox" tag
+l, manually change labels
 
 Single thread:
 h, toggles show header (all fields from settings displayed_headers)

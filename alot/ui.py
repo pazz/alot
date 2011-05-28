@@ -26,12 +26,13 @@ class UI:
 
         self.logger.debug('setup bindings')
         self.bindings = {
-            'i': ('open_inbox', {}),
-            'u': ('open_unread', {}),
+            'i': ('search', {'query': 'tag:inbox' }),
+            'u': ('search', {'query': 'tag:unread'}),
             'x': ('buffer_close', {}),
             'tab': ('buffer_next', {}),
             'shift tab': ('buffer_prev', {}),
             '\\': ('open_search', {}),
+            'p': ('search',{'query': (lambda: self.prompt('search for'))}),
             'q': ('shutdown', {}),
             ';': ('buffer_list', {}),
             'L': ('open_taglist', {}),
@@ -50,10 +51,10 @@ class UI:
         """
         raise urwid.ExitMainLoop()
 
-    def prompt(self, prefix):
+    def prompt(self, prefix='>', text=''):
         self.logger.info('open prompt')
 
-        prefix_widget = PromptWidget(prefix)
+        prefix_widget = PromptWidget(prefix,text)
         footer = self.mainframe.get_footer()
         self.mainframe.set_footer(prefix_widget)
         self.mainframe.set_focus('footer')

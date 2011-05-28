@@ -108,6 +108,7 @@ class SearchBuffer(Buffer):
         Buffer.__init__(self, ui, self.body, 'search')
         self.bindings = {
                 'enter': ('open_thread', {'thread': self.get_selected_thread}),
+                'l': ('thread_tag_prompt', {'thread': self.get_selected_thread}),
                 'a': ('toggle_thread_tag', {'thread': self.get_selected_thread,
                                             'tag': 'inbox'}),
                 }

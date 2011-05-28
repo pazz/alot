@@ -22,32 +22,34 @@ class ThreadlineWidget(AttrMap):
         AttrMap.__init__(self, self.columns, 'threadline', 'threadline_focus')
 
     def rebuild(self):
+
+        cols = []
         datestring = pretty_datetime(self.thread.get_newest_date())
         self.date_w = AttrMap(Text(datestring), 'threadline_date')
+        cols.append(('fixed', len(datestring), self.date_w))
 
         mailcountstring = "(%d)" % self.thread.get_total_messages()
         self.mailcount_w = AttrMap(Text(mailcountstring),
                                    'threadline_mailcount')
+        cols.append(('fixed', len(mailcountstring), self.mailcount_w))
 
         tagsstring = " ".join(self.thread.get_tags())
-        self.tags_w = AttrMap(Text(tagsstring), 'threadline_tags')
+        if tagsstring:
+            self.tags_w = AttrMap(Text(tagsstring), 'threadline_tags')
+            cols.append(('fixed', len(tagsstring), self.tags_w))
 
         authors = self.thread.get_authors() or '(None)'
         authorsstring = shorten(authors, settings.authors_maxlength)
         self.authors_w = AttrMap(Text(authorsstring), 'threadline_authors')
+        cols.append(('fixed', len(authorsstring), self.authors_w))
 
-        subjectstring = self.thread.get_subject() or ''
-        self.subject_w = AttrMap(Text(subjectstring, wrap='clip'),
-                                 'threadline_subject')
+        subjectstring = self.thread.get_subject()
+        if subjectstring:
+            self.subject_w = AttrMap(Text(subjectstring, wrap='clip'),
+                                     'threadline_subject')
+            cols.append(self.subject_w)
 
-        self.columns = Columns([
-            ('fixed', len(datestring), self.date_w),
-            ('fixed', len(mailcountstring), self.mailcount_w),
-            ('fixed', len(tagsstring), self.tags_w),
-            ('fixed', len(authorsstring), self.authors_w),
-            self.subject_w,
-            ],
-            dividechars=1)
+        self.columns = Columns(cols,dividechars=1)
         self.original_widget = self.columns
 
     def render(self, size, focus=False):
@@ -107,9 +109,9 @@ class TagWidget(Text):
 
 
 class PromptWidget(AttrMap):
-    def __init__(self, prefix):
+    def __init__(self, prefix, text=''):
         leftpart = Text(prefix, align='left')
-        self.editpart = Edit()
+        self.editpart = Edit(edit_text=text)
         both = Columns(
             [
                 ('fixed', len(prefix) + 1, leftpart),

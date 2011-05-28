@@ -226,7 +226,6 @@ class ToggleThreadTagCommand(Command):
         # refresh selected threadline
         sbuffer = ui.current_buffer
         threadwidget = sbuffer.get_selected_threadline()
-        #threadwidget.reload_tag(ui.dbman)  # threads seem to cache their tags
         threadwidget.rebuild()  # rebuild and redraw the line
         #remove line from searchlist if thread doesn't match the query
         qs = "(%s) AND thread:%s" % (sbuffer.querystring,
@@ -238,25 +237,44 @@ class ToggleThreadTagCommand(Command):
             sbuffer.result_count -= self.thread.get_total_messages()
             ui.update_footer()
 
+class ThreadTagPromptCommand(Command):
+    """prompt the user for labels, then tag thread"""
+
+    def __init__(self, thread, **kwargs):
+        assert thread
+        self.thread = thread
+        Command.__init__(self, **kwargs)
+
+    def apply(self, ui):
+        initial_tagstring = ','.join(self.thread.get_tags())
+        tagsstring = ui.prompt('label thread:',text=initial_tagstring)
+        if tagsstring != None:  # esc -> None, enter could return ''
+            tags = filter(lambda x: x,tagsstring.split(','))
+            ui.logger.info("got %s:%s" % (tagsstring,tags))
+            self.thread.set_tags(tags)
+
+        # refresh selected threadline
+        sbuffer = ui.current_buffer
+        threadwidget = sbuffer.get_selected_threadline()
+        threadwidget.rebuild()  # rebuild and redraw the line
 
 commands = {
         'buffer_close': (BufferCloseCommand, {}),
-        'buffer_list': (BufferListCommand, {}),
         'buffer_focus': (BufferFocusCommand, {}),
+        'buffer_list': (BufferListCommand, {}),
         'buffer_next': (BufferFocusCommand, {'offset': 1}),
         'buffer_prev': (BufferFocusCommand, {'offset': -1}),
-        'open_inbox': (SearchCommand, {'query': 'tag:inbox'}),
-        'open_unread': (SearchCommand, {'query': 'tag:unread'}),
-        'open_search': (SearchPromptCommand, {}),
-        'open_thread': (OpenThreadCommand, {}),
-        'search': (SearchCommand, {}),
-        'shutdown': (ShutdownCommand, {}),
-        'shell': (OpenPythonShellCommand, {}),
-        'view_log': (PagerCommand, {'path': 'debug.log'}),
         'call_editor': (EditCommand, {}),
         'call_pager': (PagerCommand, {}),
         'open_taglist': (TagListCommand, {}),
+        'open_thread': (OpenThreadCommand, {}),
+        'search': (SearchCommand, {}),
+        'search_prompt': (SearchPromptCommand, {}),
+        'shell': (OpenPythonShellCommand, {}),
+        'shutdown': (ShutdownCommand, {}),
+        'thread_tag_prompt': (ThreadTagPromptCommand, {}),
         'toggle_thread_tag': (ToggleThreadTagCommand, {'tag': 'inbox'}),
+        'view_log': (PagerCommand, {'path': 'debug.log'}),
         }
 
 
