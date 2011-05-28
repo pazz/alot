@@ -5,6 +5,11 @@ import email
 
 
 class DBManager:
+    """
+    keeps track of your index parameters, can create notmuch.Query
+    objects from its Database on demand and implements a bunch of
+    database specific functions.
+    """
     def __init__(self, path=None, ro=False):
         self.ro = ro
         self.path = path
@@ -16,10 +21,19 @@ class DBManager:
         threads = self.query(querystring).search_threads()
         return [thread.get_thread_id() for thread in threads]
 
-    def get_message(self, mid, writeable=False):
-        query = self.query('id:' + mid, writeable=writeable)
-        # TODO raise exceptions here in 0<case msgcount>1
-        return Message(self, query.search_messages().next())
+    def find_message(self, mid):
+        db = Database(path=self.path)
+        return db.find_message(mid)
+
+    def get_message(self, mid):
+        """returns the message with the given id and wrapps it in a Message
+
+        :param mid: the message id of the message to look up
+        :type mid: str.
+        :returns:  Message -- the message.
+
+        """
+        return Message(self,self.find_message(mid))
 
     def get_thread(self, tid, writeable=False):
         query = self.query('thread:' + tid, writeable=writeable)
@@ -32,6 +46,15 @@ class DBManager:
         return [tag for tag in db.get_all_tags()]
 
     def query(self, querystring, writeable=False):
+        """creates notmuch.Query objects on demand
+
+        :param querystring: The query string to use for the lookup
+        :type query: str.
+        :param writeable: Try to return a writeable Query object
+        :type state: bool.
+        :returns:  notmuch.Query -- the query object.
+
+        """
         if writeable:
             mode = Database.MODE.READ_WRITE
         else:
@@ -44,7 +67,7 @@ class Thread:
     def __init__(self, dbman, thread):
         self.dbman = dbman
         self.tid = thread.get_thread_id()
-        self.strrep = "WRAPPER:" + str(thread)
+        self.strrep = str(thread)
         self.total_messages = thread.get_total_messages()
         self.topmessages = [m.get_message_id() for m in thread.get_toplevel_messages()]
         self.authors = thread.get_authors()
@@ -78,8 +101,6 @@ class Thread:
         return self.tid
 
     def get_tags(self):
-        # sets do not always behave like lists.
-        # so returning a list as it might be expected
         return list(self.tags)
 
     def get_authors(self):
@@ -122,18 +143,15 @@ class Message:
 
     def get_replies(self):
         #this doesn't work. see Note in doc -> more work here.
-        return [self.dbman.get_message(mid) for mid in self.replies]
+        return [self.dbman.find_message(mid) for mid in self.replies]
 
     def get_tags(self):
-        # sets do not always behave like lists.
-        # so returning a list as it might be expected
         return list(self.tags)
 
     def get_email(self):
         if not self.email:
             self.email = self.read_mail(self.filename)
         return self.email
-        # self.email = self.read_mail(self.filename)
 
     def read_mail(self, filename):
         try:
@@ -146,7 +164,7 @@ class Message:
         return eml
 
     def add_tags(self, tags):
-        msg = self.dbman.get_message(self.mid)
+        msg = self.dbman.find_message(self.mid)
         msg.freeze()
         for tag in tags:
             msg.add_tag(tag)
@@ -155,7 +173,7 @@ class Message:
         msg.thaw()
 
     def remove_tags(self, tags):
-        msg = self.dbman.get_message(self.mid)
+        msg = self.dbman.find_message(self.mid)
         msg.freeze()
         for tag in tags:
             msg.remove_tag(tag)

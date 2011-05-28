@@ -160,14 +160,7 @@ class SingleThreadBuffer(Buffer):
     def read_thread(self, thread):
         self.message_count = thread.get_total_messages()
         self.subject = thread.get_subject()
-        self.messages = list()
-        for m in thread.get_toplevel_messages():
-            self._build_pile(self.messages, m)
-
-    def _build_pile(self, acc, msg, depth=0):
-        acc.append((depth, msg))
-        for m in msg.get_replies():
-            self._build_pile(acc, m, depth + 1)
+        self.messages = [(0, m) for m in thread.get_toplevel_messages()]
 
     def rebuild(self):
         msgs = list()

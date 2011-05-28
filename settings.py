@@ -16,7 +16,7 @@ palette = [
     ('threadline_tags', 'yellow', '', '', '', ''),
     ('threadline_authors', 'dark green', '', '', '', ''),
     ('threadline_subject', 'light gray', '', '', '', ''),
-    ('threadline_date_linefocus', 'light gray', 'dgray', '', '', ''),
+    ('threadline_date_linefocus', 'light gray', 'dark gray', '', '', ''),
     ('threadline_mailcount_linefocus', 'light gray', 'dark gray', '', '', ''),
     ('threadline_tags_linefocus', 'yellow,bold', 'dark gray', '', '', ''),
     ('threadline_authors_linefocus', 'dark green', 'dark gray', '', '', ''),
