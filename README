@@ -3,6 +3,7 @@ The key ideas are:
 
 * OOP approach using python 
 * aim at the look and feel of sup for now
+* lock the index only when needed
 * use libraries whenever possible. 
   urwid: http://excess.org/urwid/ 
   The notmuch bindings: https://bitbucket.org/spaetz/cnotmuch/
@@ -14,24 +15,41 @@ You need the notmuch python bindings and urwid to run it. I run it like this
 > python alot.py -l debug.log -d debug
 and "tail -f debug.log" in another window.
 
+---------------------------------------
 At the moment you can play with the global bindings
 i, open inbox
 u, open unread 
 s, python shell
+L, open taglist
 \, prompts and stars search
 v, opens log in vim
 x, closes current buffer
 tab, tabs between buffers
 ;, opens bufferlist
 
-and buffer specific bindings:
-in search: enter, select thread, (look at log, not implemented) 
-in bufferlist: d, removes selected buffer, enter selects.
+In all views, arrows, page-up/down, j,k and space can be used to move the focus.
+Here the buffer-specific bindings:
 
+Searchbuffer: 
+enter, opens single thread view for select thread,
+a, toggles "inbox" tag
+
+Single thread:
+h, toggles show header (all fields from settings displayed_headers)
+enter, toggles body (folds awas msg)
+
+Bufferlist: 
+d, removes selected buffer, 
+enter, focus selected.
+
+Taglist:
+enter, opens new search view for selecteg tag
+
+------------------------------
 
 Here is an overview of the current architecture.
 
-ng.ui.UI 
+alot.ui.UI 
 contains the main component: it
  - handles the urwid.MainLoop that manages the screen etc.
  - contains a logging.logger that can be used for log/debug messages like so:
@@ -43,24 +61,20 @@ contains the main component: it
  - can apply (and further down the road undo/redo) commands (see command.py)
  - is able to open a prompt/dialogs
 
-ng.db.DBManager 
+alot.db.DBManager 
 interface to the notmuch index. Currently, it has very limited functionality,
 but should be able to to this:
  - store the connection settings (index path and whether or not we use a
    read_only connection..)
- - two basic methods for reading from and writing to the index. Lets call it
-   dbman.query(querystring) and dbman.update(updatestring).  query will return
-   a notmuch.Query object, i haven't bothered with update so far.
- - a method for all interesting operations on the index These will use
-   self.query/update accordingly. See dbman.count_messages for a simple example
+ - create notmuch.Query objects for read/write access on demand
+alot.db also contains wrapper classes for notmuch.Thread and notmuch.Messages
+that are used throughout the interface.
 
-ng.buffer.Buffer
+alot.buffer.Buffer
 Is used as a base class for different types of buffers, or display-modi if you
-like. So far there's only a SearchBuffer (might be a bad name) that displays
-the result of a search for mail threads, and a BufferListBuffer, that displays
-a list of buffers. Technically, ng.buffer.Buffer inherits from urwid.AttrMap.
-This is done so that it can be directly be set as the body-part of the main
-gui, thereby intercepting (and filter/handle according to local bindings) the
+like. Technically, Buffer inherits from urwid.Widget so that it can be directly 
+set as the body-part of the urwid main gui, thereby intercepting 
+(and filter/handle according to local bindings) the
 key presses. A Buffer
  - is a widget, that can be drawn,focussed etc as all widgets.
  - has a pointer to the main ui, a typename, (e.g. search results, display
@@ -68,8 +82,8 @@ key presses. A Buffer
  - knows how to handle local (mode-specific) keybindings (self.bindings see
    below)
 
-ng.commands.Command
-Again, a base class for different commands. A command is an object that
+alot.commands.Command
+A base class for different commands. A command is an object that
 represents an atomic action. It will only be be applied once (and is then
 stored in a undo-list somewhere). It
  - has a typename, that is used to identify a type of command for the command
@@ -86,7 +100,7 @@ stored in a undo-list somewhere). It
    commands i already implemented. Each one should be created by the
    ng.command.factory (which also attaches the hooks)
 
-ng.widgets
+alot.widgets
 contains the urwid.Widgets i use do draw notmuch objects. There's a Threadline
 widget for example, that knows how to present a notmuch.thread object as a
 textline. Should be pretty self explanatory, definitely needs some love.  These
@@ -95,26 +109,26 @@ inherit from AttrMap, which is not very clean i guess, but they must be
 and can focus elements). Since ThreadlineWidget is selectable it must include a
 dummy keypress method.
 
-ng.hooks
+alot.hooks
 this should later on include methods that look for and call? hooks.  The idea
 is that a user might define either python callables or paths to binaries, and
-ng.hooks.get_hook(hookname) retrieves them so that they can be placed in
-commands.  This might be a totally stupid idea
+alot.hooks.get_hook(hookname) retrieves them so that they can be placed in
+commands. 
 
-ng.walker
+alot.walker
 Contains urwid.ListWalker derived classes that implement a listwalker (the
 content-part of a urwid.ListBox widget) that dynamically allocates its content.
 The thing is that if one makes a query for all threads in the index and naively
 creating a ng.widgets.ThreadlineWidget for each and placing them in a
 urwid.Listbox (actually a urwid.SimplieListWalker, and /that/ in a listbox),
-one this will potentially eat up your memory and take a long time. So
-ng.walker.IteratorWalker will dynamically create its next element from the next
+this will potentially eat up your memory and take a long time. So
+alot.walker.IteratorWalker will dynamically create its next element from the next
 element of the iterator. 
 
 Key Bindings
 Are currently a hash in objects of the classes ng.ui.UI and ng.buffer.Buffer.
 Obviously, a key is first handed to the current buffer and in case it doesn't
-handle it, it will be handled by the main UI.  Each buffer-subclass comes with
+handle it, it will be handled by the main UI. Each buffer-subclass comes with
 its own default local bindings which whi might want to overwrite at some point.
 I guess we should have a "map" command that takes a buffertype, a key and
 something to call.  For now, a key in the binding hash is a string that
@@ -123,4 +137,4 @@ is then a pair of (commandtypestring, parameterhash), that is used by the
 command.factory to instantiate a command with of type commandtypestring with
 parameters parameterhash. Values in the parameterhash will be called at cmd
 creation by command.factory if callable. See self.bindings in
-ng.buffer.BufferListBuffer for an example.
+alot.buffer.BufferListBuffer for an example.
