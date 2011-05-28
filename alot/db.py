@@ -119,6 +119,7 @@ class Message:
         return self.strrep
 
     def get_replies(self):
+        #this doesn't work. see Note in doc -> more work here.
         return [self.dbman.get_message(mid) for mid in self.replies]
 
     def get_tags(self):

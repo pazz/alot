@@ -22,8 +22,9 @@ palette = [
     ('threadline_authors_linefocus', 'dark green', 'dark gray', '', 'g50', '#60a'),
     ('threadline_subject_linefocus', 'light gray', 'dark gray', '', 'g50', '#60a'),
 
-    ('messageline_even', 'white', 'light blue', '', '#ffa', '#60d'),
-    ('messageline_odd', 'white', 'dark blue', '', '#ffa', '#60d'),
+    ('messagesummary_even', 'white', 'light blue', '', '#ffa', '#60d'),
+    ('messagesummary_odd', 'white', 'dark blue', '', '#ffa', '#60d'),
+    ('messagesummary_focus', 'white', 'black', '', '#ffa', '#60d'),
     ('message_header', 'white', 'dark gray', '', '#ffa', '#60d'),
     ('message_body', 'light gray', 'black', '', '#ffa', '#60d'),
     ('bufferlist_results_even', 'light gray', 'black', '', 'g50', '#60a'),

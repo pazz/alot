@@ -1,11 +1,12 @@
+import email
 from urwid import Text
 from urwid import Edit
 from urwid import Pile
 from urwid import Columns
 from urwid import AttrMap
 from urwid import WidgetWrap
-
-import email
+from urwid import ListBox
+from urwid import SimpleListWalker
 from datetime import datetime
 
 import settings
@@ -34,7 +35,8 @@ class ThreadlineWidget(AttrMap):
         authorsstring = shorten(authors, settings.authors_maxlength)
         self.authors_w = AttrMap(Text(authorsstring), 'threadline_authors')
 
-        self.subject_w = AttrMap(Text(self.thread.get_subject(), wrap='clip'),
+        subjectstring = self.thread.get_subject() or ''
+        self.subject_w = AttrMap(Text(subjectstring, wrap='clip'),
                                  'threadline_subject')
 
         self.columns = Columns([
@@ -121,28 +123,51 @@ class PromptWidget(AttrMap):
 
 
 class MessageWidget(WidgetWrap):
-    def __init__(self, message, even=False):
+    def __init__(self, message, even=False, folded=True):
         self.message = message
         if even:
-            lineattr = 'messageline_even'
+            sumattr = 'messagesummary_even'
         else:
-            lineattr = 'messageline_odd'
+            sumattr = 'messagesummary_odd'
 
-        self.bodyw = MessageBodyWidget(self.message.get_email())
+        self.sumw = MessageSummaryWidget(self.message)
         self.headerw = MessageHeaderWidget(self.message.get_email())
-        self.linew = MessageLineWidget(self.message)
-        pile = Pile([
-            AttrMap(self.linew, lineattr),
-            AttrMap(self.headerw, 'message_header'),
-            AttrMap(self.bodyw, 'message_body')
-            ])
-        WidgetWrap.__init__(self, pile)
+        self.bodyw = MessageBodyWidget(self.message.get_email())
+        self.displayed_list = [ AttrMap(self.sumw, sumattr) ]
+        if not folded:
+            self.displayed_list.append(self.bodyw)
+        self.body = Pile(self.displayed_list)
+        WidgetWrap.__init__(self, self.body)
+
+    def rebuild(self):
+        self.body = Pile(self.displayed_list)
+        self._w = self.body
+
+    def toggle_header(self):
+        if self.headerw in self.displayed_list:
+            self.displayed_list.remove(self.headerw)
+        else:
+            self.displayed_list.insert(1,self.headerw)
+        self.rebuild()
+
+    def toggle_body(self):
+        if self.bodyw in self.displayed_list:
+            self.displayed_list.remove(self.bodyw)
+        else:
+            self.displayed_list.append(self.bodyw)
+        self.sumw.toggle_folded()
+        self.rebuild()
 
     def selectable(self):
         return True
 
     def keypress(self, size, key):
-        return key
+        if key == 'h':
+            self.toggle_header()
+        elif key == 'enter':
+            self.toggle_body()
+        else:
+            return self.body.keypress(size, key)
 
     def get_message(self):
         return self.message
@@ -151,10 +176,21 @@ class MessageWidget(WidgetWrap):
         return self.message.get_email()
 
 
-class MessageLineWidget(WidgetWrap):
-    def __init__(self, message):
+class MessageSummaryWidget(WidgetWrap):
+    def __init__(self, message, folded=True):
         self.message = message
-        WidgetWrap.__init__(self, Text(str(message)))
+        self.folded = folded
+        WidgetWrap.__init__(self, Text(str(self)))
+
+    def __str__(self):
+        prefix = "-"
+        if self.folded:
+            prefix = '+'
+        return prefix + str(self.message)
+
+    def toggle_folded(self):
+        self.folded = not self.folded
+        self._w = Text(str(self))
 
     def selectable(self):
         return True
@@ -163,7 +199,7 @@ class MessageLineWidget(WidgetWrap):
         return key
 
 
-class MessageHeaderWidget(WidgetWrap):
+class MessageHeaderWidget(AttrMap):
     def __init__(self, eml):
         self.eml = eml
         headerlines = []
@@ -171,7 +207,7 @@ class MessageHeaderWidget(WidgetWrap):
             if line in eml:
                 headerlines.append('%s:%s' % (line, eml.get(line)))
         headertxt = '\n'.join(headerlines)
-        WidgetWrap.__init__(self, Text(headertxt))
+        AttrMap.__init__(self, Text(headertxt), 'message_header')
 
     def selectable(self):
         return True
@@ -180,11 +216,11 @@ class MessageHeaderWidget(WidgetWrap):
         return key
 
 
-class MessageBodyWidget(WidgetWrap):
+class MessageBodyWidget(AttrMap):
     def __init__(self, eml):
         self.eml = eml
         bodytxt = ''.join(email.iterators.body_line_iterator(self.eml))
-        WidgetWrap.__init__(self, Text(bodytxt))
+        AttrMap.__init__(self, Text(bodytxt), 'message_body')
 
     def selectable(self):
         return True

@@ -41,8 +41,6 @@ class Buffer:
         else:
             if key == 'j': key = 'down'
             elif key == 'k': key = 'up'
-            elif key == 'h': key = 'left'
-            elif key == 'l': key = 'right'
             elif key == ' ': key = 'page down'
             elif key == 'r': self.rebuild()
             return self.body.keypress(size, key)
@@ -147,10 +145,7 @@ class SingleThreadBuffer(Buffer):
         self.read_thread(thread)
         self.rebuild()
         Buffer.__init__(self, ui, self.body, 'search')
-        self.bindings = {
-                         'enter': ('call_pager',
-                                   {'path': self.get_selected_message_file}),
-                         }
+        self.bindings = {}
 
     def __str__(self):
         string = "[%s] %s, (%d)"
@@ -159,13 +154,25 @@ class SingleThreadBuffer(Buffer):
     def read_thread(self, thread):
         self.message_count = thread.get_total_messages()
         self.subject = thread.get_subject()
-        # list() throws an error
-        self.messages = [m for m in thread.get_toplevel_messages()]
+        self.messages = list()
+        for m in thread.get_toplevel_messages():
+            self._build_pile(self.messages, m)
+
+    def _build_pile(self, acc, msg, depth=0):
+        acc.append((depth, msg))
+        for m in msg.get_replies():
+            self._build_pile(acc, m, depth+1)
 
     def rebuild(self):
         msgs = list()
-        for (num, m) in enumerate(self.messages, 1):
-            msgs.append(widgets.MessageWidget(m, even=(num % 2 == 0)))
+        for (num, (depth, m)) in enumerate(self.messages, 1):
+            mwidget = widgets.MessageWidget(m, even=(num % 2 == 0), folded=False)
+            # a spacer of width 0 breaks urwid.Columns
+            if depth == 0:
+                msgs.append(urwid.Columns([mwidget]))
+            else:
+                spacer = urwid.Text(' '*depth)
+                msgs.append(urwid.Columns([('fixed', depth, spacer), mwidget]))
         self.messagelist = urwid.ListBox(msgs)
         self.body = self.messagelist
 

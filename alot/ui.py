@@ -28,7 +28,6 @@ class UI:
         self.bindings = {
             'i': ('open_inbox', {}),
             'u': ('open_unread', {}),
-            'H': ('search', {'query': 'heiko'}),
             'x': ('buffer_close', {}),
             'tab': ('buffer_next', {}),
             'shift tab': ('buffer_prev', {}),
