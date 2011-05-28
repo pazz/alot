@@ -1,6 +1,5 @@
 There is a lot to be done, most of it is not going to be hard:
 
-* bugfix custom queries: "tag:XX" is ok, "XX" breaks ?!?
 * pydoc!
 
 * build a prompt for ng.ui.
@@ -14,9 +13,6 @@ There is a lot to be done, most of it is not going to be hard:
   If that's there, one can make commands for these actions, make them known to command.factory
   and bind them to the SearchBuffer..
 
-* buffer for single-thread view
-  displays all mails in thread, folding of mails/textpassages
-
 * an Envelope buffer that contains widgets for recipients,subject, gpg settings.
 
 * A "SendManager" that can send and archive (in a maildir send folder), 
@@ -25,8 +21,6 @@ There is a lot to be done, most of it is not going to be hard:
 * a config mechanism needs to be discussed/implemented. i don't think a single settings.py like in django
   is a good approach.
 
-* remove direct calls to logging (use ui.logging instead)
-
 * packaging? Last time i checked "PIPifying" a project wasn't hard, a bit of fumbling with a setup.py?
 
 * undo for commands
@@ -34,6 +28,7 @@ There is a lot to be done, most of it is not going to be hard:
 * gg, g5j.. combos like in vim
 
 * searchbuffer: unseen tag -> msg bold
+
 * archive,watch,new toggles and label prompt in searchbuffer
 
 * help strings in commands and help buffer
