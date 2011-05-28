@@ -1,38 +1,31 @@
-There is a lot to be done, most of it is not going to be hard:
-
-* pydoc!
-
-* build a prompt for ng.ui.
-  ui.prompt(promptprefix='>>')
-  keep in mind tabcompletion? (AdvancedEdit from urwid-satext..)
+ui.prompt
+  * tabcompletion? (AdvancedEdit from urwid-satext..)
   It would be cool if we had a cmdline like vim or mutt when pressing ":".
-  ng.command.Commands already have typenames, calling them from a prompt could
+  Commands already have typenames, calling them from a prompt could
   use the command.factory to build one and pass it to ui.apply_command.
 
-* "update" functionality for the notmuch index. tag/untag given thread/messages etc
-  If that's there, one can make commands for these actions, make them known to command.factory
-  and bind them to the SearchBuffer..
+Sending mails
+  * an Envelope buffer that contains widgets for recipients,subject, gpg settings.
+  * A "SendManager" that can send and archive (in a maildir send folder), 
+    loads the mail into the notmuch index and maybe refreshes open buffers accordingly
 
-* an Envelope buffer that contains widgets for recipients,subject, gpg settings.
+configuration
+  * a config mechanism needs to be discussed/implemented. i don't think a single settings.py like in django
+    is a good approach.
 
-* A "SendManager" that can send and archive (in a maildir send folder), 
-  loads the mail into the notmuch index and maybe refreshes open buffers accordingly
 
-* a config mechanism needs to be discussed/implemented. i don't think a single settings.py like in django
-  is a good approach.
+searchbuffer: 
+  * unseen tag -> msg bold
 
-* packaging? Last time i checked "PIPifying" a project wasn't hard, a bit of fumbling with a setup.py?
+Commands
+  * help strings in commands and help buffer
+  * undo for commands
 
-* undo for commands
+taglist buffer
+  * interactively filter tagcloud
 
-* gg, g5j.. combos like in vim
-
-* searchbuffer: unseen tag -> msg bold
-
-* archive,watch,new toggles and label prompt in searchbuffer
-
-* help strings in commands and help buffer
-
-* taglist buffer
-
-* find nice 256colour defaults and start in that mode by defualt
+general
+  * find nice 256colour defaults and start in that mode by defualt
+  * packaging? Last time i checked "PIPifying" a project wasn't hard, a bit of fumbling with a setup.py?
+  * gg, g5j.. combos like in vim
+  * pydoc/sphinx
