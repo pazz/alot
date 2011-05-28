@@ -10,6 +10,7 @@ class Buffer:
         self.ui = ui
         self.typename = name
         self.bindings = {}
+        self._autoparms = {}
         self.body = widget
 
     def __str__(self):
@@ -30,8 +31,10 @@ class Buffer:
 
     def keypress(self, size, key):
         if key in self.bindings:
-            self.ui.logger.debug("%s: handels key: %s" % (self.typename, key))
+            self.ui.logger.debug("%s: handles key: %s" % (self.typename, key))
             (cmdname, parms) = self.bindings[key]
+            parms = parms.copy()
+            parms.update(self._autoparms)
             try:
                 cmd = command.factory(cmdname, **parms)
                 self.apply_command(cmd)
@@ -57,12 +60,11 @@ class BufferListBuffer(Buffer):
         self.isinitialized = False
         self.rebuild()
         Buffer.__init__(self, ui, self.body, 'bufferlist')
+        self._autoparms = {'buffer': self.get_selected_buffer}
         self.bindings = {
-                         'd': ('buffer_close',
-                               {'buffer': self.get_selected_buffer}),
-                         'enter': ('buffer_focus',
-                                   {'buffer': self.get_selected_buffer}),
-                         }
+                         'd': ('buffer_close',{}),
+                         'enter': ('buffer_focus',{}),
+        }
 
     def index_of(self, b):
         return self.ui.buffers.index(b)
@@ -106,11 +108,12 @@ class SearchBuffer(Buffer):
         self.isinitialized = False
         self.rebuild()
         Buffer.__init__(self, ui, self.body, 'search')
+        self._autoparms = {'thread': self.get_selected_thread}
         self.bindings = {
-                'enter': ('open_thread', {'thread': self.get_selected_thread}),
-                'l': ('thread_tag_prompt', {'thread': self.get_selected_thread}),
-                'a': ('toggle_thread_tag', {'thread': self.get_selected_thread,
-                                            'tag': 'inbox'}),
+                'enter': ('open_thread', {}),
+                'l': ('thread_tag_prompt', {}),
+                'a': ('toggle_thread_tag', {'tag': 'inbox'}),
+                '&': ('toggle_thread_tag', {'tag': 'killed'}),
                 }
 
     def __str__(self):
@@ -193,9 +196,10 @@ class TagListBuffer(Buffer):
         self.isinitialized = False
         self.rebuild()
         Buffer.__init__(self, ui, self.body, 'taglist')
-        self.bindings = {'enter': ('search',
-                                   {'query': self.get_selected_tag}),
-                         }
+
+        self._autoparms = {'query': self.get_selected_tag}
+        self.bindings = {'enter': ('search', {}),
+        }
 
     def rebuild(self):
         if self.isinitialized:

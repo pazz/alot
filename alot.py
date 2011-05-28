@@ -17,7 +17,7 @@ def parse_args():
                         help='one of DEBUG,INFO,WARNING,ERROR')
     parser.add_argument('-l', '--logfile', default='debug.log',
                         help='logfile')
-    parser.add_argument('-s', '--search', default='tag:inbox',
+    parser.add_argument('-s', '--search', default='tag:inbox AND NOT tag:killed',
                         help='initial searchstring')
     return parser.parse_args()
 
