@@ -11,10 +11,6 @@ def parse_args():
     parser.add_argument('-r', dest='read_only',
                         action='store_true',
                         help='open db in read only mode')
-    parser.add_argument('-m', dest='mouse',
-                        action='store_true',
-                        default=False,
-                        help='use mouse input')
     parser.add_argument('-p', dest='db_path',
                         help='path to notmuch index')
     parser.add_argument('-d', dest='debug_level',
@@ -37,8 +33,7 @@ def main():
     logger = logging.getLogger()
     ui = UI(db=dbman,
             log=logger,
-            handle_mouse=args.mouse,
-            search=args.query)
+            initialquery=args.query)
 
 if __name__ == "__main__":
     main()

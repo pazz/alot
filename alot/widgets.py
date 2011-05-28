@@ -22,7 +22,6 @@ class ThreadlineWidget(AttrMap):
         AttrMap.__init__(self, self.columns, 'threadline', 'threadline_focus')
 
     def rebuild(self):
-
         cols = []
         datestring = pretty_datetime(self.thread.get_newest_date())
         self.date_w = AttrMap(Text(datestring), 'threadline_date')
@@ -34,8 +33,8 @@ class ThreadlineWidget(AttrMap):
         cols.append(('fixed', len(mailcountstring), self.mailcount_w))
 
         tagsstring = " ".join(self.thread.get_tags())
+        self.tags_w = AttrMap(Text(tagsstring), 'threadline_tags')
         if tagsstring:
-            self.tags_w = AttrMap(Text(tagsstring), 'threadline_tags')
             cols.append(('fixed', len(tagsstring), self.tags_w))
 
         authors = self.thread.get_authors() or '(None)'
@@ -44,9 +43,9 @@ class ThreadlineWidget(AttrMap):
         cols.append(('fixed', len(authorsstring), self.authors_w))
 
         subjectstring = self.thread.get_subject()
+        self.subject_w = AttrMap(Text(subjectstring, wrap='clip'),
+                                 'threadline_subject')
         if subjectstring:
-            self.subject_w = AttrMap(Text(subjectstring, wrap='clip'),
-                                     'threadline_subject')
             cols.append(self.subject_w)
 
         self.columns = Columns(cols,dividechars=1)

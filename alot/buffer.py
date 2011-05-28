@@ -40,7 +40,7 @@ class Buffer:
                 self.apply_command(cmd)
             except AssertionError as e:
                 string = "could not instanciate command %s(%s): %s"
-                logger.exception(string % (cmdname, parms))
+                self.ui.logger.exception(string % (cmdname, parms))
         else:
             if key == 'j':
                 key = 'down'

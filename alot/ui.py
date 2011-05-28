@@ -10,16 +10,15 @@ class UI:
     buffers = []
     current_buffer = None
 
-    def __init__(self, db, log, **args):
+    def __init__(self, db, log, initialquery):
         self.logger = log
         self.dbman = db
 
-        self.logger.error(args)
         self.logger.debug('setup gui')
         self.mainframe = urwid.Frame(urwid.SolidFill(' '))
         self.mainloop = urwid.MainLoop(self.mainframe,
                 settings.palette,
-                handle_mouse=args['handle_mouse'],
+                handle_mouse=False,
                 unhandled_input=self.keypress)
         #self.mainloop.screen.set_terminal_properties(colors=256)
         self.mainloop.screen.set_terminal_properties(colors=16)
@@ -31,8 +30,7 @@ class UI:
             'x': ('buffer_close', {}),
             'tab': ('buffer_next', {}),
             'shift tab': ('buffer_prev', {}),
-            '\\': ('open_search', {}),
-            'p': ('search',{'query': (lambda: self.prompt('search for'))}),
+            '\\': ('search_prompt', {}),
             'q': ('shutdown', {}),
             ';': ('buffer_list', {}),
             'L': ('open_taglist', {}),
@@ -40,7 +38,7 @@ class UI:
             'v': ('view_log', {}),
         }
 
-        cmd = command.factory('search', query=args['search'])
+        cmd = command.factory('search', query=initialquery)
         self.apply_command(cmd)
         self.mainloop.run()
 
