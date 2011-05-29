@@ -41,16 +41,29 @@ class OpenThreadCommand(Command):
 
 class SearchCommand(Command):
     """open a new search buffer"""
-    def __init__(self, query, **kwargs):
+    def __init__(self, query, force_new=False, **kwargs):
         """
         @param query initial querystring
+        @param force_new True forces a new buffer, else focus old on same search
         """
         self.query = query
+        self.force_new = force_new
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        sb = buffer.SearchBuffer(ui, self.query)
-        ui.buffer_open(sb)
+        if not self.force_new:
+            open_searches = filter(lambda x: isinstance(x, buffer.SearchBuffer),
+                                   ui.buffers)
+            to_be_focused = None
+            for sb in open_searches:
+                if sb.querystring == self.query:
+                    to_be_focused = sb
+            if to_be_focused:
+                ui.buffer_focus(to_be_focused)
+            else:
+                ui.buffer_open(buffer.SearchBuffer(ui, self.query))
+        else:
+            ui.buffer_open(buffer.SearchBuffer(ui, self.query))
 
 
 class SearchPromptCommand(Command):
@@ -259,6 +272,19 @@ class ThreadTagPromptCommand(Command):
         threadwidget = sbuffer.get_selected_threadline()
         threadwidget.rebuild()  # rebuild and redraw the line
 
+class RefineSearchPromptCommand(Command):
+    """refine the current search"""
+
+    def apply(self, ui):
+        sbuffer = ui.current_buffer
+        oldquery = sbuffer.querystring
+        querystring = ui.prompt('refine search:', text=oldquery)
+        if querystring not in [None, oldquery]:
+            sbuffer.querystring = querystring
+            sbuffer = ui.current_buffer
+            sbuffer.rebuild()
+            ui.update_footer()
+
 commands = {
         'buffer_close': (BufferCloseCommand, {}),
         'buffer_focus': (BufferFocusCommand, {}),
@@ -271,6 +297,7 @@ commands = {
         'open_thread': (OpenThreadCommand, {}),
         'search': (SearchCommand, {}),
         'search_prompt': (SearchPromptCommand, {}),
+        'refine_search_prompt': (RefineSearchPromptCommand, {}),
         'shell': (OpenPythonShellCommand, {}),
         'shutdown': (ShutdownCommand, {}),
         'thread_tag_prompt': (ThreadTagPromptCommand, {}),

@@ -23,7 +23,8 @@ class UI:
         self.mainloop.screen.set_terminal_properties(colors=colourmode)
 
         self.logger.debug('setup bindings')
-        self.bindings = {'i': ('search', {'query': 'tag:inbox'}),
+        self.bindings = {
+            'i': ('search', {'query': 'tag:inbox AND NOT tag:killed'}),
             'u': ('search', {'query': 'tag:unread'}),
             'x': ('buffer_close', {}),
             'tab': ('buffer_next', {}),
@@ -35,7 +36,6 @@ class UI:
             's': ('shell', {}),
             'v': ('view_log', {}),
         }
-
         cmd = command.factory('search', query=initialquery)
         self.apply_command(cmd)
         self.mainloop.run()
