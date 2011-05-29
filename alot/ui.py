@@ -24,8 +24,8 @@ class UI:
 
         self.logger.debug('setup bindings')
         self.bindings = {
-            'i': ('search', {'query': 'tag:inbox AND NOT tag:killed'}),
-            'u': ('search', {'query': 'tag:unread'}),
+            'I': ('search', {'query': 'tag:inbox AND NOT tag:killed'}),
+            'U': ('search', {'query': 'tag:unread'}),
             'x': ('buffer_close', {}),
             'tab': ('buffer_next', {}),
             'shift tab': ('buffer_prev', {}),

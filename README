@@ -17,8 +17,8 @@ and "tail -f debug.log" in another window.
 
 ---------------------------------------
 At the moment you can play with the global bindings
-i, open inbox
-u, open unread 
+I, open inbox
+U, open unread 
 s, python shell
 L, open taglist
 \, prompts and stars search
