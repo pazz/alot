@@ -35,6 +35,7 @@ class UI:
             'L': ('open_taglist', {}),
             's': ('shell', {}),
             'v': ('view_log', {}),
+            '@': ('refresh_buffer', {})
         }
         cmd = command.factory('search', query=initialquery)
         self.apply_command(cmd)

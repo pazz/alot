@@ -75,6 +75,13 @@ class SearchPromptCommand(Command):
             ui.apply_command(cmd)
 
 
+class RefreshCommand(Command):
+    """refreshes the current buffer"""
+    def apply(self, ui):
+        ui.current_buffer.rebuild()
+        ui.update()
+
+
 class EditCommand(Command):
     """
     opens editor
@@ -308,6 +315,7 @@ commands = {
         'thread_tag_prompt': (ThreadTagPromptCommand, {}),
         'toggle_thread_tag': (ToggleThreadTagCommand, {'tag': 'inbox'}),
         'view_log': (PagerCommand, {'path': 'debug.log'}),
+        'refresh_buffer': (RefreshCommand, {}),
         }
 
 

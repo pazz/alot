@@ -48,8 +48,6 @@ class Buffer:
                 key = 'up'
             elif key == ' ':
                 key = 'page down'
-            elif key == 'r':
-                self.rebuild()
             return self.body.keypress(size, key)
 
 
@@ -133,6 +131,7 @@ class SearchBuffer(Buffer):
                                          widgets.ThreadlineWidget,
                                          dbman=self.dbman)
         self.listbox = urwid.ListBox(self.threadlist)
+        #self.threadlist.set_focus(focusposition)
         self.body = self.listbox
 
     def debug(self):

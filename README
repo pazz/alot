@@ -26,6 +26,7 @@ v, opens log in vim
 x, closes current buffer
 tab, tabs between buffers
 ;, opens bufferlist
+@, refreshes current buffer
 
 In all views, arrows, page-up/down, j,k and space can be used to move the focus.
 Here the buffer-specific bindings:
