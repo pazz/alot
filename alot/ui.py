@@ -10,18 +10,17 @@ class UI:
     buffers = []
     current_buffer = None
 
-    def __init__(self, db, log, initialquery):
+    def __init__(self, db, log, initialquery, colourmode):
         self.logger = log
         self.dbman = db
 
-        self.logger.debug('setup gui')
+        self.logger.debug('setup gui: %d'%colourmode)
         self.mainframe = urwid.Frame(urwid.SolidFill(' '))
         self.mainloop = urwid.MainLoop(self.mainframe,
                 settings.palette,
                 handle_mouse=False,
                 unhandled_input=self.keypress)
-        #self.mainloop.screen.set_terminal_properties(colors=256)
-        self.mainloop.screen.set_terminal_properties(colors=16)
+        self.mainloop.screen.set_terminal_properties(colors=colourmode)
 
         self.logger.debug('setup bindings')
         self.bindings = {'i': ('search', {'query': 'tag:inbox'}),

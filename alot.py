@@ -8,6 +8,11 @@ from alot.ui import UI
 
 def parse_args():
     parser = argparse.ArgumentParser()
+    parser.add_argument('-c', dest='colours',
+                        type=int,
+                        choices=[1,16,88,256],
+                        default=16,
+                        help='colour mode')
     parser.add_argument('-r', dest='read_only',
                         action='store_true',
                         help='open db in read only mode')
@@ -15,7 +20,8 @@ def parse_args():
                         help='path to notmuch index')
     parser.add_argument('-d', dest='debug_level',
                         default='info',
-                        help='one of DEBUG,INFO,WARNING,ERROR')
+                        choices=['DEBUG','INFO','WARNING','ERROR'],
+                        help='debug level')
     parser.add_argument('-l', dest='logfile',
                         default='debug.log',
                         help='logfile')
@@ -33,7 +39,9 @@ def main():
     logger = logging.getLogger()
     ui = UI(db=dbman,
             log=logger,
-            initialquery=args.query)
+            initialquery=args.query,
+            colourmode = args.colours
+    )
 
 if __name__ == "__main__":
     main()
