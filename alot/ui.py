@@ -64,7 +64,7 @@ class UI:
                     self.mainframe.set_footer(footer)
                     self.mainframe.set_focus('body')
                     return prefix_widget.get_input()
-                if key in ('escape', 'tab'):
+                if key in ('esc', 'tab'):
                     self.mainframe.set_footer(footer)
                     self.mainframe.set_focus('body')
                     return None
