@@ -14,7 +14,7 @@ class Buffer:
         self.body = widget
 
     def __str__(self):
-        return "[%s]" % (self.typename)
+        return ''
 
     def render(self, size, focus=False):
         return self.body.render(size, focus)
@@ -118,8 +118,7 @@ class SearchBuffer(Buffer):
         }
 
     def __str__(self):
-        string = "[%s] for %s, (%d)"
-        return string % (self.typename, self.querystring, self.result_count)
+        return '%s (%d threads)' % (self.querystring, self.result_count)
 
     def rebuild(self):
         if self.isinitialized:
@@ -153,19 +152,15 @@ class SearchBuffer(Buffer):
 
 class SingleThreadBuffer(Buffer):
     def __init__(self, ui, thread):
-        self.read_thread(thread)
-        self.rebuild()
-        Buffer.__init__(self, ui, self.body, 'search')
-        self.bindings = {}
-
-    def __str__(self):
-        string = "[%s] %s, (%d)"
-        return string % (self.typename, self.subject, self.message_count)
-
-    def read_thread(self, thread):
         self.message_count = thread.get_total_messages()
         self.subject = thread.get_subject()
         self.messages = [(0, m) for m in thread.get_toplevel_messages()]
+        self.rebuild()
+        Buffer.__init__(self, ui, self.body, 'thread')
+        self.bindings = {}
+
+    def __str__(self):
+        return '%s, (%d)' % (self.thread.subject, self.message_count)
 
     def rebuild(self):
         msgs = list()
@@ -178,15 +173,11 @@ class SingleThreadBuffer(Buffer):
             else:
                 spacer = urwid.Text(' ' * depth)
                 msgs.append(urwid.Columns([('fixed', depth, spacer), mwidget]))
-        self.messagelist = urwid.ListBox(msgs)
-        self.body = self.messagelist
+        self.body = urwid.ListBox(msgs)
 
     def get_selected_message(self):
-        (messagewidget, size) = self.messagelist.get_focus()
+        (messagewidget, size) = self.body.get_focus()
         return messagewidget.get_message()
-
-    def get_selected_message_file(self):
-        return self.get_selected_message().get_filename()
 
 
 class TagListBuffer(Buffer):

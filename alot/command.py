@@ -44,7 +44,7 @@ class SearchCommand(Command):
     def __init__(self, query, force_new=False, **kwargs):
         """
         @param query initial querystring
-        @param force_new True forces a new buffer, else focus old on same search
+        @param force_new True forces a new buffer
         """
         self.query = query
         self.force_new = force_new
@@ -275,6 +275,7 @@ class ThreadTagPromptCommand(Command):
         sbuffer = ui.current_buffer
         threadwidget = sbuffer.get_selected_threadline()
         threadwidget.rebuild()  # rebuild and redraw the line
+
 
 class RefineSearchPromptCommand(Command):
     """refine the current search"""

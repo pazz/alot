@@ -14,7 +14,7 @@ class UI:
         self.logger = log
         self.dbman = db
 
-        self.logger.debug('setup gui: %d'%colourmode)
+        self.logger.debug('setup gui: %d' % colourmode)
         self.mainframe = urwid.Frame(urwid.SolidFill(' '))
         self.mainloop = urwid.MainLoop(self.mainframe,
                 settings.palette,
@@ -114,7 +114,7 @@ class UI:
             self.update()
 
     def get_buffers_of_type(self, t):
-        return filter(lambda x: isinstance(x,t), self.buffers)
+        return filter(lambda x: isinstance(x, t), self.buffers)
 
     def update(self):
         """
@@ -133,7 +133,8 @@ class UI:
 
     def update_footer(self):
         idx = self.buffers.index(self.current_buffer)
-        lefttxt = '%d: %s' % (idx, self.current_buffer)
+        lefttxt = '%d: [%s] %s' % (idx, self.current_buffer.typename,
+                                 self.current_buffer)
         footerleft = urwid.Text(lefttxt, align='left')
         righttxt = 'total messages: %d' % self.dbman.count_messages('*')
         footerright = urwid.Text(righttxt, align='right')
