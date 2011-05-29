@@ -113,6 +113,9 @@ class UI:
                 self.current_buffer.rebuild()
             self.update()
 
+    def get_buffers_of_type(self, t):
+        return filter(lambda x: isinstance(x,t), self.buffers)
+
     def update(self):
         """
         redraw interface

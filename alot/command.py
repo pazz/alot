@@ -11,7 +11,7 @@ import settings
 
 class Command:
     """base class for commands"""
-    def __init__(self, prehook=None, posthook=None):
+    def __init__(self, prehook=None, posthook=None, **ignored):
         self.prehook = prehook
         self.posthook = posthook
         self.undoable = False
@@ -52,8 +52,7 @@ class SearchCommand(Command):
 
     def apply(self, ui):
         if not self.force_new:
-            open_searches = filter(lambda x: isinstance(x, buffer.SearchBuffer),
-                                   ui.buffers)
+            open_searches = ui.get_buffers_of_type(buffer.SearchBuffer)
             to_be_focused = None
             for sb in open_searches:
                 if sb.querystring == self.query:
@@ -191,7 +190,7 @@ class BufferFocusCommand(Command):
         ui.buffer_focus(ui.buffers[(idx + self.offset) % num])
 
 
-class BufferListCommand(Command):
+class OpenBufferListCommand(Command):
     """
     open a bufferlist
     """
@@ -200,13 +199,14 @@ class BufferListCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        buf = buffer.BufferListBuffer(ui, self.filtfun)
-        ui.buffers.append(buf)
-        buf.rebuild()
-        ui.buffer_focus(buf)
+        blists = ui.get_buffers_of_type(buffer.BufferListBuffer)
+        if blists:
+            ui.buffer_focus(blists[0])
+        else:
+            ui.buffer_open(buffer.BufferListBuffer(ui, self.filtfun))
 
 
-class TagListCommand(Command):
+class OpenTagListCommand(Command):
     """
     open a taglist
     """
@@ -288,12 +288,12 @@ class RefineSearchPromptCommand(Command):
 commands = {
         'buffer_close': (BufferCloseCommand, {}),
         'buffer_focus': (BufferFocusCommand, {}),
-        'buffer_list': (BufferListCommand, {}),
+        'buffer_list': (OpenBufferListCommand, {}),
         'buffer_next': (BufferFocusCommand, {'offset': 1}),
         'buffer_prev': (BufferFocusCommand, {'offset': -1}),
         'call_editor': (EditCommand, {}),
         'call_pager': (PagerCommand, {}),
-        'open_taglist': (TagListCommand, {}),
+        'open_taglist': (OpenTagListCommand, {}),
         'open_thread': (OpenThreadCommand, {}),
         'search': (SearchCommand, {}),
         'search_prompt': (SearchPromptCommand, {}),
