@@ -197,9 +197,10 @@ class TagListBuffer(Buffer):
         self.isinitialized = False
         self.rebuild()
         Buffer.__init__(self, ui, self.body, 'taglist')
-        self._autoparms = {'query': self.get_selected_tag}
+        self._autoparms = {}
         self.bindings = {
-            'enter': ('search', {}),
+            'enter': ('search', {'query': (lambda: 'tag:' +
+                                           self.get_selected_tag())}),
         }
 
     def rebuild(self):
@@ -222,5 +223,5 @@ class TagListBuffer(Buffer):
 
     def get_selected_tag(self):
         (attrwidget, pos) = self.taglist.get_focus()
-        tagwidget = attrwidget.body
-        return 'tag:' + tagwidget.get_tag()
+        tagwidget = attrwidget.original_widget
+        return str(tagwidget.get_tag())

@@ -317,10 +317,7 @@ def factory(cmdname, **kwargs):
         parms.update(kwargs)
         for (key, value) in kwargs.items():
             if callable(value):
-                try:
-                    parms[key] = value()
-                except:
-                    parms[key] = None
+                parms[key] = value()
             else:
                 parms[key] = value
         prehook = hooks.get_hook('pre-' + cmdname)
