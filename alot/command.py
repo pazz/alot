@@ -187,7 +187,11 @@ class BufferFocusCommand(Command):
             self.buffer = ui.current_buffer
         idx = ui.buffers.index(self.buffer)
         num = len(ui.buffers)
-        ui.buffer_focus(ui.buffers[(idx + self.offset) % num])
+        to_be_focused = ui.buffers[(idx + self.offset) % num]
+        #only select bufferlist if its the last one
+        if isinstance(to_be_focused, buffer.BufferListBuffer):
+            to_be_focused = ui.buffers[(idx + self.offset + 1) % num]
+        ui.buffer_focus(to_be_focused)
 
 
 class OpenBufferListCommand(Command):
