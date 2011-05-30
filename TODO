@@ -13,9 +13,10 @@ configuration
   * a config mechanism needs to be discussed/implemented. i don't think a single settings.py like in django
     is a good approach.
 
-
 searchbuffer: 
   * unseen tag -> msg bold
+  * focus next thread after toggletag. It would be easyest if IteratorWalker had a focus_next()
+    that could be called in ToggleTagCommand in case thread is still in the searchresults
 
 Commands
   * help strings in commands and help buffer
@@ -26,8 +27,13 @@ taglist buffer
     this will have to wait until a version of urwid can be easy_installed in that GridFlow
     has a get_focus: http://comments.gmane.org/gmane.comp.lib.urwid/971
 
+db:
+  * db.Message.get_replies() needs fixing. see 
+    http://notmuch.198994.n3.nabble.com/python-get-all-messages-of-a-thread-tt2996080.html
+
+
+
 general
-  * find nice 256colour defaults and start in that mode by defualt
   * packaging? Last time i checked "PIPifying" a project wasn't hard, a bit of fumbling with a setup.py?
   * gg, g5j.. combos like in vim
   * pydoc/sphinx
