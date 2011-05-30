@@ -170,7 +170,7 @@ class SearchBuffer(Buffer):
 class SingleThreadBuffer(Buffer):
     def __init__(self, ui, thread):
         self.message_count = thread.get_total_messages()
-        self.subject = thread.get_subject()
+        self.thread = thread
         self.messages = [(0, m) for m in thread.get_toplevel_messages()]
         self.rebuild()
         Buffer.__init__(self, ui, self.body, 'thread')
