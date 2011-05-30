@@ -27,7 +27,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', dest='colours',
                         type=int,
-                        choices=[1,16,88,256],
+                        choices=[1, 16, 88, 256],
                         default=16,
                         help='colour mode')
     parser.add_argument('-r', dest='read_only',
@@ -37,7 +37,7 @@ def parse_args():
                         help='path to notmuch index')
     parser.add_argument('-d', dest='debug_level',
                         default='info',
-                        choices=['DEBUG','INFO','WARNING','ERROR'],
+                        choices=['debug', 'info', 'warning', 'error'],
                         help='debug level')
     parser.add_argument('-l', dest='logfile',
                         default='debug.log',
@@ -57,7 +57,7 @@ def main():
     ui = UI(db=dbman,
             log=logger,
             initialquery=args.query,
-            colourmode = args.colours
+            colourmode=args.colours,
     )
 
 if __name__ == "__main__":

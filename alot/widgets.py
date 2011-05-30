@@ -26,6 +26,7 @@ from urwid import WidgetWrap
 from urwid import ListBox
 from urwid import SimpleListWalker
 from datetime import datetime
+import logging
 
 import settings
 from helper import shorten
@@ -126,9 +127,12 @@ class TagWidget(Text):
 
 
 class PromptWidget(AttrMap):
-    def __init__(self, prefix, text=''):
+    def __init__(self, prefix, text='', complete=None):
+        self.complete = complete
         leftpart = Text(prefix, align='left')
         self.editpart = Edit(edit_text=text)
+        self.start_completion_pos = len(text)
+        self.completion_results = None
         both = Columns(
             [
                 ('fixed', len(prefix) + 1, leftpart),
@@ -141,6 +145,26 @@ class PromptWidget(AttrMap):
 
     def get_input(self):
         return self.editpart.get_edit_text()
+
+    def keypress(self, size, key):
+        if key == 'tab':
+            if self.complete:
+                pos = self.start_completion_pos
+                original = self.editpart.edit_text[:pos]
+                if not self.completion_results:
+                    self.completion_results = [''] + self.complete(original)
+                    self.focus_in_clist = 1
+                else:
+                    self.focus_in_clist += 1
+                suffix = self.completion_results[self.focus_in_clist %
+                                          len(self.completion_results)]
+                self.editpart.set_edit_text(original + suffix)
+                self.editpart.edit_pos += len(suffix)
+        else:
+            result = self.editpart.keypress(size, key)
+            self.start_completion_pos = self.editpart.edit_pos
+            self.completion_results = None
+            return result
 
 
 class MessageWidget(WidgetWrap):

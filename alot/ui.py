@@ -53,7 +53,7 @@ class UI:
             'L': ('open_taglist', {}),
             's': ('shell', {}),
             'v': ('view_log', {}),
-            '@': ('refresh_buffer', {})
+            '@': ('refresh_buffer', {}),
         }
         cmd = command.factory('search', query=initialquery)
         self.apply_command(cmd)
@@ -66,10 +66,10 @@ class UI:
         """
         raise urwid.ExitMainLoop()
 
-    def prompt(self, prefix='>', text=''):
+    def prompt(self, prefix='>', text='', completefun=None):
         self.logger.info('open prompt')
 
-        prefix_widget = PromptWidget(prefix, text)
+        prefix_widget = PromptWidget(prefix, text, completefun)
         footer = self.mainframe.get_footer()
         self.mainframe.set_footer(prefix_widget)
         self.mainframe.set_focus('footer')
@@ -83,13 +83,13 @@ class UI:
                     self.mainframe.set_footer(footer)
                     self.mainframe.set_focus('body')
                     return prefix_widget.get_input()
-                if key in ('esc', 'tab'):
+                if key == 'esc':
                     self.mainframe.set_footer(footer)
                     self.mainframe.set_focus('body')
                     return None
                 else:
                     size = (20,)  # don't know why they want a size here
-                    prefix_widget.editpart.keypress(size, key)
+                    prefix_widget.keypress(size, key)
                     self.mainloop.draw_screen()
 
     def buffer_open(self, b):

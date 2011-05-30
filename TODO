@@ -37,3 +37,7 @@ general
   * packaging? Last time i checked "PIPifying" a project wasn't hard, a bit of fumbling with a setup.py?
   * gg, g5j.. combos like in vim
   * pydoc/sphinx
+
+
+far away future:
+  * addressbook manager with backends for lbdb,abook,rolo that can be used for prompt autocompletion

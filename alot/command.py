@@ -21,6 +21,7 @@ import code
 import logging
 import threading
 import subprocess
+import re
 
 import buffer
 import hooks
@@ -86,7 +87,15 @@ class SearchCommand(Command):
 class SearchPromptCommand(Command):
     """prompt the user for a querystring, then start a search"""
     def apply(self, ui):
-        querystring = ui.prompt('search threads:')
+        def complete(original):
+            m = re.findall('.*tag:(.*)', original)
+            if m:
+                prefix = m[0]
+                tags = ui.dbman.get_all_tags()
+                return [t[len(prefix):] for t in tags if t.startswith(prefix)]
+            else:
+                return list()
+        querystring = ui.prompt('search threads:', completefun=complete)
         ui.logger.info("got %s" % querystring)
         if querystring:
             cmd = factory('search', query=querystring)
