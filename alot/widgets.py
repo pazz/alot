@@ -127,8 +127,8 @@ class TagWidget(Text):
 
 
 class PromptWidget(AttrMap):
-    def __init__(self, prefix, text='', complete=None):
-        self.complete = complete
+    def __init__(self, prefix, text='', completer=None):
+        self.completer = completer
         leftpart = Text(prefix, align='left')
         self.editpart = Edit(edit_text=text)
         self.start_completion_pos = len(text)
@@ -148,11 +148,11 @@ class PromptWidget(AttrMap):
 
     def keypress(self, size, key):
         if key == 'tab':
-            if self.complete:
+            if self.completer:
                 pos = self.start_completion_pos
                 original = self.editpart.edit_text[:pos]
                 if not self.completion_results:
-                    self.completion_results = [''] + self.complete(original)
+                    self.completion_results = [''] + self.completer.complete(original)
                     self.focus_in_clist = 1
                 else:
                     self.focus_in_clist += 1

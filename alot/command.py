@@ -21,11 +21,11 @@ import code
 import logging
 import threading
 import subprocess
-import re
 
 import buffer
 import hooks
 import settings
+import completion
 
 
 class Command:
@@ -87,15 +87,8 @@ class SearchCommand(Command):
 class SearchPromptCommand(Command):
     """prompt the user for a querystring, then start a search"""
     def apply(self, ui):
-        def complete(original):
-            m = re.findall('.*tag:(.*)', original)
-            if m:
-                prefix = m[0]
-                tags = ui.dbman.get_all_tags()
-                return [t[len(prefix):] for t in tags if t.startswith(prefix)]
-            else:
-                return list()
-        querystring = ui.prompt('search threads:', completefun=complete)
+        querystring = ui.prompt('search threads:',
+                                completer=completion.QueryCompleter(ui.dbman))
         ui.logger.info("got %s" % querystring)
         if querystring:
             cmd = factory('search', query=querystring)
@@ -299,7 +292,8 @@ class ThreadTagPromptCommand(Command):
 
     def apply(self, ui):
         initial_tagstring = ','.join(self.thread.get_tags())
-        tagsstring = ui.prompt('label thread:', text=initial_tagstring)
+        tagsstring = ui.prompt('label thread:', text=initial_tagstring,
+                                completer=completion.TagListCompleter(ui.dbman))
         if tagsstring != None:  # esc -> None, enter could return ''
             tags = filter(lambda x: x, tagsstring.split(','))
             ui.logger.info("got %s:%s" % (tagsstring, tags))
@@ -317,7 +311,8 @@ class RefineSearchPromptCommand(Command):
     def apply(self, ui):
         sbuffer = ui.current_buffer
         oldquery = sbuffer.querystring
-        querystring = ui.prompt('refine search:', text=oldquery)
+        querystring = ui.prompt('refine search:', text=oldquery,
+                                completer=completion.QueryCompleter(ui.dbman))
         if querystring not in [None, oldquery]:
             sbuffer.querystring = querystring
             sbuffer = ui.current_buffer

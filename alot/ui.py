@@ -66,10 +66,10 @@ class UI:
         """
         raise urwid.ExitMainLoop()
 
-    def prompt(self, prefix='>', text='', completefun=None):
+    def prompt(self, prefix='>', text='', completer=None):
         self.logger.info('open prompt')
 
-        prefix_widget = PromptWidget(prefix, text, completefun)
+        prefix_widget = PromptWidget(prefix, text, completer)
         footer = self.mainframe.get_footer()
         self.mainframe.set_footer(prefix_widget)
         self.mainframe.set_focus('footer')
