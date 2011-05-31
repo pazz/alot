@@ -184,6 +184,7 @@ class SingleThreadBuffer(Buffer):
         for (num, (depth, m)) in enumerate(self.messages, 1):
             mwidget = widgets.MessageWidget(m, even=(num % 2 == 0),
                                             folded=False)
+            m.remove_tags(['unread'])
             # a spacer of width 0 breaks urwid.Columns
             if depth == 0:
                 msgs.append(urwid.Columns([mwidget]))

@@ -39,9 +39,15 @@ class DBManager:
         threads = self.query(querystring).search_threads()
         return [thread.get_thread_id() for thread in threads]
 
-    def find_message(self, mid):
+    def find_message(self, mid, writeable=False):
         db = Database(path=self.path)
-        return db.find_message(mid)
+        if writeable:
+            query = self.query('id:' + mid, writeable=writeable)
+            #TODO raise exceptions here in 0<case msgcount>1
+            msg = query.search_messages().next()
+        else:
+            msg = db.find_message(mid)
+        return msg
 
     def get_message(self, mid):
         """returns the message with the given id and wrapps it in a Message
@@ -205,7 +211,7 @@ class Message:
         msg.thaw()
 
     def remove_tags(self, tags):
-        msg = self.dbman.find_message(self.mid)
+        msg = self.dbman.find_message(self.mid, writeable=True)
         msg.freeze()
         for tag in tags:
             msg.remove_tag(tag)
