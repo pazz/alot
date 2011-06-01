@@ -30,15 +30,19 @@ class QueryCompleter(Completer):
 
     def __init__(self, dbman):
         self.dbman = dbman
+        self.keywords = ['tag', 'subject', 'attachment',
+                         'is', 'id', 'thread', 'folder']
 
     def complete(self, original):
-        m = re.findall('.*tag:(.*)', original)
+        lastbit = prefix = original.split(' ')[-1]
+        m = re.findall('[tag|is]:(\w*)', lastbit)
         if m:
             prefix = m[0]
             tags = self.dbman.get_all_tags()
-            return [t[len(prefix):] for t in tags if t.startswith(prefix)]
+            return [t[len(prefix):] + ' ' for t in tags if t.startswith(prefix)]
         else:
-            return list()
+            prefix = original.split(' ')[-1]
+            return [t[len(prefix):] + ':' for t in self.keywords if t.startswith(prefix)]
 
 
 class TagListCompleter(Completer):

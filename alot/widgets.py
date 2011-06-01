@@ -26,7 +26,6 @@ from urwid import WidgetWrap
 from urwid import ListBox
 from urwid import SimpleListWalker
 from datetime import datetime
-import logging
 
 import settings
 from helper import shorten
@@ -147,19 +146,28 @@ class PromptWidget(AttrMap):
         return self.editpart.get_edit_text()
 
     def keypress(self, size, key):
-        if key == 'tab':
+        if key in ['tab', 'shift tab']:
             if self.completer:
                 pos = self.start_completion_pos
                 original = self.editpart.edit_text[:pos]
-                if not self.completion_results:
+                if not self.completion_results: #not already in completion mode
                     self.completion_results = [''] + self.completer.complete(original)
                     self.focus_in_clist = 1
                 else:
-                    self.focus_in_clist += 1
-                suffix = self.completion_results[self.focus_in_clist %
-                                          len(self.completion_results)]
-                self.editpart.set_edit_text(original + suffix)
-                self.editpart.edit_pos += len(suffix)
+                    if key == 'tab':
+                        self.focus_in_clist += 1
+                    else:
+                        self.focus_in_clist -= 1
+                if len(self.completion_results) > 1:
+                    suffix = self.completion_results[self.focus_in_clist %
+                                              len(self.completion_results)]
+                    self.editpart.set_edit_text(original + suffix)
+                    self.editpart.edit_pos += len(suffix)
+                else:
+                    self.editpart.set_edit_text(original + ' ')
+                    self.editpart.edit_pos += 1
+                    self.start_completion_pos = self.editpart.edit_pos
+                    self.completion_results = None
         else:
             result = self.editpart.keypress(size, key)
             self.start_completion_pos = self.editpart.edit_pos
