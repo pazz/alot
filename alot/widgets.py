@@ -176,17 +176,12 @@ class PromptWidget(AttrMap):
 
 
 class MessageWidget(WidgetWrap):
-    def __init__(self, message, even=False, folded=True):
+    def __init__(self, message, folded=True):
         self.message = message
-        if even:
-            sumattr = 'messagesummary_even'
-        else:
-            sumattr = 'messagesummary_odd'
-
         self.sumw = MessageSummaryWidget(self.message)
         self.headerw = MessageHeaderWidget(self.message.get_email())
         self.bodyw = MessageBodyWidget(self.message.get_email())
-        self.displayed_list = [AttrMap(self.sumw, sumattr)]
+        self.displayed_list = [self.sumw]
         if not folded:
             self.displayed_list.append(self.bodyw)
         self.body = Pile(self.displayed_list)

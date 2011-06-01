@@ -147,8 +147,22 @@ class Thread:
     def get_subject(self):
         return self.subject
 
-    def get_toplevel_messages(self):
-        return [self.dbman.get_message(mid) for mid in self.topmessages]
+    def _build_messages(self, acc, msg):
+        M = Message(self.dbman,msg)
+        acc[M] = {}
+        r = msg.get_replies()
+        if r is not None:
+            for m in r:
+                self._build_messages(acc[M], m)
+
+    def get_messages(self):
+        query = self.dbman.query('thread:' + self.tid)
+        thread = query.search_threads().next()
+
+        messages = {}
+        for m in thread.get_toplevel_messages():
+            self._build_messages(messages, m)
+        return messages
 
     def get_newest_date(self):
         return self.newest
@@ -165,14 +179,7 @@ class Message:
         self.dbman = dbman
         self.mid = msg.get_message_id()
         self.strrep = str(msg)
-
         self.email = None  # will be read upon first use
-        r = msg.get_replies()  # not iterable if None
-        if r:
-            self.replies = [m.get_message_id() for m in msg.get_replies()]
-        else:
-            self.replies = []
-
         self.filename = msg.get_filename()
         self.tags = set([str(tag) for tag in msg.get_tags()])
 

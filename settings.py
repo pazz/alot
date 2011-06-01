@@ -29,7 +29,7 @@ palette = [
 
     ('messagesummary_even', 'white', 'light blue', 'standout', 'white', '#068'),
     ('messagesummary_odd', 'white', 'dark blue', 'standout', 'white', '#006'),
-    ('messagesummary_focus', 'white', 'black', 'standout,bold', '', ''),
+    ('messagesummary_focus', 'white', 'dark green', 'standout,bold', '#ff8', 'g58'),
     ('message_header', 'white', 'dark gray', '', 'white', 'dark gray'),
     ('message_body', 'light gray', 'black', '', 'light gray', ''),
 

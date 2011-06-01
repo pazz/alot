@@ -171,7 +171,9 @@ class SingleThreadBuffer(Buffer):
     def __init__(self, ui, thread):
         self.message_count = thread.get_total_messages()
         self.thread = thread
-        self.messages = [(0, m) for m in thread.get_toplevel_messages()]
+        self.messages = list()
+        for (m,r) in thread.get_messages().items():
+            self._build_pile(self.messages, m, r)
         self.rebuild()
         Buffer.__init__(self, ui, self.body, 'thread')
         self.bindings = {}
@@ -179,18 +181,27 @@ class SingleThreadBuffer(Buffer):
     def __str__(self):
         return '%s, (%d)' % (self.thread.subject, self.message_count)
 
+    def _build_pile(self, acc, msg, replies, depth=0):
+        acc.append((depth, msg))
+        for (m,r) in replies.items():
+            self._build_pile(acc, m, r, depth+1)
+
     def rebuild(self):
         msgs = list()
         for (num, (depth, m)) in enumerate(self.messages, 1):
-            mwidget = widgets.MessageWidget(m, even=(num % 2 == 0),
-                                            folded=False)
+            mwidget = widgets.MessageWidget(m, folded=True)
+            if (num % 2 == 0):
+                attr = 'messagesummary_even'
+            else:
+                attr = 'messagesummary_odd'
             m.remove_tags(['unread'])
             # a spacer of width 0 breaks urwid.Columns
             if depth == 0:
-                msgs.append(urwid.Columns([mwidget]))
+                line = urwid.AttrMap(urwid.Columns([mwidget]), attr, 'messagesummary_focus')
             else:
                 spacer = urwid.Text(' ' * depth)
-                msgs.append(urwid.Columns([('fixed', depth, spacer), mwidget]))
+                line = urwid.AttrMap(urwid.Columns([('fixed', depth, spacer), mwidget]), attr, 'messagesummary_focus')
+            msgs.append(line)
         self.body = urwid.ListBox(msgs)
 
     def get_selected_message(self):
