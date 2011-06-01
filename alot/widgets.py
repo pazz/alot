@@ -176,14 +176,15 @@ class PromptWidget(AttrMap):
 
 
 class MessageWidget(WidgetWrap):
-    def __init__(self, message, folded=True):
+    def __init__(self, message, depth=0, folded=True):
         self.message = message
+        self.depth = depth
         self.sumw = MessageSummaryWidget(self.message)
-        self.headerw = MessageHeaderWidget(self.message.get_email())
-        self.bodyw = MessageBodyWidget(self.message.get_email())
+        self.headerw = None
+        self.bodyw = None
         self.displayed_list = [self.sumw]
         if not folded:
-            self.displayed_list.append(self.bodyw)
+            self.displayed_list.append(self.get_body_widget())
         self.body = Pile(self.displayed_list)
         WidgetWrap.__init__(self, self.body)
 
@@ -191,18 +192,36 @@ class MessageWidget(WidgetWrap):
         self.body = Pile(self.displayed_list)
         self._w = self.body
 
-    def toggle_header(self):
-        if self.headerw in self.displayed_list:
-            self.displayed_list.remove(self.headerw)
+    def _get_spacer(self):
+        if self.depth:
+            return urwid.Text((' ' * self.depth) + u'\u2514\u25b6')
         else:
-            self.displayed_list.insert(1, self.headerw)
+            return None
+
+    def get_header_widget(self):
+        if not self.headerw:
+            self.headerw = MessageHeaderWidget(self.message.get_email())
+        return self.headerw
+
+    def get_body_widget(self):
+        if not self.bodyw:
+            self.bodyw = MessageBodyWidget(self.message.get_email())
+        return self.bodyw
+
+    def toggle_header(self):
+        hw = self.get_header_widget()
+        if hw in self.displayed_list:
+            self.displayed_list.remove(hw)
+        else:
+            self.displayed_list.insert(1, hw)
         self.rebuild()
 
     def toggle_body(self):
-        if self.bodyw in self.displayed_list:
-            self.displayed_list.remove(self.bodyw)
+        bw = self.get_body_widget()
+        if bw in self.displayed_list:
+            self.displayed_list.remove(bw)
         else:
-            self.displayed_list.append(self.bodyw)
+            self.displayed_list.append(bw)
         self.sumw.toggle_folded()
         self.rebuild()
 
@@ -231,9 +250,9 @@ class MessageSummaryWidget(WidgetWrap):
         WidgetWrap.__init__(self, Text(str(self)))
 
     def __str__(self):
-        prefix = "-"
+        prefix = "-  "
         if self.folded:
-            prefix = '+'
+            prefix = '+  '
         return prefix + str(self.message)
 
     def toggle_folded(self):

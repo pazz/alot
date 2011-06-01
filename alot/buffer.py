@@ -189,18 +189,19 @@ class SingleThreadBuffer(Buffer):
     def rebuild(self):
         msgs = list()
         for (num, (depth, m)) in enumerate(self.messages, 1):
-            mwidget = widgets.MessageWidget(m, folded=True)
+            if 'unread' in m.get_tags():
+                m.remove_tags(['unread'])
+            mwidget = widgets.MessageWidget(m, depth=depth, folded=True)
             if (num % 2 == 0):
                 attr = 'messagesummary_even'
             else:
                 attr = 'messagesummary_odd'
-            m.remove_tags(['unread'])
             # a spacer of width 0 breaks urwid.Columns
             if depth == 0:
                 line = urwid.AttrMap(urwid.Columns([mwidget]), attr, 'messagesummary_focus')
             else:
-                spacer = urwid.Text(' ' * depth)
-                line = urwid.AttrMap(urwid.Columns([('fixed', depth, spacer), mwidget]), attr, 'messagesummary_focus')
+                spacer = urwid.Text((' ' * depth) + u'\u2514\u25b6')
+                line = urwid.AttrMap(urwid.Columns([('fixed', depth+3, spacer), mwidget]), attr, 'messagesummary_focus')
             msgs.append(line)
         self.body = urwid.ListBox(msgs)
 
