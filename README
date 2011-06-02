@@ -11,9 +11,11 @@ The key ideas are:
   (urwid-satext: http://wiki.goffi.org/wiki/Urwid-satext)
   (configparser)
 
-You need the notmuch python bindings and urwid to run it. I run it like this 
-> python alot.py -l debug.log -d debug
+You need the notmuch python bindings and urwid to run it. While developing,
+I run it like this 
+> python alot/init.py -l debug.log -d debug
 and "tail -f debug.log" in another window.
+If installed via the setup.py, "alot" should be in your path.
 
 ---------------------------------------
 At the moment you can play with the global bindings
