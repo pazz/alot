@@ -1,9 +1,3 @@
-ui.prompt
-  * tabcompletion? (AdvancedEdit from urwid-satext..)
-  It would be cool if we had a cmdline like vim or mutt when pressing ":".
-  Commands already have typenames, calling them from a prompt could
-  use the command.factory to build one and pass it to ui.apply_command.
-
 Sending mails
   * an Envelope buffer that contains widgets for recipients,subject, gpg settings.
   * A "SendManager" that can send and archive (in a maildir send folder), 
@@ -31,10 +25,13 @@ db:
   * db.Message.get_replies() needs fixing. see 
     http://notmuch.198994.n3.nabble.com/python-get-all-messages-of-a-thread-tt2996080.html
 
+ui
+  It would be cool if we had a cmdline like vim or mutt when pressing ":".
+  Commands already have typenames, calling them from a prompt could
+  use the command.factory to build one and pass it to ui.apply_command.
 
 
 general
-  * packaging? Last time i checked "PIPifying" a project wasn't hard, a bit of fumbling with a setup.py?
   * gg, g5j.. combos like in vim
   * pydoc/sphinx
 
