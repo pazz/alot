@@ -17,6 +17,7 @@ along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
 Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 import email
+import urwid
 from urwid import Text
 from urwid import Edit
 from urwid import Pile
@@ -26,6 +27,7 @@ from urwid import WidgetWrap
 from urwid import ListBox
 from urwid import SimpleListWalker
 from datetime import datetime
+import logging
 
 import settings
 from helper import shorten
@@ -176,10 +178,14 @@ class PromptWidget(AttrMap):
 
 
 class MessageWidget(WidgetWrap):
-    def __init__(self, message, depth=0, folded=True):
+    def __init__(self, message, even=False, folded=True, depth=0, bars_at=[],
+                 siblings_follow=False):
         self.message = message
         self.depth = depth
-        self.sumw = MessageSummaryWidget(self.message)
+        self.bars_at = bars_at
+        self.siblings_follow = siblings_follow
+        self.even = even
+        self.sumw = self._build_sum_widget()
         self.headerw = None
         self.bodyw = None
         self.displayed_list = [self.sumw]
@@ -188,24 +194,62 @@ class MessageWidget(WidgetWrap):
         self.body = Pile(self.displayed_list)
         WidgetWrap.__init__(self, self.body)
 
+    def _build_sum_widget(self):
+        sumw = MessageSummaryWidget(self.message)
+        if self.even:
+            attr = 'messagesummary_even'
+        else:
+            attr = 'messagesummary_odd'
+        # a spacer of width 0 breaks urwid.Columns
+        cols = []
+        bc = list()  # box_columns
+        if self.depth > 0:
+            bc.append(0)
+            cols.append(self._get_spacer())
+            if self.siblings_follow:
+                arrowhead = u'\u251c\u25b6'
+            else:
+                arrowhead = u'\u2514\u25b6'
+            cols.append(('fixed', 2, Text(arrowhead)))
+        cols.append(sumw)
+        line = urwid.AttrMap(urwid.Columns(cols, box_columns=bc), attr, 'messagesummary_focus')
+        return line
+
+
     def rebuild(self):
         self.body = Pile(self.displayed_list)
         self._w = self.body
 
     def _get_spacer(self):
-        if self.depth:
-            return urwid.Text((' ' * self.depth) + u'\u2514\u25b6')
-        else:
-            return None
+        prefixchars = []
+        for i in range(self.depth):
+            if i in self.bars_at:
+                c = u'\u2502'
+            else:
+                c = ' '
+            prefixchars.append(('fixed', 1, urwid.SolidFill(c)))
+
+        spacer = urwid.Columns(prefixchars, box_columns=range(self.depth))
+        return ('fixed', self.depth, spacer)
 
     def get_header_widget(self):
         if not self.headerw:
-            self.headerw = MessageHeaderWidget(self.message.get_email())
+            cols = [MessageHeaderWidget(self.message.get_email())]
+            bc = list()
+            if self.depth:
+                cols.insert(0,self._get_spacer())
+                bc.append(0)
+            self.headerw = urwid.Columns(cols, box_columns = bc)
         return self.headerw
 
     def get_body_widget(self):
         if not self.bodyw:
-            self.bodyw = MessageBodyWidget(self.message.get_email())
+            cols = [MessageBodyWidget(self.message.get_email())]
+            bc = list()
+            if self.depth:
+                cols.insert(0,self._get_spacer())
+                bc.append(0)
+            self.bodyw = urwid.Columns(cols, box_columns = bc)
         return self.bodyw
 
     def toggle_header(self):
