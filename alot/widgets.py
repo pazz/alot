@@ -178,66 +178,71 @@ class PromptWidget(AttrMap):
 
 
 class MessageWidget(WidgetWrap):
-    def __init__(self, message, even=False, folded=True, depth=0, bars_at=[],
-                 siblings_follow=False):
+    def __init__(self, message, even=False, unfold_body=False,
+                 unfold_header=False, depth=0, bars_at=[]):
         self.message = message
         self.depth = depth
         self.bars_at = bars_at
-        self.siblings_follow = siblings_follow
         self.even = even
-        self.sumw = self._build_sum_widget()
+
+        # build the summary line, header and body will be created on demand
+        self.sumline = self._build_sum_line()
         self.headerw = None
         self.bodyw = None
-        self.displayed_list = [self.sumw]
-        if not folded:
+        self.displayed_list = [self.sumline]
+        if unfold_header:
+            self.displayed_list.append(self.get_header_widget())
+        if unfold_body:
             self.displayed_list.append(self.get_body_widget())
-        self.body = Pile(self.displayed_list)
-        WidgetWrap.__init__(self, self.body)
+        self.pile = Pile(self.displayed_list)
+        WidgetWrap.__init__(self, self.pile)
 
-    def _build_sum_widget(self):
-        sumw = MessageSummaryWidget(self.message)
+    def _build_sum_line(self):
+        self.sumw = MessageSummaryWidget(self.message)
         if self.even:
             attr = 'messagesummary_even'
         else:
             attr = 'messagesummary_odd'
-        # a spacer of width 0 breaks urwid.Columns
         cols = []
         bc = list()  # box_columns
-        if self.depth > 0:
+        if self.depth > 1:
             bc.append(0)
-            cols.append(self._get_spacer())
-            if self.siblings_follow:
+            cols.append(self._get_spacer(self.bars_at[1:-1]))
+        if self.depth > 0:
+            if self.bars_at[-1]:
                 arrowhead = u'\u251c\u25b6'
             else:
                 arrowhead = u'\u2514\u25b6'
             cols.append(('fixed', 2, Text(arrowhead)))
-        cols.append(sumw)
+        cols.append(self.sumw)
         line = urwid.AttrMap(urwid.Columns(cols, box_columns=bc), attr, 'messagesummary_focus')
         return line
 
 
     def rebuild(self):
-        self.body = Pile(self.displayed_list)
-        self._w = self.body
+        self.pile = Pile(self.displayed_list)
+        self._w = self.pile
 
-    def _get_spacer(self):
+    def _get_spacer(self, bars_at):
         prefixchars = []
-        for i in range(self.depth):
-            if i in self.bars_at:
+        logging.info(bars_at)
+        length = len(bars_at)
+        for b in bars_at:
+            if b:
                 c = u'\u2502'
             else:
                 c = ' '
             prefixchars.append(('fixed', 1, urwid.SolidFill(c)))
 
-        spacer = urwid.Columns(prefixchars, box_columns=range(self.depth))
-        return ('fixed', self.depth, spacer)
+        spacer = urwid.Columns(prefixchars, box_columns=range(length))
+        return ('fixed', length, spacer)
 
     def get_header_widget(self):
         if not self.headerw:
             cols = [MessageHeaderWidget(self.message.get_email())]
             bc = list()
             if self.depth:
-                cols.insert(0,self._get_spacer())
+                cols.insert(0,self._get_spacer(self.bars_at[1:]))
                 bc.append(0)
             self.headerw = urwid.Columns(cols, box_columns = bc)
         return self.headerw
@@ -247,9 +252,9 @@ class MessageWidget(WidgetWrap):
             cols = [MessageBodyWidget(self.message.get_email())]
             bc = list()
             if self.depth:
-                cols.insert(0,self._get_spacer())
+                cols.insert(0,self._get_spacer(self.bars_at[1:]))
                 bc.append(0)
-            self.bodyw = urwid.Columns(cols, box_columns = bc)
+            self.bodyw = urwid.Columns(cols, box_columns=bc)
         return self.bodyw
 
     def toggle_header(self):
@@ -278,7 +283,7 @@ class MessageWidget(WidgetWrap):
         elif key == 'enter':
             self.toggle_body()
         else:
-            return self.body.keypress(size, key)
+            return self.pile.keypress(size, key)
 
     def get_message(self):
         return self.message

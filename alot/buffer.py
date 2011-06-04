@@ -183,29 +183,41 @@ class SingleThreadBuffer(Buffer):
     def _build_pile(self, acc, childcount, msg, replies, parent, depth=0):
         acc.append((parent, depth, msg))
         childcount[parent] += 1
-        for (m,r) in replies.items():
-            if m not in childcount:
-                childcount[m] = 0
-            self._build_pile(acc, childcount, m, r, msg, depth+1)
+        for (reply, rereplies) in replies.items():
+            if reply not in childcount:
+                childcount[reply] = 0
+            self._build_pile(acc, childcount, reply, rereplies, msg, depth+1)
 
     def rebuild(self):
-        messages = list()
-        childcount = {None: 0}
-        for (m,r) in self.thread.get_messages().items():
-            childcount[None] += 1
-            if m not in childcount:
-                childcount[m] = 0
-            self._build_pile(messages, childcount, m, r, None)
+        # depth-first traversing the thread-tree, thereby
+        # 1) build a list of tuples (parentmsg, depth, message) in DF order
+        # 2) create a dict that counts no. of direct replies per message
+        messages = list() # accumulator for 1,
+        childcount = {None: 0} # accumulator for 2)
+        for (msg,replies) in self.thread.get_messages().items():  # all toplevel msgs
+            if msg not in childcount:  # in create entry for current msg
+                childcount[msg] = 0
+            self._build_pile(messages, childcount, msg, replies, None)  # recursion
+
         logging.info('>>> %s'%(childcount))
+        # go through list from 1) and pile up message widgets for all msgs.
+        # each one will be given its depth, if siblings follow and where to
+        # draw bars (siblings follow at lower depths) 
         msglines = list()
+        bars = []
         for (num, (p, depth, m)) in enumerate(messages):
+            # in case the message is yet unread, remove this tag
             if 'unread' in m.get_tags():
                 m.remove_tags(['unread'])
+            bars = bars[:depth]
             childcount[p] -=1
+
+            bars.append(childcount[p]>0)
             mwidget = widgets.MessageWidget(m, even=(num % 2 == 0),
-                                            folded=True, depth=depth,
-                                            bars_at=[],
-                                            siblings_follow=childcount[p]
+                                            unfold_header=False, # settings
+                                            unfold_body=False,
+                                            depth=depth,
+                                            bars_at=bars,
                                            )
             msglines.append(mwidget)
         logging.info('>>> %s'%(childcount))
