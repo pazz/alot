@@ -30,7 +30,7 @@ class QueryCompleter(Completer):
 
     def __init__(self, dbman):
         self.dbman = dbman
-        self.keywords = ['tag', 'subject', 'attachment',
+        self.keywords = ['tag', 'from', 'to', 'subject', 'attachment',
                          'is', 'id', 'thread', 'folder']
 
     def complete(self, original):
