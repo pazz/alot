@@ -178,6 +178,8 @@ class Message:
     def __init__(self, dbman, msg):
         self.dbman = dbman
         self.mid = msg.get_message_id()
+        self.datetime = datetime.fromtimestamp(msg.get_date())
+        self.sender = msg.get_header('From')
         self.strrep = str(msg)
         self.email = None  # will be read upon first use
         self.filename = msg.get_filename()

@@ -43,7 +43,7 @@ class ThreadlineWidget(AttrMap):
 
     def rebuild(self):
         cols = []
-        datestring = pretty_datetime(self.thread.get_newest_date())
+        datestring = pretty_datetime(self.thread.get_newest_date()).rjust(10)
         self.date_w = AttrMap(Text(datestring), 'threadline_date')
         cols.append(('fixed', len(datestring), self.date_w))
 
@@ -314,7 +314,8 @@ class MessageSummaryWidget(WidgetWrap):
         prefix = "-  "
         if self.folded:
             prefix = '+  '
-        return prefix + str(self.message)
+        return "%s%s (%s)" % (prefix, self.message.sender,
+                            pretty_datetime(self.message.datetime))
 
     def toggle_folded(self):
         self.folded = not self.folded
