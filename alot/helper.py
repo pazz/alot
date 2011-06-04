@@ -37,4 +37,4 @@ def pretty_datetime(d):
         string = d.strftime('%b %Y')
     else:
         string = d.strftime('%b %d')
-    return string.rjust(10)
+    return string

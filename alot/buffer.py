@@ -21,6 +21,7 @@ import urwid
 import widgets
 import command
 from walker import IteratorWalker
+from itertools import izip_longest
 
 
 class Buffer:
@@ -171,9 +172,6 @@ class SingleThreadBuffer(Buffer):
     def __init__(self, ui, thread):
         self.message_count = thread.get_total_messages()
         self.thread = thread
-        self.messages = list()
-        for (m,r) in thread.get_messages().items():
-            self._build_pile(self.messages, m, r)
         self.rebuild()
         Buffer.__init__(self, ui, self.body, 'thread')
         self.bindings = {}
@@ -181,28 +179,43 @@ class SingleThreadBuffer(Buffer):
     def __str__(self):
         return '%s, (%d)' % (self.thread.subject, self.message_count)
 
-    def _build_pile(self, acc, msg, replies, depth=0):
-        acc.append((depth, msg))
-        for (m,r) in replies.items():
-            self._build_pile(acc, m, r, depth+1)
+    def _build_pile(self, acc, childcount, msg, replies, parent, depth=0):
+        acc.append((parent, depth, msg))
+        childcount[parent] += 1
+        for (reply, rereplies) in replies.items():
+            if reply not in childcount:
+                childcount[reply] = 0
+            self._build_pile(acc, childcount, reply, rereplies, msg, depth + 1)
 
     def rebuild(self):
-        msgs = list()
-        for (num, (depth, m)) in enumerate(self.messages, 1):
-            mwidget = widgets.MessageWidget(m, folded=True)
-            if (num % 2 == 0):
-                attr = 'messagesummary_even'
-            else:
-                attr = 'messagesummary_odd'
-            m.remove_tags(['unread'])
-            # a spacer of width 0 breaks urwid.Columns
-            if depth == 0:
-                line = urwid.AttrMap(urwid.Columns([mwidget]), attr, 'messagesummary_focus')
-            else:
-                spacer = urwid.Text(' ' * depth)
-                line = urwid.AttrMap(urwid.Columns([('fixed', depth, spacer), mwidget]), attr, 'messagesummary_focus')
-            msgs.append(line)
-        self.body = urwid.ListBox(msgs)
+        # depth-first traversing the thread-tree, thereby
+        # 1) build a list of tuples (parentmsg, depth, message) in DF order
+        # 2) create a dict that counts no. of direct replies per message
+        messages = list()  # accumulator for 1,
+        childcount = {None: 0}  # accumulator for 2)
+        # start with all toplevel msgs, then recursively call _build_pile
+        for (msg, replies) in self.thread.get_messages().items():
+            if msg not in childcount:  # in create entry for current msg
+                childcount[msg] = 0
+            self._build_pile(messages, childcount, msg, replies, None)
+
+        # go through list from 1) and pile up message widgets for all msgs.
+        # each one will be given its depth, if siblings follow and where to
+        # draw bars (siblings follow at lower depths)
+        msglines = list()
+        bars = []
+        for (num, (p, depth, m)) in enumerate(messages):
+            bars = bars[:depth]
+            childcount[p] -= 1
+
+            bars.append(childcount[p] > 0)
+            mwidget = widgets.MessageWidget(m, even=(num % 2 == 0),
+                                            unfold_header=False,  # settings
+                                            unfold_body=False,
+                                            depth=depth,
+                                            bars_at=bars)
+            msglines.append(mwidget)
+        self.body = urwid.ListBox(msglines)
 
     def get_selected_message(self):
         (messagewidget, size) = self.body.get_focus()
