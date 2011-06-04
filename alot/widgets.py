@@ -152,8 +152,9 @@ class PromptWidget(AttrMap):
             if self.completer:
                 pos = self.start_completion_pos
                 original = self.editpart.edit_text[:pos]
-                if not self.completion_results: #not already in completion mode
-                    self.completion_results = [''] + self.completer.complete(original)
+                if not self.completion_results:  # not in completion mode
+                    self.completion_results = [''] + \
+                        self.completer.complete(original)
                     self.focus_in_clist = 1
                 else:
                     if key == 'tab':
@@ -194,10 +195,21 @@ class MessageWidget(WidgetWrap):
             self.displayed_list.append(self.get_header_widget())
         if unfold_body:
             self.displayed_list.append(self.get_body_widget())
+
+        #build pile and call super constructor
         self.pile = Pile(self.displayed_list)
         WidgetWrap.__init__(self, self.pile)
 
+        # in case the message is yet unread, remove this tag
+        if 'unread' in message.get_tags():
+            message.remove_tags(['unread'])
+
+    def rebuild(self):
+        self.pile = Pile(self.displayed_list)
+        self._w = self.pile
+
     def _build_sum_line(self):
+        """creates/returns the widget that displays the summary line."""
         self.sumw = MessageSummaryWidget(self.message)
         if self.even:
             attr = 'messagesummary_even'
@@ -215,13 +227,31 @@ class MessageWidget(WidgetWrap):
                 arrowhead = u'\u2514\u25b6'
             cols.append(('fixed', 2, Text(arrowhead)))
         cols.append(self.sumw)
-        line = urwid.AttrMap(urwid.Columns(cols, box_columns=bc), attr, 'messagesummary_focus')
+        line = urwid.AttrMap(urwid.Columns(cols, box_columns=bc),
+                             attr, 'messagesummary_focus')
         return line
 
+    def _get_header_widget(self):
+        """creates/returns the widget that displays the mail header"""
+        if not self.headerw:
+            cols = [MessageHeaderWidget(self.message.get_email())]
+            bc = list()
+            if self.depth:
+                cols.insert(0, self._get_spacer(self.bars_at[1:]))
+                bc.append(0)
+            self.headerw = urwid.Columns(cols, box_columns=bc)
+        return self.headerw
 
-    def rebuild(self):
-        self.pile = Pile(self.displayed_list)
-        self._w = self.pile
+    def _get_body_widget(self):
+        """creates/returns the widget that displays the mail body"""
+        if not self.bodyw:
+            cols = [MessageBodyWidget(self.message.get_email())]
+            bc = list()
+            if self.depth:
+                cols.insert(0, self._get_spacer(self.bars_at[1:]))
+                bc.append(0)
+            self.bodyw = urwid.Columns(cols, box_columns=bc)
+        return self.bodyw
 
     def _get_spacer(self, bars_at):
         prefixchars = []
@@ -237,28 +267,8 @@ class MessageWidget(WidgetWrap):
         spacer = urwid.Columns(prefixchars, box_columns=range(length))
         return ('fixed', length, spacer)
 
-    def get_header_widget(self):
-        if not self.headerw:
-            cols = [MessageHeaderWidget(self.message.get_email())]
-            bc = list()
-            if self.depth:
-                cols.insert(0,self._get_spacer(self.bars_at[1:]))
-                bc.append(0)
-            self.headerw = urwid.Columns(cols, box_columns = bc)
-        return self.headerw
-
-    def get_body_widget(self):
-        if not self.bodyw:
-            cols = [MessageBodyWidget(self.message.get_email())]
-            bc = list()
-            if self.depth:
-                cols.insert(0,self._get_spacer(self.bars_at[1:]))
-                bc.append(0)
-            self.bodyw = urwid.Columns(cols, box_columns=bc)
-        return self.bodyw
-
     def toggle_header(self):
-        hw = self.get_header_widget()
+        hw = self._get_header_widget()
         if hw in self.displayed_list:
             self.displayed_list.remove(hw)
         else:
@@ -266,7 +276,7 @@ class MessageWidget(WidgetWrap):
         self.rebuild()
 
     def toggle_body(self):
-        bw = self.get_body_widget()
+        bw = self._get_body_widget()
         if bw in self.displayed_list:
             self.displayed_list.remove(bw)
         else:
@@ -293,6 +303,8 @@ class MessageWidget(WidgetWrap):
 
 
 class MessageSummaryWidget(WidgetWrap):
+    """a one line summary of a message, top of the message widget pile."""
+
     def __init__(self, message, folded=True):
         self.message = message
         self.folded = folded
