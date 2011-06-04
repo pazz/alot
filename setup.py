@@ -8,9 +8,11 @@ setup(name = "alot",
       description = alot.__description__,
       author = alot.__author__,
       author_email = alot.__author_email__,
-      url = alot.__homepage__,
+      url = alot.__url__,
       packages = ['alot'],
       scripts = ['bin/alot'],
-      license = alot.__copyright__
+      license = alot.__copyright__,
+      install_requires = ['notmuch>=0.4',
+                          'urwid']
 )
 
