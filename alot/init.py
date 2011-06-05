@@ -18,14 +18,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 import argparse
 import logging
+import os
 
-from alot.db import DBManager
-from alot.ui import UI
+from db import DBManager
+from ui import UI
+import settings
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-c', dest='colours',
+    parser.add_argument('-c', dest='configfile',
+                        default='~/.alot.rc',
+                        help='config file')
+    parser.add_argument('-C', dest='colours',
                         type=int,
                         choices=[1, 16, 88, 256],
                         default=16,
@@ -49,15 +54,26 @@ def parse_args():
 
 
 def main():
+    # interpret cml arguments
     args = parse_args()
-    dbman = DBManager(path=args.db_path, ro=args.read_only)
-    numeric_level = getattr(logging, args.debug_level.upper(), None)
-    logging.basicConfig(level=numeric_level, filename=args.logfile)
+
+    #read config file
+    configfilename = os.path.expanduser(args.configfile)
+    settings.setup(configfilename)
+
+
+    # setup logging
+    numeric_loglevel = getattr(logging, args.debug_level.upper(), None)
+    logging.basicConfig(level=numeric_loglevel, filename=args.logfile)
     logger = logging.getLogger()
-    ui = UI(db=dbman,
-            log=logger,
-            initialquery=args.query,
-            colourmode=args.colours,
+
+    # get ourselves a database manager
+    dbman = DBManager(path=args.db_path, ro=args.read_only)
+    # setup and start interface
+    ui = UI(dbman,
+            logger,
+            args.query,
+            args.colours,
     )
 
 if __name__ == "__main__":

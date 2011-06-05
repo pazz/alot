@@ -27,9 +27,8 @@ from urwid import WidgetWrap
 from urwid import ListBox
 from urwid import SimpleListWalker
 from datetime import datetime
-import logging
 
-import settings
+from settings import config
 from helper import shorten
 from helper import pretty_datetime
 
@@ -58,7 +57,8 @@ class ThreadlineWidget(AttrMap):
             cols.append(('fixed', len(tagsstring), self.tags_w))
 
         authors = self.thread.get_authors() or '(None)'
-        authorsstring = shorten(authors, settings.authors_maxlength)
+        maxlength = config.getint('general', 'authors_maxlength')
+        authorsstring = shorten(authors, maxlength)
         self.authors_w = AttrMap(Text(authorsstring), 'threadline_authors')
         cols.append(('fixed', len(authorsstring), self.authors_w))
 
@@ -255,7 +255,6 @@ class MessageWidget(WidgetWrap):
 
     def _get_spacer(self, bars_at):
         prefixchars = []
-        logging.info(bars_at)
         length = len(bars_at)
         for b in bars_at:
             if b:
@@ -332,7 +331,7 @@ class MessageHeaderWidget(AttrMap):
     def __init__(self, eml):
         self.eml = eml
         headerlines = []
-        for line in settings.displayed_headers:
+        for line in config.getstringlist('general', 'displayed_headers'):
             if line in eml:
                 headerlines.append('%s:%s' % (line, eml.get(line)))
         headertxt = '\n'.join(headerlines)

@@ -148,7 +148,7 @@ class Thread:
         return self.subject
 
     def _build_messages(self, acc, msg):
-        M = Message(self.dbman,msg)
+        M = Message(self.dbman, msg)
         acc[M] = {}
         r = msg.get_replies()
         if r is not None:

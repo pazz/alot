@@ -24,7 +24,7 @@ import subprocess
 
 import buffer
 import hooks
-import settings
+from settings import config
 import completion
 
 
@@ -109,13 +109,14 @@ class EditCommand(Command):
     """
     def __init__(self, path, spawn=False, **kwargs):
         self.path = path
-        self.spawn = settings.spawn_editor or spawn
+        self.spawn = config.get('general', 'spawn_pager') or spawn
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
         def afterwards():
             ui.logger.info('Editor was closed')
-        cmd = ExternalCommand(settings.editor_cmd % self.path,
+        editor_cmd = config.get('general', 'editor_cmd')
+        cmd = ExternalCommand(editor_cmd + ' ' +self.path,
                               spawn=self.spawn,
                               onExit=afterwards)
         ui.apply_command(cmd)
@@ -126,13 +127,14 @@ class PagerCommand(Command):
 
     def __init__(self, path, spawn=False, **kwargs):
         self.path = path
-        self.spawn = settings.spawn_pager or spawn
+        self.spawn = config.get('general', 'spawn_pager') or spawn
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
         def afterwards():
             ui.logger.info('pager was closed')
-        cmd = ExternalCommand(settings.pager_cmd % self.path,
+        pager_cmd = config.get('general', 'pager_cmd')
+        cmd = ExternalCommand(pager_cmd + ' ' + self.path,
                               spawn=self.spawn,
                               onExit=afterwards)
         ui.apply_command(cmd)
@@ -140,6 +142,7 @@ class PagerCommand(Command):
 
 class ExternalCommand(Command):
     """calls external command"""
+    # TODO: separate spawn from fork
     def __init__(self, commandstring, spawn=False, refocus=True,
                  onExit=None, **kwargs):
         self.commandstring = commandstring
@@ -151,18 +154,18 @@ class ExternalCommand(Command):
     def apply(self, ui):
         def call(onExit, popenArgs):
             callerbuffer = ui.current_buffer
-            ui.logger.info('CALLERBUFFER: %s' % callerbuffer)
             proc = subprocess.Popen(*popenArgs, shell=True)
             proc.wait()
             if callable(onExit):
                 onExit()
             if self.refocus and callerbuffer in ui.buffers:
-                ui.logger.info('TRY TO REFOCUS: %s' % callerbuffer)
+                ui.logger.info('trying to refocus after external command: %s' % callerbuffer)
                 ui.buffer_focus(callerbuffer)
             return
 
         if self.spawn:
-            cmd = settings.terminal_cmd % self.commandstring
+            cmd = config.get('general', 'terminal_cmd') + ' ' + self.commandstring
+            ui.logger.info('calling external command: %s' % cmd)
             thread = threading.Thread(target=call, args=(self.onExit, (cmd,)))
             thread.start()
         else:

@@ -16,11 +16,29 @@ along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
 
 Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
-editor_cmd = "/usr/bin/vim -f -c 'set filetype=mail' %s"
-pager_cmd = "/usr/bin/view -f -c 'set filetype=mail' %s"
-terminal_cmd = 'urxvt -T notmuch -e %s'
-spawn_editor = True
-spawn_pager = True
+from ConfigParser import SafeConfigParser
+
+
+class ListConfigParser(SafeConfigParser):
+    def getstringlist(self, section, option, **kwargs):
+        value = SafeConfigParser.get(self, section, option, **kwargs)
+        return [s.strip() for s in value.split(',')]
+
+DEFAULTS = {
+    'editor_cmd': "/usr/bin/vim -f -c 'set filetype=mail' ",
+    'pager_cmd': "/usr/bin/view -f -c 'set filetype=mail' ",
+    'terminal_cmd': 'urxvt -T notmuch -e',
+    'spawn_editor': 'True',
+    'spawn_pager': 'True',
+    'displayed_headers': 'From,To,Cc,Bcc,Subject',
+    'authors_maxlength': '30',
+}
+
+config = ListConfigParser(DEFAULTS)
+config.add_section('general')
+
+def setup(configfilename):
+    config.read(configfilename)
 
 # colour palette.
 # id, fg16, bg16, mono, fg256, bg256
@@ -58,16 +76,6 @@ palette = [
     ('taglist_tag', 'light gray', 'black', '', '', ''),
     ('taglist_focus', 'white', 'dark gray', '', '#ffa', 'g38'),
 ]
-displayed_headers = [
-    'From',
-    'To',
-    'Cc',
-    'Bcc',
-    'Subject',
-]
-
-authors_maxlength = 30
-
 
 hooks = {
         'pre-shutdown': lambda ui: ui.logger.info('goodbye!'),

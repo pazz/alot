@@ -18,10 +18,11 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 import urwid
 
-import settings
-from alot import command
-from alot.widgets import PromptWidget
-from alot.buffer import BufferListBuffer
+from settings import config
+from settings import palette
+import command
+from widgets import PromptWidget
+from buffer import BufferListBuffer
 
 
 class UI:
@@ -35,7 +36,7 @@ class UI:
         self.logger.debug('setup gui: %d' % colourmode)
         self.mainframe = urwid.Frame(urwid.SolidFill(' '))
         self.mainloop = urwid.MainLoop(self.mainframe,
-                settings.palette,
+                palette,
                 handle_mouse=False,
                 unhandled_input=self.keypress)
         self.mainloop.screen.set_terminal_properties(colors=colourmode)

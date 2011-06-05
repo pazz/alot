@@ -1,0 +1,10 @@
+[general]
+colourpalette = palette.py
+hooks = hooks.py
+editor_cmd = /usr/bin/vim -f -c 'set filetype=mail'
+pager_cmd = /usr/bin/view -f -c 'set filetype=mail'
+terminal_cmd = /usr/bin/urxvt -T notmuch -e 
+spawn_editor = True
+spawn_pager = True
+authors_maxlength = 30
+displayed_headers = 'From,To,Cc,Bcc,Subject'

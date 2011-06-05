@@ -4,8 +4,7 @@ Sending mails
     loads the mail into the notmuch index and maybe refreshes open buffers accordingly
 
 configuration
-  * a config mechanism needs to be discussed/implemented. i don't think a single settings.py like in django
-    is a good approach.
+  * use offlineimaps LocalEval approach to load colour palette/hooks
 
 searchbuffer: 
   * unseen tag -> msg bold
