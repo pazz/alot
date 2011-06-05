@@ -22,12 +22,14 @@ import re
 
 class Completer:
     def complete(self, original):
+        """takes a string that's the prefix of a word,
+        returns a list of suffix-strings that complete the original"""
         return list()
 
 
 class QueryCompleter(Completer):
     """completion for a notmuch query string"""
-
+    # TODO: boolean connectors and braces?
     def __init__(self, dbman):
         self.dbman = dbman
         self.keywords = ['tag', 'from', 'to', 'subject', 'attachment',
