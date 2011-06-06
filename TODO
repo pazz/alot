@@ -11,6 +11,11 @@ searchbuffer:
   * focus next thread after toggletag. It would be easyest if IteratorWalker had a focus_next()
     that could be called in ToggleTagCommand in case thread is still in the searchresults
 
+singleThread buffer:
+  * what if depth>screensize?
+  * proper display of email body
+  * open unread mails? focus first unread/query matched?
+
 Commands
   * help strings in commands and help buffer
   * undo for commands
@@ -28,7 +33,11 @@ ui
   It would be cool if we had a cmdline like vim or mutt when pressing ":".
   Commands already have typenames, calling them from a prompt could
   use the command.factory to build one and pass it to ui.apply_command.
-
+  see http://wiki.python.org/moin/CmdModule i thinks its a good idea to separate
+  prompt-commands from alot.command commands, for example for a undo-function..
+  however, ui.prompt could easily use this. possible cmds:
+  search (short \ or o), refine (| or O), print, save, view attachments?, pipe
+  should these cmds have output? where to put it? see pentadactyl.
 
 general
   * gg, g5j.. combos like in vim

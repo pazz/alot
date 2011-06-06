@@ -1,14 +1,12 @@
 This is a proposal for a terminal gui for notmuch mail, written in python.
 The key ideas are:
 
-* OOP approach using python 
 * aim at the look and feel of sup for now
 * lock the index only when needed
 * use libraries whenever possible. 
   urwid: http://excess.org/urwid/ 
   The notmuch bindings: https://bitbucket.org/spaetz/cnotmuch/
   (mailbox: http://docs.python.org/library/mailbox.html)
-  (urwid-satext: http://wiki.goffi.org/wiki/Urwid-satext)
   (configparser)
 
 You need the notmuch python bindings and urwid to run it. While developing,
@@ -16,6 +14,8 @@ I run it like this
 > python alot/init.py -l debug.log -d debug
 and "tail -f debug.log" in another window.
 If installed via the setup.py, "alot" should be in your path.
+
+You can find some screenshots in data/alot*png
 
 ---------------------------------------
 At the moment you can play with the global bindings
