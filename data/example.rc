@@ -1,4 +1,5 @@
 [general]
+colourmode = 256  ; number of colours your terminal supports
 colourpalette = palette.py
 hooks = hooks.py
 editor_cmd = /usr/bin/vim -f -c 'set filetype=mail'

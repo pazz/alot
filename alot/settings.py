@@ -25,6 +25,7 @@ class ListConfigParser(SafeConfigParser):
         return [s.strip() for s in value.split(',')]
 
 DEFAULTS = {
+    'colourmode': '16',
     'editor_cmd': "/usr/bin/vim -f -c 'set filetype=mail' ",
     'pager_cmd': "/usr/bin/view -f -c 'set filetype=mail' ",
     'terminal_cmd': 'urxvt -T notmuch -e',

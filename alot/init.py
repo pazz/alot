@@ -33,7 +33,6 @@ def parse_args():
     parser.add_argument('-C', dest='colours',
                         type=int,
                         choices=[1, 16, 88, 256],
-                        default=16,
                         help='colour mode')
     parser.add_argument('-r', dest='read_only',
                         action='store_true',

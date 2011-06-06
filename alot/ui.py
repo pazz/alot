@@ -33,7 +33,9 @@ class UI:
         self.logger = log
         self.dbman = db
 
-        self.logger.debug('setup gui: %d' % colourmode)
+        if not colourmode:
+            colourmode = config.getint('general', 'colourmode')
+        self.logger.info('setup gui in %d colours' % colourmode)
         self.mainframe = urwid.Frame(urwid.SolidFill(' '))
         self.mainloop = urwid.MainLoop(self.mainframe,
                 palette,
