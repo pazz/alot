@@ -17,6 +17,7 @@ along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
 Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 import urwid
+import os
 
 from settings import config
 from settings import get_palette
@@ -180,7 +181,7 @@ class UI:
             if cmd.prehook:
                 self.logger.debug('calling pre-hook')
                 try:
-                    cmd.prehook(self)
+                    cmd.prehook(self, self.dbman)
                 except:
                     self.logger.exception('prehook failed')
             self.logger.debug('apply command: %s' % cmd)
@@ -188,6 +189,6 @@ class UI:
             if cmd.posthook:
                 self.logger.debug('calling post-hook')
                 try:
-                    cmd.posthook(self)
+                    cmd.posthook(self, self.dbman)
                 except:
                     self.logger.exception('posthook failed')

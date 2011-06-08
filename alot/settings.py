@@ -16,6 +16,10 @@ along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
 
 Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
+import imp
+import os
+import logging
+
 from ConfigParser import SafeConfigParser
 
 
@@ -172,6 +176,7 @@ DEFAULTS = {
 class CustomConfigParser(SafeConfigParser):
     def __init__(self, defaults):
         self.defaults = defaults
+        self.hooks = None
         SafeConfigParser.__init__(self)
         for sec in defaults.keys():
             self.add_section(sec)
@@ -192,6 +197,13 @@ config = CustomConfigParser(DEFAULTS)
 
 def setup(configfilename):
     config.read(configfilename)
+    if config.has_option('general','hooksfile'):
+        hf = os.path.expanduser(config.get('general','hooksfile'))
+        if hf is not None:
+            try:
+                config.hooks = imp.load_source('hooks',hf)
+            except:
+                pass
 
 
 def get_palette():
@@ -207,6 +219,13 @@ def get_palette():
         ))
     return p
 
-hooks = {
-        'pre-shutdown': lambda ui: ui.logger.info('goodbye!'),
-        }
+
+def get_hook(hookname):
+    h = None
+    if config.hooks:
+        logging.info("hooks there")
+        if config.hooks.__dict__:
+            logging.info("hooks is module")
+            if hookname in config.hooks.__dict__:
+                h = config.hooks.__dict__[hookname]
+    return h

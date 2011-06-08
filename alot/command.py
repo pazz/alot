@@ -23,9 +23,10 @@ import threading
 import subprocess
 
 import buffer
-import hooks
 from settings import config
+from settings import get_hook
 import completion
+
 
 
 class Command:
@@ -354,13 +355,9 @@ def factory(cmdname, **kwargs):
                 parms[key] = value()
             else:
                 parms[key] = value
-        prehook = hooks.get_hook('pre-' + cmdname)
-        if prehook:
-            parms['prehook'] = prehook
 
-        posthook = hooks.get_hook('post-' + cmdname)
-        if posthook:
-            parms['posthook'] = hooks.get_hook('post-' + cmdname)
+        parms['prehook'] = get_hook('pre_' + cmdname)
+        parms['posthook'] = get_hook('post_' + cmdname)
 
         logging.debug('cmd parms %s' % parms)
         return cmdclass(**parms)
