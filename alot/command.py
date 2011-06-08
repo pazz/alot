@@ -116,7 +116,7 @@ class EditCommand(Command):
         def afterwards():
             ui.logger.info('Editor was closed')
         editor_cmd = config.get('general', 'editor_cmd')
-        cmd = ExternalCommand(editor_cmd + ' ' +self.path,
+        cmd = ExternalCommand(editor_cmd + ' ' + self.path,
                               spawn=self.spawn,
                               onExit=afterwards)
         ui.apply_command(cmd)

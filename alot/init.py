@@ -20,9 +20,9 @@ import argparse
 import logging
 import os
 
+import settings
 from db import DBManager
 from ui import UI
-import settings
 
 
 def parse_args():
@@ -59,7 +59,6 @@ def main():
     #read config file
     configfilename = os.path.expanduser(args.configfile)
     settings.setup(configfilename)
-
 
     # setup logging
     numeric_loglevel = getattr(logging, args.debug_level.upper(), None)

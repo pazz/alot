@@ -17,10 +17,10 @@ along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
 Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 __productname__ = 'alot'
-__version__     = "0.0.1"
-__copyright__   = "Copyright (C) 2011 Patrick Totzke"
-__author__      = "Patrick Totzke"
-__author_email__= "patricktotzke@gmail.com"
+__version__ = '0.0.1'
+__copyright__ = "Copyright (C) 2011 Patrick Totzke"
+__author__ = "Patrick Totzke"
+__author_email__ = "patricktotzke@gmail.com"
 __description__ = "Terminal User Interface for notmuch mail (notmuchmail.org)"
-__url__         = "https://github.com/pazz/notmuch-gui"
-__license__     = "Licensed under the GNU GPL v3+."
+__url__ = "https://github.com/pazz/notmuch-gui"
+__license__ = "Licensed under the GNU GPL v3+."
