@@ -3,9 +3,6 @@ Sending mails
   * A "SendManager" that can send and archive (in a maildir send folder), 
     loads the mail into the notmuch index and maybe refreshes open buffers accordingly
 
-configuration
-  * use offlineimaps LocalEval approach to load colour palette/hooks
-
 searchbuffer: 
   * unseen tag -> msg bold
   * focus next thread after toggletag. It would be easyest if IteratorWalker had a focus_next()

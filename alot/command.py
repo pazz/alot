@@ -219,9 +219,6 @@ class BufferFocusCommand(Command):
         idx = ui.buffers.index(self.buffer)
         num = len(ui.buffers)
         to_be_focused = ui.buffers[(idx + self.offset) % num]
-        #only select bufferlist if its the last one
-        if isinstance(to_be_focused, buffer.BufferListBuffer):
-            to_be_focused = ui.buffers[(idx + self.offset + 1) % num]
         ui.buffer_focus(to_be_focused)
 
 
