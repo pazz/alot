@@ -96,6 +96,43 @@ class UI:
                     prefix_widget.keypress(size, key)
                     self.mainloop.draw_screen()
 
+    def cmdshell(self, prefix='>', text='', completer=None):
+        self.logger.info('open command shell')
+        edit = urwid.Edit()
+        lines = [edit]
+
+        footer = self.mainframe.get_footer()
+        self.mainframe.set_footer(edit)
+        self.mainframe.set_focus('footer')
+        self.mainloop.draw_screen()
+
+        shenv = command.MyCmd()
+
+        while True:
+            keys = None
+            while not keys:
+                keys = self.mainloop.screen.get_input()
+            for key in keys:
+                if key == 'enter':
+                    et = edit.get_edit_text()
+                    edit.set_edit_text('')
+                    lines.insert(-1, (urwid.Text('>' + et)))
+                    result = shenv.run(et)
+                    for rline in result.splitlines():
+                        lines.insert(-1, urwid.Text(rline))
+                    lb = urwid.BoxAdapter(urwid.ListBox(lines),len(lines))
+                    self.mainframe.set_footer(lb)
+                    self.mainframe.set_focus('footer')
+                    self.mainloop.draw_screen()
+                if key == 'esc':
+                    self.mainframe.set_footer(footer)
+                    self.mainframe.set_focus('body')
+                    return None
+                else:
+                    size = (20,)  # don't know why they want a size here
+                    self.mainframe.footer.keypress(size, key)
+                    self.mainloop.draw_screen()
+
     def buffer_open(self, b):
         """
         register and focus new buffer
@@ -173,6 +210,8 @@ class UI:
             (cmdname, parms) = self.bindings[key]
             cmd = command.factory(cmdname, **parms)
             self.apply_command(cmd)
+        elif key == ':':
+                self.cmdshell()
         else:
             self.logger.debug('unhandeled input: %s' % input)
 

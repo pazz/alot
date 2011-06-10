@@ -21,6 +21,8 @@ import code
 import logging
 import threading
 import subprocess
+from cmd import Cmd
+import StringIO
 
 import buffer
 from settings import config
@@ -363,3 +365,14 @@ def factory(cmdname, **kwargs):
         return cmdclass(**parms)
     else:
         logging.error('there is no command %s' % cmdname)
+
+class MyCmd(Cmd):
+    def do_test(self, line):
+        self.stdout.write(line)
+        pass
+
+    def run(self, cmdline):
+        self.stdout = StringIO.StringIO()
+        self.onecmd(cmdline)
+        output = self.stdout.getvalue()
+        return output
