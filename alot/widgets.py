@@ -349,9 +349,14 @@ class MessageBodyWidget(AttrMap):
     def __init__(self, eml):
         self.eml = eml
         bodytxt = ''
-        parts = email.iterators.typed_subpart_iterator(self.eml)
-        for part in parts:
-            bodytxt += part.get_payload()
+        for part in self.eml.walk():
+            ctype = part.get_content_type()
+            if ctype == 'text/plain':
+                bodytxt += part.get_payload(None, True)
+            elif ctype == 'text/html':
+                #TODO: call external render
+                bodytxt += part.get_payload(None, True)
+
         AttrMap.__init__(self, Text(bodytxt), 'message_body')
 
     def selectable(self):
