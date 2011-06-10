@@ -348,7 +348,10 @@ class MessageHeaderWidget(AttrMap):
 class MessageBodyWidget(AttrMap):
     def __init__(self, eml):
         self.eml = eml
-        bodytxt = ''.join(email.iterators.body_line_iterator(self.eml))
+        bodytxt = ''
+        parts = email.iterators.typed_subpart_iterator(self.eml)
+        for part in parts:
+            bodytxt += part.get_payload()
         AttrMap.__init__(self, Text(bodytxt), 'message_body')
 
     def selectable(self):
