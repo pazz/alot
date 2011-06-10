@@ -100,7 +100,8 @@ class ThreadlineWidget(AttrMap):
 class BufferlineWidget(Text):
     def __init__(self, buffer):
         self.buffer = buffer
-        Text.__init__(self, str(buffer), wrap='clip')
+        line = '[' + buffer.typename + '] ' + str(buffer)
+        Text.__init__(self, line, wrap='clip')
 
     def selectable(self):
         return True
