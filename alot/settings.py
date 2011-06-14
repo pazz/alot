@@ -18,7 +18,7 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 import imp
 import os
-import logging
+import mailcap
 
 from ConfigParser import SafeConfigParser
 
@@ -193,15 +193,16 @@ class CustomConfigParser(SafeConfigParser):
 
 
 config = CustomConfigParser(DEFAULTS)
+mailcaps = mailcap.getcaps()
 
 
 def setup(configfilename):
     config.read(os.path.expanduser(configfilename))
-    if config.has_option('general','hooksfile'):
-        hf = os.path.expanduser(config.get('general','hooksfile'))
+    if config.has_option('general', 'hooksfile'):
+        hf = os.path.expanduser(config.get('general', 'hooksfile'))
         if hf is not None:
             try:
-                config.hooks = imp.load_source('hooks',hf)
+                config.hooks = imp.load_source('hooks', hf)
             except:
                 pass
 
@@ -223,9 +224,19 @@ def get_palette():
 def get_hook(hookname):
     h = None
     if config.hooks:
-        logging.info("hooks there")
         if config.hooks.__dict__:
-            logging.info("hooks is module")
             if hookname in config.hooks.__dict__:
                 h = config.hooks.__dict__[hookname]
     return h
+
+
+def get_mime_handler(mime_type, key, interactive=True):
+    if interactive:
+        mc_tuple = mailcap.findmatch(mailcaps,
+                                     mime_type,
+                                     key=key)
+    else:
+        mc_tuple = mailcap.findmatch(mailcaps,
+                                     mime_type,
+                                     key='copiousoutput')
+    return mc_tuple[1][key]
