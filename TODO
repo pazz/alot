@@ -39,6 +39,7 @@ ui
 general
   * gg, g5j.. combos like in vim
   * pydoc/sphinx
+  * handle errors with nonexisting mime handlers (mailcap) 
 
 
 far away future:
