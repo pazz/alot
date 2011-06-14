@@ -19,6 +19,9 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 from datetime import date
 from datetime import timedelta
 
+import shlex
+import subprocess
+
 
 def shorten(string, maxlen):
     if len(string) > maxlen - 3:
@@ -38,3 +41,7 @@ def pretty_datetime(d):
     else:
         string = d.strftime('%b %d')
     return string
+
+def cmd_output(command_line):
+    args = shlex.split(command_line)
+    return subprocess.check_output(args)

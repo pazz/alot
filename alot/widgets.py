@@ -18,6 +18,8 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 import email
 import urwid
+import tempfile
+import os
 from urwid import Text
 from urwid import Edit
 from urwid import Pile
@@ -29,8 +31,10 @@ from urwid import SimpleListWalker
 from datetime import datetime
 
 from settings import config
+from settings import get_mime_handler
 from helper import shorten
 from helper import pretty_datetime
+from helper import cmd_output
 
 
 class ThreadlineWidget(AttrMap):
@@ -354,9 +358,21 @@ class MessageBodyWidget(AttrMap):
             if ctype == 'text/plain':
                 bodytxt += part.get_payload(None, True)
             elif ctype == 'text/html':
-                #TODO: call external render
-                bodytxt += part.get_payload(None, True)
-
+                #get mime handler
+                handler = get_mime_handler(ctype, key='view',
+                                           interactive=False)
+                #open tempfile:
+                tmpfile = tempfile.NamedTemporaryFile(delete=False,
+                                                      suffix='.html')
+                #write payload to tmpfile
+                tmpfile.write(part.get_payload(None, True))
+                #create and call external command
+                cmd = handler % tmpfile.name
+                rendered = cmd_output(cmd)
+                #remove tempfile
+                tmpfile.close()
+                os.unlink(tmpfile.name)
+                bodytxt += rendered
         AttrMap.__init__(self, Text(bodytxt), 'message_body')
 
     def selectable(self):
