@@ -188,7 +188,7 @@ class CustomConfigParser(SafeConfigParser):
             return self.defaults[section][option]
 
     def getstringlist(self, section, option, **kwargs):
-        value = SafeConfigParser.get(self, section, option, **kwargs)
+        value = self.get(section, option, **kwargs)
         return [s.strip() for s in value.split(',')]
 
 
@@ -196,7 +196,7 @@ config = CustomConfigParser(DEFAULTS)
 
 
 def setup(configfilename):
-    config.read(configfilename)
+    config.read(os.path.expanduser(configfilename))
     if config.has_option('general','hooksfile'):
         hf = os.path.expanduser(config.get('general','hooksfile'))
         if hf is not None:
