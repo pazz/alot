@@ -20,14 +20,6 @@ import email
 import urwid
 import tempfile
 import os
-from urwid import Text
-from urwid import Edit
-from urwid import Pile
-from urwid import Columns
-from urwid import AttrMap
-from urwid import WidgetWrap
-from urwid import ListBox
-from urwid import SimpleListWalker
 from datetime import datetime
 
 from settings import config
@@ -37,42 +29,44 @@ from helper import pretty_datetime
 from helper import cmd_output
 
 
-class ThreadlineWidget(AttrMap):
+class ThreadlineWidget(urwid.AttrMap):
     def __init__(self, tid, dbman):
         self.dbman = dbman
         self.thread = dbman.get_thread(tid)
         self.rebuild()
-        AttrMap.__init__(self, self.columns, 'threadline', 'threadline_focus')
+        urwid.AttrMap.__init__(self, self.columns,
+                               'threadline', 'threadline_focus')
 
     def rebuild(self):
         cols = []
         datestring = pretty_datetime(self.thread.get_newest_date()).rjust(10)
-        self.date_w = AttrMap(Text(datestring), 'threadline_date')
+        self.date_w = urwid.AttrMap(urwid.Text(datestring), 'threadline_date')
         cols.append(('fixed', len(datestring), self.date_w))
 
         mailcountstring = "(%d)" % self.thread.get_total_messages()
-        self.mailcount_w = AttrMap(Text(mailcountstring),
+        self.mailcount_w = urwid.AttrMap(urwid.Text(mailcountstring),
                                    'threadline_mailcount')
         cols.append(('fixed', len(mailcountstring), self.mailcount_w))
 
         tagsstring = " ".join(self.thread.get_tags())
-        self.tags_w = AttrMap(Text(tagsstring), 'threadline_tags')
+        self.tags_w = urwid.AttrMap(urwid.Text(tagsstring), 'threadline_tags')
         if tagsstring:
             cols.append(('fixed', len(tagsstring), self.tags_w))
 
         authors = self.thread.get_authors() or '(None)'
         maxlength = config.getint('general', 'authors_maxlength')
         authorsstring = shorten(authors, maxlength)
-        self.authors_w = AttrMap(Text(authorsstring), 'threadline_authors')
+        self.authors_w = urwid.AttrMap(urwid.Text(authorsstring),
+                                       'threadline_authors')
         cols.append(('fixed', len(authorsstring), self.authors_w))
 
         subjectstring = self.thread.get_subject()
-        self.subject_w = AttrMap(Text(subjectstring, wrap='clip'),
+        self.subject_w = urwid.AttrMap(urwid.Text(subjectstring, wrap='clip'),
                                  'threadline_subject')
         if subjectstring:
             cols.append(self.subject_w)
 
-        self.columns = Columns(cols, dividechars=1)
+        self.columns = urwid.Columns(cols, dividechars=1)
         self.original_widget = self.columns
 
     def render(self, size, focus=False):
@@ -89,7 +83,7 @@ class ThreadlineWidget(AttrMap):
             self.tags_w.set_attr_map({None: 'threadline_tags'})
             self.authors_w.set_attr_map({None: 'threadline_authors'})
             self.subject_w.set_attr_map({None: 'threadline_subject'})
-        return AttrMap.render(self, size, focus)
+        return urwid.AttrMap.render(self, size, focus)
 
     def selectable(self):
         return True
@@ -101,11 +95,11 @@ class ThreadlineWidget(AttrMap):
         return self.thread
 
 
-class BufferlineWidget(Text):
+class BufferlineWidget(urwid.Text):
     def __init__(self, buffer):
         self.buffer = buffer
         line = '[' + buffer.typename + '] ' + str(buffer)
-        Text.__init__(self, line, wrap='clip')
+        urwid.Text.__init__(self, line, wrap='clip')
 
     def selectable(self):
         return True
@@ -117,10 +111,10 @@ class BufferlineWidget(Text):
         return self.buffer
 
 
-class TagWidget(Text):
+class TagWidget(urwid.Text):
     def __init__(self, tag):
         self.tag = tag
-        Text.__init__(self, tag, wrap='clip')
+        urwid.Text.__init__(self, tag, wrap='clip')
 
     def selectable(self):
         return True
@@ -132,19 +126,19 @@ class TagWidget(Text):
         return self.tag
 
 
-class PromptWidget(AttrMap):
+class PromptWidget(urwid.AttrMap):
     def __init__(self, prefix, text='', completer=None):
         self.completer = completer
-        leftpart = Text(prefix, align='left')
-        self.editpart = Edit(edit_text=text)
+        leftpart = urwid.Text(prefix, align='left')
+        self.editpart = urwid.Edit(edit_text=text)
         self.start_completion_pos = len(text)
         self.completion_results = None
-        both = Columns(
+        both = urwid.Columns(
             [
                 ('fixed', len(prefix) + 1, leftpart),
                 ('weight', 1, self.editpart),
             ])
-        AttrMap.__init__(self, both, 'prompt', 'prompt')
+        urwid.AttrMap.__init__(self, both, 'prompt', 'prompt')
 
     def set_input(self, txt):
         return self.editpart.set_edit_text(txt)
@@ -183,7 +177,7 @@ class PromptWidget(AttrMap):
             return result
 
 
-class MessageWidget(WidgetWrap):
+class MessageWidget(urwid.WidgetWrap):
     def __init__(self, message, even=False, unfold_body=False,
                  unfold_header=False, depth=0, bars_at=[]):
         self.message = message
@@ -202,15 +196,15 @@ class MessageWidget(WidgetWrap):
             self.displayed_list.append(self.get_body_widget())
 
         #build pile and call super constructor
-        self.pile = Pile(self.displayed_list)
-        WidgetWrap.__init__(self, self.pile)
+        self.pile = urwid.Pile(self.displayed_list)
+        urwid.WidgetWrap.__init__(self, self.pile)
 
         # in case the message is yet unread, remove this tag
         if 'unread' in message.get_tags():
             message.remove_tags(['unread'])
 
     def rebuild(self):
-        self.pile = Pile(self.displayed_list)
+        self.pile = urwid.Pile(self.displayed_list)
         self._w = self.pile
 
     def _build_sum_line(self):
@@ -230,7 +224,7 @@ class MessageWidget(WidgetWrap):
                 arrowhead = u'\u251c\u25b6'
             else:
                 arrowhead = u'\u2514\u25b6'
-            cols.append(('fixed', 2, Text(arrowhead)))
+            cols.append(('fixed', 2, urwid.Text(arrowhead)))
         cols.append(self.sumw)
         line = urwid.AttrMap(urwid.Columns(cols, box_columns=bc),
                              attr, 'messagesummary_focus')
@@ -306,13 +300,13 @@ class MessageWidget(WidgetWrap):
         return self.message.get_email()
 
 
-class MessageSummaryWidget(WidgetWrap):
+class MessageSummaryWidget(urwid.WidgetWrap):
     """a one line summary of a message, top of the message widget pile."""
 
     def __init__(self, message, folded=True):
         self.message = message
         self.folded = folded
-        WidgetWrap.__init__(self, Text(str(self)))
+        urwid.WidgetWrap.__init__(self, urwid.Text(str(self)))
 
     def __str__(self):
         prefix = "-  "
@@ -323,7 +317,7 @@ class MessageSummaryWidget(WidgetWrap):
 
     def toggle_folded(self):
         self.folded = not self.folded
-        self._w = Text(str(self))
+        self._w = urwid.Text(str(self))
 
     def selectable(self):
         return True
@@ -332,7 +326,7 @@ class MessageSummaryWidget(WidgetWrap):
         return key
 
 
-class MessageHeaderWidget(AttrMap):
+class MessageHeaderWidget(urwid.AttrMap):
     def __init__(self, eml):
         self.eml = eml
         headerlines = []
@@ -340,7 +334,7 @@ class MessageHeaderWidget(AttrMap):
             if line in eml:
                 headerlines.append('%s:%s' % (line, eml.get(line)))
         headertxt = '\n'.join(headerlines)
-        AttrMap.__init__(self, Text(headertxt), 'message_header')
+        urwid.AttrMap.__init__(self, urwid.Text(headertxt), 'message_header')
 
     def selectable(self):
         return True
@@ -349,7 +343,7 @@ class MessageHeaderWidget(AttrMap):
         return key
 
 
-class MessageBodyWidget(AttrMap):
+class MessageBodyWidget(urwid.AttrMap):
     def __init__(self, eml):
         self.eml = eml
         bodytxt = ''
@@ -373,7 +367,7 @@ class MessageBodyWidget(AttrMap):
                 tmpfile.close()
                 os.unlink(tmpfile.name)
                 bodytxt += rendered
-        AttrMap.__init__(self, Text(bodytxt), 'message_body')
+        urwid.AttrMap.__init__(self, urwid.Text(bodytxt), 'message_body')
 
     def selectable(self):
         return True

@@ -28,7 +28,6 @@ from settings import get_hook
 import completion
 
 
-
 class Command:
     """base class for commands"""
     def __init__(self, prehook=None, posthook=None, **ignored):
@@ -160,12 +159,13 @@ class ExternalCommand(Command):
             if callable(onExit):
                 onExit()
             if self.refocus and callerbuffer in ui.buffers:
-                ui.logger.info('trying to refocus after external command: %s' % callerbuffer)
+                ui.logger.info('trying to refocus after: %s' % callerbuffer)
                 ui.buffer_focus(callerbuffer)
             return
 
         if self.spawn:
-            cmd = config.get('general', 'terminal_cmd') + ' ' + self.commandstring
+            cmd = config.get('general', 'terminal_cmd')
+            cmd += ' ' + self.commandstring
             ui.logger.info('calling external command: %s' % cmd)
             thread = threading.Thread(target=call, args=(self.onExit, (cmd,)))
             thread.start()
@@ -293,8 +293,9 @@ class ThreadTagPromptCommand(Command):
 
     def apply(self, ui):
         initial_tagstring = ','.join(self.thread.get_tags())
-        tagsstring = ui.prompt('label thread:', text=initial_tagstring,
-                                completer=completion.TagListCompleter(ui.dbman))
+        tagsstring = ui.prompt('label thread:',
+                               text=initial_tagstring,
+                               completer=completion.TagListCompleter(ui.dbman))
         if tagsstring != None:  # esc -> None, enter could return ''
             tags = filter(lambda x: x, tagsstring.split(','))
             ui.logger.info("got %s:%s" % (tagsstring, tags))

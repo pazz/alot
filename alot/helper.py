@@ -42,6 +42,7 @@ def pretty_datetime(d):
         string = d.strftime('%b %d')
     return string
 
+
 def cmd_output(command_line):
     args = shlex.split(command_line)
     return subprocess.check_output(args)
