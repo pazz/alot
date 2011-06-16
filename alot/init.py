@@ -44,7 +44,7 @@ def parse_args():
                         choices=['debug', 'info', 'warning', 'error'],
                         help='debug level')
     parser.add_argument('-l', dest='logfile',
-                        default='debug.log',
+                        default='/dev/null',
                         help='logfile')
     parser.add_argument('query', nargs='?',
                         default='tag:inbox AND NOT tag:killed',
@@ -62,7 +62,8 @@ def main():
 
     # setup logging
     numeric_loglevel = getattr(logging, args.debug_level.upper(), None)
-    logging.basicConfig(level=numeric_loglevel, filename=args.logfile)
+    logfilename = os.path.expanduser(args.logfile)
+    logging.basicConfig(level=numeric_loglevel, filename=logfilename)
     logger = logging.getLogger()
 
     # get ourselves a database manager
