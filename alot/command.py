@@ -270,19 +270,27 @@ class ToggleThreadTagCommand(Command):
             self.thread.remove_tags([self.tag])
         else:
             self.thread.add_tags([self.tag])
-        # refresh selected threadline
-        sbuffer = ui.current_buffer
-        threadwidget = sbuffer.get_selected_threadline()
-        threadwidget.rebuild()  # rebuild and redraw the line
-        #remove line from searchlist if thread doesn't match the query
-        qs = "(%s) AND thread:%s" % (sbuffer.querystring,
-                                     self.thread.get_thread_id())
-        msg_count = ui.dbman.count_messages(qs)
-        if ui.dbman.count_messages(qs) == 0:
-            ui.logger.debug('remove: %s' % self.thread)
-            sbuffer.threadlist.remove(threadwidget)
-            sbuffer.result_count -= self.thread.get_total_messages()
-            ui.update_footer()
+
+        # update current buffer
+        cb = ui.current_buffer
+        if isinstance(cb, buffer.SearchBuffer):
+            # refresh selected threadline
+            threadwidget = cb.get_selected_threadline()
+            threadwidget.rebuild()  # rebuild and redraw the line
+            #remove line from searchlist if thread doesn't match the query
+            qs = "(%s) AND thread:%s" % (cb.querystring,
+                                         self.thread.get_thread_id())
+            msg_count = ui.dbman.count_messages(qs)
+            if ui.dbman.count_messages(qs) == 0:
+                ui.logger.debug('remove: %s' % self.thread)
+                cb.threadlist.remove(threadwidget)
+                cb.result_count -= self.thread.get_total_messages()
+                ui.update_footer()
+        elif isinstance(cb, buffer.SingleThreadBuffer):
+            pass
+            #if (self.tag == 'inbox') and 'inbox' not in self.thread.get_tags():
+            #    ui.apply_command(BufferCloseCommand(cb))
+
 
 
 class ThreadTagPromptCommand(Command):
