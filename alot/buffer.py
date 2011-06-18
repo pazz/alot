@@ -174,7 +174,10 @@ class SingleThreadBuffer(Buffer):
         self.thread = thread
         self.rebuild()
         Buffer.__init__(self, ui, self.body, 'thread')
-        self.bindings = {}
+        self._autoparms = {'thread': self.thread}
+        self.bindings = {
+            'a': ('toggle_thread_tag', {'tag': 'inbox'}),
+        }
 
     def __str__(self):
         return '%s, (%d)' % (self.thread.subject, self.message_count)
