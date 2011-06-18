@@ -41,6 +41,7 @@ a, toggles "inbox" tag
 l, manually change labels
 
 Single thread:
+a, toggles "inbox" tag
 h, toggles show header (all fields from settings displayed_headers)
 enter, toggles body (folds awas msg)
 
