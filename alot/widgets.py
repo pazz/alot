@@ -71,12 +71,12 @@ class ThreadlineWidget(urwid.AttrMap):
 
     def render(self, size, focus=False):
         if focus:
-            self.date_w.set_attr_map({None: 'threadline_date_linefocus'})
+            self.date_w.set_attr_map({None: 'threadline_date_focus'})
             self.mailcount_w.set_attr_map({None:
-                                           'threadline_mailcount_linefocus'})
-            self.tags_w.set_attr_map({None: 'threadline_tags_linefocus'})
-            self.authors_w.set_attr_map({None: 'threadline_authors_linefocus'})
-            self.subject_w.set_attr_map({None: 'threadline_subject_linefocus'})
+                                           'threadline_mailcount_focus'})
+            self.tags_w.set_attr_map({None: 'threadline_tags_focus'})
+            self.authors_w.set_attr_map({None: 'threadline_authors_focus'})
+            self.subject_w.set_attr_map({None: 'threadline_subject_focus'})
         else:
             self.date_w.set_attr_map({None: 'threadline_date'})
             self.mailcount_w.set_attr_map({None: 'threadline_mailcount'})
