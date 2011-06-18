@@ -18,8 +18,9 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 from notmuch import Database
 from datetime import datetime
-import logging
 import email
+
+from settings import config
 
 
 class DBManager:
@@ -182,7 +183,6 @@ class Message:
         self.sender = msg.get_header('From')
         self.strrep = str(msg)
         self.email = None  # will be read upon first use
-        self.filename = msg.get_filename()
         self.tags = set([str(tag) for tag in msg.get_tags()])
 
     def __str__(self):
@@ -197,7 +197,7 @@ class Message:
 
     def get_email(self):
         if not self.email:
-            self.email = self.read_mail(self.filename)
+            self.email = self.read_mail(self.get_filename())
         return self.email
 
     def read_mail(self, filename):
@@ -216,17 +216,19 @@ class Message:
         for tag in tags:
             msg.add_tag(tag)
             self.tags.add(tag)
-            logging.debug('tag %s' % tags)
         msg.thaw()
 
     def remove_tags(self, tags):
         msg = self.dbman.find_message(self.mid, writeable=True)
         msg.freeze()
         for tag in tags:
-            msg.remove_tag(tag)
             try:
                 self.tags.remove(tag)
+                msg.remove_tag(tag)
             except KeyError:
                 pass  # tag not in self.tags
-            logging.debug('untag %s' % tags)
         msg.thaw()
+
+    def get_filename(self):
+            m = self.dbman.find_message(self.mid)
+            return m.get_filename()
