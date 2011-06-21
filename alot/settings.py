@@ -26,10 +26,10 @@ from ConfigParser import SafeConfigParser
 DEFAULTS = {
     'general': {
         'colourmode': '16',
-        'editor_cmd': "/usr/bin/vim -f -c 'set filetype=mail' ",
+        'editor_cmd': "/usr/bin/vim -f -c 'set filetype=mail' +",
         'pager_cmd': "/usr/bin/view -f -c 'set filetype=mail' ",
         'terminal_cmd': 'urxvt -T notmuch -e',
-        'spawn_editor': 'True',
+        'spawn_editor': 'False',
         'spawn_pager': 'True',
         'displayed_headers': 'From,To,Cc,Bcc,Subject',
         'authors_maxlength': '30',

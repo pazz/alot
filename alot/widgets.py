@@ -233,7 +233,8 @@ class MessageWidget(urwid.WidgetWrap):
     def _get_header_widget(self):
         """creates/returns the widget that displays the mail header"""
         if not self.headerw:
-            cols = [MessageHeaderWidget(self.message.get_email())]
+            displayed = config.getstringlist('general', 'displayed_headers')
+            cols = [MessageHeaderWidget(self.message.get_email(), displayed)]
             bc = list()
             if self.depth:
                 cols.insert(0, self._get_spacer(self.bars_at[1:]))
@@ -327,10 +328,12 @@ class MessageSummaryWidget(urwid.WidgetWrap):
 
 
 class MessageHeaderWidget(urwid.AttrMap):
-    def __init__(self, eml):
+    def __init__(self, eml, displayed_headers=None):
         self.eml = eml
         headerlines = []
-        for line in config.getstringlist('general', 'displayed_headers'):
+        if not displayed_headers:
+            displayed_headers = eml.keys()
+        for line in displayed_headers:
             if line in eml:
                 headerlines.append('%s:%s' % (line, eml.get(line)))
         headertxt = '\n'.join(headerlines)

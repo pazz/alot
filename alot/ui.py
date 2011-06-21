@@ -58,6 +58,7 @@ class UI:
             's': ('shell', {}),
             'v': ('view_log', {}),
             '@': ('refresh_buffer', {}),
+            'm': ('compose', {}),
         }
         cmd = command.factory('search', query=initialquery)
         self.apply_command(cmd)
@@ -165,6 +166,7 @@ class UI:
         """
         focus given buffer. must be contained in self.buffers
         """
+        self.logger.info('focus buffer %s'%buf)
         if buf not in self.buffers:
             self.logger.error('tried to focus unknown buffer')
         else:

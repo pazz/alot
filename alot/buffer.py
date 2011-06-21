@@ -33,7 +33,7 @@ class Buffer:
         self.body = widget
 
     def __str__(self):
-        return ''
+        return self.typename
 
     def render(self, size, focus=False):
         return self.body.render(size, focus)
@@ -261,3 +261,22 @@ class TagListBuffer(Buffer):
         (attrwidget, pos) = self.taglist.get_focus()
         tagwidget = attrwidget.original_widget
         return str(tagwidget.get_tag())
+
+
+class EnvelopeBuffer(Buffer):
+    def __init__(self, ui, email):
+        self.ui = ui
+        self.email = email
+        self.rebuild()
+        Buffer.__init__(self, ui, self.body, 'envelope')
+        self._autoparms = {}
+        self.bindings = {
+        }
+
+    def rebuild(self):
+        displayed_widgets = []
+        self.header_wgt = widgets.MessageHeaderWidget(self.email)
+        displayed_widgets.append(self.header_wgt)
+        self.body_wgt = widgets.MessageBodyWidget(self.email)
+        displayed_widgets.append(self.body_wgt)
+        self.body = urwid.ListBox(displayed_widgets)
