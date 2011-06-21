@@ -56,7 +56,6 @@ class UI:
             ';': ('buffer_list', {}),
             'L': ('open_taglist', {}),
             's': ('shell', {}),
-            'v': ('view_log', {}),
             '@': ('refresh_buffer', {}),
             'm': ('compose', {}),
         }
@@ -121,7 +120,7 @@ class UI:
                     result = shenv.run(et)
                     for rline in result.splitlines():
                         lines.insert(-1, urwid.Text(rline))
-                    lb = urwid.BoxAdapter(urwid.ListBox(lines),len(lines))
+                    lb = urwid.BoxAdapter(urwid.ListBox(lines), len(lines))
                     self.mainframe.set_footer(lb)
                     self.mainframe.set_focus('footer')
                     self.mainloop.draw_screen()
@@ -166,7 +165,6 @@ class UI:
         """
         focus given buffer. must be contained in self.buffers
         """
-        self.logger.info('focus buffer %s'%buf)
         if buf not in self.buffers:
             self.logger.error('tried to focus unknown buffer')
         else:

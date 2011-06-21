@@ -26,7 +26,6 @@ import StringIO
 import email
 from email.parser import Parser
 import tempfile
-from Queue import Queue
 
 import buffer
 from settings import config
@@ -108,47 +107,6 @@ class RefreshCommand(Command):
         ui.update()
 
 
-class EditExternalCommand(Command):
-    """
-    opens editor
-    """
-    def __init__(self, path, spawn=None, on_success=None, refocus=False, **kwargs):
-        self.path = path
-        self.on_success = on_success
-        self.refocus = refocus
-        if spawn != None:
-            self.spawn = spawn
-        else:
-            self.spawn = config.getboolean('general', 'spawn_editor')
-        Command.__init__(self, **kwargs)
-
-    def apply(self, ui):
-        editor_cmd = config.get('general', 'editor_cmd')
-        cmd = ExternalCommand(editor_cmd + ' ' + self.path,
-                              spawn=self.spawn,
-                              refocus=self.refocus,
-                              on_success=self.on_success)
-        ui.apply_command(cmd)
-
-
-class PagerCommand(Command):
-    """opens pager"""
-
-    def __init__(self, path, spawn=False, **kwargs):
-        self.path = path
-        self.spawn = config.get('general', 'spawn_pager') or spawn
-        Command.__init__(self, **kwargs)
-
-    def apply(self, ui):
-        def afterwards():
-            ui.logger.info('pager was closed')
-        pager_cmd = config.get('general', 'pager_cmd')
-        cmd = ExternalCommand(pager_cmd + ' ' + self.path,
-                              spawn=self.spawn,
-                              on_success=afterwards)
-        ui.apply_command(cmd)
-
-
 class ExternalCommand(Command):
     """calls external command"""
     def __init__(self, commandstring, spawn=False, refocus=True,
@@ -162,12 +120,11 @@ class ExternalCommand(Command):
     def apply(self, ui):
         def thread_code(*popenArgs):
             callerbuffer = ui.current_buffer
-            returncode = subprocess.call(*popenArgs, shell=True) # this blocks
+            returncode = subprocess.call(*popenArgs, shell=True)
             if self.refocus and callerbuffer in ui.buffers:
                 ui.logger.info('trying to refocus: %s' % callerbuffer)
                 ui.buffer_focus(callerbuffer)
             if callable(self.onSuccess) and returncode == 0:
-                ui.logger.info("return:%d"%returncode)
                 self.onSuccess()
             ui.mainloop.draw_screen()
 
@@ -178,11 +135,21 @@ class ExternalCommand(Command):
             thread = threading.Thread(target=thread_code, args=((cmd,)))
             thread.start()
         else:
-            ui.mainloop.screen.stop()
             cmd = self.commandstring
             logging.debug(cmd)
-            thread_code(q, (cmd,))
-            ui.mainloop.screen.start()
+            thread_code((cmd,))
+
+
+class EditExternalCommand(ExternalCommand):
+    def __init__(self, path, spawn=None, **kwargs):
+        self.path = path
+        if spawn != None:
+            self.spawn = spawn
+        else:
+            self.spawn = config.getboolean('general', 'spawn_editor')
+        editor_cmd = config.get('general', 'editor_cmd')
+        cmd = editor_cmd + ' ' + self.path
+        ExternalCommand.__init__(self, cmd, spawn=self.spawn, **kwargs)
 
 
 class OpenPythonShellCommand(Command):
@@ -268,7 +235,6 @@ class OpenEnvelopeCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        ui.logger.info('apply OPENENVELOPE')
         ui.buffer_open(buffer.EnvelopeBuffer(ui, email=self.email))
 
 
@@ -304,8 +270,6 @@ class ToggleThreadTagCommand(Command):
                 ui.update_footer()
         elif isinstance(cb, buffer.SingleThreadBuffer):
             pass
-            #if (self.tag == 'inbox') and 'inbox' not in self.thread.get_tags():
-            #    ui.apply_command(BufferCloseCommand(cb))
 
 
 class ComposeCommand(Command):
@@ -317,9 +281,9 @@ class ComposeCommand(Command):
         if not self.email:
             header = {}
             # TODO: fill with default header
-            header['From'] = 'me' #ui.prompt(prefix='From>')
-            header['To'] = 'you' #ui.prompt(prefix='To>')
-            header['Subject'] = 'sjb' #ui.prompt(prefix='Subject>')
+            header['From'] = 'me'  # ui.prompt(prefix='From>')
+            header['To'] = 'you'  # ui.prompt(prefix='To>')
+            header['Subject'] = 'sjb'  # ui.prompt(prefix='Subject>')
 
         def onSuccess():
             f = open(tf.name)
@@ -331,12 +295,11 @@ class ComposeCommand(Command):
 
         tf = tempfile.NamedTemporaryFile(delete=False)
         for i in header.items():
-            tf.write('%s: %s\n'%i)
+            tf.write('%s: %s\n' % i)
         tf.write('\n\n')
         tf.close()
         ui.apply_command(EditExternalCommand(tf.name, on_success=onSuccess,
                                              refocus=False))
-
 
 
 class ThreadTagPromptCommand(Command):
@@ -384,7 +347,6 @@ commands = {
         'buffer_next': (BufferFocusCommand, {'offset': 1}),
         'buffer_prev': (BufferFocusCommand, {'offset': -1}),
         'edit': (EditExternalCommand, {}),
-        'call_pager': (PagerCommand, {}),
         'compose': (ComposeCommand, {}),
         'open_taglist': (OpenTagListCommand, {}),
         'open_thread': (OpenThreadCommand, {}),
@@ -396,7 +358,6 @@ commands = {
         'shutdown': (ShutdownCommand, {}),
         'thread_tag_prompt': (ThreadTagPromptCommand, {}),
         'toggle_thread_tag': (ToggleThreadTagCommand, {'tag': 'inbox'}),
-        'view_log': (PagerCommand, {'path': 'debug.log'}),
         'refresh_buffer': (RefreshCommand, {}),
         }
 
@@ -419,6 +380,7 @@ def factory(cmdname, **kwargs):
         return cmdclass(**parms)
     else:
         logging.error('there is no command %s' % cmdname)
+
 
 class MyCmd(Cmd):
     def do_test(self, line):
