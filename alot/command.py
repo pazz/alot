@@ -151,7 +151,6 @@ class PagerCommand(Command):
 
 class ExternalCommand(Command):
     """calls external command"""
-    # TODO: separate spawn from fork
     def __init__(self, commandstring, spawn=False, refocus=True,
                  on_success=None, **kwargs):
         self.commandstring = commandstring
@@ -161,27 +160,22 @@ class ExternalCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        q = Queue()
-        def interpret_return_value():
-            returnvalue = q.get()
-            if callable(self.onSuccess) and returnvalue == 0:
-                ui.logger.info("return:%d"%returnvalue)
-                self.onSuccess()
-
-        def thread_code(q,*popenArgs):
+        def thread_code(*popenArgs):
             callerbuffer = ui.current_buffer
             returncode = subprocess.call(*popenArgs, shell=True) # this blocks
             if self.refocus and callerbuffer in ui.buffers:
                 ui.logger.info('trying to refocus: %s' % callerbuffer)
                 ui.buffer_focus(callerbuffer)
-            interpret_return_value(returncode)
-            return
+            if callable(self.onSuccess) and returncode == 0:
+                ui.logger.info("return:%d"%returncode)
+                self.onSuccess()
+            ui.mainloop.draw_screen()
 
         if self.spawn:
             cmd = config.get('general', 'terminal_cmd')
             cmd += ' ' + self.commandstring
             ui.logger.info('calling external command: %s' % cmd)
-            thread = threading.Thread(target=thread_code, args=(q,(cmd,)))
+            thread = threading.Thread(target=thread_code, args=((cmd,)))
             thread.start()
         else:
             ui.mainloop.screen.stop()
@@ -275,10 +269,7 @@ class OpenEnvelopeCommand(Command):
 
     def apply(self, ui):
         ui.logger.info('apply OPENENVELOPE')
-        # ui.buffer_open(buffer.EnvelopeBuffer(ui, email=self.email))
-        b=buffer.BufferListBuffer(ui, None)
-        ui.buffer_open(b)
-        b.rebuild()
+        ui.buffer_open(buffer.EnvelopeBuffer(ui, email=self.email))
 
 
 class ToggleThreadTagCommand(Command):
