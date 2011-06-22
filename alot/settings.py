@@ -43,7 +43,7 @@ DEFAULTS = {
         'footer_fg': 'light green',
         'header_bg': 'dark blue',
         'header_fg': 'white',
-        'message_body_bg': 'black',
+        'message_body_bg': 'default',
         'message_body_fg': 'light gray',
         'message_header_bg': 'dark gray',
         'message_header_fg': 'white',
