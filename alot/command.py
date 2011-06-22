@@ -26,6 +26,7 @@ import StringIO
 import email
 from email.parser import Parser
 import tempfile
+import shlex
 
 import buffer
 from settings import config
@@ -272,6 +273,18 @@ class ToggleThreadTagCommand(Command):
             pass
 
 
+class SendMailCommand(Command):
+    def __init__(self, email=None, **kwargs):
+        self.email = email
+        Command.__init__(self, **kwargs)
+
+    def apply(self, ui):
+        #def onSuccess():
+            #ui.infopoup('send successful')
+        args = shlex.split(config.get('general', 'sendmail_cmd'))
+        proc = subprocess.Popen(args, stdin=subprocess.PIPE)
+        proc.communicate(self.email.as_string())
+
 class ComposeCommand(Command):
     def __init__(self, email=None, **kwargs):
         self.email = email
@@ -281,9 +294,9 @@ class ComposeCommand(Command):
         if not self.email:
             header = {}
             # TODO: fill with default header
-            header['From'] = 'me'  # ui.prompt(prefix='From>')
-            header['To'] = 'you'  # ui.prompt(prefix='To>')
-            header['Subject'] = 'sjb'  # ui.prompt(prefix='Subject>')
+            header['From'] = 'patricktotzke@gmail.com'  # ui.prompt(prefix='From>')
+            header['To'] = 'patricktotzke@gmail.com'  # ui.prompt(prefix='To>')
+            header['Subject'] = 'alot test'  # ui.prompt(prefix='Subject>')
 
         def onSuccess():
             f = open(tf.name)
@@ -354,6 +367,7 @@ commands = {
         'search': (SearchCommand, {}),
         'search_prompt': (SearchPromptCommand, {}),
         'refine_search_prompt': (RefineSearchPromptCommand, {}),
+        'send': (SendMailCommand,{}),
         'shell': (OpenPythonShellCommand, {}),
         'shutdown': (ShutdownCommand, {}),
         'thread_tag_prompt': (ThreadTagPromptCommand, {}),

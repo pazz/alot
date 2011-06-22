@@ -27,6 +27,7 @@ DEFAULTS = {
     'general': {
         'colourmode': '16',
         'editor_cmd': "/usr/bin/vim -f -c 'set filetype=mail' +",
+        'sendmail_cmd': 'msmtp --account=gmail -t',
         'terminal_cmd': 'urxvt -T notmuch -e',
         'spawn_editor': 'False',
         'displayed_headers': 'From,To,Cc,Bcc,Subject',

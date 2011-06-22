@@ -269,9 +269,13 @@ class EnvelopeBuffer(Buffer):
         self.email = email
         self.rebuild()
         Buffer.__init__(self, ui, self.body, 'envelope')
-        self._autoparms = {}
+        self._autoparms = {'email': self.get_email}
         self.bindings = {
+            'y': ('send', {}),
         }
+
+    def get_email(self):
+        return self.email
 
     def rebuild(self):
         displayed_widgets = []
