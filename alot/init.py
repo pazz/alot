@@ -60,6 +60,7 @@ def main():
     configfilename = os.path.expanduser(args.configfile)
     settings.setup(configfilename)
 
+
     # setup logging
     numeric_loglevel = getattr(logging, args.debug_level.upper(), None)
     logfilename = os.path.expanduser(args.logfile)
@@ -68,9 +69,12 @@ def main():
 
     # get ourselves a database manager
     dbman = DBManager(path=args.db_path, ro=args.read_only)
+    # read accounts
+    accounts = settings.get_accounts()
     # setup and start interface
     ui = UI(dbman,
             logger,
+            accounts,
             args.query,
             args.colours,
     )

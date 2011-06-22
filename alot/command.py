@@ -6,7 +6,7 @@ under the terms of the GNU General Public License as published by the
 Free Software Foundation, either version 3 of the License, or (at your
 option) any later version.
 
-Notmuch is distributed in the hope that it will be useful, but WITHOUT
+Alot is distributed in the hope that it will be useful, but WITHOUT
 ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 for more details.
@@ -31,7 +31,9 @@ import shlex
 import buffer
 from settings import config
 from settings import get_hook
+from settings import get_account_by_address
 import completion
+import helper
 
 
 class Command:
@@ -274,16 +276,21 @@ class ToggleThreadTagCommand(Command):
 
 
 class SendMailCommand(Command):
-    def __init__(self, email=None, **kwargs):
+    def __init__(self, email=None, envelope=None, **kwargs):
         self.email = email
+        self.envelope_buffer = envelope
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        #def onSuccess():
-            #ui.infopoup('send successful')
-        args = shlex.split(config.get('general', 'sendmail_cmd'))
-        proc = subprocess.Popen(args, stdin=subprocess.PIPE)
-        proc.communicate(self.email.as_string())
+        sname,saddr = helper.parse_addr(self.email.get('From'))
+        account = get_account_by_address(saddr)
+        if account.sender.send_mail(self.email):
+           # ui.infopoup('send successful')
+           if self.envelope_buffer:
+               ui.apply_command(BufferCloseCommand(buffer=self.envelope_buffer))
+        else:
+            pass
+
 
 class ComposeCommand(Command):
     def __init__(self, email=None, **kwargs):

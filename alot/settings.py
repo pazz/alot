@@ -19,8 +19,10 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 import imp
 import os
 import mailcap
+import logging
 
 from ConfigParser import SafeConfigParser
+from account import Account
 
 
 DEFAULTS = {
@@ -239,3 +241,40 @@ def get_mime_handler(mime_type, key, interactive=True):
                                      mime_type,
                                      key='copiousoutput')
     return mc_tuple[1][key]
+
+def get_accounts():
+    allowed = ['realname',
+               'address',
+               'gpg_key',
+               'signature',
+               'sender_type',
+               'sendmail_command',
+               'sent_mailbox']
+    manditory = ['realname', 'address']
+    sections = config.sections()
+    accountsections = filter(lambda s: s.startswith('account '), sections)
+    accounts = []
+    for s in accountsections:
+        options = filter(lambda x: x in allowed, config.options(s))
+        args = {}
+        for o in options:
+            args[o] = config.get(s, o)
+            if o in manditory:
+                manditory.remove(o)
+        if not manditory:
+            logging.info(args)
+            accounts.append(Account(**args))
+        else:
+            pass
+            # log info
+    return accounts
+
+
+def get_account_by_address(address):
+    accounts = get_accounts()
+    matched = [a for a in accounts if a.address==address]
+    if len(matched) == 1:
+        return matched.pop()
+    else:
+        return None
+

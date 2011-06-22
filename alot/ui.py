@@ -30,9 +30,10 @@ class UI:
     buffers = []
     current_buffer = None
 
-    def __init__(self, db, log, initialquery, colourmode):
-        self.logger = log
+    def __init__(self, db, log, accounts, initialquery, colourmode):
         self.dbman = db
+        self.logger = log
+        self.accounts = accounts
 
         if not colourmode:
             colourmode = config.getint('general', 'colourmode')

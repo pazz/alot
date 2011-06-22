@@ -271,7 +271,7 @@ class EnvelopeBuffer(Buffer):
         Buffer.__init__(self, ui, self.body, 'envelope')
         self._autoparms = {'email': self.get_email}
         self.bindings = {
-            'y': ('send', {}),
+            'y': ('send', {'envelope': self}),
         }
 
     def get_email(self):

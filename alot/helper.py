@@ -21,6 +21,7 @@ from datetime import timedelta
 
 import shlex
 import subprocess
+import email
 
 
 def shorten(string, maxlen):
@@ -46,3 +47,7 @@ def pretty_datetime(d):
 def cmd_output(command_line):
     args = shlex.split(command_line)
     return subprocess.check_output(args)
+
+def parse_addr(addr):
+    return email.Utils.parseaddr(addr)
+
