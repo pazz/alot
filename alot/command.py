@@ -313,6 +313,13 @@ class ComposeCommand(Command):
             os.unlink(tf.name)
             ui.apply_command(OpenEnvelopeCommand(email=self.email))
 
+        if config.getboolean('general', 'ask_from'):
+            header['From'] = ui.prompt(prefix='From>', text=header['From'])
+        if config.getboolean('general', 'ask_to'):
+            header['To'] = ui.prompt(prefix='To>', text=header['To'])
+        if config.getboolean('general', 'ask_subject'):
+            header['Subject'] = ui.prompt(prefix='Subject>',
+                                          text=header['Subject'])
         tf = tempfile.NamedTemporaryFile(delete=False)
         for i in header.items():
             tf.write('%s: %s\n' % i)

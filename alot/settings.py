@@ -34,6 +34,9 @@ DEFAULTS = {
         'spawn_editor': 'False',
         'displayed_headers': 'From,To,Cc,Bcc,Subject',
         'authors_maxlength': '30',
+        'ask_from': 'False',
+        'ask_to': 'False',
+        'ask_subject': 'True',
     },
     'normal-theme': {
         'bufferlist_focus_bg': 'dark gray',

@@ -5,10 +5,12 @@ hooks = hooks.py
 editor_cmd = /usr/bin/vim -f -c 'set filetype=mail'
 pager_cmd = /usr/bin/view -f -c 'set filetype=mail'
 terminal_cmd = /usr/bin/urxvt -T notmuch -e 
-spawn_editor = True
-spawn_pager = True
+spawn_editor = False
 authors_maxlength = 30
 displayed_headers = From,To,Cc,Bcc,Subject
+ask_from = False
+ask_to = False
+ask_subject = True
 
 [normal-theme]
 bufferlist_focus_bg = dark gray
