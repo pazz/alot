@@ -302,9 +302,13 @@ class MessageWidget(urwid.WidgetWrap):
 
 
 class MessageSummaryWidget(urwid.WidgetWrap):
-    """a one line summary of a message, top of the message widget pile."""
+    """a one line summary of a message"""
 
     def __init__(self, message, folded=True):
+        """
+        :param message: the message to summarize
+        :type message: alot.db.Message
+        """
         self.message = message
         self.folded = folded
         urwid.WidgetWrap.__init__(self, urwid.Text(str(self)))
@@ -329,7 +333,15 @@ class MessageSummaryWidget(urwid.WidgetWrap):
 
 
 class MessageHeaderWidget(urwid.AttrMap):
+    """displays a "key:value\n" list of email headers"""
+
     def __init__(self, eml, displayed_headers=None):
+        """
+        :param eml: the email
+        :type eml: email.Message
+        :param displayed_headers: a whitelist of header fields to display
+        :type state: list(str)
+        """
         self.eml = eml
         headerlines = []
         if not displayed_headers:
@@ -348,7 +360,13 @@ class MessageHeaderWidget(urwid.AttrMap):
 
 
 class MessageBodyWidget(urwid.AttrMap):
+    """displays printable parts of an email"""
+
     def __init__(self, eml):
+        """
+        :param eml: the email
+        :type eml: email.Message
+        """
         self.eml = eml
         bodytxt = ''
         for part in self.eml.walk():
