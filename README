@@ -28,9 +28,13 @@ v, opens log in vim
 x, closes current buffer
 tab, tabs between buffers
 ;, opens bufferlist
+:, opens cmd shell
 @, refreshes current buffer
+m, compose mail
+
 
 In all views, arrows, page-up/down, j,k and space can be used to move the focus.
+escape will close the shell or cancel prompts.
 Here the buffer-specific bindings:
 
 Searchbuffer: 
@@ -52,6 +56,8 @@ enter, focus selected.
 Taglist:
 enter, opens new search view for selecteg tag
 
+Envelope:
+y, send mail
 ------------------------------
 
 Here is an overview of the current architecture.
@@ -66,7 +72,7 @@ contains the main component: it
    known buffers, and a ui.current_buffer, pointing to the focussed one)
  - handles global keybindings. See below for more on bindings.
  - can apply (and further down the road undo/redo) commands (see command.py)
- - is able to open a prompt/dialogs
+ - is able to open a prompt/dialogs/shell
 
 alot.db.DBManager 
 interface to the notmuch index. Currently, it has very limited functionality,
@@ -145,3 +151,31 @@ command.factory to instantiate a command with of type commandtypestring with
 parameters parameterhash. Values in the parameterhash will be called at cmd
 creation by command.factory if callable. See self.bindings in
 alot.buffer.BufferListBuffer for an example.
+
+Sending mail:
+ComposeMailCommand implements what happens when you hit 'm':
+depending on your settings, it will use ui.prompt to prompt for 
+From,To and Subject headers, calls the editor (set editor_spawn to True to do this asynchronously).
+afterwards, it opens an buffer.EnvelopeBuffer that displays your the email.
+
+command.SendMailCommand tries to send a given email:
+it selects an alot.accounts.Account depending on the from-header
+and hands the mail to that accounts send.Sender.send_mail().
+
+Accounts:
+alot.accounts.Account objects capture info for one email account:
+realname, address, gpg fingerprint, and a alot.send.Sender instance
+that is used to send out mail from this account.
+
+Sender:
+instances of this class know how to send mail:
+they implement a send_mail(mail) method that takes an email.Message object
+and sends it. In case the sender is instanciated with a mailbox object
+it will store sent mails in that mailbox.Mailbox.
+For now, there is only a SendmailSender subclass, that sends your mail
+using an external tool. 
+
+See data/ecample.rc for how to define accounts: all
+sections whose name starts with "account " are taken to define an account.
+If you use SendMailCommand to send mails, it will look for an account where
+the address property matches the from-header of that mail.

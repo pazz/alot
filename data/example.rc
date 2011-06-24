@@ -12,6 +12,15 @@ ask_from = False
 ask_to = False
 ask_subject = True
 
+[account gmail]
+realname = john doe
+address = john.doe@gmail.com
+gpg_key = 123ABC
+signature = /home/john/.signature
+sender_type = sendmail
+sendmail_command = msmtp --account=gmail -t
+sent_mailbox = /home/john/mail/gmail/Sent
+
 [normal-theme]
 bufferlist_focus_bg = dark gray
 bufferlist_focus_fg = white
