@@ -1,7 +1,12 @@
-Sending mails
-  * an Envelope buffer that contains widgets for recipients,subject, gpg settings.
-  * A "SendManager" that can send and archive (in a maildir send folder), 
-    loads the mail into the notmuch index and maybe refreshes open buffers accordingly
+send.Sender
+  * load send mail to the notmuch index
+  * refresh open buffers accordingly
+
+envelope buffer:
+  * needs ability do display/edit attachments
+  * full headers via a MessageHeadersWidget with displayed=None
+  * enter -> editor
+  * gpg settings per widget, should read defaults from account settings
 
 searchbuffer: 
   * unseen tag -> msg bold
@@ -10,7 +15,7 @@ searchbuffer:
 
 singleThread buffer:
   * what if depth>screensize?
-  * proper display of email body
+  * proper display of email body: fold stuff
   * open unread mails? focus first unread/query matched?
 
 Commands
@@ -26,20 +31,25 @@ db:
   * db.Message.get_replies() needs fixing. see 
     http://notmuch.198994.n3.nabble.com/python-get-all-messages-of-a-thread-tt2996080.html
 
-ui
-  It would be cool if we had a cmdline like vim or mutt when pressing ":".
-  Commands already have typenames, calling them from a prompt could
-  use the command.factory to build one and pass it to ui.apply_command.
-  see http://wiki.python.org/moin/CmdModule i thinks its a good idea to separate
-  prompt-commands from alot.command commands, for example for a undo-function..
-  however, ui.prompt could easily use this. possible cmds:
-  search (short \ or o), refine (| or O), print, save, view attachments?, pipe
+ui.commandline:
+  possible cmds:
+  map,search (short \ or o), refine (| or O), print, save, view attachments?, pipe
   should these cmds have output? where to put it? see pentadactyl.
+
+ui:
+  * current bindings in header like mutt?
+
 
 general
   * gg, g5j.. combos like in vim
   * pydoc/sphinx
   * handle errors with nonexisting mime handlers (mailcap) 
+  * update dependencies in setup.py:
+   cmd
+   subprocess?
+   threading?
+   mailbox
+   mailcap
 
 
 far away future:
