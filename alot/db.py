@@ -21,6 +21,7 @@ from datetime import datetime
 import email
 
 from settings import config
+import helper
 
 
 class DBManager:
@@ -191,6 +192,9 @@ class Message:
     def get_replies(self):
         #this doesn't work. see Note in doc -> more work here.
         return [self.dbman.find_message(mid) for mid in self.replies]
+
+    def get_author(self):
+        return helper.parse_addr(self.sender)
 
     def get_tags(self):
         return list(self.tags)

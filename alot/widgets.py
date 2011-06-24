@@ -313,7 +313,8 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         prefix = "-  "
         if self.folded:
             prefix = '+  '
-        return "%s%s (%s)" % (prefix, self.message.sender,
+        aname, aaddress = self.message.get_author()
+        return "%s%s (%s)" % (prefix, aname,
                             pretty_datetime(self.message.datetime))
 
     def toggle_folded(self):
