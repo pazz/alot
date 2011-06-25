@@ -45,6 +45,10 @@ class UI:
                 unhandled_input=self.keypress)
         self.mainloop.screen.set_terminal_properties(colors=colourmode)
 
+        self.show_statusbar = config.getboolean('general', 'show_statusbar')
+        self.show_notificationbar = config.getboolean('general', 'show_notificationbar')
+        self.notificationbar = urwid.Text(' ')
+
         self.logger.debug('setup bindings')
         self.bindings = {
             'I': ('search', {'query': 'tag:inbox AND NOT tag:killed'}),
@@ -177,6 +181,22 @@ class UI:
     def get_buffers_of_type(self, t):
         return filter(lambda x: isinstance(x, t), self.buffers)
 
+    def notify(self, statusmessage):
+        self.notificationbar.set_text(statusmessage)
+        if not self.show_notificationbar:
+            if not self.show_statusbar:
+                self.mainframe.set_footer(self.notificationbar)
+            else:
+                pile = self.mainframe.get_footer()
+                pile.widget_list.append(self.notificationbar)
+                self.mainframe.set_footer(urwid.Pile(pile.widget_list))
+
+        def clear_notify(*args):
+            self.notificationbar.set_text(' ')
+            self.update()
+        secs = config.getint('general', 'notify_timeout')
+        self.mainloop.set_alarm_in(secs, clear_notify)
+
     def update(self):
         """
         redraw interface
@@ -190,9 +210,20 @@ class UI:
         self.mainframe.set_body(self.current_buffer)
 
         #footer
-        self.update_footer()
+        lines = []
+        if self.show_statusbar:
+            lines.append(self.build_statusbar())
+        if self.notificationbar.get_text()[0] != ' ':
+            lines.append(self.notificationbar)
+        elif self.show_notificationbar:
+            lines.append(urwid.Text(' '))
 
-    def update_footer(self):
+        if lines:
+            self.mainframe.set_footer(urwid.Pile(lines))
+        else:
+            self.mainframe.set_footer(None)
+
+    def build_statusbar(self):
         idx = self.buffers.index(self.current_buffer)
         lefttxt = '%d: [%s] %s' % (idx, self.current_buffer.typename,
                                  self.current_buffer)
@@ -202,8 +233,7 @@ class UI:
         columns = urwid.Columns([
             footerleft,
             ('fixed', len(righttxt), footerright)])
-        footer = urwid.AttrMap(columns, 'footer')
-        self.mainframe.set_footer(footer)
+        return urwid.AttrMap(columns, 'footer')
 
     def keypress(self, key):
         if key in self.bindings:

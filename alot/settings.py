@@ -37,6 +37,9 @@ DEFAULTS = {
         'ask_from': 'False',
         'ask_to': 'False',
         'ask_subject': 'True',
+        'notify_timeout': '2',
+        'show_notificationbar': 'False',
+        'show_statusbar': 'True',
     },
     'normal-theme': {
         'bufferlist_focus_bg': 'dark gray',

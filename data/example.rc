@@ -11,6 +11,9 @@ displayed_headers = From,To,Cc,Bcc,Subject
 ask_from = False
 ask_to = False
 ask_subject = True
+notify_timeout = 1  # how long (in seconds) notifications are shown
+show_notificationbar = False
+show_statusbar = True
 
 [account gmail]
 realname = john doe

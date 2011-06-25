@@ -285,9 +285,9 @@ class SendMailCommand(Command):
         sname,saddr = helper.parse_addr(self.email.get('From'))
         account = get_account_by_address(saddr)
         if account.sender.send_mail(self.email):
-           # ui.infopoup('send successful')
            if self.envelope_buffer:
                ui.apply_command(BufferCloseCommand(buffer=self.envelope_buffer))
+           ui.notify('mail send successful')
         else:
             pass
 
