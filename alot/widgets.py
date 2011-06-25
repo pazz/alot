@@ -30,6 +30,7 @@ from helper import cmd_output
 
 
 class ThreadlineWidget(urwid.AttrMap):
+#TODO: receive a thread here. needs change in calling walker
     def __init__(self, tid, dbman):
         self.dbman = dbman
         self.thread = dbman.get_thread(tid)
@@ -178,8 +179,24 @@ class PromptWidget(urwid.AttrMap):
 
 
 class MessageWidget(urwid.WidgetWrap):
+    """flow widget that displays a single message"""
     def __init__(self, message, even=False, unfold_body=False,
                  unfold_header=False, depth=0, bars_at=[]):
+        """
+        :param message: the message to display
+        :type message: alot.db.Message
+        :param even: use messagesummary_even theme for summary
+        :type even: boolean
+        :param unfold_body: initially show message body
+        :type unfold_body: boolean
+        :param unfold_header: initially show message headers
+        :type unfold_header: boolean
+        :param depth: number of characters to shift content to the right
+        :type depth: int
+        :param bars_at: list of positions smaller than depth where horizontal
+        ars are used instead of spaces.
+        :type bars_at: list(int)
+        """
         self.message = message
         self.depth = depth
         self.bars_at = bars_at
@@ -267,6 +284,7 @@ class MessageWidget(urwid.WidgetWrap):
         return ('fixed', length, spacer)
 
     def toggle_header(self):
+        """toggles if message headers are shown"""
         hw = self._get_header_widget()
         if hw in self.displayed_list:
             self.displayed_list.remove(hw)
@@ -275,6 +293,7 @@ class MessageWidget(urwid.WidgetWrap):
         self.rebuild()
 
     def toggle_body(self):
+        """toggles if message body is shown"""
         bw = self._get_body_widget()
         if bw in self.displayed_list:
             self.displayed_list.remove(bw)
@@ -295,9 +314,13 @@ class MessageWidget(urwid.WidgetWrap):
             return self.pile.keypress(size, key)
 
     def get_message(self):
+        """get contained message
+        returns: alot.db.Message"""
         return self.message
 
     def get_email(self):
+        """get contained email
+        returns: email.Message"""
         return self.message.get_email()
 
 
