@@ -270,7 +270,7 @@ class ToggleThreadTagCommand(Command):
                 ui.logger.debug('remove: %s' % self.thread)
                 cb.threadlist.remove(threadwidget)
                 cb.result_count -= self.thread.get_total_messages()
-                ui.update_footer()
+                ui.update()
         elif isinstance(cb, buffer.SingleThreadBuffer):
             pass
 
@@ -365,7 +365,7 @@ class RefineSearchPromptCommand(Command):
             sbuffer.querystring = querystring
             sbuffer = ui.current_buffer
             sbuffer.rebuild()
-            ui.update_footer()
+            ui.update()
 
 commands = {
         'buffer_close': (BufferCloseCommand, {}),
