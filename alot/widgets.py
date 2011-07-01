@@ -309,6 +309,7 @@ class MessageWidget(urwid.WidgetWrap):
         if key == 'h':
             self.toggle_header()
         elif key == 'enter':
+            self.toggle_header()
             self.toggle_body()
         else:
             return self.pile.keypress(size, key)
@@ -371,7 +372,7 @@ class MessageHeaderWidget(urwid.AttrMap):
             displayed_headers = eml.keys()
         for line in displayed_headers:
             if line in eml:
-                headerlines.append('%s:%s' % (line, eml.get(line)))
+                headerlines.append('%s:%s' % (line, eml.get(line).replace('\n','')))
         headertxt = '\n'.join(headerlines)
         urwid.AttrMap.__init__(self, urwid.Text(headertxt), 'message_header')
 
