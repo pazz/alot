@@ -20,6 +20,7 @@ import email
 import urwid
 import tempfile
 import os
+import re
 from datetime import datetime
 
 from settings import config
@@ -368,13 +369,26 @@ class MessageHeaderWidget(urwid.AttrMap):
         """
         self.eml = eml
         headerlines = []
+        max_key_len = 1
         if not displayed_headers:
             displayed_headers = eml.keys()
-        for line in displayed_headers:
-            if line in eml:
-                headerlines.append('%s:%s' % (line, eml.get(line).replace('\n','')))
-        headertxt = '\n'.join(headerlines)
-        urwid.AttrMap.__init__(self, urwid.Text(headertxt), 'message_header')
+        for key in displayed_headers:
+            if key in eml:
+                if len(key) > max_key_len:
+                    max_key_len = len(key)
+        for key in displayed_headers:
+            #todo: parse from,cc,bcc seperately into name-addr-widgets
+            if key in eml:
+                value = reduce(lambda x,y: x+y[0],
+                        email.header.decode_header(eml[key]), '')
+                #sanitize it a bit:
+                value = re.sub(' +',' ', value)
+                keyw = ('fixed', max_key_len+1,
+                        urwid.Text(('message_header_key',key)))
+                valuew = urwid.Text(('message_header_value',value))
+                line = urwid.Columns([keyw,valuew])
+                headerlines.append(line)
+        urwid.AttrMap.__init__(self, urwid.Pile(headerlines), 'message_header')
 
     def selectable(self):
         return True
