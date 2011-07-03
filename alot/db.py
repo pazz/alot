@@ -16,7 +16,7 @@ along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
 
 Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
-from notmuch import Database
+from notmuch import Database, NotmuchError
 from datetime import datetime
 import email
 
@@ -33,6 +33,62 @@ class DBManager:
     def __init__(self, path=None, ro=False):
         self.ro = ro
         self.path = path
+        self.writequeue = []
+
+    def flush(self):
+        """
+        tries to flush all queued write commands to the index
+        """
+        for entry in list(self.writequeue):
+            cmd,querystring,tags = entry
+            try:
+                query = self.query(querystring, writeable=True)
+            except NotmuchError:
+                return
+            for msg in query.search_messages():
+                msg.freeze()
+                if cmd=='tag':
+                    for tag in tags:
+                        msg.add_tag(tag)
+                if cmd=='set':
+                    msg.remove_all_tags()
+                    for tag in tags:
+                        msg.add_tag(tag)
+                elif cmd=='untag':
+                    for tag in tags:
+                        msg.remove_tag(tag)
+                msg.thaw()
+            del(query)
+            self.writequeue.remove(entry)
+
+    def tag(self, querystring, tags, remove_rest=False):
+        """
+        add tags to all matching messages
+
+        :param querystring: notmuch search string
+        :type querystring: str
+        :param tags: a list of tags to be added
+        :type tags: list of str
+        :param remove_rest: remove tags from matching messages before tagging
+        :type remove_rest: boolean
+        """
+        if remove_rest:
+            self.writequeue.append(('set',querystring,tags))
+        else:
+            self.writequeue.append(('tag',querystring,tags))
+        self.flush()
+
+    def untag(self, querystring, tags):
+        """
+        add tags to all matching messages
+
+        :param querystring: notmuch search string
+        :type querystring: str
+        :param tags: a list of tags to be added
+        :type tags: list of str
+        """
+        self.writequeue.append(('untag',querystring,tags))
+        self.flush()
 
     def count_messages(self, querystring):
         return self.query(querystring).count_messages()
@@ -83,9 +139,12 @@ class DBManager:
         """
         if writeable:
             mode = Database.MODE.READ_WRITE
+            db = Database(path=self.path, mode=mode)
+            #if db.needs_upgrade():
+            #    db.upgrade()
         else:
             mode = Database.MODE.READ_ONLY
-        db = Database(path=self.path, mode=mode)
+            db = Database(path=self.path, mode=mode)
         return db.create_query(querystring)
 
 
@@ -109,39 +168,20 @@ class Thread:
         return list(self.tags)
 
     def add_tags(self, tags):
-        tags = filter(lambda x: x not in self.tags, tags)
-        if tags:
-            query = self.dbman.query('thread:' + self.tid, writeable=True)
-            for msg in query.search_messages():
-                msg.freeze()
-                for tag in tags:
-                    msg.add_tag(tag)
-                msg.thaw()
-            for tag in tags:
-                self.tags.add(tag)
+        newtags = set(tags).difference(self.tags)
+        if newtags:
+            self.dbman.tag('thread:' + self.tid, newtags)
+            self.tags = self.tags.union(newtags)
 
     def remove_tags(self, tags):
-        tags = filter(lambda x: x in self.tags, tags)
-        if tags:
-            query = self.dbman.query('thread:' + self.tid, writeable=True)
-            for msg in query.search_messages():
-                msg.freeze()
-                for tag in tags:
-                    msg.remove_tag(tag)
-                msg.thaw()
-            for tag in tags:
-                self.tags.remove(tag)
+        rmtags = set(tags).intersection(self.tags)
+        if rmtags:
+            self.dbman.untag('thread:' + self.tid, tags)
+            self.tags = self.tags.difference(rmtags)
 
     def set_tags(self, tags):
-        query = self.dbman.query('thread:' + self.tid, writeable=True)
-        self.tags = set()
-        for msg in query.search_messages():
-            msg.freeze()
-            msg.remove_all_tags()
-            for tag in tags:
-                msg.add_tag(tag)
-                self.tags.add(tag)
-            msg.thaw()
+        self.dbman.tag('thread:' + self.tid, tags, remove_rest=True)
+        self.tags = set(tags)
 
     def get_authors(self):
         return self.authors
@@ -215,23 +255,12 @@ class Message:
         return eml
 
     def add_tags(self, tags):
-        msg = self.dbman.find_message(self.mid)
-        msg.freeze()
-        for tag in tags:
-            msg.add_tag(tag)
-            self.tags.add(tag)
-        msg.thaw()
+        self.dbman.tag('id:' + self.mid, tags)
+        self.tags = self.tags.union(tags)
 
     def remove_tags(self, tags):
-        msg = self.dbman.find_message(self.mid, writeable=True)
-        msg.freeze()
-        for tag in tags:
-            try:
-                self.tags.remove(tag)
-                msg.remove_tag(tag)
-            except KeyError:
-                pass  # tag not in self.tags
-        msg.thaw()
+        self.dbman.untag('id:' + self.mid, tags)
+        self.tags = self.tags.difference(tags)
 
     def get_filename(self):
             m = self.dbman.find_message(self.mid)
