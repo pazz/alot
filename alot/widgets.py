@@ -382,7 +382,8 @@ class MessageHeaderWidget(urwid.AttrMap):
                 value = reduce(lambda x,y: x+y[0],
                         email.header.decode_header(eml[key]), '')
                 #sanitize it a bit:
-                value = re.sub(' +',' ', value)
+                value = value.replace('\t','')
+                value = value.replace('\r','')
                 keyw = ('fixed', max_key_len+1,
                         urwid.Text(('message_header_key',key)))
                 valuew = urwid.Text(('message_header_value',value))
