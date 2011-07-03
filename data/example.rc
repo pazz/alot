@@ -22,7 +22,7 @@ gpg_key = 123ABC
 signature = /home/john/.signature
 sender_type = sendmail
 sendmail_command = msmtp --account=gmail -t
-sent_mailbox = /home/john/mail/gmail/Sent
+sent_mailbox = maildir:///home/john/mail/gmail/Sent  # we accept mbox,maildir,mh,babyl,mmdf here
 
 [normal-theme]
 bufferlist_focus_bg = dark gray

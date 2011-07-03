@@ -18,6 +18,7 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 
 import mailbox
+from urlparse import urlparse
 
 from send import SendmailSender
 
@@ -35,11 +36,19 @@ class Account:
         self.signature = signature
         self.sender_type = sender_type
 
+        self.mailbox = None
         if sent_mailbox:
-            #parse mailbox url
-            self.mailbox = mailbox.Maildir(sent_mailbox)
-        else:
-            self.mailbox = sent_mailbox
+            mburl=urlparse(sent_mailbox)
+            if mburl.scheme=='mbox':
+                self.mailbox = mailbox.mbox(mburl.path)
+            elif mburl.scheme=='maildir':
+                self.mailbox = mailbox.Maildir(mburl.path)
+            elif mburl.scheme=='mh':
+                self.mailbox = mailbox.MH(mburl.path)
+            elif mburl.scheme=='babyl':
+                self.mailbox = mailbox.Babyl(mburl.path)
+            elif mburl.scheme=='mmdf':
+                self.mailbox = mailbox.MMDF(mburl.path)
 
         if self.sender_type == 'sendmail':
             self.sender = SendmailSender(sendmail_command,

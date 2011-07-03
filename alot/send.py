@@ -17,7 +17,7 @@ along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
 Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 
-from mailbox import Mailbox
+import mailbox
 import shlex
 import subprocess
 import logging
@@ -35,7 +35,12 @@ class Sender:
     def store_mail(self, email):
         if self.mailbox:
             self.mailbox.lock()
-            self.mailbox.add(email)
+            if isinstance(self.mailbox, mailbox.Maildir):
+                msg = mailbox.MaildirMessage(email)
+                msg.set_flags('S')
+            else:
+                msg = mailbox.Message(email)
+            key = self.mailbox.add(email)
             self.mailbox.flush()
             self.mailbox.unlock()
 
