@@ -1,5 +1,4 @@
 send.Sender
-  * load send mail to the notmuch index
   * refresh open buffers accordingly
 
 envelope buffer:
@@ -30,6 +29,7 @@ taglist buffer
 db:
   * db.Message.get_replies() needs fixing. see 
     http://notmuch.198994.n3.nabble.com/python-get-all-messages-of-a-thread-tt2996080.html
+  * retry flushing after a timeout
 
 ui.commandline:
   possible cmds:
@@ -52,5 +52,5 @@ general
    mailcap
 
 
-far away future:
+distant future:
   * addressbook manager with backends for lbdb,abook,rolo that can be used for prompt autocompletion

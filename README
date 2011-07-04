@@ -54,7 +54,7 @@ d, removes selected buffer,
 enter, focus selected.
 
 Taglist:
-enter, opens new search view for selecteg tag
+enter, opens new search view for selected tag
 
 Envelope:
 y, send mail
@@ -79,7 +79,8 @@ interface to the notmuch index. Currently, it has very limited functionality,
 but should be able to to this:
  - store the connection settings (index path and whether or not we use a
    read_only connection..)
- - create notmuch.Query objects for read/write access on demand
+ - create notmuch.Query objects for read access on demand
+ - maintains a write-queue for write access to the index.
 alot.db also contains wrapper classes for notmuch.Thread and notmuch.Messages
 that are used throughout the interface.
 
@@ -122,12 +123,6 @@ inherit from AttrMap, which is not very clean i guess, but they must be
 and can focus elements). Since ThreadlineWidget is selectable it must include a
 dummy keypress method.
 
-alot.hooks
-this should later on include methods that look for and call? hooks.  The idea
-is that a user might define either python callables or paths to binaries, and
-alot.hooks.get_hook(hookname) retrieves them so that they can be placed in
-commands. 
-
 alot.walker
 Contains urwid.ListWalker derived classes that implement a listwalker (the
 content-part of a urwid.ListBox widget) that dynamically allocates its content.
@@ -142,7 +137,7 @@ Key Bindings
 Are currently a hash in objects of the classes ng.ui.UI and ng.buffer.Buffer.
 Obviously, a key is first handed to the current buffer and in case it doesn't
 handle it, it will be handled by the main UI. Each buffer-subclass comes with
-its own default local bindings which whi might want to overwrite at some point.
+its own default local bindings which we might want to overwrite at some point.
 I guess we should have a "map" command that takes a buffertype, a key and
 something to call.  For now, a key in the binding hash is a string that
 represents a keypress (urwid style: 'shift j', 'k' etc are valid).  The value
@@ -156,9 +151,9 @@ Sending mail:
 ComposeMailCommand implements what happens when you hit 'm':
 depending on your settings, it will use ui.prompt to prompt for 
 From,To and Subject headers, calls the editor (set editor_spawn to True to do this asynchronously).
-afterwards, it opens an buffer.EnvelopeBuffer that displays your the email.
+Afterwards, it opens an buffer.EnvelopeBuffer that displays your email.
 
-command.SendMailCommand tries to send a given email:
+alot.command.SendMailCommand tries to send a given email:
 it selects an alot.accounts.Account depending on the from-header
 and hands the mail to that accounts send.Sender.send_mail().
 
@@ -179,3 +174,12 @@ See data/ecample.rc for how to define accounts: all
 sections whose name starts with "account " are taken to define an account.
 If you use SendMailCommand to send mails, it will look for an account where
 the address property matches the from-header of that mail.
+
+Hooks
+this should later on include methods that look for and call hooks. The idea
+is that a user might define either python callables or paths to binaries, and
+alot.hooks.get_hook(hookname) retrieves them so that they can be placed in
+commands. 
+UPDATE: this is currently implemented in alot/settings.py.
+See data/example_hooks.py and data/example.rc for how to add your hooks
+
