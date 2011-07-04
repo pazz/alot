@@ -259,6 +259,7 @@ def get_mime_handler(mime_type, key, interactive=True):
                                      key='copiousoutput')
     return mc_tuple[1][key]
 
+
 def get_accounts():
     allowed = ['realname',
                'address',
@@ -289,9 +290,8 @@ def get_accounts():
 
 def get_account_by_address(address):
     accounts = get_accounts()
-    matched = [a for a in accounts if a.address==address]
+    matched = [a for a in accounts if a.address == address]
     if len(matched) == 1:
         return matched.pop()
     else:
         return None
-

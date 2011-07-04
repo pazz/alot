@@ -45,33 +45,33 @@ class DBManager:
             try:
                 mode = Database.MODE.READ_WRITE
                 db = Database(path=self.path, mode=mode)
-            except NotmuchError,e:
-                if self.ui:
+            except NotmuchError:
+                if self.ui:  # let the mainloop call us again after timeout
                     timeout = config.getint('general', 'flush_retry_timeout')
                     self.ui.update()
+
                     def f(*args):
                         self.flush()
-                    self.ui.mainloop.set_alarm_in(timeout,f)
+                    self.ui.mainloop.set_alarm_in(timeout, f)
                 return
             while self.writequeue:
-                entry = self.writequeue.popleft()
-                cmd,querystring,tags = entry
+                cmd, querystring, tags = self.writequeue.popleft()
                 query = db.create_query(querystring)
                 for msg in query.search_messages():
                     msg.freeze()
-                    if cmd=='tag':
+                    if cmd == 'tag':
                         for tag in tags:
                             msg.add_tag(tag)
-                    if cmd=='set':
+                    if cmd == 'set':
                         msg.remove_all_tags()
                         for tag in tags:
                             msg.add_tag(tag)
-                    elif cmd=='untag':
+                    elif cmd == 'untag':
                         for tag in tags:
                             msg.remove_tag(tag)
                     msg.thaw()
             self.db.upgrade()
-            if self.ui:
+            if self.ui:  # trigger status update
                 self.ui.update()
 
     def tag(self, querystring, tags, remove_rest=False):
@@ -86,9 +86,9 @@ class DBManager:
         :type remove_rest: boolean
         """
         if remove_rest:
-            self.writequeue.append(('set',querystring,tags))
+            self.writequeue.append(('set', querystring, tags))
         else:
-            self.writequeue.append(('tag',querystring,tags))
+            self.writequeue.append(('tag', querystring, tags))
         self.flush()
 
     def untag(self, querystring, tags):
@@ -100,7 +100,7 @@ class DBManager:
         :param tags: a list of tags to be added
         :type tags: list of str
         """
-        self.writequeue.append(('untag',querystring,tags))
+        self.writequeue.append(('untag', querystring, tags))
         self.flush()
 
     def count_messages(self, querystring):

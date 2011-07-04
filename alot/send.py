@@ -44,6 +44,7 @@ class Sender:
             self.mailbox.flush()
             self.mailbox.unlock()
 
+
 class SendmailSender(Sender):
 
     def __init__(self, sendmail_cmd, mailbox=None):
@@ -51,7 +52,7 @@ class SendmailSender(Sender):
         self.mailbox = mailbox
 
     def send_mail(self, mail):
-        mail['Date'] = email.utils.formatdate(time.time(),True)
+        mail['Date'] = email.utils.formatdate(time.time(), True)
         args = shlex.split(self.cmd)
         proc = subprocess.Popen(args, stdin=subprocess.PIPE)
         proc.communicate(mail.as_string())

@@ -48,6 +48,6 @@ def cmd_output(command_line):
     args = shlex.split(command_line)
     return subprocess.check_output(args)
 
+
 def parse_addr(addr):
     return email.Utils.parseaddr(addr)
-

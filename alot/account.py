@@ -38,16 +38,16 @@ class Account:
 
         self.mailbox = None
         if sent_mailbox:
-            mburl=urlparse(sent_mailbox)
-            if mburl.scheme=='mbox':
+            mburl = urlparse(sent_mailbox)
+            if mburl.scheme == 'mbox':
                 self.mailbox = mailbox.mbox(mburl.path)
-            elif mburl.scheme=='maildir':
+            elif mburl.scheme == 'maildir':
                 self.mailbox = mailbox.Maildir(mburl.path)
-            elif mburl.scheme=='mh':
+            elif mburl.scheme == 'mh':
                 self.mailbox = mailbox.MH(mburl.path)
-            elif mburl.scheme=='babyl':
+            elif mburl.scheme == 'babyl':
                 self.mailbox = mailbox.Babyl(mburl.path)
-            elif mburl.scheme=='mmdf':
+            elif mburl.scheme == 'mmdf':
                 self.mailbox = mailbox.MMDF(mburl.path)
 
         if self.sender_type == 'sendmail':

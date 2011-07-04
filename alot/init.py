@@ -60,7 +60,6 @@ def main():
     configfilename = os.path.expanduser(args.configfile)
     settings.setup(configfilename)
 
-
     # setup logging
     numeric_loglevel = getattr(logging, args.debug_level.upper(), None)
     logfilename = os.path.expanduser(args.logfile)

@@ -379,15 +379,15 @@ class MessageHeaderWidget(urwid.AttrMap):
         for key in displayed_headers:
             #todo: parse from,cc,bcc seperately into name-addr-widgets
             if key in eml:
-                value = reduce(lambda x,y: x+y[0],
+                value = reduce(lambda x, y: x + y[0],
                         email.header.decode_header(eml[key]), '')
                 #sanitize it a bit:
-                value = value.replace('\t','')
-                value = value.replace('\r','')
-                keyw = ('fixed', max_key_len+1,
-                        urwid.Text(('message_header_key',key)))
-                valuew = urwid.Text(('message_header_value',value))
-                line = urwid.Columns([keyw,valuew])
+                value = value.replace('\t', '')
+                value = value.replace('\r', '')
+                keyw = ('fixed', max_key_len + 1,
+                        urwid.Text(('message_header_key', key)))
+                valuew = urwid.Text(('message_header_value', value))
+                line = urwid.Columns([keyw, valuew])
                 headerlines.append(line)
         urwid.AttrMap.__init__(self, urwid.Pile(headerlines), 'message_header')
 

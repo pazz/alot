@@ -282,12 +282,13 @@ class SendMailCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        sname,saddr = helper.parse_addr(self.email.get('From'))
+        sname, saddr = helper.parse_addr(self.email.get('From'))
         account = get_account_by_address(saddr)
         if account.sender.send_mail(self.email):
-           if self.envelope_buffer:
-               ui.apply_command(BufferCloseCommand(buffer=self.envelope_buffer))
-           ui.notify('mail send successful')
+            if self.envelope_buffer:
+                cmd = BufferCloseCommand(buffer=self.envelope_buffer)
+                ui.apply_command(cmd)
+            ui.notify('mail send successful')
         else:
             pass
 
@@ -381,7 +382,7 @@ commands = {
         'search': (SearchCommand, {}),
         'search_prompt': (SearchPromptCommand, {}),
         'refine_search_prompt': (RefineSearchPromptCommand, {}),
-        'send': (SendMailCommand,{}),
+        'send': (SendMailCommand, {}),
         'shell': (OpenPythonShellCommand, {}),
         'shutdown': (ShutdownCommand, {}),
         'thread_tag_prompt': (ThreadTagPromptCommand, {}),

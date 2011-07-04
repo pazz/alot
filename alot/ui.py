@@ -32,7 +32,7 @@ class UI:
 
     def __init__(self, db, log, accounts, initialquery, colourmode):
         self.dbman = db
-        self.dbman.ui = self #register ui with dbman
+        self.dbman.ui = self  # register ui with dbman
         self.logger = log
         self.accounts = accounts
 
@@ -47,7 +47,8 @@ class UI:
         self.mainloop.screen.set_terminal_properties(colors=colourmode)
 
         self.show_statusbar = config.getboolean('general', 'show_statusbar')
-        self.show_notificationbar = config.getboolean('general', 'show_notificationbar')
+        self.show_notificationbar = config.getboolean('general',
+                                                      'show_notificationbar')
         self.notificationbar = urwid.Text(' ')
 
         self.logger.debug('setup bindings')
@@ -227,12 +228,12 @@ class UI:
     def build_statusbar(self):
         idx = self.buffers.index(self.current_buffer)
         lefttxt = '%d: [%s] %s' % (idx, self.current_buffer.typename,
-                                 self.current_buffer)
+                                   self.current_buffer)
         footerleft = urwid.Text(lefttxt, align='left')
         righttxt = 'total messages: %d' % self.dbman.count_messages('*')
-        pending_writes = len (self.dbman.writequeue)
+        pending_writes = len(self.dbman.writequeue)
         if pending_writes > 0:
-            righttxt = ('|'*pending_writes) + ' ' +righttxt
+            righttxt = ('|' * pending_writes) + ' ' + righttxt
         footerright = urwid.Text(righttxt, align='right')
         columns = urwid.Columns([
             footerleft,
