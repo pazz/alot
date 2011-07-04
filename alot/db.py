@@ -37,29 +37,14 @@ class DBManager:
         self.writequeue = deque([])
         self.db = Database(path=self.path)
 
-    def lock(self):
-        """
-        tries to lock the index
-
-        :raises: NotmuchError upon failure
-        """
-        mode = Database.MODE.READ_WRITE
-        self.db = Database(path=self.path, mode=mode)
-
-    def unlock(self):
-        """
-        unlocks the index
-        """
-        mode = Database.MODE.READ_ONLY
-        self.db = Database(path=self.path, mode=mode)
-
     def flush(self):
         """
         tries to flush all queued write commands to the index
         """
         if self.writequeue:
             try:
-                self.lock()
+                mode = Database.MODE.READ_WRITE
+                db = Database(path=self.path, mode=mode)
             except NotmuchError,e:
                 if self.ui:
                     timeout = config.getint('general', 'flush_retry_timeout')
@@ -71,26 +56,21 @@ class DBManager:
             while self.writequeue:
                 entry = self.writequeue.popleft()
                 cmd,querystring,tags = entry
-                self.ui.logger.debug('flush tag messages')
-                query = self.query(querystring)
+                query = db.create_query(querystring)
                 for msg in query.search_messages():
                     msg.freeze()
                     if cmd=='tag':
-                        self.ui.logger.debug('flush tag')
                         for tag in tags:
                             msg.add_tag(tag)
                     if cmd=='set':
-                        self.ui.logger.debug('flush set!')
                         msg.remove_all_tags()
                         for tag in tags:
-                            self.ui.logger.debug('flush add tag: %s'%tag)
                             msg.add_tag(tag)
                     elif cmd=='untag':
-                        self.ui.logger.debug('flush untag')
                         for tag in tags:
                             msg.remove_tag(tag)
                     msg.thaw()
-            self.unlock()
+            self.db.upgrade()
             if self.ui:
                 self.ui.update()
 
@@ -168,7 +148,9 @@ class DBManager:
         :returns:  notmuch.Query -- the query object.
 
         """
-        return self.db.create_query(querystring)
+        mode = Database.MODE.READ_ONLY
+        db = Database(path=self.path, mode=mode)
+        return db.create_query(querystring)
 
 
 class Thread:
