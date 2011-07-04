@@ -40,6 +40,7 @@ DEFAULTS = {
         'notify_timeout': '2',
         'show_notificationbar': 'False',
         'show_statusbar': 'True',
+        'flush_retry_timeout': '5',
     },
     'normal-theme': {
         'bufferlist_focus_bg': 'dark gray',

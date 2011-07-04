@@ -19,6 +19,7 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 from notmuch import Database, NotmuchError
 from datetime import datetime
 import email
+from collections import deque
 
 from settings import config
 import helper
@@ -33,33 +34,65 @@ class DBManager:
     def __init__(self, path=None, ro=False):
         self.ro = ro
         self.path = path
-        self.writequeue = []
+        self.writequeue = deque([])
+        self.db = Database(path=self.path)
+
+    def lock(self):
+        """
+        tries to lock the index
+
+        :raises: NotmuchError upon failure
+        """
+        mode = Database.MODE.READ_WRITE
+        self.db = Database(path=self.path, mode=mode)
+
+    def unlock(self):
+        """
+        unlocks the index
+        """
+        mode = Database.MODE.READ_ONLY
+        self.db = Database(path=self.path, mode=mode)
 
     def flush(self):
         """
         tries to flush all queued write commands to the index
         """
-        for entry in list(self.writequeue):
-            cmd,querystring,tags = entry
+        if self.writequeue:
             try:
-                query = self.query(querystring, writeable=True)
-            except NotmuchError:
+                self.lock()
+            except NotmuchError,e:
+                if self.ui:
+                    timeout = config.getint('general', 'flush_retry_timeout')
+                    self.ui.update()
+                    def f(*args):
+                        self.flush()
+                    self.ui.mainloop.set_alarm_in(timeout,f)
                 return
-            for msg in query.search_messages():
-                msg.freeze()
-                if cmd=='tag':
-                    for tag in tags:
-                        msg.add_tag(tag)
-                if cmd=='set':
-                    msg.remove_all_tags()
-                    for tag in tags:
-                        msg.add_tag(tag)
-                elif cmd=='untag':
-                    for tag in tags:
-                        msg.remove_tag(tag)
-                msg.thaw()
-            del(query)
-            self.writequeue.remove(entry)
+            while self.writequeue:
+                entry = self.writequeue.popleft()
+                cmd,querystring,tags = entry
+                self.ui.logger.debug('flush tag messages')
+                query = self.query(querystring)
+                for msg in query.search_messages():
+                    msg.freeze()
+                    if cmd=='tag':
+                        self.ui.logger.debug('flush tag')
+                        for tag in tags:
+                            msg.add_tag(tag)
+                    if cmd=='set':
+                        self.ui.logger.debug('flush set!')
+                        msg.remove_all_tags()
+                        for tag in tags:
+                            self.ui.logger.debug('flush add tag: %s'%tag)
+                            msg.add_tag(tag)
+                    elif cmd=='untag':
+                        self.ui.logger.debug('flush untag')
+                        for tag in tags:
+                            msg.remove_tag(tag)
+                    msg.thaw()
+            self.unlock()
+            if self.ui:
+                self.ui.update()
 
     def tag(self, querystring, tags, remove_rest=False):
         """
@@ -117,8 +150,8 @@ class DBManager:
         """
         return Message(self, self.find_message(mid))
 
-    def get_thread(self, tid, writeable=False):
-        query = self.query('thread:' + tid, writeable=writeable)
+    def get_thread(self, tid):
+        query = self.query('thread:' + tid)
         #TODO raise exceptions here in 0<case msgcount>1
         return Thread(self, query.search_threads().next())
 
@@ -127,25 +160,15 @@ class DBManager:
         db = Database(path=self.path, mode=mode)
         return [tag for tag in db.get_all_tags()]
 
-    def query(self, querystring, writeable=False):
+    def query(self, querystring):
         """creates notmuch.Query objects on demand
 
         :param querystring: The query string to use for the lookup
         :type query: str.
-        :param writeable: Try to return a writeable Query object
-        :type state: bool.
         :returns:  notmuch.Query -- the query object.
 
         """
-        if writeable:
-            mode = Database.MODE.READ_WRITE
-            db = Database(path=self.path, mode=mode)
-            #if db.needs_upgrade():
-            #    db.upgrade()
-        else:
-            mode = Database.MODE.READ_ONLY
-            db = Database(path=self.path, mode=mode)
-        return db.create_query(querystring)
+        return self.db.create_query(querystring)
 
 
 class Thread:

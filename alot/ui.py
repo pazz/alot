@@ -32,6 +32,7 @@ class UI:
 
     def __init__(self, db, log, accounts, initialquery, colourmode):
         self.dbman = db
+        self.dbman.ui = self #register ui with dbman
         self.logger = log
         self.accounts = accounts
 
@@ -229,6 +230,9 @@ class UI:
                                  self.current_buffer)
         footerleft = urwid.Text(lefttxt, align='left')
         righttxt = 'total messages: %d' % self.dbman.count_messages('*')
+        pending_writes = len (self.dbman.writequeue)
+        if pending_writes > 0:
+            righttxt = ('|'*pending_writes) + ' ' +righttxt
         footerright = urwid.Text(righttxt, align='right')
         columns = urwid.Columns([
             footerleft,
