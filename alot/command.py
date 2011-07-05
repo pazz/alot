@@ -32,6 +32,7 @@ import buffer
 from settings import config
 from settings import get_hook
 from settings import get_account_by_address
+from settings import get_accounts
 import completion
 import helper
 
@@ -301,10 +302,22 @@ class ComposeCommand(Command):
     def apply(self, ui):
         if not self.email:
             header = {}
-            # TODO: fill with default header
-            header['From'] = 'patricktotzke@gmail.com'  # ui.prompt(prefix='From>')
-            header['To'] = 'patricktotzke@gmail.com'  # ui.prompt(prefix='To>')
-            header['Subject'] = 'alot test'  # ui.prompt(prefix='Subject>')
+            # TODO: fill with default header (per account)
+            accounts = get_accounts()
+            if len(accounts) == 0:
+                ui.notify('no accounts set')
+                return
+            elif len(accounts) == 1:
+                a = accounts[0]
+            else:
+                while fromaddress not in [a.address for a in accounts]:
+                    fromaddress = ui.prompt(prefix='From>')
+                a = get_account_by_address(fromaddress)
+            header['From'] = "%s <%s>" % (a.realname, a.address)
+            header['To'] = ui.prompt(prefix='To>')
+            if config.getboolean('general', 'ask_subject'):
+                header['Subject'] = ui.prompt(prefix='Subject>',
+                                              text=header['Subject'])
 
         def onSuccess():
             f = open(tf.name)
@@ -314,13 +327,6 @@ class ComposeCommand(Command):
             os.unlink(tf.name)
             ui.apply_command(OpenEnvelopeCommand(email=self.email))
 
-        if config.getboolean('general', 'ask_from'):
-            header['From'] = ui.prompt(prefix='From>', text=header['From'])
-        if config.getboolean('general', 'ask_to'):
-            header['To'] = ui.prompt(prefix='To>', text=header['To'])
-        if config.getboolean('general', 'ask_subject'):
-            header['Subject'] = ui.prompt(prefix='Subject>',
-                                          text=header['Subject'])
         tf = tempfile.NamedTemporaryFile(delete=False)
         for i in header.items():
             tf.write('%s: %s\n' % i)

@@ -34,8 +34,6 @@ DEFAULTS = {
         'spawn_editor': 'False',
         'displayed_headers': 'From,To,Cc,Bcc,Subject',
         'authors_maxlength': '30',
-        'ask_from': 'False',
-        'ask_to': 'False',
         'ask_subject': 'True',
         'notify_timeout': '2',
         'show_notificationbar': 'False',
