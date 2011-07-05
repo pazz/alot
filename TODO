@@ -1,8 +1,13 @@
+Commands
+  * how should we do mappings? via settings, 'set' in the commandline interpreter or both?
+  * help strings in commands and help buffer
+  * undo for commands
+
 send.Sender
-  * refresh open buffers accordingly
+  * refresh open thread buffers? (happens automatically if mail gets indexed and buffer refreshed..)
 
 envelope buffer:
-  * needs ability do display/edit attachments
+  * needs ability do display/edit attachments (widget will be reused in messagewidget)
   * full headers via a MessageHeadersWidget with displayed=None
   * enter -> editor
   * gpg settings per widget, should read defaults from account settings
@@ -17,10 +22,6 @@ singleThread buffer:
   * proper display of email body: fold stuff
   * open unread mails? focus first unread/query matched?
 
-Commands
-  * help strings in commands and help buffer
-  * undo for commands
-
 taglist buffer
   * interactively filter tagcloud
     this will have to wait until a version of urwid can be easy_installed in that GridFlow
@@ -29,7 +30,6 @@ taglist buffer
 db:
   * db.Message.get_replies() needs fixing. see 
     http://notmuch.198994.n3.nabble.com/python-get-all-messages-of-a-thread-tt2996080.html
-  * retry flushing after a timeout
 
 ui.commandline:
   possible cmds:
@@ -39,18 +39,16 @@ ui.commandline:
 ui:
   * current bindings in header like mutt?
 
-
 general
   * gg, g5j.. combos like in vim
   * pydoc/sphinx
   * handle errors with nonexisting mime handlers (mailcap) 
-  * update dependencies in setup.py:
+  * update dependencies in setup.py. Do we have to include all these?
    cmd
-   subprocess?
-   threading?
+   subprocess,shlex
+   threading
    mailbox
    mailcap
 
-
 distant future:
-  * addressbook manager with backends for lbdb,abook,rolo that can be used for prompt autocompletion
+  * addressbook manager with backends for lbdb,abook,rolo that can be used for prompt autocompletion.
