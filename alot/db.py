@@ -35,7 +35,6 @@ class DBManager:
         self.ro = ro
         self.path = path
         self.writequeue = deque([])
-        self.db = Database(path=self.path)
 
     def flush(self):
         """
@@ -70,7 +69,6 @@ class DBManager:
                         for tag in tags:
                             msg.remove_tag(tag)
                     msg.thaw()
-            self.db.upgrade()
             if self.ui:  # trigger status update
                 self.ui.update()
 
