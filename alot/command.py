@@ -32,6 +32,7 @@ import buffer
 from settings import config
 from settings import get_hook
 from settings import get_account_by_address
+from settings import get_accounts
 import completion
 import helper
 
@@ -302,9 +303,19 @@ class ComposeCommand(Command):
         if not self.email:
             header = {}
             # TODO: fill with default header
-            header['From'] = 'patricktotzke@gmail.com'  # ui.prompt(prefix='From>')
-            header['To'] = 'patricktotzke@gmail.com'  # ui.prompt(prefix='To>')
-            header['Subject'] = 'alot test'  # ui.prompt(prefix='Subject>')
+            accounts = get_accounts()
+            if len(accounts) == 0:
+                ui.notify('no accounts set')
+                return
+            elif len(accounts) == 1:
+                a = accounts[0]
+            else:
+                while fromaddress not in [a.address for a in accounts]:
+                    fromaddress = ui.prompt(prefix='From>')
+                a = get_account_by_address(fromaddress)
+            header['From'] = "%s <%s>" % (a.realname, a.address)
+            header['To'] = ui.prompt(prefix='To>')
+            header['Subject'] = ui.prompt(prefix='Subject>')
 
         def onSuccess():
             f = open(tf.name)
