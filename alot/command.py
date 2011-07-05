@@ -286,13 +286,14 @@ class SendMailCommand(Command):
         sname, saddr = helper.parse_addr(self.email.get('From'))
         account = get_account_by_address(saddr)
         if account:
-            if account.sender.send_mail(self.email):
-                if self.envelope_buffer:
+            success, reason = account.sender.send_mail(self.email)
+            if success:
+                if self.envelope_buffer:  # close the envelope
                     cmd = BufferCloseCommand(buffer=self.envelope_buffer)
                     ui.apply_command(cmd)
                 ui.notify('mail send successful')
             else:
-                ui.notify('could not send mail')
+                ui.notify('failed to send: %s' % reason)
         else:
             ui.notify('failed to send: no account set up for %s' % saddr)
 

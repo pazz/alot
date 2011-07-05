@@ -27,7 +27,11 @@ import email
 
 class Sender:
     def send_mail(self, email):
-        pass
+        """
+        sends given email
+        :returns: tuple (success, reason) of types bool and str.
+        """
+        return False, 'not implemented'
 
     def __init__(self, mailbox=None):
         self.mailbox = mailbox
@@ -54,7 +58,15 @@ class SendmailSender(Sender):
     def send_mail(self, mail):
         mail['Date'] = email.utils.formatdate(time.time(), True)
         args = shlex.split(self.cmd)
-        proc = subprocess.Popen(args, stdin=subprocess.PIPE)
-        proc.communicate(mail.as_string())
-        self.store_mail(mail)
-        return True
+        try:
+            proc = subprocess.Popen(args, stdin=subprocess.PIPE,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE)
+            out,err = proc.communicate(mail.as_string())
+        except OSError, e:
+            return False, str(e) + '. sendmail_cmd set to: %s' % self.cmd
+        if proc.poll():  # returncode is not 0
+            return False, err.strip()
+        else:
+            self.store_mail(mail)
+            return True, ''
