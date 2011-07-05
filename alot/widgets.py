@@ -410,24 +410,28 @@ class MessageBodyWidget(urwid.AttrMap):
         bodytxt = ''
         for part in self.eml.walk():
             ctype = part.get_content_type()
+            raw_payload = part.get_payload(None, True)
             if ctype == 'text/plain':
-                bodytxt += part.get_payload(None, True)
+                bodytxt += raw_payload
             elif ctype == 'text/html':
                 #get mime handler
                 handler = get_mime_handler(ctype, key='view',
                                            interactive=False)
-                #open tempfile:
+                #open tempfile. Not all handlers accept stuff from stdin
                 tmpfile = tempfile.NamedTemporaryFile(delete=False,
                                                       suffix='.html')
                 #write payload to tmpfile
-                tmpfile.write(part.get_payload(None, True))
+                tmpfile.write(raw_payload)
                 #create and call external command
                 cmd = handler % tmpfile.name
-                rendered = cmd_output(cmd)
+                rendered_payload = cmd_output(cmd)
                 #remove tempfile
                 tmpfile.close()
                 os.unlink(tmpfile.name)
-                bodytxt += rendered
+                if rendered_payload:
+                    bodytxt += rendered_payload.strip()
+                else:
+                    bodytxt += raw_payload
         urwid.AttrMap.__init__(self, urwid.Text(bodytxt), 'message_body')
 
     def selectable(self):

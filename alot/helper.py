@@ -46,7 +46,13 @@ def pretty_datetime(d):
 
 def cmd_output(command_line):
     args = shlex.split(command_line)
-    return subprocess.check_output(args)
+    try:
+        output = subprocess.check_output(args)
+    except subprocess.CalledProcessError:
+        return None
+    except OSError:
+        return None
+    return output
 
 
 def parse_addr(addr):
