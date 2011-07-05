@@ -285,13 +285,16 @@ class SendMailCommand(Command):
     def apply(self, ui):
         sname, saddr = helper.parse_addr(self.email.get('From'))
         account = get_account_by_address(saddr)
-        if account.sender.send_mail(self.email):
-            if self.envelope_buffer:
-                cmd = BufferCloseCommand(buffer=self.envelope_buffer)
-                ui.apply_command(cmd)
-            ui.notify('mail send successful')
+        if account:
+            if account.sender.send_mail(self.email):
+                if self.envelope_buffer:
+                    cmd = BufferCloseCommand(buffer=self.envelope_buffer)
+                    ui.apply_command(cmd)
+                ui.notify('mail send successful')
+            else:
+                ui.notify('could not send mail')
         else:
-            pass
+            ui.notify('failed to send: no account set up for %s' % saddr)
 
 
 class ComposeCommand(Command):
@@ -316,8 +319,7 @@ class ComposeCommand(Command):
             header['From'] = "%s <%s>" % (a.realname, a.address)
             header['To'] = ui.prompt(prefix='To>')
             if config.getboolean('general', 'ask_subject'):
-                header['Subject'] = ui.prompt(prefix='Subject>',
-                                              text=header['Subject'])
+                header['Subject'] = ui.prompt(prefix='Subject>')
 
         def onSuccess():
             f = open(tf.name)
