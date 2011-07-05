@@ -16,11 +16,13 @@ searchbuffer:
   * unseen tag -> msg bold
   * focus next thread after toggletag. It would be easyest if IteratorWalker had a focus_next()
     that could be called in ToggleTagCommand in case thread is still in the searchresults
+  * individual formating for tags? (eg. "important" tag white on red). should be configurable in the settings
 
 singleThread buffer:
   * what if depth>screensize?
   * proper display of email body: fold stuff
   * open unread mails? focus first unread/query matched?
+  * text search: tag through occurences, highlight etc
 
 taglist buffer
   * interactively filter tagcloud

@@ -62,7 +62,7 @@ class SendmailSender(Sender):
             proc = subprocess.Popen(args, stdin=subprocess.PIPE,
                                     stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE)
-            out,err = proc.communicate(mail.as_string())
+            out, err = proc.communicate(mail.as_string())
         except OSError, e:
             return False, str(e) + '. sendmail_cmd set to: %s' % self.cmd
         if proc.poll():  # returncode is not 0
