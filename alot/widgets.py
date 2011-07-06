@@ -336,7 +336,8 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         """
         self.message = message
         self.folded = folded
-        urwid.WidgetWrap.__init__(self, urwid.Text(str(self)))
+        sumstr = self.__str__()
+        urwid.WidgetWrap.__init__(self, urwid.Text(sumstr))
 
     def __str__(self):
         prefix = "-  "
@@ -348,7 +349,7 @@ class MessageSummaryWidget(urwid.WidgetWrap):
 
     def toggle_folded(self):
         self.folded = not self.folded
-        self._w = urwid.Text(str(self))
+        self._w = urwid.Text(self.__str__())
 
     def selectable(self):
         return True
@@ -384,8 +385,11 @@ class MessageHeaderWidget(urwid.AttrMap):
             if key in eml:
                 valuelist = email.header.decode_header(eml[key])
                 value = ''
-                for v,enc in valuelist:
-                    value = value + v.decode(enc)
+                for v, enc in valuelist:
+                    if enc:
+                        value = value + v.decode(enc)
+                    else:
+                        value = value + v
                 #sanitize it a bit:
                 value = value.replace('\t', '')
                 value = value.replace('\r', '')
@@ -415,10 +419,12 @@ class MessageBodyWidget(urwid.AttrMap):
         bodytxt = ''
         for part in self.eml.walk():
             ctype = part.get_content_type()
-            raw_payload = part.get_payload(None, True)
+            enc = part.get_content_charset()
+            raw_payload = part.get_payload(decode=True)
             if ctype == 'text/plain':
-                bodytxt += raw_payload
+                bodytxt += unicode(raw_payload, enc)
             elif ctype == 'text/html':
+                raw_payload = unicode(raw_payload, enc).encode('utf8')
                 #get mime handler
                 handler = get_mime_handler(ctype, key='view',
                                            interactive=False)
@@ -437,6 +443,7 @@ class MessageBodyWidget(urwid.AttrMap):
                     bodytxt += rendered_payload.strip()
                 else:
                     bodytxt += raw_payload
+        #bodytxt = bodytxt.encode('utf8')
         urwid.AttrMap.__init__(self, urwid.Text(bodytxt), 'message_body')
 
     def selectable(self):

@@ -26,6 +26,7 @@ import helper
 
 DB_ENC = 'utf8'
 
+
 class DBManager:
     """
     keeps track of your index parameters, can create notmuch.Query
