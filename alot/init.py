@@ -23,6 +23,7 @@ import os
 import settings
 from db import DBManager
 from ui import UI
+from urwid.command_map import command_map
 
 
 def parse_args():
@@ -70,7 +71,13 @@ def main():
     dbman = DBManager(path=args.db_path, ro=args.read_only)
     # read accounts
     accounts = settings.get_accounts()
-    # setup and start interface
+
+    # set up global urwid command maps
+    command_map['j'] = 'cursor down'
+    command_map['k'] = 'cursor up'
+    command_map[' '] = 'cursor page down'
+
+    # set up and start interface
     ui = UI(dbman,
             logger,
             accounts,

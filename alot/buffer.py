@@ -61,12 +61,12 @@ class Buffer:
                 string = "could not instanciate command %s with params %s"
                 self.ui.logger.debug(string % (cmdname, parms.items()))
         else:
-            if key == 'j':
-                key = 'down'
-            elif key == 'k':
-                key = 'up'
-            elif key == ' ':
-                key = 'page down'
+            #if key == 'j':
+            #    key = 'down'
+            #elif key == 'k':
+            #    key = 'up'
+            #elif key == ' ':
+            #    key = 'page down'
             return self.body.keypress(size, key)
 
 
