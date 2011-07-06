@@ -255,7 +255,11 @@ def get_mime_handler(mime_type, key, interactive=True):
         mc_tuple = mailcap.findmatch(mailcaps,
                                      mime_type,
                                      key='copiousoutput')
-    return mc_tuple[1][key]
+    if mc_tuple:
+        if mc_tuple[1]:
+            return mc_tuple[1][key]
+    else:
+        return None
 
 
 def get_accounts():

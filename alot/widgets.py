@@ -421,29 +421,34 @@ class MessageBodyWidget(urwid.AttrMap):
             ctype = part.get_content_type()
             enc = part.get_content_charset()
             raw_payload = part.get_payload(decode=True)
+            if part.get_content_maintype() == 'text':
+                if enc:
+                    raw_payload = unicode(raw_payload, enc)
+                else:
+                    raw_payload = unicode(raw_payload, errors='replace')
             if ctype == 'text/plain':
-                bodytxt += unicode(raw_payload, enc)
-            elif ctype == 'text/html':
-                raw_payload = unicode(raw_payload, enc).encode('utf8')
+                bodytxt += raw_payload
+            else:
                 #get mime handler
                 handler = get_mime_handler(ctype, key='view',
                                            interactive=False)
-                #open tempfile. Not all handlers accept stuff from stdin
-                tmpfile = tempfile.NamedTemporaryFile(delete=False,
-                                                      suffix='.html')
-                #write payload to tmpfile
-                tmpfile.write(raw_payload)
-                #create and call external command
-                cmd = handler % tmpfile.name
-                rendered_payload = cmd_output(cmd)
-                #remove tempfile
-                tmpfile.close()
-                os.unlink(tmpfile.name)
-                if rendered_payload:
-                    bodytxt += rendered_payload.strip()
-                else:
-                    bodytxt += raw_payload
-        #bodytxt = bodytxt.encode('utf8')
+                if handler:
+                    #open tempfile. Not all handlers accept stuff from stdin
+                    tmpfile = tempfile.NamedTemporaryFile(delete=False,
+                                                          suffix='.html')
+                    #write payload to tmpfile
+                    tmpfile.write(raw_payload.encode('utf8'))
+                    #create and call external command
+                    cmd = handler % tmpfile.name
+                    rendered_payload = cmd_output(cmd)
+                    #remove tempfile
+                    tmpfile.close()
+                    os.unlink(tmpfile.name)
+                    if rendered_payload:  # handler had output
+                        bodytxt += rendered_payload.strip()
+                    elif part.get_content_maintype() == 'text':  # revert to plaintext
+                        bodytxt += raw_payload
+                    # else drop
         urwid.AttrMap.__init__(self, urwid.Text(bodytxt), 'message_body')
 
     def selectable(self):
