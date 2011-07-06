@@ -24,6 +24,7 @@ from collections import deque
 from settings import config
 import helper
 
+DB_ENC = 'utf8'
 
 class DBManager:
     """
@@ -155,14 +156,14 @@ class Thread:
     def __init__(self, dbman, thread):
         self.dbman = dbman
         self.tid = thread.get_thread_id()
-        self.strrep = str(thread)
+        self.strrep = str(thread).decode(DB_ENC)
         self.total_messages = thread.get_total_messages()
         self.topmessages = [m.get_message_id() for m in thread.get_toplevel_messages()]
-        self.authors = thread.get_authors()
-        self.subject = thread.get_subject()
+        self.authors = thread.get_authors().decode(DB_ENC)
+        self.subject = thread.get_subject().decode(DB_ENC)
         self.oldest = datetime.fromtimestamp(thread.get_oldest_date())
         self.newest = datetime.fromtimestamp(thread.get_newest_date())
-        self.tags = set([str(tag) for tag in thread.get_tags()])
+        self.tags = set([str(tag).decode(DB_ENC) for tag in thread.get_tags()])
 
     def get_thread_id(self):
         return self.tid
@@ -224,10 +225,10 @@ class Message:
         self.dbman = dbman
         self.mid = msg.get_message_id()
         self.datetime = datetime.fromtimestamp(msg.get_date())
-        self.sender = msg.get_header('From')
-        self.strrep = str(msg)
+        self.sender = msg.get_header('From').decode(DB_ENC)
+        self.strrep = str(msg).decode(DB_ENC)
         self.email = None  # will be read upon first use
-        self.tags = set([str(tag) for tag in msg.get_tags()])
+        self.tags = set([str(tag).decode(DB_ENC) for tag in msg.get_tags()])
 
     def __str__(self):
         return self.strrep

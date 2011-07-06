@@ -358,7 +358,10 @@ class MessageSummaryWidget(urwid.WidgetWrap):
 
 
 class MessageHeaderWidget(urwid.AttrMap):
-    """displays a "key:value\n" list of email headers"""
+    """
+    displays a "key:value\n" list of email headers.
+    RFC 2822 style encoded values are decoded into utf8 first.
+    """
 
     def __init__(self, eml, displayed_headers=None):
         """
@@ -379,8 +382,10 @@ class MessageHeaderWidget(urwid.AttrMap):
         for key in displayed_headers:
             #todo: parse from,cc,bcc seperately into name-addr-widgets
             if key in eml:
-                value = reduce(lambda x, y: x + y[0],
-                        email.header.decode_header(eml[key]), '')
+                valuelist = email.header.decode_header(eml[key])
+                value = ''
+                for v,enc in valuelist:
+                    value = value + v.decode(enc)
                 #sanitize it a bit:
                 value = value.replace('\t', '')
                 value = value.replace('\r', '')

@@ -40,11 +40,11 @@ ui.commandline:
 
 ui:
   * current bindings in header like mutt?
+  * notifier class called by ui.notify()? This would enable different subclasses to implement growl/libnotify or just internal popups
 
 general
   * gg, g5j.. combos like in vim
   * pydoc/sphinx
-  * handle errors with nonexisting mime handlers (mailcap) 
   * update dependencies in setup.py. Do we have to include all these?
    cmd
    subprocess,shlex
