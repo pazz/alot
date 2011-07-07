@@ -4,7 +4,7 @@ The key ideas are:
 * aim at the look and feel of sup for now
 * lock the index only when needed
 * use libraries whenever possible. 
-  urwid: http://excess.org/urwid/ 
+  urwid: http://excess.org/urwid/ CAUTION: you need the dev-version!
   The notmuch bindings: https://bitbucket.org/spaetz/cnotmuch/
   (mailbox: http://docs.python.org/library/mailbox.html)
   (configparser)

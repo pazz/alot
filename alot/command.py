@@ -118,24 +118,31 @@ class ExternalCommand(Command):
         self.commandstring = commandstring
         self.spawn = spawn
         self.refocus = refocus
-        self.onSuccess = on_success
+        self.on_success = on_success
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        def thread_code(*popenArgs):
-            callerbuffer = ui.current_buffer
-            returncode = subprocess.call(*popenArgs, shell=True)
+
+        callerbuffer = ui.current_buffer
+        def afterwards(data):
+            if callable(self.on_success) and data == 'success':
+                self.on_success()
             if self.refocus and callerbuffer in ui.buffers:
                 ui.logger.info('trying to refocus: %s' % callerbuffer)
                 ui.buffer_focus(callerbuffer)
-            if callable(self.onSuccess) and returncode == 0:
-                self.onSuccess()
-            ui.mainloop.draw_screen()
+            #ui.mainloop.draw_screen()
+        write_fd = ui.mainloop.watch_pipe(afterwards)
+
+        def thread_code(*popenArgs):
+            returncode = subprocess.call(*popenArgs, shell=True)
+            if returncode == 0:
+                os.write(write_fd, 'success')  # any input will do here
 
         if self.spawn:
             cmd = config.get('general', 'terminal_cmd')
             cmd += ' ' + self.commandstring
             ui.logger.info('calling external command: %s' % cmd)
+
             thread = threading.Thread(target=thread_code, args=((cmd,)))
             thread.start()
         else:
