@@ -150,7 +150,7 @@ class DBManager:
         """
         mode = Database.MODE.READ_ONLY
         db = Database(path=self.path, mode=mode)
-        return db.create_query(querystring)
+        return db.create_query(querystring.encode(DB_ENC))
 
 
 class Thread:
