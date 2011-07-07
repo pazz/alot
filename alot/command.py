@@ -26,7 +26,6 @@ import StringIO
 import email
 from email.parser import Parser
 import tempfile
-import shlex
 
 import buffer
 from settings import config
@@ -112,43 +111,54 @@ class RefreshCommand(Command):
 
 
 class ExternalCommand(Command):
-    """calls external command"""
+    """
+    calls external command
+    """
     def __init__(self, commandstring, spawn=False, refocus=True,
-                 on_success=None, **kwargs):
+                 in_thread=True, on_success=None, **kwargs):
+        """
+        :param commandstring: the command to call
+        :type commandstring: str
+        :param spawn: run command in a new terminal
+        :type spawn: boolean
+        :param refocus: refocus calling buffer after cmd termination
+        :type refocus: boolean
+        :param on_success: code to execute after command successfully exited
+        :type on_success: callable
+        """
         self.commandstring = commandstring
         self.spawn = spawn
         self.refocus = refocus
+        self.in_thread = in_thread
         self.on_success = on_success
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-
         callerbuffer = ui.current_buffer
+
         def afterwards(data):
             if callable(self.on_success) and data == 'success':
                 self.on_success()
             if self.refocus and callerbuffer in ui.buffers:
-                ui.logger.info('trying to refocus: %s' % callerbuffer)
+                ui.logger.info('refocussing')
                 ui.buffer_focus(callerbuffer)
-            #ui.mainloop.draw_screen()
+
         write_fd = ui.mainloop.watch_pipe(afterwards)
 
-        def thread_code(*popenArgs):
-            returncode = subprocess.call(*popenArgs, shell=True)
-            if returncode == 0:
-                os.write(write_fd, 'success')  # any input will do here
-
-        if self.spawn:
-            cmd = config.get('general', 'terminal_cmd')
-            cmd += ' ' + self.commandstring
+        def thread_code(*args):
+            cmd = self.commandstring
+            if self.spawn:
+                cmd = config.get('general', 'terminal_cmd') + ' ' + cmd
             ui.logger.info('calling external command: %s' % cmd)
+            returncode = subprocess.call(cmd, shell=True)
+            if returncode == 0:
+                os.write(write_fd, 'success')
 
-            thread = threading.Thread(target=thread_code, args=((cmd,)))
+        if self.in_thread:
+            thread = threading.Thread(target=thread_code)
             thread.start()
         else:
-            cmd = self.commandstring
-            logging.debug(cmd)
-            thread_code((cmd,))
+            thread_code()
 
 
 class EditExternalCommand(ExternalCommand):
