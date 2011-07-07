@@ -160,8 +160,8 @@ class Thread:
         self.strrep = str(thread).decode(DB_ENC)
         self.total_messages = thread.get_total_messages()
         self.topmessages = [m.get_message_id() for m in thread.get_toplevel_messages()]
-        self.authors = thread.get_authors().decode(DB_ENC)
-        self.subject = thread.get_subject().decode(DB_ENC)
+        self.authors = str(thread.get_authors()).decode(DB_ENC)
+        self.subject = str(thread.get_subject()).decode(DB_ENC)
         self.oldest = datetime.fromtimestamp(thread.get_oldest_date())
         self.newest = datetime.fromtimestamp(thread.get_newest_date())
         self.tags = set([str(tag).decode(DB_ENC) for tag in thread.get_tags()])
@@ -226,7 +226,7 @@ class Message:
         self.dbman = dbman
         self.mid = msg.get_message_id()
         self.datetime = datetime.fromtimestamp(msg.get_date())
-        self.sender = msg.get_header('From').decode(DB_ENC)
+        self.sender = str(msg.get_header('From')).decode(DB_ENC)
         self.strrep = str(msg).decode(DB_ENC)
         self.email = None  # will be read upon first use
         self.tags = set([str(tag).decode(DB_ENC) for tag in msg.get_tags()])
