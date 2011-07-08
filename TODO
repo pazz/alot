@@ -33,6 +33,7 @@ taglist buffer
 db:
   * db.Message.get_replies() needs fixing. see 
     http://notmuch.198994.n3.nabble.com/python-get-all-messages-of-a-thread-tt2996080.html
+  * relay matched-flag to msg objects (to open only matches messages in thread buffer)
 
 ui.commandline:
   possible cmds:
@@ -42,6 +43,8 @@ ui.commandline:
 ui:
   * current bindings in header like mutt?
   * notifier class called by ui.notify()? This would enable different subclasses to implement growl/libnotify or just internal popups
+  * message widgets should get their info exclusively from alot.db.message, not indirectly via an email object.
+    the benefit is that switching to notmuch's mimepart api later will be painless
 
 general
   * gg, g5j.. combos like in vim
