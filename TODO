@@ -23,6 +23,7 @@ singleThread buffer:
   * proper display of email body: fold stuff
   * open unread mails? focus first unread/query matched?
   * text search: tag through occurences, highlight etc
+  * toggle full header
 
 taglist buffer
   * interactively filter tagcloud
