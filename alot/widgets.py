@@ -293,6 +293,11 @@ class MessageWidget(urwid.WidgetWrap):
             self.displayed_list.insert(1, hw)
         self.rebuild()
 
+    def toggle_full_header(self):
+        """toggles if message headers are shown"""
+        hw = self._get_header_widget().widget_list[-1]
+        hw.toggle_all()
+
     def toggle_body(self):
         """toggles if message body is shown"""
         bw = self._get_body_widget()
@@ -306,12 +311,15 @@ class MessageWidget(urwid.WidgetWrap):
     def selectable(self):
         return True
 
+    #TODO: this needs to go in favour of a binding in the buffer!
     def keypress(self, size, key):
         if key == 'h':
             self.toggle_header()
         elif key == 'enter':
             self.toggle_header()
             self.toggle_body()
+        elif key == 'H':
+            self.toggle_full_header()
         else:
             return self.pile.keypress(size, key)
 
@@ -343,11 +351,7 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         prefix = "-  "
         if self.folded:
             prefix = '+  '
-        aname, aaddress = self.message.get_author()
-        if not aname:
-            aname = aaddress
-        return "%s%s (%s)" % (prefix, aname,
-                              pretty_datetime(self.message.datetime))
+        return "%s%s" % (prefix, str(self.message))
 
     def toggle_folded(self):
         self.folded = not self.folded
@@ -374,18 +378,33 @@ class MessageHeaderWidget(urwid.AttrMap):
         :type state: list(str)
         """
         self.eml = eml
-        headerlines = []
+        self.display_all = False
+        self.displayed_headers = displayed_headers
+        headerlines = self._build_lines(displayed_headers)
+        urwid.AttrMap.__init__(self, urwid.Pile(headerlines), 'message_header')
+
+    def toggle_all(self):
+        if self.display_all:
+            self.display_all = False
+            headerlines = self._build_lines(self.displayed_headers)
+        else:
+            self.display_all = True
+            headerlines = self._build_lines(None)
+        self._w = urwid.Pile(headerlines)
+
+    def _build_lines(self, displayed):
         max_key_len = 1
-        if not displayed_headers:
-            displayed_headers = eml.keys()
-        for key in displayed_headers:
-            if key in eml:
+        headerlines = []
+        if not displayed:
+            displayed = self.eml.keys()
+        for key in displayed:
+            if key in self.eml:
                 if len(key) > max_key_len:
                     max_key_len = len(key)
-        for key in displayed_headers:
+        for key in displayed:
             #todo: parse from,cc,bcc seperately into name-addr-widgets
-            if key in eml:
-                valuelist = email.header.decode_header(eml[key])
+            if key in self.eml:
+                valuelist = email.header.decode_header(self.eml[key])
                 value = ''
                 for v, enc in valuelist:
                     if enc:
@@ -400,7 +419,7 @@ class MessageHeaderWidget(urwid.AttrMap):
                 valuew = urwid.Text(('message_header_value', value))
                 line = urwid.Columns([keyw, valuew])
                 headerlines.append(line)
-        urwid.AttrMap.__init__(self, urwid.Pile(headerlines), 'message_header')
+        return headerlines
 
     def selectable(self):
         return True
@@ -439,7 +458,10 @@ class MessageBodyWidget(urwid.AttrMap):
                     tmpfile = tempfile.NamedTemporaryFile(delete=False,
                                                           suffix='.html')
                     #write payload to tmpfile
-                    tmpfile.write(raw_payload.encode('utf8'))
+                    if part.get_content_maintype() == 'text':
+                        tmpfile.write(raw_payload.encode('utf8'))
+                    else:
+                        tmpfile.write(raw_payload)
                     #create and call external command
                     cmd = handler % tmpfile.name
                     rendered_payload = cmd_output(cmd)
@@ -448,7 +470,7 @@ class MessageBodyWidget(urwid.AttrMap):
                     os.unlink(tmpfile.name)
                     if rendered_payload:  # handler had output
                         bodytxt += rendered_payload.decode('utf8').strip()
-                    elif part.get_content_maintype() == 'text':  # revert to plaintext
+                    elif part.get_content_maintype() == 'text':
                         bodytxt += raw_payload
                     # else drop
         urwid.AttrMap.__init__(self, urwid.Text(bodytxt), 'message_body')

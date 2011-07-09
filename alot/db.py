@@ -110,25 +110,36 @@ class DBManager:
         threads = self.query(querystring).search_threads()
         return [thread.get_thread_id() for thread in threads]
 
-    def find_message(self, mid, writeable=False):
-        db = Database(path=self.path)
-        if writeable:
-            query = self.query('id:' + mid, writeable=writeable)
-            #TODO raise exceptions here in 0<case msgcount>1
-            msg = query.search_messages().next()
-        else:
-            msg = db.find_message(mid)
-        return msg
+    #def find_message(self, mid):
+    #    db = Database(path=self.path)
+    #    query = self.query('id:' + mid)
+    #    try:
+    #        thread = query.search_threads().next()
+    #        def search_msg_in_replies(mid, msg):
+    #            if msg.get_message_id() == mid:
+    #                return msg
+    #            else:
+    #                replies = msg.get_replies()
+    #                if replies is not None:
+    #                    for r in replies:
+    #                        return search_msg_in_replies(mid, r)
 
-    def get_message(self, mid):
-        """returns the message with the given id and wrapps it in a Message
+    #        for m in thread.get_toplevel_messages():
+    #            return searchformsg(mid, msg)
+    #    except:
+    #        return None
+    #        #TODO raise exceptions here in 0<case msgcount>1
+    #        msg = query.search_messages().next()
 
-        :param mid: the message id of the message to look up
-        :type mid: str.
-        :returns:  Message -- the message.
+    #def get_message(self, mid):
+    #    """returns the message with the given id and wrapps it in a Message
 
-        """
-        return Message(self, self.find_message(mid))
+    #    :param mid: the message id of the message to look up
+    #    :type mid: str.
+    #    :returns:  Message -- the message.
+
+    #    """
+    #    return Message(self, self.find_message(mid))
 
     def get_thread(self, tid):
         query = self.query('thread:' + tid)
@@ -165,6 +176,7 @@ class Thread:
         self.oldest = datetime.fromtimestamp(thread.get_oldest_date())
         self.newest = datetime.fromtimestamp(thread.get_newest_date())
         self.tags = set([str(tag).decode(DB_ENC) for tag in thread.get_tags()])
+        self._messages = None  # will be read on demand
 
     def get_thread_id(self):
         return self.tid
@@ -195,7 +207,7 @@ class Thread:
         return self.subject
 
     def _build_messages(self, acc, msg):
-        M = Message(self.dbman, msg)
+        M = Message(self.dbman, msg, thread=self)
         acc[M] = {}
         r = msg.get_replies()
         if r is not None:
@@ -203,13 +215,14 @@ class Thread:
                 self._build_messages(acc[M], m)
 
     def get_messages(self):
-        query = self.dbman.query('thread:' + self.tid)
-        thread = query.search_threads().next()
+        if not self._messages:
+            query = self.dbman.query('thread:' + self.tid)
+            thread = query.search_threads().next()
 
-        messages = {}
-        for m in thread.get_toplevel_messages():
-            self._build_messages(messages, m)
-        return messages
+            self._messages = {}
+            for m in thread.get_toplevel_messages():
+                self._build_messages(self._messages, m)
+        return self._messages
 
     def get_newest_date(self):
         return self.newest
@@ -220,53 +233,112 @@ class Thread:
     def get_total_messages(self):
         return self.total_messages
 
+    def get_replies_to(self, msg):
+        msgs = self.get_messages()
+        if msg in msgs:
+            return msgs[msg]
+        else:
+            return None
+
 
 class Message:
-    def __init__(self, dbman, msg):
-        self.dbman = dbman
-        self.mid = msg.get_message_id()
-        self.datetime = datetime.fromtimestamp(msg.get_date())
-        self.sender = str(msg.get_header('From')).decode(DB_ENC)
-        self.strrep = str(msg).decode(DB_ENC)
-        self.email = None  # will be read upon first use
-        self.tags = set([str(tag).decode(DB_ENC) for tag in msg.get_tags()])
+    def __init__(self, dbman, msg, thread=None):
+        self._dbman = dbman
+        self._message_id = msg.get_message_id()
+        self._thread_id = msg.get_thread_id()
+        self._thread = thread
+        self._datetime = datetime.fromtimestamp(msg.get_date())
+        self._filename = str(msg.get_filename()).decode(DB_ENC)
+        self._from = str(msg.get_header('From')).decode(DB_ENC)
+        self._email = None  # will be read upon first use
+        self._tags = set([str(tag).decode(DB_ENC) for tag in msg.get_tags()])
 
     def __str__(self):
-        return self.strrep
+        """prettyprint the message"""
+        aname, aaddress = self.get_author()
+        if not aname:
+            aname = aaddress
+        #tags = ','.join(self.get_tags())
+        return "%s (%s)" % (aname, self.get_datestring())
 
-    def get_replies(self):
-        #this doesn't work. see Note in doc -> more work here.
-        return [self.dbman.find_message(mid) for mid in self.replies]
+    def __hash__(self):
+        """Implement hash(), so we can use Message() sets"""
+        return hash(self._message_id)
 
-    def get_author(self):
-        return helper.parse_addr(self.sender)
-
-    def get_tags(self):
-        return list(self.tags)
+    def __cmp__(self, other):
+        """Implement cmp(), so we can compare Message()s"""
+        res = cmp(self.get_message_id(), other.get_message_id())
+        return res
 
     def get_email(self):
-        if not self.email:
-            self.email = self.read_mail(self.get_filename())
-        return self.email
-
-    def read_mail(self, filename):
-        try:
-            f_mail = open(filename)
-        except EnvironmentError:
-            eml = email.message_from_string('Unable to open the file')
-        else:
-            eml = email.message_from_file(f_mail)
+        """returns email.Message representing this message"""
+        if not self._email:
+            f_mail = open(self.get_filename())
+            self._email = email.message_from_file(f_mail)
             f_mail.close()
-        return eml
+        return self._email
 
-    def add_tags(self, tags):
-        self.dbman.tag('id:' + self.mid, tags)
-        self.tags = self.tags.union(tags)
-
-    def remove_tags(self, tags):
-        self.dbman.untag('id:' + self.mid, tags)
-        self.tags = self.tags.difference(tags)
+    def get_date(self):
+        """returns date as datetime obj"""
+        return self._datetime
 
     def get_filename(self):
-            m = self.dbman.find_message(self.mid)
-            return m.get_filename()
+        """returns absolute path of messages location"""
+        return self._filename
+
+    def get_message_id(self):
+        """returns messages id (a string)"""
+        return self._message_id
+
+    def get_thread_id(self):
+        """returns id of messages thread (a string)"""
+        return self._thread_id
+
+    def get_message_parts(self):
+        """returns a list of all body parts of this message"""
+        out = []
+        for msg in self._get_email().walk():
+            if not msg.is_multipart():
+                out.append(msg)
+        return out
+
+    def get_tags(self):
+        """returns tags attached to this message as list of stings"""
+        return list(self._tags)
+
+    def get_thread(self):
+        """returns the thread this msg belongs to as alot.db.Thread object"""
+        if not self._thread:
+            self._thread = seld._dbman.get_thread(self._thread_id)
+        return self._thread
+
+    def get_replies(self):
+        """returns a list of replies to this msg"""
+        t = self.get_tread()
+        return t.get_replies_to(self)
+
+    def get_datestring(self, pretty=True):
+        """returns formated datestring in sup-style, eg: 'Yest.3pm'"""
+        return helper.pretty_datetime(self._datetime)
+
+    def get_author(self):
+        """returns realname and address pair of this messages author"""
+        return email.Utils.parseaddr(self._from)
+
+    def add_tags(self, tags):
+        """adds tags from message
+
+        :param tags: tags to add
+        :type tags: list of str
+        """
+        self._dbman.tag('id:' + self._message_id, tags)
+        self._tags = self._tags.union(tags)
+
+    def remove_tags(self, tags):
+        """remove tags from message
+
+        :param tags: tags to remove
+        :type tags: list of str
+        """
+        self._dbman.untag('id:' + self._message_id, tags)
+        self._tags = self._tags.difference(tags)

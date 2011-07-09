@@ -1,5 +1,15 @@
+rewrite widgets:
+  * write example howto use treewidgets
+  * attachments as TW
+  * rewrite messagewidget
+
+remove cmdline interface in favour of simple commands -> interpret args -> instanciate alot.command.Command 
+
 Commands
   * how should we do mappings? via settings, 'set' in the commandline interpreter or both?
+    use global commandmap to map urwid actions: 'activate/cursor down etc'. only those are interpreted by widgets!
+    all other will be read from buffer.bindings: in b.keypress, look for local, then global mappings, then return
+    widget.keypress (interprets urwid actions)
   * help strings in commands and help buffer
   * undo for commands
 
@@ -34,6 +44,7 @@ db:
   * db.Message.get_replies() needs fixing. see 
     http://notmuch.198994.n3.nabble.com/python-get-all-messages-of-a-thread-tt2996080.html
   * relay matched-flag to msg objects (to open only matches messages in thread buffer)
+  * all interpretation of the mail shoud happen in db.Message
 
 ui.commandline:
   possible cmds:
@@ -47,7 +58,7 @@ ui:
     the benefit is that switching to notmuch's mimepart api later will be painless
 
 general
-  * gg, g5j.. combos like in vim
+  * gg, g5j.. combos like in vim: input->stack; rm timeoutalarm; try to interpret stack; if this fails, wait for more; on alarm remove stack
   * pydoc/sphinx
   * update dependencies in setup.py. Do we have to include all these?
    cmd
