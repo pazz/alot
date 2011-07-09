@@ -211,7 +211,7 @@ class Thread:
     def _build_messages(self, acc, msg):
         M = Message(self.dbman, msg, thread=self)
         acc[M] = {}
-        self._messages_newds[M]= []
+        self._messages_newds[M] = []
 
         r = msg.get_replies()
         if r is not None:
@@ -374,10 +374,15 @@ class Attachment:
 
     def __init__(self, emailpart):
         """
-        :param emailpart: a non-multipart part of the email that constitutes the attachment
+        :param emailpart: a non-multipart email that is the attachment
         :type emailpart: email.message.Message
         """
         self.part = emailpart
+
+    def __str__(self):
+        return '%s:%s (%s)' % (self.get_content_type(),
+                               self.get_filename(),
+                               self.get_size())
 
     def get_filename(self):
         """return the filename, extracted from content-disposition header"""
@@ -389,17 +394,17 @@ class Attachment:
 
     def get_size(self):
         """returns attachments size as human-readable string"""
-        size_in_kbyte = len(self.part.get_payload())/1024
+        size_in_kbyte = len(self.part.get_payload()) / 1024
         if size_in_kbyte > 1024:
-            return "%.1fM" % size_in_kbyte/1024.0
+            return "%.1fM" % (size_in_kbyte / 1024.0)
         else:
             return "%dK" % size_in_kbyte
 
     def save(self, path):
-        """save the attachment to disk. Uses self.get_filename if path is a directory"""
+        """save the attachment to disk. Uses self.get_filename
+        in case path is a directory"""
         if os.path.isdir(path):
-            path = os.path.join(path,self.get_filename())
-        FILE = open(path,"w")
+            path = os.path.join(path, self.get_filename())
+        FILE = open(path, "w")
         FILE.write(self.part.get_payload(decode=True))
         FILE.close()
-

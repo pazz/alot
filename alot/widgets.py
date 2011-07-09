@@ -182,6 +182,7 @@ class PromptWidget(urwid.AttrMap):
 class MessageWidget(urwid.WidgetWrap):
     """flow widget that displays a single message"""
     def __init__(self, message, even=False, unfold_body=False,
+                 unfold_attachments=False,
                  unfold_header=False, depth=0, bars_at=[]):
         """
         :param message: the message to display
@@ -206,6 +207,7 @@ class MessageWidget(urwid.WidgetWrap):
         # build the summary line, header and body will be created on demand
         self.sumline = self._build_sum_line()
         self.headerw = None
+        self.attachmentw = None
         self.bodyw = None
         self.displayed_list = [self.sumline]
         if unfold_header:
@@ -213,6 +215,8 @@ class MessageWidget(urwid.WidgetWrap):
         if unfold_body:
             self.displayed_list.append(self.get_body_widget())
 
+        if unfold_attachments:
+            self.displayed_list.append(self.get_attachment_widget())
         #build pile and call super constructor
         self.pile = urwid.Pile(self.displayed_list)
         urwid.WidgetWrap.__init__(self, self.pile)
@@ -260,6 +264,20 @@ class MessageWidget(urwid.WidgetWrap):
             self.headerw = urwid.Columns(cols, box_columns=bc)
         return self.headerw
 
+    def _get_attachment_widget(self):
+        if self.message.get_attachments() and not self.attachmentw:
+            lines = []
+            for a in self.message.get_attachments():
+                cols = [AttachmentWidget(a)]
+                bc = list()
+                if self.depth:
+                    cols.insert(0, self._get_spacer(self.bars_at[1:]))
+                    bc.append(0)
+                lines.append(urwid.Columns(cols, box_columns=bc))
+            self.attachmentw = urwid.Pile(lines)
+        return self.attachmentw
+
+        attachments = message.get_attachments()
     def _get_body_widget(self):
         """creates/returns the widget that displays the mail body"""
         if not self.bodyw:
@@ -283,6 +301,16 @@ class MessageWidget(urwid.WidgetWrap):
 
         spacer = urwid.Columns(prefixchars, box_columns=range(length))
         return ('fixed', length, spacer)
+
+    def toggle_attachments(self):
+        """toggles if message headers are shown"""
+        hw = self._get_attachment_widget()
+        if hw:
+            if hw in self.displayed_list:
+                self.displayed_list.remove(hw)
+            else:
+                self.displayed_list.insert(1, hw)
+            self.rebuild()
 
     def toggle_header(self):
         """toggles if message headers are shown"""
@@ -316,6 +344,7 @@ class MessageWidget(urwid.WidgetWrap):
         if key == 'h':
             self.toggle_header()
         elif key == 'enter':
+            self.toggle_attachments()
             self.toggle_header()
             self.toggle_body()
         elif key == 'H':
@@ -474,6 +503,17 @@ class MessageBodyWidget(urwid.AttrMap):
                         bodytxt += raw_payload
                     # else drop
         urwid.AttrMap.__init__(self, urwid.Text(bodytxt), 'message_body')
+
+    def selectable(self):
+        return True
+
+    def keypress(self, size, key):
+        return key
+
+class AttachmentWidget(urwid.WidgetWrap):
+    def __init__(self, attachment):
+        self.attachment = attachment
+        urwid.WidgetWrap.__init__(self, urwid.Text(str(attachment)))
 
     def selectable(self):
         return True
