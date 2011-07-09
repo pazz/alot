@@ -38,13 +38,23 @@ class DBManager:
     database specific functions.
     """
     def __init__(self, path=None, ro=False):
+        """
+        :param path: absolute path to the notmuch index
+        :type path: str
+        :param ro: open the index in read-only mode
+        :type ro: boolean
+        """
         self.ro = ro
         self.path = path
         self.writequeue = deque([])
 
     def flush(self):
         """
-        tries to flush all queued write commands to the index
+        tries to flush all queued write commands to the index. Raises
+        :exc:`DatabaseError` if in read only mode. If the index is locked, an
+        alarm will be scheduled that calls this method again.
+
+        :exception: :exc:`NotmuchError`
         """
         if self.ro:
             raise DatabaseError('Readonly mode!')
@@ -83,7 +93,8 @@ class DBManager:
 
     def tag(self, querystring, tags, remove_rest=False):
         """
-        add tags to all matching messages
+        add tags to all matching messages. Raises
+        :exc:`DatabaseError` if in read only mode.
 
         :param querystring: notmuch search string
         :type querystring: str
@@ -91,6 +102,7 @@ class DBManager:
         :type tags: list of str
         :param remove_rest: remove tags from matching messages before tagging
         :type remove_rest: boolean
+        :exception: :exc:`NotmuchError`
         """
         if self.ro:
             raise DatabaseError('Readonly mode!')
@@ -102,12 +114,14 @@ class DBManager:
 
     def untag(self, querystring, tags):
         """
-        add tags to all matching messages
+        add tags to all matching messages. Raises
+        :exc:`DatabaseError` if in read only mode.
 
         :param querystring: notmuch search string
         :type querystring: str
         :param tags: a list of tags to be added
         :type tags: list of str
+        :exception: :exc:`NotmuchError`
         """
         if self.ro:
             raise DatabaseError('Readonly mode!')
@@ -115,52 +129,25 @@ class DBManager:
         self.flush()
 
     def count_messages(self, querystring):
+        """returns number of messages that match querystring"""
         return self.query(querystring).count_messages()
 
     def search_thread_ids(self, querystring):
+        """returns the ids of all threads that match the querystring
+        This copies! all integer thread ids into an new list."""
         threads = self.query(querystring).search_threads()
         return [thread.get_thread_id() for thread in threads]
 
-    #def find_message(self, mid):
-    #    db = Database(path=self.path)
-    #    query = self.query('id:' + mid)
-    #    try:
-    #        thread = query.search_threads().next()
-    #        def search_msg_in_replies(mid, msg):
-    #            if msg.get_message_id() == mid:
-    #                return msg
-    #            else:
-    #                replies = msg.get_replies()
-    #                if replies is not None:
-    #                    for r in replies:
-    #                        return search_msg_in_replies(mid, r)
-
-    #        for m in thread.get_toplevel_messages():
-    #            return searchformsg(mid, msg)
-    #    except:
-    #        return None
-    #        #TODO raise exceptions here in 0<case msgcount>1
-    #        msg = query.search_messages().next()
-
-    #def get_message(self, mid):
-    #    """returns the message with the given id and wrapps it in a Message
-
-    #    :param mid: the message id of the message to look up
-    #    :type mid: str.
-    #    :returns:  Message -- the message.
-
-    #    """
-    #    return Message(self, self.find_message(mid))
-
     def get_thread(self, tid):
+        """returns the thread with given id as alot.db.Thread object"""
         query = self.query('thread:' + tid)
         #TODO raise exceptions here in 0<case msgcount>1
         return Thread(self, query.search_threads().next())
 
     def get_all_tags(self):
-        mode = Database.MODE.READ_ONLY
-        db = Database(path=self.path, mode=mode)
-        return [tag for tag in db.get_all_tags()]
+        """returns all tags as list of strings"""
+        db = Database(path=self.path)
+        return [tag.decode(DB_ENC) for tag in db.get_all_tags()]
 
     def query(self, querystring):
         """creates notmuch.Query objects on demand
