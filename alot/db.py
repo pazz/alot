@@ -27,6 +27,9 @@ import helper
 
 DB_ENC = 'utf8'
 
+class DatabaseError(Exception):
+    pass
+
 
 class DBManager:
     """
@@ -43,11 +46,14 @@ class DBManager:
         """
         tries to flush all queued write commands to the index
         """
+        if self.ro:
+            raise DatabaseError('Readonly mode!')
         if self.writequeue:
             try:
                 mode = Database.MODE.READ_WRITE
                 db = Database(path=self.path, mode=mode)
             except NotmuchError:
+                # TODO: decapsulate ui here. maybe use self.eventloop here
                 if self.ui:  # let the mainloop call us again after timeout
                     timeout = config.getint('general', 'flush_retry_timeout')
                     self.ui.update()
@@ -86,6 +92,8 @@ class DBManager:
         :param remove_rest: remove tags from matching messages before tagging
         :type remove_rest: boolean
         """
+        if self.ro:
+            raise DatabaseError('Readonly mode!')
         if remove_rest:
             self.writequeue.append(('set', querystring, tags))
         else:
@@ -101,6 +109,8 @@ class DBManager:
         :param tags: a list of tags to be added
         :type tags: list of str
         """
+        if self.ro:
+            raise DatabaseError('Readonly mode!')
         self.writequeue.append(('untag', querystring, tags))
         self.flush()
 
