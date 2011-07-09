@@ -185,7 +185,6 @@ class Thread:
         """
         self._dbman = dbman
         self._id = thread.get_thread_id()
-        self.strrep = str(thread).decode(DB_ENC)
         self._total_messages = thread.get_total_messages()
         self._authors = str(thread.get_authors()).decode(DB_ENC)
         self._subject = str(thread.get_subject()).decode(DB_ENC)
@@ -194,6 +193,9 @@ class Thread:
         self._tags = set([str(t).decode(DB_ENC) for t in thread.get_tags()])
         self._messages = None  # will be read on demand
         self._messages_newds = {}
+
+    def __str__(self):
+        return "thread:%s: %s" % (self._id, self.get_subject())
 
     def get_thread_id(self):
         """returns id of this thread"""
