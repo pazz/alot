@@ -278,6 +278,7 @@ class MessageWidget(urwid.WidgetWrap):
         return self.attachmentw
 
         attachments = message.get_attachments()
+
     def _get_body_widget(self):
         """creates/returns the widget that displays the mail body"""
         if not self.bodyw:
@@ -510,10 +511,12 @@ class MessageBodyWidget(urwid.AttrMap):
     def keypress(self, size, key):
         return key
 
+
 class AttachmentWidget(urwid.WidgetWrap):
     def __init__(self, attachment):
         self.attachment = attachment
-        widget = urwid.AttrMap(urwid.Text(unicode(attachment)), 'message_attachment')
+        widget = urwid.AttrMap(urwid.Text(unicode(attachment)),
+                               'message_attachment')
         urwid.WidgetWrap.__init__(self, widget)
 
     def selectable(self):

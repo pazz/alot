@@ -260,7 +260,7 @@ class TagListBuffer(Buffer):
     def get_selected_tag(self):
         (attrwidget, pos) = self.taglist.get_focus()
         tagwidget = attrwidget.original_widget
-        return str(tagwidget.get_tag())
+        return tagwidget.get_tag()
 
 
 class EnvelopeBuffer(Buffer):

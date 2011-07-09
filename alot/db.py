@@ -27,6 +27,7 @@ import helper
 
 DB_ENC = 'utf8'
 
+
 class DatabaseError(Exception):
     pass
 
@@ -79,14 +80,14 @@ class DBManager:
                     msg.freeze()
                     if cmd == 'tag':
                         for tag in tags:
-                            msg.add_tag(tag)
+                            msg.add_tag(tag.encode(DB_ENC))
                     if cmd == 'set':
                         msg.remove_all_tags()
                         for tag in tags:
-                            msg.add_tag(tag)
+                            msg.add_tag(tag.encode(DB_ENC))
                     elif cmd == 'untag':
                         for tag in tags:
-                            msg.remove_tag(tag)
+                            msg.remove_tag(tag.encode(DB_ENC))
                     msg.thaw()
             if self.ui:  # trigger status update
                 self.ui.update()
