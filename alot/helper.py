@@ -31,16 +31,15 @@ def shorten(string, maxlen):
 
 
 def pretty_datetime(d):
-    string = ""
     today = date.today()
     if today == d.date():
-        string = d.strftime('%H:%M%P')
+        string = unicode(d.strftime('%H:%M%P'))
     elif d.date() == today - timedelta(1):
-        string = 'Yest.%2d' % d.hour + d.strftime('%P')
+        string = unicode('Yest.%2d' % d.hour + d.strftime('%P'))
     elif d.year != today.year:
-        string = d.strftime('%b %Y')
+        string = unicode(d.strftime('%b %Y'))
     else:
-        string = d.strftime('%b %d')
+        string = unicode(d.strftime('%b %d'))
     return string
 
 
@@ -52,8 +51,4 @@ def cmd_output(command_line):
         return None
     except OSError:
         return None
-    return output
-
-
-def parse_addr(addr):
-    return email.Utils.parseaddr(addr)
+    return unicode(output)
