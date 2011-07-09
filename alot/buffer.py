@@ -180,7 +180,7 @@ class SingleThreadBuffer(Buffer):
         }
 
     def __str__(self):
-        return '%s, (%d)' % (self.thread.subject, self.message_count)
+        return '%s, (%d)' % (self.thread.get_subject(), self.message_count)
 
     def _build_pile(self, acc, childcount, msg, replies, parent, depth=0):
         acc.append((parent, depth, msg))

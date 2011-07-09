@@ -167,49 +167,75 @@ class DBManager:
 
 class Thread:
     def __init__(self, dbman, thread):
-        self.dbman = dbman
-        self.tid = thread.get_thread_id()
+        """
+        :param dbman: db manager that is used for further lookups
+        :type dbman: alot.db.DBManager
+        :param msg: the wrapped thread
+        :type msg: notmuch.database.Thread
+        """
+        self._dbman = dbman
+        self._id = thread.get_thread_id()
         self.strrep = str(thread).decode(DB_ENC)
-        self.total_messages = thread.get_total_messages()
-        self.topmessages = [m.get_message_id() for m in thread.get_toplevel_messages()]
-        self.authors = str(thread.get_authors()).decode(DB_ENC)
-        self.subject = str(thread.get_subject()).decode(DB_ENC)
-        self.oldest = datetime.fromtimestamp(thread.get_oldest_date())
-        self.newest = datetime.fromtimestamp(thread.get_newest_date())
-        self.tags = set([str(tag).decode(DB_ENC) for tag in thread.get_tags()])
+        self._total_messages = thread.get_total_messages()
+        self._authors = str(thread.get_authors()).decode(DB_ENC)
+        self._subject = str(thread.get_subject()).decode(DB_ENC)
+        self._oldest_date = datetime.fromtimestamp(thread.get_oldest_date())
+        self._newest_date = datetime.fromtimestamp(thread.get_newest_date())
+        self._tags = set([str(t).decode(DB_ENC) for t in thread.get_tags()])
         self._messages = None  # will be read on demand
         self._messages_newds = {}
 
     def get_thread_id(self):
-        return self.tid
+        """returns id of this thread"""
+        return self._id
 
     def get_tags(self):
-        return list(self.tags)
+        """returns tags attached to this thread as list of strings"""
+        return list(self._tags)
 
     def add_tags(self, tags):
-        newtags = set(tags).difference(self.tags)
+        """adds tags to all messages in this thread
+
+        :param tags: tags to add
+        :type tags: list of str
+        """
+        newtags = set(tags).difference(self._tags)
         if newtags:
-            self.dbman.tag('thread:' + self.tid, newtags)
-            self.tags = self.tags.union(newtags)
+            self._dbman.tag('thread:' + self._id, newtags)
+            self._tags = self._tags.union(newtags)
 
     def remove_tags(self, tags):
-        rmtags = set(tags).intersection(self.tags)
+        """remove tags from all messages in this thread
+
+        :param tags: tags to remove
+        :type tags: list of str
+        """
+        rmtags = set(tags).intersection(self._tags)
         if rmtags:
-            self.dbman.untag('thread:' + self.tid, tags)
-            self.tags = self.tags.difference(rmtags)
+            self._dbman.untag('thread:' + self._id, tags)
+            self._tags = self._tags.difference(rmtags)
 
     def set_tags(self, tags):
-        self.dbman.tag('thread:' + self.tid, tags, remove_rest=True)
-        self.tags = set(tags)
+        """set tags of all messages in this thread. This removes all tags and
+        attaches the given ones in one step.
 
-    def get_authors(self):
-        return self.authors
+        :param tags: tags to add
+        :type tags: list of str
+        """
+        self._dbman.tag('thread:' + self._id, tags, remove_rest=True)
+        self._tags = set(tags)
+
+    def get_authors(self):  # TODO: make this return a list of strings
+        """returns all authors in this thread"""
+        return self._authors
 
     def get_subject(self):
-        return self.subject
+        """returns this threads subject"""
+        return self._subject
 
+    # TODO: come up with a nicer structure for thread tree
     def _build_messages(self, acc, msg):
-        M = Message(self.dbman, msg, thread=self)
+        M = Message(self._dbman, msg, thread=self)
         acc[M] = {}
         self._messages_newds[M] = []
 
@@ -217,12 +243,13 @@ class Thread:
         if r is not None:
             for m in r:
                 self._build_messages(acc[M], m)
-                self._messages_newds[M].append(Message(self.dbman, msg, thread=self))
+                self._messages_newds[M].append(Message(self._dbman,
+                                                       msg, thread=self))
 
     def get_messages(self):
         #TODO: hack
         if not self._messages_newds:
-            query = self.dbman.query('thread:' + self.tid)
+            query = self._dbman.query('thread:' + self._id)
             thread = query.search_threads().next()
 
             self._messages = {}
@@ -232,7 +259,7 @@ class Thread:
 
     def get_message_tree(self):
         if not self._messages:
-            query = self.dbman.query('thread:' + self.tid)
+            query = self._dbman.query('thread:' + self._id)
             thread = query.search_threads().next()
 
             self._messages = {}
@@ -240,27 +267,44 @@ class Thread:
                 self._build_messages(self._messages, m)
         return self._messages
 
-    def get_newest_date(self):
-        return self.newest
-
-    def get_oldest_date(self):
-        return self.oldest
-
-    def get_total_messages(self):
-        return self.total_messages
-
+    # TODO: new ds
     def get_replies_to(self, msg):
+        """returns all replies to the given message
+
+        :param msg: the parent message, must be contained in thread
+        :type msg: alot.sb.Message
+        """
         msgs = self.get_messages_tree()
         if msg in msgs:
             return msgs[msg].keys()
         else:
             return None
 
+    def get_newest_date(self):
+        """returns date header of newest message in this thread as datetime"""
+        return self._newest_date
+
+    def get_oldest_date(self):
+        """returns date header of oldest message in this thread as datetime"""
+        return self._oldest_date
+
+    def get_total_messages(self):
+        """returns number of contained messages"""
+        return self._total_messages
+
 
 class Message:
     def __init__(self, dbman, msg, thread=None):
+        """
+        :param dbman: db manager that is used for further lookups
+        :type dbman: alot.db.DBManager
+        :param msg: the wrapped message
+        :type msg: notmuch.database.Message
+        :param thread: this messages thread
+        :type thread: alot.db.thread
+        """
         self._dbman = dbman
-        self._message_id = msg.get_message_id()
+        self._id = msg.get_message_id()
         self._thread_id = msg.get_thread_id()
         self._thread = thread
         self._datetime = datetime.fromtimestamp(msg.get_date())
@@ -280,7 +324,7 @@ class Message:
 
     def __hash__(self):
         """Implement hash(), so we can use Message() sets"""
-        return hash(self._message_id)
+        return hash(self._id)
 
     def __cmp__(self, other):
         """Implement cmp(), so we can compare Message()s"""
@@ -305,7 +349,7 @@ class Message:
 
     def get_message_id(self):
         """returns messages id (a string)"""
-        return self._message_id
+        return self._id
 
     def get_thread_id(self):
         """returns id of messages thread (a string)"""
@@ -320,7 +364,7 @@ class Message:
         return out
 
     def get_tags(self):
-        """returns tags attached to this message as list of stings"""
+        """returns tags attached to this message as list of strings"""
         return list(self._tags)
 
     def get_thread(self):
@@ -343,12 +387,12 @@ class Message:
         return email.Utils.parseaddr(self._from)
 
     def add_tags(self, tags):
-        """adds tags from message
+        """adds tags to message
 
         :param tags: tags to add
         :type tags: list of str
         """
-        self._dbman.tag('id:' + self._message_id, tags)
+        self._dbman.tag('id:' + self._id, tags)
         self._tags = self._tags.union(tags)
 
     def remove_tags(self, tags):
@@ -357,7 +401,7 @@ class Message:
         :param tags: tags to remove
         :type tags: list of str
         """
-        self._dbman.untag('id:' + self._message_id, tags)
+        self._dbman.untag('id:' + self._id, tags)
         self._tags = self._tags.difference(tags)
 
     def get_attachments(self):
