@@ -100,7 +100,7 @@ class ThreadlineWidget(urwid.AttrMap):
 class BufferlineWidget(urwid.Text):
     def __init__(self, buffer):
         self.buffer = buffer
-        line = '[' + buffer.typename + '] ' + str(buffer)
+        line = '[' + buffer.typename + '] ' + unicode(buffer)
         urwid.Text.__init__(self, line, wrap='clip')
 
     def selectable(self):
@@ -380,7 +380,7 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         prefix = "-  "
         if self.folded:
             prefix = '+  '
-        return "%s%s" % (prefix, str(self.message))
+        return u"%s%s" % (prefix, unicode(self.message))
 
     def toggle_folded(self):
         self.folded = not self.folded
@@ -513,7 +513,7 @@ class MessageBodyWidget(urwid.AttrMap):
 class AttachmentWidget(urwid.WidgetWrap):
     def __init__(self, attachment):
         self.attachment = attachment
-        urwid.WidgetWrap.__init__(self, urwid.Text(str(attachment)))
+        urwid.WidgetWrap.__init__(self, urwid.Text(unicode(attachment)))
 
     def selectable(self):
         return True
