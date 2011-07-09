@@ -6,7 +6,7 @@ under the terms of the GNU General Public License as published by the
 Free Software Foundation, either version 3 of the License, or (at your
 option) any later version.
 
-Notmuch is distributed in the hope that it will be useful, but WITHOUT
+Alot is distributed in the hope that it will be useful, but WITHOUT
 ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 for more details.
@@ -20,6 +20,7 @@ from notmuch import Database, NotmuchError
 from datetime import datetime
 import email
 from collections import deque
+import os
 
 from settings import config
 import helper
@@ -177,6 +178,7 @@ class Thread:
         self.newest = datetime.fromtimestamp(thread.get_newest_date())
         self.tags = set([str(tag).decode(DB_ENC) for tag in thread.get_tags()])
         self._messages = None  # will be read on demand
+        self._messages_newds = {}
 
     def get_thread_id(self):
         return self.tid
@@ -209,12 +211,26 @@ class Thread:
     def _build_messages(self, acc, msg):
         M = Message(self.dbman, msg, thread=self)
         acc[M] = {}
+        self._messages_newds[M]= []
+
         r = msg.get_replies()
         if r is not None:
             for m in r:
                 self._build_messages(acc[M], m)
+                self._messages_newds[M].append(Message(self.dbman, msg, thread=self))
 
     def get_messages(self):
+        #TODO: hack
+        if not self._messages_newds:
+            query = self.dbman.query('thread:' + self.tid)
+            thread = query.search_threads().next()
+
+            self._messages = {}
+            for m in thread.get_toplevel_messages():
+                self._build_messages(self._messages, m)
+        return self._messages_newds
+
+    def get_message_tree(self):
         if not self._messages:
             query = self.dbman.query('thread:' + self.tid)
             thread = query.search_threads().next()
@@ -234,9 +250,9 @@ class Thread:
         return self.total_messages
 
     def get_replies_to(self, msg):
-        msgs = self.get_messages()
+        msgs = self.get_messages_tree()
         if msg in msgs:
-            return msgs[msg]
+            return msgs[msg].keys()
         else:
             return None
 
@@ -251,6 +267,7 @@ class Message:
         self._filename = str(msg.get_filename()).decode(DB_ENC)
         self._from = str(msg.get_header('From')).decode(DB_ENC)
         self._email = None  # will be read upon first use
+        self._attachments = None  # will be read upon first use
         self._tags = set([str(tag).decode(DB_ENC) for tag in msg.get_tags()])
 
     def __str__(self):
@@ -342,3 +359,47 @@ class Message:
         """
         self._dbman.untag('id:' + self._message_id, tags)
         self._tags = self._tags.difference(tags)
+
+    def get_attachments(self):
+        if not self._attachments:
+            self._attachments = []
+            for part in self.get_message_parts():
+                if part.get_content_maintype() != 'text':
+                    self._attachments.append(Attachment(part))
+        return self._attachments
+
+
+class Attachment:
+    """represents a single mail attachment"""
+
+    def __init__(self, emailpart):
+        """
+        :param emailpart: a non-multipart part of the email that constitutes the attachment
+        :type emailpart: email.message.Message
+        """
+        self.part = emailpart
+
+    def get_filename(self):
+        """return the filename, extracted from content-disposition header"""
+        return self.part.get_filename()
+
+    def get_content_type(self):
+        """mime type of the attachment"""
+        return self.part.get_content_type()
+
+    def get_size(self):
+        """returns attachments size as human-readable string"""
+        size_in_kbyte = len(self.part.get_payload())/1024
+        if size_in_kbyte > 1024:
+            return "%.1fM" % size_in_kbyte/1024.0
+        else:
+            return "%dK" % size_in_kbyte
+
+    def save(self, path):
+        """save the attachment to disk. Uses self.get_filename if path is a directory"""
+        if os.path.isdir(path):
+            path = os.path.join(path,self.get_filename())
+        FILE = open(path,"w")
+        FILE.write(self.part.get_payload(decode=True))
+        FILE.close()
+

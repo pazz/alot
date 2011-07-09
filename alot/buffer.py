@@ -197,7 +197,7 @@ class SingleThreadBuffer(Buffer):
         messages = list()  # accumulator for 1,
         childcount = {None: 0}  # accumulator for 2)
         # start with all toplevel msgs, then recursively call _build_pile
-        for (msg, replies) in self.thread.get_messages().items():
+        for (msg, replies) in self.thread.get_message_tree().items():
             if msg not in childcount:  # in create entry for current msg
                 childcount[msg] = 0
             self._build_pile(messages, childcount, msg, replies, None)
