@@ -297,7 +297,7 @@ class Message:
     def get_message_parts(self):
         """returns a list of all body parts of this message"""
         out = []
-        for msg in self._get_email().walk():
+        for msg in self.get_email().walk():
             if not msg.is_multipart():
                 out.append(msg)
         return out
@@ -314,7 +314,7 @@ class Message:
 
     def get_replies(self):
         """returns a list of replies to this msg"""
-        t = self.get_tread()
+        t = self.get_thread()
         return t.get_replies_to(self)
 
     def get_datestring(self, pretty=True):
