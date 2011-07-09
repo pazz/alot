@@ -513,7 +513,8 @@ class MessageBodyWidget(urwid.AttrMap):
 class AttachmentWidget(urwid.WidgetWrap):
     def __init__(self, attachment):
         self.attachment = attachment
-        urwid.WidgetWrap.__init__(self, urwid.Text(unicode(attachment)))
+        widget = urwid.AttrMap(urwid.Text(unicode(attachment)), 'message_attachment')
+        urwid.WidgetWrap.__init__(self, widget)
 
     def selectable(self):
         return True
