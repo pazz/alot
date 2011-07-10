@@ -179,8 +179,8 @@ class Thread:
         self._oldest_date = datetime.fromtimestamp(thread.get_oldest_date())
         self._newest_date = datetime.fromtimestamp(thread.get_newest_date())
         self._tags = set([str(t).decode(DB_ENC) for t in thread.get_tags()])
-        self._messages = None  # will be read on demand
-        self._messages_newds = {}
+        self._messages = {}  # this maps messages to its children
+        self._toplevel_messages = []
 
     def __str__(self):
         return "thread:%s: %s" % (self._id, self.get_subject())
@@ -233,52 +233,49 @@ class Thread:
         """returns this threads subject"""
         return self._subject
 
-    # TODO: come up with a nicer structure for thread tree
-    def _build_messages(self, acc, msg):
-        M = Message(self._dbman, msg, thread=self)
-        acc[M] = {}
-        self._messages_newds[M] = []
 
-        r = msg.get_replies()
-        if r is not None:
-            for m in r:
-                self._build_messages(acc[M], m)
-                self._messages_newds[M].append(Message(self._dbman,
-                                                       msg, thread=self))
+    def get_toplevel_messages(self):
+        """returns all toplevel messages as list of :class:`Message`"""
+        if not self._messages:
+            self.get_messages()
+        return self._toplevel_messages
 
     def get_messages(self):
-        #TODO: hack
-        if not self._messages_newds:
-            query = self._dbman.query('thread:' + self._id)
-            thread = query.search_threads().next()
+        """returns all messages in this thread
 
-            self._messages = {}
-            for m in thread.get_toplevel_messages():
-                self._build_messages(self._messages, m)
-        return self._messages_newds
-
-    def get_message_tree(self):
+        :returns: dict mapping all contained :class:`Message`s to a list of
+        their respective children.
+        """
         if not self._messages:
             query = self._dbman.query('thread:' + self._id)
             thread = query.search_threads().next()
 
+            def accumulate(acc, msg):
+                M = Message(self._dbman, msg, thread=self)
+                acc[M] = []
+                r = msg.get_replies()
+                if r is not None:
+                    for m in r:
+                        acc[M].append(accumulate(acc, m))
+                return M
+
             self._messages = {}
             for m in thread.get_toplevel_messages():
-                self._build_messages(self._messages, m)
+                self._toplevel_messages.append(accumulate(self._messages, m))
         return self._messages
 
-    # TODO: new ds
     def get_replies_to(self, msg):
         """returns all replies to the given message
 
         :param msg: the parent message, must be contained in thread
         :type msg: alot.sb.Message
         """
-        msgs = self.get_messages_tree()
-        if msg in msgs:
-            return msgs[msg].keys()
-        else:
-            return None
+        mid = msg.get_message_id()
+        msg_hash = self.get_messages()
+        for m in msg_hash.keys():
+            if m.get_message_id() == mid:
+                return msg_hash[m]
+        return None
 
     def get_newest_date(self):
         """returns date header of newest message in this thread as datetime"""
@@ -370,7 +367,7 @@ class Message:
     def get_thread(self):
         """returns the thread this msg belongs to as alot.db.Thread object"""
         if not self._thread:
-            self._thread = seld._dbman.get_thread(self._thread_id)
+            self._thread = self._dbman.get_thread(self._thread_id)
         return self._thread
 
     def get_replies(self):

@@ -182,13 +182,10 @@ class SingleThreadBuffer(Buffer):
     def __str__(self):
         return '%s, (%d)' % (self.thread.get_subject(), self.message_count)
 
-    def _build_pile(self, acc, childcount, msg, replies, parent, depth=0):
+    def _build_pile(self, acc, msg, parent, depth):
         acc.append((parent, depth, msg))
-        childcount[parent] += 1
-        for (reply, rereplies) in replies.items():
-            if reply not in childcount:
-                childcount[reply] = 0
-            self._build_pile(acc, childcount, reply, rereplies, msg, depth + 1)
+        for reply in self.thread.get_replies_to(msg):
+            self._build_pile(acc, reply, msg, depth + 1)
 
     def rebuild(self):
         # depth-first traversing the thread-tree, thereby
@@ -196,11 +193,12 @@ class SingleThreadBuffer(Buffer):
         # 2) create a dict that counts no. of direct replies per message
         messages = list()  # accumulator for 1,
         childcount = {None: 0}  # accumulator for 2)
+        for msg, replies in self.thread.get_messages().items():
+            childcount[msg] = len(replies)
         # start with all toplevel msgs, then recursively call _build_pile
-        for (msg, replies) in self.thread.get_message_tree().items():
-            if msg not in childcount:  # in create entry for current msg
-                childcount[msg] = 0
-            self._build_pile(messages, childcount, msg, replies, None)
+        for msg in self.thread.get_toplevel_messages():
+            self._build_pile(messages, msg, None, 0)
+            childcount[None] += 1
 
         # go through list from 1) and pile up message widgets for all msgs.
         # each one will be given its depth, if siblings follow and where to
