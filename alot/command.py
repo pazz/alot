@@ -32,6 +32,7 @@ from settings import config
 from settings import get_hook
 from settings import get_account_by_address
 from settings import get_accounts
+from db import DatabaseError
 import completion
 import helper
 
@@ -269,10 +270,14 @@ class ToggleThreadTagCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        if self.tag in self.thread.get_tags():
-            self.thread.remove_tags([self.tag])
-        else:
-            self.thread.add_tags([self.tag])
+        try:
+            if self.tag in self.thread.get_tags():
+                self.thread.remove_tags([self.tag])
+            else:
+                self.thread.add_tags([self.tag])
+        except DatabaseError, e:
+            ui.notify('cannot write to the index: %s' % unicode(e))
+            return
 
         # update current buffer
         cb = ui.current_buffer
@@ -372,7 +377,11 @@ class ThreadTagPromptCommand(Command):
         if tagsstring != None:  # esc -> None, enter could return ''
             tags = filter(lambda x: x, tagsstring.split(','))
             ui.logger.info("got %s:%s" % (tagsstring, tags))
-            self.thread.set_tags(tags)
+            try:
+                self.thread.set_tags(tags)
+            except DatabaseError, e:
+                ui.notify('cannot write to the index: %s' % unicode(e))
+                return
 
         # refresh selected threadline
         sbuffer = ui.current_buffer
