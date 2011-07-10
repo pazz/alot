@@ -499,7 +499,8 @@ class MessageBodyWidget(urwid.AttrMap):
                     tmpfile.close()
                     os.unlink(tmpfile.name)
                     if rendered_payload:  # handler had output
-                        bodytxt += rendered_payload.decode('utf8').strip()
+                        bodytxt += unicode(rendered_payload.strip(),
+                                           encoding='utf8', errors='replace')
                     elif part.get_content_maintype() == 'text':
                         bodytxt += raw_payload
                     # else drop

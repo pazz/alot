@@ -51,4 +51,4 @@ def cmd_output(command_line):
         return None
     except OSError:
         return None
-    return unicode(output)
+    return output
