@@ -1,10 +1,8 @@
-
 cleanup db.Thread
 
 rewrite widgets:
   * write example howto use treewidgets
   * attachments as TW
-  * rewrite messagewidget
 
 remove cmdline interface in favour of simple commands -> interpret args -> instanciate alot.command.Command 
 
@@ -19,12 +17,6 @@ Commands
 send.Sender
   * refresh open thread buffers? (happens automatically if mail gets indexed and buffer refreshed..)
 
-envelope buffer:
-  * needs ability do display/edit attachments (widget will be reused in messagewidget)
-  * full headers via a MessageHeadersWidget with displayed=None
-  * enter -> editor
-  * gpg settings per widget, should read defaults from account settings
-
 searchbuffer: 
   * unseen tag -> msg bold
   * focus next thread after toggletag. It would be easyest if IteratorWalker had a focus_next()
@@ -36,18 +28,11 @@ singleThread buffer:
   * proper display of email body: fold stuff
   * open unread mails? focus first unread/query matched?
   * text search: tag through occurences, highlight etc
-  * toggle full header
-
-taglist buffer
-  * interactively filter tagcloud
-    this will have to wait until a version of urwid can be easy_installed in that GridFlow
-    has a get_focus: http://comments.gmane.org/gmane.comp.lib.urwid/971
 
 db:
   * db.Message.get_replies() needs fixing. see 
     http://notmuch.198994.n3.nabble.com/python-get-all-messages-of-a-thread-tt2996080.html
   * relay matched-flag to msg objects (to open only matches messages in thread buffer)
-  * all interpretation of the mail shoud happen in db.Message
 
 ui.commandline:
   possible cmds:
