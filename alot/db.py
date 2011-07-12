@@ -148,7 +148,7 @@ class DBManager:
     def get_all_tags(self):
         """returns all tags as list of strings"""
         db = Database(path=self.path)
-        return [tag.decode(DB_ENC) for tag in db.get_all_tags()]
+        return list(db.get_all_tags())
 
     def query(self, querystring):
         """creates notmuch.Query objects on demand
@@ -160,7 +160,7 @@ class DBManager:
         """
         mode = Database.MODE.READ_ONLY
         db = Database(path=self.path, mode=mode)
-        return db.create_query(querystring.encode(DB_ENC))
+        return db.create_query(querystring)
 
 
 class Thread:
@@ -178,7 +178,7 @@ class Thread:
         self._subject = str(thread.get_subject()).decode(DB_ENC)
         self._oldest_date = datetime.fromtimestamp(thread.get_oldest_date())
         self._newest_date = datetime.fromtimestamp(thread.get_newest_date())
-        self._tags = set([str(t).decode(DB_ENC) for t in thread.get_tags()])
+        self._tags = set(thread.get_tags())
         self._messages = {}  # this maps messages to its children
         self._toplevel_messages = []
 
@@ -305,11 +305,11 @@ class Message:
         self._thread_id = msg.get_thread_id()
         self._thread = thread
         self._datetime = datetime.fromtimestamp(msg.get_date())
-        self._filename = str(msg.get_filename()).decode(DB_ENC)
-        self._from = str(msg.get_header('From')).decode(DB_ENC)
+        self._filename = msg.get_filename()
+        self._from = msg.get_header('From')
         self._email = None  # will be read upon first use
         self._attachments = None  # will be read upon first use
-        self._tags = set([str(tag).decode(DB_ENC) for tag in msg.get_tags()])
+        self._tags = set(msg.get_tags())
 
     def __str__(self):
         """prettyprint the message"""
