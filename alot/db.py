@@ -80,14 +80,17 @@ class DBManager:
                     msg.freeze()
                     if cmd == 'tag':
                         for tag in tags:
-                            msg.add_tag(tag.encode(DB_ENC))
+                            msg.add_tag(tag.encode(DB_ENC),
+                                        sync_maildir_flags=True)
                     if cmd == 'set':
                         msg.remove_all_tags()
                         for tag in tags:
-                            msg.add_tag(tag.encode(DB_ENC))
+                            msg.add_tag(tag.encode(DB_ENC),
+                                        sync_maildir_flags=True)
                     elif cmd == 'untag':
                         for tag in tags:
-                            msg.remove_tag(tag.encode(DB_ENC))
+                            msg.remove_tag(tag.encode(DB_ENC),
+                                          sync_maildir_flags=True)
                     msg.thaw()
             if self.ui:  # trigger status update
                 self.ui.update()
@@ -232,7 +235,6 @@ class Thread:
     def get_subject(self):
         """returns this threads subject"""
         return self._subject
-
 
     def get_toplevel_messages(self):
         """returns all toplevel messages as list of :class:`Message`"""
