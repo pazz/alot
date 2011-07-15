@@ -19,7 +19,7 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 
 import re
 
-from alot.command import commands
+import command
 
 
 class Completer:
@@ -42,11 +42,15 @@ class QueryCompleter(Completer):
         m = re.findall('[tag|is]:(\w*)', lastbit)
         if m:
             prefix = m[0]
+            plen = len(prefix)
             tags = self.dbman.get_all_tags()
-            return [t[len(prefix):] + ' ' for t in tags if t.startswith(prefix)]
+            matched = filter(lambda t: t.startswith(prefix), tags)
+            return [t[plen:] + ' ' for t in matched]
         else:
             prefix = original.split(' ')[-1]
-            return [t[len(prefix):] + ':' for t in self.keywords if t.startswith(prefix)]
+            plen = len(prefix)
+            matched = filter(lambda t: t.startswith(prefix), tags)
+            return [t[plen:] + ':' for t in matched]
 
 
 class TagListCompleter(Completer):
@@ -65,7 +69,10 @@ class TagListCompleter(Completer):
 class CommandCompleter(Completer):
     """completion for commandline"""
 
-    def complete(self, original):
-        cmdlist = commands.keys()
+    def __init__(self, dbman):
+        self.dbman = dbman
 
-        return [t[len(original):] + ' ' for t in cmdlist if t.startswith(original)]
+    def complete(self, original):
+        cmdlist = command.commands.keys()
+        olen = len(original)
+        return [t[olen:] + ' ' for t in cmdlist if t.startswith(original)]

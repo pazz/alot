@@ -50,7 +50,7 @@ class Command:
         pass
 
 
-class ShutdownCommand(Command):
+class ExitCommand(Command):
     """shuts the MUA down cleanly"""
     def apply(self, ui):
         ui.shutdown()
@@ -117,7 +117,7 @@ class ExternalCommand(Command):
     calls external command
     """
     def __init__(self, commandstring, spawn=False, refocus=True,
-                 in_thread=True, on_success=None, **kwargs):
+                 in_thread=False, on_success=None, **kwargs):
         """
         :param commandstring: the command to call
         :type commandstring: str
@@ -160,10 +160,12 @@ class ExternalCommand(Command):
             thread = threading.Thread(target=thread_code)
             thread.start()
         else:
+            ui.mainloop.screen.stop()
             thread_code()
+            ui.mainloop.screen.start()
 
 
-class EditExternalCommand(ExternalCommand):
+class EditCommand(ExternalCommand):
     def __init__(self, path, spawn=None, **kwargs):
         self.path = path
         if spawn != None:
@@ -172,7 +174,9 @@ class EditExternalCommand(ExternalCommand):
             self.spawn = config.getboolean('general', 'spawn_editor')
         editor_cmd = config.get('general', 'editor_cmd')
         cmd = editor_cmd + ' ' + self.path
-        ExternalCommand.__init__(self, cmd, spawn=self.spawn, **kwargs)
+        ExternalCommand.__init__(self, cmd, spawn=self.spawn,
+                                 in_thread=self.spawn,
+                                 **kwargs)
 
 
 class OpenPythonShellCommand(Command):
@@ -380,8 +384,8 @@ class ComposeCommand(Command):
             tf.write('%s: %s\n' % i)
         tf.write('\n\n')
         tf.close()
-        ui.apply_command(EditExternalCommand(tf.name, on_success=onSuccess,
-                                             refocus=False))
+        ui.apply_command(EditCommand(tf.name, on_success=onSuccess,
+                                     refocus=False))
 
 
 class ThreadTagPromptCommand(Command):
@@ -435,7 +439,8 @@ commands = {
         'buffer_list': (OpenBufferListCommand, {}),
         'buffer_next': (BufferFocusCommand, {'offset': 1}),
         'buffer_prev': (BufferFocusCommand, {'offset': -1}),
-        'edit': (EditExternalCommand, {}),
+        'edit': (EditCommand, {}),
+        'shellescape': (ExternalCommand, {}),
         'flush': (FlushCommand, {}),
         'compose': (ComposeCommand, {}),
         'open_taglist': (OpenTagListCommand, {}),
@@ -446,7 +451,7 @@ commands = {
         'refine_search_prompt': (RefineSearchPromptCommand, {}),
         'send': (SendMailCommand, {}),
         'shell': (OpenPythonShellCommand, {}),
-        'shutdown': (ShutdownCommand, {}),
+        'exit': (ExitCommand, {}),
         'thread_tag_prompt': (ThreadTagPromptCommand, {}),
         'toggle_thread_tag': (ToggleThreadTagCommand, {'tag': 'inbox'}),
         'refresh_buffer': (RefreshCommand, {}),
@@ -471,3 +476,25 @@ def factory(cmdname, **kwargs):
         return cmdclass(**parms)
     else:
         logging.error('there is no command %s' % cmdname)
+
+
+def interpret(cmdline):
+    if not cmdline:
+        return None
+    args = cmdline.split(' ', 1)
+    cmd = args[0]
+    params = args[1:]
+
+    if cmd == 'search':
+        if params:
+            return factory(cmd, query=params[0])
+    elif cmd == 'quit':
+        cmd = 'exit'
+        return factory(cmd)
+    elif cmd.startswith('!'):
+        params = cmd[1:] + ''.join(params)
+        cmd = 'shellescape'
+        if params:
+            return factory(cmd, commandstring=params)
+    else:
+        return None

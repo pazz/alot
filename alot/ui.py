@@ -61,7 +61,7 @@ class UI:
             'tab': ('buffer_next', {}),
             'shift tab': ('buffer_prev', {}),
             '\\': ('search_prompt', {}),
-            'q': ('shutdown', {}),
+            'q': ('exit', {}),
             ';': ('buffer_list', {}),
             'L': ('open_taglist', {}),
             's': ('shell', {}),
@@ -117,11 +117,14 @@ class UI:
 
     def commandprompt(self):
         self.logger.info('open command shell')
-        cmdline = self.prompt(prefix=':', completer=CommandCompleter())
+        cmdline = self.prompt(prefix=':',
+                              completer=CommandCompleter(self.dbman))
         if cmdline:
-            self.notify('not implemented')
-
-
+            cmd = command.interpret(cmdline)
+            if cmd:
+                self.apply_command(cmd)
+            else:
+                self.notify('invalid command')
 
     def buffer_open(self, b):
         """
@@ -137,7 +140,7 @@ class UI:
             self.logger.error(string % (buf, self.buffers))
         elif len(buffers) == 1:
             self.logger.info('closing the last buffer, exiting')
-            cmd = command.factory('shutdown')
+            cmd = command.factory('exit')
             self.apply_command(cmd)
         else:
             if self.current_buffer == buf:

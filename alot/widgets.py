@@ -132,7 +132,7 @@ class TagWidget(urwid.Text):
 class CompleteEdit(urwid.Edit):
     def __init__(self, completer, edit_text=u''):
         self.completer = completer
-        if not isinstance(edit_text,unicode):
+        if not isinstance(edit_text, unicode):
             edit_text = unicode(edit_text, errors='replace')
         self.start_completion_pos = len(edit_text)
         self.completion_results = None
@@ -140,7 +140,7 @@ class CompleteEdit(urwid.Edit):
 
     def keypress(self, size, key):
         cmd = command_map[key]
-        if cmd in ['next selectable' ,'prev selectable']:
+        if cmd in ['next selectable', 'prev selectable']:
             pos = self.start_completion_pos
             original = self.edit_text[:pos]
             if not self.completion_results:  # not in completion mode
@@ -148,7 +148,7 @@ class CompleteEdit(urwid.Edit):
                     self.completer.complete(original)
                 self.focus_in_clist = 1
             else:
-                if cmd  == 'next selectable':
+                if cmd == 'next selectable':
                     self.focus_in_clist += 1
                 else:
                     self.focus_in_clist -= 1
