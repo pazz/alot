@@ -22,9 +22,10 @@ from urwid.command_map import command_map
 
 from settings import config
 from settings import get_palette
-import command
-from widgets import CompleteEdit
 from buffer import BufferListBuffer
+from commandfactory import commandfactory
+from commandfactory import interpret_commandline
+from widgets import CompleteEdit
 from completion import CommandCompleter
 
 
@@ -62,13 +63,13 @@ class UI:
             'shift tab': ('buffer prev', {}),
             '\\': ('search prompt', {}),
             'q': ('exit', {}),
-            ';': ('buffer list', {}),
+            ';': ('bufferlist', {}),
             'L': ('taglist', {}),
             's': ('shell', {}),
             '@': ('buffer refresh', {}),
             'm': ('compose', {}),
         }
-        cmd = command.factory('search', query=initialquery)
+        cmd = commandfactory('search', query=initialquery)
         self.apply_command(cmd)
         self.mainloop.run()
 
@@ -120,7 +121,7 @@ class UI:
         cmdline = self.prompt(prefix=':',
                               completer=CommandCompleter(self.dbman))
         if cmdline:
-            cmd = command.interpret(cmdline)
+            cmd = interpret_commandline(cmdline)
             if cmd:
                 self.apply_command(cmd)
             else:
@@ -140,7 +141,7 @@ class UI:
             self.logger.error(string % (buf, self.buffers))
         elif len(buffers) == 1:
             self.logger.info('closing the last buffer, exiting')
-            cmd = command.factory('exit')
+            cmd = commandfactory('exit')
             self.apply_command(cmd)
         else:
             if self.current_buffer == buf:
@@ -230,7 +231,7 @@ class UI:
         if key in self.bindings:
             self.logger.debug("got globally bounded key: %s" % key)
             (cmdname, parms) = self.bindings[key]
-            cmd = command.factory(cmdname, **parms)
+            cmd = commandfactory(cmdname, **parms)
             self.apply_command(cmd)
         elif key == ':':
                 self.commandprompt()

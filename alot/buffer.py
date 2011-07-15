@@ -19,7 +19,6 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 import urwid
 
 import widgets
-import command
 from walker import IteratorWalker
 from itertools import izip_longest
 
@@ -55,7 +54,7 @@ class Buffer:
             parms = parms.copy()
             parms.update(self._autoparms)
             try:
-                cmd = command.factory(cmdname, **parms)
+                cmd = commandfactory(cmdname, **parms)
                 self.apply_command(cmd)
             except AssertionError as e:
                 string = "could not instanciate command %s with params %s"
@@ -282,3 +281,6 @@ class EnvelopeBuffer(Buffer):
         self.body_wgt = widgets.MessageBodyWidget(self.email)
         displayed_widgets.append(self.body_wgt)
         self.body = urwid.ListBox(displayed_widgets)
+
+
+from commandfactory import commandfactory
