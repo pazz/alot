@@ -32,7 +32,8 @@ from settings import config
 from settings import get_hook
 from settings import get_account_by_address
 from settings import get_accounts
-from db import DatabaseError
+from db import DatabaseROError
+from db import DatabaseLockedError
 import completion
 import helper
 
@@ -260,6 +261,24 @@ class OpenEnvelopeCommand(Command):
         ui.buffer_open(buffer.EnvelopeBuffer(ui, email=self.email))
 
 
+class FlushCommand(Command):
+    """
+    Flushes writes to the index. Retries until committed
+    """
+    def apply(self, ui):
+        try:
+            ui.dbman.flush()
+        except DatabaseLockedError:
+            timeout = config.getint('general', 'flush_retry_timeout')
+
+            def f(*args):
+                self.apply(ui)
+            ui.mainloop.set_alarm_in(timeout, f)
+            ui.notify('index locked, will try again in %d secs' % timeout)
+            ui.update()
+            return
+
+
 class ToggleThreadTagCommand(Command):
     """
     """
@@ -275,11 +294,15 @@ class ToggleThreadTagCommand(Command):
                 self.thread.remove_tags([self.tag])
             else:
                 self.thread.add_tags([self.tag])
-        except DatabaseError, e:
-            ui.notify('cannot write to the index: %s' % unicode(e))
+        except DatabaseROError:
+            ui.notify('index in read only mode')
             return
 
+        # flush index
+        ui.apply_command(FlushCommand())
+
         # update current buffer
+        # TODO: what if changes not yet flushed?
         cb = ui.current_buffer
         if isinstance(cb, buffer.SearchBuffer):
             # refresh selected threadline
@@ -379,9 +402,12 @@ class ThreadTagPromptCommand(Command):
             ui.logger.info("got %s:%s" % (tagsstring, tags))
             try:
                 self.thread.set_tags(tags)
-            except DatabaseError, e:
-                ui.notify('cannot write to the index: %s' % unicode(e))
+            except DatabaseROError, e:
+                ui.notify('index in read-only mode')
                 return
+
+        # flush index
+        ui.apply_command(FlushCommand())
 
         # refresh selected threadline
         sbuffer = ui.current_buffer
@@ -410,6 +436,7 @@ commands = {
         'buffer_next': (BufferFocusCommand, {'offset': 1}),
         'buffer_prev': (BufferFocusCommand, {'offset': -1}),
         'edit': (EditExternalCommand, {}),
+        'flush': (FlushCommand, {}),
         'compose': (ComposeCommand, {}),
         'open_taglist': (OpenTagListCommand, {}),
         'open_thread': (OpenThreadCommand, {}),

@@ -32,6 +32,14 @@ class DatabaseError(Exception):
     pass
 
 
+class DatabaseROError(DatabaseError):
+    pass
+
+
+class DatabaseLockedError(DatabaseError):
+    pass
+
+
 class DBManager:
     """
     keeps track of your index parameters, can create notmuch.Query
@@ -51,28 +59,19 @@ class DBManager:
 
     def flush(self):
         """
-        tries to flush all queued write commands to the index. Raises
-        :exc:`DatabaseError` if in read only mode. If the index is locked, an
-        alarm will be scheduled that calls this method again.
+        tries to flush all queued write commands to the index.
 
-        :exception: :exc:`NotmuchError`
+        :exception: :exc:`DatabaseROError` if db is opened in read-only mode
+        :exception: :exc:`DatabaseLockedError` if db is locked
         """
         if self.ro:
-            raise DatabaseError('Readonly mode!')
+            raise DatabaseROError()
         if self.writequeue:
             try:
                 mode = Database.MODE.READ_WRITE
                 db = Database(path=self.path, mode=mode)
             except NotmuchError:
-                # TODO: decapsulate ui here. maybe use self.eventloop here
-                if self.ui:  # let the mainloop call us again after timeout
-                    timeout = config.getint('general', 'flush_retry_timeout')
-                    self.ui.update()
-
-                    def f(*args):
-                        self.flush()
-                    self.ui.mainloop.set_alarm_in(timeout, f)
-                return
+                raise DatabaseLockedError()
             while self.writequeue:
                 cmd, querystring, tags = self.writequeue.popleft()
                 query = db.create_query(querystring)
@@ -92,13 +91,11 @@ class DBManager:
                             msg.remove_tag(tag.encode(DB_ENC),
                                           sync_maildir_flags=True)
                     msg.thaw()
-            if self.ui:  # trigger status update
-                self.ui.update()
 
     def tag(self, querystring, tags, remove_rest=False):
         """
         add tags to all matching messages. Raises
-        :exc:`DatabaseError` if in read only mode.
+        :exc:`DatabaseROError` if in read only mode.
 
         :param querystring: notmuch search string
         :type querystring: str
@@ -109,17 +106,16 @@ class DBManager:
         :exception: :exc:`NotmuchError`
         """
         if self.ro:
-            raise DatabaseError('Readonly mode!')
+            raise DatabaseROError()
         if remove_rest:
             self.writequeue.append(('set', querystring, tags))
         else:
             self.writequeue.append(('tag', querystring, tags))
-        self.flush()
 
     def untag(self, querystring, tags):
         """
         add tags to all matching messages. Raises
-        :exc:`DatabaseError` if in read only mode.
+        :exc:`DatabaseROError` if in read only mode.
 
         :param querystring: notmuch search string
         :type querystring: str
@@ -128,9 +124,8 @@ class DBManager:
         :exception: :exc:`NotmuchError`
         """
         if self.ro:
-            raise DatabaseError('Readonly mode!')
+            raise DatabaseROError()
         self.writequeue.append(('untag', querystring, tags))
-        self.flush()
 
     def count_messages(self, querystring):
         """returns number of messages that match querystring"""
