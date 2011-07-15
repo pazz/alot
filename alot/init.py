@@ -76,6 +76,8 @@ def main():
     command_map['j'] = 'cursor down'
     command_map['k'] = 'cursor up'
     command_map[' '] = 'cursor page down'
+    command_map['enter'] = 'select'
+    command_map['esc'] = 'cancel'
 
     # set up and start interface
     ui = UI(dbman,

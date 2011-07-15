@@ -18,11 +18,12 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 import urwid
 import os
+from urwid.command_map import command_map
 
 from settings import config
 from settings import get_palette
 import command
-from widgets import PromptWidget
+from widgets import CompleteEdit
 from buffer import BufferListBuffer
 
 
@@ -79,28 +80,38 @@ class UI:
 
     def prompt(self, prefix='>', text=u'', completer=None):
         self.logger.info('open prompt')
-
-        prefix_widget = PromptWidget(prefix, text, completer)
+        leftpart = urwid.Text(prefix, align='left')
+        if completer:
+            editpart = CompleteEdit(completer, edit_text=text)
+        else:
+            editpart = urwid.Edit(edit_text=text)
+        both = urwid.Columns(
+            [
+                ('fixed', len(prefix) + 1, leftpart),
+                ('weight', 1, editpart),
+            ])
+        prompt_widget = urwid.AttrMap(both, 'prompt', 'prompt')
         footer = self.mainframe.get_footer()
-        self.mainframe.set_footer(prefix_widget)
+        self.mainframe.set_footer(prompt_widget)
         self.mainframe.set_focus('footer')
         self.mainloop.draw_screen()
+
         while True:
             keys = None
             while not keys:
                 keys = self.mainloop.screen.get_input()
             for key in keys:
-                if key == 'enter':
+                if command_map[key] == 'select':
                     self.mainframe.set_footer(footer)
                     self.mainframe.set_focus('body')
-                    return prefix_widget.get_input()
-                if key == 'esc':
+                    return editpart.get_edit_text()
+                if command_map[key] == 'cancel':
                     self.mainframe.set_footer(footer)
                     self.mainframe.set_focus('body')
                     return None
                 else:
                     size = (20,)  # don't know why they want a size here
-                    prefix_widget.keypress(size, key)
+                    editpart.keypress(size, key)
                     self.mainloop.draw_screen()
 
     def cmdshell(self, prefix='>', text='', completer=None):

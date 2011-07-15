@@ -22,6 +22,7 @@ import tempfile
 import os
 import re
 from datetime import datetime
+from urwid.command_map import command_map
 
 from settings import config
 from settings import get_mime_handler
@@ -128,55 +129,42 @@ class TagWidget(urwid.Text):
         return self.tag
 
 
-class PromptWidget(urwid.AttrMap):
-    def __init__(self, prefix, text=u'', completer=None):
+class CompleteEdit(urwid.Edit):
+    def __init__(self, completer, edit_text=u''):
         self.completer = completer
-        leftpart = urwid.Text(prefix, align='left')
-        if not isinstance(text,unicode):
-            text = unicode(text, errors='replace')
-        self.editpart = urwid.Edit(edit_text=text)
-        self.start_completion_pos = len(text)
+        if not isinstance(edit_text,unicode):
+            edit_text = unicode(edit_text, errors='replace')
+        self.start_completion_pos = len(edit_text)
         self.completion_results = None
-        both = urwid.Columns(
-            [
-                ('fixed', len(prefix) + 1, leftpart),
-                ('weight', 1, self.editpart),
-            ])
-        urwid.AttrMap.__init__(self, both, 'prompt', 'prompt')
-
-    def set_input(self, txt):
-        return self.editpart.set_edit_text(txt)
-
-    def get_input(self):
-        return self.editpart.get_edit_text()
+        urwid.Edit.__init__(self, edit_text=edit_text)
 
     def keypress(self, size, key):
-        if key in ['tab', 'shift tab']:
-            if self.completer:
-                pos = self.start_completion_pos
-                original = self.editpart.edit_text[:pos]
-                if not self.completion_results:  # not in completion mode
-                    self.completion_results = [''] + \
-                        self.completer.complete(original)
-                    self.focus_in_clist = 1
+        cmd = command_map[key]
+        if cmd in ['next selectable' ,'prev selectable']:
+            pos = self.start_completion_pos
+            original = self.edit_text[:pos]
+            if not self.completion_results:  # not in completion mode
+                self.completion_results = [''] + \
+                    self.completer.complete(original)
+                self.focus_in_clist = 1
+            else:
+                if cmd  == 'next selectable':
+                    self.focus_in_clist += 1
                 else:
-                    if key == 'tab':
-                        self.focus_in_clist += 1
-                    else:
-                        self.focus_in_clist -= 1
-                if len(self.completion_results) > 1:
-                    suffix = self.completion_results[self.focus_in_clist %
-                                              len(self.completion_results)]
-                    self.editpart.set_edit_text(original + suffix)
-                    self.editpart.edit_pos += len(suffix)
-                else:
-                    self.editpart.set_edit_text(original + ' ')
-                    self.editpart.edit_pos += 1
-                    self.start_completion_pos = self.editpart.edit_pos
-                    self.completion_results = None
+                    self.focus_in_clist -= 1
+            if len(self.completion_results) > 1:
+                suffix = self.completion_results[self.focus_in_clist %
+                                          len(self.completion_results)]
+                self.set_edit_text(original + suffix)
+                self.edit_pos += len(suffix)
+            else:
+                self.set_edit_text(original + ' ')
+                self.edit_pos += 1
+                self.start_completion_pos = self.edit_pos
+                self.completion_results = None
         else:
-            result = self.editpart.keypress(size, key)
-            self.start_completion_pos = self.editpart.edit_pos
+            result = urwid.Edit.keypress(self, size, key)
+            self.start_completion_pos = self.edit_pos
             self.completion_results = None
             return result
 
