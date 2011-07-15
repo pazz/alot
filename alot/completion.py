@@ -49,7 +49,7 @@ class QueryCompleter(Completer):
         else:
             prefix = original.split(' ')[-1]
             plen = len(prefix)
-            matched = filter(lambda t: t.startswith(prefix), tags)
+            matched = filter(lambda t: t.startswith(prefix), self.keywords)
             return [t[plen:] + ':' for t in matched]
 
 
