@@ -97,7 +97,7 @@ class SearchCommand(Command):
 class SearchPromptCommand(Command):
     """prompt the user for a querystring, then start a search"""
     def apply(self, ui):
-        querystring = ui.prompt('search threads:',
+        querystring = ui.prompt('search threads: ',
                                 completer=completion.QueryCompleter(ui.dbman))
         ui.logger.info("got %s" % querystring)
         if querystring:

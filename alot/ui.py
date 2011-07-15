@@ -25,6 +25,7 @@ from settings import get_palette
 import command
 from widgets import CompleteEdit
 from buffer import BufferListBuffer
+from completion import CommandCompleter
 
 
 class UI:
@@ -87,7 +88,7 @@ class UI:
             editpart = urwid.Edit(edit_text=text)
         both = urwid.Columns(
             [
-                ('fixed', len(prefix) + 1, leftpart),
+                ('fixed', len(prefix), leftpart),
                 ('weight', 1, editpart),
             ])
         prompt_widget = urwid.AttrMap(both, 'prompt', 'prompt')
@@ -114,42 +115,13 @@ class UI:
                     editpart.keypress(size, key)
                     self.mainloop.draw_screen()
 
-    def cmdshell(self, prefix='>', text='', completer=None):
+    def commandprompt(self):
         self.logger.info('open command shell')
-        edit = urwid.Edit()
-        lines = [edit]
+        cmdline = self.prompt(prefix=':', completer=CommandCompleter())
+        if cmdline:
+            self.notify('not implemented')
 
-        footer = self.mainframe.get_footer()
-        self.mainframe.set_footer(edit)
-        self.mainframe.set_focus('footer')
-        self.mainloop.draw_screen()
 
-        shenv = command.MyCmd()
-
-        while True:
-            keys = None
-            while not keys:
-                keys = self.mainloop.screen.get_input()
-            for key in keys:
-                if key == 'enter':
-                    et = edit.get_edit_text()
-                    edit.set_edit_text('')
-                    lines.insert(-1, (urwid.Text('>' + et)))
-                    result = shenv.run(et)
-                    for rline in result.splitlines():
-                        lines.insert(-1, urwid.Text(rline))
-                    lb = urwid.BoxAdapter(urwid.ListBox(lines), len(lines))
-                    self.mainframe.set_footer(lb)
-                    self.mainframe.set_focus('footer')
-                    self.mainloop.draw_screen()
-                if key == 'esc':
-                    self.mainframe.set_footer(footer)
-                    self.mainframe.set_focus('body')
-                    return None
-                else:
-                    size = (20,)  # don't know why they want a size here
-                    self.mainframe.footer.keypress(size, key)
-                    self.mainloop.draw_screen()
 
     def buffer_open(self, b):
         """
@@ -258,7 +230,7 @@ class UI:
             cmd = command.factory(cmdname, **parms)
             self.apply_command(cmd)
         elif key == ':':
-                self.cmdshell()
+                self.commandprompt()
         else:
             self.logger.debug('unhandeled input: %s' % input)
 

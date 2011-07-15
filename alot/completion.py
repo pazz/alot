@@ -19,6 +19,8 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 
 import re
 
+from alot.command import commands
+
 
 class Completer:
     def complete(self, original):
@@ -58,3 +60,12 @@ class TagListCompleter(Completer):
         prefix = taglist[-1]
         tags = self.dbman.get_all_tags()
         return [t[len(prefix):] + ',' for t in tags if t.startswith(prefix)]
+
+
+class CommandCompleter(Completer):
+    """completion for commandline"""
+
+    def complete(self, original):
+        cmdlist = commands.keys()
+
+        return [t[len(original):] + ' ' for t in cmdlist if t.startswith(original)]
