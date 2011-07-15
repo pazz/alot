@@ -179,7 +179,7 @@ class EditCommand(ExternalCommand):
                                  **kwargs)
 
 
-class OpenPythonShellCommand(Command):
+class PythonShellCommand(Command):
     """
     opens an interactive shell for introspection
     """
@@ -240,7 +240,7 @@ class OpenBufferListCommand(Command):
             ui.buffer_open(buffer.BufferListBuffer(ui, self.filtfun))
 
 
-class OpenTagListCommand(Command):
+class TagListCommand(Command):
     """
     open a taglist
     """
@@ -434,27 +434,28 @@ class RefineSearchPromptCommand(Command):
             ui.update()
 
 commands = {
-        'buffer_close': (BufferCloseCommand, {}),
-        'buffer_focus': (BufferFocusCommand, {}),
-        'buffer_list': (OpenBufferListCommand, {}),
-        'buffer_next': (BufferFocusCommand, {'offset': 1}),
-        'buffer_prev': (BufferFocusCommand, {'offset': -1}),
-        'edit': (EditCommand, {}),
-        'shellescape': (ExternalCommand, {}),
+        'bufferlist': (OpenBufferListCommand, {}),
+        'buffer close': (BufferCloseCommand, {}),
+        'buffer next': (BufferFocusCommand, {'offset': 1}),
+        'buffer refresh': (RefreshCommand, {}),
+        'buffer previous': (BufferFocusCommand, {'offset': -1}),
+        'exit': (ExitCommand, {}),
         'flush': (FlushCommand, {}),
+        'pyshell': (PythonShellCommand, {}),
+        'search': (SearchCommand, {}),
+        'shellescape': (ExternalCommand, {}),
+        'taglist': (TagListCommand, {}),
+        'edit': (EditCommand, {}),
+
+        'buffer_focus': (BufferFocusCommand, {}),
         'compose': (ComposeCommand, {}),
-        'open_taglist': (OpenTagListCommand, {}),
         'open_thread': (OpenThreadCommand, {}),
         'open_envelope': (OpenEnvelopeCommand, {}),
-        'search': (SearchCommand, {}),
-        'search_prompt': (SearchPromptCommand, {}),
+        'search prompt': (SearchPromptCommand, {}),
         'refine_search_prompt': (RefineSearchPromptCommand, {}),
         'send': (SendMailCommand, {}),
-        'shell': (OpenPythonShellCommand, {}),
-        'exit': (ExitCommand, {}),
         'thread_tag_prompt': (ThreadTagPromptCommand, {}),
         'toggle_thread_tag': (ToggleThreadTagCommand, {'tag': 'inbox'}),
-        'refresh_buffer': (RefreshCommand, {}),
         }
 
 
@@ -478,23 +479,52 @@ def factory(cmdname, **kwargs):
         logging.error('there is no command %s' % cmdname)
 
 
+aliases = {'bc': 'buffer close',
+           'bn': 'buffer next',
+           'bp': 'buffer previous',
+           'br': 'buffer refresh',
+           'refresh': 'buffer refresh',
+           'ls': 'bufferlist',
+           'quit': 'exit',
+}
+
+
 def interpret(cmdline):
     if not cmdline:
         return None
-    args = cmdline.split(' ', 1)
+    logging.debug(cmdline + '"')
+    args = cmdline.strip().split(' ', 1)
     cmd = args[0]
     params = args[1:]
 
-    if cmd == 'search':
-        if params:
-            return factory(cmd, query=params[0])
-    elif cmd == 'quit':
-        cmd = 'exit'
-        return factory(cmd)
-    elif cmd.startswith('!'):
+    # unfold aliases
+    if cmd in aliases:
+        cmd = aliases[cmd]
+
+    # buffer commands depend on first parameter only
+    if cmd == 'buffer' and (params) == 1:
+        cmd = cmd + params[0]
+    # allow to shellescape without a space after '!'
+    if cmd.startswith('!'):
         params = cmd[1:] + ''.join(params)
         cmd = 'shellescape'
-        if params:
-            return factory(cmd, commandstring=params)
+
+    if not params:
+        if cmd in ['exit', 'flush', 'pyshell', 'taglist', 'buffer close',
+                  'buffer next', 'buffer previous', 'buffer refresh',
+                   'bufferlist']:
+            return factory(cmd)
+        else:
+            return None
     else:
-        return None
+        if cmd == 'search':
+            return factory(cmd, query=params[0])
+        elif cmd == 'shellescape':
+            return factory(cmd, commandstring=params)
+        elif cmd == 'edit':
+            filepath = params[0]
+            if os.path.isfile(filepath):
+                return factory(cmd, path=filepath)
+
+        else:
+            return None

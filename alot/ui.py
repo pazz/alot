@@ -57,15 +57,15 @@ class UI:
         self.bindings = {
             'I': ('search', {'query': 'tag:inbox AND NOT tag:killed'}),
             'U': ('search', {'query': 'tag:unread'}),
-            'x': ('buffer_close', {}),
-            'tab': ('buffer_next', {}),
-            'shift tab': ('buffer_prev', {}),
-            '\\': ('search_prompt', {}),
+            'x': ('buffer close', {}),
+            'tab': ('buffer next', {}),
+            'shift tab': ('buffer prev', {}),
+            '\\': ('search prompt', {}),
             'q': ('exit', {}),
-            ';': ('buffer_list', {}),
-            'L': ('open_taglist', {}),
+            ';': ('buffer list', {}),
+            'L': ('taglist', {}),
             's': ('shell', {}),
-            '@': ('refresh_buffer', {}),
+            '@': ('buffer refresh', {}),
             'm': ('compose', {}),
         }
         cmd = command.factory('search', query=initialquery)
