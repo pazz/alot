@@ -129,9 +129,11 @@ class TagWidget(urwid.Text):
 
 
 class PromptWidget(urwid.AttrMap):
-    def __init__(self, prefix, text='', completer=None):
+    def __init__(self, prefix, text=u'', completer=None):
         self.completer = completer
         leftpart = urwid.Text(prefix, align='left')
+        if not isinstance(text,unicode):
+            text = unicode(text, errors='replace')
         self.editpart = urwid.Edit(edit_text=text)
         self.start_completion_pos = len(text)
         self.completion_results = None

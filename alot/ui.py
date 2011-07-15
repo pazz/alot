@@ -77,7 +77,7 @@ class UI:
         """
         raise urwid.ExitMainLoop()
 
-    def prompt(self, prefix='>', text='', completer=None):
+    def prompt(self, prefix='>', text=u'', completer=None):
         self.logger.info('open prompt')
 
         prefix_widget = PromptWidget(prefix, text, completer)
