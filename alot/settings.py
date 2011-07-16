@@ -327,8 +327,8 @@ MAPPING = {
         'enter': ('open_thread', ''),
         'l': ('thread_tag_prompt', ''),
         '|': ('refine', ''),
-        'a': ('toggle_thread_tag inbox', ''),
-        '&': ('toggle_thread_tag killed', ''),
+        'a': ('toggletag inbox', ''),
+        '&': ('toggletag killed', ''),
     },
     'thread': {
         'a': ('toggle_thread_tag inbox', ''),

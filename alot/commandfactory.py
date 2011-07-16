@@ -45,7 +45,7 @@ COMMANDS = {
         'refine': (commands.RefineSearchPromptCommand, {}),
         'send': (commands.SendMailCommand, {}),
         'thread_tag_prompt': (commands.ThreadTagPromptCommand, {}),
-        'toggle_thread_tag': (commands.ToggleThreadTagCommand, {'tag': 'inbox'}),
+        'toggletag': (commands.ToggleThreadTagCommand, {'tag': 'inbox'}),
         }
 
 
@@ -94,11 +94,11 @@ globalcomands = [
 ]
 
 ALLOWED_COMMANDS = {
-    'search': ['refine'] + globalcomands,
+    'search': ['refine', 'toggletag'] + globalcomands,
     'envelope': ['send'] + globalcomands,
     'bufferlist': globalcomands,
     'taglist': globalcomands,
-    'thread': globalcomands,
+    'thread': ['toggletag'] + globalcomands,
 }
 
 def interpret_commandline(cmdline, mode):
@@ -141,6 +141,8 @@ def interpret_commandline(cmdline, mode):
             return commandfactory(cmd, query=params[0])
         elif cmd == 'shellescape':
             return commandfactory(cmd, commandstring=params)
+        elif cmd == 'toggletag':
+            return commandfactory(cmd, tag=params[0])
         elif cmd == 'edit':
             filepath = params[0]
             if os.path.isfile(filepath):
