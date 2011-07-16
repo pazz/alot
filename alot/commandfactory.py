@@ -131,7 +131,7 @@ def interpret_commandline(cmdline, mode):
         return None
 
     if not params:  # commands that don't accept parameter
-        if cmd in ['exit', 'flush', 'pyshell', 'taglist',
+        if cmd in ['exit', 'flush', 'pyshell', 'taglist', 'buffer close',
                    'buffer close focussed', 'buffer next', 'buffer previous',
                    'buffer refresh', 'bufferlist', 'refine', 'openthread',
                    'buffer focus']:
