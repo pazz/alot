@@ -40,8 +40,9 @@ COMMANDS = {
         'openthread': (commands.OpenThreadCommand, {}),
         'refine': (commands.RefineSearchPromptCommand, {}),
         'toggletag': (commands.ToggleThreadTagCommand, {'tag': 'inbox'}),
-
         'buffer focus': (commands.BufferFocusCommand, {}),
+        'buffer close focussed': (commands.BufferCloseCommand, {'focussed': True}),
+
         'compose': (commands.ComposeCommand, {}),
         'open_envelope': (commands.OpenEnvelopeCommand, {}),
         'searchprompt': (commands.SearchPromptCommand, {}),
@@ -74,6 +75,7 @@ aliases = {'bc': 'buffer close',
            'bn': 'buffer next',
            'bp': 'buffer previous',
            'br': 'buffer refresh',
+           'bcf': 'buffer close focussed',
            'refresh': 'buffer refresh',
            'ls': 'bufferlist',
            'quit': 'exit',
@@ -97,7 +99,7 @@ globalcomands = [
 ALLOWED_COMMANDS = {
     'search': ['refine', 'toggletag', 'openthread'] + globalcomands,
     'envelope': ['send'] + globalcomands,
-    'bufferlist': ['buffer focus'] + globalcomands,
+    'bufferlist': ['buffer focus', 'buffer close focussed'] + globalcomands,
     'taglist': globalcomands,
     'thread': ['toggletag'] + globalcomands,
 }
@@ -128,10 +130,11 @@ def interpret_commandline(cmdline, mode):
         logging.debug('not allowed in mode %s: %s' % (mode,cmd))
         return None
 
-    if not params:
-        if cmd in ['exit', 'flush', 'pyshell', 'taglist', 'buffer close',
-                   'buffer next', 'buffer previous', 'buffer refresh',
-                   'bufferlist', 'refine', 'openthread', 'buffer focus']:
+    if not params:  # commands that don't accept parameter
+        if cmd in ['exit', 'flush', 'pyshell', 'taglist',
+                   'buffer close focussed', 'buffer next', 'buffer previous',
+                   'buffer refresh', 'bufferlist', 'refine', 'openthread',
+                   'buffer focus']:
             return commandfactory(cmd)
         else:
             return None

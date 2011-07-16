@@ -196,12 +196,15 @@ class BufferCloseCommand(Command):
     close a buffer
     @param buffer the selected buffer
     """
-    def __init__(self, buffer=None, **kwargs):
+    def __init__(self, buffer=None, focussed=False, **kwargs):
         self.buffer = buffer
+        self.focussed = focussed
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        if not self.buffer:
+        if self.focussed:
+            self.buffer = ui.current_buffer.get_selected_buffer()
+        elif not self.buffer:
             self.buffer = ui.current_buffer
         ui.buffer_close(self.buffer)
         ui.buffer_focus(ui.current_buffer)

@@ -341,7 +341,7 @@ MAPPING = {
         'y': ('send', ''),
     },
     'bufferlist': {
-        'd': ('buffer_close', ''),
+        'd': ('buffer close focussed', ''),
         'enter': ('buffer focus', ''),
     }
 }
