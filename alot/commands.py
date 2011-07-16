@@ -420,15 +420,20 @@ class ThreadTagPromptCommand(Command):
 
 
 class RefineSearchPromptCommand(Command):
-    """refine the current search"""
+    """refine the query of the currently open searchbuffer"""
+
+    def __init__(self, query=None, **kwargs):
+        self.querystring = query
+        Command.__init__(self, **kwargs)
 
     def apply(self, ui):
         sbuffer = ui.current_buffer
         oldquery = sbuffer.querystring
-        querystring = ui.prompt('refine search:', text=oldquery,
-                                completer=completion.QueryCompleter(ui.dbman))
-        if querystring not in [None, oldquery]:
-            sbuffer.querystring = querystring
+        if not self.querystring:
+            self.querystring = ui.prompt('refine search:', text=oldquery,
+                                         completer=completion.QueryCompleter(ui.dbman))
+        if self.querystring not in [None, oldquery]:
+            sbuffer.querystring = self.querystring
             sbuffer = ui.current_buffer
             sbuffer.rebuild()
             ui.update()

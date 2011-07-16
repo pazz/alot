@@ -22,7 +22,7 @@ import logging
 from settings import get_hook
 import commands
 
-commands = {
+COMMANDS = {
         'bufferlist': (commands.OpenBufferListCommand, {}),
         'buffer close': (commands.BufferCloseCommand, {}),
         'buffer next': (commands.BufferFocusCommand, {'offset': 1}),
@@ -41,7 +41,7 @@ commands = {
         'open_thread': (commands.OpenThreadCommand, {}),
         'open_envelope': (commands.OpenEnvelopeCommand, {}),
         'search prompt': (commands.SearchPromptCommand, {}),
-        'refine_search_prompt': (commands.RefineSearchPromptCommand, {}),
+        'refine': (commands.RefineSearchPromptCommand, {}),
         'send': (commands.SendMailCommand, {}),
         'thread_tag_prompt': (commands.ThreadTagPromptCommand, {}),
         'toggle_thread_tag': (commands.ToggleThreadTagCommand, {'tag': 'inbox'}),
@@ -49,8 +49,8 @@ commands = {
 
 
 def commandfactory(cmdname, **kwargs):
-    if cmdname in commands:
-        (cmdclass, parms) = commands[cmdname]
+    if cmdname in COMMANDS:
+        (cmdclass, parms) = COMMANDS[cmdname]
         parms = parms.copy()
         parms.update(kwargs)
         for (key, value) in kwargs.items():
@@ -77,11 +77,33 @@ aliases = {'bc': 'buffer close',
            'quit': 'exit',
 }
 
+globalcomands = [
+    'buffer close',
+    'buffer next',
+    'buffer previous',
+    'buffer refresh',
+    'bufferlist',
+    'edit',
+    'exit',
+    'flush',
+    'pyshell',
+    'search',
+    'shellescape',
+    'taglist',
+]
 
-def interpret_commandline(cmdline):
+ALLOWED_COMMANDS = {
+    'search': ['refine'] + globalcomands,
+    'envelope': ['send'] + globalcomands,
+    'bufferlist': globalcomands,
+    'taglist': globalcomands,
+    'thread': globalcomands,
+}
+
+def interpret_commandline(cmdline, mode):
     if not cmdline:
         return None
-    logging.debug(cmdline + '"')
+    logging.debug(cmdline + '"' + mode)
     args = cmdline.strip().split(' ', 1)
     cmd = args[0]
     params = args[1:]
@@ -89,6 +111,11 @@ def interpret_commandline(cmdline):
     # unfold aliases
     if cmd in aliases:
         cmd = aliases[cmd]
+
+    # check if this command makes sense in current mode
+    if cmd not in ALLOWED_COMMANDS[mode]:
+        return None
+        logging.debug('not allowed')
 
     # buffer commands depend on first parameter only
     if cmd == 'buffer' and (params) == 1:
@@ -100,13 +127,15 @@ def interpret_commandline(cmdline):
 
     if not params:
         if cmd in ['exit', 'flush', 'pyshell', 'taglist', 'buffer close',
-                  'buffer next', 'buffer previous', 'buffer refresh',
-                   'bufferlist']:
+                   'buffer next', 'buffer previous', 'buffer refresh',
+                   'bufferlist', 'refine']:
             return commandfactory(cmd)
         else:
             return None
     else:
         if cmd == 'search':
+            return commandfactory(cmd, query=params[0])
+        elif cmd == 'refine':
             return commandfactory(cmd, query=params[0])
         elif cmd == 'shellescape':
             return commandfactory(cmd, commandstring=params)

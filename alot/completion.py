@@ -19,7 +19,7 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 
 import re
 
-import command
+import commandfactory
 
 
 class Completer:
@@ -69,10 +69,11 @@ class TagListCompleter(Completer):
 class CommandCompleter(Completer):
     """completion for commandline"""
 
-    def __init__(self, dbman):
+    def __init__(self, dbman, mode):
         self.dbman = dbman
+        self.mode = mode
 
     def complete(self, original):
-        cmdlist = command.commands.keys()
+        cmdlist = commandfactory.ALLOWED_COMMANDS[self.mode]
         olen = len(original)
         return [t[olen:] + ' ' for t in cmdlist if t.startswith(original)]

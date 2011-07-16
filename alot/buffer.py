@@ -128,7 +128,7 @@ class SearchBuffer(Buffer):
         self.bindings = {
             'enter': ('open_thread', {}),
             'l': ('thread_tag_prompt', {}),
-            '|': ('refine_search_prompt', {}),
+            '|': ('refine', {}),
             'a': ('toggle_thread_tag', {'tag': 'inbox'}),
             '&': ('toggle_thread_tag', {'tag': 'killed'}),
         }

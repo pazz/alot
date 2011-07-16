@@ -118,10 +118,11 @@ class UI:
 
     def commandprompt(self):
         self.logger.info('open command shell')
+        mode = self.current_buffer.typename
         cmdline = self.prompt(prefix=':',
-                              completer=CommandCompleter(self.dbman))
+                              completer=CommandCompleter(self.dbman, mode))
         if cmdline:
-            cmd = interpret_commandline(cmdline)
+            cmd = interpret_commandline(cmdline, mode)
             if cmd:
                 self.apply_command(cmd)
             else:
