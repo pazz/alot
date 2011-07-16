@@ -22,6 +22,7 @@ from urwid.command_map import command_map
 
 from settings import config
 from settings import get_palette
+from settings import get_mapping
 from buffer import BufferListBuffer
 from commandfactory import commandfactory
 from commandfactory import interpret_commandline
@@ -53,22 +54,9 @@ class UI:
         self.show_notificationbar = config.getboolean('general',
                                                       'show_notificationbar')
         self.notificationbar = urwid.Text(' ')
+        self.mode = ''
 
         self.logger.debug('setup bindings')
-        self.bindings = {
-            'I': ('search', {'query': 'tag:inbox AND NOT tag:killed'}),
-            'U': ('search', {'query': 'tag:unread'}),
-            'x': ('buffer close', {}),
-            'tab': ('buffer next', {}),
-            'shift tab': ('buffer prev', {}),
-            '\\': ('search prompt', {}),
-            'q': ('exit', {}),
-            ';': ('bufferlist', {}),
-            'L': ('taglist', {}),
-            's': ('shell', {}),
-            '@': ('buffer refresh', {}),
-            'm': ('compose', {}),
-        }
         cmd = commandfactory('search', query=initialquery)
         self.apply_command(cmd)
         self.mainloop.run()
@@ -116,10 +104,11 @@ class UI:
                     editpart.keypress(size, key)
                     self.mainloop.draw_screen()
 
-    def commandprompt(self):
+    def commandprompt(self, startstring):
         self.logger.info('open command shell')
         mode = self.current_buffer.typename
         cmdline = self.prompt(prefix=':',
+                              text=startstring,
                               completer=CommandCompleter(self.dbman, mode))
         if cmdline:
             cmd = interpret_commandline(cmdline, mode)
@@ -164,6 +153,7 @@ class UI:
             self.logger.error('tried to focus unknown buffer')
         else:
             self.current_buffer = buf
+            self.mode = buf.typename
             if isinstance(self.current_buffer, BufferListBuffer):
                 self.current_buffer.rebuild()
             self.update()
@@ -229,13 +219,15 @@ class UI:
         return urwid.AttrMap(columns, 'footer')
 
     def keypress(self, key):
-        if key in self.bindings:
-            self.logger.debug("got globally bounded key: %s" % key)
-            (cmdname, parms) = self.bindings[key]
-            cmd = commandfactory(cmdname, **parms)
-            self.apply_command(cmd)
-        elif key == ':':
-                self.commandprompt()
+        cmdline, helpstring = get_mapping(key, self.mode)
+        if cmdline:
+            self.logger.debug("handle %s in %s mode" % (key, self.mode))
+            if cmdline.startswith('prompt'):
+                self.commandprompt(cmdline[7:])
+            else:
+                cmd = interpret_commandline(cmdline, self.mode)
+                if cmd:
+                    self.apply_command(cmd)
         else:
             self.logger.debug('unhandeled input: %s' % input)
 

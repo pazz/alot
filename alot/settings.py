@@ -302,3 +302,62 @@ def get_account_by_address(address):
         return matched.pop()
     else:
         return None
+
+# maps mode to keybingins: for each one,
+# a key is mapped to a pair cmdline, helpstring.
+MAPPING = {
+    'global': {
+        '@': ('refresh', ''),
+        'I': ('search tag:inbox AND NOT tag:killed', 'open Inbox'),
+        'U': ('search tag:unread', 'open unread'),
+        'x': ('buffer close', 'close buffer'),
+        'tab': ('buffer next', 'next buffer'),
+        'shift tab': ('buffer prev', 'previous buffer'),
+        '\\': ('prompt search ', ''),
+        'q': ('exit', ''),
+        ';': ('bufferlist', ''),
+        ':': ('prompt', ''),
+        'L': ('taglist', ''),
+        's': ('shell', ''),
+        '@': ('buffer refresh', ''),
+        'm': ('compose', ''),
+    },
+    'search': {
+        '|': ('refine',''),
+        'enter': ('open_thread', ''),
+        'l': ('thread_tag_prompt', ''),
+        '|': ('refine', ''),
+        'a': ('toggle_thread_tag inbox', ''),
+        '&': ('toggle_thread_tag killed', ''),
+    },
+    'thread': {
+        'a': ('toggle_thread_tag inbox', ''),
+    },
+    'taglist': {
+       # 'enter': ('search', {'query': (lambda: 'tag:' +
+        #                                   self.get_selected_tag())}),
+    },
+    'envelope': {
+        'y': ('send', ''),
+    },
+    'bufferlist': {
+        #'d': ('buffer_close', ''),
+        #'enter': ('buffer_focus', ''),
+    }
+
+}
+
+def get_mappings_by_mode(mode):
+    if not mode in MAPPING:
+        return None  # invalid mode string
+    maps = MAPPING['global'].copy()
+    maps.update(MAPPING[mode])
+    return maps
+
+def get_mapping(key, mode):
+    maps = get_mappings_by_mode(mode)
+    if key in maps:
+        return maps[key]
+    else:
+        return None,None
+

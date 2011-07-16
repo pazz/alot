@@ -35,12 +35,13 @@ COMMANDS = {
         'shellescape': (commands.ExternalCommand, {}),
         'taglist': (commands.TagListCommand, {}),
         'edit': (commands.EditCommand, {}),
+        'commandprompt': (commands.CommandPromptCommand, {}),
 
         'buffer_focus': (commands.BufferFocusCommand, {}),
         'compose': (commands.ComposeCommand, {}),
         'open_thread': (commands.OpenThreadCommand, {}),
         'open_envelope': (commands.OpenEnvelopeCommand, {}),
-        'search prompt': (commands.SearchPromptCommand, {}),
+        'searchprompt': (commands.SearchPromptCommand, {}),
         'refine': (commands.RefineSearchPromptCommand, {}),
         'send': (commands.SendMailCommand, {}),
         'thread_tag_prompt': (commands.ThreadTagPromptCommand, {}),
@@ -103,7 +104,7 @@ ALLOWED_COMMANDS = {
 def interpret_commandline(cmdline, mode):
     if not cmdline:
         return None
-    logging.debug(cmdline + '"' + mode)
+    logging.debug('mode:%s got commandline "%s"' % (mode, cmdline))
     args = cmdline.strip().split(' ', 1)
     cmd = args[0]
     params = args[1:]
@@ -112,18 +113,19 @@ def interpret_commandline(cmdline, mode):
     if cmd in aliases:
         cmd = aliases[cmd]
 
-    # check if this command makes sense in current mode
-    if cmd not in ALLOWED_COMMANDS[mode]:
-        return None
-        logging.debug('not allowed')
-
     # buffer commands depend on first parameter only
-    if cmd == 'buffer' and (params) == 1:
-        cmd = cmd + params[0]
+    if cmd == 'buffer' and len(params) == 1:
+        cmd = cmd + ' ' +params[0]
+        params = []
     # allow to shellescape without a space after '!'
     if cmd.startswith('!'):
         params = cmd[1:] + ''.join(params)
         cmd = 'shellescape'
+
+    # check if this command makes sense in current mode
+    if cmd not in ALLOWED_COMMANDS[mode]:
+        logging.debug('not allowed in mode %s: %s' % (mode,cmd))
+        return None
 
     if not params:
         if cmd in ['exit', 'flush', 'pyshell', 'taglist', 'buffer close',

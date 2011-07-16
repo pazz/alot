@@ -74,6 +74,7 @@ class CommandCompleter(Completer):
         self.mode = mode
 
     def complete(self, original):
+        #TODO refine <tab> should get current querystring
         cmdlist = commandfactory.ALLOWED_COMMANDS[self.mode]
         olen = len(original)
         return [t[olen:] + ' ' for t in cmdlist if t.startswith(original)]

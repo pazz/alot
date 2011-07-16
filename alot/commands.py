@@ -265,6 +265,13 @@ class OpenEnvelopeCommand(Command):
         ui.buffer_open(buffer.EnvelopeBuffer(ui, email=self.email))
 
 
+class CommandPromptCommand(Command):
+    """
+    """
+    def apply(self, ui):
+        ui.commandprompt()
+
+
 class FlushCommand(Command):
     """
     Flushes writes to the index. Retries until committed

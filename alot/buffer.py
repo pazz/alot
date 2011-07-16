@@ -27,8 +27,7 @@ class Buffer:
     def __init__(self, ui, widget, name):
         self.ui = ui
         self.typename = name
-        self.bindings = {}
-        self._autoparms = {}
+        self.autoparms = {}
         self.body = widget
 
     def __str__(self):
@@ -48,24 +47,6 @@ class Buffer:
         self.ui.apply_command(cmd)
 
     def keypress(self, size, key):
-        if key in self.bindings:
-            self.ui.logger.debug("%s: handles key: %s" % (self.typename, key))
-            (cmdname, parms) = self.bindings[key]
-            parms = parms.copy()
-            parms.update(self._autoparms)
-            try:
-                cmd = commandfactory(cmdname, **parms)
-                self.apply_command(cmd)
-            except AssertionError as e:
-                string = "could not instanciate command %s with params %s"
-                self.ui.logger.debug(string % (cmdname, parms.items()))
-        else:
-            #if key == 'j':
-            #    key = 'down'
-            #elif key == 'k':
-            #    key = 'up'
-            #elif key == ' ':
-            #    key = 'page down'
             return self.body.keypress(size, key)
 
 
@@ -76,11 +57,7 @@ class BufferListBuffer(Buffer):
         self.isinitialized = False
         self.rebuild()
         Buffer.__init__(self, ui, self.body, 'bufferlist')
-        self._autoparms = {'buffer': self.get_selected_buffer}
-        self.bindings = {
-            'd': ('buffer_close', {}),
-            'enter': ('buffer_focus', {}),
-        }
+        self.autoparms = {'buffer': self.get_selected_buffer}
 
     def index_of(self, b):
         return self.ui.buffers.index(b)
@@ -124,14 +101,7 @@ class SearchBuffer(Buffer):
         self.isinitialized = False
         self.rebuild()
         Buffer.__init__(self, ui, self.body, 'search')
-        self._autoparms = {'thread': self.get_selected_thread}
-        self.bindings = {
-            'enter': ('open_thread', {}),
-            'l': ('thread_tag_prompt', {}),
-            '|': ('refine', {}),
-            'a': ('toggle_thread_tag', {'tag': 'inbox'}),
-            '&': ('toggle_thread_tag', {'tag': 'killed'}),
-        }
+        self.autoparms = {'thread': self.get_selected_thread}
 
     def __str__(self):
         return '%s (%d threads)' % (self.querystring, self.result_count)
@@ -173,10 +143,7 @@ class SingleThreadBuffer(Buffer):
         self.thread = thread
         self.rebuild()
         Buffer.__init__(self, ui, self.body, 'thread')
-        self._autoparms = {'thread': self.thread}
-        self.bindings = {
-            'a': ('toggle_thread_tag', {'tag': 'inbox'}),
-        }
+        self.autoparms = {'thread': self.thread}
 
     def __str__(self):
         return '%s, (%d)' % (self.thread.get_subject(), self.message_count)
@@ -230,11 +197,7 @@ class TagListBuffer(Buffer):
         self.isinitialized = False
         self.rebuild()
         Buffer.__init__(self, ui, self.body, 'taglist')
-        self._autoparms = {}
-        self.bindings = {
-            'enter': ('search', {'query': (lambda: 'tag:' +
-                                           self.get_selected_tag())}),
-        }
+        self.autoparms = {}
 
     def rebuild(self):
         if self.isinitialized:
@@ -266,10 +229,7 @@ class EnvelopeBuffer(Buffer):
         self.email = email
         self.rebuild()
         Buffer.__init__(self, ui, self.body, 'envelope')
-        self._autoparms = {'email': self.get_email}
-        self.bindings = {
-            'y': ('send', {'envelope': self}),
-        }
+        self.autoparms = {'email': self.get_email}
 
     def get_email(self):
         return self.email
