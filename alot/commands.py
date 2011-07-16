@@ -96,15 +96,12 @@ class SearchCommand(Command):
             ui.buffer_open(buffer.SearchBuffer(ui, self.query))
 
 
-class SearchPromptCommand(Command):
-    """prompt the user for a querystring, then start a search"""
+class PromptCommand(Command):
+    def __init__(self, startstring='', **kwargs):
+        self.startstring = startstring
+
     def apply(self, ui):
-        querystring = ui.prompt('search threads: ',
-                                completer=completion.QueryCompleter(ui.dbman))
-        ui.logger.info("got %s" % querystring)
-        if querystring:
-            cmd = factory('search', query=querystring)
-            ui.apply_command(cmd)
+        ui.commandprompt(self.startstring)
 
 
 class RefreshCommand(Command):
@@ -404,24 +401,23 @@ class ComposeCommand(Command):
                                      refocus=False))
 
 
-class ThreadTagPromptCommand(Command):
+class ThreadTagCommand(Command):
     """prompt the user for labels, then tag thread"""
 
-    def __init__(self, thread, **kwargs):
-        assert thread
-        self.thread = thread
+    def __init__(self, tagsstring=None, **kwargs):
+        self.tagsstring = tagsstring
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        initial_tagstring = ','.join(self.thread.get_tags())
-        tagsstring = ui.prompt('label thread:',
-                               text=initial_tagstring,
-                               completer=completion.TagListCompleter(ui.dbman))
-        if tagsstring != None:  # esc -> None, enter could return ''
-            tags = filter(lambda x: x, tagsstring.split(','))
-            ui.logger.info("got %s:%s" % (tagsstring, tags))
+        thread = ui.current_buffer.get_selected_thread()
+        initial_tagstring = ','.join(thread.get_tags())
+        if self.tagsstring == None:
+            ui.commandprompt('retag ' + initial_tagstring)
+        else:
+            tags = filter(lambda x: x, self.tagsstring.split(','))
+            ui.logger.info("got %s:%s" % (self.tagsstring, tags))
             try:
-                self.thread.set_tags(tags)
+                thread.set_tags(tags)
             except DatabaseROError, e:
                 ui.notify('index in read-only mode')
                 return

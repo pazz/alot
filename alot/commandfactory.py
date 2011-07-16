@@ -45,9 +45,8 @@ COMMANDS = {
 
         'compose': (commands.ComposeCommand, {}),
         'open_envelope': (commands.OpenEnvelopeCommand, {}),
-        'searchprompt': (commands.SearchPromptCommand, {}),
         'send': (commands.SendMailCommand, {}),
-        'thread_tag_prompt': (commands.ThreadTagPromptCommand, {}),
+        'retag': (commands.ThreadTagCommand, {}),
         }
 
 
@@ -97,7 +96,7 @@ globalcomands = [
 ]
 
 ALLOWED_COMMANDS = {
-    'search': ['refine', 'toggletag', 'openthread'] + globalcomands,
+    'search': ['refine', 'toggletag', 'openthread', 'retag'] + globalcomands,
     'envelope': ['send'] + globalcomands,
     'bufferlist': ['buffer focus', 'buffer close focussed'] + globalcomands,
     'taglist': globalcomands,
@@ -134,7 +133,7 @@ def interpret_commandline(cmdline, mode):
         if cmd in ['exit', 'flush', 'pyshell', 'taglist', 'buffer close',
                    'buffer close focussed', 'buffer next', 'buffer previous',
                    'buffer refresh', 'bufferlist', 'refine', 'openthread',
-                   'buffer focus']:
+                   'buffer focus', 'retag']:
             return commandfactory(cmd)
         else:
             return None
@@ -147,6 +146,8 @@ def interpret_commandline(cmdline, mode):
             return commandfactory(cmd, commandstring=params)
         elif cmd == 'toggletag':
             return commandfactory(cmd, tag=params[0])
+        elif cmd == 'retag':
+            return commandfactory(cmd, tagsstring=params[0])
         elif cmd == 'edit':
             filepath = params[0]
             if os.path.isfile(filepath):
