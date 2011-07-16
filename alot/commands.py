@@ -58,11 +58,13 @@ class ExitCommand(Command):
 
 class OpenThreadCommand(Command):
     """open a new thread-view buffer"""
-    def __init__(self, thread, **kwargs):
+    def __init__(self, thread=None, **kwargs):
         self.thread = thread
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
+        if not self.thread:
+            self.thread = ui.current_buffer.get_selected_thread()
         ui.logger.info('open thread view for %s' % self.thread)
         sb = buffer.SingleThreadBuffer(ui, self.thread)
         ui.buffer_open(sb)
@@ -300,8 +302,8 @@ class ToggleThreadTagCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        cb = ui.current_buffer
-        self.thread = cb.get_selected_thread()
+        if not self.thread:
+            self.thread = ui.current_buffer.get_selected_thread()
         try:
             if self.tag in self.thread.get_tags():
                 self.thread.remove_tags([self.tag])
@@ -316,6 +318,7 @@ class ToggleThreadTagCommand(Command):
 
         # update current buffer
         # TODO: what if changes not yet flushed?
+        cb = ui.current_buffer
         if isinstance(cb, buffer.SearchBuffer):
             # refresh selected threadline
             threadwidget = cb.get_selected_threadline()

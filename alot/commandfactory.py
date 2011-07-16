@@ -17,6 +17,7 @@ along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
 Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 import logging
+import os
 
 
 from settings import get_hook
@@ -39,7 +40,7 @@ COMMANDS = {
 
         'buffer_focus': (commands.BufferFocusCommand, {}),
         'compose': (commands.ComposeCommand, {}),
-        'open_thread': (commands.OpenThreadCommand, {}),
+        'openthread': (commands.OpenThreadCommand, {}),
         'open_envelope': (commands.OpenEnvelopeCommand, {}),
         'searchprompt': (commands.SearchPromptCommand, {}),
         'refine': (commands.RefineSearchPromptCommand, {}),
@@ -94,7 +95,7 @@ globalcomands = [
 ]
 
 ALLOWED_COMMANDS = {
-    'search': ['refine', 'toggletag'] + globalcomands,
+    'search': ['refine', 'toggletag', 'openthread'] + globalcomands,
     'envelope': ['send'] + globalcomands,
     'bufferlist': globalcomands,
     'taglist': globalcomands,
@@ -130,7 +131,7 @@ def interpret_commandline(cmdline, mode):
     if not params:
         if cmd in ['exit', 'flush', 'pyshell', 'taglist', 'buffer close',
                    'buffer next', 'buffer previous', 'buffer refresh',
-                   'bufferlist', 'refine']:
+                   'bufferlist', 'refine', 'openthread']:
             return commandfactory(cmd)
         else:
             return None
