@@ -103,6 +103,7 @@ ALLOWED_COMMANDS = {
     'thread': ['toggletag'] + globalcomands,
 }
 
+
 def interpret_commandline(cmdline, mode):
     if not cmdline:
         return None
@@ -117,7 +118,7 @@ def interpret_commandline(cmdline, mode):
 
     # buffer commands depend on first parameter only
     if cmd == 'buffer' and len(params) == 1:
-        cmd = cmd + ' ' +params[0]
+        cmd = cmd + ' ' + params[0]
         params = []
     # allow to shellescape without a space after '!'
     if cmd.startswith('!'):
@@ -126,7 +127,7 @@ def interpret_commandline(cmdline, mode):
 
     # check if this command makes sense in current mode
     if cmd not in ALLOWED_COMMANDS[mode]:
-        logging.debug('not allowed in mode %s: %s' % (mode,cmd))
+        logging.debug('not allowed in mode %s: %s' % (mode, cmd))
         return None
 
     if not params:  # commands that don't accept parameter
