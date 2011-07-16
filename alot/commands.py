@@ -218,12 +218,14 @@ class BufferFocusCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        if not self.buffer:
-            self.buffer = ui.current_buffer
-        idx = ui.buffers.index(self.buffer)
-        num = len(ui.buffers)
-        to_be_focused = ui.buffers[(idx + self.offset) % num]
-        ui.buffer_focus(to_be_focused)
+        if self.offset:
+            idx = ui.buffers.index(ui.current_buffer)
+            num = len(ui.buffers)
+            self.buffer = ui.buffers[(idx + self.offset) % num]
+        else:
+            if not self.buffer:
+                self.buffer = ui.current_buffer.get_selected_buffer()
+        ui.buffer_focus(self.buffer)
 
 
 class OpenBufferListCommand(Command):

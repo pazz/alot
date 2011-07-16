@@ -37,16 +37,16 @@ COMMANDS = {
         'taglist': (commands.TagListCommand, {}),
         'edit': (commands.EditCommand, {}),
         'commandprompt': (commands.CommandPromptCommand, {}),
-
-        'buffer_focus': (commands.BufferFocusCommand, {}),
-        'compose': (commands.ComposeCommand, {}),
         'openthread': (commands.OpenThreadCommand, {}),
+        'refine': (commands.RefineSearchPromptCommand, {}),
+        'toggletag': (commands.ToggleThreadTagCommand, {'tag': 'inbox'}),
+
+        'buffer focus': (commands.BufferFocusCommand, {}),
+        'compose': (commands.ComposeCommand, {}),
         'open_envelope': (commands.OpenEnvelopeCommand, {}),
         'searchprompt': (commands.SearchPromptCommand, {}),
-        'refine': (commands.RefineSearchPromptCommand, {}),
         'send': (commands.SendMailCommand, {}),
         'thread_tag_prompt': (commands.ThreadTagPromptCommand, {}),
-        'toggletag': (commands.ToggleThreadTagCommand, {'tag': 'inbox'}),
         }
 
 
@@ -97,7 +97,7 @@ globalcomands = [
 ALLOWED_COMMANDS = {
     'search': ['refine', 'toggletag', 'openthread'] + globalcomands,
     'envelope': ['send'] + globalcomands,
-    'bufferlist': globalcomands,
+    'bufferlist': ['buffer focus'] + globalcomands,
     'taglist': globalcomands,
     'thread': ['toggletag'] + globalcomands,
 }
@@ -131,7 +131,7 @@ def interpret_commandline(cmdline, mode):
     if not params:
         if cmd in ['exit', 'flush', 'pyshell', 'taglist', 'buffer close',
                    'buffer next', 'buffer previous', 'buffer refresh',
-                   'bufferlist', 'refine', 'openthread']:
+                   'bufferlist', 'refine', 'openthread', 'buffer focus']:
             return commandfactory(cmd)
         else:
             return None
@@ -148,6 +148,5 @@ def interpret_commandline(cmdline, mode):
             filepath = params[0]
             if os.path.isfile(filepath):
                 return commandfactory(cmd, path=filepath)
-
         else:
             return None

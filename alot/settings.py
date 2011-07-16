@@ -341,10 +341,9 @@ MAPPING = {
         'y': ('send', ''),
     },
     'bufferlist': {
-        #'d': ('buffer_close', ''),
-        #'enter': ('buffer_focus', ''),
+        'd': ('buffer_close', ''),
+        'enter': ('buffer focus', ''),
     }
-
 }
 
 def get_mappings_by_mode(mode):
@@ -360,4 +359,3 @@ def get_mapping(key, mode):
         return maps[key]
     else:
         return None,None
-
