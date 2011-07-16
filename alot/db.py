@@ -303,7 +303,8 @@ class Message:
         self._thread = thread
         self._datetime = datetime.fromtimestamp(msg.get_date())
         self._filename = msg.get_filename()
-        self._from = msg.get_header('From')
+        # TODO: change api to return unicode
+        self._from = msg.get_header('From').decode(DB_ENC)
         self._email = None  # will be read upon first use
         self._attachments = None  # will be read upon first use
         self._tags = set(msg.get_tags())
