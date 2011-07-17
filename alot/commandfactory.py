@@ -38,7 +38,8 @@ COMMANDS = {
         'edit': (commands.EditCommand, {}),
         'commandprompt': (commands.CommandPromptCommand, {}),
         'openthread': (commands.OpenThreadCommand, {}),
-        'refine': (commands.RefineSearchPromptCommand, {}),
+        'refine': (commands.RefineCommand, {}),
+        'refineprompt': (commands.RefinePromptCommand, {}),
         'toggletag': (commands.ToggleThreadTagCommand, {'tag': 'inbox'}),
         'bufferfocus': (commands.BufferFocusCommand, {}),
         'closefocussed': (commands.BufferCloseCommand, {'focussed': True}),
@@ -95,7 +96,7 @@ globalcomands = [
 ]
 
 ALLOWED_COMMANDS = {
-    'search': ['refine', 'toggletag', 'openthread', 'retag', 'retagprompt'] + globalcomands,
+    'search': ['refine', 'refineprompt', 'toggletag', 'openthread', 'retag', 'retagprompt'] + globalcomands,
     'envelope': ['send'] + globalcomands,
     'bufferlist': ['bufferfocussed', 'closefocussed'] + globalcomands,
     'taglist': globalcomands,
@@ -131,22 +132,22 @@ def interpret_commandline(cmdline, mode):
     if not params:  # commands that work without parameter
         if cmd in ['exit', 'flush', 'pyshell', 'taglist', 'close',
                    'closefocussed', 'bnext', 'bprevious', 'retag',
-                   'refresh', 'bufferlist', 'refine', 'openthread',
+                   'refresh', 'bufferlist', 'refineprompt', 'openthread',
                    'bufferfocus', 'retagprompt']:
             return commandfactory(cmd)
         else:
             return None
     else:
         if cmd == 'search':
-            return commandfactory(cmd, query=params[0])
+            return commandfactory(cmd, query=params)
         elif cmd == 'refine':
-            return commandfactory(cmd, query=params[0])
+            return commandfactory(cmd, query=params)
         elif cmd == 'shellescape':
             return commandfactory(cmd, commandstring=params)
         elif cmd == 'toggletag':
-            return commandfactory(cmd, tag=params[0])
+            return commandfactory(cmd, tag=params)
         elif cmd == 'retag':
-            return commandfactory(cmd, tagsstring=params[0])
+            return commandfactory(cmd, tagsstring=params)
         elif cmd == 'edit':
             filepath = params[0]
             if os.path.isfile(filepath):

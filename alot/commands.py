@@ -402,7 +402,7 @@ class ComposeCommand(Command):
 
 
 class RetagPromptCommand(Command):
-    """prompt the user for labels, then tag thread"""
+    """start a commandprompt to retag selected threads' tags"""
 
     def apply(self, ui):
         thread = ui.current_buffer.get_selected_thread()
@@ -411,7 +411,7 @@ class RetagPromptCommand(Command):
 
 
 class RetagCommand(Command):
-    """prompt the user for labels, then tag thread"""
+    """tag selected thread"""
 
     def __init__(self, tagsstring=u'', **kwargs):
         self.tagsstring = tagsstring
@@ -437,7 +437,7 @@ class RetagCommand(Command):
         threadwidget.rebuild()  # rebuild and redraw the line
 
 
-class RefineSearchPromptCommand(Command):
+class RefineCommand(Command):
     """refine the query of the currently open searchbuffer"""
 
     def __init__(self, query=None, **kwargs):
@@ -447,11 +447,17 @@ class RefineSearchPromptCommand(Command):
     def apply(self, ui):
         sbuffer = ui.current_buffer
         oldquery = sbuffer.querystring
-        if not self.querystring:
-            self.querystring = ui.prompt('refine search:', text=oldquery,
-                                         completer=completion.QueryCompleter(ui.dbman))
         if self.querystring not in [None, oldquery]:
             sbuffer.querystring = self.querystring
             sbuffer = ui.current_buffer
             sbuffer.rebuild()
             ui.update()
+
+
+class RefinePromptCommand(Command):
+    """prompt to change current search buffers query"""
+
+    def apply(self, ui):
+        sbuffer = ui.current_buffer
+        oldquery = sbuffer.querystring
+        ui.commandprompt('refine ' + oldquery)

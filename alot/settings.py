@@ -323,7 +323,7 @@ MAPPING = {
         'm': ('compose', ''),
     },
     'search': {
-        '|': ('refine',''),
+        '|': ('refineprompt',''),
         'enter': ('openthread', ''),
         'l': ('retagprompt', ''),
         'a': ('toggletag inbox', ''),
