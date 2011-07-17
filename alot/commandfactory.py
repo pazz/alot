@@ -46,7 +46,8 @@ COMMANDS = {
         'compose': (commands.ComposeCommand, {}),
         'open_envelope': (commands.OpenEnvelopeCommand, {}),
         'send': (commands.SendMailCommand, {}),
-        'retag': (commands.ThreadTagCommand, {}),
+        'retag': (commands.RetagCommand, {}),
+        'retagprompt': (commands.RetagPromptCommand, {}),
         }
 
 
@@ -94,7 +95,7 @@ globalcomands = [
 ]
 
 ALLOWED_COMMANDS = {
-    'search': ['refine', 'toggletag', 'openthread', 'retag'] + globalcomands,
+    'search': ['refine', 'toggletag', 'openthread', 'retag', 'retagprompt'] + globalcomands,
     'envelope': ['send'] + globalcomands,
     'bufferlist': ['bufferfocussed', 'closefocussed'] + globalcomands,
     'taglist': globalcomands,
@@ -114,10 +115,6 @@ def interpret_commandline(cmdline, mode):
     if cmd in aliases:
         cmd = aliases[cmd]
 
-    # buffer commands depend on first parameter only
-    if cmd == 'buffer' and len(params) == 1:
-        cmd = cmd + ' ' + params[0]
-        params = []
     # allow to shellescape without a space after '!'
     if cmd.startswith('!'):
         params = cmd[1:] + ''.join(params)
@@ -130,9 +127,9 @@ def interpret_commandline(cmdline, mode):
 
     if not params:  # commands that don't accept parameter
         if cmd in ['exit', 'flush', 'pyshell', 'taglist', 'close',
-                   'closefocussed', 'bnext', 'bprevious',
+                   'closefocussed', 'bnext', 'bprevious', 'retag',
                    'refresh', 'bufferlist', 'refine', 'openthread',
-                   'bufferfocus', 'retag']:
+                   'bufferfocus', 'retagprompt']:
             return commandfactory(cmd)
         else:
             return None

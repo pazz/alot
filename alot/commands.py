@@ -401,26 +401,32 @@ class ComposeCommand(Command):
                                      refocus=False))
 
 
-class ThreadTagCommand(Command):
+class RetagPromptCommand(Command):
     """prompt the user for labels, then tag thread"""
 
-    def __init__(self, tagsstring=None, **kwargs):
+    def apply(self, ui):
+        thread = ui.current_buffer.get_selected_thread()
+        initial_tagstring = ','.join(thread.get_tags())
+        ui.commandprompt('retag ' + initial_tagstring)
+
+
+class RetagCommand(Command):
+    """prompt the user for labels, then tag thread"""
+
+    def __init__(self, tagsstring=u'', **kwargs):
         self.tagsstring = tagsstring
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
         thread = ui.current_buffer.get_selected_thread()
         initial_tagstring = ','.join(thread.get_tags())
-        if self.tagsstring == None:
-            ui.commandprompt('retag ' + initial_tagstring)
-        else:
-            tags = filter(lambda x: x, self.tagsstring.split(','))
-            ui.logger.info("got %s:%s" % (self.tagsstring, tags))
-            try:
-                thread.set_tags(tags)
-            except DatabaseROError, e:
-                ui.notify('index in read-only mode')
-                return
+        tags = filter(lambda x: x, self.tagsstring.split(','))
+        ui.logger.info("got %s:%s" % (self.tagsstring, tags))
+        try:
+            thread.set_tags(tags)
+        except DatabaseROError, e:
+            ui.notify('index in read-only mode')
+            return
 
         # flush index
         ui.apply_command(FlushCommand())

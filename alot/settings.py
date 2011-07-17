@@ -325,7 +325,7 @@ MAPPING = {
     'search': {
         '|': ('refine',''),
         'enter': ('openthread', ''),
-        'l': ('retag', ''),
+        'l': ('retagprompt', ''),
         'a': ('toggletag inbox', ''),
         '&': ('toggletag killed', ''),
     },
