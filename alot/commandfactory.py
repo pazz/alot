@@ -109,7 +109,10 @@ def interpret_commandline(cmdline, mode):
     logging.debug('mode:%s got commandline "%s"' % (mode, cmdline))
     args = cmdline.strip().split(' ', 1)
     cmd = args[0]
-    params = args[1:]
+    if args[1:]:
+        params = args[1]
+    else:
+        params = ''
 
     # unfold aliases
     if cmd in aliases:
@@ -117,7 +120,7 @@ def interpret_commandline(cmdline, mode):
 
     # allow to shellescape without a space after '!'
     if cmd.startswith('!'):
-        params = cmd[1:] + ''.join(params)
+        params = cmd[1:] + params
         cmd = 'shellescape'
 
     # check if this command makes sense in current mode
@@ -125,7 +128,7 @@ def interpret_commandline(cmdline, mode):
         logging.debug('not allowed in mode %s: %s' % (mode, cmd))
         return None
 
-    if not params:  # commands that don't accept parameter
+    if not params:  # commands that work without parameter
         if cmd in ['exit', 'flush', 'pyshell', 'taglist', 'close',
                    'closefocussed', 'bnext', 'bprevious', 'retag',
                    'refresh', 'bufferlist', 'refine', 'openthread',
