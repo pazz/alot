@@ -25,10 +25,10 @@ import commands
 
 COMMANDS = {
         'bufferlist': (commands.OpenBufferListCommand, {}),
-        'buffer close': (commands.BufferCloseCommand, {}),
-        'buffer next': (commands.BufferFocusCommand, {'offset': 1}),
-        'buffer refresh': (commands.RefreshCommand, {}),
-        'buffer previous': (commands.BufferFocusCommand, {'offset': -1}),
+        'close': (commands.BufferCloseCommand, {}),
+        'bnext': (commands.BufferFocusCommand, {'offset': 1}),
+        'bprevious': (commands.BufferFocusCommand, {'offset': -1}),
+        'refresh': (commands.RefreshCommand, {}),
         'exit': (commands.ExitCommand, {}),
         'flush': (commands.FlushCommand, {}),
         'pyshell': (commands.PythonShellCommand, {}),
@@ -40,8 +40,8 @@ COMMANDS = {
         'openthread': (commands.OpenThreadCommand, {}),
         'refine': (commands.RefineSearchPromptCommand, {}),
         'toggletag': (commands.ToggleThreadTagCommand, {'tag': 'inbox'}),
-        'buffer focus': (commands.BufferFocusCommand, {}),
-        'buffer close focussed': (commands.BufferCloseCommand, {'focussed': True}),
+        'bufferfocus': (commands.BufferFocusCommand, {}),
+        'closefocussed': (commands.BufferCloseCommand, {'focussed': True}),
 
         'compose': (commands.ComposeCommand, {}),
         'open_envelope': (commands.OpenEnvelopeCommand, {}),
@@ -70,21 +70,19 @@ def commandfactory(cmdname, **kwargs):
         logging.error('there is no command %s' % cmdname)
 
 
-aliases = {'bc': 'buffer close',
-           'bn': 'buffer next',
-           'bp': 'buffer previous',
-           'br': 'buffer refresh',
+aliases = {'clo': 'close',
+           'bn': 'bnext',
+           'bp': 'bprevious',
            'bcf': 'buffer close focussed',
-           'refresh': 'buffer refresh',
            'ls': 'bufferlist',
            'quit': 'exit',
 }
 
 globalcomands = [
-    'buffer close',
-    'buffer next',
-    'buffer previous',
-    'buffer refresh',
+    'close',
+    'bnext',
+    'bprevious',
+    'refresh',
     'bufferlist',
     'edit',
     'exit',
@@ -98,7 +96,7 @@ globalcomands = [
 ALLOWED_COMMANDS = {
     'search': ['refine', 'toggletag', 'openthread', 'retag'] + globalcomands,
     'envelope': ['send'] + globalcomands,
-    'bufferlist': ['buffer focus', 'buffer close focussed'] + globalcomands,
+    'bufferlist': ['bufferfocussed', 'closefocussed'] + globalcomands,
     'taglist': globalcomands,
     'thread': ['toggletag'] + globalcomands,
 }
@@ -131,10 +129,10 @@ def interpret_commandline(cmdline, mode):
         return None
 
     if not params:  # commands that don't accept parameter
-        if cmd in ['exit', 'flush', 'pyshell', 'taglist', 'buffer close',
-                   'buffer close focussed', 'buffer next', 'buffer previous',
-                   'buffer refresh', 'bufferlist', 'refine', 'openthread',
-                   'buffer focus', 'retag']:
+        if cmd in ['exit', 'flush', 'pyshell', 'taglist', 'close',
+                   'closefocussed', 'bnext', 'bprevious',
+                   'refresh', 'bufferlist', 'refine', 'openthread',
+                   'bufferfocus', 'retag']:
             return commandfactory(cmd)
         else:
             return None

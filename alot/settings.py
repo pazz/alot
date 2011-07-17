@@ -310,16 +310,16 @@ MAPPING = {
         '@': ('refresh', ''),
         'I': ('search tag:inbox AND NOT tag:killed', 'open Inbox'),
         'U': ('search tag:unread', 'open unread'),
-        'x': ('buffer close', 'close buffer'),
-        'tab': ('buffer next', 'next buffer'),
-        'shift tab': ('buffer prev', 'previous buffer'),
+        'x': ('close', 'close buffer'),
+        'tab': ('bnext', 'next buffer'),
+        'shift tab': ('bprevious', 'previous buffer'),
         '\\': ('prompt search ', ''),
         'q': ('exit', ''),
         ';': ('bufferlist', ''),
         ':': ('prompt', ''),
         'L': ('taglist', ''),
         's': ('shell', ''),
-        '@': ('buffer refresh', ''),
+        '@': ('refresh', 'refresh current buffer'),
         'm': ('compose', ''),
     },
     'search': {
@@ -340,8 +340,8 @@ MAPPING = {
         'y': ('send', ''),
     },
     'bufferlist': {
-        'd': ('buffer close focussed', ''),
-        'enter': ('buffer focus', ''),
+        'd': ('closefocussed', ''),
+        'enter': ('bufferfocus', ''),
     }
 }
 
