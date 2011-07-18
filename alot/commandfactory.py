@@ -24,25 +24,26 @@ from settings import get_hook
 import commands
 
 COMMANDS = {
-        'bufferlist': (commands.OpenBufferListCommand, {}),
-        'close': (commands.BufferCloseCommand, {}),
         'bnext': (commands.BufferFocusCommand, {'offset': 1}),
         'bprevious': (commands.BufferFocusCommand, {'offset': -1}),
-        'refresh': (commands.RefreshCommand, {}),
+        'bufferfocus': (commands.BufferFocusCommand, {}),
+        'bufferlist': (commands.OpenBufferListCommand, {}),
+        'close': (commands.BufferCloseCommand, {}),
+        'closefocussed': (commands.BufferCloseCommand, {'focussed': True}),
+        'commandprompt': (commands.CommandPromptCommand, {}),
+        'edit': (commands.EditCommand, {}),
         'exit': (commands.ExitCommand, {}),
         'flush': (commands.FlushCommand, {}),
+        'openthread': (commands.OpenThreadCommand, {}),
+        'prompt': (commands.PromptCommand, {}),
         'pyshell': (commands.PythonShellCommand, {}),
+        'refine': (commands.RefineCommand, {}),
+        'refineprompt': (commands.RefinePromptCommand, {}),
+        'refresh': (commands.RefreshCommand, {}),
         'search': (commands.SearchCommand, {}),
         'shellescape': (commands.ExternalCommand, {}),
         'taglist': (commands.TagListCommand, {}),
-        'edit': (commands.EditCommand, {}),
-        'commandprompt': (commands.CommandPromptCommand, {}),
-        'openthread': (commands.OpenThreadCommand, {}),
-        'refine': (commands.RefineCommand, {}),
-        'refineprompt': (commands.RefinePromptCommand, {}),
         'toggletag': (commands.ToggleThreadTagCommand, {'tag': 'inbox'}),
-        'bufferfocus': (commands.BufferFocusCommand, {}),
-        'closefocussed': (commands.BufferCloseCommand, {'focussed': True}),
 
         'compose': (commands.ComposeCommand, {}),
         'open_envelope': (commands.OpenEnvelopeCommand, {}),
@@ -81,15 +82,17 @@ aliases = {'clo': 'close',
 }
 
 globalcomands = [
-    'close',
     'bnext',
     'bprevious',
-    'refresh',
     'bufferlist',
+    'close',
+    'compose',
+    'prompt',
     'edit',
     'exit',
     'flush',
     'pyshell',
+    'refresh',
     'search',
     'shellescape',
     'taglist',
@@ -140,14 +143,16 @@ def interpret_commandline(cmdline, mode):
     else:
         if cmd == 'search':
             return commandfactory(cmd, query=params)
+        elif cmd == 'prompt':
+            return commandfactory(cmd, startstring=params)
         elif cmd == 'refine':
             return commandfactory(cmd, query=params)
+        elif cmd == 'retag':
+            return commandfactory(cmd, tagsstring=params)
         elif cmd == 'shellescape':
             return commandfactory(cmd, commandstring=params)
         elif cmd == 'toggletag':
             return commandfactory(cmd, tag=params)
-        elif cmd == 'retag':
-            return commandfactory(cmd, tagsstring=params)
         elif cmd == 'edit':
             filepath = params[0]
             if os.path.isfile(filepath):

@@ -97,8 +97,9 @@ class SearchCommand(Command):
 
 
 class PromptCommand(Command):
-    def __init__(self, startstring='', **kwargs):
+    def __init__(self, startstring=u'', **kwargs):
         self.startstring = startstring
+        Command.__init__(self, **kwargs)
 
     def apply(self, ui):
         ui.commandprompt(self.startstring)
