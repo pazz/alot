@@ -347,10 +347,11 @@ class SendMailCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        sname, saddr = helper.parse_addr(self.email.get('From'))
+        mail = ui.current_buffer.get_email()
+        sname, saddr = email.Utils.parseaddr(mail.get('From'))
         account = get_account_by_address(saddr)
         if account:
-            success, reason = account.sender.send_mail(self.email)
+            success, reason = account.sender.send_mail(mail)
             if success:
                 if self.envelope_buffer:  # close the envelope
                     cmd = BufferCloseCommand(buffer=self.envelope_buffer)
@@ -363,9 +364,13 @@ class SendMailCommand(Command):
 
 
 class ComposeCommand(Command):
-    def __init__(self, email=None, headers={}, **kwargs):
-        self.headers = headers
-        self.mail = email
+    def __init__(self, mail=None, headers=None, **kwargs):
+        if headers:
+            self.headers = headers
+        else:
+            self.headers = {}
+        self.mail = mail
+        logging.debug(headers)
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):

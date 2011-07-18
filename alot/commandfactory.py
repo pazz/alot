@@ -31,6 +31,7 @@ COMMANDS = {
         'close': (commands.BufferCloseCommand, {}),
         'closefocussed': (commands.BufferCloseCommand, {'focussed': True}),
         'commandprompt': (commands.CommandPromptCommand, {}),
+        'compose': (commands.ComposeCommand, {}),
         'edit': (commands.EditCommand, {}),
         'exit': (commands.ExitCommand, {}),
         'flush': (commands.FlushCommand, {}),
@@ -44,10 +45,9 @@ COMMANDS = {
         'shellescape': (commands.ExternalCommand, {}),
         'taglist': (commands.TagListCommand, {}),
         'toggletag': (commands.ToggleThreadTagCommand, {'tag': 'inbox'}),
-
-        'compose': (commands.ComposeCommand, {}),
-        'open_envelope': (commands.OpenEnvelopeCommand, {}),
         'send': (commands.SendMailCommand, {}),
+
+        'open_envelope': (commands.OpenEnvelopeCommand, {}),
         'retag': (commands.RetagCommand, {}),
         'retagprompt': (commands.RetagPromptCommand, {}),
         }
@@ -134,8 +134,8 @@ def interpret_commandline(cmdline, mode):
 
     if not params:  # commands that work without parameter
         if cmd in ['exit', 'flush', 'pyshell', 'taglist', 'close','compose',
-                   'closefocussed', 'bnext', 'bprevious', 'retag',
-                   'refresh', 'bufferlist', 'refineprompt', 'openthread',
+                   'closefocussed', 'bnext', 'bprevious', 'retag', 'refresh',
+                   'bufferlist', 'refineprompt', 'openthread', 'send',
                    'bufferfocus', 'retagprompt']:
             return commandfactory(cmd)
         else:
