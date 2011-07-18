@@ -133,7 +133,7 @@ def interpret_commandline(cmdline, mode):
         return None
 
     if not params:  # commands that work without parameter
-        if cmd in ['exit', 'flush', 'pyshell', 'taglist', 'close',
+        if cmd in ['exit', 'flush', 'pyshell', 'taglist', 'close','compose',
                    'closefocussed', 'bnext', 'bprevious', 'retag',
                    'refresh', 'bufferlist', 'refineprompt', 'openthread',
                    'bufferfocus', 'retagprompt']:
@@ -143,6 +143,8 @@ def interpret_commandline(cmdline, mode):
     else:
         if cmd == 'search':
             return commandfactory(cmd, query=params)
+        elif cmd == 'compose':
+            return commandfactory(cmd, headers={'To': params})
         elif cmd == 'prompt':
             return commandfactory(cmd, startstring=params)
         elif cmd == 'refine':

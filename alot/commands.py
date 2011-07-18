@@ -25,6 +25,7 @@ from cmd import Cmd
 import StringIO
 import email
 from email.parser import Parser
+from email.mime.text import MIMEText
 import tempfile
 
 import buffer
@@ -362,30 +363,41 @@ class SendMailCommand(Command):
 
 
 class ComposeCommand(Command):
-    def __init__(self, email=None, **kwargs):
-        self.email = email
+    def __init__(self, email=None, headers={}, **kwargs):
+        self.headers = headers
+        self.mail = email
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        if not self.email:
-            header = {}
-            # TODO: fill with default header (per account)
-            accounts = get_accounts()
-            if len(accounts) == 0:
-                ui.notify('no accounts set')
+        # TODO: fill with default header (per account)
+        # get From header
+        accounts = get_accounts()
+        if len(accounts) == 0:
+            ui.notify('no accounts set')
+            return
+        elif len(accounts) == 1:
+            a = accounts[0]
+        else:
+            # TODO: completer for accounts
+            fromaddress = ui.prompt(prefix='From>')
+            validaddresses = [a.address for a in accounts] + [None]
+            while fromaddress not in validaddresses:
+                ui.notify('couldn\'t find a matching account. (<esc> cancels)')
+                fromaddress = ui.prompt(prefix='From>')
+            if not fromaddress:
+                ui.notify('canceled')
                 return
-            elif len(accounts) == 1:
-                a = accounts[0]
-            else:
-                while fromaddress not in [a.address for a in accounts]:
-                    fromaddress = ui.prompt(prefix='From>')
-                a = get_account_by_address(fromaddress)
-            header['From'] = "%s <%s>" % (a.realname, a.address)
-            header['To'] = ui.prompt(prefix='To>')
-            if config.getboolean('general', 'ask_subject'):
-                header['Subject'] = ui.prompt(prefix='Subject>')
+            a = get_account_by_address(fromaddress)
+        self.headers['From'] = "%s <%s>" % (a.realname, a.address)
 
-        def onSuccess():
+        #get To header
+        if 'To' not in self.headers:
+            self.headers['To'] = ui.prompt(prefix='To>')
+        if config.getboolean('general', 'ask_subject') and \
+           not 'Subject' in self.headers:
+            self.headers['Subject'] = ui.prompt(prefix='Subject>')
+
+        def openEnvelopeFromTmpfile():
             f = open(tf.name)
             editor_input = f.read()
             self.email = Parser().parsestr(editor_input)
@@ -394,11 +406,17 @@ class ComposeCommand(Command):
             ui.apply_command(OpenEnvelopeCommand(email=self.email))
 
         tf = tempfile.NamedTemporaryFile(delete=False)
-        for i in header.items():
-            tf.write('%s: %s\n' % i)
-        tf.write('\n\n')
+        if self.mail:
+            for k, v in self.headers:
+                self.mail[k] = v
+            tf.write(self.mail.as_string())
+        else:
+            for i in self.headers.items():
+                tf.write('%s: %s\n' % i)
+            tf.write('\n\n')
         tf.close()
-        ui.apply_command(EditCommand(tf.name, on_success=onSuccess,
+        ui.apply_command(EditCommand(tf.name,
+                                     on_success=openEnvelopeFromTmpfile,
                                      refocus=False))
 
 
