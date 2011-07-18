@@ -319,6 +319,7 @@ MAPPING = {
         ':': ('prompt', ''),
         'L': ('taglist', ''),
         's': ('shell', ''),
+        '$': ('flush', ''),
         '@': ('refresh', 'refresh current buffer'),
         'm': ('compose', ''),
     },
