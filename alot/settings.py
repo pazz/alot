@@ -330,7 +330,7 @@ MAPPING = {
         '&': ('toggletag killed', ''),
     },
     'thread': {
-        'a': ('toggle_thread_tag inbox', ''),
+        'a': ('toggletag inbox', ''),
     },
     'taglist': {
        # 'enter': ('search', {'query': (lambda: 'tag:' +

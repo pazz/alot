@@ -148,6 +148,9 @@ class SingleThreadBuffer(Buffer):
     def __str__(self):
         return '%s, (%d)' % (self.thread.get_subject(), self.message_count)
 
+    def get_selected_thread(self):
+        return self.thread
+
     def _build_pile(self, acc, msg, parent, depth):
         acc.append((parent, depth, msg))
         for reply in self.thread.get_replies_to(msg):
