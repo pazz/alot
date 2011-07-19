@@ -343,7 +343,7 @@ MAPPING = {
     },
     'bufferlist': {
         'd': ('closefocussed', ''),
-        'enter': ('bufferfocus', ''),
+        'enter': ('openfocussed', ''),
     }
 }
 

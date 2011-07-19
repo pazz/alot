@@ -26,10 +26,10 @@ import commands
 COMMANDS = {
         'bnext': (commands.BufferFocusCommand, {'offset': 1}),
         'bprevious': (commands.BufferFocusCommand, {'offset': -1}),
-        'bufferfocus': (commands.BufferFocusCommand, {}),
         'bufferlist': (commands.OpenBufferListCommand, {}),
         'close': (commands.BufferCloseCommand, {}),
         'closefocussed': (commands.BufferCloseCommand, {'focussed': True}),
+        'openfocussed': (commands.BufferFocusCommand, {}),
         'commandprompt': (commands.CommandPromptCommand, {}),
         'compose': (commands.ComposeCommand, {}),
         'edit': (commands.EditCommand, {}),
@@ -102,7 +102,7 @@ globalcomands = [
 ALLOWED_COMMANDS = {
     'search': ['refine', 'refineprompt', 'toggletag', 'openthread', 'retag', 'retagprompt'] + globalcomands,
     'envelope': ['send', 'reedit'] + globalcomands,
-    'bufferlist': ['bufferfocussed', 'closefocussed'] + globalcomands,
+    'bufferlist': ['openfocussed', 'closefocussed'] + globalcomands,
     'taglist': globalcomands,
     'thread': ['toggletag'] + globalcomands,
 }
@@ -135,9 +135,9 @@ def interpret_commandline(cmdline, mode):
 
     if not params:  # commands that work without parameter
         if cmd in ['exit', 'flush', 'pyshell', 'taglist', 'close','compose',
-                   'closefocussed', 'bnext', 'bprevious', 'retag', 'refresh',
-                   'bufferlist', 'refineprompt', 'openthread', 'send', 'reedit',
-                   'bufferfocus', 'retagprompt']:
+                   'openfocussed', 'closefocussed', 'bnext', 'bprevious',
+                   'retag', 'refresh', 'bufferlist', 'refineprompt',
+                   'openthread', 'send', 'reedit', 'retagprompt']:
             return commandfactory(cmd)
         else:
             return None
