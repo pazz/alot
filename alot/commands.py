@@ -74,6 +74,7 @@ class OpenThreadCommand(Command):
         if 'unread' in self.thread.get_tags():
             self.thread.remove_tags(['unread'])
             ui.apply_command(FlushCommand())
+        self.thread.refresh()
 
 
 

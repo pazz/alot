@@ -21,6 +21,7 @@ from datetime import datetime
 import email
 from collections import deque
 import os
+import logging
 
 from settings import config
 import helper
@@ -73,26 +74,26 @@ class DBManager:
             except NotmuchError:
                 raise DatabaseLockedError()
             while self.writequeue:
-                cmd, querystring, tags = self.writequeue.popleft()
+                cmd, querystring, tags, sync = self.writequeue.popleft()
                 query = db.create_query(querystring)
                 for msg in query.search_messages():
                     msg.freeze()
                     if cmd == 'tag':
                         for tag in tags:
                             msg.add_tag(tag.encode(DB_ENC),
-                                        sync_maildir_flags=True)
+                                        sync_maildir_flags=sync)
                     if cmd == 'set':
                         msg.remove_all_tags()
                         for tag in tags:
                             msg.add_tag(tag.encode(DB_ENC),
-                                        sync_maildir_flags=True)
+                                        sync_maildir_flags=sync)
                     elif cmd == 'untag':
                         for tag in tags:
                             msg.remove_tag(tag.encode(DB_ENC),
-                                          sync_maildir_flags=True)
+                                          sync_maildir_flags=sync)
                     msg.thaw()
 
-    def tag(self, querystring, tags, remove_rest=False):
+    def tag(self, querystring, tags, remove_rest=False, sync_maildir_flags=False):
         """
         add tags to all matching messages. Raises
         :exc:`DatabaseROError` if in read only mode.
@@ -108,11 +109,11 @@ class DBManager:
         if self.ro:
             raise DatabaseROError()
         if remove_rest:
-            self.writequeue.append(('set', querystring, tags))
+            self.writequeue.append(('set', querystring, tags, sync_maildir_flags))
         else:
-            self.writequeue.append(('tag', querystring, tags))
+            self.writequeue.append(('tag', querystring, tags, sync_maildir_flags))
 
-    def untag(self, querystring, tags):
+    def untag(self, querystring, tags, sync_maildir_flags=False):
         """
         add tags to all matching messages. Raises
         :exc:`DatabaseROError` if in read only mode.
@@ -125,7 +126,7 @@ class DBManager:
         """
         if self.ro:
             raise DatabaseROError()
-        self.writequeue.append(('untag', querystring, tags))
+        self.writequeue.append(('untag', querystring, tags, sync_maildir_flags))
 
     def count_messages(self, querystring):
         """returns number of messages that match querystring"""
@@ -171,10 +172,19 @@ class Thread:
         """
         self._dbman = dbman
         self._id = thread.get_thread_id()
+        self.refresh(thread)
+
+    def refresh(self, thread=None):
+        if not thread:
+            query = self._dbman.query('thread:' + self._id)
+            thread = query.search_threads().next()
+        logging.debug(thread)
         self._total_messages = thread.get_total_messages()
         self._authors = str(thread.get_authors()).decode(DB_ENC)
         self._subject = str(thread.get_subject()).decode(DB_ENC)
-        self._oldest_date = datetime.fromtimestamp(thread.get_oldest_date())
+        ts = thread.get_oldest_date()
+        logging.debug(ts)
+        self._oldest_date = datetime.fromtimestamp(ts)
         self._newest_date = datetime.fromtimestamp(thread.get_newest_date())
         self._tags = set(thread.get_tags())
         self._messages = {}  # this maps messages to its children
@@ -191,7 +201,7 @@ class Thread:
         """returns tags attached to this thread as list of strings"""
         return list(self._tags)
 
-    def add_tags(self, tags):
+    def add_tags(self, tags, sync_maildir_flags=False):
         """adds tags to all messages in this thread
 
         :param tags: tags to add
@@ -199,10 +209,11 @@ class Thread:
         """
         newtags = set(tags).difference(self._tags)
         if newtags:
-            self._dbman.tag('thread:' + self._id, newtags)
+            self._dbman.tag('thread:' + self._id, newtags,
+                    sync_maildir_flags=sync_maildir_flags)
             self._tags = self._tags.union(newtags)
 
-    def remove_tags(self, tags):
+    def remove_tags(self, tags, sync_maildir_flags=False):
         """remove tags from all messages in this thread
 
         :param tags: tags to remove
@@ -210,18 +221,21 @@ class Thread:
         """
         rmtags = set(tags).intersection(self._tags)
         if rmtags:
-            self._dbman.untag('thread:' + self._id, tags)
+            self._dbman.untag('thread:' + self._id, tags,
+                    sync_maildir_flags=sync_maildir_flags)
             self._tags = self._tags.difference(rmtags)
 
-    def set_tags(self, tags):
+    def set_tags(self, tags, sync_maildir_flags=False):
         """set tags of all messages in this thread. This removes all tags and
         attaches the given ones in one step.
 
         :param tags: tags to add
         :type tags: list of str
         """
-        self._dbman.tag('thread:' + self._id, tags, remove_rest=True)
-        self._tags = set(tags)
+        if tags != self._tags:
+            self._dbman.tag('thread:' + self._id, tags, remove_rest=True,
+                    sync_maildir_flags=sync_maildir_flags)
+            self._tags = set(tags)
 
     def get_authors(self):  # TODO: make this return a list of strings
         """returns all authors in this thread"""
