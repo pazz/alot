@@ -45,8 +45,11 @@ COMMANDS = {
         'shellescape': (commands.ExternalCommand, {}),
         'taglist': (commands.TagListCommand, {}),
         'toggletag': (commands.ToggleThreadTagCommand, {'tag': 'inbox'}),
+        # envelope
         'send': (commands.SendMailCommand, {}),
         'reedit': (commands.EnvelopeReeditCommand, {}),
+        'subject': (commands.EnvelopeSetCommand, {'key': 'Subject'}),
+        'to': (commands.EnvelopeSetCommand, {'key': 'To'}),
 
         'open_envelope': (commands.OpenEnvelopeCommand, {}),
         'retag': (commands.RetagCommand, {}),
@@ -100,8 +103,9 @@ globalcomands = [
 ]
 
 ALLOWED_COMMANDS = {
-    'search': ['refine', 'refineprompt', 'toggletag', 'openthread', 'retag', 'retagprompt'] + globalcomands,
-    'envelope': ['send', 'reedit'] + globalcomands,
+    'search': ['refine', 'refineprompt', 'toggletag', 'openthread', 'retag',
+               'retagprompt'] + globalcomands,
+    'envelope': ['send', 'reedit', 'to', 'subject'] + globalcomands,
     'bufferlist': ['openfocussed', 'closefocussed'] + globalcomands,
     'taglist': globalcomands,
     'thread': ['toggletag'] + globalcomands,
@@ -134,7 +138,7 @@ def interpret_commandline(cmdline, mode):
         return None
 
     if not params:  # commands that work without parameter
-        if cmd in ['exit', 'flush', 'pyshell', 'taglist', 'close','compose',
+        if cmd in ['exit', 'flush', 'pyshell', 'taglist', 'close', 'compose',
                    'openfocussed', 'closefocussed', 'bnext', 'bprevious',
                    'retag', 'refresh', 'bufferlist', 'refineprompt',
                    'openthread', 'send', 'reedit', 'retagprompt']:
@@ -152,8 +156,12 @@ def interpret_commandline(cmdline, mode):
             return commandfactory(cmd, query=params)
         elif cmd == 'retag':
             return commandfactory(cmd, tagsstring=params)
+        elif cmd == 'subject':
+            return commandfactory(cmd, key='Subject', value=params)
         elif cmd == 'shellescape':
             return commandfactory(cmd, commandstring=params)
+        elif cmd == 'to':
+            return commandfactory(cmd, key='To', value=params)
         elif cmd == 'toggletag':
             return commandfactory(cmd, tag=params)
         elif cmd == 'edit':

@@ -514,3 +514,20 @@ class EnvelopeReeditCommand(Command):
                                      on_success=readTmpfile,
                                      refocus=False))
 
+
+class EnvelopeSetCommand(Command):
+    """sets header fields of mail open in envelope buffer"""
+
+    def __init__(self, key='', value='', **kwargs):
+        self.key = key
+        self.value = value
+        Command.__init__(self, **kwargs)
+
+    def apply(self, ui):
+        envelope = ui.current_buffer
+        mail = envelope.get_email()
+        if self.key in mail:
+            mail.replace_header(self.key, self.value)
+        else:
+            mail[self.key] = self.value
+        envelope.rebuild()

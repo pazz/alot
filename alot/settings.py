@@ -324,7 +324,7 @@ MAPPING = {
         'm': ('compose', ''),
     },
     'search': {
-        '|': ('refineprompt',''),
+        '|': ('refineprompt', ''),
         'enter': ('openthread', ''),
         'l': ('retagprompt', ''),
         'a': ('toggletag inbox', ''),
@@ -340,12 +340,15 @@ MAPPING = {
     'envelope': {
         'y': ('send', ''),
         'enter': ('reedit', ''),
+        't': ('prompt to', ''),
+        's': ('prompt subject', ''),
     },
     'bufferlist': {
         'd': ('closefocussed', ''),
         'enter': ('openfocussed', ''),
     }
 }
+
 
 def get_mappings_by_mode(mode):
     if not mode in MAPPING:
@@ -354,9 +357,10 @@ def get_mappings_by_mode(mode):
     maps.update(MAPPING[mode])
     return maps
 
+
 def get_mapping(key, mode):
     maps = get_mappings_by_mode(mode)
     if key in maps:
         return maps[key]
     else:
-        return None,None
+        return None, None
