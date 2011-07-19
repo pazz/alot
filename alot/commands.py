@@ -70,6 +70,12 @@ class OpenThreadCommand(Command):
         sb = buffer.SingleThreadBuffer(ui, self.thread)
         ui.buffer_open(sb)
 
+        # in case the thread is yet unread, remove this tag
+        if 'unread' in self.thread.get_tags():
+            self.thread.remove_tags(['unread'])
+            ui.apply_command(FlushCommand())
+
+
 
 class SearchCommand(Command):
     """open a new search buffer"""

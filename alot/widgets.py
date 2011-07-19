@@ -211,10 +211,6 @@ class MessageWidget(urwid.WidgetWrap):
         self.pile = urwid.Pile(self.displayed_list)
         urwid.WidgetWrap.__init__(self, self.pile)
 
-        # in case the message is yet unread, remove this tag
-        if 'unread' in message.get_tags():
-            message.remove_tags(['unread'])
-
     def rebuild(self):
         self.pile = urwid.Pile(self.displayed_list)
         self._w = self.pile
