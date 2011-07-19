@@ -339,6 +339,7 @@ MAPPING = {
     },
     'envelope': {
         'y': ('send', ''),
+        'enter': ('reedit', ''),
     },
     'bufferlist': {
         'd': ('closefocussed', ''),

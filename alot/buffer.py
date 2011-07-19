@@ -234,8 +234,15 @@ class EnvelopeBuffer(Buffer):
         Buffer.__init__(self, ui, self.body, 'envelope')
         self.autoparms = {'email': self.get_email}
 
+    def __str__(self):
+        return "to: %s" % self.email['To']
+
     def get_email(self):
         return self.email
+
+    def set_email(self, mail):
+        self.email = mail
+        self.rebuild()
 
     def rebuild(self):
         displayed_widgets = []

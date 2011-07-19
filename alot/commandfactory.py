@@ -46,6 +46,7 @@ COMMANDS = {
         'taglist': (commands.TagListCommand, {}),
         'toggletag': (commands.ToggleThreadTagCommand, {'tag': 'inbox'}),
         'send': (commands.SendMailCommand, {}),
+        'reedit': (commands.EnvelopeReeditCommand, {}),
 
         'open_envelope': (commands.OpenEnvelopeCommand, {}),
         'retag': (commands.RetagCommand, {}),
@@ -100,7 +101,7 @@ globalcomands = [
 
 ALLOWED_COMMANDS = {
     'search': ['refine', 'refineprompt', 'toggletag', 'openthread', 'retag', 'retagprompt'] + globalcomands,
-    'envelope': ['send'] + globalcomands,
+    'envelope': ['send', 'reedit'] + globalcomands,
     'bufferlist': ['bufferfocussed', 'closefocussed'] + globalcomands,
     'taglist': globalcomands,
     'thread': ['toggletag'] + globalcomands,
@@ -135,7 +136,7 @@ def interpret_commandline(cmdline, mode):
     if not params:  # commands that work without parameter
         if cmd in ['exit', 'flush', 'pyshell', 'taglist', 'close','compose',
                    'closefocussed', 'bnext', 'bprevious', 'retag', 'refresh',
-                   'bufferlist', 'refineprompt', 'openthread', 'send',
+                   'bufferlist', 'refineprompt', 'openthread', 'send', 'reedit',
                    'bufferfocus', 'retagprompt']:
             return commandfactory(cmd)
         else:

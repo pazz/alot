@@ -77,7 +77,6 @@ class OpenThreadCommand(Command):
         self.thread.refresh()
 
 
-
 class SearchCommand(Command):
     """open a new search buffer"""
     def __init__(self, query, force_new=False, **kwargs):
@@ -492,3 +491,26 @@ class RefinePromptCommand(Command):
         sbuffer = ui.current_buffer
         oldquery = sbuffer.querystring
         ui.commandprompt('refine ' + oldquery)
+
+
+class EnvelopeReeditCommand(Command):
+    """re-edits mail in from envelope buffer"""
+    def apply(self, ui):
+        in_mail = ui.current_buffer.get_email()
+
+        def readTmpfile():
+            f = open(tf.name)
+            editor_input = f.read()
+            out_mail = Parser().parsestr(editor_input)
+            f.close()
+            os.unlink(tf.name)
+            # TODO: attachments?
+            ui.current_buffer.set_email(out_mail)
+
+        tf = tempfile.NamedTemporaryFile(delete=False)
+        tf.write(in_mail.as_string())
+        tf.close()
+        ui.apply_command(EditCommand(tf.name,
+                                     on_success=readTmpfile,
+                                     refocus=False))
+
