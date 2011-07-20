@@ -347,21 +347,17 @@ class ToggleThreadTagCommand(Command):
 
 
 class SendMailCommand(Command):
-    def __init__(self, email=None, envelope=None, **kwargs):
-        self.email = email
-        self.envelope_buffer = envelope
-        Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        mail = ui.current_buffer.get_email()
+        envelope = ui.current_buffer
+        mail = envelope.get_email()
         sname, saddr = email.Utils.parseaddr(mail.get('From'))
         account = get_account_by_address(saddr)
         if account:
             success, reason = account.sender.send_mail(mail)
             if success:
-                if self.envelope_buffer:  # close the envelope
-                    cmd = BufferCloseCommand(buffer=self.envelope_buffer)
-                    ui.apply_command(cmd)
+                cmd = BufferCloseCommand(buffer=envelope)
+                ui.apply_command(cmd)
                 ui.notify('mail send successful')
             else:
                 ui.notify('failed to send: %s' % reason)
