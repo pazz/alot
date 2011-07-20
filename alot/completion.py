@@ -20,6 +20,7 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 import re
 
 import commandfactory
+import settings
 
 
 class Completer:
@@ -34,40 +35,63 @@ class QueryCompleter(Completer):
     # TODO: boolean connectors and braces?
     def __init__(self, dbman):
         self.dbman = dbman
+        self._contactscompleter = ContactsCompleter()
+        self._tagscompleter = TagsCompleter(dbman)
         self.keywords = ['tag', 'from', 'to', 'subject', 'attachment',
                          'is', 'id', 'thread', 'folder']
 
     def complete(self, original):
-        lastbit = prefix = original.split(' ')[-1]
-        m = re.findall('[tag|is]:(\w*)', lastbit)
+        prefix = original.split(' ')[-1]
+        m = re.search('(tag|is|to):(\w*)', prefix)
         if m:
-            prefix = m[0]
-            plen = len(prefix)
-            tags = self.dbman.get_all_tags()
-            matched = filter(lambda t: t.startswith(prefix), tags)
-            return [t[plen:] + ' ' for t in matched]
+            cmd, params = m.groups()
+            if cmd == 'to':
+                return self._contactscompleter.complete(params)
+            else:
+                return self._tagscompleter.complete(params, last=True)
         else:
-            prefix = original.split(' ')[-1]
             plen = len(prefix)
             matched = filter(lambda t: t.startswith(prefix), self.keywords)
             return [t[plen:] + ':' for t in matched]
 
 
-class TagListCompleter(Completer):
+class TagsCompleter(Completer):
     """completion for a comma separated list of tagstrings"""
 
     def __init__(self, dbman):
         self.dbman = dbman
 
-    def complete(self, original):
-        taglist = original.split(',')
-        prefix = taglist[-1]
+    def complete(self, original, last=False):
+        otags = original.split(',')
+        prefix = otags[-1]
         tags = self.dbman.get_all_tags()
-        return [t[len(prefix):] + ',' for t in tags if t.startswith(prefix)]
+        if len(otags)>1 and last:
+            return []
+        else:
+            matching = [t[len(prefix):] for t in tags if t.startswith(prefix)]
+            if last:
+                return matching
+            else:
+                return [t + ',' for t in matching]
 
+
+class ContactsCompleter(Completer):
+    """completes contacts"""
+
+    def complete(self, prefix):
+        # TODO
+        return []
+
+
+class AccountCompleter(Completer):
+    """completes own mailaddresses"""
+
+    def complete(self, prefix):
+        valids = settings.get_account_addresses()
+        return [a[len(prefix):] for a in valids if a.startswith(prefix)]
 
 class CommandCompleter(Completer):
-    """completion for commandline"""
+    """completes commands"""
 
     def __init__(self, dbman, mode):
         self.dbman = dbman
@@ -77,4 +101,33 @@ class CommandCompleter(Completer):
         #TODO refine <tab> should get current querystring
         cmdlist = commandfactory.ALLOWED_COMMANDS[self.mode]
         olen = len(original)
-        return [t[olen:] + ' ' for t in cmdlist if t.startswith(original)]
+        return [t[olen:] + '' for t in cmdlist if t.startswith(original)]
+
+
+class CommandLineCompleter(Completer):
+    """completion for commandline"""
+
+    def __init__(self, dbman, mode):
+        self.dbman = dbman
+        self.mode = mode
+        self._commandcompleter = CommandCompleter(dbman, mode)
+        self._querycompleter = QueryCompleter(dbman)
+        self._tagscompleter = TagsCompleter(dbman)
+        self._contactscompleter = ContactsCompleter()
+
+    def complete(self, prefix):
+        words = prefix.split(' ',1)
+        if len(words)<=1: # we complete commands
+            return self._commandcompleter.complete(prefix)
+        else:
+            cmd, params = words
+            if cmd in ['search', 'refine']:
+                return self._querycompleter.complete(params)
+            if cmd == 'retag':
+                return self._tagscompleter.complete(params)
+            if cmd == 'toggletag':
+                return self._tagscompleter.complete(params, last=True)
+            if cmd == 'to':
+                return self._contactscompleter.complete(params)
+            else:
+                return []

@@ -27,7 +27,7 @@ from buffer import BufferListBuffer
 from commandfactory import commandfactory
 from commandfactory import interpret_commandline
 from widgets import CompleteEdit
-from completion import CommandCompleter
+from completion import CommandLineCompleter
 
 
 class UI:
@@ -109,7 +109,7 @@ class UI:
         mode = self.current_buffer.typename
         cmdline = self.prompt(prefix=':',
                               text=startstring,
-                              completer=CommandCompleter(self.dbman, mode))
+                              completer=CommandLineCompleter(self.dbman, mode))
         if cmdline:
             cmd = interpret_commandline(cmdline, mode)
             if cmd:

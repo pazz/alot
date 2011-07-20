@@ -35,7 +35,8 @@ from settings import get_account_by_address
 from settings import get_accounts
 from db import DatabaseROError
 from db import DatabaseLockedError
-import completion
+from completion import ContactsCompleter
+from completion import AccountCompleter
 import helper
 
 
@@ -390,11 +391,12 @@ class ComposeCommand(Command):
             a = accounts[0]
         else:
             # TODO: completer for accounts
-            fromaddress = ui.prompt(prefix='From>')
+            cmpl = AccountCompleter()
+            fromaddress = ui.prompt(prefix='From>',completer=cmpl)
             validaddresses = [a.address for a in accounts] + [None]
             while fromaddress not in validaddresses:
                 ui.notify('couldn\'t find a matching account. (<esc> cancels)')
-                fromaddress = ui.prompt(prefix='From>')
+                fromaddress = ui.prompt(prefix='From>',completer=cmpl)
             if not fromaddress:
                 ui.notify('canceled')
                 return
@@ -403,7 +405,8 @@ class ComposeCommand(Command):
 
         #get To header
         if 'To' not in self.headers:
-            self.headers['To'] = ui.prompt(prefix='To>')
+            self.headers['To'] = ui.prompt(prefix='To>',
+                                           completer=ContactsCompleter())
         if config.getboolean('general', 'ask_subject') and \
            not 'Subject' in self.headers:
             self.headers['Subject'] = ui.prompt(prefix='Subject>')
