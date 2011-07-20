@@ -296,7 +296,7 @@ def get_accounts():
 
 
 def get_account_by_address(address):
-    accounts = ACCOUNTS
+    accounts = get_accounts()
     matched = [a for a in accounts if a.address == address]
     if len(matched) == 1:
         return matched.pop()
