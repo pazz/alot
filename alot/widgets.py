@@ -130,13 +130,14 @@ class TagWidget(urwid.Text):
 
 
 class CompleteEdit(urwid.Edit):
-    def __init__(self, completer, edit_text=u''):
+    # TODO: defaulttext: visible in darker font, tpe it with tab/enter
+    def __init__(self, completer, edit_text=u'', **kwargs):
         self.completer = completer
         if not isinstance(edit_text, unicode):
             edit_text = unicode(edit_text, errors='replace')
         self.start_completion_pos = len(edit_text)
         self.completion_results = None
-        urwid.Edit.__init__(self, edit_text=edit_text)
+        urwid.Edit.__init__(self, edit_text=edit_text, **kwargs)
 
     def keypress(self, size, key):
         cmd = command_map[key]

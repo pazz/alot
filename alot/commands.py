@@ -386,13 +386,12 @@ class ComposeCommand(Command):
         elif len(accounts) == 1:
             a = accounts[0]
         else:
-            # TODO: completer for accounts
             cmpl = AccountCompleter()
-            fromaddress = ui.prompt(prefix='From>',completer=cmpl)
+            fromaddress = ui.prompt(prefix='From>', completer=cmpl, tab=1)
             validaddresses = [a.address for a in accounts] + [None]
             while fromaddress not in validaddresses:
                 ui.notify('couldn\'t find a matching account. (<esc> cancels)')
-                fromaddress = ui.prompt(prefix='From>',completer=cmpl)
+                fromaddress = ui.prompt(prefix='From>', completer=cmpl)
             if not fromaddress:
                 ui.notify('canceled')
                 return

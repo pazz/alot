@@ -68,11 +68,13 @@ class UI:
         """
         raise urwid.ExitMainLoop()
 
-    def prompt(self, prefix='>', text=u'', completer=None):
+    def prompt(self, prefix='>', text=u'', tab=0, completer=None):
         self.logger.info('open prompt')
         leftpart = urwid.Text(prefix, align='left')
         if completer:
             editpart = CompleteEdit(completer, edit_text=text)
+            for i in range(tab):
+                editpart.keypress((0,), 'tab')
         else:
             editpart = urwid.Edit(edit_text=text)
         both = urwid.Columns(
