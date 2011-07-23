@@ -18,14 +18,9 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 import email
 import urwid
-import tempfile
-import os
-import re
-from datetime import datetime
 from urwid.command_map import command_map
 
 from settings import config
-from settings import get_mime_handler
 from helper import shorten
 from helper import pretty_datetime
 from helper import cmd_output
@@ -269,7 +264,7 @@ class MessageWidget(urwid.WidgetWrap):
     def _get_body_widget(self):
         """creates/returns the widget that displays the mail body"""
         if not self.bodyw:
-            cols = [MessageBodyWidget(self.message.get_email())]
+            cols = [MessageBodyWidget(self.message)]
             bc = list()
             if self.depth:
                 cols.insert(0, self._get_spacer(self.bars_at[1:]))
@@ -448,49 +443,8 @@ class MessageHeaderWidget(urwid.AttrMap):
 class MessageBodyWidget(urwid.AttrMap):
     """displays printable parts of an email"""
 
-    def __init__(self, eml):
-        """
-        :param eml: the email
-        :type eml: email.Message
-        """
-        self.eml = eml
-        bodytxt = ''
-        for part in self.eml.walk():
-            ctype = part.get_content_type()
-            enc = part.get_content_charset()
-            raw_payload = part.get_payload(decode=True)
-            if part.get_content_maintype() == 'text':
-                if enc:
-                    raw_payload = unicode(raw_payload, enc)
-                else:
-                    raw_payload = unicode(raw_payload, errors='replace')
-            if ctype == 'text/plain':
-                bodytxt += raw_payload
-            else:
-                #get mime handler
-                handler = get_mime_handler(ctype, key='view',
-                                           interactive=False)
-                if handler:
-                    #open tempfile. Not all handlers accept stuff from stdin
-                    tmpfile = tempfile.NamedTemporaryFile(delete=False,
-                                                          suffix='.html')
-                    #write payload to tmpfile
-                    if part.get_content_maintype() == 'text':
-                        tmpfile.write(raw_payload.encode('utf8'))
-                    else:
-                        tmpfile.write(raw_payload)
-                    #create and call external command
-                    cmd = handler % tmpfile.name
-                    rendered_payload = cmd_output(cmd)
-                    #remove tempfile
-                    tmpfile.close()
-                    os.unlink(tmpfile.name)
-                    if rendered_payload:  # handler had output
-                        bodytxt += unicode(rendered_payload.strip(),
-                                           encoding='utf8', errors='replace')
-                    elif part.get_content_maintype() == 'text':
-                        bodytxt += raw_payload
-                    # else drop
+    def __init__(self, msg):
+        bodytxt = msg.accumulate_body()
         urwid.AttrMap.__init__(self, urwid.Text(bodytxt), 'message_body')
 
     def selectable(self):

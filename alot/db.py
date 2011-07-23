@@ -22,9 +22,12 @@ import email
 from collections import deque
 import os
 import logging
+import tempfile
 
 from settings import config
+from settings import get_mime_handler
 import helper
+from helper import cmd_output
 
 DB_ENC = 'utf8'
 
@@ -420,6 +423,46 @@ class Message:
                 if part.get_content_maintype() != 'text':
                     self._attachments.append(Attachment(part))
         return self._attachments
+
+    def accumulate_body(self):
+        bodytxt = ''
+        for part in self.get_email().walk():
+            ctype = part.get_content_type()
+            enc = part.get_content_charset()
+            raw_payload = part.get_payload(decode=True)
+            if part.get_content_maintype() == 'text':
+                if enc:
+                    raw_payload = unicode(raw_payload, enc)
+                else:
+                    raw_payload = unicode(raw_payload, errors='replace')
+            if ctype == 'text/plain':
+                bodytxt += raw_payload
+            else:
+                #get mime handler
+                handler = get_mime_handler(ctype, key='view',
+                                           interactive=False)
+                if handler:
+                    #open tempfile. Not all handlers accept stuff from stdin
+                    tmpfile = tempfile.NamedTemporaryFile(delete=False,
+                                                          suffix='.html')
+                    #write payload to tmpfile
+                    if part.get_content_maintype() == 'text':
+                        tmpfile.write(raw_payload.encode('utf8'))
+                    else:
+                        tmpfile.write(raw_payload)
+                    #create and call external command
+                    cmd = handler % tmpfile.name
+                    rendered_payload = cmd_output(cmd)
+                    #remove tempfile
+                    tmpfile.close()
+                    os.unlink(tmpfile.name)
+                    if rendered_payload:  # handler had output
+                        bodytxt += unicode(rendered_payload.strip(),
+                                           encoding='utf8', errors='replace')
+                    elif part.get_content_maintype() == 'text':
+                        bodytxt += raw_payload
+                    # else drop
+        return bodytxt
 
 
 class Attachment:
