@@ -23,7 +23,6 @@ from urwid.command_map import command_map
 from settings import config
 from helper import shorten
 from helper import pretty_datetime
-from helper import cmd_output
 
 
 class ThreadlineWidget(urwid.AttrMap):
