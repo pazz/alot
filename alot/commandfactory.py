@@ -20,7 +20,7 @@ import logging
 import os
 
 
-from settings import get_hook
+from settings import hooks
 import commands
 
 COMMANDS = {
@@ -68,8 +68,8 @@ def commandfactory(cmdname, **kwargs):
             else:
                 parms[key] = value
 
-        parms['prehook'] = get_hook('pre_' + cmdname)
-        parms['posthook'] = get_hook('post_' + cmdname)
+        parms['prehook'] = hooks.get('pre_' + cmdname)
+        parms['posthook'] = hooks.get('post_' + cmdname)
 
         logging.debug('cmd parms %s' % parms)
         return cmdclass(**parms)

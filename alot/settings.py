@@ -29,7 +29,6 @@ DEFAULTS = {
     'general': {
         'colourmode': '16',
         'editor_cmd': "/usr/bin/vim -f -c 'set filetype=mail' +",
-        'sendmail_cmd': 'msmtp --account=gmail -t',
         'terminal_cmd': 'urxvt -T notmuch -e',
         'spawn_editor': 'False',
         'displayed_headers': 'From,To,Cc,Bcc,Subject',
@@ -39,6 +38,7 @@ DEFAULTS = {
         'show_notificationbar': 'False',
         'show_statusbar': 'True',
         'flush_retry_timeout': '5',
+        'hooksfile': '~/.alot.py',
     },
     'normal-theme': {
         'bufferlist_focus_bg': 'dark gray',
@@ -212,43 +212,107 @@ class CustomConfigParser(SafeConfigParser):
         value = self.get(section, option, **kwargs)
         return [s.strip() for s in value.split(',')]
 
+    def read(self, *args):
+        SafeConfigParser.read(self, *args)
+        if self.has_option('general', 'hooksfile'):
+            hf = os.path.expanduser(config.get('general', 'hooksfile'))
+            if hf is not None:
+                try:
+                    config.hooks = imp.load_source('hooks', hf)
+                except:
+                    pass
+
+    def get_palette(self):
+        p = list()
+        for attr in DEFAULTS['mono-theme'].keys():
+            p.append((
+                attr,
+                self.get('normal-theme', attr + '_fg'),
+                self.get('normal-theme', attr + '_bg'),
+                self.get('mono-theme', attr),
+                self.get('highcolour-theme', attr + '_fg'),
+                self.get('highcolour-theme', attr + '_bg'),
+            ))
+        return p
+
+
+class HookManager:
+    def setup(self, hooksfile):
+        hf = os.path.expanduser(hooksfile)
+        if os.path.isfile(hf):
+            try:
+                self.module = imp.load_source('hooks', hf)
+            except:
+                self.module = None
+        else:
+            self.module = {}
+
+    def get(self, key):
+        if self.module:
+            if key in self.module.__dict__:
+                return self.module.__dict__[key]
+
+        def f(*args, **kwargs):
+            msg = 'called undefined hook: %s with arguments'
+            logging.debug(msg % key)
+        return f
+
+    def call(self, hookname, *args, **kwargs):
+        hook = self.get_hook(hookname)
+        try:
+            hook(*args, **kwargs)
+        except:
+            msg = 'exception occured while calling hook: %s with arguments %s,  %s'
+            logging.exception(msg % hookname, args, kwargs)
+
+
+class AccountManager:
+    allowed = ['realname',
+               'address',
+               'gpg_key',
+               'signature',
+               'sender_type',
+               'sendmail_command',
+               'sent_mailbox']
+    manditory = ['realname', 'address']
+    accounts = []
+
+    def __init__(self, config):
+        sections = config.sections()
+        accountsections = filter(lambda s: s.startswith('account '), sections)
+        for s in accountsections:
+            options = filter(lambda x: x in self.allowed, config.options(s))
+            args = {}
+            for o in options:
+                args[o] = config.get(s, o)
+                if o in self.manditory:
+                    self.manditory.remove(o)
+            if not self.manditory:
+                logging.info(args)
+                self.accounts.append(Account(**args))
+            else:
+                pass
+                # log info
+
+    def get_accounts(self):
+        return self.accounts
+
+    def get_account_by_address(self, address):
+        matched = [a for a in self.accounts if a.address == address]
+        if len(matched) == 1:
+            return matched.pop()
+        else:
+            return None
+            # log info
+
+    def get_account_addresses(self):
+        return [a.address for a in self.accounts]
+
 
 config = CustomConfigParser(DEFAULTS)
+hooks = HookManager()
+#accounts = AccountManager()
 mailcaps = mailcap.getcaps()
-
-
-def setup(configfilename):
-    config.read(os.path.expanduser(configfilename))
-    if config.has_option('general', 'hooksfile'):
-        hf = os.path.expanduser(config.get('general', 'hooksfile'))
-        if hf is not None:
-            try:
-                config.hooks = imp.load_source('hooks', hf)
-            except:
-                pass
-
-
-def get_palette():
-    p = list()
-    for attr in DEFAULTS['mono-theme'].keys():
-        p.append((
-            attr,
-            config.get('normal-theme', attr + '_fg'),
-            config.get('normal-theme', attr + '_bg'),
-            config.get('mono-theme', attr),
-            config.get('highcolour-theme', attr + '_fg'),
-            config.get('highcolour-theme', attr + '_bg'),
-        ))
-    return p
-
-
-def get_hook(hookname):
-    h = None
-    if config.hooks:
-        if config.hooks.__dict__:
-            if hookname in config.hooks.__dict__:
-                h = config.hooks.__dict__[hookname]
-    return h
 
 
 def get_mime_handler(mime_type, key, interactive=True):
@@ -265,47 +329,6 @@ def get_mime_handler(mime_type, key, interactive=True):
             return mc_tuple[1][key]
     else:
         return None
-
-
-def get_accounts():
-    allowed = ['realname',
-               'address',
-               'gpg_key',
-               'signature',
-               'sender_type',
-               'sendmail_command',
-               'sent_mailbox']
-    manditory = ['realname', 'address']
-    sections = config.sections()
-    accountsections = filter(lambda s: s.startswith('account '), sections)
-    accounts = []
-    for s in accountsections:
-        options = filter(lambda x: x in allowed, config.options(s))
-        args = {}
-        for o in options:
-            args[o] = config.get(s, o)
-            if o in manditory:
-                manditory.remove(o)
-        if not manditory:
-            logging.info(args)
-            accounts.append(Account(**args))
-        else:
-            pass
-            # log info
-    return accounts
-
-
-def get_account_by_address(address):
-    accounts = get_accounts()
-    matched = [a for a in accounts if a.address == address]
-    if len(matched) == 1:
-        return matched.pop()
-    else:
-        return None
-
-
-def get_account_addresses():
-    return [a.address for a in get_accounts()]
 
 # maps mode to keybingins: for each one,
 # a key is mapped to a pair cmdline, helpstring.

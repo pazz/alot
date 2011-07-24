@@ -21,6 +21,7 @@ import logging
 import os
 
 import settings
+from settings import AccountManager
 from db import DBManager
 from ui import UI
 from urwid.command_map import command_map
@@ -59,7 +60,11 @@ def main():
 
     #read config file
     configfilename = os.path.expanduser(args.configfile)
-    settings.setup(configfilename)
+    settings.config.read(configfilename)
+    settings.hooks.setup(settings.config.get('general', 'hooksfile'))
+
+    #accountman
+    aman = AccountManager(settings.config)
 
     # setup logging
     numeric_loglevel = getattr(logging, args.debug_level.upper(), None)
@@ -69,8 +74,6 @@ def main():
 
     # get ourselves a database manager
     dbman = DBManager(path=args.db_path, ro=args.read_only)
-    # read accounts
-    accounts = settings.get_accounts()
 
     # set up global urwid command maps
     command_map['j'] = 'cursor down'
@@ -82,7 +85,7 @@ def main():
     # set up and start interface
     ui = UI(dbman,
             logger,
-            accounts,
+            aman,
             args.query,
             args.colours,
     )
