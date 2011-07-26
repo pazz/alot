@@ -394,7 +394,7 @@ class ComposeCommand(Command):
             if not fromaddress:
                 ui.notify('canceled')
                 return
-            a = get_account_by_address(fromaddress)
+            a = ui.accountman.get_account_by_address(fromaddress)
         self.headers['From'] = "%s <%s>" % (a.realname, a.address)
 
         #get To header

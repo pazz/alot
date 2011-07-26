@@ -21,7 +21,7 @@ import logging
 import os
 
 import settings
-from settings import AccountManager
+from account import AccountManager
 from db import DBManager
 from ui import UI
 from urwid.command_map import command_map
