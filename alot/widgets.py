@@ -23,6 +23,7 @@ from urwid.command_map import command_map
 from settings import config
 from helper import shorten
 from helper import pretty_datetime
+import message
 
 
 class ThreadlineWidget(urwid.AttrMap):
@@ -263,7 +264,7 @@ class MessageWidget(urwid.WidgetWrap):
     def _get_body_widget(self):
         """creates/returns the widget that displays the mail body"""
         if not self.bodyw:
-            cols = [MessageBodyWidget(self.message)]
+            cols = [MessageBodyWidget(self.message.get_email())]
             bc = list()
             if self.depth:
                 cols.insert(0, self._get_spacer(self.bars_at[1:]))
@@ -443,7 +444,7 @@ class MessageBodyWidget(urwid.AttrMap):
     """displays printable parts of an email"""
 
     def __init__(self, msg):
-        bodytxt = msg.accumulate_body()
+        bodytxt = message.extract_body(msg)
         urwid.AttrMap.__init__(self, urwid.Text(bodytxt), 'message_body')
 
     def selectable(self):
