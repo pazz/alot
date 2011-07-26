@@ -73,7 +73,7 @@ class OpenThreadCommand(Command):
 
         # in case the thread is yet unread, remove this tag
         if 'unread' in self.thread.get_tags():
-            self.thread.remove_tags(['unread'])
+            self.thread.remove_tags(['unread'], sync_maildir_flags=True)
             ui.apply_command(FlushCommand())
         self.thread.refresh()
 
@@ -427,6 +427,42 @@ class ComposeCommand(Command):
         ui.apply_command(EditCommand(tf.name,
                                      on_success=openEnvelopeFromTmpfile,
                                      refocus=False))
+
+
+class ReplyCommand(Command):
+
+    def __init__(self, groupreply=True, **kwargs):
+        self.groupreply = groupreply
+        Command.__init__(self, **kwargs)
+
+    def apply(self, ui):
+        msg = ui.current_buffer.get_selected_message()
+        mail = msg.get_email()
+        mailcontent = ''
+        # set In-Reply-To header
+        mailcontent += 'In-Reply-To: %s' % msg.get_message_id()
+
+        # set References header
+        old_references = mail['References']
+        if old_references:
+            old_references = old_references.split()
+            references = old_references[-8:]
+            if len(old_references)>8:
+                references = old_references[:1] + references
+            references.append(msg.get_message_id())
+            mailcontent += 'References: %s' % ' '.join(references)
+
+        # extract from address from to,cc,bcc fields or leave blank
+        # (composeCommand will prompt)
+
+        # set body text
+        mailcontent += '\nOn %s, %s wrote' % (msg.get_datestring(),
+                msg.get_author()[0])
+        for line in msg.accumulate_body().split():
+            mailcontent += '>' + line + '\n'
+
+        reply = email.message_from_string(mailcontent)
+        ui.apply_command(ComposeCommand(mail=reply))
 
 
 class RetagPromptCommand(Command):

@@ -54,6 +54,8 @@ COMMANDS = {
         'open_envelope': (commands.OpenEnvelopeCommand, {}),
         'retag': (commands.RetagCommand, {}),
         'retagprompt': (commands.RetagPromptCommand, {}),
+        # thread
+        'reply': (commands.ReplyCommand, {}),
         }
 
 
@@ -108,7 +110,7 @@ ALLOWED_COMMANDS = {
     'envelope': ['send', 'reedit', 'to', 'subject'] + globalcomands,
     'bufferlist': ['openfocussed', 'closefocussed'] + globalcomands,
     'taglist': globalcomands,
-    'thread': ['toggletag'] + globalcomands,
+    'thread': ['toggletag', 'reply'] + globalcomands,
 }
 
 
@@ -140,7 +142,7 @@ def interpret_commandline(cmdline, mode):
     if not params:  # commands that work without parameter
         if cmd in ['exit', 'flush', 'pyshell', 'taglist', 'close', 'compose',
                    'openfocussed', 'closefocussed', 'bnext', 'bprevious',
-                   'retag', 'refresh', 'bufferlist', 'refineprompt',
+                   'retag', 'refresh', 'bufferlist', 'refineprompt', 'reply',
                    'openthread', 'send', 'reedit', 'retagprompt']:
             return commandfactory(cmd)
         else:
