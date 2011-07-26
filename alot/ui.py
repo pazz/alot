@@ -21,7 +21,6 @@ import os
 from urwid.command_map import command_map
 
 from settings import config
-from settings import get_palette
 from settings import get_mapping
 from buffer import BufferListBuffer
 from commandfactory import commandfactory
@@ -34,18 +33,18 @@ class UI:
     buffers = []
     current_buffer = None
 
-    def __init__(self, db, log, accounts, initialquery, colourmode):
-        self.dbman = db
+    def __init__(self, dbman, log, accountman, initialquery, colourmode):
+        self.dbman = dbman
         self.dbman.ui = self  # register ui with dbman
         self.logger = log
-        self.accounts = accounts
+        self.accountman = accountman
 
         if not colourmode:
             colourmode = config.getint('general', 'colourmode')
         self.logger.info('setup gui in %d colours' % colourmode)
         self.mainframe = urwid.Frame(urwid.SolidFill(' '))
         self.mainloop = urwid.MainLoop(self.mainframe,
-                get_palette(),
+                config.get_palette(),
                 handle_mouse=False,
                 unhandled_input=self.keypress)
         self.mainloop.screen.set_terminal_properties(colors=colourmode)
@@ -111,7 +110,9 @@ class UI:
         mode = self.current_buffer.typename
         cmdline = self.prompt(prefix=':',
                               text=startstring,
-                              completer=CommandLineCompleter(self.dbman, mode))
+                              completer=CommandLineCompleter(self.dbman,
+                                                             self.accountman,
+                                                             mode))
         if cmdline:
             cmd = interpret_commandline(cmdline, mode)
             if cmd:

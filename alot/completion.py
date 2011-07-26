@@ -86,8 +86,11 @@ class ContactsCompleter(Completer):
 class AccountCompleter(Completer):
     """completes own mailaddresses"""
 
+    def __init__(self, accountman):
+        self.accountman = accountman
+
     def complete(self, prefix):
-        valids = settings.get_account_addresses()
+        valids = self.accountman.get_account_addresses()
         return [a[len(prefix):] for a in valids if a.startswith(prefix)]
 
 class CommandCompleter(Completer):
@@ -107,8 +110,9 @@ class CommandCompleter(Completer):
 class CommandLineCompleter(Completer):
     """completion for commandline"""
 
-    def __init__(self, dbman, mode):
+    def __init__(self, dbman, accoountman, mode):
         self.dbman = dbman
+        self.accountman = accountman
         self.mode = mode
         self._commandcompleter = CommandCompleter(dbman, mode)
         self._querycompleter = QueryCompleter(dbman)

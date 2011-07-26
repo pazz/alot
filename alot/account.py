@@ -18,6 +18,7 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 
 import mailbox
+import logging
 from urlparse import urlparse
 
 from send import SendmailSender
@@ -53,3 +54,46 @@ class Account:
         if self.sender_type == 'sendmail':
             self.sender = SendmailSender(sendmail_command,
                                          mailbox=self.mailbox)
+
+
+class AccountManager:
+    allowed = ['realname',
+               'address',
+               'gpg_key',
+               'signature',
+               'sender_type',
+               'sendmail_command',
+               'sent_mailbox']
+    manditory = ['realname', 'address']
+    accounts = {}
+
+    def __init__(self, config):
+        sections = config.sections()
+        accountsections = filter(lambda s: s.startswith('account '), sections)
+        for s in accountsections:
+            options = filter(lambda x: x in self.allowed, config.options(s))
+            args = {}
+            for o in options:
+                args[o] = config.get(s, o)
+                if o in self.manditory:
+                    self.manditory.remove(o)
+            if not self.manditory:
+                logging.info(args)
+                newacc = (Account(**args))
+                self.accounts[newacc.address] = newacc
+            else:
+                pass
+                # log info
+
+    def get_accounts(self):
+        return self.accounts.values()
+
+    def get_account_by_address(self, address):
+        if address in self.accounts:
+            return self.accounts[address]
+        else:
+            return None
+            # log info
+
+    def get_account_addresses(self):
+        return self.accounts.keys()

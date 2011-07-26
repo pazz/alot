@@ -29,10 +29,7 @@ from email.mime.text import MIMEText
 import tempfile
 
 import buffer
-from settings import config
-from settings import get_hook
-from settings import get_account_by_address
-from settings import get_accounts
+import settings
 from db import DatabaseROError
 from db import DatabaseLockedError
 from completion import ContactsCompleter
@@ -158,7 +155,9 @@ class ExternalCommand(Command):
         def thread_code(*args):
             cmd = self.commandstring
             if self.spawn:
-                cmd = config.get('general', 'terminal_cmd') + ' ' + cmd
+                cmd = '%s %s' % (settings.config.get('general',
+                                                      'terminal_cmd'),
+                                  cmd)
             ui.logger.info('calling external command: %s' % cmd)
             returncode = subprocess.call(cmd, shell=True)
             if returncode == 0:
@@ -179,8 +178,8 @@ class EditCommand(ExternalCommand):
         if spawn != None:
             self.spawn = spawn
         else:
-            self.spawn = config.getboolean('general', 'spawn_editor')
-        editor_cmd = config.get('general', 'editor_cmd')
+            self.spawn = settings.config.getboolean('general', 'spawn_editor')
+        editor_cmd = settings.config.get('general', 'editor_cmd')
         cmd = editor_cmd + ' ' + self.path
         ExternalCommand.__init__(self, cmd, spawn=self.spawn,
                                  in_thread=self.spawn,
@@ -293,7 +292,7 @@ class FlushCommand(Command):
         try:
             ui.dbman.flush()
         except DatabaseLockedError:
-            timeout = config.getint('general', 'flush_retry_timeout')
+            timeout = settings.config.getint('general', 'flush_retry_timeout')
 
             def f(*args):
                 self.apply(ui)
@@ -353,7 +352,7 @@ class SendMailCommand(Command):
         envelope = ui.current_buffer
         mail = envelope.get_email()
         sname, saddr = email.Utils.parseaddr(mail.get('From'))
-        account = get_account_by_address(saddr)
+        account = settings.accounts.get_account_by_address(saddr)
         if account:
             success, reason = account.sender.send_mail(mail)
             if success:
@@ -379,14 +378,14 @@ class ComposeCommand(Command):
     def apply(self, ui):
         # TODO: fill with default header (per account)
         # get From header
-        accounts = get_accounts()
+        accounts = ui.accountman.get_accounts()
         if len(accounts) == 0:
             ui.notify('no accounts set')
             return
         elif len(accounts) == 1:
             a = accounts[0]
         else:
-            cmpl = AccountCompleter()
+            cmpl = AccountCompleter(ui.accountman)
             fromaddress = ui.prompt(prefix='From>', completer=cmpl, tab=1)
             validaddresses = [a.address for a in accounts] + [None]
             while fromaddress not in validaddresses:
@@ -395,14 +394,14 @@ class ComposeCommand(Command):
             if not fromaddress:
                 ui.notify('canceled')
                 return
-            a = get_account_by_address(fromaddress)
+            a = ui.accountman.get_account_by_address(fromaddress)
         self.headers['From'] = "%s <%s>" % (a.realname, a.address)
 
         #get To header
         if 'To' not in self.headers:
             self.headers['To'] = ui.prompt(prefix='To>',
                                            completer=ContactsCompleter())
-        if config.getboolean('general', 'ask_subject') and \
+        if settings.config.getboolean('general', 'ask_subject') and \
            not 'Subject' in self.headers:
             self.headers['Subject'] = ui.prompt(prefix='Subject>')
 
