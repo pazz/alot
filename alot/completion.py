@@ -110,7 +110,7 @@ class CommandCompleter(Completer):
 class CommandLineCompleter(Completer):
     """completion for commandline"""
 
-    def __init__(self, dbman, accoountman, mode):
+    def __init__(self, dbman, accountman, mode):
         self.dbman = dbman
         self.accountman = accountman
         self.mode = mode
