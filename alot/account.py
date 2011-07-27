@@ -18,7 +18,6 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 
 import mailbox
-import logging
 from urlparse import urlparse
 
 from send import SendmailSender
@@ -70,6 +69,7 @@ class AccountManager:
     def __init__(self, config):
         sections = config.sections()
         accountsections = filter(lambda s: s.startswith('account '), sections)
+        self.ordered_addresses = []
         for s in accountsections:
             options = filter(lambda x: x in self.allowed, config.options(s))
             args = {}
@@ -78,9 +78,9 @@ class AccountManager:
                 if o in self.manditory:
                     self.manditory.remove(o)
             if not self.manditory:
-                logging.info(args)
                 newacc = (Account(**args))
                 self.accounts[newacc.address] = newacc
+                self.ordered_addresses.append(newacc.address)
             else:
                 pass
                 # log info
@@ -96,4 +96,4 @@ class AccountManager:
             # log info
 
     def get_account_addresses(self):
-        return self.accounts.keys()
+        return self.ordered_addresses
