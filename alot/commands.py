@@ -26,6 +26,9 @@ import StringIO
 import email
 from email.parser import Parser
 from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email import Charset
+from email.header import Header
 import tempfile
 
 import buffer
@@ -35,6 +38,8 @@ from db import DatabaseLockedError
 from completion import ContactsCompleter
 from completion import AccountCompleter
 import helper
+from message import decode_to_unicode
+from message import decode_header
 
 
 class Command:
@@ -366,13 +371,12 @@ class SendMailCommand(Command):
 
 
 class ComposeCommand(Command):
-    def __init__(self, mail=None, headers=None, **kwargs):
-        if headers:
-            self.headers = headers
+    def __init__(self, mail=None, **kwargs):
+        if not mail:
+            self.mail = MIMEMultipart()
+            self.mail.attach(MIMEText('', 'plain', 'UTF-8'))
         else:
-            self.headers = {}
-        self.mail = mail
-        logging.debug(headers)
+            self.mail = mail
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
@@ -395,37 +399,17 @@ class ComposeCommand(Command):
                 ui.notify('canceled')
                 return
             a = ui.accountman.get_account_by_address(fromaddress)
-        self.headers['From'] = "%s <%s>" % (a.realname, a.address)
+        self.mail['From'] = "%s <%s>" % (a.realname, a.address)
 
         #get To header
-        if 'To' not in self.headers:
-            self.headers['To'] = ui.prompt(prefix='To>',
-                                           completer=ContactsCompleter())
+        if 'To' not in self.mail:
+            self.mail['To'] = ui.prompt(prefix='To>',
+                                        completer=ContactsCompleter())
         if settings.config.getboolean('general', 'ask_subject') and \
-           not 'Subject' in self.headers:
-            self.headers['Subject'] = ui.prompt(prefix='Subject>')
+           not 'Subject' in self.mail:
+            self.mail['Subject'] = ui.prompt(prefix='Subject>')
 
-        def openEnvelopeFromTmpfile():
-            f = open(tf.name)
-            editor_input = f.read()
-            self.email = Parser().parsestr(editor_input)
-            f.close()
-            os.unlink(tf.name)
-            ui.apply_command(OpenEnvelopeCommand(email=self.email))
-
-        tf = tempfile.NamedTemporaryFile(delete=False)
-        if self.mail:
-            for k, v in self.headers:
-                self.mail[k] = v
-            tf.write(self.mail.as_string())
-        else:
-            for i in self.headers.items():
-                tf.write('%s: %s\n' % i)
-            tf.write('\n\n')
-        tf.close()
-        ui.apply_command(EditCommand(tf.name,
-                                     on_success=openEnvelopeFromTmpfile,
-                                     refocus=False))
+        ui.apply_command(OpenEnvelopeCommand(email=self.mail))
 
 
 class ReplyCommand(Command):
@@ -437,31 +421,53 @@ class ReplyCommand(Command):
     def apply(self, ui):
         msg = ui.current_buffer.get_selected_message()
         mail = msg.get_email()
-        mailcontent = ''
+        # set body text
+        mailcontent = '\nOn %s, %s wrote:\n' % (msg.get_datestring(),
+                msg.get_author()[0])
+        for line in msg.accumulate_body().splitlines():
+            mailcontent += '>' + line + '\n'
+
+        Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
+        bodypart = MIMEText(mailcontent.encode('utf-8'), 'plain', 'UTF-8')
+        reply = MIMEMultipart()
+        reply.attach(bodypart)
+
+        # copy subject
+        subject = mail['Subject']
+        if not subject.startswith('Re:'):
+            subject = 'Re: ' + subject
+        reply['Subject'] = Header(subject.encode('utf-8'), 'UTF-8').encode()
+
+        # set to
+        reply['To'] = Header(mail['From'].encode('utf-8'), 'UTF-8').encode()
+
         # set In-Reply-To header
-        mailcontent += 'In-Reply-To: %s' % msg.get_message_id()
+        del(reply['In-Reply-To'])
+        reply['In-Reply-To'] = msg.get_message_id()
 
         # set References header
         old_references = mail['References']
         if old_references:
             old_references = old_references.split()
             references = old_references[-8:]
-            if len(old_references)>8:
+            if len(old_references) > 8:
                 references = old_references[:1] + references
             references.append(msg.get_message_id())
-            mailcontent += 'References: %s' % ' '.join(references)
+            reply['References'] = ' '.join(references)
 
+        #TODO
         # extract from address from to,cc,bcc fields or leave blank
         # (composeCommand will prompt)
 
-        # set body text
-        mailcontent += '\nOn %s, %s wrote' % (msg.get_datestring(),
-                msg.get_author()[0])
-        for line in msg.accumulate_body().split():
-            mailcontent += '>' + line + '\n'
-
-        reply = email.message_from_string(mailcontent)
         ui.apply_command(ComposeCommand(mail=reply))
+
+
+class BounceMailCommand(Command):
+    def apply(self, ui):
+        msg = ui.current_buffer.get_selected_message()
+        mail = msg.get_email()
+        del(mail['To'])
+        ui.apply_command(ComposeCommand(mail=mail))
 
 
 class RetagPromptCommand(Command):
@@ -526,25 +532,63 @@ class RefinePromptCommand(Command):
         ui.commandprompt('refine ' + oldquery)
 
 
-class EnvelopeReeditCommand(Command):
+class EnvelopeEditCommand(Command):
     """re-edits mail in from envelope buffer"""
     def apply(self, ui):
-        in_mail = ui.current_buffer.get_email()
+        self.mail = ui.current_buffer.get_email()
 
-        def readTmpfile():
+        def openEnvelopeFromTmpfile():
             f = open(tf.name)
-            editor_input = f.read()
-            out_mail = Parser().parsestr(editor_input)
+            editor_input = f.read().decode('utf-8')
+
+            #split editor out
+            headertext, bodytext = editor_input.split('\n\n', 1)
+
+            #reply = MIMEText(mailcontent.encode('utf-8'), 'plain', 'UTF-8')
+            for line in headertext.splitlines():
+                logging.debug(line)
+                key, value = line.split(':', 1)
+                value = value.strip().encode('utf-8')
+                del self.mail[key]  # ensure there is only one
+                self.mail[key] = Header(value, 'UTF-8').encode()
+
+            Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
+            if self.mail.is_multipart():
+                for part in self.mail.walk():
+                    if part.get_content_maintype() == 'text':
+                        part.set_payload(bodytext, 'utf-8')
+                        break
+
             f.close()
             os.unlink(tf.name)
-            # TODO: attachments?
-            ui.current_buffer.set_email(out_mail)
+            ui.current_buffer.set_email(self.mail)
 
+        # decode header
+        edit_headers = ['Subject', 'To', 'From']
+        headertext = u''
+        for key in edit_headers:
+            value = u''
+            if key in self.mail:
+                value = decode_header(self.mail[key])
+            headertext += '%s: %s\n' % (key, value)
+
+        if self.mail.is_multipart():
+            for part in self.mail.walk():
+                if part.get_content_maintype() == 'text':
+                    bodytext = decode_to_unicode(part)
+                    break
+        else:
+            bodytext = decode_to_unicode(self.mail)
+
+        #write stuff to tempfile
         tf = tempfile.NamedTemporaryFile(delete=False)
-        tf.write(in_mail.as_string())
+        content = '%s\n\n%s' % (headertext,
+                                bodytext)
+        tf.write(content.encode('utf-8'))
+        tf.flush()
         tf.close()
         ui.apply_command(EditCommand(tf.name,
-                                     on_success=readTmpfile,
+                                     on_success=openEnvelopeFromTmpfile,
                                      refocus=False))
 
 

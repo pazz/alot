@@ -315,6 +315,7 @@ MAPPING = {
     },
     'thread': {
         'a': ('toggletag inbox', ''),
+        'r': ('reply', ''),
     },
     'taglist': {
        # 'enter': ('search', {'query': (lambda: 'tag:' +

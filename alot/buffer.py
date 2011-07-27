@@ -19,8 +19,9 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 import urwid
 
 import widgets
+from settings import config
 from walker import IteratorWalker
-from itertools import izip_longest
+from message import decode_header
 
 
 class Buffer:
@@ -235,7 +236,7 @@ class EnvelopeBuffer(Buffer):
         self.autoparms = {'email': self.get_email}
 
     def __str__(self):
-        return "to: %s" % self.email['To']
+        return "to: %s" % decode_header(self.email['To'])
 
     def get_email(self):
         return self.email
@@ -246,7 +247,9 @@ class EnvelopeBuffer(Buffer):
 
     def rebuild(self):
         displayed_widgets = []
-        self.header_wgt = widgets.MessageHeaderWidget(self.email)
+        dh = config.getstringlist('general', 'displayed_headers')
+        self.header_wgt = widgets.MessageHeaderWidget(self.email,
+                                                      displayed_headers=dh)
         displayed_widgets.append(self.header_wgt)
         self.body_wgt = widgets.MessageBodyWidget(self.email)
         displayed_widgets.append(self.body_wgt)

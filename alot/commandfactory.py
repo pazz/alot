@@ -47,7 +47,7 @@ COMMANDS = {
         'toggletag': (commands.ToggleThreadTagCommand, {'tag': 'inbox'}),
         # envelope
         'send': (commands.SendMailCommand, {}),
-        'reedit': (commands.EnvelopeReeditCommand, {}),
+        'reedit': (commands.EnvelopeEditCommand, {}),
         'subject': (commands.EnvelopeSetCommand, {'key': 'Subject'}),
         'to': (commands.EnvelopeSetCommand, {'key': 'To'}),
 
@@ -56,6 +56,7 @@ COMMANDS = {
         'retagprompt': (commands.RetagPromptCommand, {}),
         # thread
         'reply': (commands.ReplyCommand, {}),
+        'bounce': (commands.BounceMailCommand, {}),
         }
 
 
@@ -110,7 +111,7 @@ ALLOWED_COMMANDS = {
     'envelope': ['send', 'reedit', 'to', 'subject'] + globalcomands,
     'bufferlist': ['openfocussed', 'closefocussed'] + globalcomands,
     'taglist': globalcomands,
-    'thread': ['toggletag', 'reply'] + globalcomands,
+    'thread': ['toggletag', 'reply', 'bounce'] + globalcomands,
 }
 
 
@@ -143,7 +144,7 @@ def interpret_commandline(cmdline, mode):
         if cmd in ['exit', 'flush', 'pyshell', 'taglist', 'close', 'compose',
                    'openfocussed', 'closefocussed', 'bnext', 'bprevious',
                    'retag', 'refresh', 'bufferlist', 'refineprompt', 'reply',
-                   'openthread', 'send', 'reedit', 'retagprompt']:
+                   'bounce', 'openthread', 'send', 'reedit', 'retagprompt']:
             return commandfactory(cmd)
         else:
             return None

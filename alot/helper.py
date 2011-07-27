@@ -33,13 +33,13 @@ def shorten(string, maxlen):
 def pretty_datetime(d):
     today = date.today()
     if today == d.date():
-        string = unicode(d.strftime('%H:%M%P'))
+        string = d.strftime('%H:%M%P')
     elif d.date() == today - timedelta(1):
-        string = unicode('Yest.%2d' % d.hour + d.strftime('%P'))
+        string = 'Yest.%2d' % d.hour + d.strftime('%P')
     elif d.year != today.year:
-        string = unicode(d.strftime('%b %Y'))
+        string = d.strftime('%b %Y')
     else:
-        string = unicode(d.strftime('%b %d'))
+        string = d.strftime('%b %d')
     return string
 
 

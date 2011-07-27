@@ -189,6 +189,26 @@ def extract_body(mail):
                 # else drop
     return bodytxt
 
+
+def decode_to_unicode(part):
+    enc = part.get_content_charset()
+    raw_payload = part.get_payload(decode=True)
+    if enc:
+        raw_payload = unicode(raw_payload, enc)
+    else:
+        raw_payload = unicode(raw_payload, errors='replace')
+    return raw_payload
+
+def decode_header(header):
+    valuelist = email.header.decode_header(header)
+    value = u''
+    for v, enc in valuelist:
+        if enc:
+            value = value + v.decode(enc)
+        else:
+            value = value + v
+    return value
+
 class Attachment:
     """represents a single mail attachment"""
 
