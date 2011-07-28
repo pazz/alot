@@ -69,8 +69,6 @@ class OpenThreadCommand(Command):
         if not self.thread:
             self.thread = ui.current_buffer.get_selected_thread()
         ui.logger.info('open thread view for %s' % self.thread)
-        sb = buffer.SingleThreadBuffer(ui, self.thread)
-        ui.buffer_open(sb)
 
         # in case the thread is yet unread, remove this tag
         if 'unread' in self.thread.get_tags():
@@ -78,6 +76,8 @@ class OpenThreadCommand(Command):
             ui.apply_command(FlushCommand())
         self.thread.refresh()
 
+        sb = buffer.SingleThreadBuffer(ui, self.thread)
+        ui.buffer_open(sb)
 
 class SearchCommand(Command):
     """open a new search buffer"""
