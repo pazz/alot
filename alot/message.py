@@ -207,8 +207,9 @@ def decode_header(header):
             value = value + v.decode(enc)
         else:
             value = value + v
+    value = value.replace('\r','')
+    value = value.replace('\n',' ')
     return value
-
 class Attachment:
     """represents a single mail attachment"""
 

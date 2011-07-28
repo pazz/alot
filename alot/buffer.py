@@ -225,35 +225,3 @@ class TagListBuffer(Buffer):
         (attrwidget, pos) = self.taglist.get_focus()
         tagwidget = attrwidget.original_widget
         return tagwidget.get_tag()
-
-
-class EnvelopeBuffer(Buffer):
-    def __init__(self, ui, email):
-        self.ui = ui
-        self.email = email
-        self.rebuild()
-        Buffer.__init__(self, ui, self.body, 'envelope')
-        self.autoparms = {'email': self.get_email}
-
-    def __str__(self):
-        return "to: %s" % decode_header(self.email['To'])
-
-    def get_email(self):
-        return self.email
-
-    def set_email(self, mail):
-        self.email = mail
-        self.rebuild()
-
-    def rebuild(self):
-        displayed_widgets = []
-        dh = config.getstringlist('general', 'displayed_headers')
-        self.header_wgt = widgets.MessageHeaderWidget(self.email,
-                                                      displayed_headers=dh)
-        displayed_widgets.append(self.header_wgt)
-        self.body_wgt = widgets.MessageBodyWidget(self.email)
-        displayed_widgets.append(self.body_wgt)
-        self.body = urwid.ListBox(displayed_widgets)
-
-
-from commandfactory import commandfactory

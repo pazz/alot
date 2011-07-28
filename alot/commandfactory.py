@@ -21,42 +21,43 @@ import os
 
 
 from settings import hooks
-import commands
+import command
+import envelope
 
 COMMANDS = {
-        'bnext': (commands.BufferFocusCommand, {'offset': 1}),
-        'bprevious': (commands.BufferFocusCommand, {'offset': -1}),
-        'bufferlist': (commands.OpenBufferListCommand, {}),
-        'close': (commands.BufferCloseCommand, {}),
-        'closefocussed': (commands.BufferCloseCommand, {'focussed': True}),
-        'openfocussed': (commands.BufferFocusCommand, {}),
-        'commandprompt': (commands.CommandPromptCommand, {}),
-        'compose': (commands.ComposeCommand, {}),
-        'edit': (commands.EditCommand, {}),
-        'exit': (commands.ExitCommand, {}),
-        'flush': (commands.FlushCommand, {}),
-        'openthread': (commands.OpenThreadCommand, {}),
-        'prompt': (commands.PromptCommand, {}),
-        'pyshell': (commands.PythonShellCommand, {}),
-        'refine': (commands.RefineCommand, {}),
-        'refineprompt': (commands.RefinePromptCommand, {}),
-        'refresh': (commands.RefreshCommand, {}),
-        'search': (commands.SearchCommand, {}),
-        'shellescape': (commands.ExternalCommand, {}),
-        'taglist': (commands.TagListCommand, {}),
-        'toggletag': (commands.ToggleThreadTagCommand, {'tag': 'inbox'}),
+        'bnext': (command.BufferFocusCommand, {'offset': 1}),
+        'bprevious': (command.BufferFocusCommand, {'offset': -1}),
+        'bufferlist': (command.OpenBufferListCommand, {}),
+        'close': (command.BufferCloseCommand, {}),
+        'closefocussed': (command.BufferCloseCommand, {'focussed': True}),
+        'openfocussed': (command.BufferFocusCommand, {}),
+        'commandprompt': (command.CommandPromptCommand, {}),
+        'compose': (command.ComposeCommand, {}),
+        'edit': (command.EditCommand, {}),
+        'exit': (command.ExitCommand, {}),
+        'flush': (command.FlushCommand, {}),
+        'openthread': (command.OpenThreadCommand, {}),
+        'prompt': (command.PromptCommand, {}),
+        'pyshell': (command.PythonShellCommand, {}),
+        'refine': (command.RefineCommand, {}),
+        'refineprompt': (command.RefinePromptCommand, {}),
+        'refresh': (command.RefreshCommand, {}),
+        'search': (command.SearchCommand, {}),
+        'shellescape': (command.ExternalCommand, {}),
+        'taglist': (command.TagListCommand, {}),
+        'toggletag': (command.ToggleThreadTagCommand, {'tag': 'inbox'}),
         # envelope
-        'send': (commands.SendMailCommand, {}),
-        'reedit': (commands.EnvelopeEditCommand, {}),
-        'subject': (commands.EnvelopeSetCommand, {'key': 'Subject'}),
-        'to': (commands.EnvelopeSetCommand, {'key': 'To'}),
+        'send': (envelope.SendMailCommand, {}),
+        'reedit': (envelope.EnvelopeEditCommand, {}),
+        'subject': (envelope.EnvelopeSetCommand, {'key': 'Subject'}),
+        'to': (envelope.EnvelopeSetCommand, {'key': 'To'}),
 
-        'open_envelope': (commands.OpenEnvelopeCommand, {}),
-        'retag': (commands.RetagCommand, {}),
-        'retagprompt': (commands.RetagPromptCommand, {}),
+        'open_envelope': (command.OpenEnvelopeCommand, {}),
+        'retag': (command.RetagCommand, {}),
+        'retagprompt': (command.RetagPromptCommand, {}),
         # thread
-        'reply': (commands.ReplyCommand, {}),
-        'bounce': (commands.BounceMailCommand, {}),
+        'reply': (command.ReplyCommand, {}),
+        'bounce': (command.BounceMailCommand, {}),
         }
 
 
