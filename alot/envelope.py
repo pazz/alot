@@ -23,11 +23,12 @@ from email.mime.multipart import MIMEMultipart
 from email import Charset
 from email.header import Header
 import os
+import email
 
 import widgets
 import buffer
 import command
-from settings import config
+import settings
 from message import decode_to_unicode
 from message import decode_header
 
@@ -52,7 +53,7 @@ class EnvelopeBuffer(buffer.Buffer):
 
     def rebuild(self):
         displayed_widgets = []
-        dh = config.getstringlist('general', 'displayed_headers')
+        dh = settings.config.getstringlist('general', 'displayed_headers')
         self.header_wgt = widgets.MessageHeaderWidget(self.email,
                                                       displayed_headers=dh)
         displayed_widgets.append(self.header_wgt)
@@ -142,12 +143,13 @@ class SendMailCommand(command.Command):
     def apply(self, ui):
         envelope = ui.current_buffer
         mail = envelope.get_email()
-        sname, saddr = email.Utils.parseaddr(mail.get('From'))
-        account = settings.accounts.get_account_by_address(saddr)
+        frm = decode_header(mail.get('From'))
+        sname, saddr = email.Utils.parseaddr(frm)
+        account = ui.accountman.get_account_by_address(saddr)
         if account:
             success, reason = account.sender.send_mail(mail)
             if success:
-                cmd = BufferCloseCommand(buffer=envelope)
+                cmd = command.BufferCloseCommand(buffer=envelope)
                 ui.apply_command(cmd)
                 ui.notify('mail send successful')
             else:
