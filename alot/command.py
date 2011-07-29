@@ -39,6 +39,7 @@ from completion import AccountCompleter
 import helper
 from message import decode_to_unicode
 from message import decode_header
+from message import encode_header
 
 
 class Command:
@@ -383,11 +384,12 @@ class ComposeCommand(Command):
 
         #get To header
         if 'To' not in self.mail:
-            self.mail['To'] = ui.prompt(prefix='To>',
-                                        completer=ContactsCompleter())
+            to = ui.prompt(prefix='To>', completer=ContactsCompleter())
+            self.mail['To'] = encode_header('to', to)
         if settings.config.getboolean('general', 'ask_subject') and \
            not 'Subject' in self.mail:
-            self.mail['Subject'] = ui.prompt(prefix='Subject>')
+            subject = ui.prompt(prefix='Subject>')
+            self.mail['Subject'] = encode_header('subject', subject)
 
         ui.apply_command(OpenEnvelopeCommand(email=self.mail))
 

@@ -19,7 +19,9 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 import os
 import email
 import tempfile
+import re
 from datetime import datetime
+from email.header import Header
 
 import helper
 from settings import get_mime_handler
@@ -210,6 +212,27 @@ def decode_header(header):
     value = value.replace('\r','')
     value = value.replace('\n',' ')
     return value
+
+def encode_header(key, value):
+    if key.lower() in ['from', 'to', 'cc', 'bcc']:
+        rawentries = value.split(',')
+        encodedentries = []
+        for entry in rawentries:
+            m = re.search('\s*(.*)\s+<(.*\@.*\.\w*)>$', entry)
+            if m:
+                name, address = m.groups()
+                header = Header(name + ' ', 'utf-8')
+                header.append('<%s>' % address)
+                encodedentries.append(header.encode())
+            else:
+                encodedentries.append(entry.encode('ascii', errors='replace'))
+        value = ','.join(encodedentries)
+    elif key.lower() == 'subject':
+        value = Header(value, 'UTF-8').encode()
+    else:
+        value = value.encode('ascii', errors='replace')
+    return value
+
 class Attachment:
     """represents a single mail attachment"""
 

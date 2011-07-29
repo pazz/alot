@@ -21,7 +21,6 @@ import tempfile
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email import Charset
-from email.header import Header
 import os
 import email
 
@@ -31,6 +30,7 @@ import command
 import settings
 from message import decode_to_unicode
 from message import decode_header
+from message import encode_header
 
 
 class EnvelopeBuffer(buffer.Buffer):
@@ -65,6 +65,7 @@ class EnvelopeBuffer(buffer.Buffer):
 class EnvelopeEditCommand(command.Command):
     """re-edits mail in from envelope buffer"""
     def apply(self, ui):
+        Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
         self.mail = ui.current_buffer.get_email()
 
         def openEnvelopeFromTmpfile():
@@ -74,17 +75,17 @@ class EnvelopeEditCommand(command.Command):
             #split editor out
             headertext, bodytext = editor_input.split('\n\n', 1)
 
-            #reply = MIMEText(mailcontent.encode('utf-8'), 'plain', 'UTF-8')
             for line in headertext.splitlines():
-                key, value = line.split(':', 1)
-                value = value.strip().encode('utf-8')
+                key, value = line.strip().split(':', 1)
+                value = value.strip()
                 del self.mail[key]  # ensure there is only one
-                self.mail[key] = Header(value, 'UTF-8').encode()
+                self.mail[key] = encode_header(key, value)
 
-            Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
             if self.mail.is_multipart():
                 for part in self.mail.walk():
                     if part.get_content_maintype() == 'text':
+                        if 'Content-Transfer-Encoding' in part:
+                            del(part['Content-Transfer-Encoding'])
                         part.set_payload(bodytext, 'utf-8')
                         break
 
@@ -124,20 +125,19 @@ class EnvelopeEditCommand(command.Command):
 class EnvelopeSetCommand(command.Command):
     """sets header fields of mail open in envelope buffer"""
 
-    def __init__(self, key='', value='', **kwargs):
+    def __init__(self, key='', value=u'', replace=True, **kwargs):
         self.key = key
-        self.value = value
+        self.value = encode_header(key, value)
+        self.replace = replace
         command.Command.__init__(self, **kwargs)
 
     def apply(self, ui):
         envelope = ui.current_buffer
         mail = envelope.get_email()
-        if self.key in mail:
-            mail.replace_header(self.key, self.value)
-        else:
-            mail[self.key] = self.value
+        if self.replace:
+            del(mail[self.key])
+        mail[self.key] = self.value
         envelope.rebuild()
-
 
 class SendMailCommand(command.Command):
     def apply(self, ui):
