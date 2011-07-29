@@ -39,6 +39,7 @@ from completion import AccountCompleter
 import helper
 from message import decode_to_unicode
 from message import decode_header
+from message import encode_header
 
 
 class Command:
@@ -496,9 +497,26 @@ class ReplyCommand(Command):
             references.append(msg.get_message_id())
             reply['References'] = ' '.join(references)
 
-        #TODO
         # extract from address from to,cc,bcc fields or leave blank
         # (composeCommand will prompt)
+        my_addresses = ui.accountman.get_account_addresses()
+        matched_address = None
+        in_to = [a for a in my_addresses if a in mail['To']]
+        if in_to:
+            matched_address = in_to[0]
+        else:
+            cc = mail['Cc'] + mail['Bcc']
+            in_cc = [a for a in my_addresses if a in cc]
+            if in_cc:
+                matched_address = in_cc[0]
+        if matched_address:
+            account = ui.accountman.get_account_by_address(matched_address)
+            fromstring = '%s <%s>' % (account.name, account.address)
+            reply['From'] = encode_header('From', fromstring)
+
+
+
+
 
         ui.apply_command(ComposeCommand(mail=reply))
 
