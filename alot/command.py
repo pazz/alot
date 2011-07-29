@@ -363,24 +363,25 @@ class ComposeCommand(Command):
     def apply(self, ui):
         # TODO: fill with default header (per account)
         # get From header
-        accounts = ui.accountman.get_accounts()
-        if len(accounts) == 0:
-            ui.notify('no accounts set')
-            return
-        elif len(accounts) == 1:
-            a = accounts[0]
-        else:
-            cmpl = AccountCompleter(ui.accountman)
-            fromaddress = ui.prompt(prefix='From>', completer=cmpl, tab=1)
-            validaddresses = [a.address for a in accounts] + [None]
-            while fromaddress not in validaddresses:
-                ui.notify('couldn\'t find a matching account. (<esc> cancels)')
-                fromaddress = ui.prompt(prefix='From>', completer=cmpl)
-            if not fromaddress:
-                ui.notify('canceled')
+        if not 'From' in self.mail:
+            accounts = ui.accountman.get_accounts()
+            if len(accounts) == 0:
+                ui.notify('no accounts set')
                 return
-            a = ui.accountman.get_account_by_address(fromaddress)
-        self.mail['From'] = "%s <%s>" % (a.realname, a.address)
+            elif len(accounts) == 1:
+                a = accounts[0]
+            else:
+                cmpl = AccountCompleter(ui.accountman)
+                fromaddress = ui.prompt(prefix='From>', completer=cmpl, tab=1)
+                validaddresses = [a.address for a in accounts] + [None]
+                while fromaddress not in validaddresses:
+                    ui.notify('couldn\'t find a matching account. (<esc> cancels)')
+                    fromaddress = ui.prompt(prefix='From>', completer=cmpl)
+                if not fromaddress:
+                    ui.notify('canceled')
+                    return
+                a = ui.accountman.get_account_by_address(fromaddress)
+            self.mail['From'] = "%s <%s>" % (a.realname, a.address)
 
         #get To header
         if 'To' not in self.mail:
@@ -501,18 +502,23 @@ class ReplyCommand(Command):
         # extract from address from to,cc,bcc fields or leave blank
         # (composeCommand will prompt)
         my_addresses = ui.accountman.get_account_addresses()
-        matched_address = None
+        matched_address = ''
         in_to = [a for a in my_addresses if a in mail['To']]
         if in_to:
+            logging.info('found address in to %s' % in_to)
             matched_address = in_to[0]
+            logging.info(matched_address)
         else:
-            cc = mail['Cc'] + mail['Bcc']
+            cc = mail.get('Cc','') + mail.get('Bcc', '')
             in_cc = [a for a in my_addresses if a in cc]
             if in_cc:
+                logging.info('found address in cc')
                 matched_address = in_cc[0]
         if matched_address:
+            logging.info(matched_address)
             account = ui.accountman.get_account_by_address(matched_address)
-            fromstring = '%s <%s>' % (account.name, account.address)
+            fromstring = '%s <%s>' % (account.realname, account.address)
+            logging.info(fromstring)
             reply['From'] = encode_header('From', fromstring)
 
 
