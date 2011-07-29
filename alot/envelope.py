@@ -64,9 +64,15 @@ class EnvelopeBuffer(buffer.Buffer):
 
 class EnvelopeEditCommand(command.Command):
     """re-edits mail in from envelope buffer"""
+    def __init__(self, mail=None, **kwargs):
+        self.mail = mail
+        self.openNew = (mail != None)
+        command.Command.__init__(self, **kwargs)
+
     def apply(self, ui):
         Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
-        self.mail = ui.current_buffer.get_email()
+        if not self.mail:
+            self.mail = ui.current_buffer.get_email()
 
         def openEnvelopeFromTmpfile():
             f = open(tf.name)
@@ -91,7 +97,10 @@ class EnvelopeEditCommand(command.Command):
 
             f.close()
             os.unlink(tf.name)
-            ui.current_buffer.set_email(self.mail)
+            if self.openNew:
+                ui.apply_command(command.OpenEnvelopeCommand(email=self.mail))
+            else:
+                ui.current_buffer.set_email(self.mail)
 
         # decode header
         edit_headers = ['Subject', 'To', 'From']
@@ -117,9 +126,9 @@ class EnvelopeEditCommand(command.Command):
         tf.write(content.encode('utf-8'))
         tf.flush()
         tf.close()
-        ui.apply_command(command.EditCommand(tf.name,
-                                     on_success=openEnvelopeFromTmpfile,
-                                     refocus=False))
+        cmd = command.EditCommand(tf.name, on_success=openEnvelopeFromTmpfile,
+                                  refocus=False)
+        ui.apply_command(cmd)
 
 
 class EnvelopeSetCommand(command.Command):
@@ -138,6 +147,7 @@ class EnvelopeSetCommand(command.Command):
             del(mail[self.key])
         mail[self.key] = self.value
         envelope.rebuild()
+
 
 class SendMailCommand(command.Command):
     def apply(self, ui):

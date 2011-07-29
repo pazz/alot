@@ -57,6 +57,7 @@ COMMANDS = {
         'retagprompt': (command.RetagPromptCommand, {}),
         # thread
         'reply': (command.ReplyCommand, {}),
+        'groupreply': (command.ReplyCommand, {'groupreply': True}),
         'bounce': (command.BounceMailCommand, {}),
         }
 
@@ -112,7 +113,7 @@ ALLOWED_COMMANDS = {
     'envelope': ['send', 'reedit', 'to', 'subject'] + globalcomands,
     'bufferlist': ['openfocussed', 'closefocussed'] + globalcomands,
     'taglist': globalcomands,
-    'thread': ['toggletag', 'reply', 'bounce'] + globalcomands,
+    'thread': ['toggletag', 'reply', 'groupreply', 'bounce'] + globalcomands,
 }
 
 
@@ -145,7 +146,8 @@ def interpret_commandline(cmdline, mode):
         if cmd in ['exit', 'flush', 'pyshell', 'taglist', 'close', 'compose',
                    'openfocussed', 'closefocussed', 'bnext', 'bprevious',
                    'retag', 'refresh', 'bufferlist', 'refineprompt', 'reply',
-                   'bounce', 'openthread', 'send', 'reedit', 'retagprompt']:
+                   'groupreply', 'bounce', 'openthread', 'send', 'reedit',
+                   'retagprompt']:
             return commandfactory(cmd)
         else:
             return None

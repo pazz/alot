@@ -80,6 +80,7 @@ class OpenThreadCommand(Command):
         sb = buffer.SingleThreadBuffer(ui, self.thread)
         ui.buffer_open(sb)
 
+
 class SearchCommand(Command):
     """open a new search buffer"""
     def __init__(self, query, force_new=False, **kwargs):
@@ -375,7 +376,7 @@ class ComposeCommand(Command):
                 fromaddress = ui.prompt(prefix='From>', completer=cmpl, tab=1)
                 validaddresses = [a.address for a in accounts] + [None]
                 while fromaddress not in validaddresses:
-                    ui.notify('couldn\'t find a matching account. (<esc> cancels)')
+                    ui.notify('no account for this address. (<esc> cancels)')
                     fromaddress = ui.prompt(prefix='From>', completer=cmpl)
                 if not fromaddress:
                     ui.notify('canceled')
@@ -392,7 +393,7 @@ class ComposeCommand(Command):
             subject = ui.prompt(prefix='Subject>')
             self.mail['Subject'] = encode_header('subject', subject)
 
-        ui.apply_command(OpenEnvelopeCommand(email=self.mail))
+        ui.apply_command(envelope.EnvelopeEditCommand(mail=self.mail))
 
 
 class RetagPromptCommand(Command):
@@ -458,7 +459,7 @@ class RefinePromptCommand(Command):
 
 
 class ReplyCommand(Command):
-    def __init__(self, groupreply=True, **kwargs):
+    def __init__(self, groupreply=False, **kwargs):
         self.groupreply = groupreply
         Command.__init__(self, **kwargs)
 
@@ -482,8 +483,38 @@ class ReplyCommand(Command):
             subject = 'Re: ' + subject
         reply['Subject'] = Header(subject.encode('utf-8'), 'UTF-8').encode()
 
-        # set to
-        reply['To'] = Header(mail['From'].encode('utf-8'), 'UTF-8').encode()
+        # set From
+        my_addresses = ui.accountman.get_account_addresses()
+        matched_address = ''
+        in_to = [a for a in my_addresses if a in mail['To']]
+        if in_to:
+            matched_address = in_to[0]
+        else:
+            cc = mail.get('Cc', '') + mail.get('Bcc', '')
+            in_cc = [a for a in my_addresses if a in cc]
+            if in_cc:
+                matched_address = in_cc[0]
+        if matched_address:
+            account = ui.accountman.get_account_by_address(matched_address)
+            fromstring = '%s <%s>' % (account.realname, account.address)
+            reply['From'] = encode_header('From', fromstring)
+
+        # set To
+        #reply['To'] = Header(mail['From'].encode('utf-8'), 'UTF-8').encode()
+        del(reply['To'])
+        if self.groupreply:
+            cleared = self.clear_my_address(my_addresses, mail['To'])
+            if cleared:
+                reply['To'] = mail['From'] + ', ' + cleared
+            else:
+                reply['To'] = mail['From']
+            # copy cc and bcc for group-replies
+            if 'Cc' in mail:
+                reply['Cc'] = self.clear_my_address(my_addresses, mail['Cc'])
+            if 'Bcc' in mail:
+                reply['Bcc'] = self.clear_my_address(my_addresses, mail['Bcc'])
+        else:
+            reply['To'] = mail['From']
 
         # set In-Reply-To header
         del(reply['In-Reply-To'])
@@ -499,33 +530,14 @@ class ReplyCommand(Command):
             references.append(msg.get_message_id())
             reply['References'] = ' '.join(references)
 
-        # extract from address from to,cc,bcc fields or leave blank
-        # (composeCommand will prompt)
-        my_addresses = ui.accountman.get_account_addresses()
-        matched_address = ''
-        in_to = [a for a in my_addresses if a in mail['To']]
-        if in_to:
-            logging.info('found address in to %s' % in_to)
-            matched_address = in_to[0]
-            logging.info(matched_address)
-        else:
-            cc = mail.get('Cc','') + mail.get('Bcc', '')
-            in_cc = [a for a in my_addresses if a in cc]
-            if in_cc:
-                logging.info('found address in cc')
-                matched_address = in_cc[0]
-        if matched_address:
-            logging.info(matched_address)
-            account = ui.accountman.get_account_by_address(matched_address)
-            fromstring = '%s <%s>' % (account.realname, account.address)
-            logging.info(fromstring)
-            reply['From'] = encode_header('From', fromstring)
-
-
-
-
-
         ui.apply_command(ComposeCommand(mail=reply))
+
+    def clear_my_address(self, my_addresses, value):
+        new_value = []
+        for entry in value.split(','):
+            if not [a for a in my_addresses if a in entry]:
+                new_value.append(entry)
+        return ','.join(new_value)
 
 
 class BounceMailCommand(Command):
