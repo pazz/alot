@@ -22,7 +22,7 @@ from urwid.command_map import command_map
 
 from settings import config
 from settings import get_mapping
-from buffer import BufferListBuffer
+from buffer import BufferlistBuffer
 from command import commandfactory
 from command import interpret_commandline
 from widgets import CompleteEdit
@@ -157,7 +157,7 @@ class UI:
         else:
             self.current_buffer = buf
             self.mode = buf.typename
-            if isinstance(self.current_buffer, BufferListBuffer):
+            if isinstance(self.current_buffer, BufferlistBuffer):
                 self.current_buffer.rebuild()
             self.update()
 

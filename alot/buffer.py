@@ -51,7 +51,7 @@ class Buffer:
             return self.body.keypress(size, key)
 
 
-class BufferListBuffer(Buffer):
+class BufferlistBuffer(Buffer):
     def __init__(self, ui, filtfun=None):
         self.filtfun = filtfun
         self.ui = ui
@@ -166,8 +166,8 @@ class SearchBuffer(Buffer):
             thread = threadlinewidget.get_thread()
         return thread
 
-#rename thread
-class SingleThreadBuffer(Buffer):
+
+class ThreadBuffer(Buffer):
     def __init__(self, ui, thread):
         self.message_count = thread.get_total_messages()
         self.thread = thread

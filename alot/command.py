@@ -75,7 +75,7 @@ class OpenThreadCommand(Command):
             ui.apply_command(FlushCommand())
         self.thread.refresh()
 
-        sb = buffer.SingleThreadBuffer(ui, self.thread)
+        sb = buffer.ThreadBuffer(ui, self.thread)
         ui.buffer_open(sb)
 
 
@@ -240,7 +240,7 @@ class BufferFocusCommand(Command):
         ui.buffer_focus(self.buffer)
 
 
-class OpenBufferListCommand(Command):
+class OpenBufferlistCommand(Command):
     """
     open a bufferlist
     """
@@ -249,11 +249,11 @@ class OpenBufferListCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        blists = ui.get_buffers_of_type(buffer.BufferListBuffer)
+        blists = ui.get_buffers_of_type(buffer.BufferlistBuffer)
         if blists:
             ui.buffer_focus(blists[0])
         else:
-            ui.buffer_open(buffer.BufferListBuffer(ui, self.filtfun))
+            ui.buffer_open(buffer.BufferlistBuffer(ui, self.filtfun))
 
 
 class TagListCommand(Command):
@@ -337,7 +337,7 @@ class ToggleThreadTagCommand(Command):
                 cb.threadlist.remove(threadwidget)
                 cb.result_count -= self.thread.get_total_messages()
                 ui.update()
-        elif isinstance(cb, buffer.SingleThreadBuffer):
+        elif isinstance(cb, buffer.ThreadBuffer):
             pass
 
 
@@ -671,7 +671,7 @@ class TaglistSelectCommand(Command):
 COMMANDS = {
         'bnext': (BufferFocusCommand, {'offset': 1}),
         'bprevious': (BufferFocusCommand, {'offset': -1}),
-        'bufferlist': (OpenBufferListCommand, {}),
+        'bufferlist': (OpenBufferlistCommand, {}),
         'close': (BufferCloseCommand, {}),
         'closefocussed': (BufferCloseCommand, {'focussed': True}),
         'openfocussed': (BufferFocusCommand, {}),

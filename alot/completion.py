@@ -19,8 +19,7 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 
 import re
 
-import commandfactory
-import settings
+import command
 
 
 class Completer:
@@ -102,7 +101,7 @@ class CommandCompleter(Completer):
 
     def complete(self, original):
         #TODO refine <tab> should get current querystring
-        cmdlist = commandfactory.ALLOWED_COMMANDS[self.mode]
+        cmdlist = command.ALLOWED_COMMANDS[self.mode]
         olen = len(original)
         return [t[olen:] + '' for t in cmdlist if t.startswith(original)]
 
