@@ -505,16 +505,20 @@ class ReplyCommand(Command):
         if self.groupreply:
             cleared = self.clear_my_address(my_addresses, mail['To'])
             if cleared:
-                reply['To'] = mail['From'] + ', ' + cleared
+                logging.info(mail['From'] + ', ' + cleared)
+                reply['To'] = encode_header('To', mail['From'] + ', ' + cleared)
+                logging.info(reply['To'])
             else:
-                reply['To'] = mail['From']
+                reply['To'] = encode_header('To', mail['From'])
             # copy cc and bcc for group-replies
             if 'Cc' in mail:
-                reply['Cc'] = self.clear_my_address(my_addresses, mail['Cc'])
+                cc = self.clear_my_address(my_addresses, mail['Cc'])
+                reply['Cc'] = encode_header('Cc', cc)
             if 'Bcc' in mail:
-                reply['Bcc'] = self.clear_my_address(my_addresses, mail['Bcc'])
+                bcc = self.clear_my_address(my_addresses, mail['Bcc'])
+                reply['Bcc'] = encode_header('Bcc', bcc)
         else:
-            reply['To'] = mail['From']
+            reply['To'] = encode_header('To', mail['From'])
 
         # set In-Reply-To header
         del(reply['In-Reply-To'])
@@ -536,8 +540,8 @@ class ReplyCommand(Command):
         new_value = []
         for entry in value.split(','):
             if not [a for a in my_addresses if a in entry]:
-                new_value.append(entry)
-        return ','.join(new_value)
+                new_value.append(entry.strip())
+        return ', '.join(new_value)
 
 
 class BounceMailCommand(Command):

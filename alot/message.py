@@ -222,15 +222,15 @@ def encode_header(key, value):
             if m:
                 name, address = m.groups()
                 header = Header(name + ' ', 'utf-8')
-                header.append('<%s>' % address)
+                header.append('<%s>' % address, charset='ascii')
                 encodedentries.append(header.encode())
             else:
                 encodedentries.append(entry.encode('ascii', errors='replace'))
-        value = ','.join(encodedentries)
+        value = Header(','.join(encodedentries))
     elif key.lower() == 'subject':
-        value = Header(value, 'UTF-8').encode()
+        value = Header(value, 'UTF-8')
     else:
-        value = value.encode('ascii', errors='replace')
+        value = Header(value.encode('ascii', errors='replace'))
     return value
 
 class Attachment:
