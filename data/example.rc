@@ -173,3 +173,6 @@ threadline_tags_bg = default
 threadline_tags_fg = #a86
 threadline_tags_focus_bg = g11
 threadline_tags_focus_fg = #ff8
+
+[search-maps]
+t = toggletag todo

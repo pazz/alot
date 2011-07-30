@@ -19,7 +19,6 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 import imp
 import os
 import mailcap
-import logging
 
 from ConfigParser import SafeConfigParser
 from account import Account
@@ -191,6 +190,48 @@ DEFAULTS = {
         'threadline_tags_focus_bg': 'g58',
         'threadline_tags_focus_fg': '#ff8',
     },
+    'global-maps': {
+        '@': 'refresh',
+        'I': 'search tag:inbox AND NOT tag:killed',
+        'U': 'search tag:unread',
+        'x': 'close',
+        'tab': 'bnext',
+        'shift tab': 'bprevious',
+        '\\': 'prompt search ',
+        'q': 'exit',
+        ';': 'bufferlist',
+        ':': 'prompt',
+        'L': 'taglist',
+        's': 'shell',
+        '$': 'flush',
+        '@': 'refresh',
+        'm': 'compose',
+    },
+    'search-maps': {
+        '|': 'refineprompt',
+        'enter': 'openthread',
+        'l': 'retagprompt',
+        'a': 'toggletag inbox',
+        '&': 'toggletag killed',
+    },
+    'thread-maps': {
+        'a': 'toggletag inbox',
+        'r': 'reply',
+        'g': 'groupreply',
+    },
+    'taglist-maps': {
+        'enter': 'select',
+    },
+    'envelope-maps': {
+        'y': 'send',
+        'enter': 'reedit',
+        't': 'prompt to',
+        's': 'prompt subject',
+    },
+    'bufferlist-maps': {
+        'd': 'closefocussed',
+        'enter': 'openfocussed',
+    }
 }
 
 
@@ -199,14 +240,18 @@ class CustomConfigParser(SafeConfigParser):
         self.defaults = defaults
         self.hooks = None
         SafeConfigParser.__init__(self)
+        self.optionxform = str
         for sec in defaults.keys():
             self.add_section(sec)
 
     def get(self, section, option, *args, **kwargs):
         if self.has_option(section, option):
             return SafeConfigParser.get(self, section, option, *args, **kwargs)
+        elif section in self.defaults:
+            if option in self.defaults[section]:
+                return self.defaults[section][option]
         else:
-            return self.defaults[section][option]
+            return None
 
     def getstringlist(self, section, option, **kwargs):
         value = self.get(section, option, **kwargs)
@@ -235,6 +280,12 @@ class CustomConfigParser(SafeConfigParser):
             ))
         return p
 
+    def get_mapping(self, mode, key):
+        cmdline = self.get(mode + '-maps', key)
+        if not cmdline:
+            cmdline = self.get('global-maps', key)
+        return cmdline
+
 
 class HookManager:
     def setup(self, hooksfile):
@@ -254,7 +305,6 @@ class HookManager:
 
         def f(*args, **kwargs):
             msg = 'called undefined hook: %s with arguments'
-            logging.debug(msg % key)
         return f
 
     def call(self, hookname, *args, **kwargs):
@@ -262,8 +312,8 @@ class HookManager:
         try:
             hook(*args, **kwargs)
         except:
-            msg = 'exception occured while calling hook: %s with arguments %s,  %s'
-            logging.exception(msg % hookname, args, kwargs)
+            msg = 'exception occured while calling hook:' \
+                    '%s with arguments %s,  %s'
 
 
 config = CustomConfigParser(DEFAULTS)
@@ -285,66 +335,3 @@ def get_mime_handler(mime_type, key, interactive=True):
             return mc_tuple[1][key]
     else:
         return None
-
-# maps mode to keybingins: for each one,
-# a key is mapped to a pair cmdline, helpstring.
-MAPPING = {
-    'global': {
-        '@': ('refresh', ''),
-        'I': ('search tag:inbox AND NOT tag:killed', 'open Inbox'),
-        'U': ('search tag:unread', 'open unread'),
-        'x': ('close', 'close buffer'),
-        'tab': ('bnext', 'next buffer'),
-        'shift tab': ('bprevious', 'previous buffer'),
-        '\\': ('prompt search ', ''),
-        'q': ('exit', ''),
-        ';': ('bufferlist', ''),
-        ':': ('prompt', ''),
-        'L': ('taglist', ''),
-        's': ('shell', ''),
-        '$': ('flush', ''),
-        '@': ('refresh', 'refresh current buffer'),
-        'm': ('compose', ''),
-    },
-    'search': {
-        '|': ('refineprompt', ''),
-        'enter': ('openthread', ''),
-        'l': ('retagprompt', ''),
-        'a': ('toggletag inbox', ''),
-        '&': ('toggletag killed', ''),
-    },
-    'thread': {
-        'a': ('toggletag inbox', ''),
-        'r': ('reply', ''),
-        'g': ('groupreply', ''),
-    },
-    'taglist': {
-        'enter': ('select', ''),
-    },
-    'envelope': {
-        'y': ('send', ''),
-        'enter': ('reedit', ''),
-        't': ('prompt to', ''),
-        's': ('prompt subject', ''),
-    },
-    'bufferlist': {
-        'd': ('closefocussed', ''),
-        'enter': ('openfocussed', ''),
-    }
-}
-
-
-def get_mappings_by_mode(mode):
-    if not mode in MAPPING:
-        return None  # invalid mode string
-    maps = MAPPING['global'].copy()
-    maps.update(MAPPING[mode])
-    return maps
-
-
-def get_mapping(key, mode):
-    maps = get_mappings_by_mode(mode)
-    if key in maps:
-        return maps[key]
-    else:
-        return None, None

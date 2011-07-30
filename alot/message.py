@@ -201,6 +201,7 @@ def decode_to_unicode(part):
         raw_payload = unicode(raw_payload, errors='replace')
     return raw_payload
 
+
 def decode_header(header):
     valuelist = email.header.decode_header(header)
     value = u''
@@ -209,9 +210,10 @@ def decode_header(header):
             value = value + v.decode(enc)
         else:
             value = value + v
-    value = value.replace('\r','')
-    value = value.replace('\n',' ')
+    value = value.replace('\r', '')
+    value = value.replace('\n', ' ')
     return value
+
 
 def encode_header(key, value):
     if key.lower() in ['from', 'to', 'cc', 'bcc']:
@@ -232,6 +234,7 @@ def encode_header(key, value):
     else:
         value = Header(value.encode('ascii', errors='replace'))
     return value
+
 
 class Attachment:
     """represents a single mail attachment"""

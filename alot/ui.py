@@ -21,7 +21,6 @@ import os
 from urwid.command_map import command_map
 
 from settings import config
-from settings import get_mapping
 from buffer import BufferlistBuffer
 from command import commandfactory
 from command import interpret_commandline
@@ -222,7 +221,7 @@ class UI:
         return urwid.AttrMap(columns, 'footer')
 
     def keypress(self, key):
-        cmdline, helpstring = get_mapping(key, self.mode)
+        cmdline = config.get_mapping(self.mode, key)
         if cmdline:
             self.logger.debug("handle %s in %s mode" % (key, self.mode))
             if cmdline.startswith('prompt'):
