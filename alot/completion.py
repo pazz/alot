@@ -64,7 +64,7 @@ class TagsCompleter(Completer):
         otags = original.split(',')
         prefix = otags[-1]
         tags = self.dbman.get_all_tags()
-        if len(otags)>1 and last:
+        if len(otags) > 1 and last:
             return []
         else:
             matching = [t[len(prefix):] for t in tags if t.startswith(prefix)]
@@ -91,6 +91,7 @@ class AccountCompleter(Completer):
     def complete(self, prefix):
         valids = self.accountman.get_account_addresses()
         return [a[len(prefix):] for a in valids if a.startswith(prefix)]
+
 
 class CommandCompleter(Completer):
     """completes commands"""
@@ -119,8 +120,8 @@ class CommandLineCompleter(Completer):
         self._contactscompleter = ContactsCompleter()
 
     def complete(self, prefix):
-        words = prefix.split(' ',1)
-        if len(words)<=1: # we complete commands
+        words = prefix.split(' ', 1)
+        if len(words) <= 1:  # we complete commands
             return self._commandcompleter.complete(prefix)
         else:
             cmd, params = words

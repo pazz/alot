@@ -495,7 +495,8 @@ class ReplyCommand(Command):
             cleared = self.clear_my_address(my_addresses, mail['To'])
             if cleared:
                 logging.info(mail['From'] + ', ' + cleared)
-                reply['To'] = encode_header('To', mail['From'] + ', ' + cleared)
+                to = mail['From'] + ', ' + cleared
+                reply['To'] = encode_header('To', to)
                 logging.info(reply['To'])
             else:
                 reply['To'] = encode_header('To', mail['From'])
@@ -539,6 +540,7 @@ class BounceMailCommand(Command):
         mail = msg.get_email()
         del(mail['To'])
         ui.apply_command(ComposeCommand(mail=mail))
+
 
 ### ENVELOPE
 class EnvelopeOpenCommand(Command):
@@ -664,10 +666,8 @@ class TaglistSelectCommand(Command):
         ui.apply_command(cmd)
 
 
-
 ###########
 #Factory
-
 COMMANDS = {
         'bnext': (BufferFocusCommand, {'offset': 1}),
         'bprevious': (BufferFocusCommand, {'offset': -1}),
