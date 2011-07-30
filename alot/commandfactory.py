@@ -59,6 +59,9 @@ COMMANDS = {
         'reply': (command.ReplyCommand, {}),
         'groupreply': (command.ReplyCommand, {'groupreply': True}),
         'bounce': (command.BounceMailCommand, {}),
+
+        # taglist
+        'select': (command.TaglistSelectCommand, {}),
         }
 
 
@@ -112,7 +115,7 @@ ALLOWED_COMMANDS = {
                'retagprompt'] + globalcomands,
     'envelope': ['send', 'reedit', 'to', 'subject'] + globalcomands,
     'bufferlist': ['openfocussed', 'closefocussed'] + globalcomands,
-    'taglist': globalcomands,
+    'taglist': ['select'] + globalcomands,
     'thread': ['toggletag', 'reply', 'groupreply', 'bounce'] + globalcomands,
 }
 
@@ -147,7 +150,7 @@ def interpret_commandline(cmdline, mode):
                    'openfocussed', 'closefocussed', 'bnext', 'bprevious',
                    'retag', 'refresh', 'bufferlist', 'refineprompt', 'reply',
                    'groupreply', 'bounce', 'openthread', 'send', 'reedit',
-                   'retagprompt']:
+                   'select', 'retagprompt']:
             return commandfactory(cmd)
         else:
             return None

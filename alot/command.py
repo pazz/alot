@@ -546,4 +546,13 @@ class BounceMailCommand(Command):
         mail = msg.get_email()
         del(mail['To'])
         ui.apply_command(ComposeCommand(mail=mail))
+
+### taglist
+class TaglistSelectCommand(Command):
+    def apply(self, ui):
+        tagstring = ui.current_buffer.get_selected_tag()
+        cmd = SearchCommand(query='tag:%s' % tagstring)
+        ui.apply_command(cmd)
+
+
 import envelope

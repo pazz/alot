@@ -319,8 +319,7 @@ MAPPING = {
         'g': ('groupreply', ''),
     },
     'taglist': {
-       # 'enter': ('search', {'query': (lambda: 'tag:' +
-        #                                   self.get_selected_tag())}),
+        'enter': ('select', ''),
     },
     'envelope': {
         'y': ('send', ''),
