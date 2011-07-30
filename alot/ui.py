@@ -23,8 +23,8 @@ from urwid.command_map import command_map
 from settings import config
 from settings import get_mapping
 from buffer import BufferListBuffer
-from commandfactory import commandfactory
-from commandfactory import interpret_commandline
+from command import commandfactory
+from command import interpret_commandline
 from widgets import CompleteEdit
 from completion import CommandLineCompleter
 

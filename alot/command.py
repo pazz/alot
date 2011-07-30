@@ -21,9 +21,8 @@ import code
 import logging
 import threading
 import subprocess
-from cmd import Cmd
-import StringIO
 import email
+import tempfile
 from email.parser import Parser
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -36,7 +35,6 @@ from db import DatabaseROError
 from db import DatabaseLockedError
 from completion import ContactsCompleter
 from completion import AccountCompleter
-import helper
 from message import decode_to_unicode
 from message import decode_header
 from message import encode_header
@@ -274,15 +272,6 @@ class TagListCommand(Command):
         ui.buffer_focus(buf)
 
 
-class OpenEnvelopeCommand(Command):
-    def __init__(self, email=None, **kwargs):
-        self.email = email
-        Command.__init__(self, **kwargs)
-
-    def apply(self, ui):
-        ui.buffer_open(envelope.EnvelopeBuffer(ui, email=self.email))
-
-
 class CommandPromptCommand(Command):
     """
     """
@@ -393,7 +382,7 @@ class ComposeCommand(Command):
             subject = ui.prompt(prefix='Subject>')
             self.mail['Subject'] = encode_header('subject', subject)
 
-        ui.apply_command(envelope.EnvelopeEditCommand(mail=self.mail))
+        ui.apply_command(EnvelopeEditCommand(mail=self.mail))
 
 
 class RetagPromptCommand(Command):
@@ -551,6 +540,122 @@ class BounceMailCommand(Command):
         del(mail['To'])
         ui.apply_command(ComposeCommand(mail=mail))
 
+### ENVELOPE
+class EnvelopeOpenCommand(Command):
+    def __init__(self, mail=None, **kwargs):
+        self.mail = mail
+        Command.__init__(self, **kwargs)
+
+    def apply(self, ui):
+        ui.buffer_open(buffer.EnvelopeBuffer(ui, mail=self.mail))
+
+
+class EnvelopeEditCommand(Command):
+    """re-edits mail in from envelope buffer"""
+    def __init__(self, mail=None, **kwargs):
+        self.mail = mail
+        self.openNew = (mail != None)
+        Command.__init__(self, **kwargs)
+
+    def apply(self, ui):
+        Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
+        if not self.mail:
+            self.mail = ui.current_buffer.get_email()
+
+        def openEnvelopeFromTmpfile():
+            f = open(tf.name)
+            editor_input = f.read().decode('utf-8')
+
+            #split editor out
+            headertext, bodytext = editor_input.split('\n\n', 1)
+
+            for line in headertext.splitlines():
+                key, value = line.strip().split(':', 1)
+                value = value.strip()
+                del self.mail[key]  # ensure there is only one
+                self.mail[key] = encode_header(key, value)
+
+            if self.mail.is_multipart():
+                for part in self.mail.walk():
+                    if part.get_content_maintype() == 'text':
+                        if 'Content-Transfer-Encoding' in part:
+                            del(part['Content-Transfer-Encoding'])
+                        part.set_payload(bodytext, 'utf-8')
+                        break
+
+            f.close()
+            os.unlink(tf.name)
+            if self.openNew:
+                ui.apply_command(EnvelopeOpenCommand(mail=self.mail))
+            else:
+                ui.current_buffer.set_email(self.mail)
+
+        # decode header
+        edit_headers = ['Subject', 'To', 'From']
+        headertext = u''
+        for key in edit_headers:
+            value = u''
+            if key in self.mail:
+                value = decode_header(self.mail[key])
+            headertext += '%s: %s\n' % (key, value)
+
+        if self.mail.is_multipart():
+            for part in self.mail.walk():
+                if part.get_content_maintype() == 'text':
+                    bodytext = decode_to_unicode(part)
+                    break
+        else:
+            bodytext = decode_to_unicode(self.mail)
+
+        #write stuff to tempfile
+        tf = tempfile.NamedTemporaryFile(delete=False)
+        content = '%s\n\n%s' % (headertext,
+                                bodytext)
+        tf.write(content.encode('utf-8'))
+        tf.flush()
+        tf.close()
+        cmd = EditCommand(tf.name, on_success=openEnvelopeFromTmpfile,
+                          refocus=False)
+        ui.apply_command(cmd)
+
+
+class EnvelopeSetCommand(Command):
+    """sets header fields of mail open in envelope buffer"""
+
+    def __init__(self, key='', value=u'', replace=True, **kwargs):
+        self.key = key
+        self.value = encode_header(key, value)
+        self.replace = replace
+        Command.__init__(self, **kwargs)
+
+    def apply(self, ui):
+        envelope = ui.current_buffer
+        mail = envelope.get_email()
+        if self.replace:
+            del(mail[self.key])
+        mail[self.key] = self.value
+        envelope.rebuild()
+
+
+class EnvelopeSendCommand(Command):
+    def apply(self, ui):
+        envelope = ui.current_buffer
+        mail = envelope.get_email()
+        frm = decode_header(mail.get('From'))
+        sname, saddr = email.Utils.parseaddr(frm)
+        account = ui.accountman.get_account_by_address(saddr)
+        if account:
+            success, reason = account.sender.send_mail(mail)
+            if success:
+                cmd = BufferCloseCommand(buffer=envelope)
+                ui.apply_command(cmd)
+                ui.notify('mail send successful')
+            else:
+                ui.notify('failed to send: %s' % reason)
+        else:
+            ui.notify('failed to send: no account set up for %s' % saddr)
+
+
 ### taglist
 class TaglistSelectCommand(Command):
     def apply(self, ui):
@@ -559,4 +664,162 @@ class TaglistSelectCommand(Command):
         ui.apply_command(cmd)
 
 
-import envelope
+
+###########
+#Factory
+
+COMMANDS = {
+        'bnext': (BufferFocusCommand, {'offset': 1}),
+        'bprevious': (BufferFocusCommand, {'offset': -1}),
+        'bufferlist': (OpenBufferListCommand, {}),
+        'close': (BufferCloseCommand, {}),
+        'closefocussed': (BufferCloseCommand, {'focussed': True}),
+        'openfocussed': (BufferFocusCommand, {}),
+        'commandprompt': (CommandPromptCommand, {}),
+        'compose': (ComposeCommand, {}),
+        'edit': (EditCommand, {}),
+        'exit': (ExitCommand, {}),
+        'flush': (FlushCommand, {}),
+        'openthread': (OpenThreadCommand, {}),
+        'prompt': (PromptCommand, {}),
+        'pyshell': (PythonShellCommand, {}),
+        'refine': (RefineCommand, {}),
+        'refineprompt': (RefinePromptCommand, {}),
+        'refresh': (RefreshCommand, {}),
+        'search': (SearchCommand, {}),
+        'shellescape': (ExternalCommand, {}),
+        'taglist': (TagListCommand, {}),
+        'toggletag': (ToggleThreadTagCommand, {'tag': 'inbox'}),
+
+        # envelope
+        'send': (EnvelopeSendCommand, {}),
+        'reedit': (EnvelopeEditCommand, {}),
+        'subject': (EnvelopeSetCommand, {'key': 'Subject'}),
+        'to': (EnvelopeSetCommand, {'key': 'To'}),
+
+        'retag': (RetagCommand, {}),
+        'retagprompt': (RetagPromptCommand, {}),
+        # thread
+        'reply': (ReplyCommand, {}),
+        'groupreply': (ReplyCommand, {'groupreply': True}),
+        'bounce': (BounceMailCommand, {}),
+
+        # taglist
+        'select': (TaglistSelectCommand, {}),
+        }
+
+
+def commandfactory(cmdname, **kwargs):
+    if cmdname in COMMANDS:
+        (cmdclass, parms) = COMMANDS[cmdname]
+        parms = parms.copy()
+        parms.update(kwargs)
+        for (key, value) in kwargs.items():
+            if callable(value):
+                parms[key] = value()
+            else:
+                parms[key] = value
+
+        parms['prehook'] = settings.hooks.get('pre_' + cmdname)
+        parms['posthook'] = settings.hooks.get('post_' + cmdname)
+
+        logging.debug('cmd parms %s' % parms)
+        return cmdclass(**parms)
+    else:
+        logging.error('there is no command %s' % cmdname)
+
+
+aliases = {'clo': 'close',
+           'bn': 'bnext',
+           'bp': 'bprevious',
+           'bcf': 'buffer close focussed',
+           'ls': 'bufferlist',
+           'quit': 'exit',
+}
+
+globalcomands = [
+    'bnext',
+    'bprevious',
+    'bufferlist',
+    'close',
+    'compose',
+    'prompt',
+    'edit',
+    'exit',
+    'flush',
+    'pyshell',
+    'refresh',
+    'search',
+    'shellescape',
+    'taglist',
+]
+
+ALLOWED_COMMANDS = {
+    'search': ['refine', 'refineprompt', 'toggletag', 'openthread', 'retag',
+               'retagprompt'] + globalcomands,
+    'envelope': ['send', 'reedit', 'to', 'subject'] + globalcomands,
+    'bufferlist': ['openfocussed', 'closefocussed'] + globalcomands,
+    'taglist': ['select'] + globalcomands,
+    'thread': ['toggletag', 'reply', 'groupreply', 'bounce'] + globalcomands,
+}
+
+
+def interpret_commandline(cmdline, mode):
+    if not cmdline:
+        return None
+    logging.debug('mode:%s got commandline "%s"' % (mode, cmdline))
+    args = cmdline.strip().split(' ', 1)
+    cmd = args[0]
+    if args[1:]:
+        params = args[1]
+    else:
+        params = ''
+
+    # unfold aliases
+    if cmd in aliases:
+        cmd = aliases[cmd]
+
+    # allow to shellescape without a space after '!'
+    if cmd.startswith('!'):
+        params = cmd[1:] + params
+        cmd = 'shellescape'
+
+    # check if this command makes sense in current mode
+    if cmd not in ALLOWED_COMMANDS[mode]:
+        logging.debug('not allowed in mode %s: %s' % (mode, cmd))
+        return None
+
+    if not params:  # commands that work without parameter
+        if cmd in ['exit', 'flush', 'pyshell', 'taglist', 'close', 'compose',
+                   'openfocussed', 'closefocussed', 'bnext', 'bprevious',
+                   'retag', 'refresh', 'bufferlist', 'refineprompt', 'reply',
+                   'groupreply', 'bounce', 'openthread', 'send', 'reedit',
+                   'select', 'retagprompt']:
+            return commandfactory(cmd)
+        else:
+            return None
+    else:
+        if cmd == 'search':
+            return commandfactory(cmd, query=params)
+        elif cmd == 'compose':
+            return commandfactory(cmd, headers={'To': params})
+        elif cmd == 'prompt':
+            return commandfactory(cmd, startstring=params)
+        elif cmd == 'refine':
+            return commandfactory(cmd, query=params)
+        elif cmd == 'retag':
+            return commandfactory(cmd, tagsstring=params)
+        elif cmd == 'subject':
+            return commandfactory(cmd, key='Subject', value=params)
+        elif cmd == 'shellescape':
+            return commandfactory(cmd, commandstring=params)
+        elif cmd == 'to':
+            return commandfactory(cmd, key='To', value=params)
+        elif cmd == 'toggletag':
+            return commandfactory(cmd, tag=params)
+        elif cmd == 'edit':
+            filepath = params[0]
+            if os.path.isfile(filepath):
+                return commandfactory(cmd, path=filepath)
+        else:
+            return None

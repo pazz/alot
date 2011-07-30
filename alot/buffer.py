@@ -19,7 +19,7 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 import urwid
 
 import widgets
-from settings import config
+import settings
 from walker import IteratorWalker
 from message import decode_header
 
@@ -91,6 +91,35 @@ class BufferListBuffer(Buffer):
         return bufferlinewidget.get_buffer()
 
 
+class EnvelopeBuffer(Buffer):
+    def __init__(self, ui, mail):
+        self.ui = ui
+        self.mail = mail
+        self.rebuild()
+        Buffer.__init__(self, ui, self.body, 'envelope')
+        self.autoparms = {'email': self.get_email}
+
+    def __str__(self):
+        return "to: %s" % decode_header(self.mail['To'])
+
+    def get_email(self):
+        return self.mail
+
+    def set_email(self, mail):
+        self.mail = mail
+        self.rebuild()
+
+    def rebuild(self):
+        displayed_widgets = []
+        dh = settings.config.getstringlist('general', 'displayed_headers')
+        self.header_wgt = widgets.MessageHeaderWidget(self.mail,
+                                                      displayed_headers=dh)
+        displayed_widgets.append(self.header_wgt)
+        self.body_wgt = widgets.MessageBodyWidget(self.mail)
+        displayed_widgets.append(self.body_wgt)
+        self.body = urwid.ListBox(displayed_widgets)
+
+
 class SearchBuffer(Buffer):
     threads = []
 
@@ -137,7 +166,7 @@ class SearchBuffer(Buffer):
             thread = threadlinewidget.get_thread()
         return thread
 
-
+#rename thread
 class SingleThreadBuffer(Buffer):
     def __init__(self, ui, thread):
         self.message_count = thread.get_total_messages()
