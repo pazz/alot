@@ -51,7 +51,7 @@ class UI:
         self.show_statusbar = config.getboolean('general', 'show_statusbar')
         self.show_notificationbar = config.getboolean('general',
                                                       'show_notificationbar')
-        self.notificationbar = urwid.Text(' ')
+        self.notificationbar = None  # urwid.Text(' ')
         self.mode = ''
 
         self.logger.debug('setup bindings')
@@ -163,21 +163,28 @@ class UI:
     def get_buffers_of_type(self, t):
         return filter(lambda x: isinstance(x, t), self.buffers)
 
-    def notify(self, statusmessage):
-        self.notificationbar.set_text(statusmessage)
-        if not self.show_notificationbar:
-            if not self.show_statusbar:
-                self.mainframe.set_footer(self.notificationbar)
-            else:
-                pile = self.mainframe.get_footer()
-                pile.widget_list.append(self.notificationbar)
-                self.mainframe.set_footer(urwid.Pile(pile.widget_list))
+    def notify(self, message, priority='normal', timeout=0):
+        myline = urwid.Text(('notify_' + priority, message))
+        footer = self.mainframe.get_footer()
+        if not self.notificationbar:
+            self.notificationbar = urwid.Pile([myline])
+        else:
+            newpile = self.notificationbar.widget_list + [myline]
+            self.notificationbar = urwid.Pile(newpile)
 
         def clear_notify(*args):
-            self.notificationbar.set_text(' ')
+            footer = self.mainframe.get_footer()
+            if len(self.notificationbar.widget_list) == 1:
+                self.notificationbar = None
+            else:
+                newpile = self.notificationbar.widget_list
+                newpile.remove(myline)
+                self.notificationbar = urwid.Pile(newpile)
             self.update()
-        secs = config.getint('general', 'notify_timeout')
-        self.mainloop.set_alarm_in(secs, clear_notify)
+        if not timeout:
+            timeout = config.getint('general', 'notify_timeout')
+        self.mainloop.set_alarm_in(timeout, clear_notify)
+        self.update()
 
     def update(self):
         """
@@ -193,12 +200,10 @@ class UI:
 
         #footer
         lines = []
+        if self.notificationbar:  # .get_text()[0] != ' ':
+            lines.append(self.notificationbar)
         if self.show_statusbar:
             lines.append(self.build_statusbar())
-        if self.notificationbar.get_text()[0] != ' ':
-            lines.append(self.notificationbar)
-        elif self.show_notificationbar:
-            lines.append(urwid.Text(' '))
 
         if lines:
             self.mainframe.set_footer(urwid.Pile(lines))
