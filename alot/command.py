@@ -315,7 +315,7 @@ class ToggleThreadTagCommand(Command):
             else:
                 self.thread.add_tags([self.tag])
         except DatabaseROError:
-            ui.notify('index in read only mode')
+            ui.notify('index in read-only mode', priority='error')
             return
 
         # flush index
@@ -384,6 +384,7 @@ class ComposeCommand(Command):
 
         ui.apply_command(EnvelopeEditCommand(mail=self.mail))
 
+
 # SEARCH
 class RetagPromptCommand(Command):
     """start a commandprompt to retag selected threads' tags"""
@@ -409,7 +410,7 @@ class RetagCommand(Command):
         try:
             thread.set_tags(tags)
         except DatabaseROError, e:
-            ui.notify('index in read-only mode')
+            ui.notify('index in read-only mode', priority='error')
             return
 
         # flush index
@@ -445,6 +446,7 @@ class RefinePromptCommand(Command):
         sbuffer = ui.current_buffer
         oldquery = sbuffer.querystring
         ui.commandprompt('refine ' + oldquery)
+
 
 # THREAD
 class ReplyCommand(Command):
@@ -547,7 +549,8 @@ class ForwardCommand(Command):
         Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
         if self.inline:  # inline mode
             # set body text
-            mailcontent = '\nForwarded message from %s:\n' % msg.get_author()[0]
+            author = msg.get_author()[0]
+            mailcontent = '\nForwarded message from %s:\n' % author
             for line in msg.accumulate_body().splitlines():
                 mailcontent += '>' + line + '\n'
 
@@ -558,7 +561,7 @@ class ForwardCommand(Command):
             # create empty text msg
             bodypart = MIMEText('', 'plain', 'UTF-8')
             reply.attach(bodypart)
-            # attach original msg  
+            # attach original msg
             reply.attach(mail)
 
         # copy subject
@@ -703,9 +706,10 @@ class EnvelopeSendCommand(Command):
                 ui.apply_command(cmd)
                 ui.notify('mail send successful')
             else:
-                ui.notify('failed to send: %s' % reason)
+                ui.notify('failed to send: %s' % reason, priority='error')
         else:
-            ui.notify('failed to send: no account set up for %s' % saddr)
+            ui.notify('failed to send: no account set up for %s' % saddr,
+                      priority='error')
 
 
 # TAGLIST
@@ -810,7 +814,8 @@ ALLOWED_COMMANDS = {
     'envelope': ['send', 'reedit', 'to', 'subject'] + globalcomands,
     'bufferlist': ['openfocussed', 'closefocussed'] + globalcomands,
     'taglist': ['select'] + globalcomands,
-    'thread': ['toggletag', 'reply', 'groupreply', 'bounce', 'forward'] + globalcomands,
+    'thread': globalcommands + ['toggletag', 'reply', 'groupreply', 'bounce',
+                                'forward'],
 }
 
 
