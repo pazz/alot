@@ -535,25 +535,30 @@ class ReplyCommand(Command):
 
 
 class ForwardCommand(Command):
-    def __init__(self, attach_original=False, **kwargs):
-        self.attach_original = attach_original
+    def __init__(self, inline=False, **kwargs):
+        self.inline = inline
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
         msg = ui.current_buffer.get_selected_message()
         mail = msg.get_email()
-        # set body text
-        mailcontent = '\nForwarded message from %s:\n' % msg.get_author()[0]
-        for line in msg.accumulate_body().splitlines():
-            mailcontent += '>' + line + '\n'
 
-        Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
-        bodypart = MIMEText(mailcontent.encode('utf-8'), 'plain', 'UTF-8')
         reply = MIMEMultipart()
-        reply.attach(bodypart)
+        Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
+        if self.inline:  # inline mode
+            # set body text
+            mailcontent = '\nForwarded message from %s:\n' % msg.get_author()[0]
+            for line in msg.accumulate_body().splitlines():
+                mailcontent += '>' + line + '\n'
 
-        # attach original msg  
-        if self.attach_original:
+            bodypart = MIMEText(mailcontent.encode('utf-8'), 'plain', 'UTF-8')
+            reply.attach(bodypart)
+
+        else:  # attach original mode
+            # create empty text msg
+            bodypart = MIMEText('', 'plain', 'UTF-8')
+            reply.attach(bodypart)
+            # attach original msg  
             reply.attach(mail)
 
         # copy subject
@@ -746,7 +751,7 @@ COMMANDS = {
         # thread
         'reply': (ReplyCommand, {}),
         'groupreply': (ReplyCommand, {'groupreply': True}),
-        'forward': (ForwardCommand, {'attach_original': True}),
+        'forward': (ForwardCommand, {}),
         'bounce': (BounceMailCommand, {}),
 
         # taglist
@@ -834,8 +839,6 @@ def interpret_commandline(cmdline, mode):
         logging.debug('not allowed in mode %s: %s' % (mode, cmd))
         return None
 
-    # use optionparser here.
-    # forward to?
     if not params:  # commands that work without parameter
         if cmd in ['exit', 'flush', 'pyshell', 'taglist', 'close', 'compose',
                    'openfocussed', 'closefocussed', 'bnext', 'bprevious',
