@@ -164,7 +164,7 @@ class UI:
         return filter(lambda x: isinstance(x, t), self.buffers)
 
     def notify(self, message, priority='normal', timeout=0):
-        myline = urwid.Text(('notify_' + priority, message))
+        myline = urwid.AttrMap(urwid.Columns([urwid.Text(message)]),'notify_' + priority)
         footer = self.mainframe.get_footer()
         if not self.notificationbar:
             self.notificationbar = urwid.Pile([myline])
