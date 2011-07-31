@@ -384,7 +384,7 @@ class ComposeCommand(Command):
 
         ui.apply_command(EnvelopeEditCommand(mail=self.mail))
 
-
+# SEARCH
 class RetagPromptCommand(Command):
     """start a commandprompt to retag selected threads' tags"""
 
@@ -446,7 +446,7 @@ class RefinePromptCommand(Command):
         oldquery = sbuffer.querystring
         ui.commandprompt('refine ' + oldquery)
 
-
+# THREAD
 class ReplyCommand(Command):
     def __init__(self, groupreply=False, **kwargs):
         self.groupreply = groupreply
@@ -532,6 +532,51 @@ class ReplyCommand(Command):
             if not [a for a in my_addresses if a in entry]:
                 new_value.append(entry.strip())
         return ', '.join(new_value)
+
+
+class ForwardCommand(Command):
+    def __init__(self, attach_original=False, **kwargs):
+        self.attach_original = attach_original
+        Command.__init__(self, **kwargs)
+
+    def apply(self, ui):
+        msg = ui.current_buffer.get_selected_message()
+        mail = msg.get_email()
+        # set body text
+        mailcontent = '\nForwarded message from %s:\n' % msg.get_author()[0]
+        for line in msg.accumulate_body().splitlines():
+            mailcontent += '>' + line + '\n'
+
+        Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
+        bodypart = MIMEText(mailcontent.encode('utf-8'), 'plain', 'UTF-8')
+        reply = MIMEMultipart()
+        reply.attach(bodypart)
+
+        # attach original msg  
+        if self.attach_original:
+            reply.attach(mail)
+
+        # copy subject
+        subject = mail['Subject']
+        subject = 'Fwd: ' + subject
+        reply['Subject'] = Header(subject.encode('utf-8'), 'UTF-8').encode()
+
+        # set From
+        my_addresses = ui.accountman.get_account_addresses()
+        matched_address = ''
+        in_to = [a for a in my_addresses if a in mail['To']]
+        if in_to:
+            matched_address = in_to[0]
+        else:
+            cc = mail.get('Cc', '') + mail.get('Bcc', '')
+            in_cc = [a for a in my_addresses if a in cc]
+            if in_cc:
+                matched_address = in_cc[0]
+        if matched_address:
+            account = ui.accountman.get_account_by_address(matched_address)
+            fromstring = '%s <%s>' % (account.realname, account.address)
+            reply['From'] = encode_header('From', fromstring)
+        ui.apply_command(ComposeCommand(mail=reply))
 
 
 class BounceMailCommand(Command):
@@ -658,7 +703,7 @@ class EnvelopeSendCommand(Command):
             ui.notify('failed to send: no account set up for %s' % saddr)
 
 
-### taglist
+# TAGLIST
 class TaglistSelectCommand(Command):
     def apply(self, ui):
         tagstring = ui.current_buffer.get_selected_tag()
@@ -666,7 +711,6 @@ class TaglistSelectCommand(Command):
         ui.apply_command(cmd)
 
 
-###########
 #Factory
 COMMANDS = {
         'bnext': (BufferFocusCommand, {'offset': 1}),
@@ -702,6 +746,7 @@ COMMANDS = {
         # thread
         'reply': (ReplyCommand, {}),
         'groupreply': (ReplyCommand, {'groupreply': True}),
+        'forward': (ForwardCommand, {'attach_original': True}),
         'bounce': (BounceMailCommand, {}),
 
         # taglist
@@ -760,7 +805,7 @@ ALLOWED_COMMANDS = {
     'envelope': ['send', 'reedit', 'to', 'subject'] + globalcomands,
     'bufferlist': ['openfocussed', 'closefocussed'] + globalcomands,
     'taglist': ['select'] + globalcomands,
-    'thread': ['toggletag', 'reply', 'groupreply', 'bounce'] + globalcomands,
+    'thread': ['toggletag', 'reply', 'groupreply', 'bounce', 'forward'] + globalcomands,
 }
 
 
@@ -789,10 +834,13 @@ def interpret_commandline(cmdline, mode):
         logging.debug('not allowed in mode %s: %s' % (mode, cmd))
         return None
 
+    # use optionparser here.
+    # forward to?
     if not params:  # commands that work without parameter
         if cmd in ['exit', 'flush', 'pyshell', 'taglist', 'close', 'compose',
                    'openfocussed', 'closefocussed', 'bnext', 'bprevious',
                    'retag', 'refresh', 'bufferlist', 'refineprompt', 'reply',
+                   'forward',
                    'groupreply', 'bounce', 'openthread', 'send', 'reedit',
                    'select', 'retagprompt']:
             return commandfactory(cmd)

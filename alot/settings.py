@@ -216,8 +216,9 @@ DEFAULTS = {
     },
     'thread-maps': {
         'a': 'toggletag inbox',
-        'r': 'reply',
+        'f': 'forward',
         'g': 'groupreply',
+        'r': 'reply',
     },
     'taglist-maps': {
         'enter': 'select',
