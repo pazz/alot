@@ -791,7 +791,7 @@ aliases = {'clo': 'close',
            'quit': 'exit',
 }
 
-globalcomands = [
+globalcommands = [
     'bnext',
     'bprevious',
     'bufferlist',
@@ -810,10 +810,10 @@ globalcomands = [
 
 ALLOWED_COMMANDS = {
     'search': ['refine', 'refineprompt', 'toggletag', 'openthread', 'retag',
-               'retagprompt'] + globalcomands,
-    'envelope': ['send', 'reedit', 'to', 'subject'] + globalcomands,
-    'bufferlist': ['openfocussed', 'closefocussed'] + globalcomands,
-    'taglist': ['select'] + globalcomands,
+               'retagprompt'] + globalcommands,
+    'envelope': ['send', 'reedit', 'to', 'subject'] + globalcommands,
+    'bufferlist': ['openfocussed', 'closefocussed'] + globalcommands,
+    'taglist': ['select'] + globalcommands,
     'thread': globalcommands + ['toggletag', 'reply', 'groupreply', 'bounce',
                                 'forward'],
 }

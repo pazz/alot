@@ -49,9 +49,7 @@ class UI:
         self.mainloop.screen.set_terminal_properties(colors=colourmode)
 
         self.show_statusbar = config.getboolean('general', 'show_statusbar')
-        self.show_notificationbar = config.getboolean('general',
-                                                      'show_notificationbar')
-        self.notificationbar = None  # urwid.Text(' ')
+        self.notificationbar = None
         self.mode = ''
 
         self.logger.debug('setup bindings')
@@ -164,27 +162,41 @@ class UI:
         return filter(lambda x: isinstance(x, t), self.buffers)
 
     def notify(self, message, priority='normal', timeout=0):
-        myline = urwid.AttrMap(urwid.Columns([urwid.Text(message)]),'notify_' + priority)
+
+        def build_line(msg, prio):
+            cols =urwid.Columns([urwid.Text(msg)])
+            return urwid.AttrMap(cols, 'notify_' + prio)
+        msgs = [build_line(message, priority)]
+        if timeout == -1:
+            msgs.append(build_line('(hit any key to proceed)', 'normal'))
+
         footer = self.mainframe.get_footer()
         if not self.notificationbar:
-            self.notificationbar = urwid.Pile([myline])
+            self.notificationbar = urwid.Pile(msgs)
         else:
-            newpile = self.notificationbar.widget_list + [myline]
+            newpile = self.notificationbar.widget_list + msgs
             self.notificationbar = urwid.Pile(newpile)
+        self.update()
 
         def clear_notify(*args):
             footer = self.mainframe.get_footer()
-            if len(self.notificationbar.widget_list) == 1:
-                self.notificationbar = None
-            else:
-                newpile = self.notificationbar.widget_list
-                newpile.remove(myline)
+            newpile = self.notificationbar.widget_list
+            for l in msgs :
+                newpile.remove(l)
+            if newpile:
                 self.notificationbar = urwid.Pile(newpile)
+            else:
+                self.notificationbar = None
             self.update()
-        if not timeout:
-            timeout = config.getint('general', 'notify_timeout')
-        self.mainloop.set_alarm_in(timeout, clear_notify)
-        self.update()
+
+        if timeout == -1:
+            self.mainloop.draw_screen()
+            keys = self.mainloop.screen.get_input()
+            clear_notify()
+        else:
+            if timeout == 0:
+                timeout = config.getint('general', 'notify_timeout')
+            self.mainloop.set_alarm_in(timeout, clear_notify)
 
     def update(self):
         """

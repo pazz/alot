@@ -34,7 +34,6 @@ DEFAULTS = {
         'authors_maxlength': '30',
         'ask_subject': 'True',
         'notify_timeout': '2',
-        'show_notificationbar': 'False',
         'show_statusbar': 'True',
         'flush_retry_timeout': '5',
         'hooksfile': '~/.alot.py',
