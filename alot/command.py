@@ -512,7 +512,7 @@ class ReplyCommand(Command):
 
         # set In-Reply-To header
         del(reply['In-Reply-To'])
-        reply['In-Reply-To'] = msg.get_message_id()
+        reply['In-Reply-To'] = '<%s>' % msg.get_message_id()
 
         # set References header
         old_references = mail['References']
@@ -521,10 +521,10 @@ class ReplyCommand(Command):
             references = old_references[-8:]
             if len(old_references) > 8:
                 references = old_references[:1] + references
-            references.append(msg.get_message_id())
+            references.append('<%s>' % msg.get_message_id())
             reply['References'] = ' '.join(references)
         else:
-            reply['References'] = msg.get_message_id()
+            reply['References'] = '<%s>' % msg.get_message_id()
 
         ui.apply_command(ComposeCommand(mail=reply))
 
