@@ -523,6 +523,8 @@ class ReplyCommand(Command):
                 references = old_references[:1] + references
             references.append(msg.get_message_id())
             reply['References'] = ' '.join(references)
+        else:
+            reply['References'] = msg.get_message_id()
 
         ui.apply_command(ComposeCommand(mail=reply))
 
