@@ -109,10 +109,13 @@ class BufferlineWidget(urwid.Text):
         return self.buffer
 
 
-class TagWidget(urwid.Text):
+class TagWidget(urwid.AttrMap):
     def __init__(self, tag):
         self.tag = tag
-        urwid.Text.__init__(self, tag, wrap='clip')
+        txt = urwid.Text(tag, wrap='clip')
+        normal = config.get_tagattr(tag)
+        focus = config.get_tagattr(tag, focus=True)
+        urwid.AttrMap.__init__(self, txt, normal, focus)
 
     def selectable(self):
         return True

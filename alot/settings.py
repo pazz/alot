@@ -71,10 +71,10 @@ DEFAULTS = {
         'notify_normal_fg': 'default',
         'prompt_bg': 'black',
         'prompt_fg': 'light gray',
-        'taglist_focus_bg': 'dark gray',
-        'taglist_focus_fg': 'white',
-        'taglist_tag_bg': 'black',
-        'taglist_tag_fg': 'light gray',
+        'tag_focus_bg': 'dark gray',
+        'tag_focus_fg': 'white',
+        'tag_bg': 'black',
+        'tag_fg': 'light gray',
         'threadline_authors_bg': 'default',
         'threadline_authors_fg': 'dark green',
         'threadline_authors_focus_bg': 'dark cyan',
@@ -119,8 +119,8 @@ DEFAULTS = {
         'notify_error': 'standout',
         'notify_normal': 'default',
         'prompt': '',
-        'taglist_focus': 'standout',
-        'taglist_tag': 'default',
+        'tag_focus': 'standout',
+        'tag': 'default',
         'threadline': 'default',
         'threadline_authors': 'default,underline',
         'threadline_authors_focus': 'standout',
@@ -168,10 +168,10 @@ DEFAULTS = {
         'notify_normal_fg': 'default',
         'prompt_bg': 'default',
         'prompt_fg': 'light gray',
-        'taglist_focus_bg': 'g38',
-        'taglist_focus_fg': '#ffa',
-        'taglist_tag_bg': 'default',
-        'taglist_tag_fg': 'default',
+        'tag_focus_bg': 'g38',
+        'tag_focus_fg': '#ffa',
+        'tag_bg': 'default',
+        'tag_fg': 'default',
         'threadline_authors_bg': 'default',
         'threadline_authors_fg': '#6d6',
         'threadline_authors_focus_bg': 'g58',
@@ -254,14 +254,13 @@ class CustomConfigParser(SafeConfigParser):
         for sec in defaults.keys():
             self.add_section(sec)
 
-    def get(self, section, option, *args, **kwargs):
+    def get(self, section, option, fallback=None, *args, **kwargs):
         if self.has_option(section, option):
             return SafeConfigParser.get(self, section, option, *args, **kwargs)
         elif section in self.defaults:
             if option in self.defaults[section]:
                 return self.defaults[section][option]
-        else:
-            return None
+        return fallback
 
     def getstringlist(self, section, option, **kwargs):
         value = self.get(section, option, **kwargs)
@@ -277,18 +276,54 @@ class CustomConfigParser(SafeConfigParser):
                 except:
                     pass
 
+    def get_modestring(self):
+        mode = self.getint('general', 'colourmode')
+        if mode == 2:
+            return 'mono-theme'
+        elif mode == 16:
+            return 'normal-theme'
+        else:
+            return 'highcolour-theme'
+
     def get_palette(self):
+        mode = self.getint('general', 'colourmode')
+        ms = self.get_modestring()
+        names = self.options(ms) + DEFAULTS[ms].keys()
+        if mode > 2:
+            names = set([s[:-3] for s in names])
         p = list()
-        for attr in DEFAULTS['mono-theme'].keys():
+        for attr in names:
             p.append((
                 attr,
-                self.get('normal-theme', attr + '_fg'),
-                self.get('normal-theme', attr + '_bg'),
-                self.get('mono-theme', attr),
-                self.get('highcolour-theme', attr + '_fg'),
-                self.get('highcolour-theme', attr + '_bg'),
+                self.get('normal-theme', attr + '_fg', fallback='default'),
+                self.get('normal-theme', attr + '_bg', fallback='default'),
+                self.get('mono-theme', attr, fallback='default'),
+                self.get('highcolour-theme', attr + '_fg', fallback='default'),
+                self.get('highcolour-theme', attr + '_bg', fallback='default'),
             ))
         return p
+
+    def get_tagattr(self, tag, focus=False):
+        mode = self.getint('general', 'colourmode')
+        base = 'tag_%s' % tag
+        if focus:
+            base += '_focus'
+        if mode == 2:
+            if self.get('mono-theme', base):
+                return 'tag_%s' % tag
+        elif mode == 16:
+            has_fg = self.get('normal-theme', base + '_fg')
+            has_bg = self.get('normal-theme', base + '_bg')
+            if has_fg or has_bg:
+                return 'tag_%s' % tag
+        else:  # highcolour
+            has_fg = self.get('highcolour-theme', base + '_fg')
+            has_bg = self.get('highcolour-theme', base + '_bg')
+            if has_fg or has_bg:
+                return 'tag_%s' % tag
+        if focus:
+            return 'tag_focus'
+        return 'tag'
 
     def get_mapping(self, mode, key):
         cmdline = self.get(mode + '-maps', key)

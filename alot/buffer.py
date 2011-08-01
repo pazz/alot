@@ -242,15 +242,12 @@ class TagListBuffer(Buffer):
         lines = list()
         displayedtags = filter(self.filtfun, self.tags)
         for (num, b) in enumerate(displayedtags):
-            line = widgets.TagWidget(b)
-            tag_w = urwid.AttrMap(line, 'taglist_tag', 'taglist_focus')
-            lines.append(tag_w)
+            lines.append(widgets.TagWidget(b))
         self.taglist = urwid.ListBox(urwid.SimpleListWalker(lines))
         self.body = self.taglist
 
         self.taglist.set_focus(focusposition % len(displayedtags))
 
     def get_selected_tag(self):
-        (attrwidget, pos) = self.taglist.get_focus()
-        tagwidget = attrwidget.original_widget
+        (tagwidget, pos) = self.taglist.get_focus()
         return tagwidget.get_tag()
