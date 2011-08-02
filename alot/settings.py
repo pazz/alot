@@ -29,7 +29,7 @@ DEFAULTS = {
     'general': {
         'colourmode': '16',
         'editor_cmd': "/usr/bin/vim -f -c 'set filetype=mail' +",
-        'terminal_cmd': 'urxvt -T notmuch -e',
+        'terminal_cmd': 'x-terminal-emulator -e',
         'spawn_editor': 'False',
         'displayed_headers': 'From,To,Cc,Bcc,Subject',
         'authors_maxlength': '30',
