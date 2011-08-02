@@ -31,6 +31,7 @@ class ThreadlineWidget(urwid.AttrMap):
     def __init__(self, tid, dbman):
         self.dbman = dbman
         self.thread = dbman.get_thread(tid)
+        self.tag_widgets = []
         self.rebuild()
         urwid.AttrMap.__init__(self, self.columns,
                                'threadline', 'threadline_focus')
@@ -46,10 +47,11 @@ class ThreadlineWidget(urwid.AttrMap):
                                    'threadline_mailcount')
         cols.append(('fixed', len(mailcountstring), self.mailcount_w))
 
-        tagsstring = " ".join(self.thread.get_tags())
-        self.tags_w = urwid.AttrMap(urwid.Text(tagsstring), 'threadline_tags')
-        if tagsstring:
-            cols.append(('fixed', len(tagsstring), self.tags_w))
+        tags = self.thread.get_tags()
+        for tag in tags:
+            tw = TagWidget(tag)
+            self.tag_widgets.append(tw)
+            cols.append(('fixed', len(tag), tw))
 
         authors = self.thread.get_authors() or '(None)'
         maxlength = config.getint('general', 'authors_maxlength')
@@ -72,13 +74,16 @@ class ThreadlineWidget(urwid.AttrMap):
             self.date_w.set_attr_map({None: 'threadline_date_focus'})
             self.mailcount_w.set_attr_map({None:
                                            'threadline_mailcount_focus'})
-            self.tags_w.set_attr_map({None: 'threadline_tags_focus'})
+            #self.tags_w.set_attr_map({None: 'threadline_tags_focus'})
+            for tw in self.tag_widgets:
+                tw.set_focussed()
             self.authors_w.set_attr_map({None: 'threadline_authors_focus'})
             self.subject_w.set_attr_map({None: 'threadline_subject_focus'})
         else:
             self.date_w.set_attr_map({None: 'threadline_date'})
             self.mailcount_w.set_attr_map({None: 'threadline_mailcount'})
-            self.tags_w.set_attr_map({None: 'threadline_tags'})
+            for tw in self.tag_widgets:
+                tw.set_unfocussed()
             self.authors_w.set_attr_map({None: 'threadline_authors'})
             self.subject_w.set_attr_map({None: 'threadline_subject'})
         return urwid.AttrMap.render(self, size, focus)
@@ -125,6 +130,12 @@ class TagWidget(urwid.AttrMap):
 
     def get_tag(self):
         return self.tag
+
+    def set_focussed(self):
+        self.set_attr_map({None: config.get_tagattr(self.tag, focus=True)})
+
+    def set_unfocussed(self):
+        self.set_attr_map({None: config.get_tagattr(self.tag)})
 
 
 class CompleteEdit(urwid.Edit):
