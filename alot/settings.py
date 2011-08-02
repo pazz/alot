@@ -19,6 +19,7 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 import imp
 import os
 import mailcap
+import codecs
 
 from ConfigParser import SafeConfigParser
 from account import Account
@@ -250,7 +251,7 @@ class CustomConfigParser(SafeConfigParser):
         self.defaults = defaults
         self.hooks = None
         SafeConfigParser.__init__(self)
-        self.optionxform = str
+        self.optionxform = lambda x: x
         for sec in defaults.keys():
             self.add_section(sec)
 
@@ -266,8 +267,11 @@ class CustomConfigParser(SafeConfigParser):
         value = self.get(section, option, **kwargs)
         return [s.strip() for s in value.split(',')]
 
-    def read(self, *args):
-        SafeConfigParser.read(self, *args)
+    def read(self, file):
+        if not os.path.isfile(file):
+            return
+
+        SafeConfigParser.readfp(self, codecs.open(file, "r", "utf8"))
         if self.has_option('general', 'hooksfile'):
             hf = os.path.expanduser(config.get('general', 'hooksfile'))
             if hf is not None:

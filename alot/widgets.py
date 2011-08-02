@@ -51,7 +51,7 @@ class ThreadlineWidget(urwid.AttrMap):
         for tag in tags:
             tw = TagWidget(tag)
             self.tag_widgets.append(tw)
-            cols.append(('fixed', len(tag), tw))
+            cols.append(('fixed', tw.len(), tw))
 
         authors = self.thread.get_authors() or '(None)'
         maxlength = config.getint('general', 'authors_maxlength')
@@ -116,11 +116,14 @@ class BufferlineWidget(urwid.Text):
 class TagWidget(urwid.AttrMap):
     def __init__(self, tag):
         self.tag = tag
-        txt = urwid.Text(tag, wrap='clip')
+        self.translated = config.get('tag translate', tag, fallback=tag)
+        txt = urwid.Text(self.translated, wrap='clip')
         normal = config.get_tagattr(tag)
         focus = config.get_tagattr(tag, focus=True)
         urwid.AttrMap.__init__(self, txt, normal, focus)
 
+    def len(self):
+        return len(self.translated)
     def selectable(self):
         return True
 
