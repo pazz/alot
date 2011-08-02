@@ -71,7 +71,7 @@ DEFAULTS = {
         'notify_normal_fg': 'default',
         'prompt_bg': 'black',
         'prompt_fg': 'light gray',
-        'tag_focus_bg': 'dark gray',
+        'tag_focus_bg': 'dark cyan',
         'tag_focus_fg': 'white',
         'tag_bg': 'black',
         'tag_fg': 'brown',
@@ -168,7 +168,7 @@ DEFAULTS = {
         'notify_normal_fg': 'default',
         'prompt_bg': 'default',
         'prompt_fg': 'light gray',
-        'tag_focus_bg': 'g38',
+        'tag_focus_bg': 'g58',
         'tag_focus_fg': '#ffa',
         'tag_bg': 'default',
         'tag_fg': 'brown',
@@ -293,21 +293,21 @@ class CustomConfigParser(SafeConfigParser):
             names = set([s[:-3] for s in names])
         p = list()
         for attr in names:
-            p.append((
-                attr,
-                self.get('normal-theme', attr + '_fg', fallback='default'),
-                self.get('normal-theme', attr + '_bg', fallback='default'),
-                self.get('mono-theme', attr, fallback='default'),
-                self.get('highcolour-theme', attr + '_fg', fallback='default'),
-                self.get('highcolour-theme', attr + '_bg', fallback='default'),
-            ))
+            nf = self.get('normal-theme', attr + '_fg', fallback='default')
+            nb = self.get('normal-theme', attr + '_bg', fallback='default')
+            m = self.get('mono-theme', attr, fallback='default')
+            hf = self.get('highcolour-theme', attr + '_fg', fallback='default')
+            hb = self.get('highcolour-theme', attr + '_bg', fallback='default')
+            p.append((attr, nf, nb, m, hf, hb))
+            if attr.startswith('tag_') and attr + '_focus' not in names:
+                nb = self.get('normal-theme', 'threadline_focus_bg', fallback='default')
+                hb = self.get('highcolour-theme', 'threadline_focus_bg', fallback='default')
+                p.append((attr + '_focus', nf, nb, m, hf, hb))
         return p
 
     def get_tagattr(self, tag, focus=False):
         mode = self.getint('general', 'colourmode')
         base = 'tag_%s' % tag
-        if focus:
-            base += '_focus'
         if mode == 2:
             if self.get('mono-theme', base):
                 return 'tag_%s' % tag
@@ -315,12 +315,18 @@ class CustomConfigParser(SafeConfigParser):
             has_fg = self.get('normal-theme', base + '_fg')
             has_bg = self.get('normal-theme', base + '_bg')
             if has_fg or has_bg:
-                return 'tag_%s' % tag
+                if focus:
+                    return base + '_focus'
+                else:
+                    return base
         else:  # highcolour
             has_fg = self.get('highcolour-theme', base + '_fg')
             has_bg = self.get('highcolour-theme', base + '_bg')
             if has_fg or has_bg:
-                return 'tag_%s' % tag
+                if focus:
+                    return base + '_focus'
+                else:
+                    return base
         if focus:
             return 'tag_focus'
         return 'tag'

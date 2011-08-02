@@ -74,7 +74,6 @@ class ThreadlineWidget(urwid.AttrMap):
             self.date_w.set_attr_map({None: 'threadline_date_focus'})
             self.mailcount_w.set_attr_map({None:
                                            'threadline_mailcount_focus'})
-            #self.tags_w.set_attr_map({None: 'threadline_tags_focus'})
             for tw in self.tag_widgets:
                 tw.set_focussed()
             self.authors_w.set_attr_map({None: 'threadline_authors_focus'})
