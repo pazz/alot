@@ -147,7 +147,7 @@ class DBManager:
     def get_all_tags(self):
         """returns all tags as list of strings"""
         db = Database(path=self.path)
-        return list(db.get_all_tags())
+        return [t.decode(DB_ENC) for t in db.get_all_tags()]
 
     def query(self, querystring):
         """creates notmuch.Query objects on demand
@@ -184,7 +184,7 @@ class Thread:
         ts = thread.get_oldest_date()
         self._oldest_date = datetime.fromtimestamp(ts)
         self._newest_date = datetime.fromtimestamp(thread.get_newest_date())
-        self._tags = set(thread.get_tags())
+        self._tags = set([t.decode(DB_ENC) for t in thread.get_tags()])
         self._messages = {}  # this maps messages to its children
         self._toplevel_messages = []
 
