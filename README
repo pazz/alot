@@ -1,185 +1,25 @@
 This is a proposal for a terminal gui for notmuch mail, written in python.
-The key ideas are:
+You can find some old screenshots in data/alot*png
+Stay tuned for a more up-to-date description of the architecture and a usage intro,
+I intend to clean up a bit, include a few more features and release a first version soon™.
 
-* aim at the look and feel of sup for now
-* lock the index only when needed
-* use libraries whenever possible. 
-  urwid: http://excess.org/urwid/ CAUTION: you need the dev-version!
-  The notmuch bindings: https://bitbucket.org/spaetz/cnotmuch/
-  (mailbox: http://docs.python.org/library/mailbox.html)
-  (configparser)
+Current features include:
+ * spawn terminals for asynchronous editing of mails
+ * theming, optionally in monochromatic, 16 or 256 colours
+ * tag specific theming and tagstring translation
+ * a hook system to inject ones own python code
+ * python shell for introspection
+ * forward/reply/group-reply of emails
+ * multiple accounts for sending mails via sendmail
+ * tab completion for commands and querystrings
+ * priorizable notification popups
+ * database manager that manages a write queue to the notmuch index
+ * user configurable keyboard maps
 
-You need the notmuch python bindings and urwid to run it. While developing,
-I run it like this 
-> python alot/init.py -l debug.log -d debug
-and "tail -f debug.log" in another window.
-If installed via the setup.py, "alot" should be in your path.
-
-You can find some screenshots in data/alot*png
-
----------------------------------------
-At the moment you can play with the global bindings
-I, open inbox
-U, open unread 
-s, python shell
-L, open taglist
-\, prompts and stars search
-v, opens log in vim
-x, closes current buffer
-tab, tabs between buffers
-;, opens bufferlist
-:, opens cmd shell
-@, refreshes current buffer
-m, compose mail
-
-
-In all views, arrows, page-up/down, j,k and space can be used to move the focus.
-escape will close the shell or cancel prompts.
-Here the buffer-specific bindings:
-
-Searchbuffer: 
-enter, opens single thread view for select thread,
-a, toggles "inbox" tag
-&, toggles "killed" tag
-|, prompts for query refinement
-l, manually change labels
-
-Single thread:
-a, toggles "inbox" tag
-h, toggles show header (all fields from settings displayed_headers)
-enter, toggles body (folds awas msg)
-
-Bufferlist: 
-d, removes selected buffer, 
-enter, focus selected.
-
-Taglist:
-enter, opens new search view for selected tag
-
-Envelope:
-y, send mail
-------------------------------
-
-Here is an overview of the current architecture.
-
-alot.ui.UI 
-contains the main component: it
- - handles the urwid.MainLoop that manages the screen etc.
- - contains a logging.logger that can be used for log/debug messages like so:
-   ui.logger.info('hello logworld')
- - sets up and updates the header/footer/body widgets
- - is able to open/close/focus buffers (there's a list ui.buffers of currently
-   known buffers, and a ui.current_buffer, pointing to the focussed one)
- - handles global keybindings. See below for more on bindings.
- - can apply (and further down the road undo/redo) commands (see command.py)
- - is able to open a prompt/dialogs/shell
-
-alot.db.DBManager 
-interface to the notmuch index. Currently, it has very limited functionality,
-but should be able to to this:
- - store the connection settings (index path and whether or not we use a
-   read_only connection..)
- - create notmuch.Query objects for read access on demand
- - maintains a write-queue for write access to the index.
-alot.db also contains wrapper classes for notmuch.Thread and notmuch.Messages
-that are used throughout the interface.
-
-alot.buffer.Buffer
-Is used as a base class for different types of buffers, or display-modi if you
-like. Technically, Buffer inherits from urwid.Widget so that it can be directly 
-set as the body-part of the urwid main gui, thereby intercepting 
-(and filter/handle according to local bindings) the
-key presses. A Buffer
- - is a widget, that can be drawn,focussed etc as all widgets.
- - has a pointer to the main ui, a typename, (e.g. search results, display
-   single thread, envelope, logmode) and knows how to summarise itself.
- - knows how to handle local (mode-specific) keybindings (self.bindings see
-   below)
-
-alot.commands.Command
-A base class for different commands. A command is an object that
-represents an atomic action. It will only be be applied once (and is then
-stored in a undo-list somewhere). It
- - has a typename, that is used to identify a type of command for the command
-   factory
- - can be applied using cmd.apply with a fixed interface: I  assume we want at
-   least pointers to the main ui and the dbman objects here
- - should contain a help-info about what it does (to automagically create
-   dynamic help-buffers later on)
- - should know if its undoable, and if so, implement undo() and redo()
- - points to pre and post hooks. This might get tricky with undoable cmds.. The
-   idea is, that a cmd gets applied (see ng.ui.UI.apply_command), also its pre
-   and posthooks are called if defined. These should have the same signature as
-   cmd.apply(). See settings.hooks for an example.  There's a number of
-   commands i already implemented. Each one should be created by the
-   ng.command.factory (which also attaches the hooks)
-
-alot.widgets
-contains the urwid.Widgets i use do draw notmuch objects. There's a Threadline
-widget for example, that knows how to present a notmuch.thread object as a
-textline. Should be pretty self explanatory, definitely needs some love.  These
-inherit from AttrMap, which is not very clean i guess, but they must be
-"selectable" so that we can use them in a urwid.ListBox (which displays a list
-and can focus elements). Since ThreadlineWidget is selectable it must include a
-dummy keypress method.
-
-alot.walker
-Contains urwid.ListWalker derived classes that implement a listwalker (the
-content-part of a urwid.ListBox widget) that dynamically allocates its content.
-The thing is that if one makes a query for all threads in the index and naively
-creating a ng.widgets.ThreadlineWidget for each and placing them in a
-urwid.Listbox (actually a urwid.SimplieListWalker, and /that/ in a listbox),
-this will potentially eat up your memory and take a long time. So
-alot.walker.IteratorWalker will dynamically create its next element from the next
-element of the iterator. 
-
-Key Bindings
-Are currently a hash in objects of the classes ng.ui.UI and ng.buffer.Buffer.
-Obviously, a key is first handed to the current buffer and in case it doesn't
-handle it, it will be handled by the main UI. Each buffer-subclass comes with
-its own default local bindings which we might want to overwrite at some point.
-I guess we should have a "map" command that takes a buffertype, a key and
-something to call.  For now, a key in the binding hash is a string that
-represents a keypress (urwid style: 'shift j', 'k' etc are valid).  The value
-is then a pair of (commandtypestring, parameterhash), that is used by the
-command.factory to instantiate a command with of type commandtypestring with
-parameters parameterhash. Values in the parameterhash will be called at cmd
-creation by command.factory if callable. See self.bindings in
-alot.buffer.BufferListBuffer for an example.
-
-Sending mail:
-ComposeMailCommand implements what happens when you hit 'm':
-depending on your settings, it will use ui.prompt to prompt for 
-From,To and Subject headers, calls the editor (set editor_spawn to True to do this asynchronously).
-Afterwards, it opens an buffer.EnvelopeBuffer that displays your email.
-
-alot.command.SendMailCommand tries to send a given email:
-it selects an alot.accounts.Account depending on the from-header
-and hands the mail to that accounts send.Sender.send_mail().
-
-Accounts:
-alot.accounts.Account objects capture info for one email account:
-realname, address, gpg fingerprint, and a alot.send.Sender instance
-that is used to send out mail from this account.
-
-Sender:
-instances of this class know how to send mail:
-they implement a send_mail(mail) method that takes an email.Message object
-and sends it. In case the sender is instanciated with a mailbox object
-it will store sent mails in that mailbox.Mailbox.
-For now, there is only a SendmailSender subclass, that sends your mail
-using an external tool. 
-
-See data/ecample.rc for how to define accounts: all
-sections whose name starts with "account " are taken to define an account.
-If you use SendMailCommand to send mails, it will look for an account where
-the address property matches the from-header of that mail.
-
-Hooks
-this should later on include methods that look for and call hooks. The idea
-is that a user might define either python callables or paths to binaries, and
-alot.hooks.get_hook(hookname) retrieves them so that they can be placed in
-commands. 
-UPDATE: this is currently implemented in alot/settings.py.
-See data/example_hooks.py and data/example.rc for how to add your hooks
-
+Soonish to be addresses non-features:
+ * encryption/decryption for messages
+ * search for strings in displayed buffer
+ * print command
+ * folding for message parts
+ * undo for commands
+ * addressbook integration
