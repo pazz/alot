@@ -18,6 +18,7 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 
 import re
+import os
 
 import command
 
@@ -118,6 +119,7 @@ class CommandLineCompleter(Completer):
         self._querycompleter = QueryCompleter(dbman)
         self._tagscompleter = TagsCompleter(dbman)
         self._contactscompleter = ContactsCompleter()
+        self._pathcompleter = PathCompleter()
 
     def complete(self, prefix):
         words = prefix.split(' ', 1)
@@ -133,5 +135,23 @@ class CommandLineCompleter(Completer):
                 return self._tagscompleter.complete(params, last=True)
             if cmd == 'to':
                 return self._contactscompleter.complete(params)
+            if cmd == 'edit':
+                return self._pathcompleter.complete(params)
             else:
                 return []
+
+
+class PathCompleter(Completer):
+    """completion for paths"""
+    def complete(self, prefix):
+        prep = ''
+        if not prefix:
+            prefix = '~/'
+            prep = '~/'
+        dir = os.path.expanduser(os.path.dirname(prefix))
+        fileprefix = os.path.basename(prefix)
+        res = []
+        for f in os.listdir(dir):
+            if f.startswith(fileprefix):
+                res.append(os.path.join(prep, f[len(fileprefix):]))
+        return res

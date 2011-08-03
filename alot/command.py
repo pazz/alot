@@ -876,7 +876,7 @@ def interpret_commandline(cmdline, mode):
         elif cmd == 'toggletag':
             return commandfactory(cmd, tag=params)
         elif cmd == 'edit':
-            filepath = params[0]
+            filepath = os.path.expanduser(params)
             if os.path.isfile(filepath):
                 return commandfactory(cmd, path=filepath)
         else:
