@@ -48,6 +48,7 @@ class ThreadlineWidget(urwid.AttrMap):
         cols.append(('fixed', len(mailcountstring), self.mailcount_w))
 
         tags = self.thread.get_tags()
+        tags.sort()
         for tag in tags:
             tw = TagWidget(tag)
             self.tag_widgets.append(tw)

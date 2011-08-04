@@ -197,7 +197,9 @@ class Thread:
 
     def get_tags(self):
         """returns tags attached to this thread as list of strings"""
-        return list(self._tags)
+        l = list(self._tags)
+        l.sort()
+        return l
 
     def add_tags(self, tags, sync_maildir_flags=False):
         """adds tags to all messages in this thread

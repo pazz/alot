@@ -100,7 +100,9 @@ class Message:
 
     def get_tags(self):
         """returns tags attached to this message as list of strings"""
-        return list(self._tags)
+        l = list(self._tags)
+        l.sort()
+        return l
 
     def get_thread(self):
         """returns the thread this msg belongs to as alot.db.Thread object"""
