@@ -217,9 +217,16 @@ class ThreadBuffer(Buffer):
             msglines.append(mwidget)
         self.body = urwid.ListBox(msglines)
 
-    def get_selected_message(self):
+    def get_selection(self):
         (messagewidget, size) = self.body.get_focus()
+        return messagewidget
+
+    def get_selected_message(self):
+        messagewidget = self.get_selection()
         return messagewidget.get_message()
+
+    def get_message_widgets(self):
+        return self.body.body.contents
 
 
 class TagListBuffer(Buffer):

@@ -597,6 +597,23 @@ class BounceMailCommand(Command):
         ui.apply_command(ComposeCommand(mail=mail))
 
 
+class FoldMessagesCommand(Command):
+    def __init__(self, all=False, visible=True, **kwargs):
+        self.all = all
+        self.visible = visible
+        Command.__init__(self, **kwargs)
+
+    def apply(self, ui):
+        if not self.all:
+            msg_wg = ui.current_buffer.get_selection()
+            msg_wg.fold(self.visible)
+        else:
+            for widget in ui.current_buffer.get_message_widgets():
+                widget.fold(self.visible)
+
+
+
+
 ### ENVELOPE
 class EnvelopeOpenCommand(Command):
     def __init__(self, mail=None, **kwargs):
@@ -751,6 +768,8 @@ COMMANDS = {
         'groupreply': (ReplyCommand, {'groupreply': True}),
         'forward': (ForwardCommand, {}),
         'bounce': (BounceMailCommand, {}),
+        'fold': (FoldMessagesCommand, {'visible': True}),
+        'unfold': (FoldMessagesCommand, {'visible': False}),
     },
     'global': {
         'bnext': (BufferFocusCommand, {'offset': 1}),
@@ -849,6 +868,10 @@ def interpret_commandline(cmdline, mode):
             return commandfactory(cmd, mode=mode, key='To', value=params)
         elif cmd == 'toggletag':
             return commandfactory(cmd, mode=mode, tag=params)
+        elif cmd == 'fold':
+            return commandfactory(cmd, mode=mode, all=(params=='all'))
+        elif cmd == 'unfold':
+            return commandfactory(cmd, mode=mode, all=(params=='all'))
         elif cmd == 'edit':
             filepath = os.path.expanduser(params)
             if os.path.isfile(filepath):

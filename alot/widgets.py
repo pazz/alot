@@ -336,6 +336,11 @@ class MessageWidget(urwid.WidgetWrap):
         self.sumw.toggle_folded()
         self.rebuild()
 
+    #TODO: toggle header/body should call this..
+    def fold(self, visible=True):
+        self.toggle_body()
+        self.toggle_header()
+
     def selectable(self):
         return True
 
