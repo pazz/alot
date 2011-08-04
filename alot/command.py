@@ -702,7 +702,9 @@ class EnvelopeSendCommand(Command):
         sname, saddr = email.Utils.parseaddr(frm)
         account = ui.accountman.get_account_by_address(saddr)
         if account:
+            clearme = ui.notify('sending..', timeout=-1, block=False)
             success, reason = account.sender.send_mail(mail)
+            ui.clear_notify([clearme])
             if success:
                 cmd = BufferCloseCommand(buffer=envelope)
                 ui.apply_command(cmd)

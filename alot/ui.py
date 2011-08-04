@@ -163,13 +163,23 @@ class UI:
     def get_buffers_of_type(self, t):
         return filter(lambda x: isinstance(x, t), self.buffers)
 
-    def notify(self, message, priority='normal', timeout=0):
+    def clear_notify(self, messages):
+        footer = self.mainframe.get_footer()
+        newpile = self.notificationbar.widget_list
+        for l in messages:
+            newpile.remove(l)
+        if newpile:
+            self.notificationbar = urwid.Pile(newpile)
+        else:
+            self.notificationbar = None
+        self.update()
 
+    def notify(self, message, priority='normal', timeout=0, block=True):
         def build_line(msg, prio):
             cols =urwid.Columns([urwid.Text(msg)])
             return urwid.AttrMap(cols, 'notify_' + prio)
         msgs = [build_line(message, priority)]
-        if timeout == -1:
+        if timeout == -1 and block:
             msgs.append(build_line('(hit any key to proceed)', 'normal'))
 
         footer = self.mainframe.get_footer()
@@ -180,25 +190,19 @@ class UI:
             self.notificationbar = urwid.Pile(newpile)
         self.update()
 
-        def clear_notify(*args):
-            footer = self.mainframe.get_footer()
-            newpile = self.notificationbar.widget_list
-            for l in msgs :
-                newpile.remove(l)
-            if newpile:
-                self.notificationbar = urwid.Pile(newpile)
-            else:
-                self.notificationbar = None
-            self.update()
+        def clear(*args):
+            self.clear_notify(msgs)
 
         if timeout == -1:
             self.mainloop.draw_screen()
-            keys = self.mainloop.screen.get_input()
-            clear_notify()
+            if block:
+                keys = self.mainloop.screen.get_input()
+                clear()
         else:
             if timeout == 0:
                 timeout = config.getint('general', 'notify_timeout')
-            self.mainloop.set_alarm_in(timeout, clear_notify)
+            self.mainloop.set_alarm_in(timeout, clear)
+        return msgs[0]
 
     def update(self):
         """
