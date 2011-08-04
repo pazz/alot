@@ -724,69 +724,6 @@ class TaglistSelectCommand(Command):
         ui.apply_command(cmd)
 
 
-#Factory
-COMMANDS = {
-        'bnext': (BufferFocusCommand, {'offset': 1}),
-        'bprevious': (BufferFocusCommand, {'offset': -1}),
-        'bufferlist': (OpenBufferlistCommand, {}),
-        'close': (BufferCloseCommand, {}),
-        'closefocussed': (BufferCloseCommand, {'focussed': True}),
-        'openfocussed': (BufferFocusCommand, {}),
-        'commandprompt': (CommandPromptCommand, {}),
-        'compose': (ComposeCommand, {}),
-        'edit': (EditCommand, {}),
-        'exit': (ExitCommand, {}),
-        'flush': (FlushCommand, {}),
-        'openthread': (OpenThreadCommand, {}),
-        'prompt': (PromptCommand, {}),
-        'pyshell': (PythonShellCommand, {}),
-        'refine': (RefineCommand, {}),
-        'refineprompt': (RefinePromptCommand, {}),
-        'refresh': (RefreshCommand, {}),
-        'search': (SearchCommand, {}),
-        'shellescape': (ExternalCommand, {}),
-        'taglist': (TagListCommand, {}),
-        'toggletag': (ToggleThreadTagCommand, {'tag': 'inbox'}),
-
-        # envelope
-        'send': (EnvelopeSendCommand, {}),
-        'reedit': (EnvelopeEditCommand, {}),
-        'subject': (EnvelopeSetCommand, {'key': 'Subject'}),
-        'to': (EnvelopeSetCommand, {'key': 'To'}),
-
-        'retag': (RetagCommand, {}),
-        'retagprompt': (RetagPromptCommand, {}),
-        # thread
-        'reply': (ReplyCommand, {}),
-        'groupreply': (ReplyCommand, {'groupreply': True}),
-        'forward': (ForwardCommand, {}),
-        'bounce': (BounceMailCommand, {}),
-
-        # taglist
-        'select': (TaglistSelectCommand, {}),
-        }
-
-
-def commandfactory(cmdname, **kwargs):
-    if cmdname in COMMANDS:
-        (cmdclass, parms) = COMMANDS[cmdname]
-        parms = parms.copy()
-        parms.update(kwargs)
-        for (key, value) in kwargs.items():
-            if callable(value):
-                parms[key] = value()
-            else:
-                parms[key] = value
-
-        parms['prehook'] = settings.hooks.get('pre_' + cmdname)
-        parms['posthook'] = settings.hooks.get('post_' + cmdname)
-
-        logging.debug('cmd parms %s' % parms)
-        return cmdclass(**parms)
-    else:
-        logging.error('there is no command %s' % cmdname)
-
-
 aliases = {'clo': 'close',
            'bn': 'bnext',
            'bp': 'bprevious',
@@ -795,32 +732,74 @@ aliases = {'clo': 'close',
            'quit': 'exit',
 }
 
-globalcommands = [
-    'bnext',
-    'bprevious',
-    'bufferlist',
-    'close',
-    'compose',
-    'prompt',
-    'edit',
-    'exit',
-    'flush',
-    'pyshell',
-    'refresh',
-    'search',
-    'shellescape',
-    'taglist',
-]
-
-ALLOWED_COMMANDS = {
-    'search': ['refine', 'refineprompt', 'toggletag', 'openthread', 'retag',
-               'retagprompt'] + globalcommands,
-    'envelope': ['send', 'reedit', 'to', 'subject'] + globalcommands,
-    'bufferlist': ['openfocussed', 'closefocussed'] + globalcommands,
-    'taglist': ['select'] + globalcommands,
-    'thread': globalcommands + ['toggletag', 'reply', 'groupreply', 'bounce',
-                                'forward'],
+COMMANDS = {
+    'search': {
+        'refine': (RefineCommand, {}),
+        'refineprompt': (RefinePromptCommand, {}),
+        'openthread': (OpenThreadCommand, {}),
+        'toggletag': (ToggleThreadTagCommand, {'tag': 'inbox'}),
+        'retag': (RetagCommand, {}),
+        'retagprompt': (RetagPromptCommand, {}),
+    },
+    'envelope': {
+        'send': (EnvelopeSendCommand, {}),
+        'reedit': (EnvelopeEditCommand, {}),
+        'subject': (EnvelopeSetCommand, {'key': 'Subject'}),
+        'to': (EnvelopeSetCommand, {'key': 'To'}),
+    },
+    'bufferlist': {
+        'closefocussed': (BufferCloseCommand, {'focussed': True}),
+        'openfocussed': (BufferFocusCommand, {}),
+    },
+    'taglist': {
+        'select': (TaglistSelectCommand, {}),
+    },
+    'thread': {
+        'reply': (ReplyCommand, {}),
+        'groupreply': (ReplyCommand, {'groupreply': True}),
+        'forward': (ForwardCommand, {}),
+        'bounce': (BounceMailCommand, {}),
+    },
+    'global': {
+        'bnext': (BufferFocusCommand, {'offset': 1}),
+        'bprevious': (BufferFocusCommand, {'offset': -1}),
+        'bufferlist': (OpenBufferlistCommand, {}),
+        'close': (BufferCloseCommand, {}),
+        'commandprompt': (CommandPromptCommand, {}),
+        'compose': (ComposeCommand, {}),
+        'edit': (EditCommand, {}),
+        'exit': (ExitCommand, {}),
+        'flush': (FlushCommand, {}),
+        'prompt': (PromptCommand, {}),
+        'pyshell': (PythonShellCommand, {}),
+        'refresh': (RefreshCommand, {}),
+        'search': (SearchCommand, {}),
+        'shellescape': (ExternalCommand, {}),
+        'taglist': (TagListCommand, {}),
+    }
 }
+
+
+def commandfactory(cmdname, mode='global', **kwargs):
+    if cmdname in COMMANDS[mode]:
+        (cmdclass, parms) = COMMANDS[mode][cmdname]
+    elif cmdname in COMMANDS['global']:
+        (cmdclass, parms) = COMMANDS['global'][cmdname]
+    else:
+        logging.error('there is no command %s' % cmdname)
+    parms = parms.copy()
+    parms.update(kwargs)
+    for (key, value) in kwargs.items():
+        if callable(value):
+            parms[key] = value()
+        else:
+            parms[key] = value
+
+    parms['prehook'] = settings.hooks.get('pre_' + cmdname)
+    parms['posthook'] = settings.hooks.get('post_' + cmdname)
+
+    logging.debug('cmd parms %s' % parms)
+    return cmdclass(**parms)
 
 
 def interpret_commandline(cmdline, mode):
@@ -844,8 +823,8 @@ def interpret_commandline(cmdline, mode):
         cmd = 'shellescape'
 
     # check if this command makes sense in current mode
-    if cmd not in ALLOWED_COMMANDS[mode]:
-        logging.debug('not allowed in mode %s: %s' % (mode, cmd))
+    if cmd not in COMMANDS[mode] and cmd not in COMMANDS['global']:
+        logging.debug('unknown command: %s' % (cmd))
         return None
 
     if not params:  # commands that work without parameter
@@ -855,31 +834,32 @@ def interpret_commandline(cmdline, mode):
                    'forward',
                    'groupreply', 'bounce', 'openthread', 'send', 'reedit',
                    'select', 'retagprompt']:
-            return commandfactory(cmd)
+            logging.debug('no parms for: %s' % (cmd))
+            return commandfactory(cmd, mode=mode)
         else:
             return None
     else:
         if cmd == 'search':
-            return commandfactory(cmd, query=params)
+            return commandfactory(cmd, mode=mode, query=params)
         elif cmd == 'compose':
-            return commandfactory(cmd, headers={'To': params})
+            return commandfactory(cmd, mode=mode, headers={'To': params})
         elif cmd == 'prompt':
-            return commandfactory(cmd, startstring=params)
+            return commandfactory(cmd, mode=mode, startstring=params)
         elif cmd == 'refine':
-            return commandfactory(cmd, query=params)
+            return commandfactory(cmd, mode=mode, query=params)
         elif cmd == 'retag':
-            return commandfactory(cmd, tagsstring=params)
+            return commandfactory(cmd, mode=mode, tagsstring=params)
         elif cmd == 'subject':
-            return commandfactory(cmd, key='Subject', value=params)
+            return commandfactory(cmd, mode=mode, key='Subject', value=params)
         elif cmd == 'shellescape':
-            return commandfactory(cmd, commandstring=params)
+            return commandfactory(cmd, mode=mode, commandstring=params)
         elif cmd == 'to':
-            return commandfactory(cmd, key='To', value=params)
+            return commandfactory(cmd, mode=mode, key='To', value=params)
         elif cmd == 'toggletag':
-            return commandfactory(cmd, tag=params)
+            return commandfactory(cmd, mode=mode, tag=params)
         elif cmd == 'edit':
             filepath = os.path.expanduser(params)
             if os.path.isfile(filepath):
-                return commandfactory(cmd, path=filepath)
+                return commandfactory(cmd, mode=mode, path=filepath)
         else:
             return None

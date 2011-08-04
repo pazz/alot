@@ -103,7 +103,8 @@ class CommandCompleter(Completer):
 
     def complete(self, original):
         #TODO refine <tab> should get current querystring
-        cmdlist = command.ALLOWED_COMMANDS[self.mode]
+        cmdlist = command.COMMANDS['global']
+        cmdlist.update(command.COMMANDS[self.mode])
         olen = len(original)
         return [t[olen:] + '' for t in cmdlist if t.startswith(original)]
 
