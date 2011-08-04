@@ -224,6 +224,7 @@ class MessageWidget(urwid.WidgetWrap):
         self.pile = urwid.Pile(self.displayed_list)
         urwid.WidgetWrap.__init__(self, self.pile)
 
+    #TODO re-read tags
     def rebuild(self):
         self.pile = urwid.Pile(self.displayed_list)
         self._w = self.pile

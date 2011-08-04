@@ -229,6 +229,8 @@ DEFAULTS = {
         'f': 'forward',
         'g': 'groupreply',
         'r': 'reply',
+        'R': 'unfold all',
+        'M': 'fold all',
     },
     'taglist-maps': {
         'enter': 'select',

@@ -69,12 +69,6 @@ class OpenThreadCommand(Command):
             self.thread = ui.current_buffer.get_selected_thread()
         ui.logger.info('open thread view for %s' % self.thread)
 
-        # in case the thread is yet unread, remove this tag
-        if 'unread' in self.thread.get_tags():
-            self.thread.remove_tags(['unread'], sync_maildir_flags=True)
-            ui.apply_command(FlushCommand())
-        self.thread.refresh()
-
         sb = buffer.ThreadBuffer(ui, self.thread)
         ui.buffer_open(sb)
 
@@ -604,12 +598,20 @@ class FoldMessagesCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
+        lines = []
         if not self.all:
-            msg_wg = ui.current_buffer.get_selection()
-            msg_wg.fold(self.visible)
+            lines.append(ui.current_buffer.get_selection())
         else:
-            for widget in ui.current_buffer.get_message_widgets():
-                widget.fold(self.visible)
+            lines = ui.current_buffer.get_message_widgets()
+
+        for widget in lines:
+            # in case the thread is yet unread, remove this tag
+            msg = widget.get_message()
+            if 'unread' in msg.get_tags():
+                msg.remove_tags(['unread'])
+                ui.apply_command(FlushCommand())
+                widget.rebuild()
+            widget.fold(self.visible)
 
 
 ### ENVELOPE
