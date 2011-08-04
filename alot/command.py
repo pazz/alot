@@ -612,8 +612,6 @@ class FoldMessagesCommand(Command):
                 widget.fold(self.visible)
 
 
-
-
 ### ENVELOPE
 class EnvelopeOpenCommand(Command):
     def __init__(self, mail=None, **kwargs):
@@ -838,43 +836,39 @@ def interpret_commandline(cmdline, mode):
         logging.debug('unknown command: %s' % (cmd))
         return None
 
-    if not params:  # commands that work without parameter
-        if cmd in ['exit', 'flush', 'pyshell', 'taglist', 'close', 'compose',
-                   'openfocussed', 'closefocussed', 'bnext', 'bprevious',
-                   'retag', 'refresh', 'bufferlist', 'refineprompt', 'reply',
-                   'forward',
-                   'groupreply', 'bounce', 'openthread', 'send', 'reedit',
-                   'select', 'retagprompt']:
-            logging.debug('no parms for: %s' % (cmd))
-            return commandfactory(cmd, mode=mode)
-        else:
-            return None
+    if cmd == 'search':
+        return commandfactory(cmd, mode=mode, query=params)
+    elif cmd == 'compose':
+        return commandfactory(cmd, mode=mode, headers={'To': params})
+    elif cmd == 'prompt':
+        return commandfactory(cmd, mode=mode, startstring=params)
+    elif cmd == 'refine':
+        return commandfactory(cmd, mode=mode, query=params)
+    elif cmd == 'retag':
+        return commandfactory(cmd, mode=mode, tagsstring=params)
+    elif cmd == 'subject':
+        return commandfactory(cmd, mode=mode, key='Subject', value=params)
+    elif cmd == 'shellescape':
+        return commandfactory(cmd, mode=mode, commandstring=params)
+    elif cmd == 'to':
+        return commandfactory(cmd, mode=mode, key='To', value=params)
+    elif cmd == 'toggletag':
+        return commandfactory(cmd, mode=mode, tag=params)
+    elif cmd == 'fold':
+        return commandfactory(cmd, mode=mode, all=(params=='all'))
+    elif cmd == 'unfold':
+        return commandfactory(cmd, mode=mode, all=(params=='all'))
+    elif cmd == 'edit':
+        filepath = os.path.expanduser(params)
+        if os.path.isfile(filepath):
+            return commandfactory(cmd, mode=mode, path=filepath)
+
+    elif not params and cmd in ['exit', 'flush', 'pyshell', 'taglist', 'close',
+                                'compose', 'openfocussed', 'closefocussed',
+                                'bnext', 'bprevious', 'retag', 'refresh',
+                                'bufferlist', 'refineprompt', 'reply',
+                                'forward', 'groupreply', 'bounce', 'openthread',
+                                'send', 'reedit', 'select', 'retagprompt']:
+        return commandfactory(cmd, mode=mode)
     else:
-        if cmd == 'search':
-            return commandfactory(cmd, mode=mode, query=params)
-        elif cmd == 'compose':
-            return commandfactory(cmd, mode=mode, headers={'To': params})
-        elif cmd == 'prompt':
-            return commandfactory(cmd, mode=mode, startstring=params)
-        elif cmd == 'refine':
-            return commandfactory(cmd, mode=mode, query=params)
-        elif cmd == 'retag':
-            return commandfactory(cmd, mode=mode, tagsstring=params)
-        elif cmd == 'subject':
-            return commandfactory(cmd, mode=mode, key='Subject', value=params)
-        elif cmd == 'shellescape':
-            return commandfactory(cmd, mode=mode, commandstring=params)
-        elif cmd == 'to':
-            return commandfactory(cmd, mode=mode, key='To', value=params)
-        elif cmd == 'toggletag':
-            return commandfactory(cmd, mode=mode, tag=params)
-        elif cmd == 'fold':
-            return commandfactory(cmd, mode=mode, all=(params=='all'))
-        elif cmd == 'unfold':
-            return commandfactory(cmd, mode=mode, all=(params=='all'))
-        elif cmd == 'edit':
-            filepath = os.path.expanduser(params)
-            if os.path.isfile(filepath):
-                return commandfactory(cmd, mode=mode, path=filepath)
-        else:
-            return None
+        return None
