@@ -242,6 +242,13 @@ DEFAULTS = {
     'bufferlist-maps': {
         'd': 'closefocussed',
         'enter': 'openfocussed',
+    },
+    'command-aliases': {
+        'clo': 'close',
+        'bn': 'bnext',
+        'bp': 'bprevious',
+        'ls': 'bufferlist',
+        'quit': 'exit',
     }
 }
 
@@ -256,12 +263,20 @@ class CustomConfigParser(SafeConfigParser):
             self.add_section(sec)
 
     def get(self, section, option, fallback=None, *args, **kwargs):
-        if self.has_option(section, option):
+        if SafeConfigParser.has_option(self, section, option):
             return SafeConfigParser.get(self, section, option, *args, **kwargs)
         elif section in self.defaults:
             if option in self.defaults[section]:
                 return self.defaults[section][option]
         return fallback
+
+    def has_option(self, section, option, *args, **kwargs):
+        if SafeConfigParser.has_option(self, section, option):
+            return True
+        elif section in self.defaults:
+            if option in self.defaults[section]:
+                return True
+        return False
 
     def getstringlist(self, section, option, **kwargs):
         value = self.get(section, option, **kwargs)
@@ -273,7 +288,7 @@ class CustomConfigParser(SafeConfigParser):
 
         SafeConfigParser.readfp(self, codecs.open(file, "r", "utf8"))
         if self.has_option('general', 'hooksfile'):
-            hf = os.path.expanduser(config.get('general', 'hooksfile'))
+            hf = os.path.expanduser(self.get('general', 'hooksfile'))
             if hf is not None:
                 try:
                     config.hooks = imp.load_source('hooks', hf)

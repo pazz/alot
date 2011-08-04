@@ -724,14 +724,6 @@ class TaglistSelectCommand(Command):
         ui.apply_command(cmd)
 
 
-aliases = {'clo': 'close',
-           'bn': 'bnext',
-           'bp': 'bprevious',
-           'bcf': 'buffer close focussed',
-           'ls': 'bufferlist',
-           'quit': 'exit',
-}
-
 COMMANDS = {
     'search': {
         'refine': (RefineCommand, {}),
@@ -814,8 +806,8 @@ def interpret_commandline(cmdline, mode):
         params = ''
 
     # unfold aliases
-    if cmd in aliases:
-        cmd = aliases[cmd]
+    if settings.config.has_option('command-aliases', cmd):
+        cmd = settings.config.get('command-aliases', cmd)
 
     # allow to shellescape without a space after '!'
     if cmd.startswith('!'):

@@ -46,6 +46,10 @@ sent_mailbox = maildir:///home/john/mail/gmail/Sent  # we accept mbox,maildir,mh
 # possible modi are: envelope, search, thread, bufferlist, taglist
 t = toggletag todo
 
+
+[command-aliases]
+quit = exit
+
 [normal-theme]
 bufferlist_focus_bg = dark gray
 bufferlist_focus_fg = white
