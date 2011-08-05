@@ -830,7 +830,7 @@ def interpret_commandline(cmdline, mode):
 
     # allow to shellescape without a space after '!'
     if cmd.startswith('!'):
-        params = cmd[1:] + params
+        params = cmd[1:] +' ' + params
         cmd = 'shellescape'
 
     # check if this command makes sense in current mode
