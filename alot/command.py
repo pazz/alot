@@ -303,6 +303,8 @@ class ToggleThreadTagCommand(Command):
     def apply(self, ui):
         if not self.thread:
             self.thread = ui.current_buffer.get_selected_thread()
+        if not self.thread:
+            return
         try:
             if self.tag in self.thread.get_tags():
                 self.thread.remove_tags([self.tag])
