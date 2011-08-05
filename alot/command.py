@@ -42,7 +42,7 @@ from message import encode_header
 
 class Command:
     """base class for commands"""
-    def __init__(self, prehook=None, posthook=None, **ignored):
+    def __init__(self, prehook=None, posthook=None):
         self.prehook = prehook
         self.posthook = posthook
         self.undoable = False
@@ -100,6 +100,7 @@ class SearchCommand(Command):
 
 
 class PromptCommand(Command):
+    """starts commandprompt"""
     def __init__(self, startstring=u'', **kwargs):
         self.startstring = startstring
         Command.__init__(self, **kwargs)
@@ -116,9 +117,7 @@ class RefreshCommand(Command):
 
 
 class ExternalCommand(Command):
-    """
-    calls external command
-    """
+    """calls external command"""
     def __init__(self, commandstring, spawn=False, refocus=True,
                  in_thread=False, on_success=None, **kwargs):
         """
@@ -126,6 +125,8 @@ class ExternalCommand(Command):
         :type commandstring: str
         :param spawn: run command in a new terminal
         :type spawn: boolean
+        :param in_thread: run asynchronously, don't block alot
+        :type in_thread: boolean
         :param refocus: refocus calling buffer after cmd termination
         :type refocus: boolean
         :param on_success: code to execute after command successfully exited
@@ -185,9 +186,7 @@ class EditCommand(ExternalCommand):
 
 
 class PythonShellCommand(Command):
-    """
-    opens an interactive shell for introspection
-    """
+    """opens an interactive shell for introspection"""
     def apply(self, ui):
         ui.mainloop.screen.stop()
         code.interact(local=locals())
@@ -195,11 +194,12 @@ class PythonShellCommand(Command):
 
 
 class BufferCloseCommand(Command):
-    """
-    close a buffer
-    @param buffer the selected buffer
-    """
+    """close a buffer"""
     def __init__(self, buffer=None, focussed=False, **kwargs):
+        """
+        :param buffer: the selected buffer
+        :type buffer: `alot.buffer.Buffer`
+        """
         self.buffer = buffer
         self.focussed = focussed
         Command.__init__(self, **kwargs)
@@ -214,11 +214,12 @@ class BufferCloseCommand(Command):
 
 
 class BufferFocusCommand(Command):
-    """
-    focus a buffer
-    @param buffer the selected buffer
-    """
+    """focus a buffer"""
     def __init__(self, buffer=None, offset=0, **kwargs):
+        """
+        :param buffer: the buffer to focus
+        :type buffer: `alot.buffer.Buffer`
+        """
         self.buffer = buffer
         self.offset = offset
         Command.__init__(self, **kwargs)
@@ -235,9 +236,7 @@ class BufferFocusCommand(Command):
 
 
 class OpenBufferlistCommand(Command):
-    """
-    open a bufferlist
-    """
+    """open a bufferlist buffer"""
     def __init__(self, filtfun=None, **kwargs):
         self.filtfun = filtfun
         Command.__init__(self, **kwargs)
@@ -251,9 +250,7 @@ class OpenBufferlistCommand(Command):
 
 
 class TagListCommand(Command):
-    """
-    open a taglist
-    """
+    """open a taglisat buffer"""
     def __init__(self, filtfun=None, **kwargs):
         self.filtfun = filtfun
         Command.__init__(self, **kwargs)
@@ -266,17 +263,8 @@ class TagListCommand(Command):
         ui.buffer_focus(buf)
 
 
-class CommandPromptCommand(Command):
-    """
-    """
-    def apply(self, ui):
-        ui.commandprompt()
-
-
 class FlushCommand(Command):
-    """
-    Flushes writes to the index. Retries until committed
-    """
+    """Flushes writes to the index. Retries until committed"""
     def apply(self, ui):
         try:
             ui.dbman.flush()
@@ -292,8 +280,7 @@ class FlushCommand(Command):
 
 
 class ToggleThreadTagCommand(Command):
-    """
-    """
+    """toggles tag in given or currently selected thread"""
     def __init__(self, tag, thread=None, **kwargs):
         assert tag
         self.thread = thread
@@ -338,6 +325,7 @@ class ToggleThreadTagCommand(Command):
 
 
 class ComposeCommand(Command):
+    """compose a new email and open an envelope for it"""
     def __init__(self, mail=None, **kwargs):
         if not mail:
             self.mail = MIMEMultipart()
@@ -384,7 +372,6 @@ class ComposeCommand(Command):
 # SEARCH
 class RetagPromptCommand(Command):
     """start a commandprompt to retag selected threads' tags"""
-
     def apply(self, ui):
         thread = ui.current_buffer.get_selected_thread()
         initial_tagstring = ','.join(thread.get_tags())
@@ -393,7 +380,6 @@ class RetagPromptCommand(Command):
 
 class RetagCommand(Command):
     """tag selected thread"""
-
     def __init__(self, tagsstring=u'', **kwargs):
         self.tagsstring = tagsstring
         Command.__init__(self, **kwargs)
@@ -420,7 +406,6 @@ class RetagCommand(Command):
 
 class RefineCommand(Command):
     """refine the query of the currently open searchbuffer"""
-
     def __init__(self, query=None, **kwargs):
         self.querystring = query
         Command.__init__(self, **kwargs)
@@ -437,7 +422,6 @@ class RefineCommand(Command):
 
 class RefinePromptCommand(Command):
     """prompt to change current search buffers query"""
-
     def apply(self, ui):
         sbuffer = ui.current_buffer
         oldquery = sbuffer.querystring
@@ -446,17 +430,26 @@ class RefinePromptCommand(Command):
 
 # THREAD
 class ReplyCommand(Command):
-    def __init__(self, groupreply=False, **kwargs):
+    """format reply for currently selected message and open envelope for it"""
+    def __init__(self, message=None, groupreply=False, **kwargs):
+        """
+        :param message: the original message to reply to
+        :type message: `alot.message.Message`
+        :param groupreply: copy other recipients from Bcc/Cc/To to the reply
+        :type groupreply: boolean
+        """
+        self.message = message
         self.groupreply = groupreply
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        msg = ui.current_buffer.get_selected_message()
-        mail = msg.get_email()
+        if not self.message:
+            self.message = ui.current_buffer.get_selected_message()
+        mail = self.message.get_email()
         # set body text
-        mailcontent = '\nOn %s, %s wrote:\n' % (msg.get_datestring(),
-                msg.get_author()[0])
-        for line in msg.accumulate_body().splitlines():
+        mailcontent = '\nOn %s, %s wrote:\n' % (self.message.get_datestring(),
+                self.message.get_author()[0])
+        for line in self.message.accumulate_body().splitlines():
             mailcontent += '>' + line + '\n'
 
         Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
@@ -510,7 +503,7 @@ class ReplyCommand(Command):
 
         # set In-Reply-To header
         del(reply['In-Reply-To'])
-        reply['In-Reply-To'] = '<%s>' % msg.get_message_id()
+        reply['In-Reply-To'] = '<%s>' % self.message.get_message_id()
 
         # set References header
         old_references = mail['References']
@@ -519,10 +512,10 @@ class ReplyCommand(Command):
             references = old_references[-8:]
             if len(old_references) > 8:
                 references = old_references[:1] + references
-            references.append('<%s>' % msg.get_message_id())
+            references.append('<%s>' % self.message.get_message_id())
             reply['References'] = ' '.join(references)
         else:
-            reply['References'] = '<%s>' % msg.get_message_id()
+            reply['References'] = '<%s>' % self.message.get_message_id()
 
         ui.apply_command(ComposeCommand(mail=reply))
 
@@ -535,21 +528,29 @@ class ReplyCommand(Command):
 
 
 class ForwardCommand(Command):
-    def __init__(self, inline=False, **kwargs):
+    def __init__(self, message=None, inline=False, **kwargs):
+        """
+        :param message: the original message to reply to
+        :type message: `alot.message.Message`
+        :param groupreply: copy other recipients from Bcc/Cc/To to the reply
+        :type groupreply: boolean
+        """
+        self.message = message
         self.inline = inline
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        msg = ui.current_buffer.get_selected_message()
-        mail = msg.get_email()
+        if not self.message:
+            self.message = ui.current_buffer.get_selected_message()
+        mail = self.message.get_email()
 
         reply = MIMEMultipart()
         Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
         if self.inline:  # inline mode
             # set body text
-            author = msg.get_author()[0]
+            author = self.message.get_author()[0]
             mailcontent = '\nForwarded message from %s:\n' % author
-            for line in msg.accumulate_body().splitlines():
+            for line in self.message.accumulate_body().splitlines():
                 mailcontent += '>' + line + '\n'
 
             bodypart = MIMEText(mailcontent.encode('utf-8'), 'plain', 'UTF-8')
@@ -585,14 +586,6 @@ class ForwardCommand(Command):
         ui.apply_command(ComposeCommand(mail=reply))
 
 
-class BounceMailCommand(Command):
-    def apply(self, ui):
-        msg = ui.current_buffer.get_selected_message()
-        mail = msg.get_email()
-        del(mail['To'])
-        ui.apply_command(ComposeCommand(mail=mail))
-
-
 class FoldMessagesCommand(Command):
     def __init__(self, all=False, visible=True, **kwargs):
         self.all = all
@@ -618,6 +611,7 @@ class FoldMessagesCommand(Command):
 
 ### ENVELOPE
 class EnvelopeOpenCommand(Command):
+    """open a new envelope buffer"""
     def __init__(self, mail=None, **kwargs):
         self.mail = mail
         Command.__init__(self, **kwargs)
@@ -769,7 +763,6 @@ COMMANDS = {
         'reply': (ReplyCommand, {}),
         'groupreply': (ReplyCommand, {'groupreply': True}),
         'forward': (ForwardCommand, {}),
-        'bounce': (BounceMailCommand, {}),
         'fold': (FoldMessagesCommand, {'visible': True}),
         'unfold': (FoldMessagesCommand, {'visible': False}),
     },
@@ -778,7 +771,6 @@ COMMANDS = {
         'bprevious': (BufferFocusCommand, {'offset': -1}),
         'bufferlist': (OpenBufferlistCommand, {}),
         'close': (BufferCloseCommand, {}),
-        'commandprompt': (CommandPromptCommand, {}),
         'compose': (ComposeCommand, {}),
         'edit': (EditCommand, {}),
         'exit': (ExitCommand, {}),
