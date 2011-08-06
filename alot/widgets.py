@@ -442,11 +442,11 @@ class MessageBodyWidget(urwid.AttrMap):
         bodytxt = message.extract_body(msg)
         urwid.AttrMap.__init__(self, urwid.Text(bodytxt), 'message_body')
 
-    def selectable(self):
-        return True
-
-    def keypress(self, size, key):
-        return key
+#    def selectable(self):
+#        return True
+#
+#    def keypress(self, size, key):
+#        return key
 
 
 class AttachmentWidget(urwid.WidgetWrap):

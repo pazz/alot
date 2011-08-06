@@ -33,6 +33,7 @@ class MainWidget(urwid.Frame):
         self.ui = ui
 
     def keypress(self, size, key):
+        self.ui.logger.debug('got key: %s' % key)
         cmdline = config.get_mapping(self.ui.mode, key)
         if cmdline:
             cmd = interpret_commandline(cmdline, self.ui.mode)
