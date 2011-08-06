@@ -32,6 +32,7 @@ from email.header import Header
 import buffer
 import settings
 import widgets
+import completion
 from db import DatabaseROError
 from db import DatabaseLockedError
 from completion import ContactsCompleter
@@ -615,6 +616,46 @@ class FoldMessagesCommand(Command):
                 widget.fold(visible=False)
 
 
+class SaveAttachmentCommand(Command):
+    def __init__(self, all=False, path=None, **kwargs):
+        Command.__init__(self, **kwargs)
+        self.all = all
+        self.path = path
+
+    def apply(self, ui):
+        pcomplete = completion.PathCompleter()
+        if self.all:
+            msg = ui.current_buffer.get_selected_message()
+            if not self.path:
+                self.path = ui.prompt(prefix='save attachments to:', text =
+                                      os.path.join('~', ''),
+                                      completer=pcomplete)
+            if self.path:
+                self.path = os.path.expanduser(self.path)
+                if os.path.isdir(self.path):
+                    for a in msg.get_attachments():
+                        dest = a.save(self.path)
+                        ui.notify('saved attachment as: %s' % dest)
+                else:
+                    ui.notify('not a directory: %s' % self.path)
+            else:
+                ui.notify('canceled')
+        else:  # save focussed attachment
+            focus = ui.get_deep_focus()
+            if isinstance(focus, widgets.AttachmentWidget):
+                attachment = focus.get_attachment()
+                filename = attachment.get_filename()
+                if not self.path:
+                    self.path = ui.prompt(prefix='save attachment as:',
+                                          text=os.path.join('~', filename),
+                                          completer=pcomplete)
+                if self.path:
+                    attachment.save(os.path.expanduser(self.path))
+                    ui.notify('saved attachment as: %s' % self.path)
+                else:
+                    ui.notify('canceled')
+
+
 class OpenAttachmentCommand(Command):
     """displays an attachment according to mailcap"""
     def __init__(self, attachment, **kwargs):
@@ -623,15 +664,14 @@ class OpenAttachmentCommand(Command):
 
     def apply(self, ui):
         logging.info('open attachment')
-        lines = []
         path = self.attachment.save(tempfile.gettempdir())
         mimetype = self.attachment.get_content_type()
         handler = settings.get_mime_handler(mimetype)
         if handler:
             if '%s' in handler:
-                cmd = handler % path
+                cmd = handler % path.replace(' ', '\ ')
             else:
-                cmd = '%s %s' % (handler, path)
+                cmd = '%s %s' % (handler, path.replace(' ', '\ '))
             def afterwards():
                 os.remove(path)
             ui.apply_command(ExternalCommand(cmd, on_success=afterwards,
@@ -808,6 +848,7 @@ COMMANDS = {
         'fold': (FoldMessagesCommand, {'visible': False}),
         'unfold': (FoldMessagesCommand, {'visible': True}),
         'select': (ThreadSelectCommand, {}),
+        'save': (SaveAttachmentCommand, {}),
     },
     'global': {
         'bnext': (BufferFocusCommand, {'offset': 1}),
@@ -894,9 +935,20 @@ def interpret_commandline(cmdline, mode):
     elif cmd == 'toggletag':
         return commandfactory(cmd, mode=mode, tag=params)
     elif cmd == 'fold':
-        return commandfactory(cmd, mode=mode, all=(params=='all'))
+        return commandfactory(cmd, mode=mode, all=(params=='--all'))
     elif cmd == 'unfold':
-        return commandfactory(cmd, mode=mode, all=(params=='all'))
+        return commandfactory(cmd, mode=mode, all=(params=='--all'))
+    elif cmd == 'save':
+        args = params.split(' ')
+        allset = False
+        pathset = None
+        if args:
+            if args[0] == '--all':
+                allset = True
+                pathset = ' '.join(args[1:])
+            else:
+                pathset = params
+        return commandfactory(cmd, mode=mode, all=allset, path=pathset)
     elif cmd == 'edit':
         filepath = os.path.expanduser(params)
         if os.path.isfile(filepath):
