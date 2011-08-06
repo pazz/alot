@@ -134,7 +134,7 @@ class CommandLineCompleter(Completer):
                 return self._tagscompleter.complete(params)
             if cmd == 'toggletag':
                 return self._tagscompleter.complete(params, last=True)
-            if cmd == 'to':
+            if cmd in ['to', 'compose']:
                 return self._contactscompleter.complete(params)
             if cmd == 'edit':
                 return self._pathcompleter.complete(params)

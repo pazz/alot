@@ -919,7 +919,10 @@ def interpret_commandline(cmdline, mode):
     if cmd == 'search':
         return commandfactory(cmd, mode=mode, query=params)
     elif cmd == 'compose':
-        return commandfactory(cmd, mode=mode, headers={'To': params})
+        h ={}
+        if params:
+            h = {'To': params}
+        return commandfactory(cmd, mode=mode, headers=h)
     elif cmd == 'prompt':
         return commandfactory(cmd, mode=mode, startstring=params)
     elif cmd == 'refine':
