@@ -334,7 +334,6 @@ class MessageWidget(urwid.WidgetWrap):
             self.displayed_list.remove(bw)
         else:
             self.displayed_list.append(bw)
-        self.sumw.toggle_folded()
         self.rebuild()
 
     #TODO: toggle header/body should call this..
@@ -372,25 +371,17 @@ class MessageWidget(urwid.WidgetWrap):
 class MessageSummaryWidget(urwid.WidgetWrap):
     """a one line summary of a message"""
 
-    def __init__(self, message, folded=True):
+    def __init__(self, message):
         """
         :param message: the message to summarize
         :type message: alot.db.Message
         """
         self.message = message
-        self.folded = folded
         sumstr = self.__str__()
         urwid.WidgetWrap.__init__(self, urwid.Text(sumstr))
 
     def __str__(self):
-        prefix = "-  "
-        if self.folded:
-            prefix = '+  '
-        return u"%s%s" % (prefix, unicode(self.message))
-
-    def toggle_folded(self):
-        self.folded = not self.folded
-        self._w = urwid.Text(self.__str__())
+        return u"%s" % (unicode(self.message))
 
     def selectable(self):
         return True
