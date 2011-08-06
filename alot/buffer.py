@@ -228,6 +228,9 @@ class ThreadBuffer(Buffer):
     def get_message_widgets(self):
         return self.body.body.contents
 
+    def get_focus(self):
+        return self.body.get_focus()
+
 
 class TagListBuffer(Buffer):
     def __init__(self, ui, alltags=[], filtfun=None):

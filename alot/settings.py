@@ -231,6 +231,7 @@ DEFAULTS = {
         'r': 'reply',
         'R': 'unfold all',
         'M': 'fold all',
+        'enter': 'select',
     },
     'taglist-maps': {
         'enter': 'select',

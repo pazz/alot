@@ -27,6 +27,19 @@ from command import interpret_commandline
 from widgets import CompleteEdit
 from completion import CommandLineCompleter
 
+class MainWidget(urwid.Frame):
+    def __init__(self, ui, *args, **kwargs):
+        urwid.Frame.__init__(self, urwid.SolidFill(' '), *args, **kwargs)
+        self.ui = ui
+
+    def keypress(self, size, key):
+        cmdline = config.get_mapping(self.ui.mode, key)
+        if cmdline:
+            cmd = interpret_commandline(cmdline, self.ui.mode)
+            if cmd:
+                self.ui.apply_command(cmd)
+        else:
+            urwid.Frame.keypress(self, size, key)
 
 class UI:
     buffers = []
@@ -41,7 +54,7 @@ class UI:
         if not colourmode:
             colourmode = config.getint('general', 'colourmode')
         self.logger.info('setup gui in %d colours' % colourmode)
-        self.mainframe = urwid.Frame(urwid.SolidFill(' '))
+        self.mainframe = MainWidget(self)
         for l in config.get_palette():
             log.info(l)
         self.mainloop = urwid.MainLoop(self.mainframe,
@@ -58,6 +71,9 @@ class UI:
         cmd = commandfactory('search', query=initialquery)
         self.apply_command(cmd)
         self.mainloop.run()
+
+    def keypress(self, key):
+        self.logger.debug('unhandeled input: %s' % key)
 
     def shutdown(self):
         """
@@ -254,19 +270,6 @@ class UI:
             footerleft,
             ('fixed', len(righttxt), footerright)])
         return urwid.AttrMap(columns, 'footer')
-
-    def keypress(self, key):
-        cmdline = config.get_mapping(self.mode, key)
-        if cmdline:
-            self.logger.debug("handle %s in %s mode" % (key, self.mode))
-            if cmdline.startswith('prompt'):
-                self.commandprompt(cmdline[7:])
-            else:
-                cmd = interpret_commandline(cmdline, self.mode)
-                if cmd:
-                    self.apply_command(cmd)
-        else:
-            self.logger.debug('unhandeled input: %s' % input)
 
     def apply_command(self, cmd):
         if cmd:

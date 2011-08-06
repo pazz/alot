@@ -184,6 +184,7 @@ class CompleteEdit(urwid.Edit):
 
 class MessageWidget(urwid.WidgetWrap):
     """flow widget that displays a single message"""
+    #TODO: subclass urwid.Pile
     def __init__(self, message, even=False, unfold_body=False,
                  unfold_attachments=False,
                  unfold_header=False, depth=0, bars_at=[]):
@@ -224,6 +225,9 @@ class MessageWidget(urwid.WidgetWrap):
         self.pile = urwid.Pile(self.displayed_list)
         urwid.WidgetWrap.__init__(self, self.pile)
 
+    def get_focus(self):
+        return self.pile.get_focus()
+
     #TODO re-read tags
     def rebuild(self):
         self.pile = urwid.Pile(self.displayed_list)
@@ -231,11 +235,7 @@ class MessageWidget(urwid.WidgetWrap):
 
     def _build_sum_line(self):
         """creates/returns the widget that displays the summary line."""
-        self.sumw = MessageSummaryWidget(self.message)
-        if self.even:
-            attr = 'messagesummary_even'
-        else:
-            attr = 'messagesummary_odd'
+        self.sumw = MessageSummaryWidget(self.message, even=self.even)
         cols = []
         bc = list()  # box_columns
         if self.depth > 1:
@@ -248,8 +248,7 @@ class MessageWidget(urwid.WidgetWrap):
                 arrowhead = u'\u2514\u25b6'
             cols.append(('fixed', 2, urwid.Text(arrowhead)))
         cols.append(self.sumw)
-        line = urwid.AttrMap(urwid.Columns(cols, box_columns=bc),
-                             attr, 'messagesummary_focus')
+        line = urwid.Columns(cols, box_columns=bc)
         return line
 
     def _get_header_widget(self):
@@ -371,14 +370,20 @@ class MessageWidget(urwid.WidgetWrap):
 class MessageSummaryWidget(urwid.WidgetWrap):
     """a one line summary of a message"""
 
-    def __init__(self, message):
+    def __init__(self, message, even=True):
         """
         :param message: the message to summarize
         :type message: alot.db.Message
         """
         self.message = message
+        self.even = even
+        if even:
+            attr = 'messagesummary_even'
+        else:
+            attr = 'messagesummary_odd'
         sumstr = self.__str__()
-        urwid.WidgetWrap.__init__(self, urwid.Text(sumstr))
+        txt = urwid.urwid.AttrMap(urwid.Text(sumstr), attr, 'messagesummary_focus')
+        urwid.WidgetWrap.__init__(self, txt)
 
     def __str__(self):
         return u"%s" % (unicode(self.message))
@@ -474,6 +479,9 @@ class AttachmentWidget(urwid.WidgetWrap):
         widget = urwid.AttrMap(urwid.Text(unicode(attachment)),
                                'message_attachment')
         urwid.WidgetWrap.__init__(self, widget)
+
+    def get_attachment(self):
+        return self.attachment
 
     def selectable(self):
         return True

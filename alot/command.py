@@ -31,6 +31,7 @@ from email.header import Header
 
 import buffer
 import settings
+import widgets
 from db import DatabaseROError
 from db import DatabaseLockedError
 from completion import ContactsCompleter
@@ -602,11 +603,31 @@ class FoldMessagesCommand(Command):
         for widget in lines:
             # in case the thread is yet unread, remove this tag
             msg = widget.get_message()
-            if 'unread' in msg.get_tags():
+            if 'unread' in msg.get_tags() and self.visible:
                 msg.remove_tags(['unread'])
                 ui.apply_command(FlushCommand())
                 widget.rebuild()
             widget.fold(self.visible)
+
+
+class OpenAttachmentCommand(Command):
+    def __init__(self, attachment, **kwargs):
+        Command.__init__(self, **kwargs)
+        self.attachment = attachment
+
+    def apply(self, ui):
+        lines = []
+#save to tmpfile
+#find out mimehandler
+#eternalcommand
+
+class ThreadSelectCommand(Command):
+    def apply(self, ui):
+        focus = ui.get_deep_focus()
+        if isinstance(focus, widgets.MessageSummaryWidget):
+            ui.apply_command(FoldMessagesCommand())
+        elif isinstance(focus, widgets.AttachmentWidget):
+            ui.apply_command(OpenAttachmentCommand(focus.get_attachment()))
 
 
 ### ENVELOPE
@@ -765,6 +786,7 @@ COMMANDS = {
         'forward': (ForwardCommand, {}),
         'fold': (FoldMessagesCommand, {'visible': True}),
         'unfold': (FoldMessagesCommand, {'visible': False}),
+        'select': (ThreadSelectCommand, {}),
     },
     'global': {
         'bnext': (BufferFocusCommand, {'offset': 1}),
@@ -811,7 +833,7 @@ def interpret_commandline(cmdline, mode):
     if not cmdline:
         return None
     logging.debug('mode:%s got commandline "%s"' % (mode, cmdline))
-    args = cmdline.strip().split(' ', 1)
+    args = cmdline.split(' ', 1)
     cmd = args[0]
     if args[1:]:
         params = args[1]
@@ -862,7 +884,7 @@ def interpret_commandline(cmdline, mode):
     elif not params and cmd in ['exit', 'flush', 'pyshell', 'taglist', 'close',
                                 'compose', 'openfocussed', 'closefocussed',
                                 'bnext', 'bprevious', 'retag', 'refresh',
-                                'bufferlist', 'refineprompt', 'reply',
+                                'bufferlist', 'refineprompt', 'reply', 'open',
                                 'forward', 'groupreply', 'bounce', 'openthread',
                                 'send', 'reedit', 'select', 'retagprompt']:
         return commandfactory(cmd, mode=mode)
