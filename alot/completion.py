@@ -138,6 +138,8 @@ class CommandLineCompleter(Completer):
                 return self._contactscompleter.complete(params)
             if cmd == 'edit':
                 return self._pathcompleter.complete(params)
+            if cmd == 'save':
+                return self._pathcompleter.complete(params)
             else:
                 return []
 
@@ -152,7 +154,8 @@ class PathCompleter(Completer):
         dir = os.path.expanduser(os.path.dirname(prefix))
         fileprefix = os.path.basename(prefix)
         res = []
-        for f in os.listdir(dir):
-            if f.startswith(fileprefix):
-                res.append(os.path.join(prep, f[len(fileprefix):]))
+        if os.path.isdir(dir):
+            for f in os.listdir(dir):
+                if f.startswith(fileprefix):
+                    res.append(os.path.join(prep, f[len(fileprefix):]))
         return res
