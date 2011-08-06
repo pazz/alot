@@ -277,3 +277,4 @@ class Attachment:
         FILE = open(path, "w")
         FILE.write(self.part.get_payload(decode=True))
         FILE.close()
+        return path

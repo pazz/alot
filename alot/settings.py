@@ -52,6 +52,8 @@ DEFAULTS = {
         'header_fg': 'white',
         'message_attachment_bg': 'dark gray',
         'message_attachment_fg': 'light gray',
+        'message_attachment_focussed_bg': 'light green',
+        'message_attachment_focussed_fg': 'light gray',
         'message_body_bg': 'default',
         'message_body_fg': 'light gray',
         'message_header_bg': 'dark gray',
@@ -110,6 +112,7 @@ DEFAULTS = {
         'footer': 'standout',
         'header': 'standout',
         'message_attachment': 'default',
+        'message_attachment_focussed': 'underline',
         'message_body': 'default',
         'message_header': 'default',
         'message_header_key': 'default',
@@ -149,6 +152,8 @@ DEFAULTS = {
         'header_fg': 'white',
         'message_attachment_bg': 'dark gray',
         'message_attachment_fg': 'light gray',
+        'message_attachment_focussed_bg': 'light green',
+        'message_attachment_focussed_fg': 'light gray',
         'message_body_bg': 'default',
         'message_body_fg': 'light gray',
         'message_header_bg': 'dark gray',
@@ -394,7 +399,7 @@ hooks = HookManager()
 mailcaps = mailcap.getcaps()
 
 
-def get_mime_handler(mime_type, key, interactive=True):
+def get_mime_handler(mime_type, key='view', interactive=True):
     if interactive:
         mc_tuple = mailcap.findmatch(mailcaps,
                                      mime_type,

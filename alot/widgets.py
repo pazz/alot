@@ -434,12 +434,6 @@ class MessageHeaderWidget(urwid.AttrMap):
                 headerlines.append(line)
         return headerlines
 
-    def selectable(self):
-        return True
-
-    def keypress(self, size, key):
-        return key
-
 
 class MessageBodyWidget(urwid.AttrMap):
     """displays printable parts of an email"""
@@ -459,7 +453,8 @@ class AttachmentWidget(urwid.WidgetWrap):
     def __init__(self, attachment):
         self.attachment = attachment
         widget = urwid.AttrMap(urwid.Text(unicode(attachment)),
-                               'message_attachment')
+                               'message_attachment',
+                               'message_attachment_focussed')
         urwid.WidgetWrap.__init__(self, widget)
 
     def get_attachment(self):

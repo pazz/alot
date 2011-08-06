@@ -50,7 +50,6 @@ class Sender:
 
 
 class SendmailSender(Sender):
-
     def __init__(self, sendmail_cmd, mailbox=None):
         self.cmd = sendmail_cmd
         self.mailbox = mailbox

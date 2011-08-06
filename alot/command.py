@@ -327,13 +327,15 @@ class ToggleThreadTagCommand(Command):
 
 class ComposeCommand(Command):
     """compose a new email and open an envelope for it"""
-    def __init__(self, mail=None, **kwargs):
+    def __init__(self, mail=None, headers={}, **kwargs):
+        Command.__init__(self, **kwargs)
         if not mail:
             self.mail = MIMEMultipart()
             self.mail.attach(MIMEText('', 'plain', 'UTF-8'))
         else:
             self.mail = mail
-        Command.__init__(self, **kwargs)
+        for key,value in headers.items():
+            self.mail[key] = encode_header(key, value)
 
     def apply(self, ui):
         # TODO: fill with default header (per account)
@@ -614,15 +616,28 @@ class FoldMessagesCommand(Command):
 
 
 class OpenAttachmentCommand(Command):
+    """displays an attachment according to mailcap"""
     def __init__(self, attachment, **kwargs):
         Command.__init__(self, **kwargs)
         self.attachment = attachment
 
     def apply(self, ui):
+        logging.info('open attachment')
         lines = []
-#save to tmpfile
-#find out mimehandler
-#eternalcommand
+        path = self.attachment.save(tempfile.gettempdir())
+        mimetype = self.attachment.get_content_type()
+        handler = settings.get_mime_handler(mimetype)
+        if handler:
+            if '%s' in handler:
+                cmd = handler % path
+            else:
+                cmd = '%s %s' % (handler, path)
+            def afterwards():
+                os.remove(path)
+            ui.apply_command(ExternalCommand(cmd, on_success=afterwards,
+                                             in_thread=True))
+        else:
+            ui.notify('unknown mime type')
 
 class ThreadSelectCommand(Command):
     def apply(self, ui):
@@ -630,7 +645,10 @@ class ThreadSelectCommand(Command):
         if isinstance(focus, widgets.MessageSummaryWidget):
             ui.apply_command(FoldMessagesCommand())
         elif isinstance(focus, widgets.AttachmentWidget):
+            logging.info('open attachment')
             ui.apply_command(OpenAttachmentCommand(focus.get_attachment()))
+        else:
+            logging.info('unknown widget %s' % focus)
 
 
 ### ENVELOPE
