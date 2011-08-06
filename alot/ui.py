@@ -160,6 +160,18 @@ class UI:
                 self.current_buffer.rebuild()
             self.update()
 
+    def get_deep_focus(self, startfrom=None):
+        """returns focussed leaf in the widget tree"""
+        if not startfrom:
+            startfrom = self.current_buffer
+        if 'get_focus' in dir(startfrom):
+            focus = startfrom.get_focus()
+            if isinstance(focus, tuple):
+                focus = focus[0]
+            if isinstance(focus, urwid.Widget):
+                return self.get_deep_focus(startfrom=focus)
+        return startfrom
+
     def get_buffers_of_type(self, t):
         return filter(lambda x: isinstance(x, t), self.buffers)
 
