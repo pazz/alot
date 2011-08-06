@@ -185,18 +185,14 @@ class CompleteEdit(urwid.Edit):
 class MessageWidget(urwid.WidgetWrap):
     """flow widget that displays a single message"""
     #TODO: subclass urwid.Pile
-    def __init__(self, message, even=False, unfold_body=False,
-                 unfold_attachments=False,
-                 unfold_header=False, depth=0, bars_at=[]):
+    def __init__(self, message, even=False, folded=True, depth=0, bars_at=[]):
         """
         :param message: the message to display
         :type message: alot.db.Message
         :param even: use messagesummary_even theme for summary
         :type even: boolean
-        :param unfold_body: initially show message body
-        :type unfold_body: boolean
-        :param unfold_header: initially show message headers
-        :type unfold_header: boolean
+        :param unfolded: unfold message initially
+        :type unfolded: boolean
         :param depth: number of characters to shift content to the right
         :type depth: int
         :param bars_at: list of positions smaller than depth where horizontal
@@ -207,6 +203,7 @@ class MessageWidget(urwid.WidgetWrap):
         self.depth = depth
         self.bars_at = bars_at
         self.even = even
+        self.folded = folded
 
         # build the summary line, header and body will be created on demand
         self.sumline = self._build_sum_line()
@@ -214,16 +211,12 @@ class MessageWidget(urwid.WidgetWrap):
         self.attachmentw = None
         self.bodyw = None
         self.displayed_list = [self.sumline]
-        if unfold_header:
-            self.displayed_list.append(self.get_header_widget())
-        if unfold_body:
-            self.displayed_list.append(self.get_body_widget())
-
-        if unfold_attachments:
-            self.displayed_list.append(self.get_attachment_widget())
         #build pile and call super constructor
         self.pile = urwid.Pile(self.displayed_list)
         urwid.WidgetWrap.__init__(self, self.pile)
+        #unfold if requested
+        if not folded:
+            self.fold(visible=True)
 
     def get_focus(self):
         return self.pile.get_focus()
@@ -302,43 +295,32 @@ class MessageWidget(urwid.WidgetWrap):
         spacer = urwid.Columns(prefixchars, box_columns=range(length))
         return ('fixed', length, spacer)
 
-    def toggle_attachments(self):
-        """toggles if message headers are shown"""
-        hw = self._get_attachment_widget()
-        if hw:
-            if hw in self.displayed_list:
-                self.displayed_list.remove(hw)
-            else:
-                self.displayed_list.insert(1, hw)
-            self.rebuild()
-
-    def toggle_header(self):
-        """toggles if message headers are shown"""
-        hw = self._get_header_widget()
-        if hw in self.displayed_list:
-            self.displayed_list.remove(hw)
-        else:
-            self.displayed_list.insert(1, hw)
-        self.rebuild()
-
     def toggle_full_header(self):
         """toggles if message headers are shown"""
         hw = self._get_header_widget().widget_list[-1]
         hw.toggle_all()
 
-    def toggle_body(self):
-        """toggles if message body is shown"""
-        bw = self._get_body_widget()
-        if bw in self.displayed_list:
-            self.displayed_list.remove(bw)
-        else:
-            self.displayed_list.append(bw)
-        self.rebuild()
-
     #TODO: toggle header/body should call this..
-    def fold(self, visible=True):
-        self.toggle_body()
-        self.toggle_header()
+    def fold(self, visible=False):
+        hw = self._get_header_widget()
+        aw = self._get_attachment_widget()
+        bw = self._get_body_widget()
+        if visible:
+            if self.folded:  # only if not already unfolded
+                self.displayed_list.append(hw)
+                if aw:
+                    self.displayed_list.append(aw)
+                self.displayed_list.append(bw)
+                self.folded = False
+                self.rebuild()
+        else:
+            if not self.folded:
+                self.displayed_list.remove(hw)
+                if aw:
+                    self.displayed_list.remove(aw)
+                self.displayed_list.remove(bw)
+                self.folded = True
+                self.rebuild()
 
     def selectable(self):
         return True

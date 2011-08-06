@@ -588,7 +588,7 @@ class ForwardCommand(Command):
 
 
 class FoldMessagesCommand(Command):
-    def __init__(self, all=False, visible=True, **kwargs):
+    def __init__(self, all=False, visible=None, **kwargs):
         self.all = all
         self.visible = visible
         Command.__init__(self, **kwargs)
@@ -603,11 +603,14 @@ class FoldMessagesCommand(Command):
         for widget in lines:
             # in case the thread is yet unread, remove this tag
             msg = widget.get_message()
-            if 'unread' in msg.get_tags() and self.visible:
-                msg.remove_tags(['unread'])
-                ui.apply_command(FlushCommand())
-                widget.rebuild()
-            widget.fold(self.visible)
+            if self.visible or (self.visible == None and widget.folded):
+                if 'unread' in msg.get_tags() and self.visible:
+                    msg.remove_tags(['unread'])
+                    ui.apply_command(FlushCommand())
+                    widget.rebuild()
+                widget.fold(visible=True)
+            else:
+                widget.fold(visible=False)
 
 
 class OpenAttachmentCommand(Command):
@@ -784,8 +787,8 @@ COMMANDS = {
         'reply': (ReplyCommand, {}),
         'groupreply': (ReplyCommand, {'groupreply': True}),
         'forward': (ForwardCommand, {}),
-        'fold': (FoldMessagesCommand, {'visible': True}),
-        'unfold': (FoldMessagesCommand, {'visible': False}),
+        'fold': (FoldMessagesCommand, {'visible': False}),
+        'unfold': (FoldMessagesCommand, {'visible': True}),
         'select': (ThreadSelectCommand, {}),
     },
     'global': {

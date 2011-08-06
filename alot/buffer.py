@@ -209,9 +209,8 @@ class ThreadBuffer(Buffer):
             childcount[p] -= 1
 
             bars.append(childcount[p] > 0)
+#TODO unfold unread
             mwidget = widgets.MessageWidget(m, even=(num % 2 == 0),
-                                            unfold_header=False,  # settings
-                                            unfold_body=False,
                                             depth=depth,
                                             bars_at=bars)
             msglines.append(mwidget)
