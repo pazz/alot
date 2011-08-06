@@ -607,7 +607,7 @@ class FoldMessagesCommand(Command):
             # in case the thread is yet unread, remove this tag
             msg = widget.get_message()
             if self.visible or (self.visible == None and widget.folded):
-                if 'unread' in msg.get_tags() and self.visible:
+                if 'unread' in msg.get_tags():
                     msg.remove_tags(['unread'])
                     ui.apply_command(FlushCommand())
                     widget.rebuild()
