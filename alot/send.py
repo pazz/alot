@@ -56,7 +56,8 @@ class SendmailSender(Sender):
 
     def send_mail(self, mail):
         mail['Date'] = email.utils.formatdate(time.time(), True)
-        args = shlex.split(self.cmd.encode('ascii'))  # no unicode in shlex on 2.x
+        # no unicode in shlex on 2.x
+        args = shlex.split(self.cmd.encode('ascii'))
         logging.info('args:%s' % args)
         try:
             proc = subprocess.Popen(args, stdin=subprocess.PIPE,
