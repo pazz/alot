@@ -57,6 +57,10 @@ class Command:
 class ExitCommand(Command):
     """shuts the MUA down cleanly"""
     def apply(self, ui):
+        if settings.config.getboolean('general', 'bug_on_exit'):
+            if not ui.choice('realy quit?', choices={'yes':['y','q','enter'],
+                                                     'no':['n']}) == 'yes':
+                return
         ui.shutdown()
 
 

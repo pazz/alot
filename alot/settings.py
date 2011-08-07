@@ -38,6 +38,7 @@ DEFAULTS = {
         'show_statusbar': 'True',
         'flush_retry_timeout': '5',
         'hooksfile': '~/.alot.py',
+        'bug_on_exit': 'False',
     },
     'normal-theme': {
         'bufferlist_focus_bg': 'dark gray',

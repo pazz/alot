@@ -205,6 +205,35 @@ class UI:
             self.notificationbar = None
         self.update()
 
+    def choice(self, message, choices={'yes':['y','q'], 'no':['n']}):
+        def build_line(msg, prio):
+            cols = urwid.Columns([urwid.Text(msg)])
+            return urwid.AttrMap(cols, 'notify_' + prio)
+
+        line = ', '.join(['(%s):%s' % ('/'.join(v), k) for k, v in choices.items()])
+        msgs = [build_line(message + ' ' + line, 'normal')]
+
+        footer = self.mainframe.get_footer()
+        if not self.notificationbar:
+            self.notificationbar = urwid.Pile(msgs)
+        else:
+            newpile = self.notificationbar.widget_list + msgs
+            self.notificationbar = urwid.Pile(newpile)
+        self.update()
+
+        self.mainloop.draw_screen()
+        while True:
+            result = self.mainloop.screen.get_input()
+            self.logger.info('got: %s ' % result)
+            if not result:
+                self.clear_notify(msgs)
+                self.mainloop.screen.get_input()
+                return None
+            for k, v in choices.items():
+                if result[0] in v:
+                    self.clear_notify(msgs)
+                    return k
+
     def notify(self, message, priority='normal', timeout=0, block=True):
         def build_line(msg, prio):
             cols = urwid.Columns([urwid.Text(msg)])
