@@ -862,7 +862,7 @@ COMMANDS = {
         'bnext': (BufferFocusCommand, {'offset': 1}),
         'bprevious': (BufferFocusCommand, {'offset': -1}),
         'bufferlist': (OpenBufferlistCommand, {}),
-        'close': (BufferCloseCommand, {}),
+        'bclose': (BufferCloseCommand, {}),
         'compose': (ComposeCommand, {}),
         'edit': (EditCommand, {}),
         'exit': (ExitCommand, {}),
@@ -967,7 +967,7 @@ def interpret_commandline(cmdline, mode):
         if os.path.isfile(filepath):
             return commandfactory(cmd, mode=mode, path=filepath)
 
-    elif not params and cmd in ['exit', 'flush', 'pyshell', 'taglist', 'close',
+    elif not params and cmd in ['exit', 'flush', 'pyshell', 'taglist', 'bclose',
                                 'compose', 'openfocussed', 'closefocussed',
                                 'bnext', 'bprevious', 'retag', 'refresh',
                                 'bufferlist', 'refineprompt', 'reply', 'open',

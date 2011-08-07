@@ -210,7 +210,7 @@ DEFAULTS = {
         '@': 'refresh',
         'I': 'search tag:inbox AND NOT tag:killed',
         'U': 'search tag:unread',
-        'x': 'close',
+        'x': 'bclose',
         'tab': 'bnext',
         'shift tab': 'bprevious',
         '\\': 'prompt search ',
