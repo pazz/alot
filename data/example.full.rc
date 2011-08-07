@@ -1,54 +1,79 @@
 [general]
-
-# number of colours your terminal supports
-colourmode = 16
-
-# where to look up hooks
-hooksfile = hooks.py
-
-# editor command
-editor_cmd = /usr/bin/vim -f -c 'set filetype=mail'
-
-# set terminal for asynchronous editing
-spawn_editor = False
-terminal_cmd = x-terminal-emulator -e
-
-# max length of authors line in thread widgets
-authors_maxlength = 30
-
-# headers that get displayed by default
-displayed_headers = From,To,Cc,Bcc,Subject
-
 # ask for subject when compose
 ask_subject = True
-
-# time in secs to display status messages
-notify_timeout = 1  # how long (in seconds) notifications are shown
-
-# display statusline?
-show_statusbar = True
-
+# max length of authors line in thread widgets
+authors_maxlength = 30
+bug_on_exit = False
+# number of colours your terminal supports
+colourmode = 16
+# headers that get displayed by default
+displayed_headers = From,To,Cc,Bcc,Subject
+# editor command
+editor_cmd = /usr/bin/vim -f -c 'set filetype=mail' +
 # timeout in secs after a failed attempt to flush is repeated
 flush_retry_timeout = 5
+# where to look up hooks
+hooksfile = ~/.alot.py
+# time in secs to display status messages
+notify_timeout = 2
+# display statusline?
+show_statusbar = True
+spawn_editor = False
+# set terminal for asynchronous editing
+terminal_cmd = x-terminal-emulator -e
 
+[global-maps]
+$ = flush
+: = prompt
+; = bufferlist
+@ = refresh
+I = search tag:inbox AND NOT tag:killed
+L = taglist
+U = search tag:unread
+\ = prompt search 
+m = compose
+q = exit
+s = shell
+shift tab = bprevious
+tab = bnext
+x = close
 
-[account gmail]
-realname = john doe
-address = john.doe@gmail.com
-gpg_key = 123ABC
-signature = /home/john/.signature
-sender_type = sendmail
-sendmail_command = msmtp --account=gmail -t
-sent_mailbox = maildir:///home/john/mail/gmail/Sent  # we accept mbox,maildir,mh,babyl,mmdf here
+[bufferlist-maps]
+d = closefocussed
+enter = openfocussed
 
 [search-maps]
-# sections named X-maps define keyboard maps for mode X
-# possible modi are: envelope, search, thread, bufferlist, taglist
-t = toggletag todo
+& = toggletag killed
+a = toggletag inbox
+enter = openthread
+l = retagprompt
+| = refineprompt
 
+[envelope-maps]
+enter = reedit
+s = prompt subject
+t = prompt to
+y = send
+
+[taglist-maps]
+enter = select
+
+[thread-maps]
+C = fold --all
+E = unfold --all
+a = toggletag inbox
+enter = select
+f = forward
+g = groupreply
+r = reply
 
 [command-aliases]
+bn = bnext
+bp = bprevious
+clo = close
+ls = bufferlist
 quit = exit
+
 
 [normal-theme]
 bufferlist_focus_bg = dark gray
@@ -69,22 +94,26 @@ message_body_bg = default
 message_body_fg = light gray
 message_header_bg = dark gray
 message_header_fg = white
-message_header_key_fg = white
 message_header_key_bg = dark gray
-message_header_value_fg = light gray
+message_header_key_fg = white
 message_header_value_bg = dark gray
+message_header_value_fg = light gray
 messagesummary_even_bg = light blue
 messagesummary_even_fg = white
-messagesummary_focus_bg = dark cyae
+messagesummary_focus_bg = dark cyan
 messagesummary_focus_fg = white
 messagesummary_odd_bg = dark blue
 messagesummary_odd_fg = white
+notify_error_bg = dark red
+notify_error_fg = white
+notify_normal_bg = default
+notify_normal_fg = default
 prompt_bg = black
 prompt_fg = light gray
-tag_focus_bg = dark cyan
-tag_focus_fg = white
 tag_bg = black
 tag_fg = brown
+tag_focus_bg = dark cyan
+tag_focus_fg = white
 threadline_authors_bg = default
 threadline_authors_fg = dark green
 threadline_authors_focus_bg = dark cyan
@@ -94,7 +123,7 @@ threadline_content_bg = default
 threadline_content_fg = dark gray
 threadline_date_bg = default
 threadline_date_fg = light gray
-threadline_date_focus_bg = dark gray
+threadline_date_focus_bg = dark cyan
 threadline_date_focus_fg = black
 threadline_fg = default
 threadline_focus_bg = dark cyan
@@ -106,43 +135,11 @@ threadline_mailcount_focus_fg = black
 threadline_subject_bg = default
 threadline_subject_fg = light gray
 threadline_subject_focus_bg = dark cyan
-threadline_subject_focus_fg = light cyan
+threadline_subject_focus_fg = black
 threadline_tags_bg = default
 threadline_tags_fg = brown
 threadline_tags_focus_bg = dark cyan
 threadline_tags_focus_fg = yellow,bold
-
-[mono-theme]
-bufferlist_focus = standout
-bufferlist_results_even = default
-bufferlist_results_odd = default
-footer = bold
-header = bold
-message_attachment = default
-message_attachment_focussed = underline
-message_body = default
-message_header = default
-message_header_key = white
-message_header_value = light gray
-messagesummary_even = standout
-messagesummary_focus = standout
-messagesummary_odd = standout
-prompt = standout
-tag_focus = standout
-tag = default
-threadline = default
-threadline_authors = default
-threadline_authors_focus = standout
-threadline_content = default
-threadline_date = default
-threadline_date_focus = standout
-threadline_focus = standout
-threadline_mailcount = default
-threadline_mailcount_focus = standout
-threadline_subject = default
-threadline_subject_focus = standout
-threadline_tags = default
-threadline_tags_focus = standout
 
 [highcolour-theme]
 bufferlist_focus_bg = g38
@@ -163,22 +160,26 @@ message_body_bg = default
 message_body_fg = light gray
 message_header_bg = dark gray
 message_header_fg = white
-message_header_key_fg = white
 message_header_key_bg = dark gray
-message_header_value_fg = light gray
+message_header_key_fg = white
 message_header_value_bg = dark gray
+message_header_value_fg = light gray
 messagesummary_even_bg = #068
 messagesummary_even_fg = white
 messagesummary_focus_bg = g58
 messagesummary_focus_fg = #ff8
 messagesummary_odd_bg = #006
 messagesummary_odd_fg = white
+notify_error_bg = dark red
+notify_error_fg = white
+notify_normal_bg = default
+notify_normal_fg = default
 prompt_bg = default
 prompt_fg = light gray
-tag_focus_bg = dark cyan
-tag_focus_fg = white
-tag_bg = black
+tag_bg = default
 tag_fg = brown
+tag_focus_bg = g58
+tag_focus_fg = #ffa
 threadline_authors_bg = default
 threadline_authors_fg = #6d6
 threadline_authors_focus_bg = g58
@@ -203,6 +204,39 @@ threadline_subject_focus_bg = g58
 threadline_subject_focus_fg = g89
 threadline_tags_bg = default
 threadline_tags_fg = #a86
-threadline_tags_focus_bg = g11
+threadline_tags_focus_bg = g58
 threadline_tags_focus_fg = #ff8
 
+[mono-theme]
+bufferlist_focus = standout
+bufferlist_results_even = default
+bufferlist_results_odd = default
+footer = standout
+header = standout
+message_attachment = default
+message_attachment_focussed = underline
+message_body = default
+message_header = default
+message_header_key = default
+message_header_value = default
+messagesummary_even = 
+messagesummary_focus = standout
+messagesummary_odd = 
+notify_error = standout
+notify_normal = default
+prompt = 
+tag = default
+tag_focus = standout
+threadline = default
+threadline_authors = default,underline
+threadline_authors_focus = standout
+threadline_content = default
+threadline_date = default
+threadline_date_focus = standout
+threadline_focus = standout
+threadline_mailcount = default
+threadline_mailcount_focus = standout
+threadline_subject = default
+threadline_subject_focus = standout
+threadline_tags = bold
+threadline_tags_focus = standout
