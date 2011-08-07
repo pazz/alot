@@ -534,10 +534,12 @@ class ReplyCommand(Command):
 class ForwardCommand(Command):
     def __init__(self, message=None, inline=False, **kwargs):
         """
-        :param message: the original message to reply to
+        :param message: the original message to forward. If None, the currently
+                        selected one is used
         :type message: `alot.message.Message`
-        :param groupreply: copy other recipients from Bcc/Cc/To to the reply
-        :type groupreply: boolean
+        :param inline: Copy originals body text instead of attaching the whole
+                       mail
+        :type inline: boolean
         """
         self.message = message
         self.inline = inline
@@ -923,6 +925,8 @@ def interpret_commandline(cmdline, mode):
         if params:
             h = {'To': params}
         return commandfactory(cmd, mode=mode, headers=h)
+    elif cmd == 'forward':
+        return commandfactory(cmd, mode=mode, inline=(params=='--inline'))
     elif cmd == 'prompt':
         return commandfactory(cmd, mode=mode, startstring=params)
     elif cmd == 'refine':
@@ -961,7 +965,7 @@ def interpret_commandline(cmdline, mode):
                                 'compose', 'openfocussed', 'closefocussed',
                                 'bnext', 'bprevious', 'retag', 'refresh',
                                 'bufferlist', 'refineprompt', 'reply', 'open',
-                                'forward', 'groupreply', 'bounce', 'openthread',
+                                'groupreply', 'bounce', 'openthread',
                                 'send', 'reedit', 'select', 'retagprompt']:
         return commandfactory(cmd, mode=mode)
     else:
