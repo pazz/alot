@@ -192,6 +192,9 @@ class UI:
         return startfrom
 
     def get_buffers_of_type(self, t):
+        """returns currently open buffers for a given subclass of
+        `alot.buffer.Buffer`
+        """
         return filter(lambda x: isinstance(x, t), self.buffers)
 
     def clear_notify(self, messages):
@@ -206,6 +209,12 @@ class UI:
         self.update()
 
     def choice(self, message, choices={'yes':['y','q'], 'no':['n']}):
+        """prompt user to make a choice
+        :param message: string to display before list of choices
+        :type message: unicode
+        :param choices: possible choices, given as
+        :type choices: dict of 'choice'->list of keys
+        """
         def build_line(msg, prio):
             cols = urwid.Columns([urwid.Text(msg)])
             return urwid.AttrMap(cols, 'notify_' + prio)
