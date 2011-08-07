@@ -218,7 +218,6 @@ DEFAULTS = {
         ';': 'bufferlist',
         ':': 'prompt',
         'L': 'taglist',
-        's': 'shell',
         '$': 'flush',
         '@': 'refresh',
         'm': 'compose',
