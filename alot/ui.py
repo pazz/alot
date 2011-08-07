@@ -27,6 +27,7 @@ from command import interpret_commandline
 from widgets import CompleteEdit
 from completion import CommandLineCompleter
 
+
 class MainWidget(urwid.Frame):
     def __init__(self, ui, *args, **kwargs):
         urwid.Frame.__init__(self, urwid.SolidFill(' '), *args, **kwargs)
@@ -41,6 +42,7 @@ class MainWidget(urwid.Frame):
                 self.ui.apply_command(cmd)
         else:
             urwid.Frame.keypress(self, size, key)
+
 
 class UI:
     buffers = []
@@ -205,7 +207,7 @@ class UI:
 
     def notify(self, message, priority='normal', timeout=0, block=True):
         def build_line(msg, prio):
-            cols =urwid.Columns([urwid.Text(msg)])
+            cols = urwid.Columns([urwid.Text(msg)])
             return urwid.AttrMap(cols, 'notify_' + prio)
         msgs = [build_line(message, priority)]
         if timeout == -1 and block:

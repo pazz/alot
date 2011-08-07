@@ -335,7 +335,7 @@ class ComposeCommand(Command):
             self.mail.attach(MIMEText('', 'plain', 'UTF-8'))
         else:
             self.mail = mail
-        for key,value in headers.items():
+        for key, value in headers.items():
             self.mail[key] = encode_header(key, value)
 
     def apply(self, ui):
@@ -629,8 +629,8 @@ class SaveAttachmentCommand(Command):
         if self.all:
             msg = ui.current_buffer.get_selected_message()
             if not self.path:
-                self.path = ui.prompt(prefix='save attachments to:', text =
-                                      os.path.join('~', ''),
+                self.path = ui.prompt(prefix='save attachments to:',
+                                      text=os.path.join('~', ''),
                                       completer=pcomplete)
             if self.path:
                 self.path = os.path.expanduser(self.path)
@@ -674,12 +674,14 @@ class OpenAttachmentCommand(Command):
                 cmd = handler % path.replace(' ', '\ ')
             else:
                 cmd = '%s %s' % (handler, path.replace(' ', '\ '))
+
             def afterwards():
                 os.remove(path)
             ui.apply_command(ExternalCommand(cmd, on_success=afterwards,
                                              in_thread=True))
         else:
             ui.notify('unknown mime type')
+
 
 class ThreadSelectCommand(Command):
     def apply(self, ui):
@@ -910,7 +912,7 @@ def interpret_commandline(cmdline, mode):
 
     # allow to shellescape without a space after '!'
     if cmd.startswith('!'):
-        params = cmd[1:] +' ' + params
+        params = cmd[1:] + ' ' + params
         cmd = 'shellescape'
 
     # check if this command makes sense in current mode
@@ -921,12 +923,12 @@ def interpret_commandline(cmdline, mode):
     if cmd == 'search':
         return commandfactory(cmd, mode=mode, query=params)
     elif cmd == 'compose':
-        h ={}
+        h = {}
         if params:
             h = {'To': params}
         return commandfactory(cmd, mode=mode, headers=h)
     elif cmd == 'forward':
-        return commandfactory(cmd, mode=mode, inline=(params=='--inline'))
+        return commandfactory(cmd, mode=mode, inline=(params == '--inline'))
     elif cmd == 'prompt':
         return commandfactory(cmd, mode=mode, startstring=params)
     elif cmd == 'refine':
@@ -942,9 +944,9 @@ def interpret_commandline(cmdline, mode):
     elif cmd == 'toggletag':
         return commandfactory(cmd, mode=mode, tag=params)
     elif cmd == 'fold':
-        return commandfactory(cmd, mode=mode, all=(params=='--all'))
+        return commandfactory(cmd, mode=mode, all=(params == '--all'))
     elif cmd == 'unfold':
-        return commandfactory(cmd, mode=mode, all=(params=='--all'))
+        return commandfactory(cmd, mode=mode, all=(params == '--all'))
     elif cmd == 'save':
         args = params.split(' ')
         allset = False
