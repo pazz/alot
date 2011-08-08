@@ -31,19 +31,21 @@ I = search tag:inbox AND NOT tag:killed
 L = taglist
 U = search tag:unread
 \ = prompt search 
+d = bclose
 m = compose
+o = prompt search 
 q = exit
 s = shell
 shift tab = bprevious
 tab = bnext
-x = close
 
 [bufferlist-maps]
-d = closefocussed
+x = closefocussed
 enter = openfocussed
 
 [search-maps]
 & = toggletag killed
+O = refineprompt
 a = toggletag inbox
 enter = openthread
 l = retagprompt
