@@ -1,0 +1,101 @@
+USAGE
+=====
+In all views, arrows, page-up/down, j,k and space can be used to move the focus.
+escape cancels prompts. You can hit ":" at any time and type in commands
+to the prompt. Any commandline can be mapped by using the "MODE-maps" sections
+in the config file. These are the default keymaps:
+
+[global-maps]
+$ = flush
+: = prompt
+; = bufferlist
+@ = refresh
+I = search tag:inbox AND NOT tag:killed
+L = taglist
+U = search tag:unread
+\ = prompt search 
+m = compose
+q = exit
+s = shell
+shift tab = bprevious
+tab = bnext
+x = bclose
+
+[bufferlist-maps]
+d = closefocussed
+enter = openfocussed
+
+[search-maps]
+& = toggletag killed
+a = toggletag inbox
+enter = openthread
+l = retagprompt
+| = refineprompt
+
+[envelope-maps]
+enter = reedit
+s = prompt subject
+t = prompt to
+y = send
+
+[taglist-maps]
+enter = select
+
+[thread-maps]
+C = fold --all
+E = unfold --all
+a = toggletag inbox
+enter = select
+f = forward
+g = groupreply
+r = reply
+
+
+CONFIG
+=====
+Just like offlineimap or notmuch itself, alot reads a config file in the "INI" syntax:
+It consists of some sections whose names are given in square brackets, followed by
+key-value pairs that use "=" or ":" as separator, ';' and '#' are comment-prefixes.
+
+The default location for the config file is ~/.alot.rc.
+You can find a complete example config in data/example.full.rc.
+Here is a key for the interpreted sections:
+
+[general] : global settings: set your editor etc
+[account X] : defines the account X: realname, email address, sendmail
+[X-maps] : defines keymaps for mode X. possible modes are:
+           envelope, search, thread, taglist, bufferlist and global.
+           global-maps are valid in all modes.
+[tag translate] : defines a map from tagnames to strings that is used when
+                  displaying tags. utf-8 symbols welcome.
+[X-theme] : define colour palette for colour mode. X is one of
+            mono, normal and highcolour, corresponding to colourmodes 1, 16 and 256.
+
+All configs are optional, but if you want to send mails you need to
+specify at least one account section.
+A sample gmail section:
+
+  [account gmail]
+  realname = Patrick Totzke
+  address = patricktotzke[at]gmail.com
+  gpg_key = D7D6C5AA
+  sender_type = sendmail
+  sendmail_command = msmtp --account=gmail -t
+
+I use this for my uni-account:
+
+  [account uoe]
+  realname = Patrick Totzke
+  address = ...
+  sender_type = sendmail
+  sendmail_command = msmtp --account=uoe -t
+  sent_mailbox = maildir:///home/pazz/mail/uoe/Sent
+
+Caution: Sending mails is only supportet via sendmail for now. You need to set 
+sender_type to "sendmail" and specify your sendmail_command.
+
+send_mailbox specifies the mailbox where you want outgoing mails to be stored
+after successfully sending them. You can use mbox, maildir, mh, babyl and mmdf
+in the protocol part of the url.
+
+

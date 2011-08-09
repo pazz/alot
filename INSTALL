@@ -1,0 +1,51 @@
+INSTALL
+=======
+
+Alot depends on development versions of notmuch and urwid.
+
+1. make sure you have urwid from git:
+
+> git clone http://github.com/wardi/urwid
+> cd urwid
+> sudo python setup.py install
+
+2. install notmuch and python bindings from git:
+
+> git clone git://notmuchmail.org/git/notmuch
+> cd notmuch
+> ./configure
+> make
+> sudo make install
+> cd bindings/python
+> sudo python setup.py install
+
+3. make sure you have argparse installed:
+If you are running debian and are still on python 2.6,
+easy_install argparse
+
+
+4. get alot and install it from git:
+
+> git clone git://github.com/pazz/notmuch-gui alot
+> cd alot
+> sudo python setup.py install
+
+Thats it, now "alot" should be in your path.
+
+Alot tries to be as unobtrusive as possible, with one exception:
+It forces you to use UTF-8 encoding whereever it can:
+All text parts and headers of outgoing emails are converted to utf-8,
+notmuch tagstrings and config files are interpreted as utf-8.
+I believe this makes the world a better place.
+
+All configs are optional, but if you want to send mails you need to
+specify at least one account section:
+
+  [account uoe]
+  realname = Your Name 
+  address = your@address
+  sender_type = sendmail
+  sendmail_command = msmtp
+  sent_mailbox = maildir:///home/you/mail/Sent
+
+See USAGE for default keymaps and how to do fancy customization.
