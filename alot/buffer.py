@@ -17,6 +17,8 @@ along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
 Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 import urwid
+from notmuch.globals import NotmuchError
+
 
 import widgets
 import settings
@@ -144,7 +146,12 @@ class SearchBuffer(Buffer):
             self.isinitialized = True
 
         self.result_count = self.dbman.count_messages(self.querystring)
-        self.tids = self.dbman.search_thread_ids(self.querystring)
+        try:
+            self.tids = self.dbman.search_thread_ids(self.querystring)
+        except NotmuchError:
+            self.ui.notify('malformed query string: %s' % self.querystring,
+                           'error')
+            self.tids = []
         self.threadlist = IteratorWalker(iter(self.tids),
                                          widgets.ThreadlineWidget,
                                          dbman=self.dbman)

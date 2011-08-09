@@ -142,7 +142,10 @@ class DBManager:
         """returns the thread with given id as alot.db.Thread object"""
         query = self.query('thread:' + tid)
         #TODO raise exceptions here in 0<case msgcount>1
-        return Thread(self, query.search_threads().next())
+        try:
+            return Thread(self, query.search_threads().next())
+        except:
+            return None
 
     def get_all_tags(self):
         """returns all tags as list of strings"""
