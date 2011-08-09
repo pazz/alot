@@ -81,17 +81,19 @@ class OpenThreadCommand(Command):
 
 class SearchCommand(Command):
     """open a new search buffer"""
-    def __init__(self, query, force_new=False, **kwargs):
+    def __init__(self, query, **kwargs):
         """
-        @param query initial querystring
-        @param force_new True forces a new buffer
+        :param query: initial querystring
         """
         self.query = query
-        self.force_new = force_new
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        if not self.force_new:
+        if self.query:
+            if self.query == '*':
+                s = 'really search for all threads? This takes a while..'
+                if not ui.choice(s) == 'yes':
+                    return
             open_searches = ui.get_buffers_of_type(buffer.SearchBuffer)
             to_be_focused = None
             for sb in open_searches:
@@ -102,7 +104,7 @@ class SearchCommand(Command):
             else:
                 ui.buffer_open(buffer.SearchBuffer(ui, self.query))
         else:
-            ui.buffer_open(buffer.SearchBuffer(ui, self.query))
+            ui.notify('empty query string')
 
 
 class PromptCommand(Command):
@@ -419,13 +421,20 @@ class RefineCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        sbuffer = ui.current_buffer
-        oldquery = sbuffer.querystring
-        if self.querystring not in [None, oldquery]:
-            sbuffer.querystring = self.querystring
+        if self.querystring:
+            if self.querystring == '*':
+                s = 'really search for all threads? This takes a while..'
+                if not ui.choice(s) == 'yes':
+                    return
             sbuffer = ui.current_buffer
-            sbuffer.rebuild()
-            ui.update()
+            oldquery = sbuffer.querystring
+            if self.querystring not in [None, oldquery]:
+                sbuffer.querystring = self.querystring
+                sbuffer = ui.current_buffer
+                sbuffer.rebuild()
+                ui.update()
+        else:
+            ui.notify('empty query string')
 
 
 class RefinePromptCommand(Command):

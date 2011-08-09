@@ -208,7 +208,7 @@ class UI:
             self.notificationbar = None
         self.update()
 
-    def choice(self, message, choices={'yes':['y','q'], 'no':['n']}):
+    def choice(self, message, choices={'yes':['y'], 'no':['n']}):
         """prompt user to make a choice
         :param message: string to display before list of choices
         :type message: unicode
