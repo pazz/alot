@@ -365,8 +365,7 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         else:
             attr = 'messagesummary_odd'
         sumstr = self.__str__()
-        txt = urwid.urwid.AttrMap(urwid.Text(sumstr), attr,
-                                  'messagesummary_focus')
+        txt = urwid.AttrMap(urwid.Text(sumstr), attr, 'messagesummary_focus')
         urwid.WidgetWrap.__init__(self, txt)
 
     def __str__(self):
