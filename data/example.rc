@@ -1,5 +1,5 @@
 [general]
-colourmode = 16  ; number of colours your terminal supports
+colourmode = 256  ; number of colours your terminal supports
 hooksfile = hooks.py
 editor_cmd = /usr/bin/vim -f -c 'set filetype=mail'
 pager_cmd = /usr/bin/view -f -c 'set filetype=mail'

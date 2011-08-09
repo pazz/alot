@@ -5,7 +5,7 @@ ask_subject = True
 authors_maxlength = 30
 bug_on_exit = False
 # number of colours your terminal supports
-colourmode = 16
+colourmode = 256
 # headers that get displayed by default
 displayed_headers = From,To,Cc,Bcc,Subject
 # editor command

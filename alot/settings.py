@@ -27,7 +27,7 @@ from account import Account
 
 DEFAULTS = {
     'general': {
-        'colourmode': '16',
+        'colourmode': '256',
         'editor_cmd': "/usr/bin/vim -f -c 'set filetype=mail' +",
         'terminal_cmd': 'x-terminal-emulator -e',
         'spawn_editor': 'False',
