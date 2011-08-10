@@ -19,6 +19,7 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 import email
 import urwid
 from urwid.command_map import command_map
+import logging
 
 from settings import config
 from helper import shorten
@@ -298,7 +299,7 @@ class MessageWidget(urwid.WidgetWrap):
 
     def toggle_full_header(self):
         """toggles if message headers are shown"""
-        hw = self._get_header_widget().widget_list[-1]
+        hw = self._get_header_widget().get_focus()
         hw.toggle_all()
 
     #TODO: toggle header/body should call this..
@@ -395,6 +396,7 @@ class MessageHeaderWidget(urwid.AttrMap):
         else:
             self.display_all = True
             headerlines = self._build_lines(None)
+        logging.info('all : %s' % headerlines)
         self._w = urwid.Pile(headerlines)
 
     def _build_lines(self, displayed):

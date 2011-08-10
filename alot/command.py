@@ -631,6 +631,12 @@ class FoldMessagesCommand(Command):
                 widget.fold(visible=False)
 
 
+class ToggleHeaderCommand(Command):
+    def apply(self, ui):
+        msgw = ui.current_buffer.get_selection()
+        msgw.toggle_full_header()
+
+
 class SaveAttachmentCommand(Command):
     def __init__(self, all=False, path=None, **kwargs):
         Command.__init__(self, **kwargs)
@@ -866,6 +872,7 @@ COMMANDS = {
         'unfold': (FoldMessagesCommand, {'visible': True}),
         'select': (ThreadSelectCommand, {}),
         'save': (SaveAttachmentCommand, {}),
+        'toggleheaders': (ToggleHeaderCommand, {}),
     },
     'global': {
         'bnext': (BufferFocusCommand, {'offset': 1}),
@@ -981,7 +988,8 @@ def interpret_commandline(cmdline, mode):
                                 'bnext', 'bprevious', 'retag', 'refresh',
                                 'bufferlist', 'refineprompt', 'reply', 'open',
                                 'groupreply', 'bounce', 'openthread',
-                                'send', 'reedit', 'select', 'retagprompt']:
+                                'toggleheaders', 'send', 'reedit', 'select',
+                                'retagprompt']:
         return commandfactory(cmd, mode=mode)
     else:
         return None

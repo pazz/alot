@@ -232,13 +232,14 @@ DEFAULTS = {
         '|': 'refineprompt',
     },
     'thread-maps': {
-        'a': 'toggletag inbox',
-        'f': 'forward',
-        'g': 'groupreply',
-        'r': 'reply',
         'C': 'fold --all',
         'E': 'unfold --all',
+        'a': 'toggletag inbox',
         'enter': 'select',
+        'f': 'forward',
+        'g': 'groupreply',
+        'h': 'toggleheaders'
+        'r': 'reply',
     },
     'taglist-maps': {
         'enter': 'select',
