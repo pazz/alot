@@ -481,7 +481,7 @@ class ReplyCommand(Command):
         reply['Subject'] = Header(subject.encode('utf-8'), 'UTF-8').encode()
 
         # set From
-        my_addresses = ui.accountman.get_account_addresses()
+        my_addresses = ui.accountman.get_addresses()
         matched_address = ''
         in_to = [a for a in my_addresses if a in mail['To']]
         if in_to:
@@ -588,7 +588,7 @@ class ForwardCommand(Command):
         reply['Subject'] = Header(subject.encode('utf-8'), 'UTF-8').encode()
 
         # set From
-        my_addresses = ui.accountman.get_account_addresses()
+        my_addresses = ui.accountman.get_addresses()
         matched_address = ''
         in_to = [a for a in my_addresses if a in mail['To']]
         if in_to:

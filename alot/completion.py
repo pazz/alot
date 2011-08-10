@@ -90,7 +90,7 @@ class AccountCompleter(Completer):
         self.accountman = accountman
 
     def complete(self, prefix):
-        valids = self.accountman.get_account_addresses()
+        valids = self.accountman.get_main_addresses()
         return [a[len(prefix):] for a in valids if a.startswith(prefix)]
 
 

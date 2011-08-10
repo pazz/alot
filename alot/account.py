@@ -97,5 +97,8 @@ class AccountManager:
             return None
             # log info
 
-    def get_account_addresses(self):
+    def get_main_addresses(self):
         return [a.address for a in self.accounts]
+
+    def get_addresses(self):
+        return self.accountmap.keys()
