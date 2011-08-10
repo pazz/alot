@@ -328,16 +328,7 @@ class MessageWidget(urwid.WidgetWrap):
 
     #TODO: this needs to go in favour of a binding in the buffer!
     def keypress(self, size, key):
-        if key == 'h':
-            self.toggle_header()
-        elif key == 'enter':
-            self.toggle_attachments()
-            self.toggle_header()
-            self.toggle_body()
-        elif key == 'H':
-            self.toggle_full_header()
-        else:
-            return self.pile.keypress(size, key)
+        return key
 
     def get_message(self):
         """get contained message
