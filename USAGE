@@ -15,6 +15,7 @@ L = taglist
 U = search tag:unread
 \ = prompt search 
 m = compose
+o = prompt search 
 q = exit
 s = shell
 shift tab = bprevious
@@ -27,6 +28,7 @@ enter = openfocussed
 
 [search-maps]
 & = toggletag killed
+O = refineprompt
 a = toggletag inbox
 enter = openthread
 l = retagprompt
@@ -48,6 +50,7 @@ a = toggletag inbox
 enter = select
 f = forward
 g = groupreply
+h = toggleheader
 r = reply
 
 
@@ -91,7 +94,7 @@ I use this for my uni-account:
   sendmail_command = msmtp --account=uoe -t
   sent_mailbox = maildir:///home/pazz/mail/uoe/Sent
 
-Caution: Sending mails is only supportet via sendmail for now. You need to set 
+Caution: Sending mails is only supported via sendmail for now. You need to set 
 sender_type to "sendmail" and specify your sendmail_command.
 
 send_mailbox specifies the mailbox where you want outgoing mails to be stored

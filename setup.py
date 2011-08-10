@@ -12,7 +12,6 @@ setup(name = "alot",
       packages = ['alot'],
       scripts = ['bin/alot'],
       license = alot.__copyright__,
-      install_requires = ['notmuch>=0.4',
-                          'urwid']
+      install_requires = ['notmuch', 'argparse' 'urwid'],
 )
 
