@@ -46,11 +46,11 @@ enter = select
 [thread-maps]
 C = fold --all
 E = unfold --all
+H = toggleheader
 a = toggletag inbox
 enter = select
 f = forward
 g = groupreply
-h = toggleheader
 r = reply
 
 

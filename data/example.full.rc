@@ -63,6 +63,7 @@ enter = select
 [thread-maps]
 C = fold --all
 E = unfold --all
+H = toggleheaders
 a = toggletag inbox
 enter = select
 f = forward

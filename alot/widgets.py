@@ -396,7 +396,7 @@ class MessageHeaderWidget(urwid.AttrMap):
             self.display_all = True
             headerlines = self._build_lines(None)
         logging.info('all : %s' % headerlines)
-        self._w = urwid.Pile(headerlines)
+        self.original_widget = urwid.Pile(headerlines)
 
     def _build_lines(self, displayed):
         max_key_len = 1

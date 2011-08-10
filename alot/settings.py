@@ -234,11 +234,11 @@ DEFAULTS = {
     'thread-maps': {
         'C': 'fold --all',
         'E': 'unfold --all',
+        'H': 'toggleheaders',
         'a': 'toggletag inbox',
         'enter': 'select',
         'f': 'forward',
         'g': 'groupreply',
-        'h': 'toggleheaders',
         'r': 'reply',
     },
     'taglist-maps': {
