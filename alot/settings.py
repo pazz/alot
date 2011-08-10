@@ -238,7 +238,7 @@ DEFAULTS = {
         'enter': 'select',
         'f': 'forward',
         'g': 'groupreply',
-        'h': 'toggleheaders'
+        'h': 'toggleheaders',
         'r': 'reply',
     },
     'taglist-maps': {
