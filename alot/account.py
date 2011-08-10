@@ -24,13 +24,11 @@ from send import SendmailSender
 
 
 class Account:
-    def __init__(self, address, realname=None,
-             gpg_key=None,
-             signature=None,
-             sender_type='sendmail',
-             sendmail_command='sendmail',
-             sent_mailbox=None):
+    def __init__(self, address, aliases=None, realname=None, gpg_key=None, signature=None,
+                 sender_type='sendmail', sendmail_command='sendmail',
+                 sent_mailbox=None):
         self.address = address
+        self.aliases = aliases.split(';')
         self.realname = realname
         self.gpg_key = gpg_key
         self.signature = signature
@@ -58,18 +56,20 @@ class Account:
 class AccountManager:
     allowed = ['realname',
                'address',
+               'aliases',
                'gpg_key',
                'signature',
                'sender_type',
                'sendmail_command',
                'sent_mailbox']
     manditory = ['realname', 'address']
-    accounts = {}
+    accountmap = {}
+    accounts = []
+    ordered_addresses = []
 
     def __init__(self, config):
         sections = config.sections()
         accountsections = filter(lambda s: s.startswith('account '), sections)
-        self.ordered_addresses = []
         for s in accountsections:
             options = filter(lambda x: x in self.allowed, config.options(s))
             args = {}
@@ -79,21 +79,23 @@ class AccountManager:
                     self.manditory.remove(o)
             if not self.manditory:
                 newacc = (Account(**args))
-                self.accounts[newacc.address] = newacc
-                self.ordered_addresses.append(newacc.address)
+                self.accountmap[newacc.address] = newacc
+                self.accounts.append(newacc)
+                for alias in newacc.aliases:
+                    self.accountmap[alias] = newacc
             else:
                 pass
                 # log info
 
     def get_accounts(self):
-        return self.accounts.values()
+        return self.accounts
 
     def get_account_by_address(self, address):
-        if address in self.accounts:
-            return self.accounts[address]
+        if address in self.accountmap:
+            return self.accountmap[address]
         else:
             return None
             # log info
 
     def get_account_addresses(self):
-        return self.ordered_addresses
+        return [a.address for a in self.accounts]
