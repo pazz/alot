@@ -329,7 +329,7 @@ class MessageWidget(urwid.WidgetWrap):
 
     #TODO: this needs to go in favour of a binding in the buffer!
     def keypress(self, size, key):
-        return key
+        return self.pile.keypress(size, key)
 
     def get_message(self):
         """get contained message
