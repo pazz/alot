@@ -16,6 +16,7 @@ flush_retry_timeout = 5  # timeout in secs after a failed attempt to flush is re
 [account gmail]
 realname = john doe
 address = john.doe@gmail.com
+aliases = john.doe@googlemail.com;john.d@g.com  # ';' separated list of alias addresses
 gpg_key = 123ABC
 signature = /home/john/.signature
 sender_type = sendmail

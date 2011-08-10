@@ -80,7 +80,8 @@ A sample gmail section:
 
   [account gmail]
   realname = Patrick Totzke
-  address = patricktotzke[at]gmail.com
+  address = patricktotzke@gmail.com
+  aliases = patricktotzke@googlemail.com
   gpg_key = D7D6C5AA
   sender_type = sendmail
   sendmail_command = msmtp --account=gmail -t
@@ -90,6 +91,7 @@ I use this for my uni-account:
   [account uoe]
   realname = Patrick Totzke
   address = ...
+  aliases = foobar@myuni.uk;f.bar@myuni.uk;f.b100@students.myuni.uk
   sender_type = sendmail
   sendmail_command = msmtp --account=uoe -t
   sent_mailbox = maildir:///home/pazz/mail/uoe/Sent
