@@ -325,10 +325,8 @@ class MessageWidget(urwid.WidgetWrap):
                 self.rebuild()
 
     def selectable(self):
-        return self.pile.keypress(size, key)
+        return True
 
-
-    #TODO: this needs to go in favour of a binding in the buffer!
     def keypress(self, size, key):
         return self.pile.keypress(size, key)
 
