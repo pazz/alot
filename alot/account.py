@@ -90,9 +90,19 @@ class AccountManager:
                 # log info
 
     def get_accounts(self):
+        """return known accounts
+
+        :rtype: list of `account.Account`
+        """
         return self.accounts
 
     def get_account_by_address(self, address):
+        """returns account for given email address
+
+        :type address: string
+        :rtype:  `account.Account` or None
+        """
+
         if address in self.accountmap:
             return self.accountmap[address]
         else:
@@ -100,7 +110,9 @@ class AccountManager:
             # log info
 
     def get_main_addresses(self):
+        """returns addresses of known accounts without its aliases"""
         return [a.address for a in self.accounts]
 
     def get_addresses(self):
+        """returns addresses of known accounts including all their aliases"""
         return self.accountmap.keys()

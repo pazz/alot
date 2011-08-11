@@ -210,10 +210,11 @@ class UI:
 
     def choice(self, message, choices={'yes':['y'], 'no':['n']}):
         """prompt user to make a choice
+
         :param message: string to display before list of choices
         :type message: unicode
-        :param choices: possible choices, given as
-        :type choices: dict of 'choice'->list of keys
+        :param choices: dict of possible choices
+        :type choices: str->list of keys
         """
         def build_line(msg, prio):
             cols = urwid.Columns([urwid.Text(msg)])
