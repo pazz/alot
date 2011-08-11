@@ -28,7 +28,9 @@ class Account:
                  sender_type='sendmail', sendmail_command='sendmail',
                  sent_mailbox=None):
         self.address = address
-        self.aliases = aliases.split(';')
+        self.aliases = []
+        if aliases:
+            self.aliases = aliases.split(';')
         self.realname = realname
         self.gpg_key = gpg_key
         self.signature = signature
