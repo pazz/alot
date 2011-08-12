@@ -150,7 +150,7 @@ class DBManager:
     def get_all_tags(self):
         """returns all tags as list of strings"""
         db = Database(path=self.path)
-        return [t.decode(DB_ENC) for t in db.get_all_tags()]
+        return [t for t in db.get_all_tags()]
 
     def query(self, querystring):
         """creates notmuch.Query objects on demand
@@ -182,12 +182,12 @@ class Thread:
             query = self._dbman.query('thread:' + self._id)
             thread = query.search_threads().next()
         self._total_messages = thread.get_total_messages()
-        self._authors = str(thread.get_authors()).decode(DB_ENC)
-        self._subject = str(thread.get_subject()).decode(DB_ENC)
+        self._authors = thread.get_authors()
+        self._subject = thread.get_subject()
         ts = thread.get_oldest_date()
         self._oldest_date = datetime.fromtimestamp(ts)
         self._newest_date = datetime.fromtimestamp(thread.get_newest_date())
-        self._tags = set([t.decode(DB_ENC) for t in thread.get_tags()])
+        self._tags = set([t for t in thread.get_tags()])
         self._messages = {}  # this maps messages to its children
         self._toplevel_messages = []
 
