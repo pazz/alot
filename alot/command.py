@@ -475,7 +475,10 @@ class ReplyCommand(Command):
         reply.attach(bodypart)
 
         # copy subject
-        subject = mail['Subject']
+        if 'Subject' not in mail or mail['Subject'] == None:
+            subject = ''
+        else:
+            subject = mail['Subject']
         if not subject.startswith('Re:'):
             subject = 'Re: ' + subject
         reply['Subject'] = Header(subject.encode('utf-8'), 'UTF-8').encode()
