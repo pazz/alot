@@ -22,6 +22,7 @@ from notmuch.globals import NotmuchError
 
 import widgets
 import settings
+import command
 from walker import IteratorWalker
 from message import decode_header
 
@@ -216,7 +217,6 @@ class ThreadBuffer(Buffer):
             childcount[p] -= 1
 
             bars.append(childcount[p] > 0)
-#TODO unfold unread
             mwidget = widgets.MessageWidget(m, even=(num % 2 == 0),
                                             depth=depth,
                                             bars_at=bars)
@@ -236,6 +236,18 @@ class ThreadBuffer(Buffer):
 
     def get_focus(self):
         return self.body.get_focus()
+
+    def unfold_matching(self, querystring):
+        for mw in self.get_message_widgets():
+            msg = mw.get_message()
+            if msg.matches(querystring):
+                if 'unread' in msg.get_tags():
+                    msg.remove_tags(['unread'])
+                    self.ui.apply_command(command.FlushCommand())
+                mw.fold(visible=True)
+
+    def get_message_widgets(self):
+        return self.body.body.contents
 
 
 class TagListBuffer(Buffer):

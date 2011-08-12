@@ -152,6 +152,10 @@ class Message:
     def accumulate_body(self):
         return extract_body(self.get_email())
 
+    def matches(self, querystring):
+        searchfor = querystring + ' AND id:' + self._id
+        return self._dbman.count_messages(searchfor) > 0
+
 
 def extract_body(mail):
     bodytxt = ''
