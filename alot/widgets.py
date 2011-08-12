@@ -299,10 +299,11 @@ class MessageWidget(urwid.WidgetWrap):
 
     def toggle_full_header(self):
         """toggles if message headers are shown"""
-        hw = self._get_header_widget().get_focus()
-        hw.toggle_all()
+        # caution: this is very ugly, it's supposed to get the headerwidget.
+        col = self._get_header_widget().widet_list
+        hws = [h for h in col if isinstance(h, MessageHeaderWidget)][0]
+        hw[0].toggle_all()
 
-    #TODO: toggle header/body should call this..
     def fold(self, visible=False):
         hw = self._get_header_widget()
         aw = self._get_attachment_widget()
