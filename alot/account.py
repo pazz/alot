@@ -25,8 +25,6 @@ import time
 import email
 from urlparse import urlparse
 
-from send import SendmailSender
-
 
 class Account:
     """
