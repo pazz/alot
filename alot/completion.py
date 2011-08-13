@@ -136,9 +136,7 @@ class CommandLineCompleter(Completer):
                 return self._tagscompleter.complete(params, last=True)
             if cmd in ['to', 'compose']:
                 return self._contactscompleter.complete(params)
-            if cmd == 'edit':
-                return self._pathcompleter.complete(params)
-            if cmd == 'save':
+            if cmd in ['attach', 'edit', 'save']:
                 return self._pathcompleter.complete(params)
             else:
                 return []
@@ -147,15 +145,13 @@ class CommandLineCompleter(Completer):
 class PathCompleter(Completer):
     """completion for paths"""
     def complete(self, prefix):
-        prep = ''
         if not prefix:
-            prefix = '~/'
-            prep = '~/'
+            return ['~/']
         dir = os.path.expanduser(os.path.dirname(prefix))
         fileprefix = os.path.basename(prefix)
         res = []
         if os.path.isdir(dir):
             for f in os.listdir(dir):
                 if f.startswith(fileprefix):
-                    res.append(os.path.join(prep, f[len(fileprefix):]))
+                    res.append(f[len(fileprefix):])
         return res
