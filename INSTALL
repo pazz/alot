@@ -4,11 +4,9 @@ INSTALL
 Alot depends on development versions of notmuch and urwid.
 
 
-1. make sure you have urwid V>= 0.9.9.1
+1. make sure you have urwid V>= 1.0
 -------------------------------------
 
-on debian/ubuntu: aptitude install python-urwid
-or from git:
 > git clone http://github.com/wardi/urwid
 > cd urwid
 > sudo python setup.py install
