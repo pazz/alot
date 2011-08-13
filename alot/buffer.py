@@ -124,7 +124,7 @@ class EnvelopeBuffer(Buffer):
         for part in self.mail.walk():
             if not part.is_multipart():
                 if part.get_content_maintype() != 'text':
-                    lines.append(widgets.AttachmentWidget(part))
+                    lines.append(widgets.AttachmentWidget(part, selectable=False))
         self.attachment_wgt = urwid.Pile(lines)
         displayed_widgets.append(self.attachment_wgt)
 

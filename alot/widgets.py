@@ -28,7 +28,6 @@ import message
 
 
 class ThreadlineWidget(urwid.AttrMap):
-#TODO: receive a thread here. needs change in calling walker
     def __init__(self, tid, dbman):
         self.dbman = dbman
         self.thread = dbman.get_thread(tid)
@@ -144,7 +143,6 @@ class TagWidget(urwid.AttrMap):
 
 
 class CompleteEdit(urwid.Edit):
-    # TODO: defaulttext: visible in darker font, tpe it with tab/enter
     def __init__(self, completer, edit_text=u'', **kwargs):
         self.completer = completer
         if not isinstance(edit_text, unicode):
@@ -186,7 +184,9 @@ class CompleteEdit(urwid.Edit):
 
 class MessageWidget(urwid.WidgetWrap):
     """flow widget that displays a single message"""
-    #TODO: subclass urwid.Pile
+    #TODO: atm this is heavily bend to work nicely with ThreadBuffer to display
+    #a tree structure. A better way would be to keep this widget simple
+    #(subclass urwid.Pile) and use urwids new Tree widgets
     def __init__(self, message, even=False, folded=True, depth=0, bars_at=[]):
         """
         :param message: the message to display
@@ -198,7 +198,7 @@ class MessageWidget(urwid.WidgetWrap):
         :param depth: number of characters to shift content to the right
         :type depth: int
         :param bars_at: list of positions smaller than depth where horizontal
-        ars are used instead of spaces.
+                        ars are used instead of spaces.
         :type bars_at: list(int)
         """
         self.message = message
@@ -436,15 +436,10 @@ class MessageBodyWidget(urwid.AttrMap):
         bodytxt = message.extract_body(msg)
         urwid.AttrMap.__init__(self, urwid.Text(bodytxt), 'message_body')
 
-#    def selectable(self):
-#        return True
-#
-#    def keypress(self, size, key):
-#        return key
-
 
 class AttachmentWidget(urwid.WidgetWrap):
-    def __init__(self, attachment):
+    def __init__(self, attachment, selectable=True):
+        self._selectable = selectable
         self.attachment = attachment
         if not isinstance(attachment, message.Attachment):
             self.attachment = message.Attachment(self.attachment)
@@ -457,7 +452,7 @@ class AttachmentWidget(urwid.WidgetWrap):
         return self.attachment
 
     def selectable(self):
-        return True
+        return self._selectable
 
     def keypress(self, size, key):
         return key
