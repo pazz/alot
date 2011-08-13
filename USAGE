@@ -110,7 +110,7 @@ Hooks
 =====
 
 Before and after every command execution, alot calls this commands pre/post hook:
-Hooks are python callables with arity 3 that live in a module specified by
+Hooks are python callables with arity 4 that live in a module specified by
 hooksfile in the global section of your config. Per default this points to '~/.alot.py'
 For every command X, the callable 'pre_X' will be called before X and 'post_X' afterwards.
 
