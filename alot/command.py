@@ -699,10 +699,10 @@ class OpenAttachmentCommand(Command):
 
     def apply(self, ui):
         logging.info('open attachment')
-        path = self.attachment.save(tempfile.gettempdir())
         mimetype = self.attachment.get_content_type()
         handler = settings.get_mime_handler(mimetype)
         if handler:
+            path = self.attachment.save(tempfile.gettempdir())
             if '%s' in handler:
                 cmd = handler % path.replace(' ', '\ ')
             else:

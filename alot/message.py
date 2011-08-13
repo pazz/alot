@@ -276,9 +276,11 @@ class Attachment:
     def save(self, path):
         """save the attachment to disk. Uses self.get_filename
         in case path is a directory"""
-        if os.path.isdir(path):
+        if self.get_filename() and os.path.isdir(path):
             path = os.path.join(path, self.get_filename())
-        FILE = open(path, "w")
+            FILE = open(path, "w")
+        else:
+            FILE = tempfile.NamedTemporaryFile(delete=False)
         FILE.write(self.part.get_payload(decode=True))
         FILE.close()
-        return path
+        return FILE.name
