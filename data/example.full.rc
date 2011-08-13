@@ -53,6 +53,7 @@ l = retagprompt
 
 [envelope-maps]
 enter = reedit
+a = attach
 s = prompt subject
 t = prompt to
 y = send
