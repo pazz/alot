@@ -66,8 +66,8 @@ class ExitCommand(Command):
     """shuts the MUA down cleanly"""
     def apply(self, ui):
         if settings.config.getboolean('general', 'bug_on_exit'):
-            if not ui.choice('realy quit?', choices={'yes':['y','q','enter'],
-                                                     'no':['n']}) == 'yes':
+            if not ui.choice('realy quit?', choices={'yes': ['y', 'enter'],
+                                                     'no': ['n']}) == 'yes':
                 return
         raise urwid.ExitMainLoop()
 
@@ -869,8 +869,8 @@ class EnvelopeAttachCommand(Command):
         for path in self.files:
             ctype, encoding = mimetypes.guess_type(path)
             if ctype is None or encoding is not None:
-                # No guess could be made, or the file is encoded (compressed), so
-                # use a generic bag-of-bits type.
+                # No guess could be made, or the file is encoded (compressed),
+                # so use a generic bag-of-bits type.
                 ctype = 'application/octet-stream'
             maintype, subtype = ctype.split('/', 1)
             if maintype == 'text':
@@ -1053,13 +1053,13 @@ def interpret_commandline(cmdline, mode):
         if os.path.isfile(filepath):
             return commandfactory(cmd, mode=mode, path=filepath)
 
-    elif not params and cmd in ['exit', 'flush', 'pyshell', 'taglist', 'bclose',
-                                'compose', 'openfocussed', 'closefocussed',
-                                'bnext', 'bprevious', 'retag', 'refresh',
-                                'bufferlist', 'refineprompt', 'reply', 'open',
-                                'groupreply', 'bounce', 'openthread',
-                                'toggleheaders', 'send', 'reedit', 'select',
-                                'retagprompt']:
+    elif not params and cmd in ['exit', 'flush', 'pyshell', 'taglist',
+                                'bclose', 'compose', 'openfocussed',
+                                'closefocussed', 'bnext', 'bprevious', 'retag',
+                                'refresh', 'bufferlist', 'refineprompt',
+                                'reply', 'open', 'groupreply', 'bounce',
+                                'openthread', 'toggleheaders', 'send',
+                                'reedit', 'select', 'retagprompt']:
         return commandfactory(cmd, mode=mode)
     else:
         return None

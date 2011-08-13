@@ -192,7 +192,7 @@ class AccountManager:
                     for alias in newacc.aliases:
                         self.accountmap[alias] = newacc
             else:
-                logging.info('account section %s lacks fields %s' % (s, to_set))
+                logging.info('account section %s lacks %s' % (s, to_set))
 
     def get_accounts(self):
         """return known accounts

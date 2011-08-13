@@ -216,7 +216,7 @@ class UI:
             self.notificationbar = None
         self.update()
 
-    def choice(self, message, choices={'yes':['y'], 'no':['n']}):
+    def choice(self, message, choices={'yes': ['y'], 'no': ['n']}):
         """prompt user to make a choice
 
         :param message: string to display before list of choices
@@ -228,7 +228,8 @@ class UI:
             cols = urwid.Columns([urwid.Text(msg)])
             return urwid.AttrMap(cols, 'notify_' + prio)
 
-        line = ', '.join(['(%s):%s' % ('/'.join(v), k) for k, v in choices.items()])
+        cstrings = ['(%s):%s' % ('/'.join(v), k) for k, v in choices.items()]
+        line = ', '.join(cstrings)
         msgs = [build_line(message + ' ' + line, 'normal')]
 
         footer = self.mainframe.get_footer()
@@ -259,7 +260,7 @@ class UI:
         :type message: str
         :param priority: priority string, used to format the popup: currently,
                          'normal' and 'error' are defined. If you use 'X' here,
-                         the attribute 'notify_X' will be used to format the popup.
+                         the attribute 'notify_X' is used to format the popup.
         :type priority: str
         :param timeout: seconds until message disappears. Defaults to the value
                         of 'notify_timeout' in the general config section.
