@@ -1,9 +1,8 @@
 This is a proposal for a terminal gui for notmuch mail, written in python.
 You can find some old screenshots in data/alot*png
-Stay tuned for a more up-to-date description of the architecture and a usage intro,
-I intend to clean up a bit, include a few more features and release a first version soon™.
 
 Current features include:
+-------------------------
  * spawn terminals for asynchronous editing of mails
  * theming, optionally in monochromatic, 16 or 256 colours
  * tag specific theming and tagstring translation
@@ -17,6 +16,7 @@ Current features include:
  * user configurable keyboard maps
 
 Soonish to be addresses non-features:
+-------------------------------------
  * encryption/decryption for messages
  * search for strings in displayed buffer
  * print command
