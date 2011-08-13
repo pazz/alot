@@ -391,14 +391,6 @@ class HookManager:
             msg = 'called undefined hook: %s with arguments'
         return f
 
-    def call(self, hookname, *args, **kwargs):
-        hook = self.get_hook(hookname)
-        try:
-            hook(*args, **kwargs)
-        except:
-            msg = 'exception occured while calling hook:' \
-                    '%s with arguments %s,  %s'
-
 
 config = CustomConfigParser(DEFAULTS)
 hooks = HookManager()

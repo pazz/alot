@@ -318,7 +318,7 @@ class UI:
             if cmd.prehook:
                 self.logger.debug('calling pre-hook')
                 try:
-                    cmd.prehook(self, self.dbman)
+                    cmd.prehook(self, self.dbman, self.accountman)
                 except:
                     self.logger.exception('prehook failed')
             self.logger.debug('apply command: %s' % cmd)
@@ -326,6 +326,6 @@ class UI:
             if cmd.posthook:
                 self.logger.debug('calling post-hook')
                 try:
-                    cmd.posthook(self, self.dbman)
+                    cmd.posthook(self, self.dbman, self.accountman)
                 except:
                     self.logger.exception('posthook failed')
