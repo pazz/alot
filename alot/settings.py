@@ -39,7 +39,7 @@ DEFAULTS = {
         'hooksfile': '~/.alot.py',
         'bug_on_exit': 'False',
     },
-    'normal-theme': {
+    '16c-theme': {
         'bufferlist_focus_bg': 'dark gray',
         'bufferlist_focus_fg': 'white',
         'bufferlist_results_even_bg': 'black',
@@ -105,7 +105,7 @@ DEFAULTS = {
         'threadline_tags_focus_bg': 'dark cyan',
         'threadline_tags_focus_fg': 'yellow,bold',
     },
-    'mono-theme': {
+    '1c-theme': {
         'bufferlist_focus': 'standout',
         'bufferlist_results_even': 'default',
         'bufferlist_results_odd': 'default',
@@ -139,7 +139,7 @@ DEFAULTS = {
         'threadline_tags': 'bold',
         'threadline_tags_focus': 'standout',
     },
-    'highcolour-theme': {
+    '256c-theme': {
         'bufferlist_focus_bg': 'g38',
         'bufferlist_focus_fg': '#ffa',
         'bufferlist_results_even_bg': 'g3',
@@ -306,33 +306,24 @@ class CustomConfigParser(SafeConfigParser):
                 except:
                     pass
 
-    def get_modestring(self):
-        mode = self.getint('general', 'colourmode')
-        if mode == 2:
-            return 'mono-theme'
-        elif mode == 16:
-            return 'normal-theme'
-        else:
-            return 'highcolour-theme'
-
     def get_palette(self):
         mode = self.getint('general', 'colourmode')
-        ms = self.get_modestring()
+        ms = "%dc-theme" % mode
         names = self.options(ms) + DEFAULTS[ms].keys()
         if mode > 2:
             names = set([s[:-3] for s in names])
         p = list()
         for attr in names:
-            nf = self.get('normal-theme', attr + '_fg', fallback='default')
-            nb = self.get('normal-theme', attr + '_bg', fallback='default')
-            m = self.get('mono-theme', attr, fallback='default')
-            hf = self.get('highcolour-theme', attr + '_fg', fallback='default')
-            hb = self.get('highcolour-theme', attr + '_bg', fallback='default')
+            nf = self.get('16c-theme', attr + '_fg', fallback='default')
+            nb = self.get('16c-theme', attr + '_bg', fallback='default')
+            m = self.get('1c-theme', attr, fallback='default')
+            hf = self.get('256c-theme', attr + '_fg', fallback='default')
+            hb = self.get('256c-theme', attr + '_bg', fallback='default')
             p.append((attr, nf, nb, m, hf, hb))
             if attr.startswith('tag_') and attr + '_focus' not in names:
-                nb = self.get('normal-theme', 'threadline_focus_bg',
+                nb = self.get('16c-theme', 'threadline_focus_bg',
                               fallback='default')
-                hb = self.get('highcolour-theme', 'threadline_focus_bg',
+                hb = self.get('256c-theme', 'threadline_focus_bg',
                               fallback='default')
                 p.append((attr + '_focus', nf, nb, m, hf, hb))
         return p
@@ -341,19 +332,19 @@ class CustomConfigParser(SafeConfigParser):
         mode = self.getint('general', 'colourmode')
         base = 'tag_%s' % tag
         if mode == 2:
-            if self.get('mono-theme', base):
+            if self.get('1c-theme', base):
                 return 'tag_%s' % tag
         elif mode == 16:
-            has_fg = self.get('normal-theme', base + '_fg')
-            has_bg = self.get('normal-theme', base + '_bg')
+            has_fg = self.get('16c-theme', base + '_fg')
+            has_bg = self.get('16c-theme', base + '_bg')
             if has_fg or has_bg:
                 if focus:
                     return base + '_focus'
                 else:
                     return base
         else:  # highcolour
-            has_fg = self.get('highcolour-theme', base + '_fg')
-            has_bg = self.get('highcolour-theme', base + '_bg')
+            has_fg = self.get('256c-theme', base + '_fg')
+            has_bg = self.get('256c-theme', base + '_bg')
             if has_fg or has_bg:
                 if focus:
                     return base + '_focus'

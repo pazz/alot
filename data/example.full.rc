@@ -79,7 +79,7 @@ ls = bufferlist
 quit = exit
 
 
-[normal-theme]
+[16c-theme]
 bufferlist_focus_bg = dark gray
 bufferlist_focus_fg = white
 bufferlist_results_even_bg = black
@@ -145,7 +145,7 @@ threadline_tags_fg = brown
 threadline_tags_focus_bg = dark cyan
 threadline_tags_focus_fg = yellow,bold
 
-[highcolour-theme]
+[256c-theme]
 bufferlist_focus_bg = g38
 bufferlist_focus_fg = #ffa
 bufferlist_results_even_bg = g3
@@ -211,7 +211,7 @@ threadline_tags_fg = #a86
 threadline_tags_focus_bg = g58
 threadline_tags_focus_fg = #ff8
 
-[mono-theme]
+[1c-theme]
 bufferlist_focus = standout
 bufferlist_results_even = default
 bufferlist_results_odd = default

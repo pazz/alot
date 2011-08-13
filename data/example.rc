@@ -28,7 +28,7 @@ t = toggletag todo
 [tag translate]
 flagged = ⚑
 
-[highcolour-theme]
+[256c-theme]
 tag_todo_bg = #d66
 tag_todo_fg = white
 tag_killed_bg = g66
