@@ -81,12 +81,13 @@ class OpenThreadCommand(Command):
     def apply(self, ui):
         if not self.thread:
             self.thread = ui.current_buffer.get_selected_thread()
-        query = ui.current_buffer.querystring
-        ui.logger.info('open thread view for %s' % self.thread)
+        if self.thread:
+            query = ui.current_buffer.querystring
+            ui.logger.info('open thread view for %s' % self.thread)
 
-        sb = buffer.ThreadBuffer(ui, self.thread)
-        ui.buffer_open(sb)
-        sb.unfold_matching(query)
+            sb = buffer.ThreadBuffer(ui, self.thread)
+            ui.buffer_open(sb)
+            sb.unfold_matching(query)
 
 
 class SearchCommand(Command):
