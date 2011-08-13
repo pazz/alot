@@ -361,7 +361,7 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         urwid.WidgetWrap.__init__(self, txt)
 
     def __str__(self):
-        return u"%s" % (unicode(self.message))
+        return self.message.__str__()
 
     def selectable(self):
         return True
