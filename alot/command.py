@@ -851,7 +851,7 @@ class EnvelopeAttachCommand(Command):
         Command.__init__(self, **kwargs)
         self.files = []
         if path:
-            self.files = glob.glob(path)
+            self.files = glob.glob(os.path.expanduser(path))
 
     def apply(self, ui):
         if not self.files:
