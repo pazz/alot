@@ -245,10 +245,11 @@ DEFAULTS = {
         'enter': 'select',
     },
     'envelope-maps': {
+        'a': 'attach',
         'y': 'send',
         'enter': 'reedit',
-        't': 'prompt to',
-        's': 'prompt subject',
+        't': 'prompt to ',
+        's': 'prompt subject ',
     },
     'bufferlist-maps': {
         'x': 'closefocussed',

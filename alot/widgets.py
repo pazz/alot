@@ -446,7 +446,9 @@ class MessageBodyWidget(urwid.AttrMap):
 class AttachmentWidget(urwid.WidgetWrap):
     def __init__(self, attachment):
         self.attachment = attachment
-        widget = urwid.AttrMap(urwid.Text(unicode(attachment)),
+        if not isinstance(attachment, message.Attachment):
+            self.attachment = message.Attachment(self.attachment)
+        widget = urwid.AttrMap(urwid.Text(unicode(self.attachment)),
                                'message_attachment',
                                'message_attachment_focussed')
         urwid.WidgetWrap.__init__(self, widget)

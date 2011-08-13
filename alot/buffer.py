@@ -118,6 +118,16 @@ class EnvelopeBuffer(Buffer):
         self.header_wgt = widgets.MessageHeaderWidget(self.mail,
                                                       displayed_headers=dh)
         displayed_widgets.append(self.header_wgt)
+
+        #display attachments
+        lines = []
+        for part in self.mail.walk():
+            if not part.is_multipart():
+                if part.get_content_maintype() != 'text':
+                    lines.append(widgets.AttachmentWidget(part))
+        self.attachment_wgt = urwid.Pile(lines)
+        displayed_widgets.append(self.attachment_wgt)
+
         self.body_wgt = widgets.MessageBodyWidget(self.mail)
         displayed_widgets.append(self.body_wgt)
         self.body = urwid.ListBox(displayed_widgets)

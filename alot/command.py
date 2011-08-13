@@ -17,17 +17,24 @@ along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
 Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 import os
+import glob
 import code
 import logging
 import threading
 import subprocess
 import email
 import tempfile
+import mimetypes
 from email.parser import Parser
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 from email import Charset
 from email.header import Header
+from email import encoders
+from email.message import Message
+from email.mime.audio import MIMEAudio
+from email.mime.base import MIMEBase
+from email.mime.image import MIMEImage
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 import buffer
 import settings
@@ -839,6 +846,59 @@ class EnvelopeSendCommand(Command):
                       priority='error')
 
 
+class EnvelopeAttachCommand(Command):
+    def __init__(self, path=None, **kwargs):
+        Command.__init__(self, **kwargs)
+        self.files = []
+        if path:
+            self.files = glob.glob(path)
+
+    def apply(self, ui):
+        if not self.files:
+            path = ui.prompt(prefix='attach files matching:', text='~/',
+                             completer=completion.PathCompleter())
+            if path:
+                self.files = glob.glob(os.path.expanduser(path))
+            if not self.files:
+                ui.notify('no matches, abort')
+                return
+        logging.info(self.files)
+        msg = ui.current_buffer.get_email()
+        for path in self.files:
+            ctype, encoding = mimetypes.guess_type(path)
+            if ctype is None or encoding is not None:
+                # No guess could be made, or the file is encoded (compressed), so
+                # use a generic bag-of-bits type.
+                ctype = 'application/octet-stream'
+            maintype, subtype = ctype.split('/', 1)
+            if maintype == 'text':
+                fp = open(path)
+                # Note: we should handle calculating the charset
+                part = MIMEText(fp.read(), _subtype=subtype)
+                fp.close()
+            elif maintype == 'image':
+                fp = open(path, 'rb')
+                part = MIMEImage(fp.read(), _subtype=subtype)
+                fp.close()
+            elif maintype == 'audio':
+                fp = open(path, 'rb')
+                part = MIMEAudio(fp.read(), _subtype=subtype)
+                fp.close()
+            else:
+                fp = open(path, 'rb')
+                part = MIMEBase(maintype, subtype)
+                part.set_payload(fp.read())
+                fp.close()
+                # Encode the payload using Base64
+                encoders.encode_base64(part)
+            # Set the filename parameter
+            part.add_header('Content-Disposition', 'attachment',
+                            filename=os.path.basename(path))
+            msg.attach(part)
+
+        ui.current_buffer.set_email(msg)
+
+
 # TAGLIST
 class TaglistSelectCommand(Command):
     def apply(self, ui):
@@ -857,6 +917,7 @@ COMMANDS = {
         'retagprompt': (RetagPromptCommand, {}),
     },
     'envelope': {
+        'attach': (EnvelopeAttachCommand, {}),
         'send': (EnvelopeSendCommand, {}),
         'reedit': (EnvelopeEditCommand, {}),
         'subject': (EnvelopeSetCommand, {'key': 'Subject'}),
@@ -952,6 +1013,8 @@ def interpret_commandline(cmdline, mode):
         if params:
             h = {'To': params}
         return commandfactory(cmd, mode=mode, headers=h)
+    elif cmd == 'attach':
+        return commandfactory(cmd, mode=mode, path=params)
     elif cmd == 'forward':
         return commandfactory(cmd, mode=mode, inline=(params == '--inline'))
     elif cmd == 'prompt':
