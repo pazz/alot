@@ -200,6 +200,12 @@ class UI:
         return filter(lambda x: isinstance(x, t), self.buffers)
 
     def clear_notify(self, messages):
+        """clears notification popups. Usually called in order
+        to ged rid of messages that don't time out
+
+        :param messages: The popups to remove. This should be exactly
+                         what notify() returned
+        """
         footer = self.mainframe.get_footer()
         newpile = self.notificationbar.widget_list
         for l in messages:

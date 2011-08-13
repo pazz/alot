@@ -41,9 +41,9 @@ class Account:
     realname = None
     """real name used to format from-headers"""
     gpg_key = None
-    """gpg fingerprint :note:currently ignored"""
+    """gpg fingerprint. CURRENTLY IGNORED"""
     signature = None
-    """signature to append to outgoing mails note::currently ignored"""
+    """signature to append to outgoing mails. CURRENTLY IGNORED"""
 
     def __init__(self, address=None, aliases=None, realname=None, gpg_key=None,
                  signature=None, sent_box=None, draft_box=None):
@@ -85,7 +85,10 @@ class Account:
 
     def store_mail(self, mbx, mail):
         """stores given mail in mailbox. if mailbox is maildir, set the S-flag.
+
+        :param mbx: mailbox to use
         :type mbx: `mailbox.Mailbox`
+        :param mail: the mail to store
         :type mail: `email.message.Message` or string
         """
         mbx.lock()
@@ -99,21 +102,33 @@ class Account:
         mbx.unlock()
 
     def store_sent_mail(self, mail):
-        """stores given mail as sent if sent_box is set"""
+        """stores mail in send-store if sent_box is set
+
+        :param mail: the mail to store
+        :type mail: `email.message.Message` or string
+        """
         if self.sent_box:
             self.store_mail(self.sent_box, mail)
 
     def store_draft_mail(self, mail):
-        """stores given mail as draft if draft_box is set"""
+        """stores mail as draft if draft_box is set
+
+        :param mail: the mail to store
+        :type mail: `email.message.Message` or string
+        """
         if self.draft_box:
             self.store_mail(self.sent_box, mail)
 
-    def send_mail(self, email):
+    def send_mail(self, mail):
         """
-        sends given email
-        :returns: tuple (success, reason) of types bool and str.
+        sends given mail
+
+        :param mail: the mail to send
+        :type mail: `email.message.Message` or string
+        :returns: None if successful and a string with the reason
+                  for failure otherwise
         """
-        return False, 'not implemented'
+        return 'not implemented'
 
 
 class SendmailAccount(Account):
@@ -132,15 +147,16 @@ class SendmailAccount(Account):
                                     stderr=subprocess.PIPE)
             out, err = proc.communicate(mail.as_string())
         except OSError, e:
-            return False, str(e) + '. sendmail_cmd set to: %s' % self.cmd
+            return str(e) + '. sendmail_cmd set to: %s' % self.cmd
         if proc.poll():  # returncode is not 0
-            return False, err.strip()
+            return err.strip()
         else:
             self.store_sent_mail(mail)
-            return True, ''
+            return None
 
 
 class AccountManager:
+    """Easy access to all known accounts"""
     allowed = ['realname',
                'address',
                'aliases',
@@ -188,6 +204,7 @@ class AccountManager:
     def get_account_by_address(self, address):
         """returns account for given email address
 
+        :param address: address to look up
         :type address: string
         :rtype:  `account.Account` or None
         """

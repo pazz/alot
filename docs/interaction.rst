@@ -6,12 +6,10 @@ User Interaction
 :class:`alot.ui.UI`
 ---------------------
 
-.. autoclass:: UI
+.. autoclass:: UI()
 
     .. automethod:: choice
 
     .. automethod:: notify
 
     .. automethod:: prompt
-
-    .. automethod:: get_deep_focus

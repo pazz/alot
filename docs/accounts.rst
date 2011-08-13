@@ -7,7 +7,7 @@ Getting Account information
 :class:`alot.account.AccountManager`
 ------------------------------------
 
-.. autoclass:: alot.account.AccountManager
+.. autoclass:: alot.account.AccountManager()
 
     .. automethod:: get_accounts
 
@@ -19,5 +19,5 @@ Getting Account information
 
 :class:`alot.account.Account`
 -----------------------------
-.. autoclass:: alot.account.Account
+.. autoclass:: alot.account.Account()
    :members:

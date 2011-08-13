@@ -1,5 +1,5 @@
 
-database abstraction
+Database Abstraction
 ======================================
 
 :class:`alot.db.DBManager`
