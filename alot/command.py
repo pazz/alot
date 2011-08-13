@@ -35,6 +35,7 @@ from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import urwid
 
 import buffer
 import settings
@@ -68,7 +69,7 @@ class ExitCommand(Command):
             if not ui.choice('realy quit?', choices={'yes':['y','q','enter'],
                                                      'no':['n']}) == 'yes':
                 return
-        ui.shutdown()
+        raise urwid.ExitMainLoop()
 
 
 class OpenThreadCommand(Command):
@@ -833,9 +834,9 @@ class EnvelopeSendCommand(Command):
         account = ui.accountman.get_account_by_address(saddr)
         if account:
             clearme = ui.notify('sending..', timeout=-1, block=False)
-            success, reason = account.send_mail(mail)
+            reason = account.send_mail(mail)
             ui.clear_notify([clearme])
-            if success:
+            if not reason:  # sucessfully send mail
                 cmd = BufferCloseCommand(buffer=envelope)
                 ui.apply_command(cmd)
                 ui.notify('mail send successful')

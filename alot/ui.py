@@ -76,12 +76,6 @@ class UI:
     def keypress(self, key):
         self.logger.debug('unhandeled input: %s' % key)
 
-    def shutdown(self):
-        """
-        close the ui. this is _not_ the main shutdown procedure:
-        there is a shutdown command that will eventually call this.
-        """
-        raise urwid.ExitMainLoop()
 
     def prompt(self, prefix='>', text=u'', tab=0, completer=None):
         self.logger.info('open prompt')
