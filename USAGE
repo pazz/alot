@@ -35,6 +35,7 @@ l = retagprompt
 | = refineprompt
 
 [envelope-maps]
+a = attach
 enter = reedit
 s = prompt subject
 t = prompt to
@@ -104,3 +105,27 @@ after successfully sending them. You can use mbox, maildir, mh, babyl and mmdf
 in the protocol part of the url.
 
 
+
+Hooks
+=====
+
+Before and after every command execution, alot calls this commands pre/post hook:
+Hooks are python callables with arity 3 that live in a module specified by
+hooksfile in the global section of your config. Per default this points to '~/.alot.py'
+For every command X, the callable 'pre_X' will be called before X and 'post_X' afterwards.
+
+When a hook gets called, it receives instances of
+1) alot.ui.UI, the main user interface object that can prompt etc.
+2) alot.db.DBManager, the applications database manager
+3) alot.account.AccountManager, can be used to look up account info
+4) alot.settings.config, a configparser to access the user's config
+
+As an example, consider this pre-hook for the exit command,
+that logs a personalized goodby message:
+
+def pre_exit(ui, dbman, accountman, config):
+    accounts = accountman.get_accounts()
+    if accounts:
+        ui.logger.info('goodbye, %s!' % accounts[0].realname)
+    else:
+        ui.logger.info('goodbye!')
