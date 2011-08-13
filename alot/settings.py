@@ -22,7 +22,6 @@ import mailcap
 import codecs
 
 from ConfigParser import SafeConfigParser
-from account import Account
 
 
 DEFAULTS = {

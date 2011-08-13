@@ -18,15 +18,35 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 
 import mailbox
+import shlex
+import subprocess
+import logging
+import time
+import email
 from urlparse import urlparse
 
 from send import SendmailSender
 
 
 class Account:
-    def __init__(self, address, aliases=None, realname=None, gpg_key=None, signature=None,
-                 sender_type='sendmail', sendmail_command='sendmail',
-                 sent_mailbox=None):
+    """
+    Datastructure that represents an email account. It manages
+    this account's settings, can send and store mails to
+    maildirs (drafts/send)
+    """
+    address = None
+    """this accounts main email address"""
+    aliases = []
+    """list of alternative addresses"""
+    realname = None
+    """real name used to format from-headers"""
+    gpg_key = None
+    """gpg fingerprint :note:currently ignored"""
+    signature = None
+    """signature to append to outgoing mails note::currently ignored"""
+
+    def __init__(self, address=None, aliases=None, realname=None, gpg_key=None,
+                 signature=None, sent_box=None, draft_box=None):
         self.address = address
         self.aliases = []
         if aliases:
@@ -34,25 +54,90 @@ class Account:
         self.realname = realname
         self.gpg_key = gpg_key
         self.signature = signature
-        self.sender_type = sender_type
 
-        self.mailbox = None
-        if sent_mailbox:
+        self.sent_box = None
+        if sent_box:
             mburl = urlparse(sent_mailbox)
             if mburl.scheme == 'mbox':
-                self.mailbox = mailbox.mbox(mburl.path)
+                self.sent_box = mailbox.mbox(mburl.path)
             elif mburl.scheme == 'maildir':
-                self.mailbox = mailbox.Maildir(mburl.path)
+                self.sent_box = mailbox.Maildir(mburl.path)
             elif mburl.scheme == 'mh':
-                self.mailbox = mailbox.MH(mburl.path)
+                self.sent_box = mailbox.MH(mburl.path)
             elif mburl.scheme == 'babyl':
-                self.mailbox = mailbox.Babyl(mburl.path)
+                self.sent_box = mailbox.Babyl(mburl.path)
             elif mburl.scheme == 'mmdf':
-                self.mailbox = mailbox.MMDF(mburl.path)
+                self.sent_box = mailbox.MMDF(mburl.path)
 
-        if self.sender_type == 'sendmail':
-            self.sender = SendmailSender(sendmail_command,
-                                         mailbox=self.mailbox)
+        self.draft_box = None
+        if draft_box:
+            mburl = urlparse(sent_mailbox)
+            if mburl.scheme == 'mbox':
+                self.draft_box = mailbox.mbox(mburl.path)
+            elif mburl.scheme == 'maildir':
+                self.draft_box = mailbox.Maildir(mburl.path)
+            elif mburl.scheme == 'mh':
+                self.draft_box = mailbox.MH(mburl.path)
+            elif mburl.scheme == 'babyl':
+                self.draft_box = mailbox.Babyl(mburl.path)
+            elif mburl.scheme == 'mmdf':
+                self.draft_box = mailbox.MMDF(mburl.path)
+
+    def store_mail(self, mbx, mail):
+        """stores given mail in mailbox. if mailbox is maildir, set the S-flag.
+        :type mbx: `mailbox.Mailbox`
+        :type mail: `email.message.Message` or string
+        """
+        mbx.lock()
+        if isinstance(mbx, mailbox.Maildir):
+            msg = mailbox.MaildirMessage(email)
+            msg.set_flags('S')
+        else:
+            msg = mailbox.Message(email)
+        key = mbx.add(email)
+        mbx.flush()
+        mbx.unlock()
+
+    def store_sent_mail(self, mail):
+        """stores given mail as sent if sent_box is set"""
+        if self.sent_box:
+            self.store_mail(self.sent_box, mail)
+
+    def store_draft_mail(self, mail):
+        """stores given mail as draft if draft_box is set"""
+        if self.draft_box:
+            self.store_mail(self.sent_box, mail)
+
+    def send_mail(self, email):
+        """
+        sends given email
+        :returns: tuple (success, reason) of types bool and str.
+        """
+        return False, 'not implemented'
+
+
+class SendmailAccount(Account):
+    """Account that knows how to send out mails via sendmail"""
+    def __init__(self, cmd, **kwargs):
+        Account.__init__(self, **kwargs)
+        self.cmd = cmd
+
+    def send_mail(self, mail):
+        mail['Date'] = email.utils.formatdate(time.time(), True)
+        # no unicode in shlex on 2.x
+        args = shlex.split(self.cmd.encode('ascii'))
+        try:
+            proc = subprocess.Popen(args, stdin=subprocess.PIPE,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE)
+            out, err = proc.communicate(mail.as_string())
+        except OSError, e:
+            return False, str(e) + '. sendmail_cmd set to: %s' % self.cmd
+        if proc.poll():  # returncode is not 0
+            return False, err.strip()
+        else:
+            self.store_sent_mail(mail)
+            return True, ''
 
 
 class AccountManager:
@@ -61,9 +146,10 @@ class AccountManager:
                'aliases',
                'gpg_key',
                'signature',
-               'sender_type',
+               'type',
                'sendmail_command',
-               'sent_mailbox']
+               'sent_box',
+               'draft_box']
     manditory = ['realname', 'address']
     accountmap = {}
     accounts = []
@@ -75,19 +161,22 @@ class AccountManager:
         for s in accountsections:
             options = filter(lambda x: x in self.allowed, config.options(s))
             args = {}
+            to_set = self.manditory
             for o in options:
                 args[o] = config.get(s, o)
-                if o in self.manditory:
-                    self.manditory.remove(o)
-            if not self.manditory:
-                newacc = (Account(**args))
-                self.accountmap[newacc.address] = newacc
-                self.accounts.append(newacc)
-                for alias in newacc.aliases:
-                    self.accountmap[alias] = newacc
+                if o in to_set:
+                    to_set.remove(o)  # removes obligation
+            if not to_set:  # all manditory fields were present
+                sender_type = args.pop('type', 'sendmail')
+                if sender_type == 'sendmail':
+                    cmd = args.pop('sendmail_command', 'sendmail')
+                    newacc = (SendmailAccount(cmd, **args))
+                    self.accountmap[newacc.address] = newacc
+                    self.accounts.append(newacc)
+                    for alias in newacc.aliases:
+                        self.accountmap[alias] = newacc
             else:
-                pass
-                # log info
+                logging.info('account section %s lacks fields %s' % (s, to_set))
 
     def get_accounts(self):
         """return known accounts

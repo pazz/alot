@@ -19,7 +19,6 @@ address = john.doe@gmail.com
 aliases = john.doe@googlemail.com;john.d@g.com  # ';' separated list of alias addresses
 gpg_key = 123ABC
 signature = /home/john/.signature
-sender_type = sendmail
 sendmail_command = msmtp --account=gmail -t
 sent_mailbox = maildir:///home/john/mail/gmail/Sent  # we accept mbox,maildir,mh,babyl,mmdf here
 

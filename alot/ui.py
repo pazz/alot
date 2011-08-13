@@ -58,8 +58,6 @@ class UI:
             colourmode = config.getint('general', 'colourmode')
         self.logger.info('setup gui in %d colours' % colourmode)
         self.mainframe = MainWidget(self)
-        for l in config.get_palette():
-            log.info(l)
         self.mainloop = urwid.MainLoop(self.mainframe,
                 config.get_palette(),
                 handle_mouse=False,

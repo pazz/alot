@@ -63,14 +63,14 @@ def main():
     settings.config.read(configfilename)
     settings.hooks.setup(settings.config.get('general', 'hooksfile'))
 
-    #accountman
-    aman = AccountManager(settings.config)
-
     # setup logging
     numeric_loglevel = getattr(logging, args.debug_level.upper(), None)
     logfilename = os.path.expanduser(args.logfile)
     logging.basicConfig(level=numeric_loglevel, filename=logfilename)
     logger = logging.getLogger()
+
+    #accountman
+    aman = AccountManager(settings.config)
 
     # get ourselves a database manager
     dbman = DBManager(path=args.db_path, ro=args.read_only)
