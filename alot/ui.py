@@ -76,8 +76,19 @@ class UI:
     def keypress(self, key):
         self.logger.debug('unhandeled input: %s' % key)
 
-
     def prompt(self, prefix='>', text=u'', tab=0, completer=None):
+        """prompt for text input
+
+        :param prefix: text to print before the input field
+        :type prefix: str
+        :param text: initial content of the input field
+        :type text: str
+        :param tab: number of tabs to press initially
+                    (to select completion results)
+        :type tab: int
+        :param completer: completion object to use
+        :type completer: `alot.completion.Completer`
+        """
         self.logger.info('open prompt')
         leftpart = urwid.Text(prefix, align='left')
         if completer:
@@ -172,7 +183,6 @@ class UI:
             self.update()
 
     def get_deep_focus(self, startfrom=None):
-        """returns focussed leaf in the widget tree"""
         if not startfrom:
             startfrom = self.current_buffer
         if 'get_focus' in dir(startfrom):
@@ -236,7 +246,22 @@ class UI:
                     self.clear_notify(msgs)
                     return k
 
-    def notify(self, message, priority='normal', timeout=0, block=True):
+    def notify(self, message, priority='normal', timeout=0, block=False):
+        """notify popup
+
+        :param message: message to print
+        :type message: str
+        :param priority: priority string, used to format the popup: currently,
+                         'normal' and 'error' are defined. If you use 'X' here,
+                         the attribute 'notify_X' will be used to format the popup.
+        :type priority: str
+        :param timeout: seconds until message disappears. Defaults to the value
+                        of 'notify_timeout' in the general config section.
+                        A negative value means never time out.
+        :type timeout: int
+        :param block: this notification blocks until a keypress is made
+        :type block: boolean
+        """
         def build_line(msg, prio):
             cols = urwid.Columns([urwid.Text(msg)])
             return urwid.AttrMap(cols, 'notify_' + prio)
@@ -255,15 +280,15 @@ class UI:
         def clear(*args):
             self.clear_notify(msgs)
 
-        if timeout == -1:
-            self.mainloop.draw_screen()
-            if block:
-                keys = self.mainloop.screen.get_input()
-                clear()
+        self.mainloop.draw_screen()
+        if block:
+            keys = self.mainloop.screen.get_input()
+            clear()
         else:
-            if timeout == 0:
-                timeout = config.getint('general', 'notify_timeout')
-            self.mainloop.set_alarm_in(timeout, clear)
+            if timeout >= 0:
+                if timeout == 0:
+                    timeout = config.getint('general', 'notify_timeout')
+                self.mainloop.set_alarm_in(timeout, clear)
         return msgs[0]
 
     def update(self):
