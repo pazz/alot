@@ -26,7 +26,7 @@ import email
 
 def shorten(string, maxlen):
     if len(string) > maxlen - 3:
-        string = string[:maxlen - 3] + '...'
+        string = string[:maxlen - 3] + u'\u2026'
     return string
 
 
