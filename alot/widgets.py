@@ -134,6 +134,8 @@ class TagWidget(urwid.AttrMap):
     def __init__(self, tag):
         self.tag = tag
         self.translated = config.get('tag translate', tag, fallback=tag)
+        # encode to utf-8 before passing to urwid (issue #4)
+        self.translated = self.translated.encode('utf-8')
         txt = urwid.Text(self.translated, wrap='clip')
         normal = config.get_tagattr(tag)
         focus = config.get_tagattr(tag, focus=True)
