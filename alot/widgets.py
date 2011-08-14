@@ -56,16 +56,25 @@ class ThreadlineWidget(urwid.AttrMap):
 
         authors = self.thread.get_authors() or '(None)'
         maxlength = config.getint('general', 'authors_maxlength')
-        authorsstring = shorten(authors, maxlength)
+        authorsstring = shorten(authors, maxlength).strip()
         self.authors_w = urwid.AttrMap(urwid.Text(authorsstring),
                                        'threadline_authors')
         cols.append(('fixed', len(authorsstring), self.authors_w))
 
-        subjectstring = self.thread.get_subject()
+        subjectstring = self.thread.get_subject().strip()
         self.subject_w = urwid.AttrMap(urwid.Text(subjectstring, wrap='clip'),
                                  'threadline_subject')
         if subjectstring:
-            cols.append(self.subject_w)
+            cols.append(('fixed', len(subjectstring), self.subject_w))
+
+        # fill line with message content
+        msgs = self.thread.get_messages().keys()
+        msgs.sort()
+        lastcontent = ' '.join([m.get_text_content() for m in msgs])
+        contentstring = lastcontent.replace('\n', ' ').strip()
+        self.content_w = urwid.AttrMap(urwid.Text(contentstring, wrap='clip'),
+                                       'threadline_content')
+        cols.append(self.content_w)
 
         self.columns = urwid.Columns(cols, dividechars=1)
         self.original_widget = self.columns

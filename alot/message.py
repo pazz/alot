@@ -157,6 +157,20 @@ class Message:
         searchfor = querystring + ' AND id:' + self._id
         return self._dbman.count_messages(searchfor) > 0
 
+    def get_text_content(self):
+        res = ''
+        for part in self.get_email().walk():
+            ctype = part.get_content_type()
+            enc = part.get_content_charset()
+            if part.get_content_maintype() == 'text':
+                raw_payload = part.get_payload(decode=True)
+                if enc:
+                    raw_payload = raw_payload.decode(enc, errors='replace')
+                else:
+                    raw_payload = unicode(raw_payload, errors='replace')
+                res += raw_payload
+        return res
+
 
 def extract_body(mail):
     bodytxt = ''
