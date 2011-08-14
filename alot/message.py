@@ -20,6 +20,7 @@ import os
 import email
 import tempfile
 import re
+import mimetypes
 from datetime import datetime
 from email.header import Header
 
@@ -263,7 +264,10 @@ class Attachment:
 
     def get_content_type(self):
         """mime type of the attachment"""
-        return self.part.get_content_type()
+        ctype = self.part.get_content_type()
+        if ctype == 'octet/stream' and self.get_filename():
+            ctype, enc = mimetypes.guess_type(self.get_filename())
+        return ctype
 
     def get_size(self):
         """returns attachments size as human-readable string"""
