@@ -32,6 +32,8 @@ class ThreadlineWidget(urwid.AttrMap):
         self.dbman = dbman
         self.thread = dbman.get_thread(tid)
         self.tag_widgets = []
+        self.display_content = config.getboolean('general',
+                                    'display_content_in_threadline')
         self.rebuild()
         urwid.AttrMap.__init__(self, self.columns,
                                'threadline', 'threadline_focus')
@@ -67,14 +69,15 @@ class ThreadlineWidget(urwid.AttrMap):
         if subjectstring:
             cols.append(('fixed', len(subjectstring), self.subject_w))
 
-        # fill line with message content
-        msgs = self.thread.get_messages().keys()
-        msgs.sort()
-        lastcontent = ' '.join([m.get_text_content() for m in msgs])
-        contentstring = lastcontent.replace('\n', ' ').strip()
-        self.content_w = urwid.AttrMap(urwid.Text(contentstring, wrap='clip'),
-                                       'threadline_content')
-        cols.append(self.content_w)
+        if self.display_content:
+            msgs = self.thread.get_messages().keys()
+            msgs.sort()
+            lastcontent = ' '.join([m.get_text_content() for m in msgs])
+            contentstring = lastcontent.replace('\n', ' ').strip()
+            self.content_w = urwid.AttrMap(urwid.Text(contentstring,
+                                                      wrap='clip'),
+                                           'threadline_content')
+            cols.append(self.content_w)
 
         self.columns = urwid.Columns(cols, dividechars=1)
         self.original_widget = self.columns
@@ -88,7 +91,8 @@ class ThreadlineWidget(urwid.AttrMap):
                 tw.set_focussed()
             self.authors_w.set_attr_map({None: 'threadline_authors_focus'})
             self.subject_w.set_attr_map({None: 'threadline_subject_focus'})
-            self.content_w.set_attr_map({None: 'threadline_content_focus'})
+            if self.display_content:
+                self.content_w.set_attr_map({None: 'threadline_content_focus'})
         else:
             self.date_w.set_attr_map({None: 'threadline_date'})
             self.mailcount_w.set_attr_map({None: 'threadline_mailcount'})
@@ -96,7 +100,8 @@ class ThreadlineWidget(urwid.AttrMap):
                 tw.set_unfocussed()
             self.authors_w.set_attr_map({None: 'threadline_authors'})
             self.subject_w.set_attr_map({None: 'threadline_subject'})
-            self.content_w.set_attr_map({None: 'threadline_content'})
+            if self.display_content:
+                self.content_w.set_attr_map({None: 'threadline_content'})
         return urwid.AttrMap.render(self, size, focus)
 
     def selectable(self):

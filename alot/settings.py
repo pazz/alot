@@ -31,6 +31,7 @@ DEFAULTS = {
         'terminal_cmd': 'x-terminal-emulator -e',
         'spawn_editor': 'False',
         'displayed_headers': 'From,To,Cc,Bcc,Subject',
+        'display_content_in_threadline': 'True',
         'authors_maxlength': '30',
         'ask_subject': 'True',
         'notify_timeout': '2',
