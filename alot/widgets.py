@@ -88,6 +88,7 @@ class ThreadlineWidget(urwid.AttrMap):
                 tw.set_focussed()
             self.authors_w.set_attr_map({None: 'threadline_authors_focus'})
             self.subject_w.set_attr_map({None: 'threadline_subject_focus'})
+            self.content_w.set_attr_map({None: 'threadline_content_focus'})
         else:
             self.date_w.set_attr_map({None: 'threadline_date'})
             self.mailcount_w.set_attr_map({None: 'threadline_mailcount'})
@@ -95,6 +96,7 @@ class ThreadlineWidget(urwid.AttrMap):
                 tw.set_unfocussed()
             self.authors_w.set_attr_map({None: 'threadline_authors'})
             self.subject_w.set_attr_map({None: 'threadline_subject'})
+            self.content_w.set_attr_map({None: 'threadline_content'})
         return urwid.AttrMap.render(self, size, focus)
 
     def selectable(self):
