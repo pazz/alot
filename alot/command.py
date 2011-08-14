@@ -101,7 +101,7 @@ class SearchCommand(Command):
 
     def apply(self, ui):
         if self.query:
-            if self.query == '*':
+            if self.query == '*' and ui.current_buffer:
                 s = 'really search for all threads? This takes a while..'
                 if not ui.choice(s) == 'yes':
                     return
