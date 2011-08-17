@@ -269,11 +269,16 @@ DEFAULTS = {
     }
 }
 
+NOTMUCH_DEFAULTS = {
+    'maildir': {
+        'synchronize_flags': 'False',
+    },
+}
 
-class CustomConfigParser(SafeConfigParser):
+
+class DefaultsConfigParser(SafeConfigParser):
     def __init__(self, defaults):
         self.defaults = defaults
-        self.hooks = None
         SafeConfigParser.__init__(self)
         self.optionxform = lambda x: x
         for sec in defaults.keys():
@@ -298,6 +303,11 @@ class CustomConfigParser(SafeConfigParser):
     def getstringlist(self, section, option, **kwargs):
         value = self.get(section, option, **kwargs)
         return [s.strip() for s in value.split(',')]
+
+class AlotConfigParser(DefaultsConfigParser):
+    def __init__(self, defaults):
+        DefaultsConfigParser.__init__(self, defaults)
+        self.hooks = None
 
     def read(self, file):
         if not os.path.isfile(file):
@@ -388,7 +398,8 @@ class HookManager:
         return f
 
 
-config = CustomConfigParser(DEFAULTS)
+config = AlotConfigParser(DEFAULTS)
+notmuchconfig = DefaultsConfigParser(NOTMUCH_DEFAULTS)
 hooks = HookManager()
 mailcaps = mailcap.getcaps()
 
