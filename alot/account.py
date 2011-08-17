@@ -23,6 +23,8 @@ import subprocess
 import logging
 import time
 import email
+import os
+from ConfigParser import SafeConfigParser
 from urlparse import urlparse
 
 
@@ -220,3 +222,32 @@ class AccountManager:
     def get_addresses(self):
         """returns addresses of known accounts including all their aliases"""
         return self.accountmap.keys()
+
+
+class AddressBook:
+    def get_contacts(self):
+        return []
+
+    def lookup(self, prefix=''):
+        res = []
+        for name, email in self.get_contacts():
+            if name.startswith(prefix) or email.startswith(prefix):
+                res.append("%s <%s>" % (name, email))
+        return res
+
+
+class AbookAddressBook(AddressBook):
+    def __init__(self, config=None):
+        self.abook = SafeConfigParser()
+        if not config:
+            config = os.environ["HOME"] + "/.abook/addressbook"
+        self.abook.read(config)
+
+    def get_contacts(self):
+        res = []
+        for s in self.abook.sections():
+            if s.isdigit():
+                name = self.abook.get(s, 'name')
+                email = self.abook.get(s, 'email')
+                res.append((name,email))
+        return res
