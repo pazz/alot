@@ -38,7 +38,7 @@ easy_install argparse
 > cd alot
 > sudo python setup.py install
 
-Thats it, now "alot" should be in your path.
+That's it, now "alot" should be in your path.
 
 Alot tries to be as unobtrusive as possible, with one exception:
 It forces you to use UTF-8 encoding whereever it can:
@@ -49,7 +49,7 @@ All configs are optional, but if you want to send mails you need to
 specify at least one account section:
 
   [account uoe]
-  realname = Your Name 
+  realname = Your Name
   address = your@address
   sendmail_command = msmtp
   sent_mailbox = maildir:///home/you/mail/Sent

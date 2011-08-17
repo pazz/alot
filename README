@@ -6,7 +6,7 @@ Current features include:
  * spawn terminals for asynchronous editing of mails
  * theming, optionally in monochromatic, 16 or 256 colours
  * tag specific theming and tagstring translation
- * a hook system to inject ones own python code
+ * a hook system to inject one's own python code
  * python shell for introspection
  * forward/reply/group-reply of emails
  * multiple accounts for sending mails via sendmail
@@ -15,7 +15,7 @@ Current features include:
  * database manager that manages a write queue to the notmuch index
  * user configurable keyboard maps
 
-Soonish to be addresses non-features:
+Soonish to be addressed non-features:
 -------------------------------------
  * encryption/decryption for messages
  * search for strings in displayed buffer
