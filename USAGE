@@ -1,7 +1,7 @@
 USAGE
 =====
 In all views, arrows, page-up/down, j,k and space can be used to move the focus.
-escape cancels prompts. You can hit ":" at any time and type in commands
+Escape cancels prompts. You can hit ":" at any time and type in commands
 to the prompt. Any commandline can be mapped by using the "MODE-maps" sections
 in the config file. These are the default keymaps:
 
