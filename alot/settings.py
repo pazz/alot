@@ -304,6 +304,7 @@ class DefaultsConfigParser(SafeConfigParser):
         value = self.get(section, option, **kwargs)
         return [s.strip() for s in value.split(',')]
 
+
 class AlotConfigParser(DefaultsConfigParser):
     def __init__(self, defaults):
         DefaultsConfigParser.__init__(self, defaults)
