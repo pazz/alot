@@ -3,6 +3,7 @@
 ask_subject = True
 # max length of authors line in thread widgets
 authors_maxlength = 30
+# confirm exit
 bug_on_exit = False
 # number of colours your terminal supports
 colourmode = 256
@@ -21,6 +22,11 @@ show_statusbar = True
 spawn_editor = False
 # set terminal for asynchronous editing
 terminal_cmd = x-terminal-emulator -e
+
+# strftime format for timestamps. Note: you must escape % here:
+# use '%%' instead of '%'. otherwise see
+# http://docs.python.org/library/datetime.html#strftime-strptime-behavior
+timestamp_format = ''
 
 [global-maps]
 $ = flush
