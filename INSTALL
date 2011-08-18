@@ -27,8 +27,12 @@ Alot depends on development versions of notmuch and urwid.
 3. make sure you have argparse installed:
 -----------------------------------------
 
-If you are running debian and are still on python 2.6,
+argparse is part of the stadndard library since python v2.7.
+If you are running debian and are still on python 2.6, use 
+aptitude install python-argparse
+or 
 easy_install argparse
+to get a backported version.
 
 
 4. get alot and install it from git:
