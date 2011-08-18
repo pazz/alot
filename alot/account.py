@@ -41,7 +41,7 @@ class Account:
     gpg_key = None
     """gpg fingerprint. CURRENTLY IGNORED"""
     signature = None
-    """signature to append to outgoing mails. CURRENTLY IGNORED"""
+    """path to a signature file to append to outgoing mails."""
 
     def __init__(self, address=None, aliases=None, realname=None, gpg_key=None,
                  signature=None, sent_box=None, draft_box=None):
