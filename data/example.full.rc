@@ -1,24 +1,39 @@
 [general]
+
 # ask for subject when compose
 ask_subject = True
+
 # max length of authors line in thread widgets
 authors_maxlength = 30
+
 # confirm exit
 bug_on_exit = False
+
 # number of colours your terminal supports
 colourmode = 256
+
+# fill threadline with message content
+display_content_in_threadline = False
+
 # headers that get displayed by default
 displayed_headers = From,To,Cc,Bcc,Subject
+
+
 # editor command
 editor_cmd = /usr/bin/vim -f -c 'set filetype=mail' +
+
 # timeout in secs after a failed attempt to flush is repeated
 flush_retry_timeout = 5
+
 # where to look up hooks
 hooksfile = ~/.alot.py
+
 # time in secs to display status messages
 notify_timeout = 2
+
 # display statusline?
 show_statusbar = True
+
 spawn_editor = False
 # set terminal for asynchronous editing
 terminal_cmd = x-terminal-emulator -e
@@ -27,6 +42,7 @@ terminal_cmd = x-terminal-emulator -e
 # use '%%' instead of '%'. otherwise see
 # http://docs.python.org/library/datetime.html#strftime-strptime-behavior
 timestamp_format = ''
+
 
 [global-maps]
 $ = flush

@@ -9,8 +9,6 @@ authors_maxlength = 30
 displayed_headers = From,To,Cc,Bcc,Subject
 ask_subject = True
 notify_timeout = 1  # how long (in seconds) notifications are shown
-show_notificationbar = False
-show_statusbar = True
 flush_retry_timeout = 5  # timeout in secs after a failed attempt to flush is repeated
 
 [account gmail]
