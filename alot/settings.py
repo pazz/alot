@@ -39,6 +39,7 @@ DEFAULTS = {
         'flush_retry_timeout': '5',
         'hooksfile': '~/.alot.py',
         'bug_on_exit': 'False',
+        'timestamp_format': '',
     },
     '16c-theme': {
         'bufferlist_focus_bg': 'dark gray',

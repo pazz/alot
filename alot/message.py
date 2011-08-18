@@ -26,6 +26,7 @@ from email.header import Header
 
 import helper
 from settings import get_mime_handler
+from settings import config
 
 
 class Message:
@@ -55,7 +56,6 @@ class Message:
         aname, aaddress = self.get_author()
         if not aname:
             aname = aaddress
-        #tags = ','.join(self.get_tags())
         return "%s (%s)" % (aname, self.get_datestring())
 
     def __hash__(self):
@@ -116,9 +116,14 @@ class Message:
         t = self.get_thread()
         return t.get_replies_to(self)
 
-    def get_datestring(self, pretty=True):
-        """returns formated datestring in sup-style, eg: 'Yest.3pm'"""
-        return helper.pretty_datetime(self._datetime)
+    def get_datestring(self):
+        """returns formated datestring"""
+        formatstring = config.get('general', 'timestamp_format')
+        if formatstring:
+            res = self._datetime.strftime(formatstring)
+        else:
+            res = helper.pretty_datetime(self._datetime)
+        return res
 
     def get_author(self):
         """returns realname and address pair of this messages author"""
