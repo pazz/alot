@@ -12,7 +12,11 @@ setup(name='alot',
       packages=['alot'],
       scripts=['bin/alot'],
       license=alot.__copyright__,
-      requires=['notmuch (>=0.7.1)', 'argparse', 'urwid (>=1.0)'],
+      requires=[
+        'notmuch (>=0.7.1)',
+        'argparse (>=2.7)',
+        'urwid (>=1.0)',
+        'subprocess (>=2.7)'],
       provides='alot'
 )
 
