@@ -71,8 +71,7 @@ Here is a key for the interpreted sections:
            global-maps are valid in all modes.
 [tag translate] : defines a map from tagnames to strings that is used when
                   displaying tags. utf-8 symbols welcome.
-[X-theme] : define colour palette for colour mode. X is one of
-            mono, normal and highcolour, corresponding to colourmodes 1, 16 and 256.
+[Xc-theme] : define colour palette for colour mode. X is in {1, 16, 256}.
 
 All configs are optional, but if you want to send mails you need to
 specify at least one account section.
@@ -128,3 +127,38 @@ def pre_exit(ui, dbman, accountman, config):
         ui.logger.info('goodbye, %s!' % accounts[0].realname)
     else:
         ui.logger.info('goodbye!')
+
+
+Theming
+=======
+
+You can change the colour settings in the section [Xc-theme], where X is the
+colour mode you use. This defaults to 256, but 16 and 1 are also possible.
+The colourmode can be changed in the globals section or given as a commandline
+parameter (-C).
+The keys in this section should be self explanatory. In 16c and 256c modes you can define Y_fg and
+Y_bg for the foreground and background of each keyword Y. These can define colorcodes and flags
+like 'underline' or 'bold', comma separated if you want more than one. See urwids doc on Attributes:
+ http://excess.org/urwid/reference.html#AttrSpec
+Urwid privides a neat script that makes choosing colours easy, which can be found here:
+ http://excess.org/urwid/browser/palette_test.py
+
+See data/example.full.rc for a complete list of widgets that can be themed.
+Moreover, keywords that start with "tag_" will be used to display specific tags. For instance, you
+can use the following to always display the "todo" tag in white on red, when in 256c-mode.
+
+[256c-theme]
+tag_todo_bg = #d66
+tag_todo_fg = white
+
+You can translate tag strings before displaying them using the [tag translate] section.
+A key=value statement in this section is interpreted as:
+Always display the tag "key" as string "value". Utf-8 symbols are welcome here.
+See e.g. http://panmental.de/symbols/info.htm
+I personally display my maildir flags like this:
+
+[tag translate]
+flagged = ⚑
+unread = ✉
+replied = ⇄
+
