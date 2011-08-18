@@ -839,7 +839,11 @@ class EnvelopeSendCommand(Command):
             if account.signature:
                 sig = os.path.expanduser(account.signature)
                 if os.path.isfile(sig):
-                    helper.attach(sig, mail, filename='signature')
+                    if account.signature_filename:
+                        name = account.signature_filename
+                    else:
+                        name = None
+                    helper.attach(sig, mail, filename=name)
                 else:
                     ui.notify('could not locate signature: %s' % sig, priority='error')
                     if not ui.choice('send without signature') == 'yes':
