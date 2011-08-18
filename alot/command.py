@@ -17,8 +17,8 @@ along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
 Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 import os
-import glob
 import code
+import glob
 import logging
 import threading
 import subprocess
@@ -41,6 +41,7 @@ import buffer
 import settings
 import widgets
 import completion
+import helper
 from db import DatabaseROError
 from db import DatabaseLockedError
 from completion import ContactsCompleter
@@ -834,6 +835,20 @@ class EnvelopeSendCommand(Command):
         sname, saddr = email.Utils.parseaddr(frm)
         account = ui.accountman.get_account_by_address(saddr)
         if account:
+            # attach signature file if present
+            if account.signature:
+                sig = os.path.expanduser(account.signature)
+                if os.path.isfile(sig):
+                    if account.signature_filename:
+                        name = account.signature_filename
+                    else:
+                        name = None
+                    helper.attach(sig, mail, filename=name)
+                else:
+                    ui.notify('could not locate signature: %s' % sig, priority='error')
+                    if not ui.choice('send without signature') == 'yes':
+                        return
+
             clearme = ui.notify('sending..', timeout=-1, block=False)
             reason = account.send_mail(mail)
             ui.clear_notify([clearme])
@@ -849,11 +864,12 @@ class EnvelopeSendCommand(Command):
 
 
 class EnvelopeAttachCommand(Command):
-    def __init__(self, path=None, **kwargs):
+    def __init__(self, path=None, mail=None, **kwargs):
         Command.__init__(self, **kwargs)
         self.files = []
         if path:
             self.files = glob.glob(os.path.expanduser(path))
+        self.mail = mail
 
     def apply(self, ui):
         if not self.files:
@@ -865,40 +881,15 @@ class EnvelopeAttachCommand(Command):
                 ui.notify('no matches, abort')
                 return
         logging.info(self.files)
-        msg = ui.current_buffer.get_email()
-        for path in self.files:
-            ctype, encoding = mimetypes.guess_type(path)
-            if ctype is None or encoding is not None:
-                # No guess could be made, or the file is encoded (compressed),
-                # so use a generic bag-of-bits type.
-                ctype = 'application/octet-stream'
-            maintype, subtype = ctype.split('/', 1)
-            if maintype == 'text':
-                fp = open(path)
-                # Note: we should handle calculating the charset
-                part = MIMEText(fp.read(), _subtype=subtype)
-                fp.close()
-            elif maintype == 'image':
-                fp = open(path, 'rb')
-                part = MIMEImage(fp.read(), _subtype=subtype)
-                fp.close()
-            elif maintype == 'audio':
-                fp = open(path, 'rb')
-                part = MIMEAudio(fp.read(), _subtype=subtype)
-                fp.close()
-            else:
-                fp = open(path, 'rb')
-                part = MIMEBase(maintype, subtype)
-                part.set_payload(fp.read())
-                fp.close()
-                # Encode the payload using Base64
-                encoders.encode_base64(part)
-            # Set the filename parameter
-            part.add_header('Content-Disposition', 'attachment',
-                            filename=os.path.basename(path))
-            msg.attach(part)
 
-        ui.current_buffer.set_email(msg)
+        msg = self.mail
+        if not msg:
+            msg = ui.current_buffer.get_email()
+        for path in self.files:
+            helper.attach(path, msg)
+
+        if not self.mail:  # set the envelope msg iff we got it from there
+            ui.current_buffer.set_email(msg)
 
 
 # TAGLIST

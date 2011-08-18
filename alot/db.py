@@ -21,6 +21,7 @@ from datetime import datetime
 from collections import deque
 
 from message import Message
+from settings import notmuchconfig as config
 
 DB_ENC = 'utf-8'
 
@@ -89,8 +90,7 @@ class DBManager:
                                           sync_maildir_flags=sync)
                     msg.thaw()
 
-    def tag(self, querystring, tags, remove_rest=False,
-            sync_maildir_flags=False):
+    def tag(self, querystring, tags, remove_rest=False):
         """
         add tags to all matching messages. Raises
         :exc:`DatabaseROError` if in read only mode.
@@ -105,6 +105,7 @@ class DBManager:
         """
         if self.ro:
             raise DatabaseROError()
+        sync_maildir_flags = config.getboolean('maildir', 'synchronize_flags')
         if remove_rest:
             self.writequeue.append(('set', querystring, tags,
                                     sync_maildir_flags))
@@ -112,7 +113,7 @@ class DBManager:
             self.writequeue.append(('tag', querystring, tags,
                                     sync_maildir_flags))
 
-    def untag(self, querystring, tags, sync_maildir_flags=False):
+    def untag(self, querystring, tags):
         """
         add tags to all matching messages. Raises
         :exc:`DatabaseROError` if in read only mode.
@@ -125,6 +126,7 @@ class DBManager:
         """
         if self.ro:
             raise DatabaseROError()
+        sync_maildir_flags = config.getboolean('maildir', 'synchronize_flags')
         self.writequeue.append(('untag', querystring, tags,
                                 sync_maildir_flags))
 
@@ -146,6 +148,13 @@ class DBManager:
             return Thread(self, query.search_threads().next())
         except:
             return None
+
+    def get_message(self, mid):
+        """returns the message with given id as alot.message.Message object"""
+        mode = Database.MODE.READ_ONLY
+        db = Database(path=self.path, mode=mode)
+        msg = db.find_message(mid)
+        return Message(self, msg)
 
     def get_all_tags(self):
         """returns all tags as list of strings"""
@@ -204,7 +213,7 @@ class Thread:
         l.sort()
         return l
 
-    def add_tags(self, tags, sync_maildir_flags=False):
+    def add_tags(self, tags):
         """adds tags to all messages in this thread
 
         :param tags: tags to add
@@ -212,11 +221,10 @@ class Thread:
         """
         newtags = set(tags).difference(self._tags)
         if newtags:
-            self._dbman.tag('thread:' + self._id, newtags,
-                    sync_maildir_flags=sync_maildir_flags)
+            self._dbman.tag('thread:' + self._id, newtags)
             self._tags = self._tags.union(newtags)
 
-    def remove_tags(self, tags, sync_maildir_flags=False):
+    def remove_tags(self, tags):
         """remove tags from all messages in this thread
 
         :param tags: tags to remove
@@ -224,11 +232,10 @@ class Thread:
         """
         rmtags = set(tags).intersection(self._tags)
         if rmtags:
-            self._dbman.untag('thread:' + self._id, tags,
-                    sync_maildir_flags=sync_maildir_flags)
+            self._dbman.untag('thread:' + self._id, tags)
             self._tags = self._tags.difference(rmtags)
 
-    def set_tags(self, tags, sync_maildir_flags=False):
+    def set_tags(self, tags):
         """set tags of all messages in this thread. This removes all tags and
         attaches the given ones in one step.
 
@@ -236,8 +243,7 @@ class Thread:
         :type tags: list of str
         """
         if tags != self._tags:
-            self._dbman.tag('thread:' + self._id, tags, remove_rest=True,
-                    sync_maildir_flags=sync_maildir_flags)
+            self._dbman.tag('thread:' + self._id, tags, remove_rest=True)
             self._tags = set(tags)
 
     def get_authors(self):  # TODO: make this return a list of strings

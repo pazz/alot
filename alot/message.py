@@ -20,11 +20,13 @@ import os
 import email
 import tempfile
 import re
+import mimetypes
 from datetime import datetime
 from email.header import Header
 
 import helper
 from settings import get_mime_handler
+from settings import config
 
 
 class Message:
@@ -43,7 +45,6 @@ class Message:
         self._thread = thread
         self._datetime = datetime.fromtimestamp(msg.get_date())
         self._filename = msg.get_filename()
-        # TODO: change api to return unicode
         self._from = msg.get_header('From')
         self._email = None  # will be read upon first use
         self._attachments = None  # will be read upon first use
@@ -54,7 +55,6 @@ class Message:
         aname, aaddress = self.get_author()
         if not aname:
             aname = aaddress
-        #tags = ','.join(self.get_tags())
         return "%s (%s)" % (aname, self.get_datestring())
 
     def __hash__(self):
@@ -115,9 +115,14 @@ class Message:
         t = self.get_thread()
         return t.get_replies_to(self)
 
-    def get_datestring(self, pretty=True):
-        """returns formated datestring in sup-style, eg: 'Yest.3pm'"""
-        return helper.pretty_datetime(self._datetime)
+    def get_datestring(self):
+        """returns formated datestring"""
+        formatstring = config.get('general', 'timestamp_format')
+        if formatstring:
+            res = self._datetime.strftime(formatstring)
+        else:
+            res = helper.pretty_datetime(self._datetime)
+        return res
 
     def get_author(self):
         """returns realname and address pair of this messages author"""
@@ -155,6 +160,20 @@ class Message:
     def matches(self, querystring):
         searchfor = querystring + ' AND id:' + self._id
         return self._dbman.count_messages(searchfor) > 0
+
+    def get_text_content(self):
+        res = ''
+        for part in self.get_email().walk():
+            ctype = part.get_content_type()
+            enc = part.get_content_charset()
+            if part.get_content_maintype() == 'text':
+                raw_payload = part.get_payload(decode=True)
+                if enc:
+                    raw_payload = raw_payload.decode(enc, errors='replace')
+                else:
+                    raw_payload = unicode(raw_payload, errors='replace')
+                res += raw_payload
+        return res
 
 
 def extract_body(mail):
@@ -263,7 +282,10 @@ class Attachment:
 
     def get_content_type(self):
         """mime type of the attachment"""
-        return self.part.get_content_type()
+        ctype = self.part.get_content_type()
+        if ctype == 'octet/stream' and self.get_filename():
+            ctype, enc = mimetypes.guess_type(self.get_filename())
+        return ctype
 
     def get_size(self):
         """returns attachments size as human-readable string"""

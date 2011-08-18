@@ -41,10 +41,13 @@ class Account:
     gpg_key = None
     """gpg fingerprint. CURRENTLY IGNORED"""
     signature = None
-    """signature to append to outgoing mails. CURRENTLY IGNORED"""
+    """path to a signature file to append to outgoing mails."""
+    signature_filename = None
+    """filename of signature file in attachment"""
 
     def __init__(self, address=None, aliases=None, realname=None, gpg_key=None,
-                 signature=None, sent_box=None, draft_box=None):
+            signature=None, signature_filename=None, sent_box=None,
+            draft_box=None):
         self.address = address
         self.aliases = []
         if aliases:
@@ -52,6 +55,7 @@ class Account:
         self.realname = realname
         self.gpg_key = gpg_key
         self.signature = signature
+        self.signature_filename = signature_filename
 
         self.sent_box = None
         if sent_box:
@@ -160,6 +164,7 @@ class AccountManager:
                'aliases',
                'gpg_key',
                'signature',
+               'signature_filename',
                'type',
                'sendmail_command',
                'sent_box',
