@@ -251,10 +251,10 @@ class ThreadBuffer(Buffer):
         for mw in self.get_message_widgets():
             msg = mw.get_message()
             if msg.matches(querystring):
+                mw.fold(visible=True)
                 if 'unread' in msg.get_tags():
                     msg.remove_tags(['unread'])
                     self.ui.apply_command(command.FlushCommand())
-                mw.fold(visible=True)
 
     def get_message_widgets(self):
         return self.body.body.contents
