@@ -2,7 +2,8 @@ INSTALL
 =======
 
 Alot depends on development versions of notmuch and urwid.
-
+Note that due to restrictions on argparse and subprocess,
+you need to run python v>=2.7.
 
 1. make sure you have urwid V>= 1.0
 -------------------------------------
@@ -10,6 +11,9 @@ Alot depends on development versions of notmuch and urwid.
 > git clone http://github.com/wardi/urwid
 > cd urwid
 > sudo python setup.py install
+It seems you need the python headers for this.
+On debian/ubuntu:
+>aptitude install python2.7-dev
 
 
 2. install notmuch and python bindings from git:
@@ -24,18 +28,7 @@ Alot depends on development versions of notmuch and urwid.
 > sudo python setup.py install
 
 
-3. make sure you have argparse installed:
------------------------------------------
-
-argparse is part of the stadndard library since python v2.7.
-If you are running debian and are still on python 2.6, use 
-aptitude install python-argparse
-or 
-easy_install argparse
-to get a backported version.
-
-
-4. get alot and install it from git:
+3. get alot and install it from git:
 ------------------------------------
 
 > git clone git://github.com/pazz/alot alot
