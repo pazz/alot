@@ -28,11 +28,7 @@ import mimetypes
 from email.parser import Parser
 from email import Charset
 from email.header import Header
-from email import encoders
 from email.message import Message
-from email.mime.audio import MIMEAudio
-from email.mime.base import MIMEBase
-from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import urwid
@@ -845,7 +841,8 @@ class EnvelopeSendCommand(Command):
                         name = None
                     helper.attach(sig, mail, filename=name)
                 else:
-                    ui.notify('could not locate signature: %s' % sig, priority='error')
+                    ui.notify('could not locate signature: %s' % sig,
+                              priority='error')
                     if not ui.choice('send without signature') == 'yes':
                         return
 

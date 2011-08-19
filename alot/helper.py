@@ -87,7 +87,7 @@ def attach(path, mail, filename=None):
         part.set_payload(fp.read())
         fp.close()
         # Encode the payload using Base64
-        encoders.encode_base64(part)
+        email.encoders.encode_base64(part)
     # Set the filename parameter
     if not filename:
         filename = os.path.basename(path)
