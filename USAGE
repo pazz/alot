@@ -93,7 +93,7 @@ I use this for my uni-account:
   aliases = foobar@myuni.uk;f.bar@myuni.uk;f.b100@students.myuni.uk
   sender_type = sendmail
   sendmail_command = msmtp --account=uoe -t
-  sent_mailbox = maildir:///home/pazz/mail/uoe/Sent
+  sent_box = maildir:///home/pazz/mail/uoe/Sent
 
 Caution: Sending mails is only supported via sendmail for now. If you want
 to use a sendmail command different from 'sendmail', specify it as sendmail_command.
