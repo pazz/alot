@@ -95,11 +95,11 @@ class Account:
         """
         mbx.lock()
         if isinstance(mbx, mailbox.Maildir):
-            msg = mailbox.MaildirMessage(email)
+            msg = mailbox.MaildirMessage(mail)
             msg.set_flags('S')
         else:
-            msg = mailbox.Message(email)
-        key = mbx.add(email)
+            msg = mailbox.Message(mail)
+        key = mbx.add(mail)
         mbx.flush()
         mbx.unlock()
 
