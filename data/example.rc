@@ -19,7 +19,8 @@ gpg_key = 123ABC
 signature = /home/john/.signature.gmail  # path to signature file
 signature_filename = sig.txt  # filename in attachment part
 sendmail_command = msmtp --account=gmail -t
-sent_mailbox = maildir:///home/john/mail/gmail/Sent  # we accept mbox,maildir,mh,babyl,mmdf here
+sent_box = maildir:///home/john/mail/gmail/Sent  # we accept mbox,maildir,mh,babyl,mmdf here
+draft_box = maildir:///home/john/mail/gmail/Drafts  # we accept mbox,maildir,mh,babyl,mmdf here
 
 [search-maps]
 t = toggletag todo
