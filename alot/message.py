@@ -264,6 +264,7 @@ def encode_header(key, value):
         for entry in rawentries:
             m = re.search('\s*(.*)\s+<(.*\@.*\.\w*)>$', entry)
             if m:  # If a realname part is contained
+                name, address = m.groups()
                 # try to encode as ascii, if that fails, revert to utf-8
                 # name must be a unicode string here
                 header = Header(name)
