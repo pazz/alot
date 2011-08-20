@@ -21,6 +21,7 @@ displayed_headers = From,To,Cc,Bcc,Subject
 
 # editor command
 editor_cmd = /usr/bin/vim -f -c 'set filetype=mail' +
+editor_writes_encoding' = UTF-8
 
 # timeout in secs after a failed attempt to flush is repeated
 flush_retry_timeout = 5
