@@ -59,7 +59,7 @@ class Account:
 
         self.sent_box = None
         if sent_box:
-            mburl = urlparse(sent_mailbox)
+            mburl = urlparse(sent_box)
             if mburl.scheme == 'mbox':
                 self.sent_box = mailbox.mbox(mburl.path)
             elif mburl.scheme == 'maildir':
@@ -73,7 +73,7 @@ class Account:
 
         self.draft_box = None
         if draft_box:
-            mburl = urlparse(sent_mailbox)
+            mburl = urlparse(draft_box)
             if mburl.scheme == 'mbox':
                 self.draft_box = mailbox.mbox(mburl.path)
             elif mburl.scheme == 'maildir':
@@ -95,11 +95,11 @@ class Account:
         """
         mbx.lock()
         if isinstance(mbx, mailbox.Maildir):
-            msg = mailbox.MaildirMessage(email)
+            msg = mailbox.MaildirMessage(mail)
             msg.set_flags('S')
         else:
-            msg = mailbox.Message(email)
-        key = mbx.add(email)
+            msg = mailbox.Message(mail)
+        key = mbx.add(mail)
         mbx.flush()
         mbx.unlock()
 
