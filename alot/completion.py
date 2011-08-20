@@ -19,6 +19,7 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 
 import re
 import os
+import logging
 
 import command
 
@@ -33,9 +34,10 @@ class Completer:
 class QueryCompleter(Completer):
     """completion for a notmuch query string"""
     # TODO: boolean connectors and braces?
-    def __init__(self, dbman):
+    def __init__(self, dbman, accountman):
         self.dbman = dbman
-        self._contactscompleter = ContactsCompleter()
+        self._contactscompleter = ContactsCompleter(accountman,
+                                                    addressesonly=True)
         self._tagscompleter = TagsCompleter(dbman)
         self.keywords = ['tag', 'from', 'to', 'subject', 'attachment',
                          'is', 'id', 'thread', 'folder']
@@ -77,10 +79,22 @@ class TagsCompleter(Completer):
 
 class ContactsCompleter(Completer):
     """completes contacts"""
+    def __init__(self, accountman, addressesonly=True):
+        self.abooks = accountman.get_addressbooks()
+        self.addressesonly = addressesonly
 
     def complete(self, prefix):
-        # TODO
-        return []
+        if not self.abooks:
+            return []
+        res = []
+        for abook in self.abooks:
+            res = res + abook.lookup(prefix)
+        logging.debug(res)
+        if self.addressesonly:
+            returnlist = [e[len(prefix):] for n,e in res]
+        else:
+            returnlist = ["%s <%s>" % (e,n) for n,e in res]
+        return returnlist
 
 
 class AccountCompleter(Completer):
@@ -117,9 +131,9 @@ class CommandLineCompleter(Completer):
         self.accountman = accountman
         self.mode = mode
         self._commandcompleter = CommandCompleter(dbman, mode)
-        self._querycompleter = QueryCompleter(dbman)
+        self._querycompleter = QueryCompleter(dbman, accountman)
         self._tagscompleter = TagsCompleter(dbman)
-        self._contactscompleter = ContactsCompleter()
+        self._contactscompleter = ContactsCompleter(accountman)
         self._pathcompleter = PathCompleter()
 
     def complete(self, prefix):

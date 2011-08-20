@@ -380,7 +380,8 @@ class ComposeCommand(Command):
 
         #get To header
         if 'To' not in self.mail:
-            to = ui.prompt(prefix='To>', completer=ContactsCompleter())
+            to = ui.prompt(prefix='To>',
+                           completer=ContactsCompleter(ui.accountman))
             self.mail['To'] = encode_header('to', to)
         if settings.config.getboolean('general', 'ask_subject') and \
            not 'Subject' in self.mail:
