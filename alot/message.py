@@ -228,36 +228,53 @@ def decode_to_unicode(part):
 
 
 def decode_header(header):
+    """decode a header value to a unicode string
+
+    values are usually a mixture of different substrings
+    encoded in quoted printable using diffetrent encodings.
+    This turns it into a single unicode string
+
+    :param header: the header value
+    :type header: str in us-ascii
+    :rtype: unicode
+    """
+
     valuelist = email.header.decode_header(header)
-    value = u''
+    decoded_list = []
     for v, enc in valuelist:
         if enc:
-            value = value + v.decode(enc)
+            decoded_list.append(v.decode(enc))
         else:
-            value = value + v
-    value = value.replace('\r', '')
-    value = value.replace('\n', ' ')
-    return value
+            decoded_list.append(v)
+    return u' '.join(decoded_list)
 
 
 def encode_header(key, value):
+    """encodes a unicode string as a valid header value
+
+    :param key: the header field this value will be stored in
+    :type key: str
+    :param value: the value to be encoded
+    :type value: unicode
+    """
+    # handle list of "realname <email>" entries separately
     if key.lower() in ['from', 'to', 'cc', 'bcc']:
         rawentries = value.split(',')
         encodedentries = []
         for entry in rawentries:
             m = re.search('\s*(.*)\s+<(.*\@.*\.\w*)>$', entry)
-            if m:
-                name, address = m.groups()
-                header = Header(name + ' ', 'utf-8')
+            if m:  # If a realname part is contained
+                # try to encode as ascii, if that fails, revert to utf-8
+                # name must be a unicode string here
+                header = Header(name)
+                # append address part encoded as ascii
                 header.append('<%s>' % address, charset='ascii')
                 encodedentries.append(header.encode())
-            else:
-                encodedentries.append(entry.encode('ascii', errors='replace'))
+            else:  # pure email address
+                encodedentries.append(entry)
         value = Header(','.join(encodedentries))
-    elif key.lower() == 'subject':
-        value = Header(value, 'UTF-8')
     else:
-        value = Header(value.encode('ascii', errors='replace'))
+        value = Header(value)
     return value
 
 
