@@ -366,7 +366,7 @@ class ComposeCommand(Command):
                 cmpl = AccountCompleter(ui.accountman)
                 fromaddress = ui.prompt(prefix='From>', completer=cmpl, tab=1)
                 validaddresses = [a.address for a in accounts] + [None]
-                while fromaddress not in validaddresses:
+                while fromaddress not in validaddresses:  # TODO: not cool
                     ui.notify('no account for this address. (<esc> cancels)')
                     fromaddress = ui.prompt(prefix='From>', completer=cmpl)
                 if not fromaddress:
@@ -378,10 +378,16 @@ class ComposeCommand(Command):
         #get To header
         if 'To' not in self.mail:
             to = ui.prompt(prefix='To>', completer=ContactsCompleter())
+            if to == None:
+                ui.notify('canceled')
+                return
             self.mail['To'] = encode_header('to', to)
         if settings.config.getboolean('general', 'ask_subject') and \
            not 'Subject' in self.mail:
             subject = ui.prompt(prefix='Subject>')
+            if subject == None:
+                ui.notify('canceled')
+                return
             self.mail['Subject'] = encode_header('subject', subject)
 
         ui.apply_command(EnvelopeEditCommand(mail=self.mail))
