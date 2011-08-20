@@ -28,10 +28,11 @@ DEFAULTS = {
     'general': {
         'colourmode': '256',
         'editor_cmd': "/usr/bin/vim -f -c 'set filetype=mail' +",
+        'editor_writes_encoding': 'UTF-8',
         'terminal_cmd': 'x-terminal-emulator -e',
         'spawn_editor': 'False',
         'displayed_headers': 'From,To,Cc,Bcc,Subject',
-        'display_content_in_threadline': 'True',
+        'display_content_in_threadline': 'False',
         'authors_maxlength': '30',
         'ask_subject': 'True',
         'notify_timeout': '2',
@@ -39,6 +40,7 @@ DEFAULTS = {
         'flush_retry_timeout': '5',
         'hooksfile': '~/.alot.py',
         'bug_on_exit': 'False',
+        'timestamp_format': '',
     },
     '16c-theme': {
         'bufferlist_focus_bg': 'dark gray',

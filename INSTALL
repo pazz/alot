@@ -2,7 +2,8 @@ INSTALL
 =======
 
 Alot depends on development versions of notmuch and urwid.
-
+Note that due to restrictions on argparse and subprocess,
+you need to run python v>=2.7.
 
 1. make sure you have urwid V>= 1.0
 -------------------------------------
@@ -10,6 +11,9 @@ Alot depends on development versions of notmuch and urwid.
 > git clone http://github.com/wardi/urwid
 > cd urwid
 > sudo python setup.py install
+It seems you need the python headers for this.
+On debian/ubuntu:
+>aptitude install python2.7-dev
 
 
 2. install notmuch and python bindings from git:
@@ -24,21 +28,14 @@ Alot depends on development versions of notmuch and urwid.
 > sudo python setup.py install
 
 
-3. make sure you have argparse installed:
------------------------------------------
-
-If you are running debian and are still on python 2.6,
-easy_install argparse
-
-
-4. get alot and install it from git:
+3. get alot and install it from git:
 ------------------------------------
 
 > git clone git://github.com/pazz/alot alot
 > cd alot
 > sudo python setup.py install
 
-Thats it, now "alot" should be in your path.
+That's it, now "alot" should be in your path.
 
 Alot tries to be as unobtrusive as possible, with one exception:
 It forces you to use UTF-8 encoding whereever it can:
@@ -49,7 +46,7 @@ All configs are optional, but if you want to send mails you need to
 specify at least one account section:
 
   [account uoe]
-  realname = Your Name 
+  realname = Your Name
   address = your@address
   sendmail_command = msmtp
   sent_mailbox = maildir:///home/you/mail/Sent

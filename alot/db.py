@@ -149,6 +149,13 @@ class DBManager:
         except:
             return None
 
+    def get_message(self, mid):
+        """returns the message with given id as alot.message.Message object"""
+        mode = Database.MODE.READ_ONLY
+        db = Database(path=self.path, mode=mode)
+        msg = db.find_message(mid)
+        return Message(self, msg)
+
     def get_all_tags(self):
         """returns all tags as list of strings"""
         db = Database(path=self.path)

@@ -22,6 +22,13 @@ from datetime import timedelta
 import shlex
 import subprocess
 import email
+import mimetypes
+import os
+from email.mime.audio import MIMEAudio
+from email.mime.base import MIMEBase
+from email.mime.image import MIMEImage
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 
 def shorten(string, maxlen):
@@ -52,3 +59,38 @@ def cmd_output(command_line):
     except OSError:
         return None
     return output
+
+
+def attach(path, mail, filename=None):
+    ctype, encoding = mimetypes.guess_type(path)
+    if ctype is None or encoding is not None:
+        # No guess could be made, or the file is encoded (compressed),
+        # so use a generic bag-of-bits type.
+        ctype = 'application/octet-stream'
+    maintype, subtype = ctype.split('/', 1)
+    if maintype == 'text':
+        fp = open(path)
+        # Note: we should handle calculating the charset
+        part = MIMEText(fp.read(), _subtype=subtype)
+        fp.close()
+    elif maintype == 'image':
+        fp = open(path, 'rb')
+        part = MIMEImage(fp.read(), _subtype=subtype)
+        fp.close()
+    elif maintype == 'audio':
+        fp = open(path, 'rb')
+        part = MIMEAudio(fp.read(), _subtype=subtype)
+        fp.close()
+    else:
+        fp = open(path, 'rb')
+        part = MIMEBase(maintype, subtype)
+        part.set_payload(fp.read())
+        fp.close()
+        # Encode the payload using Base64
+        email.encoders.encode_base64(part)
+    # Set the filename parameter
+    if not filename:
+        filename = os.path.basename(path)
+    part.add_header('Content-Disposition', 'attachment',
+                    filename=filename)
+    mail.attach(part)

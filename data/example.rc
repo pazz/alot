@@ -9,8 +9,6 @@ authors_maxlength = 30
 displayed_headers = From,To,Cc,Bcc,Subject
 ask_subject = True
 notify_timeout = 1  # how long (in seconds) notifications are shown
-show_notificationbar = False
-show_statusbar = True
 flush_retry_timeout = 5  # timeout in secs after a failed attempt to flush is repeated
 
 [account gmail]
@@ -18,9 +16,11 @@ realname = john doe
 address = john.doe@gmail.com
 aliases = john.doe@googlemail.com;john.d@g.com  # ';' separated list of alias addresses
 gpg_key = 123ABC
-signature = /home/john/.signature
+signature = /home/john/.signature.gmail  # path to signature file
+signature_filename = sig.txt  # filename in attachment part
 sendmail_command = msmtp --account=gmail -t
-sent_mailbox = maildir:///home/john/mail/gmail/Sent  # we accept mbox,maildir,mh,babyl,mmdf here
+sent_box = maildir:///home/john/mail/gmail/Sent  # we accept mbox,maildir,mh,babyl,mmdf here
+draft_box = maildir:///home/john/mail/gmail/Drafts  # we accept mbox,maildir,mh,babyl,mmdf here
 
 [search-maps]
 t = toggletag todo
