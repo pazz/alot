@@ -44,7 +44,7 @@ def pretty_datetime(d):
 
 
 def cmd_output(command_line):
-    args = shlex.split(command_line)
+    args = shlex.split(command_line.encode('ascii', errors='ignore'))
     try:
         output = subprocess.check_output(args)
     except subprocess.CalledProcessError:
