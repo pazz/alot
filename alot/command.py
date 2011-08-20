@@ -754,7 +754,8 @@ class EnvelopeEditCommand(Command):
 
         def openEnvelopeFromTmpfile():
             f = open(tf.name)
-            editor_input = f.read().decode('utf-8')
+            enc = settings.config.get('general', 'editor_writes_encoding')
+            editor_input = f.read().decode(enc)
 
             #split editor out
             headertext, bodytext = editor_input.split('\n\n', 1)

@@ -28,6 +28,7 @@ DEFAULTS = {
     'general': {
         'colourmode': '256',
         'editor_cmd': "/usr/bin/vim -f -c 'set filetype=mail' +",
+        'editor_writes_encoding': 'UTF-8',
         'terminal_cmd': 'x-terminal-emulator -e',
         'spawn_editor': 'False',
         'displayed_headers': 'From,To,Cc,Bcc,Subject',
