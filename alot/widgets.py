@@ -59,7 +59,7 @@ class ThreadlineWidget(urwid.AttrMap):
         for tag in tags:
             tw = TagWidget(tag)
             self.tag_widgets.append(tw)
-            cols.append(('fixed', tw.len(), tw))
+            cols.append(('fixed', tw.width(), tw))
 
         authors = self.thread.get_authors() or '(None)'
         maxlength = config.getint('general', 'authors_maxlength')
