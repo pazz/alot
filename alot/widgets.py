@@ -443,8 +443,8 @@ class MessageHeaderWidget(urwid.AttrMap):
                     else:
                         value = value + v
                 #sanitize it a bit:
-                value = value.replace('\t', '')
-                value = value.replace('\r', '')
+                value = value.replace('\t', ' ')
+                value = ' '.join([line.strip() for line in value.splitlines()])
                 keyw = ('fixed', max_key_len + 1,
                         urwid.Text(('message_header_key', key)))
                 valuew = urwid.Text(('message_header_value', value))
