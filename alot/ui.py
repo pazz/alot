@@ -155,12 +155,16 @@ class UI:
                               history=self.commandprompthistory,
                              )
         if cmdline:
-            self.commandprompthistory.append(cmdline)
-            cmd = interpret_commandline(cmdline, mode)
-            if cmd:
-                self.apply_command(cmd)
-            else:
-                self.notify('invalid command')
+            self.interpret_commandline(cmdline)
+
+    def interpret_commandline(self, cmdline):
+        mode = self.current_buffer.typename
+        self.commandprompthistory.append(cmdline)
+        cmd = interpret_commandline(cmdline, mode)
+        if cmd:
+            self.apply_command(cmd)
+        else:
+            self.notify('invalid command')
 
     def buffer_open(self, b):
         """
