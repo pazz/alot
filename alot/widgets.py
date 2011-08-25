@@ -138,7 +138,7 @@ class BufferlineWidget(urwid.Text):
 class TagWidget(urwid.AttrMap):
     def __init__(self, tag):
         self.tag = tag
-        self.translated = config.get('tag translate', tag, fallback=tag)
+        self.translated = config.get('tag-translate', tag, fallback=tag)
         self.translated = self.translated.encode('utf-8')
         self.txt = urwid.Text(self.translated, wrap='clip')
         normal = config.get_tagattr(tag)
