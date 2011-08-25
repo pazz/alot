@@ -145,6 +145,11 @@ class UI:
                     self.mainloop.draw_screen()
 
     def commandprompt(self, startstring):
+        """prompt for a commandline and interpret/apply it upon enter
+
+        :param startstring: initial text in edit part
+        :type startstring: str
+        """
         self.logger.info('open command shell')
         mode = self.current_buffer.typename
         cmdline = self.prompt(prefix=':',
@@ -158,6 +163,11 @@ class UI:
             self.interpret_commandline(cmdline)
 
     def interpret_commandline(self, cmdline):
+        """interpret and apply a commandstring
+
+        :param cmdline: command string to apply
+        :type cmdline: str
+        """
         mode = self.current_buffer.typename
         self.commandprompthistory.append(cmdline)
         cmd = interpret_commandline(cmdline, mode)
