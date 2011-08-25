@@ -77,7 +77,7 @@ class UI:
     def keypress(self, key):
         self.logger.debug('unhandeled input: %s' % key)
 
-    def prompt(self, prefix='>', text=u'', completer=None, tab=0 ,history=[]):
+    def prompt(self, prefix='>', text=u'', completer=None, tab=0, history=[]):
         """prompt for text input
 
         :param prefix: text to print before the input field
@@ -131,7 +131,7 @@ class UI:
                     if history:
                         if historypos == None:
                             history.append(editpart.get_edit_text())
-                            historypos = len(history)-1
+                            historypos = len(history) - 1
                         if key == 'cursor up':
                             historypos = (historypos - 1) % len(history)
                         else:
