@@ -17,6 +17,7 @@ along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
 Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 import os
+import re
 import code
 import glob
 import logging
@@ -751,17 +752,29 @@ class EnvelopeEditCommand(Command):
             self.mail = ui.current_buffer.get_email()
 
         def openEnvelopeFromTmpfile():
+            # This parses the input from the tempfile.
+            # we do this ourselves here because we want to be able to 
+            # just type utf-8 encoded stuff into the tempfile and let alot worry
+            # about encodings.
+
+            # get input
             f = open(tf.name)
             enc = settings.config.get('general', 'editor_writes_encoding')
             editor_input = f.read().decode(enc)
-
-            #split editor out
             headertext, bodytext = editor_input.split('\n\n', 1)
 
+            # go through multiline, utf-8 encoded headers
+            key = value = None
             for line in headertext.splitlines():
-                key, value = line.strip().split(':', 1)
-                value = value.strip()
-                del self.mail[key]  # ensure there is only one
+                if re.match('\w+:', line):  #new k/v pair
+                    if key and value:  # save old one from stack
+                        del self.mail[key]  # ensure unique values in mails
+                        self.mail[key] = encode_header(key, value)  # save
+                    key, value = line.strip().split(':', 1)  # parse new pair
+                elif key and value:  # append new line without key prefix to value
+                    value += line
+            if key and value:  # save last one if present
+                del self.mail[key]
                 self.mail[key] = encode_header(key, value)
 
             if self.mail.is_multipart():
@@ -785,7 +798,7 @@ class EnvelopeEditCommand(Command):
         for key in edit_headers:
             value = u''
             if key in self.mail:
-                value = decode_header(self.mail[key])
+                value = decode_header(self.mail.get(key, ''))
             headertext += '%s: %s\n' % (key, value)
 
         if self.mail.is_multipart():
