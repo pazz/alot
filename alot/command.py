@@ -875,7 +875,8 @@ class EnvelopeAttachCommand(Command):
             msg = ui.current_buffer.get_email()
 
         if self.path:
-            files = glob.glob(os.path.expanduser(self.path))
+            files = filter(os.path.isfile,
+                           glob.glob(os.path.expanduser(self.path)))
             if not files:
                 ui.notify('no matches, abort')
                 return
