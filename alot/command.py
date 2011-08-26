@@ -870,26 +870,24 @@ class EnvelopeSendCommand(Command):
 class EnvelopeAttachCommand(Command):
     def __init__(self, path=None, mail=None, **kwargs):
         Command.__init__(self, **kwargs)
-        self.files = []
-        if path:
-            self.files = glob.glob(os.path.expanduser(path))
         self.mail = mail
+        self.path = path
 
     def apply(self, ui):
-        if not self.files:
-            path = ui.prompt(prefix='attach files matching:', text='~/',
-                             completer=completion.PathCompleter())
-            if path:
-                self.files = glob.glob(os.path.expanduser(path))
-            if not self.files:
-                ui.notify('no matches, abort')
-                return
-        logging.info(self.files)
-
         msg = self.mail
         if not msg:
             msg = ui.current_buffer.get_email()
-        for path in self.files:
+
+        if self.path:
+            files = glob.glob(os.path.expanduser(self.path))
+            if not files:
+                ui.notify('no matches, abort')
+                return
+        else:
+            ui.notify('no files specified, abort')
+
+        logging.info("attaching: %s" % files)
+        for path in files:
             helper.attach(path, msg)
 
         if not self.mail:  # set the envelope msg iff we got it from there

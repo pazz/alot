@@ -252,7 +252,7 @@ DEFAULTS = {
         'enter': 'select',
     },
     'envelope-maps': {
-        'a': 'attach',
+        'a': 'prompt attach ~/',
         'y': 'send',
         'enter': 'reedit',
         't': 'prompt to ',
