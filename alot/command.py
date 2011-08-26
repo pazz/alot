@@ -489,10 +489,7 @@ class ReplyCommand(Command):
         reply.attach(bodypart)
 
         # copy subject
-        if 'Subject' not in mail or mail['Subject'] == None:
-            subject = ''
-        else:
-            subject = mail['Subject']
+        subject = mail.get('Subject', '')
         if not subject.startswith('Re:'):
             subject = 'Re: ' + subject
         reply['Subject'] = Header(subject.encode('utf-8'), 'UTF-8').encode()
@@ -500,7 +497,7 @@ class ReplyCommand(Command):
         # set From
         my_addresses = ui.accountman.get_addresses()
         matched_address = ''
-        in_to = [a for a in my_addresses if a in mail['To']]
+        in_to = [a for a in my_addresses if a in mail.get('To', '')]
         if in_to:
             matched_address = in_to[0]
         else:
@@ -514,10 +511,9 @@ class ReplyCommand(Command):
             reply['From'] = encode_header('From', fromstring)
 
         # set To
-        #reply['To'] = Header(mail['From'].encode('utf-8'), 'UTF-8').encode()
         del(reply['To'])
         if self.groupreply:
-            cleared = self.clear_my_address(my_addresses, mail['To'])
+            cleared = self.clear_my_address(my_addresses, mail.get('To', ''))
             if cleared:
                 logging.info(mail['From'] + ', ' + cleared)
                 to = mail['From'] + ', ' + cleared
@@ -540,7 +536,7 @@ class ReplyCommand(Command):
         reply['In-Reply-To'] = '<%s>' % self.message.get_message_id()
 
         # set References header
-        old_references = mail['References']
+        old_references = mail.get('References', '')
         if old_references:
             old_references = old_references.split()
             references = old_references[-8:]
@@ -600,14 +596,14 @@ class ForwardCommand(Command):
             reply.attach(mail)
 
         # copy subject
-        subject = mail['Subject']
+        subject = mail.get('Subject', '')
         subject = 'Fwd: ' + subject
         reply['Subject'] = Header(subject.encode('utf-8'), 'UTF-8').encode()
 
         # set From
         my_addresses = ui.accountman.get_addresses()
         matched_address = ''
-        in_to = [a for a in my_addresses if a in mail['To']]
+        in_to = [a for a in my_addresses if a in mail.get('To', '')]
         if in_to:
             matched_address = in_to[0]
         else:
