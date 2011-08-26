@@ -7,7 +7,7 @@ you need to run *python v>=2.7*.
 
 1. urwid
 --------
-make sure you have urwid V>= 1.0::
+make sure you have urwid V>= 1.0
 
     git clone http://github.com/wardi/urwid
     cd urwid
@@ -19,7 +19,7 @@ On debian/ubuntu\:::
 
 2. notmuch
 ----------
-install notmuch *and* python bindings from git\:::
+install notmuch *and* python bindings from git:
 
     git clone git://notmuchmail.org/git/notmuch
     cd notmuch
@@ -31,7 +31,7 @@ install notmuch *and* python bindings from git\:::
 
 3. alot
 -------
-get alot and install it from git\:::
+get alot and install it from git:
 
     git clone git://github.com/pazz/alot alot
     cd alot
@@ -45,7 +45,7 @@ All text parts and headers of outgoing emails are converted to utf-8,
 notmuch tagstrings, edited emails and config files are interpreted as utf-8.
 
 All configs are optional, but if you want to send mails you need to
-specify at least one account section in you config\:::
+specify at least one account section in you config:
 
     [account uoe]
     realname = Your Name

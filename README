@@ -1,11 +1,10 @@
-This is a proposal for a terminal gui for `notmuch mail <http://notmuchmail.org/>`, 
-written in python using the `urwid <http://excess.org/urwid/>` toolkit.
+This is a proposal for a terminal gui for [notmuch mail][notmuch]
+written in python using the [urwid][urwid] toolkit.
 
 You can find some old screenshots in `data/alot*png`,
 the files `INSTALL` and `USAGE` contain instructions on how to set it up,
-use and customize. These files are nicely rendered in the github
-`wiki <https://github.com/pazz/alot/wiki>`.
-The API docs for the current master branch are `here <http://pazz.github.com/alot/>`,
+use and customize. These files are nicely rendered in the [github wiki][wiki].
+The API docs for the current master branch are [here][api].
 the `docs` directory contains their sources.
 
 Do comment on the code or file issues! I'm curious what you think of it.
@@ -33,3 +32,8 @@ Soonish to be addressed non-features:
  * folding for message parts
  * undo for commands
  * addressbook integration
+
+[notmuch]: http://notmuchmail.org/
+[urwid]: http://excess.org/urwid/
+[api]: http://pazz.github.com/alot/
+[wiki]: https://github.com/pazz/alot/wiki
