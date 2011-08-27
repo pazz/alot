@@ -184,7 +184,7 @@ def extract_body(mail):
         raw_payload = part.get_payload(decode=True)
         if part.get_content_maintype() == 'text':
             if enc:
-                raw_payload = unicode(raw_payload, enc)
+                raw_payload = unicode(raw_payload, enc, errors='replace')
             else:
                 raw_payload = unicode(raw_payload, errors='replace')
         if ctype == 'text/plain':
