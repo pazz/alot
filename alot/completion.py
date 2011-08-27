@@ -54,7 +54,7 @@ class QueryCompleter(Completer):
         else:
             plen = len(prefix)
             matched = filter(lambda t: t.startswith(prefix), self.keywords)
-            return [t[plen:] + ':' for t in matched]
+            return [t + ':' for t in matched]
 
 
 class TagsCompleter(Completer):
@@ -70,7 +70,7 @@ class TagsCompleter(Completer):
         if len(otags) > 1 and last:
             return []
         else:
-            matching = [t[len(prefix):] for t in tags if t.startswith(prefix)]
+            matching = [t for t in tags if t.startswith(prefix)]
             if last:
                 return matching
             else:
@@ -79,7 +79,7 @@ class TagsCompleter(Completer):
 
 class ContactsCompleter(Completer):
     """completes contacts"""
-    def __init__(self, accountman, addressesonly=True):
+    def __init__(self, accountman, addressesonly=False):
         self.abooks = accountman.get_addressbooks()
         self.addressesonly = addressesonly
 
@@ -91,9 +91,9 @@ class ContactsCompleter(Completer):
             res = res + abook.lookup(prefix)
         logging.debug(res)
         if self.addressesonly:
-            returnlist = [e[len(prefix):] for n,e in res]
+            returnlist = [e for n,e in res]
         else:
-            returnlist = ["%s <%s>" % (e,n) for n,e in res]
+            returnlist = ["%s <%s>" % x for x in res]
         return returnlist
 
 
@@ -105,7 +105,7 @@ class AccountCompleter(Completer):
 
     def complete(self, prefix):
         valids = self.accountman.get_main_addresses()
-        return [a[len(prefix):] for a in valids if a.startswith(prefix)]
+        return [a for a in valids if a.startswith(prefix)]
 
 
 class CommandCompleter(Completer):
@@ -120,7 +120,7 @@ class CommandCompleter(Completer):
         cmdlist = command.COMMANDS['global']
         cmdlist.update(command.COMMANDS[self.mode])
         olen = len(original)
-        return [t[olen:] + '' for t in cmdlist if t.startswith(original)]
+        return [t + '' for t in cmdlist if t.startswith(original)]
 
 
 class CommandLineCompleter(Completer):
@@ -167,5 +167,5 @@ class PathCompleter(Completer):
         if os.path.isdir(dir):
             for f in os.listdir(dir):
                 if f.startswith(fileprefix):
-                    res.append(f[len(fileprefix):])
+                    res.append(f)
         return res

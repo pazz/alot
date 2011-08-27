@@ -190,10 +190,10 @@ class CompleteEdit(urwid.Edit):
                 else:
                     self.focus_in_clist -= 1
             if len(self.completion_results) > 1:
-                suffix = self.completion_results[self.focus_in_clist %
+                completed = self.completion_results[self.focus_in_clist %
                                           len(self.completion_results)]
-                self.set_edit_text(original + suffix)
-                self.edit_pos += len(suffix)
+                self.set_edit_text(completed)
+                self.edit_pos += len(completed)
             else:
                 self.set_edit_text(original + ' ')
                 self.edit_pos += 1
