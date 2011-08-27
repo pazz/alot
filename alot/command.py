@@ -17,22 +17,20 @@ along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
 Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 import os
-import glob
+import re
 import code
+import glob
 import logging
 import threading
 import subprocess
+import shlex
 import email
 import tempfile
 import mimetypes
 from email.parser import Parser
 from email import Charset
 from email.header import Header
-from email import encoders
 from email.message import Message
-from email.mime.audio import MIMEAudio
-from email.mime.base import MIMEBase
-from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import urwid
@@ -41,6 +39,7 @@ import buffer
 import settings
 import widgets
 import completion
+import helper
 from db import DatabaseROError
 from db import DatabaseLockedError
 from completion import ContactsCompleter
@@ -369,7 +368,7 @@ class ComposeCommand(Command):
                 cmpl = AccountCompleter(ui.accountman)
                 fromaddress = ui.prompt(prefix='From>', completer=cmpl, tab=1)
                 validaddresses = [a.address for a in accounts] + [None]
-                while fromaddress not in validaddresses:
+                while fromaddress not in validaddresses:  # TODO: not cool
                     ui.notify('no account for this address. (<esc> cancels)')
                     fromaddress = ui.prompt(prefix='From>', completer=cmpl)
                 if not fromaddress:
@@ -381,10 +380,16 @@ class ComposeCommand(Command):
         #get To header
         if 'To' not in self.mail:
             to = ui.prompt(prefix='To>', completer=ContactsCompleter())
+            if to == None:
+                ui.notify('canceled')
+                return
             self.mail['To'] = encode_header('to', to)
         if settings.config.getboolean('general', 'ask_subject') and \
            not 'Subject' in self.mail:
             subject = ui.prompt(prefix='Subject>')
+            if subject == None:
+                ui.notify('canceled')
+                return
             self.mail['Subject'] = encode_header('subject', subject)
 
         ui.apply_command(EnvelopeEditCommand(mail=self.mail))
@@ -486,10 +491,7 @@ class ReplyCommand(Command):
         reply.attach(bodypart)
 
         # copy subject
-        if 'Subject' not in mail or mail['Subject'] == None:
-            subject = ''
-        else:
-            subject = mail['Subject']
+        subject = mail.get('Subject', '')
         if not subject.startswith('Re:'):
             subject = 'Re: ' + subject
         reply['Subject'] = Header(subject.encode('utf-8'), 'UTF-8').encode()
@@ -497,7 +499,7 @@ class ReplyCommand(Command):
         # set From
         my_addresses = ui.accountman.get_addresses()
         matched_address = ''
-        in_to = [a for a in my_addresses if a in mail['To']]
+        in_to = [a for a in my_addresses if a in mail.get('To', '')]
         if in_to:
             matched_address = in_to[0]
         else:
@@ -511,10 +513,9 @@ class ReplyCommand(Command):
             reply['From'] = encode_header('From', fromstring)
 
         # set To
-        #reply['To'] = Header(mail['From'].encode('utf-8'), 'UTF-8').encode()
         del(reply['To'])
         if self.groupreply:
-            cleared = self.clear_my_address(my_addresses, mail['To'])
+            cleared = self.clear_my_address(my_addresses, mail.get('To', ''))
             if cleared:
                 logging.info(mail['From'] + ', ' + cleared)
                 to = mail['From'] + ', ' + cleared
@@ -537,7 +538,7 @@ class ReplyCommand(Command):
         reply['In-Reply-To'] = '<%s>' % self.message.get_message_id()
 
         # set References header
-        old_references = mail['References']
+        old_references = mail.get('References', '')
         if old_references:
             old_references = old_references.split()
             references = old_references[-8:]
@@ -597,14 +598,14 @@ class ForwardCommand(Command):
             reply.attach(mail)
 
         # copy subject
-        subject = mail['Subject']
+        subject = mail.get('Subject', '')
         subject = 'Fwd: ' + subject
         reply['Subject'] = Header(subject.encode('utf-8'), 'UTF-8').encode()
 
         # set From
         my_addresses = ui.accountman.get_addresses()
         matched_address = ''
-        in_to = [a for a in my_addresses if a in mail['To']]
+        in_to = [a for a in my_addresses if a in mail.get('To', '')]
         if in_to:
             matched_address = in_to[0]
         else:
@@ -649,6 +650,57 @@ class ToggleHeaderCommand(Command):
     def apply(self, ui):
         msgw = ui.current_buffer.get_selection()
         msgw.toggle_full_header()
+
+
+class PrintCommand(Command):
+    def __init__(self, all=False, separately=False, confirm=True, **kwargs):
+        Command.__init__(self, **kwargs)
+        self.all = all
+        self.separately = separately
+        self.confirm = confirm
+
+    def apply(self, ui):
+        # get messages to print
+        if self.all:
+            thread = ui.current_buffer.get_selected_thread()
+            to_print = thread.get_messages().keys()
+            confirm_msg = 'print all messages in thread?'
+            ok_msg = 'printed thread: %s' % str(thread)
+        else:
+            to_print = [ui.current_buffer.get_selected_message()]
+            confirm_msg = 'print this message?'
+            ok_msg = 'printed message: %s' % str(to_print[0])
+
+        # ask for confirmation if needed
+        if self.confirm:
+            if not ui.choice(confirm_msg) == 'yes':
+                return
+
+        # prepare message sources
+        mailstrings = [m.get_email().as_string() for m in to_print]
+        if not self.separately:
+            mailstrings = ['\n\n'.join(mailstrings)]
+
+        # get print command
+        cmd = settings.config.get('general', 'print_cmd')
+        args = shlex.split(cmd.encode('ascii'))
+
+        # print
+        try:
+            for mail in mailstrings:
+                proc = subprocess.Popen(args, stdin=subprocess.PIPE,
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.PIPE)
+                out, err = proc.communicate(mail)
+                if proc.poll():  # returncode is not 0
+                    raise OSError(err)
+        except OSError, e:  # handle errors
+            ui.notify(str(e), priority='error')
+            return
+
+        # display 'done' message
+        ui.notify(ok_msg)
+
 
 
 class SaveAttachmentCommand(Command):
@@ -752,16 +804,29 @@ class EnvelopeEditCommand(Command):
             self.mail = ui.current_buffer.get_email()
 
         def openEnvelopeFromTmpfile():
-            f = open(tf.name)
-            editor_input = f.read().decode('utf-8')
+            # This parses the input from the tempfile.
+            # we do this ourselves here because we want to be able to 
+            # just type utf-8 encoded stuff into the tempfile and let alot worry
+            # about encodings.
 
-            #split editor out
+            # get input
+            f = open(tf.name)
+            enc = settings.config.get('general', 'editor_writes_encoding')
+            editor_input = f.read().decode(enc)
             headertext, bodytext = editor_input.split('\n\n', 1)
 
+            # go through multiline, utf-8 encoded headers
+            key = value = None
             for line in headertext.splitlines():
-                key, value = line.strip().split(':', 1)
-                value = value.strip()
-                del self.mail[key]  # ensure there is only one
+                if re.match('\w+:', line):  #new k/v pair
+                    if key and value:  # save old one from stack
+                        del self.mail[key]  # ensure unique values in mails
+                        self.mail[key] = encode_header(key, value)  # save
+                    key, value = line.strip().split(':', 1)  # parse new pair
+                elif key and value:  # append new line without key prefix to value
+                    value += line
+            if key and value:  # save last one if present
+                del self.mail[key]
                 self.mail[key] = encode_header(key, value)
 
             if self.mail.is_multipart():
@@ -785,7 +850,7 @@ class EnvelopeEditCommand(Command):
         for key in edit_headers:
             value = u''
             if key in self.mail:
-                value = decode_header(self.mail[key])
+                value = decode_header(self.mail.get(key, ''))
             headertext += '%s: %s\n' % (key, value)
 
         if self.mail.is_multipart():
@@ -834,6 +899,21 @@ class EnvelopeSendCommand(Command):
         sname, saddr = email.Utils.parseaddr(frm)
         account = ui.accountman.get_account_by_address(saddr)
         if account:
+            # attach signature file if present
+            if account.signature:
+                sig = os.path.expanduser(account.signature)
+                if os.path.isfile(sig):
+                    if account.signature_filename:
+                        name = account.signature_filename
+                    else:
+                        name = None
+                    helper.attach(sig, mail, filename=name)
+                else:
+                    ui.notify('could not locate signature: %s' % sig,
+                              priority='error')
+                    if not ui.choice('send without signature') == 'yes':
+                        return
+
             clearme = ui.notify('sending..', timeout=-1, block=False)
             reason = account.send_mail(mail)
             ui.clear_notify([clearme])
@@ -849,56 +929,31 @@ class EnvelopeSendCommand(Command):
 
 
 class EnvelopeAttachCommand(Command):
-    def __init__(self, path=None, **kwargs):
+    def __init__(self, path=None, mail=None, **kwargs):
         Command.__init__(self, **kwargs)
-        self.files = []
-        if path:
-            self.files = glob.glob(os.path.expanduser(path))
+        self.mail = mail
+        self.path = path
 
     def apply(self, ui):
-        if not self.files:
-            path = ui.prompt(prefix='attach files matching:', text='~/',
-                             completer=completion.PathCompleter())
-            if path:
-                self.files = glob.glob(os.path.expanduser(path))
-            if not self.files:
+        msg = self.mail
+        if not msg:
+            msg = ui.current_buffer.get_email()
+
+        if self.path:
+            files = filter(os.path.isfile,
+                           glob.glob(os.path.expanduser(self.path)))
+            if not files:
                 ui.notify('no matches, abort')
                 return
-        logging.info(self.files)
-        msg = ui.current_buffer.get_email()
-        for path in self.files:
-            ctype, encoding = mimetypes.guess_type(path)
-            if ctype is None or encoding is not None:
-                # No guess could be made, or the file is encoded (compressed),
-                # so use a generic bag-of-bits type.
-                ctype = 'application/octet-stream'
-            maintype, subtype = ctype.split('/', 1)
-            if maintype == 'text':
-                fp = open(path)
-                # Note: we should handle calculating the charset
-                part = MIMEText(fp.read(), _subtype=subtype)
-                fp.close()
-            elif maintype == 'image':
-                fp = open(path, 'rb')
-                part = MIMEImage(fp.read(), _subtype=subtype)
-                fp.close()
-            elif maintype == 'audio':
-                fp = open(path, 'rb')
-                part = MIMEAudio(fp.read(), _subtype=subtype)
-                fp.close()
-            else:
-                fp = open(path, 'rb')
-                part = MIMEBase(maintype, subtype)
-                part.set_payload(fp.read())
-                fp.close()
-                # Encode the payload using Base64
-                encoders.encode_base64(part)
-            # Set the filename parameter
-            part.add_header('Content-Disposition', 'attachment',
-                            filename=os.path.basename(path))
-            msg.attach(part)
+        else:
+            ui.notify('no files specified, abort')
 
-        ui.current_buffer.set_email(msg)
+        logging.info("attaching: %s" % files)
+        for path in files:
+            helper.attach(path, msg)
+
+        if not self.mail:  # set the envelope msg iff we got it from there
+            ui.current_buffer.set_email(msg)
 
 
 # TAGLIST
@@ -937,6 +992,7 @@ COMMANDS = {
         'groupreply': (ReplyCommand, {'groupreply': True}),
         'forward': (ForwardCommand, {}),
         'fold': (FoldMessagesCommand, {'visible': False}),
+        'print': (PrintCommand, {}),
         'unfold': (FoldMessagesCommand, {'visible': True}),
         'select': (ThreadSelectCommand, {}),
         'save': (SaveAttachmentCommand, {}),
@@ -1052,6 +1108,10 @@ def interpret_commandline(cmdline, mode):
         filepath = os.path.expanduser(params)
         if os.path.isfile(filepath):
             return commandfactory(cmd, mode=mode, path=filepath)
+    elif cmd == 'print':
+        args = [a.strip() for a in params.split()]
+        return commandfactory(cmd, mode=mode, all=('--all' in args),
+                              separately=('--separately' in args))
 
     elif not params and cmd in ['exit', 'flush', 'pyshell', 'taglist',
                                 'bclose', 'compose', 'openfocussed',

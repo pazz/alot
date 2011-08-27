@@ -31,7 +31,10 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', dest='configfile',
                         default='~/.alot.rc',
-                        help='config file')
+                        help='alot\'s config file')
+    parser.add_argument('-n', dest='notmuchconfigfile',
+                        default='~/.notmuch-config',
+                        help='notmuch\'s config file')
     parser.add_argument('-C', dest='colours',
                         type=int,
                         choices=[1, 16, 256],
@@ -61,6 +64,8 @@ def main():
     #read config file
     configfilename = os.path.expanduser(args.configfile)
     settings.config.read(configfilename)
+    notmuchfile = os.path.expanduser(args.notmuchconfigfile)
+    settings.notmuchconfig.read(notmuchfile)
     settings.hooks.setup(settings.config.get('general', 'hooksfile'))
 
     # setup logging

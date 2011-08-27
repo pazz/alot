@@ -67,6 +67,7 @@ class UI:
         self.show_statusbar = config.getboolean('general', 'show_statusbar')
         self.notificationbar = None
         self.mode = ''
+        self.commandprompthistory = []
 
         self.logger.debug('setup bindings')
         cmd = commandfactory('search', query=initialquery)
@@ -76,20 +77,24 @@ class UI:
     def keypress(self, key):
         self.logger.debug('unhandeled input: %s' % key)
 
-    def prompt(self, prefix='>', text=u'', tab=0, completer=None):
+    def prompt(self, prefix='>', text=u'', completer=None, tab=0, history=[]):
         """prompt for text input
 
         :param prefix: text to print before the input field
         :type prefix: str
         :param text: initial content of the input field
         :type text: str
+        :param completer: completion object to use
+        :type completer: `alot.completion.Completer`
         :param tab: number of tabs to press initially
                     (to select completion results)
         :type tab: int
-        :param completer: completion object to use
-        :type completer: `alot.completion.Completer`
+        :param history: history to be used for up/down keys
+        :type history: list of str
         """
         self.logger.info('open prompt')
+        history = list(history)  # make a local copy
+        historypos = None
         leftpart = urwid.Text(prefix, align='left')
         if completer:
             editpart = CompleteEdit(completer, edit_text=text)
@@ -113,33 +118,63 @@ class UI:
             while not keys:
                 keys = self.mainloop.screen.get_input()
             for key in keys:
+                self.logger.debug('prompt got key: %s' % key)
                 if command_map[key] == 'select':
                     self.mainframe.set_footer(footer)
                     self.mainframe.set_focus('body')
                     return editpart.get_edit_text()
-                if command_map[key] == 'cancel':
+                elif command_map[key] == 'cancel':
                     self.mainframe.set_footer(footer)
                     self.mainframe.set_focus('body')
                     return None
+                elif key in ['up', 'down']:
+                    if history:
+                        if historypos == None:
+                            history.append(editpart.get_edit_text())
+                            historypos = len(history) - 1
+                        if key == 'cursor up':
+                            historypos = (historypos - 1) % len(history)
+                        else:
+                            historypos = (historypos + 1) % len(history)
+                        editpart.set_edit_text(history[historypos])
+                        self.mainloop.draw_screen()
+
                 else:
                     size = (20,)  # don't know why they want a size here
                     editpart.keypress(size, key)
                     self.mainloop.draw_screen()
 
     def commandprompt(self, startstring):
+        """prompt for a commandline and interpret/apply it upon enter
+
+        :param startstring: initial text in edit part
+        :type startstring: str
+        """
         self.logger.info('open command shell')
         mode = self.current_buffer.typename
         cmdline = self.prompt(prefix=':',
                               text=startstring,
                               completer=CommandLineCompleter(self.dbman,
                                                              self.accountman,
-                                                             mode))
+                                                             mode),
+                              history=self.commandprompthistory,
+                             )
         if cmdline:
-            cmd = interpret_commandline(cmdline, mode)
-            if cmd:
-                self.apply_command(cmd)
-            else:
-                self.notify('invalid command')
+            self.interpret_commandline(cmdline)
+
+    def interpret_commandline(self, cmdline):
+        """interpret and apply a commandstring
+
+        :param cmdline: command string to apply
+        :type cmdline: str
+        """
+        mode = self.current_buffer.typename
+        self.commandprompthistory.append(cmdline)
+        cmd = interpret_commandline(cmdline, mode)
+        if cmd:
+            self.apply_command(cmd)
+        else:
+            self.notify('invalid command')
 
     def buffer_open(self, b):
         """

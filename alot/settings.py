@@ -28,9 +28,11 @@ DEFAULTS = {
     'general': {
         'colourmode': '256',
         'editor_cmd': "/usr/bin/vim -f -c 'set filetype=mail' +",
+        'editor_writes_encoding': 'UTF-8',
         'terminal_cmd': 'x-terminal-emulator -e',
         'spawn_editor': 'False',
         'displayed_headers': 'From,To,Cc,Bcc,Subject',
+        'display_content_in_threadline': 'False',
         'authors_maxlength': '30',
         'ask_subject': 'True',
         'notify_timeout': '2',
@@ -38,6 +40,8 @@ DEFAULTS = {
         'flush_retry_timeout': '5',
         'hooksfile': '~/.alot.py',
         'bug_on_exit': 'False',
+        'timestamp_format': '',
+        'print_cmd': 'muttprint',
     },
     '16c-theme': {
         'bufferlist_focus_bg': 'dark gray',
@@ -85,6 +89,8 @@ DEFAULTS = {
         'threadline_bg': 'default',
         'threadline_content_bg': 'default',
         'threadline_content_fg': 'dark gray',
+        'threadline_content_focus_bg': 'dark cyan',
+        'threadline_content_focus_fg': 'dark gray',
         'threadline_date_bg': 'default',
         'threadline_date_fg': 'light gray',
         'threadline_date_focus_bg': 'dark cyan',
@@ -129,6 +135,7 @@ DEFAULTS = {
         'threadline_authors': 'default,underline',
         'threadline_authors_focus': 'standout',
         'threadline_content': 'default',
+        'threadline_content_focus': 'standout',
         'threadline_date': 'default',
         'threadline_date_focus': 'standout',
         'threadline_focus': 'standout',
@@ -185,6 +192,8 @@ DEFAULTS = {
         'threadline_bg': 'default',
         'threadline_content_bg': 'default',
         'threadline_content_fg': '#866',
+        'threadline_content_focus_bg': 'g58',
+        'threadline_content_focus_fg': '#866',
         'threadline_date_bg': 'default',
         'threadline_date_fg': 'g58',
         'threadline_date_focus_bg': 'g58',
@@ -234,17 +243,19 @@ DEFAULTS = {
         'C': 'fold --all',
         'E': 'unfold --all',
         'H': 'toggleheaders',
+        'P': 'print --all',
         'a': 'toggletag inbox',
         'enter': 'select',
         'f': 'forward',
         'g': 'groupreply',
+        'p': 'print',
         'r': 'reply',
     },
     'taglist-maps': {
         'enter': 'select',
     },
     'envelope-maps': {
-        'a': 'attach',
+        'a': 'prompt attach ~/',
         'y': 'send',
         'enter': 'reedit',
         't': 'prompt to ',
@@ -263,11 +274,16 @@ DEFAULTS = {
     }
 }
 
+NOTMUCH_DEFAULTS = {
+    'maildir': {
+        'synchronize_flags': 'False',
+    },
+}
 
-class CustomConfigParser(SafeConfigParser):
+
+class DefaultsConfigParser(SafeConfigParser):
     def __init__(self, defaults):
         self.defaults = defaults
-        self.hooks = None
         SafeConfigParser.__init__(self)
         self.optionxform = lambda x: x
         for sec in defaults.keys():
@@ -292,6 +308,12 @@ class CustomConfigParser(SafeConfigParser):
     def getstringlist(self, section, option, **kwargs):
         value = self.get(section, option, **kwargs)
         return [s.strip() for s in value.split(',')]
+
+
+class AlotConfigParser(DefaultsConfigParser):
+    def __init__(self, defaults):
+        DefaultsConfigParser.__init__(self, defaults)
+        self.hooks = None
 
     def read(self, file):
         if not os.path.isfile(file):
@@ -382,7 +404,8 @@ class HookManager:
         return f
 
 
-config = CustomConfigParser(DEFAULTS)
+config = AlotConfigParser(DEFAULTS)
+notmuchconfig = DefaultsConfigParser(NOTMUCH_DEFAULTS)
 hooks = HookManager()
 mailcaps = mailcap.getcaps()
 

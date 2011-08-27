@@ -20,11 +20,13 @@ import os
 import email
 import tempfile
 import re
+import mimetypes
 from datetime import datetime
 from email.header import Header
 
 import helper
 from settings import get_mime_handler
+from settings import config
 
 
 class Message:
@@ -43,7 +45,6 @@ class Message:
         self._thread = thread
         self._datetime = datetime.fromtimestamp(msg.get_date())
         self._filename = msg.get_filename()
-        # TODO: change api to return unicode
         self._from = msg.get_header('From')
         self._email = None  # will be read upon first use
         self._attachments = None  # will be read upon first use
@@ -54,7 +55,6 @@ class Message:
         aname, aaddress = self.get_author()
         if not aname:
             aname = aaddress
-        #tags = ','.join(self.get_tags())
         return "%s (%s)" % (aname, self.get_datestring())
 
     def __hash__(self):
@@ -115,9 +115,14 @@ class Message:
         t = self.get_thread()
         return t.get_replies_to(self)
 
-    def get_datestring(self, pretty=True):
-        """returns formated datestring in sup-style, eg: 'Yest.3pm'"""
-        return helper.pretty_datetime(self._datetime)
+    def get_datestring(self):
+        """returns formated datestring"""
+        formatstring = config.get('general', 'timestamp_format')
+        if formatstring:
+            res = self._datetime.strftime(formatstring)
+        else:
+            res = helper.pretty_datetime(self._datetime)
+        return res
 
     def get_author(self):
         """returns realname and address pair of this messages author"""
@@ -155,6 +160,20 @@ class Message:
     def matches(self, querystring):
         searchfor = querystring + ' AND id:' + self._id
         return self._dbman.count_messages(searchfor) > 0
+
+    def get_text_content(self):
+        res = ''
+        for part in self.get_email().walk():
+            ctype = part.get_content_type()
+            enc = part.get_content_charset()
+            if part.get_content_maintype() == 'text':
+                raw_payload = part.get_payload(decode=True)
+                if enc:
+                    raw_payload = raw_payload.decode(enc, errors='replace')
+                else:
+                    raw_payload = unicode(raw_payload, errors='replace')
+                res += raw_payload
+        return res
 
 
 def extract_body(mail):
@@ -209,36 +228,54 @@ def decode_to_unicode(part):
 
 
 def decode_header(header):
+    """decode a header value to a unicode string
+
+    values are usually a mixture of different substrings
+    encoded in quoted printable using diffetrent encodings.
+    This turns it into a single unicode string
+
+    :param header: the header value
+    :type header: str in us-ascii
+    :rtype: unicode
+    """
+
     valuelist = email.header.decode_header(header)
-    value = u''
+    decoded_list = []
     for v, enc in valuelist:
         if enc:
-            value = value + v.decode(enc)
+            decoded_list.append(v.decode(enc))
         else:
-            value = value + v
-    value = value.replace('\r', '')
-    value = value.replace('\n', ' ')
-    return value
+            decoded_list.append(v)
+    return u' '.join(decoded_list)
 
 
 def encode_header(key, value):
+    """encodes a unicode string as a valid header value
+
+    :param key: the header field this value will be stored in
+    :type key: str
+    :param value: the value to be encoded
+    :type value: unicode
+    """
+    # handle list of "realname <email>" entries separately
     if key.lower() in ['from', 'to', 'cc', 'bcc']:
         rawentries = value.split(',')
         encodedentries = []
         for entry in rawentries:
             m = re.search('\s*(.*)\s+<(.*\@.*\.\w*)>$', entry)
-            if m:
+            if m:  # If a realname part is contained
                 name, address = m.groups()
-                header = Header(name + ' ', 'utf-8')
+                # try to encode as ascii, if that fails, revert to utf-8
+                # name must be a unicode string here
+                header = Header(name)
+                # append address part encoded as ascii
                 header.append('<%s>' % address, charset='ascii')
                 encodedentries.append(header.encode())
-            else:
-                encodedentries.append(entry.encode('ascii', errors='replace'))
+            else:  # pure email address
+                encodedentries.append(entry)
         value = Header(','.join(encodedentries))
-    elif key.lower() == 'subject':
-        value = Header(value, 'UTF-8')
     else:
-        value = Header(value.encode('ascii', errors='replace'))
+        value = Header(value)
     return value
 
 
@@ -263,7 +300,10 @@ class Attachment:
 
     def get_content_type(self):
         """mime type of the attachment"""
-        return self.part.get_content_type()
+        ctype = self.part.get_content_type()
+        if ctype == 'octet/stream' and self.get_filename():
+            ctype, enc = mimetypes.guess_type(self.get_filename())
+        return ctype
 
     def get_size(self):
         """returns attachments size as human-readable string"""

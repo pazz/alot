@@ -41,10 +41,13 @@ class Account:
     gpg_key = None
     """gpg fingerprint. CURRENTLY IGNORED"""
     signature = None
-    """signature to append to outgoing mails. CURRENTLY IGNORED"""
+    """path to a signature file to append to outgoing mails."""
+    signature_filename = None
+    """filename of signature file in attachment"""
 
     def __init__(self, address=None, aliases=None, realname=None, gpg_key=None,
-                 signature=None, sent_box=None, draft_box=None):
+            signature=None, signature_filename=None, sent_box=None,
+            draft_box=None):
         self.address = address
         self.aliases = []
         if aliases:
@@ -52,10 +55,11 @@ class Account:
         self.realname = realname
         self.gpg_key = gpg_key
         self.signature = signature
+        self.signature_filename = signature_filename
 
         self.sent_box = None
         if sent_box:
-            mburl = urlparse(sent_mailbox)
+            mburl = urlparse(sent_box)
             if mburl.scheme == 'mbox':
                 self.sent_box = mailbox.mbox(mburl.path)
             elif mburl.scheme == 'maildir':
@@ -69,7 +73,7 @@ class Account:
 
         self.draft_box = None
         if draft_box:
-            mburl = urlparse(sent_mailbox)
+            mburl = urlparse(draft_box)
             if mburl.scheme == 'mbox':
                 self.draft_box = mailbox.mbox(mburl.path)
             elif mburl.scheme == 'maildir':
@@ -91,11 +95,11 @@ class Account:
         """
         mbx.lock()
         if isinstance(mbx, mailbox.Maildir):
-            msg = mailbox.MaildirMessage(email)
+            msg = mailbox.MaildirMessage(mail)
             msg.set_flags('S')
         else:
-            msg = mailbox.Message(email)
-        key = mbx.add(email)
+            msg = mailbox.Message(mail)
+        key = mbx.add(mail)
         mbx.flush()
         mbx.unlock()
 
@@ -160,6 +164,7 @@ class AccountManager:
                'aliases',
                'gpg_key',
                'signature',
+               'signature_filename',
                'type',
                'sendmail_command',
                'sent_box',

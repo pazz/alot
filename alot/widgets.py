@@ -32,13 +32,20 @@ class ThreadlineWidget(urwid.AttrMap):
         self.dbman = dbman
         self.thread = dbman.get_thread(tid)
         self.tag_widgets = []
+        self.display_content = config.getboolean('general',
+                                    'display_content_in_threadline')
         self.rebuild()
         urwid.AttrMap.__init__(self, self.columns,
                                'threadline', 'threadline_focus')
 
     def rebuild(self):
         cols = []
-        datestring = pretty_datetime(self.thread.get_newest_date()).rjust(10)
+        formatstring = config.get('general', 'timestamp_format')
+        newest = self.thread.get_newest_date()
+        if formatstring:
+            datestring = newest.strftime(formatstring)
+        else:
+            datestring = pretty_datetime(newest).rjust(10)
         self.date_w = urwid.AttrMap(urwid.Text(datestring), 'threadline_date')
         cols.append(('fixed', len(datestring), self.date_w))
 
@@ -52,20 +59,30 @@ class ThreadlineWidget(urwid.AttrMap):
         for tag in tags:
             tw = TagWidget(tag)
             self.tag_widgets.append(tw)
-            cols.append(('fixed', tw.len(), tw))
+            cols.append(('fixed', tw.width(), tw))
 
         authors = self.thread.get_authors() or '(None)'
         maxlength = config.getint('general', 'authors_maxlength')
-        authorsstring = shorten(authors, maxlength)
+        authorsstring = shorten(authors, maxlength).strip()
         self.authors_w = urwid.AttrMap(urwid.Text(authorsstring),
                                        'threadline_authors')
         cols.append(('fixed', len(authorsstring), self.authors_w))
 
-        subjectstring = self.thread.get_subject()
+        subjectstring = self.thread.get_subject().strip()
         self.subject_w = urwid.AttrMap(urwid.Text(subjectstring, wrap='clip'),
                                  'threadline_subject')
         if subjectstring:
-            cols.append(self.subject_w)
+            cols.append(('fixed', len(subjectstring), self.subject_w))
+
+        if self.display_content:
+            msgs = self.thread.get_messages().keys()
+            msgs.sort()
+            lastcontent = ' '.join([m.get_text_content() for m in msgs])
+            contentstring = lastcontent.replace('\n', ' ').strip()
+            self.content_w = urwid.AttrMap(urwid.Text(contentstring,
+                                                      wrap='clip'),
+                                           'threadline_content')
+            cols.append(self.content_w)
 
         self.columns = urwid.Columns(cols, dividechars=1)
         self.original_widget = self.columns
@@ -79,6 +96,8 @@ class ThreadlineWidget(urwid.AttrMap):
                 tw.set_focussed()
             self.authors_w.set_attr_map({None: 'threadline_authors_focus'})
             self.subject_w.set_attr_map({None: 'threadline_subject_focus'})
+            if self.display_content:
+                self.content_w.set_attr_map({None: 'threadline_content_focus'})
         else:
             self.date_w.set_attr_map({None: 'threadline_date'})
             self.mailcount_w.set_attr_map({None: 'threadline_mailcount'})
@@ -86,6 +105,8 @@ class ThreadlineWidget(urwid.AttrMap):
                 tw.set_unfocussed()
             self.authors_w.set_attr_map({None: 'threadline_authors'})
             self.subject_w.set_attr_map({None: 'threadline_subject'})
+            if self.display_content:
+                self.content_w.set_attr_map({None: 'threadline_content'})
         return urwid.AttrMap.render(self, size, focus)
 
     def selectable(self):
@@ -117,16 +138,17 @@ class BufferlineWidget(urwid.Text):
 class TagWidget(urwid.AttrMap):
     def __init__(self, tag):
         self.tag = tag
-        self.translated = config.get('tag translate', tag, fallback=tag)
-        # encode to utf-8 before passing to urwid (issue #4)
+        self.translated = config.get('tag-translate', tag, fallback=tag)
         self.translated = self.translated.encode('utf-8')
-        txt = urwid.Text(self.translated, wrap='clip')
+        self.txt = urwid.Text(self.translated, wrap='clip')
         normal = config.get_tagattr(tag)
         focus = config.get_tagattr(tag, focus=True)
-        urwid.AttrMap.__init__(self, txt, normal, focus)
+        urwid.AttrMap.__init__(self, self.txt, normal, focus)
 
-    def len(self):
-        return len(self.translated)
+    def width(self):
+        # evil voodoo hotfix for double width chars that may
+        # lead e.g. to strings with length 1 that need width 2
+        return self.txt.pack()[0]
 
     def selectable(self):
         return True
@@ -421,8 +443,8 @@ class MessageHeaderWidget(urwid.AttrMap):
                     else:
                         value = value + v
                 #sanitize it a bit:
-                value = value.replace('\t', '')
-                value = value.replace('\r', '')
+                value = value.replace('\t', ' ')
+                value = ' '.join([line.strip() for line in value.splitlines()])
                 keyw = ('fixed', max_key_len + 1,
                         urwid.Text(('message_header_key', key)))
                 valuew = urwid.Text(('message_header_value', value))
