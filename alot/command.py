@@ -17,11 +17,13 @@ along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
 Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 import os
+import re
 import code
 import glob
 import logging
 import threading
 import subprocess
+import shlex
 import email
 import tempfile
 import mimetypes
@@ -490,10 +492,7 @@ class ReplyCommand(Command):
         reply.attach(bodypart)
 
         # copy subject
-        if 'Subject' not in mail or mail['Subject'] == None:
-            subject = ''
-        else:
-            subject = mail['Subject']
+        subject = mail.get('Subject', '')
         if not subject.startswith('Re:'):
             subject = 'Re: ' + subject
         reply['Subject'] = Header(subject.encode('utf-8'), 'UTF-8').encode()
@@ -501,7 +500,7 @@ class ReplyCommand(Command):
         # set From
         my_addresses = ui.accountman.get_addresses()
         matched_address = ''
-        in_to = [a for a in my_addresses if a in mail['To']]
+        in_to = [a for a in my_addresses if a in mail.get('To', '')]
         if in_to:
             matched_address = in_to[0]
         else:
@@ -515,10 +514,9 @@ class ReplyCommand(Command):
             reply['From'] = encode_header('From', fromstring)
 
         # set To
-        #reply['To'] = Header(mail['From'].encode('utf-8'), 'UTF-8').encode()
         del(reply['To'])
         if self.groupreply:
-            cleared = self.clear_my_address(my_addresses, mail['To'])
+            cleared = self.clear_my_address(my_addresses, mail.get('To', ''))
             if cleared:
                 logging.info(mail['From'] + ', ' + cleared)
                 to = mail['From'] + ', ' + cleared
@@ -541,7 +539,7 @@ class ReplyCommand(Command):
         reply['In-Reply-To'] = '<%s>' % self.message.get_message_id()
 
         # set References header
-        old_references = mail['References']
+        old_references = mail.get('References', '')
         if old_references:
             old_references = old_references.split()
             references = old_references[-8:]
@@ -601,14 +599,14 @@ class ForwardCommand(Command):
             reply.attach(mail)
 
         # copy subject
-        subject = mail['Subject']
+        subject = mail.get('Subject', '')
         subject = 'Fwd: ' + subject
         reply['Subject'] = Header(subject.encode('utf-8'), 'UTF-8').encode()
 
         # set From
         my_addresses = ui.accountman.get_addresses()
         matched_address = ''
-        in_to = [a for a in my_addresses if a in mail['To']]
+        in_to = [a for a in my_addresses if a in mail.get('To', '')]
         if in_to:
             matched_address = in_to[0]
         else:
@@ -653,6 +651,57 @@ class ToggleHeaderCommand(Command):
     def apply(self, ui):
         msgw = ui.current_buffer.get_selection()
         msgw.toggle_full_header()
+
+
+class PrintCommand(Command):
+    def __init__(self, all=False, separately=False, confirm=True, **kwargs):
+        Command.__init__(self, **kwargs)
+        self.all = all
+        self.separately = separately
+        self.confirm = confirm
+
+    def apply(self, ui):
+        # get messages to print
+        if self.all:
+            thread = ui.current_buffer.get_selected_thread()
+            to_print = thread.get_messages().keys()
+            confirm_msg = 'print all messages in thread?'
+            ok_msg = 'printed thread: %s' % str(thread)
+        else:
+            to_print = [ui.current_buffer.get_selected_message()]
+            confirm_msg = 'print this message?'
+            ok_msg = 'printed message: %s' % str(to_print[0])
+
+        # ask for confirmation if needed
+        if self.confirm:
+            if not ui.choice(confirm_msg) == 'yes':
+                return
+
+        # prepare message sources
+        mailstrings = [m.get_email().as_string() for m in to_print]
+        if not self.separately:
+            mailstrings = ['\n\n'.join(mailstrings)]
+
+        # get print command
+        cmd = settings.config.get('general', 'print_cmd')
+        args = shlex.split(cmd.encode('ascii'))
+
+        # print
+        try:
+            for mail in mailstrings:
+                proc = subprocess.Popen(args, stdin=subprocess.PIPE,
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.PIPE)
+                out, err = proc.communicate(mail)
+                if proc.poll():  # returncode is not 0
+                    raise OSError(err)
+        except OSError, e:  # handle errors
+            ui.notify(str(e), priority='error')
+            return
+
+        # display 'done' message
+        ui.notify(ok_msg)
+
 
 
 class SaveAttachmentCommand(Command):
@@ -756,17 +805,29 @@ class EnvelopeEditCommand(Command):
             self.mail = ui.current_buffer.get_email()
 
         def openEnvelopeFromTmpfile():
+            # This parses the input from the tempfile.
+            # we do this ourselves here because we want to be able to 
+            # just type utf-8 encoded stuff into the tempfile and let alot worry
+            # about encodings.
+
+            # get input
             f = open(tf.name)
             enc = settings.config.get('general', 'editor_writes_encoding')
             editor_input = f.read().decode(enc)
-
-            #split editor out
             headertext, bodytext = editor_input.split('\n\n', 1)
 
+            # go through multiline, utf-8 encoded headers
+            key = value = None
             for line in headertext.splitlines():
-                key, value = line.strip().split(':', 1)
-                value = value.strip()
-                del self.mail[key]  # ensure there is only one
+                if re.match('\w+:', line):  #new k/v pair
+                    if key and value:  # save old one from stack
+                        del self.mail[key]  # ensure unique values in mails
+                        self.mail[key] = encode_header(key, value)  # save
+                    key, value = line.strip().split(':', 1)  # parse new pair
+                elif key and value:  # append new line without key prefix to value
+                    value += line
+            if key and value:  # save last one if present
+                del self.mail[key]
                 self.mail[key] = encode_header(key, value)
 
             if self.mail.is_multipart():
@@ -790,7 +851,7 @@ class EnvelopeEditCommand(Command):
         for key in edit_headers:
             value = u''
             if key in self.mail:
-                value = decode_header(self.mail[key])
+                value = decode_header(self.mail.get(key, ''))
             headertext += '%s: %s\n' % (key, value)
 
         if self.mail.is_multipart():
@@ -871,26 +932,25 @@ class EnvelopeSendCommand(Command):
 class EnvelopeAttachCommand(Command):
     def __init__(self, path=None, mail=None, **kwargs):
         Command.__init__(self, **kwargs)
-        self.files = []
-        if path:
-            self.files = glob.glob(os.path.expanduser(path))
         self.mail = mail
+        self.path = path
 
     def apply(self, ui):
-        if not self.files:
-            path = ui.prompt(prefix='attach files matching:', text='~/',
-                             completer=completion.PathCompleter())
-            if path:
-                self.files = glob.glob(os.path.expanduser(path))
-            if not self.files:
-                ui.notify('no matches, abort')
-                return
-        logging.info(self.files)
-
         msg = self.mail
         if not msg:
             msg = ui.current_buffer.get_email()
-        for path in self.files:
+
+        if self.path:
+            files = filter(os.path.isfile,
+                           glob.glob(os.path.expanduser(self.path)))
+            if not files:
+                ui.notify('no matches, abort')
+                return
+        else:
+            ui.notify('no files specified, abort')
+
+        logging.info("attaching: %s" % files)
+        for path in files:
             helper.attach(path, msg)
 
         if not self.mail:  # set the envelope msg iff we got it from there
@@ -933,6 +993,7 @@ COMMANDS = {
         'groupreply': (ReplyCommand, {'groupreply': True}),
         'forward': (ForwardCommand, {}),
         'fold': (FoldMessagesCommand, {'visible': False}),
+        'print': (PrintCommand, {}),
         'unfold': (FoldMessagesCommand, {'visible': True}),
         'select': (ThreadSelectCommand, {}),
         'save': (SaveAttachmentCommand, {}),
@@ -1048,6 +1109,10 @@ def interpret_commandline(cmdline, mode):
         filepath = os.path.expanduser(params)
         if os.path.isfile(filepath):
             return commandfactory(cmd, mode=mode, path=filepath)
+    elif cmd == 'print':
+        args = [a.strip() for a in params.split()]
+        return commandfactory(cmd, mode=mode, all=('--all' in args),
+                              separately=('--separately' in args))
 
     elif not params and cmd in ['exit', 'flush', 'pyshell', 'taglist',
                                 'bclose', 'compose', 'openfocussed',

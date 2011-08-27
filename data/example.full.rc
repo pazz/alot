@@ -44,6 +44,9 @@ terminal_cmd = x-terminal-emulator -e
 # http://docs.python.org/library/datetime.html#strftime-strptime-behavior
 timestamp_format = ''
 
+#how to print messages:
+print_cmd = muttprint
+
 
 [global-maps]
 $ = flush
@@ -88,10 +91,12 @@ enter = select
 C = fold --all
 E = unfold --all
 H = toggleheaders
+P = print --all
 a = toggletag inbox
 enter = select
 f = forward
 g = groupreply
+p = print
 r = reply
 
 [command-aliases]

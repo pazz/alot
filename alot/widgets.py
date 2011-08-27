@@ -59,7 +59,7 @@ class ThreadlineWidget(urwid.AttrMap):
         for tag in tags:
             tw = TagWidget(tag)
             self.tag_widgets.append(tw)
-            cols.append(('fixed', tw.len(), tw))
+            cols.append(('fixed', tw.width(), tw))
 
         authors = self.thread.get_authors() or '(None)'
         maxlength = config.getint('general', 'authors_maxlength')
@@ -138,16 +138,17 @@ class BufferlineWidget(urwid.Text):
 class TagWidget(urwid.AttrMap):
     def __init__(self, tag):
         self.tag = tag
-        self.translated = config.get('tag translate', tag, fallback=tag)
-        # encode to utf-8 before passing to urwid (issue #4)
+        self.translated = config.get('tag-translate', tag, fallback=tag)
         self.translated = self.translated.encode('utf-8')
-        txt = urwid.Text(self.translated, wrap='clip')
+        self.txt = urwid.Text(self.translated, wrap='clip')
         normal = config.get_tagattr(tag)
         focus = config.get_tagattr(tag, focus=True)
-        urwid.AttrMap.__init__(self, txt, normal, focus)
+        urwid.AttrMap.__init__(self, self.txt, normal, focus)
 
-    def len(self):
-        return len(self.translated)
+    def width(self):
+        # evil voodoo hotfix for double width chars that may
+        # lead e.g. to strings with length 1 that need width 2
+        return self.txt.pack()[0]
 
     def selectable(self):
         return True
@@ -442,8 +443,8 @@ class MessageHeaderWidget(urwid.AttrMap):
                     else:
                         value = value + v
                 #sanitize it a bit:
-                value = value.replace('\t', '')
-                value = value.replace('\r', '')
+                value = value.replace('\t', ' ')
+                value = ' '.join([line.strip() for line in value.splitlines()])
                 keyw = ('fixed', max_key_len + 1,
                         urwid.Text(('message_header_key', key)))
                 valuew = urwid.Text(('message_header_value', value))

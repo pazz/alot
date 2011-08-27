@@ -1,164 +1,180 @@
-USAGE
+Usage
 =====
 In all views, arrows, page-up/down, j,k and space can be used to move the focus.
 Escape cancels prompts. You can hit ":" at any time and type in commands
 to the prompt. Any commandline can be mapped by using the "MODE-maps" sections
 in the config file. These are the default keymaps:
 
-[global-maps]
-$ = flush
-: = prompt
-; = bufferlist
-@ = refresh
-I = search tag:inbox AND NOT tag:killed
-L = taglist
-U = search tag:unread
-\ = prompt search 
-d = bclose
-m = compose
-o = prompt search 
-q = exit
-shift tab = bprevious
-tab = bnext
+    [global-maps]
+    $ = flush
+    : = prompt
+    ; = bufferlist
+    @ = refresh
+    I = search tag:inbox AND NOT tag:killed
+    L = taglist
+    U = search tag:unread
+    \ = prompt search 
+    d = bclose
+    m = compose
+    o = prompt search 
+    q = exit
+    shift tab = bprevious
+    tab = bnext
+    
+    [bufferlist-maps]
+    enter = openfocussed
+    x = closefocussed
+    
+    [search-maps]
+    & = toggletag killed
+    O = refineprompt
+    a = toggletag inbox
+    enter = openthread
+    l = retagprompt
+    | = refineprompt
+    
+    [envelope-maps]
+    a = attach
+    enter = reedit
+    s = prompt subject 
+    t = prompt to 
+    y = send
+    
+    [taglist-maps]
+    enter = select
+    
+    [thread-maps]
+    C = fold --all
+    E = unfold --all
+    H = toggleheaders
+    P = print --all
+    a = toggletag inbox
+    enter = select
+    f = forward
+    g = groupreply
+    p = print
+    r = reply
 
-[bufferlist-maps]
-enter = openfocussed
-x = closefocussed
-
-[search-maps]
-& = toggletag killed
-O = refineprompt
-a = toggletag inbox
-enter = openthread
-l = retagprompt
-| = refineprompt
-
-[envelope-maps]
-a = attach
-enter = reedit
-s = prompt subject 
-t = prompt to 
-y = send
-
-[taglist-maps]
-enter = select
-
-[thread-maps]
-C = fold --all
-E = unfold --all
-H = toggleheaders
-a = toggletag inbox
-enter = select
-f = forward
-g = groupreply
-r = reply
-
-
-CONFIG
-=====
+Config
+------
 Just like offlineimap or notmuch itself, alot reads a config file in the "INI" syntax:
 It consists of some sections whose names are given in square brackets, followed by
 key-value pairs that use "=" or ":" as separator, ';' and '#' are comment-prefixes.
 
-The default location for the config file is ~/.alot.rc.
-You can find a complete example config in data/example.full.rc.
+The default location for the config file is `~/.alot.rc`.
+You can find a complete example config in `data/example.full.rc`.
 Here is a key for the interpreted sections:
 
-[general] : global settings: set your editor etc
-[account X] : defines the account X: realname, email address, sendmail
-[X-maps] : defines keymaps for mode X. possible modes are:
-           envelope, search, thread, taglist, bufferlist and global.
-           global-maps are valid in all modes.
-[tag translate] : defines a map from tagnames to strings that is used when
-                  displaying tags. utf-8 symbols welcome.
-[Xc-theme] : define colour palette for colour mode. X is in {1, 16, 256}.
+    [general]
+        global settings: set your editor etc
+    
+    [account X]
+        defines the account X: realname, email address, sendmail
+    
+    [X-maps]
+        defines keymaps for mode X. possible modes are:
+        envelope, search, thread, taglist, bufferlist and global.
+        global-maps are valid in all modes.
+    
+    [tag-translate]
+        defines a map from tagnames to strings that is used when
+        displaying tags. utf-8 symbols welcome.
+    
+    [Xc-theme]
+        define colour palette for colour mode. X is in {1, 16, 256}.
 
 All configs are optional, but if you want to send mails you need to
 specify at least one account section.
-A sample gmail section:
+A sample gmail section looks like this:
 
-  [account gmail]
-  realname = Patrick Totzke
-  address = patricktotzke@gmail.com
-  aliases = patricktotzke@googlemail.com
-  gpg_key = D7D6C5AA
-  sender_type = sendmail
-  sendmail_command = msmtp --account=gmail -t
+    [account gmail]
+    realname = Patrick Totzke
+    address = patricktotzke@gmail.com
+    aliases = patricktotzke@googlemail.com
+    gpg_key = D7D6C5AA
+    sender_type = sendmail
+    sendmail_command = msmtp --account=gmail -t
 
 I use this for my uni-account:
 
-  [account uoe]
-  realname = Patrick Totzke
-  address = ...
-  aliases = foobar@myuni.uk;f.bar@myuni.uk;f.b100@students.myuni.uk
-  sender_type = sendmail
-  sendmail_command = msmtp --account=uoe -t
-  sent_box = maildir:///home/pazz/mail/uoe/Sent
+    [account uoe]
+    realname = Patrick Totzke
+    address = ...
+    aliases = foobar@myuni.uk;f.bar@myuni.uk;f.b100@students.myuni.uk
+    sender_type = sendmail
+    sendmail_command = msmtp --account=uoe -t
+    sent_box = maildir:///home/pazz/mail/uoe/Sent
+    draft_box = maildir:///home/pazz/mail/uoe/Drafts
+    signature = ~/my_uni_vcard.vcs
+    signature_filename = p.totzke.vcs
 
 Caution: Sending mails is only supported via sendmail for now. If you want
-to use a sendmail command different from 'sendmail', specify it as sendmail_command.
+to use a sendmail command different from `sendmail`, specify it as `sendmail_command`.
 
-send_mailbox specifies the mailbox where you want outgoing mails to be stored
+`send_mailbox` specifies the mailbox where you want outgoing mails to be stored
 after successfully sending them. You can use mbox, maildir, mh, babyl and mmdf
 in the protocol part of the url.
 
-
+The file specified by `signature` is attached to all outgoing mails from this account, optionally renamed to
+`signature_filename`.
 
 Hooks
-=====
-
+-----
 Before and after every command execution, alot calls this commands pre/post hook:
 Hooks are python callables with arity 4 that live in a module specified by
-hooksfile in the global section of your config. Per default this points to '~/.alot.py'
+`hooksfile` in the `[global]` section of your config. Per default this points to `~/.alot.py`
 For every command X, the callable 'pre_X' will be called before X and 'post_X' afterwards.
 
 When a hook gets called, it receives instances of
-1) alot.ui.UI, the main user interface object that can prompt etc.
-2) alot.db.DBManager, the applications database manager
-3) alot.account.AccountManager, can be used to look up account info
-4) alot.settings.config, a configparser to access the user's config
 
+1.  `alot.ui.UI`, the main user interface object that can prompt etc.
+2.  `alot.db.DBManager`, the applications database manager
+3.  `alot.account.AccountManager`, can be used to look up account info
+4.  `alot.settings.config`, a configparser to access the users config
+
+An autogenerated API doc for these can be found at http://pazz.github.com/alot/ ,
+the sphinx sources live in the `docs` folder.
 As an example, consider this pre-hook for the exit command,
 that logs a personalized goodby message:
 
+```python
 def pre_exit(ui, dbman, accountman, config):
     accounts = accountman.get_accounts()
     if accounts:
         ui.logger.info('goodbye, %s!' % accounts[0].realname)
     else:
         ui.logger.info('goodbye!')
+```
 
 
 Theming
-=======
-
-You can change the colour settings in the section [Xc-theme], where X is the
+-------
+You can change the colour settings in the section `[Xc-theme]`, where X is the
 colour mode you use. This defaults to 256, but 16 and 1 are also possible.
 The colourmode can be changed in the globals section or given as a commandline
 parameter (-C).
 The keys in this section should be self explanatory. In 16c and 256c modes you can define Y_fg and
 Y_bg for the foreground and background of each keyword Y. These can define colorcodes and flags
-like 'underline' or 'bold', comma separated if you want more than one. See urwids doc on Attributes:
- http://excess.org/urwid/reference.html#AttrSpec
+like `underline` or `bold`, comma separated if you want more than one. See urwids doc on Attributes:
+http://excess.org/urwid/reference.html#AttrSpec
 Urwid privides a neat script that makes choosing colours easy, which can be found here:
- http://excess.org/urwid/browser/palette_test.py
+http://excess.org/urwid/browser/palette_test.py
 
-See data/example.full.rc for a complete list of widgets that can be themed.
+See `data/example.full.rc` for a complete list of widgets that can be themed.
 Moreover, keywords that start with "tag_" will be used to display specific tags. For instance, you
 can use the following to always display the "todo" tag in white on red, when in 256c-mode.
 
-[256c-theme]
-tag_todo_bg = #d66
-tag_todo_fg = white
+    [256c-theme]
+    tag_todo_bg = #d66
+    tag_todo_fg = white
 
-You can translate tag strings before displaying them using the [tag translate] section.
+You can translate tag strings before displaying them using the [tag-translate] section.
 A key=value statement in this section is interpreted as:
-Always display the tag "key" as string "value". Utf-8 symbols are welcome here.
+Always display the tag `key` as string `value`. Utf-8 symbols are welcome here.
 See e.g. http://panmental.de/symbols/info.htm
 I personally display my maildir flags like this:
 
-[tag translate]
-flagged = ⚑
-unread = ✉
-replied = ⇄
-
+    [tag-translate]
+    flagged = ⚑
+    unread = ✉
+    replied = ⇄

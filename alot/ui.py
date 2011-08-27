@@ -77,7 +77,7 @@ class UI:
     def keypress(self, key):
         self.logger.debug('unhandeled input: %s' % key)
 
-    def prompt(self, prefix='>', text=u'', completer=None, tab=0 ,history=[]):
+    def prompt(self, prefix='>', text=u'', completer=None, tab=0, history=[]):
         """prompt for text input
 
         :param prefix: text to print before the input field
@@ -131,7 +131,7 @@ class UI:
                     if history:
                         if historypos == None:
                             history.append(editpart.get_edit_text())
-                            historypos = len(history)-1
+                            historypos = len(history) - 1
                         if key == 'cursor up':
                             historypos = (historypos - 1) % len(history)
                         else:
@@ -145,6 +145,11 @@ class UI:
                     self.mainloop.draw_screen()
 
     def commandprompt(self, startstring):
+        """prompt for a commandline and interpret/apply it upon enter
+
+        :param startstring: initial text in edit part
+        :type startstring: str
+        """
         self.logger.info('open command shell')
         mode = self.current_buffer.typename
         cmdline = self.prompt(prefix=':',
@@ -155,12 +160,21 @@ class UI:
                               history=self.commandprompthistory,
                              )
         if cmdline:
-            self.commandprompthistory.append(cmdline)
-            cmd = interpret_commandline(cmdline, mode)
-            if cmd:
-                self.apply_command(cmd)
-            else:
-                self.notify('invalid command')
+            self.interpret_commandline(cmdline)
+
+    def interpret_commandline(self, cmdline):
+        """interpret and apply a commandstring
+
+        :param cmdline: command string to apply
+        :type cmdline: str
+        """
+        mode = self.current_buffer.typename
+        self.commandprompthistory.append(cmdline)
+        cmd = interpret_commandline(cmdline, mode)
+        if cmd:
+            self.apply_command(cmd)
+        else:
+            self.notify('invalid command')
 
     def buffer_open(self, b):
         """
