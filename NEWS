@@ -12,6 +12,7 @@ hacking on a thread view rewrite.
 * signatures for outgoing mails per account
 * optional display of message content in search results
 * config option for strftime formating of timestamps
+* printing
 
 * fix parse multiline headers from edited tempfile
 * fix reply to unusually formated mails (e.g. no recipient)

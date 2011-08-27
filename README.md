@@ -23,12 +23,12 @@ Current features include:
  * priorizable notification popups
  * database manager that manages a write queue to the notmuch index
  * user configurable keyboard maps
+ * printing
 
 Soonish to be addressed non-features:
 -------------------------------------
  * encryption/decryption for messages
  * search for strings in displayed buffer
- * print command
  * folding for message parts
  * undo for commands
  * addressbook integration

@@ -47,10 +47,12 @@ in the config file. These are the default keymaps:
     C = fold --all
     E = unfold --all
     H = toggleheaders
+    P = print --all
     a = toggletag inbox
     enter = select
     f = forward
     g = groupreply
+    p = print
     r = reply
 
 Config

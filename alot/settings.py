@@ -41,6 +41,7 @@ DEFAULTS = {
         'hooksfile': '~/.alot.py',
         'bug_on_exit': 'False',
         'timestamp_format': '',
+        'print_cmd': 'muttprint',
     },
     '16c-theme': {
         'bufferlist_focus_bg': 'dark gray',
@@ -242,10 +243,12 @@ DEFAULTS = {
         'C': 'fold --all',
         'E': 'unfold --all',
         'H': 'toggleheaders',
+        'P': 'print --all',
         'a': 'toggletag inbox',
         'enter': 'select',
         'f': 'forward',
         'g': 'groupreply',
+        'p': 'print',
         'r': 'reply',
     },
     'taglist-maps': {

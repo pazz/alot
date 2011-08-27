@@ -23,6 +23,7 @@ import glob
 import logging
 import threading
 import subprocess
+import shlex
 import email
 import tempfile
 import mimetypes
@@ -651,6 +652,57 @@ class ToggleHeaderCommand(Command):
         msgw.toggle_full_header()
 
 
+class PrintCommand(Command):
+    def __init__(self, all=False, separately=False, confirm=True, **kwargs):
+        Command.__init__(self, **kwargs)
+        self.all = all
+        self.separately = separately
+        self.confirm = confirm
+
+    def apply(self, ui):
+        # get messages to print
+        if self.all:
+            thread = ui.current_buffer.get_selected_thread()
+            to_print = thread.get_messages().keys()
+            confirm_msg = 'print all messages in thread?'
+            ok_msg = 'printed thread: %s' % str(thread)
+        else:
+            to_print = [ui.current_buffer.get_selected_message()]
+            confirm_msg = 'print this message?'
+            ok_msg = 'printed message: %s' % str(to_print[0])
+
+        # ask for confirmation if needed
+        if self.confirm:
+            if not ui.choice(confirm_msg) == 'yes':
+                return
+
+        # prepare message sources
+        mailstrings = [m.get_email().as_string() for m in to_print]
+        if not self.separately:
+            mailstrings = ['\n\n'.join(mailstrings)]
+
+        # get print command
+        cmd = settings.config.get('general', 'print_cmd')
+        args = shlex.split(cmd.encode('ascii'))
+
+        # print
+        try:
+            for mail in mailstrings:
+                proc = subprocess.Popen(args, stdin=subprocess.PIPE,
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.PIPE)
+                out, err = proc.communicate(mail)
+                if proc.poll():  # returncode is not 0
+                    raise OSError(err)
+        except OSError, e:  # handle errors
+            ui.notify(str(e), priority='error')
+            return
+
+        # display 'done' message
+        ui.notify(ok_msg)
+
+
+
 class SaveAttachmentCommand(Command):
     def __init__(self, all=False, path=None, **kwargs):
         Command.__init__(self, **kwargs)
@@ -940,6 +992,7 @@ COMMANDS = {
         'groupreply': (ReplyCommand, {'groupreply': True}),
         'forward': (ForwardCommand, {}),
         'fold': (FoldMessagesCommand, {'visible': False}),
+        'print': (PrintCommand, {}),
         'unfold': (FoldMessagesCommand, {'visible': True}),
         'select': (ThreadSelectCommand, {}),
         'save': (SaveAttachmentCommand, {}),
@@ -1055,6 +1108,10 @@ def interpret_commandline(cmdline, mode):
         filepath = os.path.expanduser(params)
         if os.path.isfile(filepath):
             return commandfactory(cmd, mode=mode, path=filepath)
+    elif cmd == 'print':
+        args = [a.strip() for a in params.split()]
+        return commandfactory(cmd, mode=mode, all=('--all' in args),
+                              separately=('--separately' in args))
 
     elif not params and cmd in ['exit', 'flush', 'pyshell', 'taglist',
                                 'bclose', 'compose', 'openfocussed',
