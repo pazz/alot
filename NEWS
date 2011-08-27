@@ -1,0 +1,23 @@
+0.11
+
+This minor release is mostly bug fixes and some small features.
+I wanted to release a more stable and usable version before I start
+hacking on a thread view rewrite.
+
+* renamed config section [tag translate] to [tag-translate]
+* docs: more elaborate API docs, INSTALL and USAGE as markdown in github wiki
+* more compact header displays in thread view
+* command-line history (for one session)
+* editor file encoding is now user configurable
+* signatures for outgoing mails per account
+* optional display of message content in search results
+* config option for strftime formating of timestamps
+
+* fix parse multiline headers from edited tempfile
+* fix reply to unusually formated mails (e.g. no recipient)
+* fix lots of encoding issues
+* handle extra wide characters in tag widgets
+* fixes in ui.prompt
+* fix storing outgoing mails to sent_box
+* more liberal header encoding for outgoing mails
+* use mimetype lib to guess right content-type of attachments

@@ -8,7 +8,7 @@ The API docs for the current master branch are [here][api].
 the `docs` directory contains their sources.
 
 Do comment on the code or file issues! I'm curious what you think of it.
-Talk to me in #notmuch@Freenode.
+You can talk to me in #notmuch@Freenode.
 
 Current features include:
 -------------------------

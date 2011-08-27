@@ -59,8 +59,8 @@ Just like offlineimap or notmuch itself, alot reads a config file in the "INI" s
 It consists of some sections whose names are given in square brackets, followed by
 key-value pairs that use "=" or ":" as separator, ';' and '#' are comment-prefixes.
 
-The default location for the config file is ~/.alot.rc.
-You can find a complete example config in data/example.full.rc.
+The default location for the config file is `~/.alot.rc`.
+You can find a complete example config in `data/example.full.rc`.
 Here is a key for the interpreted sections:
 
     [general]
@@ -103,6 +103,8 @@ I use this for my uni-account:
     sendmail_command = msmtp --account=uoe -t
     sent_box = maildir:///home/pazz/mail/uoe/Sent
     draft_box = maildir:///home/pazz/mail/uoe/Drafts
+    signature = ~/my_uni_vcard.vcs
+    signature_filename = p.totzke.vcs
 
 Caution: Sending mails is only supported via sendmail for now. If you want
 to use a sendmail command different from `sendmail`, specify it as `sendmail_command`.
@@ -110,6 +112,9 @@ to use a sendmail command different from `sendmail`, specify it as `sendmail_com
 `send_mailbox` specifies the mailbox where you want outgoing mails to be stored
 after successfully sending them. You can use mbox, maildir, mh, babyl and mmdf
 in the protocol part of the url.
+
+The file specified by `signature` is attached to all outgoing mails from this account, optionally renamed to
+`signature_filename`.
 
 Hooks
 -----
