@@ -22,8 +22,13 @@ import shlex
 import subprocess
 import logging
 import time
+import re
 import email
+import os
+from ConfigParser import SafeConfigParser
 from urlparse import urlparse
+
+from helper import cmd_output
 
 
 class Account:
@@ -32,6 +37,7 @@ class Account:
     this account's settings, can send and store mails to
     maildirs (drafts/send)
     """
+
     address = None
     """this accounts main email address"""
     aliases = []
@@ -41,14 +47,18 @@ class Account:
     gpg_key = None
     """gpg fingerprint. CURRENTLY IGNORED"""
     signature = None
-    """path to a signature file to append to outgoing mails."""
+    """signature to append to outgoing mails"""
     signature_filename = None
     """filename of signature file in attachment"""
+    abook = None
+    """addressbook"""
 
     def __init__(self, address=None, aliases=None, realname=None, gpg_key=None,
-            signature=None, signature_filename=None, sent_box=None,
-            draft_box=None):
+                 signature=None, signature_filename=None, sent_box=None,
+                 draft_box=None, abook=None):
+
         self.address = address
+        self.abook = abook
         self.aliases = []
         if aliases:
             self.aliases = aliases.split(';')
@@ -167,6 +177,8 @@ class AccountManager:
                'signature_filename',
                'type',
                'sendmail_command',
+               'abook_command',
+               'abook_regexp',
                'sent_box',
                'draft_box']
     manditory = ['realname', 'address']
@@ -179,7 +191,19 @@ class AccountManager:
         accountsections = filter(lambda s: s.startswith('account '), sections)
         for s in accountsections:
             options = filter(lambda x: x in self.allowed, config.options(s))
+
             args = {}
+            if 'abook_command' in options:
+                cmd = config.get(s, 'abook_command').encode('ascii',
+                                                            errors='ignore')
+                options.remove('abook_command')
+                if 'abook_regexp' in options:
+                    rgexp = config.get(s, 'abook_regexp')
+                    options.remove('abook_regexp')
+                else:
+                    regexp = None
+                args['abook'] = MatchSdtoutAddressbook(cmd, match=regexp)
+
             to_set = self.manditory
             for o in options:
                 args[o] = config.get(s, o)
@@ -225,3 +249,61 @@ class AccountManager:
     def get_addresses(self):
         """returns addresses of known accounts including all their aliases"""
         return self.accountmap.keys()
+
+    def get_addressbooks(self):
+        return [a.abook for a in self.accounts if a.abook]
+
+
+class AddressBook:
+    def get_contacts(self):
+        return []
+
+    def lookup(self, prefix=''):
+        res = []
+        for name, email in self.get_contacts():
+            if name.startswith(prefix) or email.startswith(prefix):
+                res.append("%s <%s>" % (name, email))
+        return res
+
+
+class AbookAddressBook(AddressBook):
+    def __init__(self, config=None):
+        self.abook = SafeConfigParser()
+        if not config:
+            config = os.environ["HOME"] + "/.abook/addressbook"
+        self.abook.read(config)
+
+    def get_contacts(self):
+        res = []
+        for s in self.abook.sections():
+            if s.isdigit():
+                name = self.abook.get(s, 'name')
+                email = self.abook.get(s, 'email')
+                res.append((name, email))
+        return res
+
+
+class MatchSdtoutAddressbook(AddressBook):
+
+    def __init__(self, command, match=None):
+        self.command = command
+        if not match:
+            self.match = "(?P<email>.+?@.+?)\s+(?P<name>.+)"
+        else:
+            self.match = match
+
+    def get_contacts(self):
+        return self.lookup('\'\'')
+
+    def lookup(self, prefix):
+        lines = cmd_output('%s %s' % (self.command, prefix))
+        lines = lines.replace('\t', ' ' * 4).splitlines()
+        res = []
+        for l in lines:
+            m = re.match(self.match, l)
+            if m:
+                info = m.groupdict()
+                email = info['email'].strip()
+                name = info['name'].strip()
+                res.append((name, email))
+        return res

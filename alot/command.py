@@ -379,7 +379,8 @@ class ComposeCommand(Command):
 
         #get To header
         if 'To' not in self.mail:
-            to = ui.prompt(prefix='To>', completer=ContactsCompleter())
+            to = ui.prompt(prefix='To>',
+                           completer=ContactsCompleter(ui.accountman))
             if to == None:
                 ui.notify('canceled')
                 return
@@ -702,7 +703,6 @@ class PrintCommand(Command):
         ui.notify(ok_msg)
 
 
-
 class SaveAttachmentCommand(Command):
     def __init__(self, all=False, path=None, **kwargs):
         Command.__init__(self, **kwargs)
@@ -805,9 +805,9 @@ class EnvelopeEditCommand(Command):
 
         def openEnvelopeFromTmpfile():
             # This parses the input from the tempfile.
-            # we do this ourselves here because we want to be able to 
-            # just type utf-8 encoded stuff into the tempfile and let alot worry
-            # about encodings.
+            # we do this ourselves here because we want to be able to
+            # just type utf-8 encoded stuff into the tempfile and let alot
+            # worry about encodings.
 
             # get input
             f = open(tf.name)
@@ -818,12 +818,12 @@ class EnvelopeEditCommand(Command):
             # go through multiline, utf-8 encoded headers
             key = value = None
             for line in headertext.splitlines():
-                if re.match('\w+:', line):  #new k/v pair
+                if re.match('\w+:', line):  # new k/v pair
                     if key and value:  # save old one from stack
                         del self.mail[key]  # ensure unique values in mails
                         self.mail[key] = encode_header(key, value)  # save
                     key, value = line.strip().split(':', 1)  # parse new pair
-                elif key and value:  # append new line without key prefix to value
+                elif key and value:  # append new line without key prefix
                     value += line
             if key and value:  # save last one if present
                 del self.mail[key]
