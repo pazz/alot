@@ -172,37 +172,36 @@ class CompleteEdit(urwid.Edit):
         if not isinstance(edit_text, unicode):
             edit_text = unicode(edit_text, errors='replace')
         self.start_completion_pos = len(edit_text)
-        self.completion_results = None
+        self.completions = None
         urwid.Edit.__init__(self, edit_text=edit_text, **kwargs)
 
     def keypress(self, size, key):
         cmd = command_map[key]
+        # if we tabcomplete
         if cmd in ['next selectable', 'prev selectable']:
-            pos = self.start_completion_pos
-            original = self.edit_text[:pos]
-            if not self.completion_results:  # not in completion mode
-                self.completion_results = [''] + \
-                    self.completer.complete(original)
+            # if not already in completion mode
+            if not self.completions:
+                self.completions = [(self.edit_text, self.edit_pos)] + \
+                    self.completer.complete(self.edit_text, self.edit_pos)
                 self.focus_in_clist = 1
-            else:
+            else:  # otherwise tab through results
                 if cmd == 'next selectable':
                     self.focus_in_clist += 1
                 else:
                     self.focus_in_clist -= 1
-            if len(self.completion_results) > 1:
-                completed = self.completion_results[self.focus_in_clist %
-                                          len(self.completion_results)]
-                self.set_edit_text(completed)
-                self.edit_pos += len(completed)
+            if len(self.completions) > 1:
+                ctext, cpos = self.completions[self.focus_in_clist %
+                                          len(self.completions)]
+                self.set_edit_text(ctext)
+                self.set_edit_pos(cpos)
             else:
-                self.set_edit_text(original + ' ')
                 self.edit_pos += 1
-                self.start_completion_pos = self.edit_pos
-                self.completion_results = None
+                if self.edit_pos >= len(self.edit_text):
+                    self.edit_text += ' '
+                self.completions = None
         else:
             result = urwid.Edit.keypress(self, size, key)
-            self.start_completion_pos = self.edit_pos
-            self.completion_results = None
+            self.completions = None
             return result
 
 

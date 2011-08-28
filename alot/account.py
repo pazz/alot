@@ -192,7 +192,6 @@ class AccountManager:
         for s in accountsections:
             options = filter(lambda x: x in self.allowed, config.options(s))
 
-
             args = {}
             if 'abook_command' in options:
                 cmd = config.get(s, 'abook_command').encode('ascii',
