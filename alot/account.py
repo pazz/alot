@@ -29,6 +29,7 @@ from ConfigParser import SafeConfigParser
 from urlparse import urlparse
 
 from helper import cmd_output
+import helper
 
 
 class Account:
@@ -151,20 +152,11 @@ class SendmailAccount(Account):
 
     def send_mail(self, mail):
         mail['Date'] = email.utils.formatdate(time.time(), True)
-        # no unicode in shlex on 2.x
-        args = shlex.split(self.cmd.encode('ascii'))
-        try:
-            proc = subprocess.Popen(args, stdin=subprocess.PIPE,
-                                    stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE)
-            out, err = proc.communicate(mail.as_string())
-        except OSError, e:
-            return str(e) + '. sendmail_cmd set to: %s' % self.cmd
-        if proc.poll():  # returncode is not 0
-            return err.strip()
-        else:
-            self.store_sent_mail(mail)
-            return None
+        out, err = helper.pipe_to_command(self.cmd, mail.as_string())
+        if err:
+            return err + '. sendmail_cmd set to: %s' % self.cmd
+        self.store_sent_mail(mail)
+        return None
 
 
 class AccountManager:

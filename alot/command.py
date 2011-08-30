@@ -668,7 +668,6 @@ class PrintCommand(Command):
                       'set "print_cmd" in the global section.',
                       priority='error')
             return
-        args = shlex.split(cmd.encode('ascii'))
 
         # get messages to print and set up notification strings
         if self.all:
@@ -692,19 +691,12 @@ class PrintCommand(Command):
         if not self.separately:
             mailstrings = ['\n\n'.join(mailstrings)]
 
-
         # print
-        try:
-            for mail in mailstrings:
-                proc = subprocess.Popen(args, stdin=subprocess.PIPE,
-                                        stdout=subprocess.PIPE,
-                                        stderr=subprocess.PIPE)
-                out, err = proc.communicate(mail)
-                if proc.poll():  # returncode is not 0
-                    raise OSError(err)
-        except OSError, e:  # handle errors
-            ui.notify(str(e), priority='error')
-            return
+        for mail in mailstrings:
+            out, err = helper.pipe_to_command(cmd, mail)
+            if err:
+                ui.notify(err, priority='error')
+                return
 
         # display 'done' message
         ui.notify(ok_msg)

@@ -61,6 +61,22 @@ def cmd_output(command_line):
     return output
 
 
+def pipe_to_command(cmd, stdin):
+        # no unicode in shlex on 2.x
+        args = shlex.split(cmd.encode('ascii'))
+        try:
+            proc = subprocess.Popen(args, stdin=subprocess.PIPE,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE)
+            out, err = proc.communicate(stdin)
+        except OSError, e:
+            return '', str(e)
+        if proc.poll():  # returncode is not 0
+            return '', err.strip()
+        else:
+            return out, err
+
+
 def attach(path, mail, filename=None):
     ctype, encoding = mimetypes.guess_type(path)
     if ctype is None or encoding is not None:
