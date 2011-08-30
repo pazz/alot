@@ -41,7 +41,7 @@ DEFAULTS = {
         'hooksfile': '~/.alot.py',
         'bug_on_exit': 'False',
         'timestamp_format': '',
-        'print_cmd': 'muttprint',
+        'print_cmd': '',
     },
     '16c-theme': {
         'bufferlist_focus_bg': 'dark gray',

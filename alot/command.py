@@ -661,16 +661,26 @@ class PrintCommand(Command):
         self.confirm = confirm
 
     def apply(self, ui):
-        # get messages to print
+        # get print command and abort if unset
+        cmd = settings.config.get('general', 'print_cmd')
+        if not cmd:
+            ui.notify('no print command specified.\n'
+                      'set "print_cmd" in the global section.',
+                      priority='error')
+            return
+        args = shlex.split(cmd.encode('ascii'))
+
+        # get messages to print and set up notification strings
         if self.all:
             thread = ui.current_buffer.get_selected_thread()
             to_print = thread.get_messages().keys()
             confirm_msg = 'print all messages in thread?'
-            ok_msg = 'printed thread: %s' % str(thread)
+            ok_msg = 'printed thread: %s using %s' % (str(thread), cmd)
         else:
             to_print = [ui.current_buffer.get_selected_message()]
             confirm_msg = 'print this message?'
-            ok_msg = 'printed message: %s' % str(to_print[0])
+            ok_msg = 'printed message: %s using %s' % (str(to_print[0]), cmd)
+
 
         # ask for confirmation if needed
         if self.confirm:
@@ -682,9 +692,6 @@ class PrintCommand(Command):
         if not self.separately:
             mailstrings = ['\n\n'.join(mailstrings)]
 
-        # get print command
-        cmd = settings.config.get('general', 'print_cmd')
-        args = shlex.split(cmd.encode('ascii'))
 
         # print
         try:

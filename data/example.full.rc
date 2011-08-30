@@ -44,8 +44,11 @@ terminal_cmd = x-terminal-emulator -e
 # http://docs.python.org/library/datetime.html#strftime-strptime-behavior
 timestamp_format = ''
 
-#how to print messages:
-print_cmd = muttprint
+# how to print messages:
+# this specifies a shellcommand used pro printing. 
+# threads/messages are piped to this as plaintext.
+# muttprint/a2ps works nicely
+print_cmd =
 
 
 [global-maps]
