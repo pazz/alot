@@ -201,7 +201,7 @@ class AccountManager:
                     rgexp = config.get(s, 'abook_regexp')
                     options.remove('abook_regexp')
                 else:
-                    regexp = None
+                    regexp = None  # will use default in constructor
                 args['abook'] = MatchSdtoutAddressbook(cmd, match=regexp)
 
             to_set = self.manditory
@@ -296,8 +296,10 @@ class MatchSdtoutAddressbook(AddressBook):
         return self.lookup('\'\'')
 
     def lookup(self, prefix):
-        lines = cmd_output('%s %s' % (self.command, prefix))
-        lines = lines.replace('\t', ' ' * 4).splitlines()
+        resultstring = cmd_output('%s %s' % (self.command, prefix))
+        if not resultstring:
+            return []
+        lines = resultstring.replace('\t', ' ' * 4).splitlines()
         res = []
         for l in lines:
             m = re.match(self.match, l)
