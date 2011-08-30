@@ -276,7 +276,6 @@ class AbookAddressBook(AddressBook):
 
 
 class MatchSdtoutAddressbook(AddressBook):
-
     def __init__(self, command, match=None):
         self.command = command
         if not match:

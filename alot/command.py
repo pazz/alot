@@ -680,7 +680,6 @@ class PrintCommand(Command):
             confirm_msg = 'print this message?'
             ok_msg = 'printed message: %s using %s' % (str(to_print[0]), cmd)
 
-
         # ask for confirmation if needed
         if self.confirm:
             if not ui.choice(confirm_msg) == 'yes':

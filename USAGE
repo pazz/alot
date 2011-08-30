@@ -107,6 +107,8 @@ I use this for my uni-account:
     draft_box = maildir:///home/pazz/mail/uoe/Drafts
     signature = ~/my_uni_vcard.vcs
     signature_filename = p.totzke.vcs
+    abook_command = abook --mutt-query
+
 
 Caution: Sending mails is only supported via sendmail for now. If you want
 to use a sendmail command different from `sendmail`, specify it as `sendmail_command`.
@@ -117,6 +119,13 @@ in the protocol part of the url.
 
 The file specified by `signature` is attached to all outgoing mails from this account, optionally renamed to
 `signature_filename`.
+
+If you specified `abook_command`, it will be used for tab completion in queries (to/from)
+and in message composition. The command will be called with your prefix as only argument
+and its output is searched for name-email pairs. The regular expression used here
+defaults to `(?P<email>.+?@.+?)\s+(?P<name>.+)`, which makes it work nicely with `abook --mutt-query`.
+You can tune this using the `abook_regexp` option (beware Commandparsers escaping semantic!).
+
 
 Hooks
 -----
