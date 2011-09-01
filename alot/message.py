@@ -296,7 +296,7 @@ class Attachment:
 
     def get_filename(self):
         """return the filename, extracted from content-disposition header"""
-        return self.part.get_filename()
+        return os.path.basename(self.part.get_filename())
 
     def get_content_type(self):
         """mime type of the attachment"""
