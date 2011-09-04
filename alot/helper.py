@@ -72,7 +72,10 @@ def pipe_to_command(cmd, stdin):
         except OSError, e:
             return '', str(e)
         if proc.poll():  # returncode is not 0
-            return '', err.strip()
+            e = 'return value != 0'
+            if err.strip():
+                e = e + ': %s' % err
+            return '', e
         else:
             return out, err
 

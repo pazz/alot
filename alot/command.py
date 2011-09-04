@@ -653,36 +653,34 @@ class ToggleHeaderCommand(Command):
         msgw.toggle_full_header()
 
 
-class PrintCommand(Command):
-    def __init__(self, all=False, separately=False, confirm=True, **kwargs):
+class PipeCommand(Command):
+    def __init__(self, cmd, whole_thread=False, separately=False,
+                 noop_msg='no command specified', confirm_msg='', done_msg='',
+                 **kwargs):
         Command.__init__(self, **kwargs)
-        self.all = all
+        self.cmd = cmd
+        self.whole_thread = whole_thread
         self.separately = separately
-        self.confirm = confirm
+        self.noop_msg = noop_msg
+        self.confirm_msg = confirm_msg
+        self.done_msg = done_msg
 
     def apply(self, ui):
-        # get print command and abort if unset
-        cmd = settings.config.get('general', 'print_cmd')
-        if not cmd:
-            ui.notify('no print command specified.\n'
-                      'set "print_cmd" in the global section.',
-                      priority='error')
+        # abort if command unset
+        if not self.cmd:
+            ui.notify(self.noop_msg, priority='error')
             return
 
-        # get messages to print and set up notification strings
-        if self.all:
+        # get messages to pipe
+        if self.whole_thread:
             thread = ui.current_buffer.get_selected_thread()
             to_print = thread.get_messages().keys()
-            confirm_msg = 'print all messages in thread?'
-            ok_msg = 'printed thread: %s using %s' % (str(thread), cmd)
         else:
             to_print = [ui.current_buffer.get_selected_message()]
-            confirm_msg = 'print this message?'
-            ok_msg = 'printed message: %s using %s' % (str(to_print[0]), cmd)
 
         # ask for confirmation if needed
-        if self.confirm:
-            if not ui.choice(confirm_msg) == 'yes':
+        if self.confirm_msg:
+            if not ui.choice(self.confirm_msg) == 'yes':
                 return
 
         # prepare message sources
@@ -692,13 +690,36 @@ class PrintCommand(Command):
 
         # print
         for mail in mailstrings:
-            out, err = helper.pipe_to_command(cmd, mail)
+            out, err = helper.pipe_to_command(self.cmd, mail)
             if err:
                 ui.notify(err, priority='error')
                 return
 
         # display 'done' message
-        ui.notify(ok_msg)
+        if self.done_msg:
+            ui.notify(self.done_msg)
+
+
+class PrintCommand(PipeCommand):
+    def __init__(self, whole_thread=False, separately=False, **kwargs):
+        # get print command
+        cmd = settings.config.get('general', 'print_cmd', fallback='')
+
+        # set up notification strings
+        if whole_thread:
+            confirm_msg = 'print all messages in thread?'
+            ok_msg = 'printed thread using %s' % cmd
+        else:
+            confirm_msg = 'print selected message?'
+            ok_msg = 'printed message using %s' % cmd
+
+        # no print cmd set
+        noop_msg = 'no print command specified. Set "print_cmd" in the '\
+                    'global section.'
+        PipeCommand.__init__(self, cmd, whole_thread=whole_thread,
+                             separately=separately,
+                             noop_msg=noop_msg, confirm_msg=confirm_msg,
+                             done_msg=ok_msg, **kwargs)
 
 
 class SaveAttachmentCommand(Command):
@@ -1108,7 +1129,7 @@ def interpret_commandline(cmdline, mode):
             return commandfactory(cmd, mode=mode, path=filepath)
     elif cmd == 'print':
         args = [a.strip() for a in params.split()]
-        return commandfactory(cmd, mode=mode, all=('--all' in args),
+        return commandfactory(cmd, mode=mode, whole_thread=('--all' in args),
                               separately=('--separately' in args))
 
     elif not params and cmd in ['exit', 'flush', 'pyshell', 'taglist',
