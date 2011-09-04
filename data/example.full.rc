@@ -101,6 +101,8 @@ f = forward
 g = groupreply
 p = print
 r = reply
+| = prompt pipeto 
+
 
 [command-aliases]
 bn = bnext

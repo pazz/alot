@@ -654,11 +654,11 @@ class ToggleHeaderCommand(Command):
 
 
 class PipeCommand(Command):
-    def __init__(self, cmd, whole_thread=False, separately=False,
-                 noop_msg='no command specified', confirm_msg='', done_msg='',
+    def __init__(self, command, whole_thread=False, separately=False,
+                 noop_msg='no command specified', confirm_msg='', done_msg='done',
                  **kwargs):
         Command.__init__(self, **kwargs)
-        self.cmd = cmd
+        self.cmd = command
         self.whole_thread = whole_thread
         self.separately = separately
         self.noop_msg = noop_msg
@@ -688,7 +688,7 @@ class PipeCommand(Command):
         if not self.separately:
             mailstrings = ['\n\n'.join(mailstrings)]
 
-        # print
+        # do teh monkey
         for mail in mailstrings:
             out, err = helper.pipe_to_command(self.cmd, mail)
             if err:
@@ -1011,6 +1011,7 @@ COMMANDS = {
         'groupreply': (ReplyCommand, {'groupreply': True}),
         'forward': (ForwardCommand, {}),
         'fold': (FoldMessagesCommand, {'visible': False}),
+        'pipeto': (PipeCommand, {}),
         'print': (PrintCommand, {}),
         'unfold': (FoldMessagesCommand, {'visible': True}),
         'select': (ThreadSelectCommand, {}),
@@ -1059,6 +1060,7 @@ def commandfactory(cmdname, mode='global', **kwargs):
 
 
 def interpret_commandline(cmdline, mode):
+    # TODO: use argparser here!
     if not cmdline:
         return None
     logging.debug('mode:%s got commandline "%s"' % (mode, cmdline))
@@ -1129,8 +1131,10 @@ def interpret_commandline(cmdline, mode):
             return commandfactory(cmd, mode=mode, path=filepath)
     elif cmd == 'print':
         args = [a.strip() for a in params.split()]
-        return commandfactory(cmd, mode=mode, whole_thread=('--all' in args),
+        return commandfactory(cmd, mode=mode, whole_thread=('--thread' in args),
                               separately=('--separately' in args))
+    elif cmd == 'pipeto':
+        return commandfactory(cmd, mode=mode, command=params)
 
     elif not params and cmd in ['exit', 'flush', 'pyshell', 'taglist',
                                 'bclose', 'compose', 'openfocussed',

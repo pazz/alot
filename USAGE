@@ -54,6 +54,7 @@ in the config file. These are the default keymaps:
     g = groupreply
     p = print
     r = reply
+    | = prompt pipeto 
 
 Config
 ------
