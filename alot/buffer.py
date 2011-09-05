@@ -282,7 +282,7 @@ class TagListBuffer(Buffer):
         displayedtags = filter(self.filtfun, self.tags)
         for (num, b) in enumerate(displayedtags):
             tw = widgets.TagWidget(b)
-            lines.append(urwid.Columns([('fixed', tw.len(), tw)]))
+            lines.append(urwid.Columns([('fixed', tw.width(), tw)]))
         self.taglist = urwid.ListBox(urwid.SimpleListWalker(lines))
         self.body = self.taglist
 
