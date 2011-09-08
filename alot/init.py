@@ -52,7 +52,7 @@ def parse_args():
                         default='/dev/null',
                         help='logfile')
     parser.add_argument('query', nargs='?',
-                        default='tag:inbox AND NOT tag:killed',
+                        default='',
                         help='initial searchstring')
     return parser.parse_args()
 
@@ -87,11 +87,16 @@ def main():
     command_map['enter'] = 'select'
     command_map['esc'] = 'cancel'
 
+    # get initial searchstring
+    query = settings.config.get('general','initial_searchstring')
+    if args.query != '':
+        query = args.query
+
     # set up and start interface
     ui = UI(dbman,
             logger,
             aman,
-            args.query,
+            query,
             args.colours,
     )
 
