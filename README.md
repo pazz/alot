@@ -9,6 +9,9 @@ the `docs` directory contains their sources.
 
 Do comment on the code or file issues! I'm curious what you think of it.
 You can talk to me in #notmuch@Freenode.
+Be aware that the master branch is used only for releases and hotfixes,
+the bleeding edge version sits in branch `development`!.
+If you'd like to contribute, please make sure your patches can be applied to that branch.
 
 Current features include:
 -------------------------
@@ -23,7 +26,8 @@ Current features include:
  * priorizable notification popups
  * database manager that manages a write queue to the notmuch index
  * user configurable keyboard maps
- * printing
+ * printing/piping of mails and threads
+ * addressbook integration (dev branch)
 
 Soonish to be addressed non-features:
 -------------------------------------
@@ -31,7 +35,6 @@ Soonish to be addressed non-features:
  * search for strings in displayed buffer
  * folding for message parts
  * undo for commands
- * addressbook integration
 
 [notmuch]: http://notmuchmail.org/
 [urwid]: http://excess.org/urwid/
