@@ -34,6 +34,7 @@ from email.message import Message
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import urwid
+from twisted.internet import defer
 
 import buffer
 import settings
@@ -354,6 +355,7 @@ class ComposeCommand(Command):
         for key, value in headers.items():
             self.mail[key] = encode_header(key, value)
 
+    @defer.inlineCallbacks
     def apply(self, ui):
         # TODO: fill with default header (per account)
         # get From header
@@ -366,11 +368,11 @@ class ComposeCommand(Command):
                 a = accounts[0]
             else:
                 cmpl = AccountCompleter(ui.accountman)
-                fromaddress = ui.prompt(prefix='From>', completer=cmpl, tab=1)
+                fromaddress = yield ui.prompt(prefix='From>', completer=cmpl, tab=1)
                 validaddresses = [a.address for a in accounts] + [None]
                 while fromaddress not in validaddresses:  # TODO: not cool
                     ui.notify('no account for this address. (<esc> cancels)')
-                    fromaddress = ui.prompt(prefix='From>', completer=cmpl)
+                    fromaddress = yield ui.prompt(prefix='From>', completer=cmpl)
                 if not fromaddress:
                     ui.notify('canceled')
                     return
@@ -379,7 +381,7 @@ class ComposeCommand(Command):
 
         #get To header
         if 'To' not in self.mail:
-            to = ui.prompt(prefix='To>',
+            to = yield ui.prompt(prefix='To>',
                            completer=ContactsCompleter(ui.accountman))
             if to == None:
                 ui.notify('canceled')
@@ -387,7 +389,7 @@ class ComposeCommand(Command):
             self.mail['To'] = encode_header('to', to)
         if settings.config.getboolean('general', 'ask_subject') and \
            not 'Subject' in self.mail:
-            subject = ui.prompt(prefix='Subject>')
+            subject = yield ui.prompt(prefix='Subject>')
             if subject == None:
                 ui.notify('canceled')
                 return
@@ -728,12 +730,13 @@ class SaveAttachmentCommand(Command):
         self.all = all
         self.path = path
 
+    @defer.inlineCallbacks
     def apply(self, ui):
         pcomplete = completion.PathCompleter()
         if self.all:
             msg = ui.current_buffer.get_selected_message()
             if not self.path:
-                self.path = ui.prompt(prefix='save attachments to:',
+                self.path = yield ui.prompt(prefix='save attachments to:',
                                       text=os.path.join('~', ''),
                                       completer=pcomplete)
             if self.path:
@@ -752,7 +755,7 @@ class SaveAttachmentCommand(Command):
                 attachment = focus.get_attachment()
                 filename = attachment.get_filename()
                 if not self.path:
-                    self.path = ui.prompt(prefix='save attachment as:',
+                    self.path = yield ui.prompt(prefix='save attachment as:',
                                           text=os.path.join('~', filename),
                                           completer=pcomplete)
                 if self.path:
