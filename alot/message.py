@@ -296,7 +296,10 @@ class Attachment:
 
     def get_filename(self):
         """return the filename, extracted from content-disposition header"""
-        return os.path.basename(self.part.get_filename())
+        extracted_name = self.part.get_filename()
+        if extracted_name:
+            return os.path.basename(extracted_name)
+        return None
 
     def get_content_type(self):
         """mime type of the attachment"""
@@ -314,6 +317,7 @@ class Attachment:
             return "%dK" % size_in_kbyte
 
     def save(self, path):
+        # todo: raise exception if path not dir
         """save the attachment to disk. Uses self.get_filename
         in case path is a directory"""
         if self.get_filename() and os.path.isdir(path):

@@ -50,6 +50,9 @@ timestamp_format = ''
 # muttprint/a2ps works nicely
 print_cmd =
 
+#initial searchstring when none is given as argument:
+initial_searchstring = tag:inbox AND NOT tag:killed
+
 
 [global-maps]
 $ = flush
