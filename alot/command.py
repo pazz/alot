@@ -794,9 +794,9 @@ class OpenAttachmentCommand(Command):
         if handler:
             path = self.attachment.save(tempfile.gettempdir())
             if '%s' in handler:
-                cmd = handler % path.replace(' ', '\ ')
+                cmd = handler % path
             else:
-                cmd = '%s %s' % (handler, path.replace(' ', '\ '))
+                cmd = '%s %s' % (handler, path)
 
             def afterwards():
                 os.remove(path)
