@@ -166,6 +166,36 @@ class TagWidget(urwid.AttrMap):
         self.set_attr_map({None: config.get_tagattr(self.tag)})
 
 
+class ChoiceWidget(urwid.Text):
+    def __init__(self, choices, callback, cancel=None, select=None):
+        self.choices = choices
+        self.callback = callback
+        self.cancel = cancel
+        self.select = select
+
+        items = []
+        for k, v in choices.items():
+            if v == select and select != None:
+                items.append('[%s]:%s' % (k, v))
+            else:
+                items.append('(%s):%s' % (k, v))
+        urwid.Text.__init__(self, ' '.join(items))
+
+    def selectable(self):
+        return True
+
+    def keypress(self, size, key):
+        cmd = command_map[key]
+        if cmd == 'select' and self.select != None:
+            self.callback(self.select)
+        elif cmd == 'cancel' and self.cancel != None:
+            self.callback(self.cancel)
+        elif key in self.choices:
+            self.callback(self.choices[key])
+        else:
+            return key
+
+
 class CompleteEdit(urwid.Edit):
     def __init__(self, completer, on_exit, edit_text=u'',
                  history=None, **kwargs):

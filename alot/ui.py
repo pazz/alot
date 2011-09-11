@@ -25,7 +25,7 @@ from settings import config
 from buffer import BufferlistBuffer
 from command import commandfactory
 from command import interpret_commandline
-from widgets import CompleteEdit
+import widgets
 from completion import CommandLineCompleter
 
 
@@ -104,7 +104,7 @@ class UI:
 
         #set up widgets
         leftpart = urwid.Text(prefix, align='left')
-        editpart = CompleteEdit(completer, on_exit=select_or_cancel,
+        editpart = widgets.CompleteEdit(completer, on_exit=select_or_cancel,
                                 edit_text=text, history=history)
 
         for i in range(tab):  # hit some tabs
@@ -236,42 +236,57 @@ class UI:
             self.notificationbar = None
         self.update()
 
-    def choice(self, message, choices={'yes': ['y'], 'no': ['n']}):
+    def choice(self, message, choices={'y': 'yes', 'n': 'no'},
+               select=None, cancel=None, msg_position='above'):
         """prompt user to make a choice
 
         :param message: string to display before list of choices
         :type message: unicode
         :param choices: dict of possible choices
-        :type choices: str->list of keys
+        :type choices: keymap->choice (both str)
+        :param select: choice to return if enter/return is hit.
+                       Ignored if set to None.
+        :type select: str
+        :param cancel: choice to return if escape is hit.
+                       Ignored if set to None.
+        :type cancel: str
+        :returns: a `twisted.defer.Deferred`
         """
-        def build_line(msg, prio):
-            cols = urwid.Columns([urwid.Text(msg)])
-            return urwid.AttrMap(cols, 'notify_' + prio)
+        assert select in choices.values() + [None]
+        assert cancel in choices.values() + [None]
+        assert msg_position in ['left', 'above']
 
-        cstrings = ['(%s):%s' % ('/'.join(v), k) for k, v in choices.items()]
-        line = ', '.join(cstrings)
-        msgs = [build_line(message + ' ' + line, 'normal')]
+        d = defer.Deferred()  # create return deferred
+        main = self.mainloop.widget  # save main widget
 
-        footer = self.mainframe.get_footer()
-        if not self.notificationbar:
-            self.notificationbar = urwid.Pile(msgs)
-        else:
-            newpile = self.notificationbar.widget_list + msgs
-            self.notificationbar = urwid.Pile(newpile)
-        self.update()
+        def select_or_cancel(text):
+            self.mainloop.widget = main  # restore main screen
+            d.callback(text)
 
-        self.mainloop.draw_screen()
-        while True:
-            result = self.mainloop.screen.get_input()
-            self.logger.info('got: %s ' % result)
-            if not result:
-                self.clear_notify(msgs)
-                self.mainloop.screen.get_input()
-                return None
-            for k, v in choices.items():
-                if result[0] in v:
-                    self.clear_notify(msgs)
-                    return k
+        #set up widgets
+        msgpart = urwid.Text(message)
+        choicespart = widgets.ChoiceWidget(choices, callback=select_or_cancel,
+                                           select=select, cancel=cancel)
+
+        # build widget
+        if msg_position == 'left':
+            both = urwid.Columns(
+                [
+                    ('fixed', len(message), msgpart),
+                    ('weight', 1, choicespart),
+                ], dividechars=1)
+        else:  # above
+            both = urwid.Pile([msgpart, choicespart])
+        prompt_widget = urwid.AttrMap(both, 'prompt', 'prompt')
+
+        # put promptwidget as overlay on main widget
+        overlay = urwid.Overlay(both, main,
+                                ('fixed left', 0),
+                                ('fixed right', 0),
+                                ('fixed bottom', 1),
+                                None)
+        self.mainloop.widget = overlay
+        return d  # return deferred
 
     def notify(self, message, priority='normal', timeout=0, block=False):
         """notify popup
