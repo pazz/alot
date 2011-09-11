@@ -251,6 +251,8 @@ DEFAULTS = {
         'g': 'groupreply',
         'p': 'print',
         'r': 'reply',
+        's': 'save',
+        'S': 'save --all',
         '|': 'prompt pipeto ',
     },
     'taglist-maps': {
