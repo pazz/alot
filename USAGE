@@ -48,12 +48,14 @@ in the config file. These are the default keymaps:
     E = unfold --all
     H = toggleheaders
     P = print --all
+    S = save --all
     a = toggletag inbox
     enter = select
     f = forward
     g = groupreply
     p = print
     r = reply
+    s = save
     | = prompt pipeto 
 
 Config

@@ -10,7 +10,7 @@ the `docs` directory contains their sources.
 Do comment on the code or file issues! I'm curious what you think of it.
 You can talk to me in #notmuch@Freenode.
 Be aware that the master branch is used only for releases and hotfixes,
-the bleeding edge version sits in branch `development`!.
+the bleeding edge version sits in branch `develop`!.
 If you'd like to contribute, please make sure your patches can be applied to that branch.
 
 Current features include:

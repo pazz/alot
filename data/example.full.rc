@@ -98,6 +98,7 @@ C = fold --all
 E = unfold --all
 H = toggleheaders
 P = print --all
+S = save --all
 a = toggletag inbox
 enter = select
 f = forward
@@ -105,7 +106,6 @@ g = groupreply
 p = print
 r = reply
 s = save
-S = save --all
 | = prompt pipeto 
 
 
