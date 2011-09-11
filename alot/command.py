@@ -68,9 +68,10 @@ class ExitCommand(Command):
     def apply(self, ui):
         if settings.config.getboolean('general', 'bug_on_exit'):
             if (yield ui.choice('realy quit?', select='yes', cancel='no',
-                               msg_position='left')) == 'yes':
-                reactor.stop()
-                raise urwid.ExitMainLoop()
+                               msg_position='left')) == 'no':
+                return
+        reactor.stop()
+        raise urwid.ExitMainLoop()
 
 
 class OpenThreadCommand(Command):
