@@ -34,7 +34,7 @@ from email.message import Message
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import urwid
-from twisted.internet import defer
+from twisted.internet import reactor, defer
 
 import buffer
 import settings
@@ -64,12 +64,13 @@ class Command:
 
 class ExitCommand(Command):
     """shuts the MUA down cleanly"""
+    @defer.inlineCallbacks
     def apply(self, ui):
         if settings.config.getboolean('general', 'bug_on_exit'):
-            if not ui.choice('realy quit?', choices={'yes': ['y', 'enter'],
-                                                     'no': ['n']}) == 'yes':
-                return
-        raise urwid.ExitMainLoop()
+            if (yield ui.choice('realy quit?', select='yes', cancel='no',
+                               msg_position='left')) == 'yes':
+                reactor.stop()
+                raise urwid.ExitMainLoop()
 
 
 class OpenThreadCommand(Command):
@@ -99,11 +100,12 @@ class SearchCommand(Command):
         self.query = query
         Command.__init__(self, **kwargs)
 
+    @defer.inlineCallbacks
     def apply(self, ui):
         if self.query:
             if self.query == '*' and ui.current_buffer:
                 s = 'really search for all threads? This takes a while..'
-                if not ui.choice(s) == 'yes':
+                if (yield ui.choice(s, select='yes', cancel='no')) == 'no':
                     return
             open_searches = ui.get_buffers_of_type(buffer.SearchBuffer)
             to_be_focused = None
@@ -441,11 +443,12 @@ class RefineCommand(Command):
         self.querystring = query
         Command.__init__(self, **kwargs)
 
+    @defer.inlineCallbacks
     def apply(self, ui):
         if self.querystring:
             if self.querystring == '*':
                 s = 'really search for all threads? This takes a while..'
-                if not ui.choice(s) == 'yes':
+                if (yield ui.choice(s, select='yes', cancel='no')) == 'no':
                     return
             sbuffer = ui.current_buffer
             oldquery = sbuffer.querystring
@@ -669,6 +672,7 @@ class PipeCommand(Command):
         self.confirm_msg = confirm_msg
         self.done_msg = done_msg
 
+    @defer.inlineCallbacks
     def apply(self, ui):
         # abort if command unset
         if not self.cmd:
@@ -684,7 +688,8 @@ class PipeCommand(Command):
 
         # ask for confirmation if needed
         if self.confirm_msg:
-            if not ui.choice(self.confirm_msg) == 'yes':
+            if (yield ui.choice(self.confirm_msg, select='yes',
+                                cancel='no')) == 'no':
                 return
 
         # prepare message sources
@@ -925,6 +930,7 @@ class EnvelopeSetCommand(Command):
 
 
 class EnvelopeSendCommand(Command):
+    @defer.inlineCallbacks
     def apply(self, ui):
         envelope = ui.current_buffer
         mail = envelope.get_email()
@@ -944,7 +950,8 @@ class EnvelopeSendCommand(Command):
                 else:
                     ui.notify('could not locate signature: %s' % sig,
                               priority='error')
-                    if not ui.choice('send without signature') == 'yes':
+                    if (yield ui.choice('send without signature',
+                                        select='yes', cancel='no')) == 'no':
                         return
 
             clearme = ui.notify('sending..', timeout=-1, block=False)
