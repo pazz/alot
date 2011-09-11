@@ -317,14 +317,18 @@ class Attachment:
             return "%dK" % size_in_kbyte
 
     def save(self, path):
-        # todo: raise exception if path not dir
         """save the attachment to disk. Uses self.get_filename
         in case path is a directory"""
-        if self.get_filename() and os.path.isdir(path):
-            path = os.path.join(path, self.get_filename())
-            FILE = open(path, "w")
+        filename = self.get_filename()
+        path = os.path.expanduser(path)
+        if os.path.isdir(path):
+            if filename:
+                basename= os.path.basename(filename)
+                FILE = open(os.path.join(path,basename), "w")
+            else:
+                FILE = tempfile.NamedTemporaryFile(delete=False, dir=path)
         else:
-            FILE = tempfile.NamedTemporaryFile(delete=False)
+            FILE = open(path, "w")  # this throws IOErrors for invalid path
         FILE.write(self.part.get_payload(decode=True))
         FILE.close()
         return FILE.name

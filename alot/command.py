@@ -740,13 +740,16 @@ class SaveAttachmentCommand(Command):
                                       text=os.path.join('~', ''),
                                       completer=pcomplete)
             if self.path:
-                self.path = os.path.expanduser(self.path)
-                if os.path.isdir(self.path):
+                if os.path.isdir(os.path.expanduser(self.path)):
                     for a in msg.get_attachments():
                         dest = a.save(self.path)
-                        ui.notify('saved attachment as: %s' % dest)
+                        name = a.get_filename()
+                        if name:
+                            ui.notify('saved %s as: %s' % (name,dest))
+                        else:
+                            ui.notify('saved attachment as: %s' % dest)
                 else:
-                    ui.notify('not a directory: %s' % self.path)
+                    ui.notify('not a directory: %s' % self.path, priority='error')
             else:
                 ui.notify('canceled')
         else:  # save focussed attachment
@@ -755,12 +758,15 @@ class SaveAttachmentCommand(Command):
                 attachment = focus.get_attachment()
                 filename = attachment.get_filename()
                 if not self.path:
-                    self.path = yield ui.prompt(prefix='save attachment as:',
+                    self.path = yield ui.prompt(prefix='save attachment (%s) to:' % filename,
                                           text=os.path.join('~', filename),
                                           completer=pcomplete)
                 if self.path:
-                    attachment.save(os.path.expanduser(self.path))
-                    ui.notify('saved attachment as: %s' % self.path)
+                    try:
+                        dest = attachment.save(self.path)
+                        ui.notify('saved attachment as: %s' % dest)
+                    except (IOError, OSError), e:  # permission/nonexistant dir issues
+                        ui.notify(str(e), priority='error')
                 else:
                     ui.notify('canceled')
 
