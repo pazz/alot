@@ -42,7 +42,7 @@ DEFAULTS = {
         'bug_on_exit': 'False',
         'timestamp_format': '',
         'print_cmd': '',
-		'initial_searchstring': 'tag:inbox AND NOT tag:killed',
+        'initial_searchstring': 'tag:inbox AND NOT tag:killed',
     },
     '16c-theme': {
         'bufferlist_focus_bg': 'dark gray',

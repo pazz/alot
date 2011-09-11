@@ -88,7 +88,7 @@ def main():
     command_map['esc'] = 'cancel'
 
     # get initial searchstring
-    query = settings.config.get('general','initial_searchstring')
+    query = settings.config.get('general', 'initial_searchstring')
     if args.query != '':
         query = args.query
 

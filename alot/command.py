@@ -368,11 +368,13 @@ class ComposeCommand(Command):
                 a = accounts[0]
             else:
                 cmpl = AccountCompleter(ui.accountman)
-                fromaddress = yield ui.prompt(prefix='From>', completer=cmpl, tab=1)
+                fromaddress = yield ui.prompt(prefix='From>', completer=cmpl,
+                                              tab=1)
                 validaddresses = [a.address for a in accounts] + [None]
                 while fromaddress not in validaddresses:  # TODO: not cool
                     ui.notify('no account for this address. (<esc> cancels)')
-                    fromaddress = yield ui.prompt(prefix='From>', completer=cmpl)
+                    fromaddress = yield ui.prompt(prefix='From>',
+                                                  completer=cmpl)
                 if not fromaddress:
                     ui.notify('canceled')
                     return
@@ -657,8 +659,8 @@ class ToggleHeaderCommand(Command):
 
 class PipeCommand(Command):
     def __init__(self, command, whole_thread=False, separately=False,
-                 noop_msg='no command specified', confirm_msg='', done_msg='done',
-                 **kwargs):
+                 noop_msg='no command specified', confirm_msg='',
+                 done_msg='done', **kwargs):
         Command.__init__(self, **kwargs)
         self.cmd = command
         self.whole_thread = whole_thread
@@ -745,11 +747,12 @@ class SaveAttachmentCommand(Command):
                         dest = a.save(self.path)
                         name = a.get_filename()
                         if name:
-                            ui.notify('saved %s as: %s' % (name,dest))
+                            ui.notify('saved %s as: %s' % (name, dest))
                         else:
                             ui.notify('saved attachment as: %s' % dest)
                 else:
-                    ui.notify('not a directory: %s' % self.path, priority='error')
+                    ui.notify('not a directory: %s' % self.path,
+                              priority='error')
             else:
                 ui.notify('canceled')
         else:  # save focussed attachment
@@ -758,14 +761,16 @@ class SaveAttachmentCommand(Command):
                 attachment = focus.get_attachment()
                 filename = attachment.get_filename()
                 if not self.path:
-                    self.path = yield ui.prompt(prefix='save attachment (%s) to:' % filename,
-                                          text=os.path.join('~', filename),
-                                          completer=pcomplete)
+                    msg = 'save attachment (%s) to:' % filename
+                    initialtext = os.path.join('~', filename)
+                    self.path = yield ui.prompt(prefix=msg,
+                                                completer=pcomplete,
+                                                text=initialtext)
                 if self.path:
                     try:
                         dest = attachment.save(self.path)
                         ui.notify('saved attachment as: %s' % dest)
-                    except (IOError, OSError), e:  # permission/nonexistant dir issues
+                    except (IOError, OSError), e:
                         ui.notify(str(e), priority='error')
                 else:
                     ui.notify('canceled')
@@ -1140,7 +1145,8 @@ def interpret_commandline(cmdline, mode):
             return commandfactory(cmd, mode=mode, path=filepath)
     elif cmd == 'print':
         args = [a.strip() for a in params.split()]
-        return commandfactory(cmd, mode=mode, whole_thread=('--thread' in args),
+        return commandfactory(cmd, mode=mode,
+                              whole_thread=('--thread' in args),
                               separately=('--separately' in args))
     elif cmd == 'pipeto':
         return commandfactory(cmd, mode=mode, command=params)

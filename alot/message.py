@@ -323,8 +323,8 @@ class Attachment:
         path = os.path.expanduser(path)
         if os.path.isdir(path):
             if filename:
-                basename= os.path.basename(filename)
-                FILE = open(os.path.join(path,basename), "w")
+                basename = os.path.basename(filename)
+                FILE = open(os.path.join(path, basename), "w")
             else:
                 FILE = tempfile.NamedTemporaryFile(delete=False, dir=path)
         else:
