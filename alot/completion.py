@@ -52,8 +52,8 @@ class QueryCompleter(Completer):
     """completion for a notmuch query string"""
     def __init__(self, dbman, accountman):
         self.dbman = dbman
-        self._contactscompleter = ContactsCompleter(accountman,
-                                                    addressesonly=True)
+        abooks = accountman.get_addressbooks()
+        self._contactscompleter = ContactsCompleter(abooks, addressesonly=True)
         self._tagscompleter = TagsCompleter(dbman)
         self.keywords = ['tag', 'from', 'to', 'subject', 'attachment',
                          'is', 'id', 'thread', 'folder']
@@ -114,8 +114,8 @@ class TagsCompleter(Completer):
 
 class ContactsCompleter(Completer):
     """completes contacts"""
-    def __init__(self, accountman, addressesonly=False):
-        self.abooks = accountman.get_addressbooks()
+    def __init__(self, abooks, addressesonly=False):
+        self.abooks = abooks
         self.addressesonly = addressesonly
 
     def complete(self, original, pos):
@@ -174,7 +174,8 @@ class CommandLineCompleter(Completer):
         self._commandcompleter = CommandCompleter(dbman, mode)
         self._querycompleter = QueryCompleter(dbman, accountman)
         self._tagscompleter = TagsCompleter(dbman)
-        self._contactscompleter = ContactsCompleter(accountman)
+        abooks = accountman.get_addressbooks()
+        self._contactscompleter = ContactsCompleter(abooks, addressesonly=True)
         self._pathcompleter = PathCompleter()
 
     def complete(self, line, pos):

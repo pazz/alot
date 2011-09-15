@@ -386,8 +386,11 @@ class ComposeCommand(Command):
 
         #get To header
         if 'To' not in self.mail:
-            to = yield ui.prompt(prefix='To>',
-                           completer=ContactsCompleter(ui.accountman))
+            allbooks = settings.config.getboolean('general',
+                                                  'complete_matching_abook_only')
+            abooks = ui.accountman.get_addressbooks(order=[a],
+                                                    append_remaining=not allbooks)
+            to = yield ui.prompt(prefix='To>',completer=ContactsCompleter(abooks))
             if to == None:
                 ui.notify('canceled')
                 return

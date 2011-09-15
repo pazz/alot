@@ -242,8 +242,13 @@ class AccountManager:
         """returns addresses of known accounts including all their aliases"""
         return self.accountmap.keys()
 
-    def get_addressbooks(self):
-        return [a.abook for a in self.accounts if a.abook]
+    def get_addressbooks(self, order=[], append_remaining=True):
+        abooks = [a.abook for a in order]
+        if append_remaining:
+            for a in self.accounts:
+                if a.abook and a.abook not in abooks:
+                    abooks.append(a.abook)
+        return abooks
 
 
 class AddressBook:
