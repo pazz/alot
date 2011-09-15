@@ -52,7 +52,11 @@ print_cmd =
 
 #initial searchstring when none is given as argument:
 initial_searchstring = tag:inbox AND NOT tag:killed
-
+ 
+# in case more than one account has an addressbook:
+# Set this to True to make tabcompletion for recipients during compose only
+# look in the abook of the account matching the sender address
+complete_matching_abook_only = False
 
 [global-maps]
 $ = flush
