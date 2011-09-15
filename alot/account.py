@@ -190,7 +190,7 @@ class AccountManager:
                                                             errors='ignore')
                 options.remove('abook_command')
                 if 'abook_regexp' in options:
-                    rgexp = config.get(s, 'abook_regexp')
+                    regexp = config.get(s, 'abook_regexp')
                     options.remove('abook_regexp')
                 else:
                     regexp = None  # will use default in constructor
