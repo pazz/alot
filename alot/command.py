@@ -179,8 +179,9 @@ class ExternalCommand(Command):
                 cmd = '%s %s' % (settings.config.get('general',
                                                       'terminal_cmd'),
                                   cmd)
+            cmd = cmd.encode('ascii', errors='ignore')
             ui.logger.info('calling external command: %s' % cmd)
-            returncode = subprocess.call(cmd, shell=True)
+            returncode = subprocess.call(shlex.split(cmd))
             if returncode == 0:
                 os.write(write_fd, 'success')
 
@@ -387,10 +388,11 @@ class ComposeCommand(Command):
         #get To header
         if 'To' not in self.mail:
             allbooks = settings.config.getboolean('general',
-                                                  'complete_matching_abook_only')
+                                'complete_matching_abook_only')
             abooks = ui.accountman.get_addressbooks(order=[a],
-                                                    append_remaining=not allbooks)
-            to = yield ui.prompt(prefix='To>',completer=ContactsCompleter(abooks))
+                                            append_remaining=not allbooks)
+            to = yield ui.prompt(prefix='To>',
+                                 completer=ContactsCompleter(abooks))
             if to == None:
                 ui.notify('canceled')
                 return
