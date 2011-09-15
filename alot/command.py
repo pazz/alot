@@ -405,26 +405,34 @@ class ComposeCommand(Command):
 
 # SEARCH
 class RetagPromptCommand(Command):
-    """start a commandprompt to retag selected threads' tags"""
+    """start a commandprompt to retag selected threads' tags
+    this is needed to fill the prompt with the current tags..
+    """
     def apply(self, ui):
         thread = ui.current_buffer.get_selected_thread()
+        if not thread:
+            return
         initial_tagstring = ','.join(thread.get_tags())
         ui.commandprompt('retag ' + initial_tagstring)
 
 
 class RetagCommand(Command):
     """tag selected thread"""
-    def __init__(self, tagsstring=u'', **kwargs):
+    def __init__(self, tagsstring=u'', thread=None, **kwargs):
         self.tagsstring = tagsstring
+        self.thread = thread
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        thread = ui.current_buffer.get_selected_thread()
-        initial_tagstring = ','.join(thread.get_tags())
+        if not self.thread:
+            self.thread = ui.current_buffer.get_selected_thread()
+        if not self.thread:
+            return
+        initial_tagstring = ','.join(self.thread.get_tags())
         tags = filter(lambda x: x, self.tagsstring.split(','))
         ui.logger.info("got %s:%s" % (self.tagsstring, tags))
         try:
-            thread.set_tags(tags)
+            self.thread.set_tags(tags)
         except DatabaseROError, e:
             ui.notify('index in read-only mode', priority='error')
             return
@@ -683,6 +691,8 @@ class PipeCommand(Command):
         # get messages to pipe
         if self.whole_thread:
             thread = ui.current_buffer.get_selected_thread()
+            if not thread:
+                return
             to_print = thread.get_messages().keys()
         else:
             to_print = [ui.current_buffer.get_selected_message()]
