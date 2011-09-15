@@ -1,5 +1,6 @@
 0.12
 
+* recipient completion gives priority to abook of sender account
 * smarter in-string-tabcompletion
 * added ability to pipe messages/treads to custom shellcommands
 * initial searchstring configurable in configfile
