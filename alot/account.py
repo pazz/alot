@@ -228,8 +228,9 @@ class AccountManager:
         :rtype:  `account.Account` or None
         """
 
-        if address in self.accountmap:
-            return self.accountmap[address]
+        for myad in self.get_addresses():
+            if myad in address:
+                return self.accountmap[myad]
         else:
             return None
             # log info
@@ -243,7 +244,11 @@ class AccountManager:
         return self.accountmap.keys()
 
     def get_addressbooks(self, order=[], append_remaining=True):
-        abooks = [a.abook for a in order]
+        abooks = []
+        for a in order:
+            if a:
+                if a.abook:
+                    abooks.append(a.abook)
         if append_remaining:
             for a in self.accounts:
                 if a.abook and a.abook not in abooks:
