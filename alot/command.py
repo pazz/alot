@@ -387,10 +387,15 @@ class ComposeCommand(Command):
 
         #get To header
         if 'To' not in self.mail:
-            allbooks = settings.config.getboolean('general',
+            name, addr = email.Utils.parseaddr(unicode(self.mail.get('From')))
+            a = ui.accountman.get_account_by_address(addr)
+
+            allbooks = not settings.config.getboolean('general',
                                 'complete_matching_abook_only')
+            ui.logger.debug(allbooks)
             abooks = ui.accountman.get_addressbooks(order=[a],
-                                            append_remaining=not allbooks)
+                                                    append_remaining=allbooks)
+            ui.logger.debug(abooks)
             to = yield ui.prompt(prefix='To>',
                                  completer=ContactsCompleter(abooks))
             if to == None:
@@ -614,10 +619,10 @@ class ForwardCommand(Command):
             timestamp = self.message.get_date()
             qf = settings.hooks.get('forward_prefix')
             if qf:
-                quotestring = qf(name, address, timestamp)
+                quote = qf(name, address, timestamp)
             else:
-                quotestring = 'Forwarded message from %s (%s):\n' % (name, timestamp)
-            mailcontent = quotestring
+                quote = 'Forwarded message from %s (%s):\n' % (name, timestamp)
+            mailcontent = quote
             for line in self.message.accumulate_body().splitlines():
                 mailcontent += '>' + line + '\n'
 
