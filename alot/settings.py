@@ -403,10 +403,7 @@ class HookManager:
         if self.module:
             if key in self.module.__dict__:
                 return self.module.__dict__[key]
-
-        def f(*args, **kwargs):
-            msg = 'called undefined hook: %s with arguments'
-        return f
+        return None
 
 
 config = AlotConfigParser(DEFAULTS)

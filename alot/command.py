@@ -502,8 +502,14 @@ class ReplyCommand(Command):
             self.message = ui.current_buffer.get_selected_message()
         mail = self.message.get_email()
         # set body text
-        mailcontent = '\nOn %s, %s wrote:\n' % (self.message.get_datestring(),
-                self.message.get_author()[0])
+        name, address = self.message.get_author()
+        timestamp = self.message.get_date()
+        qf = settings.hooks.get('reply_prefix')
+        if qf:
+            quotestring = qf(name, address, timestamp)
+        else:
+            quotestring = 'Quoting %s (%s)\n' % (name, timestamp)
+        mailcontent = quotestring
         for line in self.message.accumulate_body().splitlines():
             mailcontent += '>' + line + '\n'
 
@@ -604,8 +610,14 @@ class ForwardCommand(Command):
         Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
         if self.inline:  # inline mode
             # set body text
-            author = self.message.get_author()[0]
-            mailcontent = '\nForwarded message from %s:\n' % author
+            name, address = self.message.get_author()
+            timestamp = self.message.get_date()
+            qf = settings.hooks.get('forward_prefix')
+            if qf:
+                quotestring = qf(name, address, timestamp)
+            else:
+                quotestring = 'Forwarded message from %s (%s):\n' % (name, timestamp)
+            mailcontent = quotestring
             for line in self.message.accumulate_body().splitlines():
                 mailcontent += '>' + line + '\n'
 
