@@ -890,6 +890,13 @@ class EnvelopeEditCommand(Command):
             editor_input = f.read().decode(enc)
             headertext, bodytext = editor_input.split('\n\n', 1)
 
+            # call post-edit translate hook
+            translate = settings.hooks.get('post_edit_translate')
+            if translate:
+                bodytext = translate(bodytext, ui=ui, dbm=ui.dbman,
+                                     aman=ui.accountman, log=ui.logger,
+                                     config=settings.config)
+
             # go through multiline, utf-8 encoded headers
             key = value = None
             for line in headertext.splitlines():
@@ -935,6 +942,13 @@ class EnvelopeEditCommand(Command):
                     break
         else:
             bodytext = decode_to_unicode(self.mail)
+
+        # call pre-edit translate hook
+        translate = settings.hooks.get('pre_edit_translate')
+        if translate:
+            bodytext = translate(bodytext, ui=ui, dbm=ui.dbman,
+                                 aman=ui.accountman, log=ui.logger,
+                                 config=settings.config)
 
         #write stuff to tempfile
         tf = tempfile.NamedTemporaryFile(delete=False)

@@ -166,6 +166,13 @@ Apart from command pre and posthooks, the following hooks will be interpreted:
  * `forward_prefix(realname, address, timestamp, **kwargs)`
    Is used to reformat the first indented line in a inline forwarded message.
    Returns a string and defaults to 'Forwarded message from %s (%s)\n' % (realname, timestamp)
+ * `pre_edit_translate(bodytext, **kwargs)`
+   can be used to manipulate a messages bodytext before the editor is called.
+   Receives and returns a string.
+ * `post_edit_translate(bodytext, **kwargs)`
+   can be used to manipulate a messages bodytext after the editor is called
+   Receives and returns a string.
+
 
 
 Theming
