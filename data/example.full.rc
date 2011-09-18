@@ -60,8 +60,8 @@ complete_matching_abook_only = False
 
 [global-maps]
 $ = flush
-: = prompt
-; = bufferlist
+":" = prompt
+";" = bufferlist
 @ = refresh
 I = search tag:inbox AND NOT tag:killed
 L = taglist
