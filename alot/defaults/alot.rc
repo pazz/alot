@@ -44,14 +44,14 @@ terminal_cmd = x-terminal-emulator -e
 timestamp_format = ''
 
 # how to print messages:
-# this specifies a shellcommand used pro printing. 
+# this specifies a shellcommand used pro printing.
 # threads/messages are piped to this as plaintext.
 # muttprint/a2ps works nicely
 print_cmd =
 
 #initial searchstring when none is given as argument:
 initial_searchstring = tag:inbox AND NOT tag:killed
- 
+
 # in case more than one account has an addressbook:
 # Set this to True to make tabcompletion for recipients during compose only
 # look in the abook of the account matching the sender address
@@ -71,7 +71,7 @@ m = compose
 o = 'prompt search '
 q = exit
 ';' = bufferlist
-':' = prompt
+colon = prompt
 
 [bufferlist-maps]
 x = closefocussed
@@ -256,10 +256,10 @@ message_header_bg = dark gray
 [1c-theme]
 message_body = default
 message_header = default
-prompt = 
+prompt =
 message_attachment = default
 notify_normal = default
-messagesummary_odd = 
+messagesummary_odd =
 threadline_content = default
 threadline_subject_focus = standout
 bufferlist_results_odd = default
@@ -279,7 +279,7 @@ bufferlist_results_even = default
 threadline_authors_focus = standout
 footer = standout
 notify_error = standout
-messagesummary_even = 
+messagesummary_even =
 threadline_tags_focus = standout
 threadline = default
 threadline_date = default
