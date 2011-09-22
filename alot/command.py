@@ -140,11 +140,13 @@ class RefreshCommand(Command):
 
 class ExternalCommand(Command):
     """calls external command"""
-    def __init__(self, commandstring, spawn=False, refocus=True,
+    def __init__(self, commandstring, path=None, spawn=False, refocus=True,
                  in_thread=False, on_success=None, **kwargs):
         """
         :param commandstring: the command to call
         :type commandstring: str
+        :param path: a path to a file (or None)
+        :type path: str
         :param spawn: run command in a new terminal
         :type spawn: boolean
         :param in_thread: run asynchronously, don't block alot
@@ -155,6 +157,7 @@ class ExternalCommand(Command):
         :type on_success: callable
         """
         self.commandstring = commandstring
+        self.path = path
         self.spawn = spawn
         self.refocus = refocus
         self.in_thread = in_thread
@@ -174,7 +177,14 @@ class ExternalCommand(Command):
         write_fd = ui.mainloop.watch_pipe(afterwards)
 
         def thread_code(*args):
-            cmd = self.commandstring
+            if self.path:
+                if '{}' in self.commandstring:
+                    cmd = self.commandstring.replace('{}', helper.shell_quote(self.path))
+                else:
+                    cmd = '%s %s' % (self.commandstring, helper.shell_quote(self.path))
+            else:
+                cmd = self.commandstring
+
             if self.spawn:
                 cmd = '%s %s' % (settings.config.get('general',
                                                       'terminal_cmd'),
@@ -202,8 +212,8 @@ class EditCommand(ExternalCommand):
         else:
             self.spawn = settings.config.getboolean('general', 'spawn_editor')
         editor_cmd = settings.config.get('general', 'editor_cmd')
-        cmd = editor_cmd + ' ' + self.path
-        ExternalCommand.__init__(self, cmd, spawn=self.spawn,
+
+        ExternalCommand.__init__(self, editor_cmd, path=self.path, spawn=self.spawn,
                                  in_thread=self.spawn,
                                  **kwargs)
 
