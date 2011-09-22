@@ -50,7 +50,7 @@ from message import decode_header
 from message import encode_header
 
 
-class Command:
+class Command(object):
     """base class for commands"""
     def __init__(self, prehook=None, posthook=None):
         self.prehook = prehook

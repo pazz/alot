@@ -45,7 +45,7 @@ class MainWidget(urwid.Frame):
             urwid.Frame.keypress(self, size, key)
 
 
-class UI:
+class UI(object):
     buffers = []
     current_buffer = None
 

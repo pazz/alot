@@ -38,7 +38,7 @@ class DatabaseLockedError(DatabaseError):
     pass
 
 
-class DBManager:
+class DBManager(object):
     """
     keeps track of your index parameters, can create notmuch.Query
     objects from its Database on demand and implements a bunch of
@@ -174,7 +174,7 @@ class DBManager:
         return db.create_query(querystring)
 
 
-class Thread:
+class Thread(object):
     def __init__(self, dbman, thread):
         """
         :param dbman: db manager that is used for further lookups

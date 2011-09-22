@@ -32,7 +32,7 @@ from helper import cmd_output
 import helper
 
 
-class Account:
+class Account(object):
     """
     Datastructure that represents an email account. It manages
     this account's settings, can send and store mails to
@@ -159,7 +159,7 @@ class SendmailAccount(Account):
         return None
 
 
-class AccountManager:
+class AccountManager(object):
     """Easy access to all known accounts"""
     allowed = ['realname',
                'address',
@@ -256,7 +256,7 @@ class AccountManager:
         return abooks
 
 
-class AddressBook:
+class AddressBook(object):
     def get_contacts(self):
         return []
 
