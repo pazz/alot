@@ -6,63 +6,66 @@ to the prompt. Any commandline can be mapped by using the "MODE-maps" sections
 in the config file. These are the default keymaps:
 
     [global-maps]
-    $ = flush
-    : = prompt
-    ; = bufferlist
     @ = refresh
     I = search tag:inbox AND NOT tag:killed
     L = taglist
-    U = search tag:unread
-    \ = prompt search 
-    d = bclose
-    m = compose
-    o = prompt search 
-    q = exit
     shift tab = bprevious
+    U = search tag:unread
     tab = bnext
-    
+    \ = 'prompt search '
+    d = bclose
+    $ = flush
+    m = compose
+    o = 'prompt search '
+    q = exit
+    ';' = bufferlist
+    colon = prompt
+
     [bufferlist-maps]
-    enter = openfocussed
     x = closefocussed
-    
+    enter = openfocussed
+
     [search-maps]
-    & = toggletag killed
-    O = refineprompt
     a = toggletag inbox
-    enter = openthread
+    & = toggletag killed
     l = retagprompt
+    O = refineprompt
+    enter = openthread
     | = refineprompt
-    
+
     [envelope-maps]
-    a = attach
-    enter = reedit
-    s = prompt subject 
-    t = prompt to 
+    a = prompt attach ~/
     y = send
-    
+    s = 'prompt subject '
+    t = 'prompt to '
+    enter = reedit
+
     [taglist-maps]
     enter = select
-    
+
     [thread-maps]
     C = fold --all
     E = unfold --all
     H = toggleheaders
-    P = print --all
+    P = print --thread
     S = save --all
     a = toggletag inbox
-    enter = select
-    f = forward
     g = groupreply
+    f = forward
     p = print
-    r = reply
     s = save
-    | = prompt pipeto 
+    r = reply
+    enter = select
+    | = 'prompt pipeto '
 
 Config
 ------
 Just like offlineimap or notmuch itself, alot reads a config file in the "INI" syntax:
 It consists of some sections whose names are given in square brackets, followed by
 key-value pairs that use "=" or ":" as separator, ';' and '#' are comment-prefixes.
+
+Note that since ":" is a separator for key-value pairs you need to use "colon" to bind
+commands to ":".
 
 The default location for the config file is `~/.alot.rc`.
 You can find a complete example config in `data/example.full.rc`.
