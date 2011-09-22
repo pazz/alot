@@ -26,7 +26,7 @@ editor_writes_encoding' = UTF-8
 flush_retry_timeout = 5
 
 # where to look up hooks
-hooksfile = ~/.alot.py
+hooksfile = ~/.config/alot/hooks.py
 
 # time in secs to display status messages
 notify_timeout = 2
