@@ -18,6 +18,7 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 import imp
 import os
+import ast
 import mailcap
 import codecs
 
@@ -55,6 +56,24 @@ class AlotConfigParser(FallbackConfigParser):
                     config.hooks = imp.load_source('hooks', hf)
                 except:
                     pass
+
+        # fix quoted keys / values
+        for section in self.sections():
+            for key, value in self.items(section):
+                if value and value[0] in "\"'":
+                    value = ast.literal_eval(value)
+
+                transformed_key = False
+                if key[0] in "\"'":
+                    transformed_key = ast.literal_eval(key)
+                elif key == 'colon':
+                    transformed_key = ':'
+
+                if transformed_key:
+                    self.remove_option(section, key)
+                    self.set(section, transformed_key, value)
+                else:
+                    self.set(section, key, value)
 
     def get_palette(self):
         mode = self.getint('general', 'colourmode')
