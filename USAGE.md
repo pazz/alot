@@ -134,7 +134,8 @@ You can tune this using the `abook_regexp` option (beware Commandparsers escapin
 Hooks
 -----
 Hooks are python callables that live in a module specified by
-`hooksfile` in the `[global]` section of your config. Per default this points to `~/.alot.py`.
+`hooksfile` in the `[global]` section of your config. Per default this points
+to `~/.config/alot/hooks.py`.
 For every command X, the callable 'pre_X' will be called before X and 'post_X' afterwards.
 
 When a hook gets called, it receives instances of
