@@ -10,6 +10,7 @@ setup(name='alot',
       author_email=alot.__author_email__,
       url=alot.__url__,
       packages=['alot'],
+      package_data={'alot': ['defaults/alot.rc', 'defaults/notmuch.rc']},
       scripts=['bin/alot'],
       license=alot.__copyright__,
       requires=[
