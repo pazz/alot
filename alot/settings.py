@@ -23,301 +23,24 @@ import codecs
 
 from ConfigParser import SafeConfigParser
 
-
-DEFAULTS = {
-    'general': {
-        'ask_subject': 'True',
-        'authors_maxlength': '30',
-        'bug_on_exit': 'False',
-        'colourmode': '256',
-        'complete_matching_abook_only': 'False',
-        'display_content_in_threadline': 'False',
-        'displayed_headers': 'From,To,Cc,Bcc,Subject',
-        'editor_cmd': "/usr/bin/vim -f -c 'set filetype=mail' +",
-        'editor_writes_encoding': 'UTF-8',
-        'flush_retry_timeout': '5',
-        'hooksfile': '~/.alot.py',
-        'initial_searchstring': 'tag:inbox AND NOT tag:killed',
-        'notify_timeout': '2',
-        'print_cmd': '',
-        'show_statusbar': 'True',
-        'spawn_editor': 'False',
-        'terminal_cmd': 'x-terminal-emulator -e',
-        'timestamp_format': '',
-    },
-    '16c-theme': {
-        'bufferlist_focus_bg': 'dark gray',
-        'bufferlist_focus_fg': 'white',
-        'bufferlist_results_even_bg': 'black',
-        'bufferlist_results_even_fg': 'light gray',
-        'bufferlist_results_odd_bg': 'black',
-        'bufferlist_results_odd_fg': 'light gray',
-        'footer_bg': 'dark blue',
-        'footer_fg': 'light green',
-        'header_bg': 'dark blue',
-        'header_fg': 'white',
-        'message_attachment_bg': 'dark gray',
-        'message_attachment_fg': 'light gray',
-        'message_attachment_focussed_bg': 'light green',
-        'message_attachment_focussed_fg': 'light gray',
-        'message_body_bg': 'default',
-        'message_body_fg': 'light gray',
-        'message_header_bg': 'dark gray',
-        'message_header_fg': 'white',
-        'message_header_key_bg': 'dark gray',
-        'message_header_key_fg': 'white',
-        'message_header_value_bg': 'dark gray',
-        'message_header_value_fg': 'light gray',
-        'messagesummary_even_bg': 'light blue',
-        'messagesummary_even_fg': 'white',
-        'messagesummary_focus_bg': 'dark cyan',
-        'messagesummary_focus_fg': 'white',
-        'messagesummary_odd_bg': 'dark blue',
-        'messagesummary_odd_fg': 'white',
-        'notify_error_bg': 'dark red',
-        'notify_error_fg': 'white',
-        'notify_normal_bg': 'default',
-        'notify_normal_fg': 'default',
-        'prompt_bg': 'black',
-        'prompt_fg': 'light gray',
-        'tag_focus_bg': 'dark cyan',
-        'tag_focus_fg': 'white',
-        'tag_bg': 'black',
-        'tag_fg': 'brown',
-        'threadline_authors_bg': 'default',
-        'threadline_authors_fg': 'dark green',
-        'threadline_authors_focus_bg': 'dark cyan',
-        'threadline_authors_focus_fg': 'black,bold',
-        'threadline_bg': 'default',
-        'threadline_content_bg': 'default',
-        'threadline_content_fg': 'dark gray',
-        'threadline_content_focus_bg': 'dark cyan',
-        'threadline_content_focus_fg': 'dark gray',
-        'threadline_date_bg': 'default',
-        'threadline_date_fg': 'light gray',
-        'threadline_date_focus_bg': 'dark cyan',
-        'threadline_date_focus_fg': 'black',
-        'threadline_fg': 'default',
-        'threadline_focus_bg': 'dark cyan',
-        'threadline_focus_fg': 'white',
-        'threadline_mailcount_bg': 'default',
-        'threadline_mailcount_fg': 'light gray',
-        'threadline_mailcount_focus_bg': 'dark cyan',
-        'threadline_mailcount_focus_fg': 'black',
-        'threadline_subject_bg': 'default',
-        'threadline_subject_fg': 'light gray',
-        'threadline_subject_focus_bg': 'dark cyan',
-        'threadline_subject_focus_fg': 'black',
-        'threadline_tags_bg': 'default',
-        'threadline_tags_fg': 'brown',
-        'threadline_tags_focus_bg': 'dark cyan',
-        'threadline_tags_focus_fg': 'yellow,bold',
-    },
-    '1c-theme': {
-        'bufferlist_focus': 'standout',
-        'bufferlist_results_even': 'default',
-        'bufferlist_results_odd': 'default',
-        'footer': 'standout',
-        'header': 'standout',
-        'message_attachment': 'default',
-        'message_attachment_focussed': 'underline',
-        'message_body': 'default',
-        'message_header': 'default',
-        'message_header_key': 'default',
-        'message_header_value': 'default',
-        'messagesummary_even': '',
-        'messagesummary_focus': 'standout',
-        'messagesummary_odd': '',
-        'notify_error': 'standout',
-        'notify_normal': 'default',
-        'prompt': '',
-        'tag_focus': 'standout',
-        'tag': 'default',
-        'threadline': 'default',
-        'threadline_authors': 'default,underline',
-        'threadline_authors_focus': 'standout',
-        'threadline_content': 'default',
-        'threadline_content_focus': 'standout',
-        'threadline_date': 'default',
-        'threadline_date_focus': 'standout',
-        'threadline_focus': 'standout',
-        'threadline_mailcount': 'default',
-        'threadline_mailcount_focus': 'standout',
-        'threadline_subject': 'default',
-        'threadline_subject_focus': 'standout',
-        'threadline_tags': 'bold',
-        'threadline_tags_focus': 'standout',
-    },
-    '256c-theme': {
-        'bufferlist_focus_bg': 'g38',
-        'bufferlist_focus_fg': '#ffa',
-        'bufferlist_results_even_bg': 'g3',
-        'bufferlist_results_even_fg': 'default',
-        'bufferlist_results_odd_bg': 'default',
-        'bufferlist_results_odd_fg': 'default',
-        'footer_bg': '#006',
-        'footer_fg': 'white',
-        'header_bg': 'dark blue',
-        'header_fg': 'white',
-        'message_attachment_bg': 'dark gray',
-        'message_attachment_fg': 'light gray',
-        'message_attachment_focussed_bg': 'light green',
-        'message_attachment_focussed_fg': 'light gray',
-        'message_body_bg': 'default',
-        'message_body_fg': 'light gray',
-        'message_header_bg': 'dark gray',
-        'message_header_fg': 'white',
-        'message_header_key_bg': 'dark gray',
-        'message_header_key_fg': 'white',
-        'message_header_value_bg': 'dark gray',
-        'message_header_value_fg': 'light gray',
-        'messagesummary_even_bg': '#068',
-        'messagesummary_even_fg': 'white',
-        'messagesummary_focus_bg': 'g58',
-        'messagesummary_focus_fg': '#ff8',
-        'messagesummary_odd_bg': '#006',
-        'messagesummary_odd_fg': 'white',
-        'notify_error_bg': 'dark red',
-        'notify_error_fg': 'white',
-        'notify_normal_bg': 'default',
-        'notify_normal_fg': 'default',
-        'prompt_bg': 'default',
-        'prompt_fg': 'light gray',
-        'tag_focus_bg': 'g58',
-        'tag_focus_fg': '#ffa',
-        'tag_bg': 'default',
-        'tag_fg': 'brown',
-        'threadline_authors_bg': 'default',
-        'threadline_authors_fg': '#6d6',
-        'threadline_authors_focus_bg': 'g58',
-        'threadline_authors_focus_fg': '#8f6',
-        'threadline_bg': 'default',
-        'threadline_content_bg': 'default',
-        'threadline_content_fg': '#866',
-        'threadline_content_focus_bg': 'g58',
-        'threadline_content_focus_fg': '#866',
-        'threadline_date_bg': 'default',
-        'threadline_date_fg': 'g58',
-        'threadline_date_focus_bg': 'g58',
-        'threadline_date_focus_fg': 'g89',
-        'threadline_fg': 'default',
-        'threadline_focus_bg': 'g58',
-        'threadline_focus_fg': 'white',
-        'threadline_mailcount_bg': 'default',
-        'threadline_mailcount_fg': 'light gray',
-        'threadline_mailcount_focus_bg': 'g58',
-        'threadline_mailcount_focus_fg': 'g89',
-        'threadline_subject_bg': 'default',
-        'threadline_subject_fg': 'g58',
-        'threadline_subject_focus_bg': 'g58',
-        'threadline_subject_focus_fg': 'g89',
-        'threadline_tags_bg': 'default',
-        'threadline_tags_fg': '#a86',
-        'threadline_tags_focus_bg': 'g58',
-        'threadline_tags_focus_fg': '#ff8',
-    },
-    'global-maps': {
-        '$': 'flush',
-        ':': 'prompt',
-        ';': 'bufferlist',
-        '@': 'refresh',
-        '@': 'refresh',
-        'I': 'search tag:inbox AND NOT tag:killed',
-        'L': 'taglist',
-        'U': 'search tag:unread',
-        '\\': 'prompt search ',
-        'm': 'compose',
-        'o': 'prompt search ',
-        'q': 'exit',
-        'shift tab': 'bprevious',
-        'tab': 'bnext',
-        'd': 'bclose',
-    },
-    'search-maps': {
-        '&': 'toggletag killed',
-        'O': 'refineprompt',
-        'a': 'toggletag inbox',
-        'enter': 'openthread',
-        'l': 'retagprompt',
-        '|': 'refineprompt',
-    },
-    'thread-maps': {
-        'C': 'fold --all',
-        'E': 'unfold --all',
-        'H': 'toggleheaders',
-        'P': 'print --thread',
-        'a': 'toggletag inbox',
-        'enter': 'select',
-        'f': 'forward',
-        'g': 'groupreply',
-        'p': 'print',
-        'r': 'reply',
-        's': 'save',
-        'S': 'save --all',
-        '|': 'prompt pipeto ',
-    },
-    'taglist-maps': {
-        'enter': 'select',
-    },
-    'envelope-maps': {
-        'a': 'prompt attach ~/',
-        'y': 'send',
-        'enter': 'reedit',
-        't': 'prompt to ',
-        's': 'prompt subject ',
-    },
-    'bufferlist-maps': {
-        'x': 'closefocussed',
-        'enter': 'openfocussed',
-    },
-    'command-aliases': {
-        'clo': 'close',
-        'bn': 'bnext',
-        'bp': 'bprevious',
-        'ls': 'bufferlist',
-        'quit': 'exit',
-    }
-}
-
-NOTMUCH_DEFAULTS = {
-    'maildir': {
-        'synchronize_flags': 'False',
-    },
-}
-
-
-class DefaultsConfigParser(SafeConfigParser):
-    def __init__(self, defaults):
-        self.defaults = defaults
+class FallbackConfigParser(SafeConfigParser):
+    def __init__(self):
         SafeConfigParser.__init__(self)
         self.optionxform = lambda x: x
-        for sec in defaults.keys():
-            self.add_section(sec)
 
     def get(self, section, option, fallback=None, *args, **kwargs):
         if SafeConfigParser.has_option(self, section, option):
             return SafeConfigParser.get(self, section, option, *args, **kwargs)
-        elif section in self.defaults:
-            if option in self.defaults[section]:
-                return self.defaults[section][option]
         return fallback
-
-    def has_option(self, section, option, *args, **kwargs):
-        if SafeConfigParser.has_option(self, section, option):
-            return True
-        elif section in self.defaults:
-            if option in self.defaults[section]:
-                return True
-        return False
 
     def getstringlist(self, section, option, **kwargs):
         value = self.get(section, option, **kwargs)
         return [s.strip() for s in value.split(',')]
 
 
-class AlotConfigParser(DefaultsConfigParser):
-    def __init__(self, defaults):
-        DefaultsConfigParser.__init__(self, defaults)
+class AlotConfigParser(FallbackConfigParser):
+    def __init__(self):
+        FallbackConfigParser.__init__(self)
         self.hooks = None
 
     def read(self, file):
@@ -336,7 +59,7 @@ class AlotConfigParser(DefaultsConfigParser):
     def get_palette(self):
         mode = self.getint('general', 'colourmode')
         ms = "%dc-theme" % mode
-        names = self.options(ms) + DEFAULTS[ms].keys()
+        names = self.options(ms)
         if mode > 2:
             names = set([s[:-3] for s in names])
         p = list()
@@ -406,8 +129,10 @@ class HookManager(object):
         return None
 
 
-config = AlotConfigParser(DEFAULTS)
-notmuchconfig = DefaultsConfigParser(NOTMUCH_DEFAULTS)
+config = AlotConfigParser()
+config.read(os.path.join(os.path.dirname(__file__), 'defaults', 'alot.rc'))
+notmuchconfig = FallbackConfigParser()
+notmuchconfig.read(os.path.join(os.path.dirname(__file__), 'defaults', 'notmuch.rc'))
 hooks = HookManager()
 mailcaps = mailcap.getcaps()
 
