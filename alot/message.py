@@ -29,7 +29,7 @@ from settings import get_mime_handler
 from settings import config
 
 
-class Message:
+class Message(object):
     def __init__(self, dbman, msg, thread=None):
         """
         :param dbman: db manager that is used for further lookups
@@ -279,7 +279,7 @@ def encode_header(key, value):
     return value
 
 
-class Attachment:
+class Attachment(object):
     """represents a single mail attachment"""
 
     def __init__(self, emailpart):
