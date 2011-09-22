@@ -80,8 +80,6 @@ def main():
         if os.path.exists(configfilename):
             settings.config.read(configfilename)
             found_config = True
-    if not found_config:
-        sys.exit('No configuration file found (tried %s)' % ', '.join(configfiles))
 
     notmuchfile = os.path.expanduser(args.notmuchconfigfile)
     settings.notmuchconfig.read(notmuchfile)
