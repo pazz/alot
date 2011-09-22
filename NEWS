@@ -1,13 +1,15 @@
 0.12
 
+* moved default location for config to ~/.config/alot/config
+* hooks for pre/post editing and RE/FWD quotestrings
 * recipient completion gives priority to abook of sender account
 * smarter in-string-tabcompletion
 * added ability to pipe messages/treads to custom shellcommands
 * initial searchstring configurable in configfile
-* prompt non-blocking (new syntax for prompts!)
+* non-blocking prompt/choice (new syntax for prompts!)
 * fix attachment saving
 
-Thanks: Ruben Pollan, Luke Macken
+Thanks: Ruben Pollan, Luke Macken, Justus Winter
 
 0.11
 
