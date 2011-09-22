@@ -64,8 +64,9 @@ Just like offlineimap or notmuch itself, alot reads a config file in the "INI" s
 It consists of some sections whose names are given in square brackets, followed by
 key-value pairs that use "=" or ":" as separator, ';' and '#' are comment-prefixes.
 
-The default location for the config file is `~/.alot.rc`.
-You can find a complete example config in `data/example.full.rc`.
+The default location for the config file is `~/.config/alot/config`.
+You can find a complete example config with the default values in
+`alot/defaults/alot.rc`.
 Here is a key for the interpreted sections:
 
     [general]
