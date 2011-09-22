@@ -20,7 +20,7 @@ displayed_headers = From,To,Cc,Bcc,Subject
 
 # editor command
 editor_cmd = /usr/bin/vim -f -c 'set filetype=mail' +
-editor_writes_encoding' = UTF-8
+editor_writes_encoding = UTF-8
 
 # timeout in secs after a failed attempt to flush is repeated
 flush_retry_timeout = 5
@@ -47,7 +47,7 @@ timestamp_format = ''
 # this specifies a shellcommand used pro printing.
 # threads/messages are piped to this as plaintext.
 # muttprint/a2ps works nicely
-print_cmd =
+print_cmd = ''
 
 #initial searchstring when none is given as argument:
 initial_searchstring = tag:inbox AND NOT tag:killed
