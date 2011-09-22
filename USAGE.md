@@ -6,57 +6,57 @@ to the prompt. Any commandline can be mapped by using the "MODE-maps" sections
 in the config file. These are the default keymaps:
 
     [global-maps]
-    $ = flush
-    : = prompt
-    ; = bufferlist
     @ = refresh
     I = search tag:inbox AND NOT tag:killed
     L = taglist
-    U = search tag:unread
-    \ = prompt search 
-    d = bclose
-    m = compose
-    o = prompt search 
-    q = exit
     shift tab = bprevious
+    U = search tag:unread
     tab = bnext
-    
+    \ = 'prompt search '
+    d = bclose
+    $ = flush
+    m = compose
+    o = 'prompt search '
+    q = exit
+    ';' = bufferlist
+    colon = prompt
+
     [bufferlist-maps]
-    enter = openfocussed
     x = closefocussed
-    
+    enter = openfocussed
+
     [search-maps]
-    & = toggletag killed
-    O = refineprompt
     a = toggletag inbox
-    enter = openthread
+    & = toggletag killed
     l = retagprompt
+    O = refineprompt
+    enter = openthread
     | = refineprompt
-    
+
     [envelope-maps]
-    a = attach
-    enter = reedit
-    s = prompt subject 
-    t = prompt to 
+    a = prompt attach ~/
     y = send
-    
+    s = 'prompt subject '
+    t = 'prompt to '
+    enter = reedit
+
     [taglist-maps]
     enter = select
-    
+
     [thread-maps]
     C = fold --all
     E = unfold --all
     H = toggleheaders
-    P = print --all
+    P = print --thread
     S = save --all
     a = toggletag inbox
-    enter = select
-    f = forward
     g = groupreply
+    f = forward
     p = print
-    r = reply
     s = save
-    | = prompt pipeto 
+    r = reply
+    enter = select
+    | = 'prompt pipeto '
 
 Config
 ------
@@ -67,6 +67,10 @@ key-value pairs that use "=" or ":" as separator, ';' and '#' are comment-prefix
 The default location for the config file is `~/.config/alot/config`.
 You can find a complete example config with the default values in
 `alot/defaults/alot.rc`.
+
+Note that since ":" is a separator for key-value pairs you need to use "colon" to bind
+commands to ":".
+
 Here is a key for the interpreted sections:
 
     [general]
