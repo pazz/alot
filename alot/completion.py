@@ -25,7 +25,7 @@ import logging
 import command
 
 
-class Completer:
+class Completer(object):
     def complete(self, original, pos):
         """returns a list of completions and cursor positions for the
         string original from position pos on.

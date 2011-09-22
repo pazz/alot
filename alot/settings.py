@@ -388,7 +388,7 @@ class AlotConfigParser(DefaultsConfigParser):
         return cmdline
 
 
-class HookManager:
+class HookManager(object):
     def setup(self, hooksfile):
         hf = os.path.expanduser(hooksfile)
         if os.path.isfile(hf):

@@ -27,7 +27,7 @@ from walker import IteratorWalker
 from message import decode_header
 
 
-class Buffer:
+class Buffer(object):
     def __init__(self, ui, widget, name):
         self.ui = ui
         self.typename = name
