@@ -114,6 +114,7 @@ def attach(path, mail, filename=None):
                     filename=filename)
     mail.attach(part)
 
+
 def shell_quote(text):
     r'''
     >>> print(shell_quote("hello"))

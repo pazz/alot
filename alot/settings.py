@@ -24,6 +24,7 @@ import codecs
 
 from ConfigParser import SafeConfigParser
 
+
 class FallbackConfigParser(SafeConfigParser):
     def __init__(self):
         SafeConfigParser.__init__(self)
@@ -151,7 +152,9 @@ class HookManager(object):
 config = AlotConfigParser()
 config.read(os.path.join(os.path.dirname(__file__), 'defaults', 'alot.rc'))
 notmuchconfig = FallbackConfigParser()
-notmuchconfig.read(os.path.join(os.path.dirname(__file__), 'defaults', 'notmuch.rc'))
+notmuchconfig.read(os.path.join(os.path.dirname(__file__),
+                   'defaults',
+                   'notmuch.rc'))
 hooks = HookManager()
 mailcaps = mailcap.getcaps()
 

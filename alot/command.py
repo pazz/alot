@@ -179,9 +179,11 @@ class ExternalCommand(Command):
         def thread_code(*args):
             if self.path:
                 if '{}' in self.commandstring:
-                    cmd = self.commandstring.replace('{}', helper.shell_quote(self.path))
+                    cmd = self.commandstring.replace('{}',
+                            helper.shell_quote(self.path))
                 else:
-                    cmd = '%s %s' % (self.commandstring, helper.shell_quote(self.path))
+                    cmd = '%s %s' % (self.commandstring,
+                                     helper.shell_quote(self.path))
             else:
                 cmd = self.commandstring
 
@@ -213,8 +215,8 @@ class EditCommand(ExternalCommand):
             self.spawn = settings.config.getboolean('general', 'spawn_editor')
         editor_cmd = settings.config.get('general', 'editor_cmd')
 
-        ExternalCommand.__init__(self, editor_cmd, path=self.path, spawn=self.spawn,
-                                 in_thread=self.spawn,
+        ExternalCommand.__init__(self, editor_cmd, path=self.path,
+                                 spawn=self.spawn, in_thread=self.spawn,
                                  **kwargs)
 
 
