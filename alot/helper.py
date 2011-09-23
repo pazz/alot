@@ -113,3 +113,12 @@ def attach(path, mail, filename=None):
     part.add_header('Content-Disposition', 'attachment',
                     filename=filename)
     mail.attach(part)
+
+def shell_quote(text):
+    r'''
+    >>> print(shell_quote("hello"))
+    'hello'
+    >>> print(shell_quote("hello'there"))
+    'hello'"'"'there'
+    '''
+    return "'%s'" % text.replace("'", """'"'"'""")
