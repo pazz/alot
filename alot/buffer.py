@@ -27,7 +27,7 @@ from walker import IteratorWalker
 from message import decode_header
 
 
-class Buffer:
+class Buffer(object):
     def __init__(self, ui, widget, name):
         self.ui = ui
         self.typename = name
@@ -206,6 +206,7 @@ class ThreadBuffer(Buffer):
             self._build_pile(acc, reply, msg, depth + 1)
 
     def rebuild(self):
+        self.thread.refresh()
         # depth-first traversing the thread-tree, thereby
         # 1) build a list of tuples (parentmsg, depth, message) in DF order
         # 2) create a dict that counts no. of direct replies per message

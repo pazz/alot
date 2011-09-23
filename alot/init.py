@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 """
 This file is part of alot, a terminal UI to notmuch mail (notmuchmail.org).
 Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
@@ -16,6 +16,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
+import sys
 import argparse
 import logging
 import os
@@ -30,7 +31,7 @@ from urwid.command_map import command_map
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', dest='configfile',
-                        default='~/.alot.rc',
+                        default=None,
                         help='alot\'s config file')
     parser.add_argument('-n', dest='notmuchconfigfile',
                         default='~/.notmuch-config',
@@ -61,9 +62,25 @@ def main():
     # interpret cml arguments
     args = parse_args()
 
-    #read config file
-    configfilename = os.path.expanduser(args.configfile)
-    settings.config.read(configfilename)
+    #locate and read config file
+    configfiles = [
+        os.path.join(os.environ.get('XDG_CONFIG_HOME',
+                                    os.path.expanduser('~/.config')),
+                     'alot', 'config'),
+        os.path.expanduser('~/.alot.rc'),
+    ]
+    if args.configfile:
+        expanded_path = os.path.expanduser(args.configfile)
+        if not os.path.exists(expanded_path):
+            sys.exit('File %s does not exist' % expanded_path)
+        configfiles.insert(0, expanded_path)
+
+    found_config = False
+    for configfilename in configfiles:
+        if os.path.exists(configfilename):
+            settings.config.read(configfilename)
+            found_config = True
+
     notmuchfile = os.path.expanduser(args.notmuchconfigfile)
     settings.notmuchconfig.read(notmuchfile)
     settings.hooks.setup(settings.config.get('general', 'hooksfile'))
@@ -88,7 +105,7 @@ def main():
     command_map['esc'] = 'cancel'
 
     # get initial searchstring
-    query = settings.config.get('general','initial_searchstring')
+    query = settings.config.get('general', 'initial_searchstring')
     if args.query != '':
         query = args.query
 

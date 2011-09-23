@@ -51,7 +51,7 @@ def pretty_datetime(d):
 
 
 def cmd_output(command_line):
-    args = shlex.split(command_line)
+    args = shlex.split(command_line.encode('ascii', errors='ignore'))
     try:
         output = subprocess.check_output(args)
     except subprocess.CalledProcessError:
@@ -59,6 +59,25 @@ def cmd_output(command_line):
     except OSError:
         return None
     return output
+
+
+def pipe_to_command(cmd, stdin):
+        # no unicode in shlex on 2.x
+        args = shlex.split(cmd.encode('ascii'))
+        try:
+            proc = subprocess.Popen(args, stdin=subprocess.PIPE,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE)
+            out, err = proc.communicate(stdin)
+        except OSError, e:
+            return '', str(e)
+        if proc.poll():  # returncode is not 0
+            e = 'return value != 0'
+            if err.strip():
+                e = e + ': %s' % err
+            return '', e
+        else:
+            return out, err
 
 
 def attach(path, mail, filename=None):
@@ -94,3 +113,13 @@ def attach(path, mail, filename=None):
     part.add_header('Content-Disposition', 'attachment',
                     filename=filename)
     mail.attach(part)
+
+
+def shell_quote(text):
+    r'''
+    >>> print(shell_quote("hello"))
+    'hello'
+    >>> print(shell_quote("hello'there"))
+    'hello'"'"'there'
+    '''
+    return "'%s'" % text.replace("'", """'"'"'""")

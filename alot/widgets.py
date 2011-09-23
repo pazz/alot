@@ -63,7 +63,7 @@ class ThreadlineWidget(urwid.AttrMap):
 
         authors = self.thread.get_authors() or '(None)'
         maxlength = config.getint('general', 'authors_maxlength')
-        authorsstring = shorten(authors, maxlength).strip()
+        authorsstring = shorten(authors, maxlength)
         self.authors_w = urwid.AttrMap(urwid.Text(authorsstring),
                                        'threadline_authors')
         cols.append(('fixed', len(authorsstring), self.authors_w))
@@ -166,43 +166,91 @@ class TagWidget(urwid.AttrMap):
         self.set_attr_map({None: config.get_tagattr(self.tag)})
 
 
+class ChoiceWidget(urwid.Text):
+    def __init__(self, choices, callback, cancel=None, select=None):
+        self.choices = choices
+        self.callback = callback
+        self.cancel = cancel
+        self.select = select
+
+        items = []
+        for k, v in choices.items():
+            if v == select and select != None:
+                items.append('[%s]:%s' % (k, v))
+            else:
+                items.append('(%s):%s' % (k, v))
+        urwid.Text.__init__(self, ' '.join(items))
+
+    def selectable(self):
+        return True
+
+    def keypress(self, size, key):
+        cmd = command_map[key]
+        if cmd == 'select' and self.select != None:
+            self.callback(self.select)
+        elif cmd == 'cancel' and self.cancel != None:
+            self.callback(self.cancel)
+        elif key in self.choices:
+            self.callback(self.choices[key])
+        else:
+            return key
+
+
 class CompleteEdit(urwid.Edit):
-    def __init__(self, completer, edit_text=u'', **kwargs):
+    def __init__(self, completer, on_exit, edit_text=u'',
+                 history=None, **kwargs):
         self.completer = completer
+        self.on_exit = on_exit
+        self.history = list(history)  # we temporarily add stuff here
+        self.historypos = None
+
         if not isinstance(edit_text, unicode):
             edit_text = unicode(edit_text, errors='replace')
         self.start_completion_pos = len(edit_text)
-        self.completion_results = None
+        self.completions = None
         urwid.Edit.__init__(self, edit_text=edit_text, **kwargs)
 
     def keypress(self, size, key):
         cmd = command_map[key]
-        if cmd in ['next selectable', 'prev selectable']:
-            pos = self.start_completion_pos
-            original = self.edit_text[:pos]
-            if not self.completion_results:  # not in completion mode
-                self.completion_results = [''] + \
-                    self.completer.complete(original)
+        # if we tabcomplete
+        if cmd in ['next selectable', 'prev selectable'] and self.completer:
+            # if not already in completion mode
+            if not self.completions:
+                self.completions = [(self.edit_text, self.edit_pos)] + \
+                    self.completer.complete(self.edit_text, self.edit_pos)
                 self.focus_in_clist = 1
-            else:
+            else:  # otherwise tab through results
                 if cmd == 'next selectable':
                     self.focus_in_clist += 1
                 else:
                     self.focus_in_clist -= 1
-            if len(self.completion_results) > 1:
-                suffix = self.completion_results[self.focus_in_clist %
-                                          len(self.completion_results)]
-                self.set_edit_text(original + suffix)
-                self.edit_pos += len(suffix)
+            if len(self.completions) > 1:
+                ctext, cpos = self.completions[self.focus_in_clist %
+                                          len(self.completions)]
+                self.set_edit_text(ctext)
+                self.set_edit_pos(cpos)
             else:
-                self.set_edit_text(original + ' ')
                 self.edit_pos += 1
-                self.start_completion_pos = self.edit_pos
-                self.completion_results = None
+                if self.edit_pos >= len(self.edit_text):
+                    self.edit_text += ' '
+                self.completions = None
+        elif key in ['up', 'down']:
+            if self.history:
+                if self.historypos == None:
+                    self.history.append(self.edit_text)
+                    self.historypos = len(self.history) - 1
+                if key == 'cursor up':
+                    self.historypos = (self.historypos + 1) % len(self.history)
+                else:
+                    self.historypos = (self.historypos - 1) % len(self.history)
+                self.set_edit_text(self.history[self.historypos])
+        elif cmd == 'select':
+            self.on_exit(self.edit_text)
+        elif cmd == 'cancel':
+            self.on_exit(None)
         else:
             result = urwid.Edit.keypress(self, size, key)
-            self.start_completion_pos = self.edit_pos
-            self.completion_results = None
+            self.completions = None
             return result
 
 

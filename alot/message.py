@@ -29,7 +29,7 @@ from settings import get_mime_handler
 from settings import config
 
 
-class Message:
+class Message(object):
     def __init__(self, dbman, msg, thread=None):
         """
         :param dbman: db manager that is used for further lookups
@@ -279,7 +279,7 @@ def encode_header(key, value):
     return value
 
 
-class Attachment:
+class Attachment(object):
     """represents a single mail attachment"""
 
     def __init__(self, emailpart):
@@ -296,7 +296,10 @@ class Attachment:
 
     def get_filename(self):
         """return the filename, extracted from content-disposition header"""
-        return self.part.get_filename()
+        extracted_name = self.part.get_filename()
+        if extracted_name:
+            return os.path.basename(extracted_name)
+        return None
 
     def get_content_type(self):
         """mime type of the attachment"""
@@ -316,11 +319,16 @@ class Attachment:
     def save(self, path):
         """save the attachment to disk. Uses self.get_filename
         in case path is a directory"""
-        if self.get_filename() and os.path.isdir(path):
-            path = os.path.join(path, self.get_filename())
-            FILE = open(path, "w")
+        filename = self.get_filename()
+        path = os.path.expanduser(path)
+        if os.path.isdir(path):
+            if filename:
+                basename = os.path.basename(filename)
+                FILE = open(os.path.join(path, basename), "w")
+            else:
+                FILE = tempfile.NamedTemporaryFile(delete=False, dir=path)
         else:
-            FILE = tempfile.NamedTemporaryFile(delete=False)
+            FILE = open(path, "w")  # this throws IOErrors for invalid path
         FILE.write(self.part.get_payload(decode=True))
         FILE.close()
         return FILE.name

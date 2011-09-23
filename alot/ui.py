@@ -19,18 +19,19 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 import urwid
 import os
 from urwid.command_map import command_map
+from twisted.internet import defer
 
 from settings import config
 from buffer import BufferlistBuffer
 from command import commandfactory
 from command import interpret_commandline
-from widgets import CompleteEdit
+import widgets
 from completion import CommandLineCompleter
 
 
 class MainWidget(urwid.Frame):
     def __init__(self, ui, *args, **kwargs):
-        urwid.Frame.__init__(self, urwid.SolidFill(' '), *args, **kwargs)
+        urwid.Frame.__init__(self, urwid.SolidFill(), *args, **kwargs)
         self.ui = ui
 
     def keypress(self, size, key):
@@ -44,7 +45,7 @@ class MainWidget(urwid.Frame):
             urwid.Frame.keypress(self, size, key)
 
 
-class UI:
+class UI(object):
     buffers = []
     current_buffer = None
 
@@ -61,6 +62,7 @@ class UI:
         self.mainloop = urwid.MainLoop(self.mainframe,
                 config.get_palette(),
                 handle_mouse=False,
+                event_loop=urwid.TwistedEventLoop(),
                 unhandled_input=self.keypress)
         self.mainloop.screen.set_terminal_properties(colors=colourmode)
 
@@ -91,59 +93,41 @@ class UI:
         :type tab: int
         :param history: history to be used for up/down keys
         :type history: list of str
+        :returns: a `twisted.defer.Deferred`
         """
-        self.logger.info('open prompt')
-        history = list(history)  # make a local copy
-        historypos = None
+        d = defer.Deferred()  # create return deferred
+        main = self.mainloop.widget  # save main widget
+
+        def select_or_cancel(text):
+            self.mainloop.widget = main  # restore main screen
+            d.callback(text)
+
+        #set up widgets
         leftpart = urwid.Text(prefix, align='left')
-        if completer:
-            editpart = CompleteEdit(completer, edit_text=text)
-            for i in range(tab):
-                editpart.keypress((0,), 'tab')
-        else:
-            editpart = urwid.Edit(edit_text=text)
+        editpart = widgets.CompleteEdit(completer, on_exit=select_or_cancel,
+                                edit_text=text, history=history)
+
+        for i in range(tab):  # hit some tabs
+            editpart.keypress((0,), 'tab')
+
+        # build promptwidget
         both = urwid.Columns(
             [
                 ('fixed', len(prefix), leftpart),
                 ('weight', 1, editpart),
             ])
         prompt_widget = urwid.AttrMap(both, 'prompt', 'prompt')
-        footer = self.mainframe.get_footer()
-        self.mainframe.set_footer(prompt_widget)
-        self.mainframe.set_focus('footer')
-        self.mainloop.draw_screen()
 
-        while True:
-            keys = None
-            while not keys:
-                keys = self.mainloop.screen.get_input()
-            for key in keys:
-                self.logger.debug('prompt got key: %s' % key)
-                if command_map[key] == 'select':
-                    self.mainframe.set_footer(footer)
-                    self.mainframe.set_focus('body')
-                    return editpart.get_edit_text()
-                elif command_map[key] == 'cancel':
-                    self.mainframe.set_footer(footer)
-                    self.mainframe.set_focus('body')
-                    return None
-                elif key in ['up', 'down']:
-                    if history:
-                        if historypos == None:
-                            history.append(editpart.get_edit_text())
-                            historypos = len(history) - 1
-                        if key == 'cursor up':
-                            historypos = (historypos - 1) % len(history)
-                        else:
-                            historypos = (historypos + 1) % len(history)
-                        editpart.set_edit_text(history[historypos])
-                        self.mainloop.draw_screen()
+        # put promptwidget as overlay on main widget
+        overlay = urwid.Overlay(both, main,
+                                ('fixed left', 0),
+                                ('fixed right', 0),
+                                ('fixed bottom', 1),
+                                None)
+        self.mainloop.widget = overlay
+        return d  # return deferred
 
-                else:
-                    size = (20,)  # don't know why they want a size here
-                    editpart.keypress(size, key)
-                    self.mainloop.draw_screen()
-
+    @defer.inlineCallbacks
     def commandprompt(self, startstring):
         """prompt for a commandline and interpret/apply it upon enter
 
@@ -152,15 +136,15 @@ class UI:
         """
         self.logger.info('open command shell')
         mode = self.current_buffer.typename
-        cmdline = self.prompt(prefix=':',
+        cmdline = yield self.prompt(prefix=':',
                               text=startstring,
                               completer=CommandLineCompleter(self.dbman,
                                                              self.accountman,
                                                              mode),
                               history=self.commandprompthistory,
                              )
-        if cmdline:
-            self.interpret_commandline(cmdline)
+        self.logger.debug('CMDLINE: %s' % cmdline)
+        self.interpret_commandline(cmdline)
 
     def interpret_commandline(self, cmdline):
         """interpret and apply a commandstring
@@ -168,13 +152,14 @@ class UI:
         :param cmdline: command string to apply
         :type cmdline: str
         """
-        mode = self.current_buffer.typename
-        self.commandprompthistory.append(cmdline)
-        cmd = interpret_commandline(cmdline, mode)
-        if cmd:
-            self.apply_command(cmd)
-        else:
-            self.notify('invalid command')
+        if cmdline:
+            mode = self.current_buffer.typename
+            self.commandprompthistory.append(cmdline)
+            cmd = interpret_commandline(cmdline, mode)
+            if cmd:
+                self.apply_command(cmd)
+            else:
+                self.notify('invalid command')
 
     def buffer_open(self, b):
         """
@@ -251,42 +236,57 @@ class UI:
             self.notificationbar = None
         self.update()
 
-    def choice(self, message, choices={'yes': ['y'], 'no': ['n']}):
+    def choice(self, message, choices={'y': 'yes', 'n': 'no'},
+               select=None, cancel=None, msg_position='above'):
         """prompt user to make a choice
 
         :param message: string to display before list of choices
         :type message: unicode
         :param choices: dict of possible choices
-        :type choices: str->list of keys
+        :type choices: keymap->choice (both str)
+        :param select: choice to return if enter/return is hit.
+                       Ignored if set to None.
+        :type select: str
+        :param cancel: choice to return if escape is hit.
+                       Ignored if set to None.
+        :type cancel: str
+        :returns: a `twisted.defer.Deferred`
         """
-        def build_line(msg, prio):
-            cols = urwid.Columns([urwid.Text(msg)])
-            return urwid.AttrMap(cols, 'notify_' + prio)
+        assert select in choices.values() + [None]
+        assert cancel in choices.values() + [None]
+        assert msg_position in ['left', 'above']
 
-        cstrings = ['(%s):%s' % ('/'.join(v), k) for k, v in choices.items()]
-        line = ', '.join(cstrings)
-        msgs = [build_line(message + ' ' + line, 'normal')]
+        d = defer.Deferred()  # create return deferred
+        main = self.mainloop.widget  # save main widget
 
-        footer = self.mainframe.get_footer()
-        if not self.notificationbar:
-            self.notificationbar = urwid.Pile(msgs)
-        else:
-            newpile = self.notificationbar.widget_list + msgs
-            self.notificationbar = urwid.Pile(newpile)
-        self.update()
+        def select_or_cancel(text):
+            self.mainloop.widget = main  # restore main screen
+            d.callback(text)
 
-        self.mainloop.draw_screen()
-        while True:
-            result = self.mainloop.screen.get_input()
-            self.logger.info('got: %s ' % result)
-            if not result:
-                self.clear_notify(msgs)
-                self.mainloop.screen.get_input()
-                return None
-            for k, v in choices.items():
-                if result[0] in v:
-                    self.clear_notify(msgs)
-                    return k
+        #set up widgets
+        msgpart = urwid.Text(message)
+        choicespart = widgets.ChoiceWidget(choices, callback=select_or_cancel,
+                                           select=select, cancel=cancel)
+
+        # build widget
+        if msg_position == 'left':
+            both = urwid.Columns(
+                [
+                    ('fixed', len(message), msgpart),
+                    ('weight', 1, choicespart),
+                ], dividechars=1)
+        else:  # above
+            both = urwid.Pile([msgpart, choicespart])
+        prompt_widget = urwid.AttrMap(both, 'prompt', 'prompt')
+
+        # put promptwidget as overlay on main widget
+        overlay = urwid.Overlay(both, main,
+                                ('fixed left', 0),
+                                ('fixed right', 0),
+                                ('fixed bottom', 1),
+                                None)
+        self.mainloop.widget = overlay
+        return d  # return deferred
 
     def notify(self, message, priority='normal', timeout=0, block=False):
         """notify popup
@@ -377,7 +377,9 @@ class UI:
             if cmd.prehook:
                 self.logger.debug('calling pre-hook')
                 try:
-                    cmd.prehook(self, self.dbman, self.accountman, config)
+                    cmd.prehook(ui=self, dbm=self.dbman, aman=self.accountman,
+                                log=self.logger, config=config)
+
                 except:
                     self.logger.exception('prehook failed')
             self.logger.debug('apply command: %s' % cmd)
@@ -385,6 +387,7 @@ class UI:
             if cmd.posthook:
                 self.logger.debug('calling post-hook')
                 try:
-                    cmd.posthook(self, self.dbman, self.accountman, config)
+                    cmd.posthook(ui=self, dbm=self.dbman, aman=self.accountman,
+                                log=self.logger, config=config)
                 except:
                     self.logger.exception('posthook failed')
