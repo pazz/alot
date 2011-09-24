@@ -842,14 +842,12 @@ class OpenAttachmentCommand(Command):
         handler = settings.get_mime_handler(mimetype)
         if handler:
             path = self.attachment.save(tempfile.gettempdir())
-            if '%s' in handler:
-                cmd = handler % path
-            else:
-                cmd = '%s %s' % (handler, path)
+            handler = handler.replace('%s', '{}')
 
             def afterwards():
                 os.remove(path)
-            ui.apply_command(ExternalCommand(cmd, on_success=afterwards,
+            ui.apply_command(ExternalCommand(handler, path=path,
+                                             on_success=afterwards,
                                              in_thread=True))
         else:
             ui.notify('unknown mime type')
