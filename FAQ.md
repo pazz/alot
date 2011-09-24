@@ -77,8 +77,8 @@ how it should look or work when its finished and give it some thought how you
 think we should implement it. We'll discuss it from there.
 
 
-[issue] https://github.com/pazz/alot/issues
-[initag] http://notmuchmail.org/initial_tagging/
-[notmuch] http://notmuchmail.org
-[toolkit] http://excess.org/urwid/
-[[ython] http://www.python.org/
+[issue]: https://github.com/pazz/alot/issues
+[initag]: http://notmuchmail.org/initial_tagging/
+[notmuch]: http://notmuchmail.org
+[toolkit]: http://excess.org/urwid/
+[[ython]: http://www.python.org/
