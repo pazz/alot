@@ -1,5 +1,6 @@
 0.12
 
+* fancy shortening for authors list
 * moved default location for config to ~/.config/alot/config
 * hooks for pre/post editing and RE/FWD quotestrings
 * recipient completion gives priority to abook of sender account
@@ -9,7 +10,7 @@
 * non-blocking prompt/choice (new syntax for prompts!)
 * fix attachment saving
 
-Thanks: Ruben Pollan, Luke Macken, Justus Winter
+Thanks: Ruben Pollan, Luke Macken, Justus Winter, Jaime Huerta-Cepas
 
 0.11
 

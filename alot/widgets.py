@@ -22,7 +22,7 @@ from urwid.command_map import command_map
 import logging
 
 from settings import config
-from helper import shorten
+from helper import shorten_author_string
 from helper import pretty_datetime
 import message
 
@@ -63,7 +63,7 @@ class ThreadlineWidget(urwid.AttrMap):
 
         authors = self.thread.get_authors() or '(None)'
         maxlength = config.getint('general', 'authors_maxlength')
-        authorsstring = shorten(authors, maxlength)
+        authorsstring = shorten_author_string(authors, maxlength)
         self.authors_w = urwid.AttrMap(urwid.Text(authorsstring),
                                        'threadline_authors')
         cols.append(('fixed', len(authorsstring), self.authors_w))
