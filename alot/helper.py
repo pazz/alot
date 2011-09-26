@@ -30,6 +30,7 @@ from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import urwid
 
 
 def shorten(string, maxlen):
@@ -141,6 +142,7 @@ def cmd_output(command_line):
     args = shlex.split(command_line.encode('ascii', errors='ignore'))
     try:
         output = subprocess.check_output(args)
+        output = output.decode(urwid.util.detected_encoding)
     except subprocess.CalledProcessError:
         return None
     except OSError:
