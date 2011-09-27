@@ -142,7 +142,7 @@ def cmd_output(command_line):
     args = shlex.split(command_line.encode('ascii', errors='ignore'))
     try:
         output = subprocess.check_output(args)
-        output = output.decode(urwid.util.detected_encoding)
+        output = output.decode(urwid.util.detected_encoding, errors='replace')
     except subprocess.CalledProcessError:
         return None
     except OSError:

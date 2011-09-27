@@ -209,8 +209,7 @@ def extract_body(mail):
                 tmpfile.close()
                 os.unlink(tmpfile.name)
                 if rendered_payload:  # handler had output
-                    bodytxt += unicode(rendered_payload.strip(),
-                                       encoding='utf8', errors='replace')
+                    bodytxt += rendered_payload.strip()
                 elif part.get_content_maintype() == 'text':
                     bodytxt += raw_payload
                 # else drop
