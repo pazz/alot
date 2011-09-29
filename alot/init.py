@@ -25,7 +25,6 @@ import settings
 from account import AccountManager
 from db import DBManager
 from ui import UI
-from urwid.command_map import command_map
 
 
 def parse_args():
@@ -96,13 +95,6 @@ def main():
 
     # get ourselves a database manager
     dbman = DBManager(path=args.db_path, ro=args.read_only)
-
-    # set up global urwid command maps
-    command_map['j'] = 'cursor down'
-    command_map['k'] = 'cursor up'
-    command_map[' '] = 'cursor page down'
-    command_map['enter'] = 'select'
-    command_map['esc'] = 'cancel'
 
     # get initial searchstring
     query = settings.config.get('general', 'initial_searchstring')
