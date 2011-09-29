@@ -71,6 +71,9 @@ class UI(object):
         self.mode = ''
         self.commandprompthistory = []
 
+        for key, value in config.items('urwid-maps'):
+            command_map[key] = value
+
         self.logger.debug('setup bindings')
         cmd = commandfactory('search', query=initialquery)
         self.apply_command(cmd)
