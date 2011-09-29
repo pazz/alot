@@ -34,7 +34,9 @@ notify_timeout = 2
 # display statusline?
 show_statusbar = True
 
+# use terminal_command to spawn a new terminal for the editor?
 spawn_editor = False
+
 # set terminal for asynchronous editing
 terminal_cmd = x-terminal-emulator -e
 
