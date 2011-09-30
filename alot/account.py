@@ -120,7 +120,7 @@ class Account(object):
         :param mail: the mail to store
         :type mail: `email.message.Message` or string
         """
-        if self.sent_box:
+        if self.sent_box is not None:
             self.store_mail(self.sent_box, mail)
 
     def store_draft_mail(self, mail):
@@ -129,7 +129,7 @@ class Account(object):
         :param mail: the mail to store
         :type mail: `email.message.Message` or string
         """
-        if self.draft_box:
+        if self.draft_box is not None:
             self.store_mail(self.sent_box, mail)
 
     def send_mail(self, mail):
