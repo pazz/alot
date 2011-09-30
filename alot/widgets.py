@@ -24,6 +24,7 @@ import logging
 from settings import config
 from helper import shorten_author_string
 from helper import pretty_datetime
+from helper import tag_cmp
 import message
 
 
@@ -54,12 +55,10 @@ class ThreadlineWidget(urwid.AttrMap):
                                    'threadline_mailcount')
         cols.append(('fixed', len(mailcountstring), self.mailcount_w))
 
-        tags = self.thread.get_tags()
-        tags.sort()
-        for tag in tags:
-            tw = TagWidget(tag)
-            self.tag_widgets.append(tw)
-            cols.append(('fixed', tw.width(), tw))
+        tag_widgets = [TagWidget(tag) for tag in self.thread.get_tags()]
+        tag_widgets.sort(tag_cmp, lambda tag_widget: tag_widget.translated)
+        for tag_widget in tag_widgets:
+            cols.append(('fixed', tag_widget.width(), tag_widget))
 
         authors = self.thread.get_authors() or '(None)'
         maxlength = config.getint('general', 'authors_maxlength')
@@ -139,8 +138,7 @@ class TagWidget(urwid.AttrMap):
     def __init__(self, tag):
         self.tag = tag
         self.translated = config.get('tag-translate', tag, fallback=tag)
-        self.translated = self.translated.encode('utf-8')
-        self.txt = urwid.Text(self.translated, wrap='clip')
+        self.txt = urwid.Text(self.translated.encode('utf-8'), wrap='clip')
         normal = config.get_tagattr(tag)
         focus = config.get_tagattr(tag, focus=True)
         urwid.AttrMap.__init__(self, self.txt, normal, focus)
