@@ -317,10 +317,10 @@ class FlushCommand(Command):
 
 class ToggleThreadTagCommand(Command):
     """toggles tag in given or currently selected thread"""
-    def __init__(self, tag, thread=None, **kwargs):
-        assert tag
+    def __init__(self, tags, thread=None, **kwargs):
+        assert tags
         self.thread = thread
-        self.tag = tag
+        self.tags = set(tags)
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
@@ -329,10 +329,7 @@ class ToggleThreadTagCommand(Command):
         if not self.thread:
             return
         try:
-            if self.tag in self.thread.get_tags():
-                self.thread.remove_tags([self.tag])
-            else:
-                self.thread.add_tags([self.tag])
+            self.thread.set_tags(set(self.thread.get_tags()) ^ self.tags)
         except DatabaseROError:
             ui.notify('index in read-only mode', priority='error')
             return
@@ -1071,7 +1068,7 @@ COMMANDS = {
         'refine': (RefineCommand, {}),
         'refineprompt': (RefinePromptCommand, {}),
         'openthread': (OpenThreadCommand, {}),
-        'toggletag': (ToggleThreadTagCommand, {'tag': 'inbox'}),
+        'toggletag': (ToggleThreadTagCommand, {'tags': ['inbox']}),
         'retag': (RetagCommand, {}),
         'retagprompt': (RetagPromptCommand, {}),
     },
@@ -1192,7 +1189,7 @@ def interpret_commandline(cmdline, mode):
     elif cmd == 'to':
         return commandfactory(cmd, mode=mode, key='To', value=params)
     elif cmd == 'toggletag':
-        return commandfactory(cmd, mode=mode, tag=params)
+        return commandfactory(cmd, mode=mode, tags=params.split())
     elif cmd == 'fold':
         return commandfactory(cmd, mode=mode, all=(params == '--all'))
     elif cmd == 'unfold':
