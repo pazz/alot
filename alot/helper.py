@@ -212,3 +212,13 @@ def shell_quote(text):
     'hello'"'"'there'
     '''
     return "'%s'" % text.replace("'", """'"'"'""")
+
+def tag_cmp(a, b):
+    r'''
+    Sorting tags using this function puts all tags of length 1 at the
+    beginning. This groups all tags mapped to unicode characters.
+    '''
+    if min(len(a), len(b)) == 1:
+        return cmp(len(a), len(b))
+    else:
+        return cmp(a, b)
