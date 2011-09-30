@@ -55,9 +55,9 @@ class ThreadlineWidget(urwid.AttrMap):
                                    'threadline_mailcount')
         cols.append(('fixed', len(mailcountstring), self.mailcount_w))
 
-        tag_widgets = [TagWidget(tag) for tag in self.thread.get_tags()]
-        tag_widgets.sort(tag_cmp, lambda tag_widget: tag_widget.translated)
-        for tag_widget in tag_widgets:
+        self.tag_widgets = [TagWidget(tag) for tag in self.thread.get_tags()]
+        self.tag_widgets.sort(tag_cmp, lambda tag_widget: tag_widget.translated)
+        for tag_widget in self.tag_widgets:
             cols.append(('fixed', tag_widget.width(), tag_widget))
 
         authors = self.thread.get_authors() or '(None)'
