@@ -9,6 +9,9 @@ authors_maxlength = 30
 # confirm exit
 bug_on_exit = False
 
+# offset of next focussed buffer if the current one gets closed
+bufferclose_focus_offset=-1
+
 # number of colours your terminal supports
 colourmode = 256
 

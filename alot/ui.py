@@ -185,7 +185,8 @@ class UI(object):
                 self.logger.debug('UI: closing current buffer %s' % buf)
                 index = buffers.index(buf)
                 buffers.remove(buf)
-                self.current_buffer = buffers[index % len(buffers)]
+                offset = config.getint('general', 'bufferclose_focus_offset')
+                self.current_buffer = buffers[(index + offset) % len(buffers)]
             else:
                 string = 'closing buffer %d:%s'
                 self.logger.debug(string % (buffers.index(buf), buf))

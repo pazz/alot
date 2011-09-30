@@ -241,6 +241,7 @@ class BufferCloseCommand(Command):
 
     def apply(self, ui):
         if self.focussed:
+            #if in bufferlist, this is ugly.
             self.buffer = ui.current_buffer.get_selected_buffer()
         elif not self.buffer:
             self.buffer = ui.current_buffer
