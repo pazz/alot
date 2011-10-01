@@ -82,6 +82,12 @@ class UI(object):
     def keypress(self, key):
         self.logger.debug('unhandeled input: %s' % key)
 
+    def show_as_root_until_keypress_(self, w, key):
+        def oe():
+            self.mainloop.widget = self.mainframe  # restore main screen
+        self.mainloop.widget = widgets.CatchKeyWidgetWrap(w, key,
+                                                          on_catch=oe)
+
     def prompt(self, prefix='>', text=u'', completer=None, tab=0, history=[]):
         """prompt for text input
 

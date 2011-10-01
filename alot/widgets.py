@@ -52,6 +52,22 @@ class DialogBox(urwid.WidgetWrap):
         return self.body.keypress(size, key)
 
 
+class CatchKeyWidgetWrap(urwid.WidgetWrap):
+    def __init__(self, widget, key, on_catch):
+        urwid.WidgetWrap.__init__(self, widget)
+        self.key = key
+        self.on_catch = on_catch
+
+    def selectable(self):
+        return True
+
+    def keypress(self, size, key):
+        if command_map[key] == self.key:
+            self.on_catch()
+        elif self._w.selectable():
+            return self._w.keypress(size, key)
+
+
 class ThreadlineWidget(urwid.AttrMap):
     def __init__(self, tid, dbman):
         self.dbman = dbman
