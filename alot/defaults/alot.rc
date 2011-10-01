@@ -71,6 +71,7 @@ esc = cancel
 
 [global-maps]
 @ = refresh
+? = help
 I = search tag:inbox AND NOT tag:killed
 L = taglist
 shift tab = bprevious
