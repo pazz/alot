@@ -164,7 +164,6 @@ class Message(object):
     def get_text_content(self):
         res = ''
         for part in self.get_email().walk():
-            ctype = part.get_content_type()
             enc = part.get_content_charset()
             if part.get_content_maintype() == 'text':
                 raw_payload = part.get_payload(decode=True)

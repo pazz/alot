@@ -344,7 +344,6 @@ class ToggleThreadTagCommand(Command):
             #remove line from searchlist if thread doesn't match the query
             qs = "(%s) AND thread:%s" % (cb.querystring,
                                          self.thread.get_thread_id())
-            msg_count = ui.dbman.count_messages(qs)
             if ui.dbman.count_messages(qs) == 0:
                 ui.logger.debug('remove: %s' % self.thread)
                 cb.threadlist.remove(threadwidget)
@@ -445,12 +444,11 @@ class RetagCommand(Command):
             self.thread = ui.current_buffer.get_selected_thread()
         if not self.thread:
             return
-        initial_tagstring = ','.join(self.thread.get_tags())
         tags = filter(lambda x: x, self.tagsstring.split(','))
         ui.logger.info("got %s:%s" % (self.tagsstring, tags))
         try:
             self.thread.set_tags(tags)
-        except DatabaseROError, e:
+        except DatabaseROError:
             ui.notify('index in read-only mode', priority='error')
             return
 

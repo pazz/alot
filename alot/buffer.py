@@ -152,9 +152,10 @@ class SearchBuffer(Buffer):
 
     def rebuild(self):
         if self.isinitialized:
-            focusposition = self.threadlist.get_focus()[1]
+            pass
+            #focusposition = self.threadlist.get_focus()[1]
         else:
-            focusposition = 0
+            #focusposition = 0
             self.isinitialized = True
 
         self.result_count = self.dbman.count_messages(self.querystring)

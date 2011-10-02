@@ -118,7 +118,7 @@ class UI(object):
                 ('fixed', len(prefix), leftpart),
                 ('weight', 1, editpart),
             ])
-        prompt_widget = urwid.AttrMap(both, 'prompt', 'prompt')
+        urwid.AttrMap(both, 'prompt', 'prompt')
 
         # put promptwidget as overlay on main widget
         overlay = urwid.Overlay(both, main,
@@ -229,7 +229,6 @@ class UI(object):
         :param messages: The popups to remove. This should be exactly
                          what notify() returned
         """
-        footer = self.mainframe.get_footer()
         newpile = self.notificationbar.widget_list
         for l in messages:
             newpile.remove(l)
@@ -280,7 +279,7 @@ class UI(object):
                 ], dividechars=1)
         else:  # above
             both = urwid.Pile([msgpart, choicespart])
-        prompt_widget = urwid.AttrMap(both, 'prompt', 'prompt')
+        urwid.AttrMap(both, 'prompt', 'prompt')
 
         # put promptwidget as overlay on main widget
         overlay = urwid.Overlay(both, main,
@@ -314,7 +313,6 @@ class UI(object):
         if timeout == -1 and block:
             msgs.append(build_line('(hit any key to proceed)', 'normal'))
 
-        footer = self.mainframe.get_footer()
         if not self.notificationbar:
             self.notificationbar = urwid.Pile(msgs)
         else:
@@ -327,7 +325,7 @@ class UI(object):
 
         self.mainloop.draw_screen()
         if block:
-            keys = self.mainloop.screen.get_input()
+            self.mainloop.screen.get_input()
             clear()
         else:
             if timeout >= 0:

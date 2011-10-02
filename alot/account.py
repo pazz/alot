@@ -108,7 +108,7 @@ class Account(object):
             msg.set_flags('S')
         else:
             msg = mailbox.Message(mail)
-        key = mbx.add(mail)
+        mbx.add(mail)
         mbx.flush()
         mbx.unlock()
 
