@@ -101,11 +101,11 @@ def main():
         query = args.query
 
     # set up and start interface
-    ui = UI(dbman,
-            logger,
-            aman,
-            query,
-            args.colours,
+    UI(dbman,
+       logger,
+       aman,
+       query,
+       args.colours,
     )
 
 if __name__ == "__main__":

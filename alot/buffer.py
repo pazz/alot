@@ -152,9 +152,10 @@ class SearchBuffer(Buffer):
 
     def rebuild(self):
         if self.isinitialized:
-            focusposition = self.threadlist.get_focus()[1]
+            pass
+            #focusposition = self.threadlist.get_focus()[1]
         else:
-            focusposition = 0
+            #focusposition = 0
             self.isinitialized = True
 
         self.result_count = self.dbman.count_messages(self.querystring)
@@ -257,9 +258,6 @@ class ThreadBuffer(Buffer):
                 if 'unread' in msg.get_tags():
                     msg.remove_tags(['unread'])
                     self.ui.apply_command(command.FlushCommand())
-
-    def get_message_widgets(self):
-        return self.body.body.contents
 
 
 class TagListBuffer(Buffer):

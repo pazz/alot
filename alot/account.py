@@ -18,8 +18,6 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 
 import mailbox
-import shlex
-import subprocess
 import logging
 import time
 import re
@@ -110,7 +108,7 @@ class Account(object):
             msg.set_flags('S')
         else:
             msg = mailbox.Message(mail)
-        key = mbx.add(mail)
+        mbx.add(mail)
         mbx.flush()
         mbx.unlock()
 
