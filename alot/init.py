@@ -107,11 +107,11 @@ def main():
         cmd = interpret_commandline(default_commandline, 'global')
 
     # set up and start interface
-    ui = UI(dbman,
-            logger,
-            aman,
-            cmd,
-            args.colours,
+    UI(dbman,
+       logger,
+       aman,
+       query,
+       args.colours,
     )
 
 if __name__ == "__main__":
