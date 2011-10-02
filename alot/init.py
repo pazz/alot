@@ -74,11 +74,9 @@ def main():
             sys.exit('File %s does not exist' % expanded_path)
         configfiles.insert(0, expanded_path)
 
-    found_config = False
     for configfilename in configfiles:
         if os.path.exists(configfilename):
             settings.config.read(configfilename)
-            found_config = True
 
     notmuchfile = os.path.expanduser(args.notmuchconfigfile)
     settings.notmuchconfig.read(notmuchfile)
