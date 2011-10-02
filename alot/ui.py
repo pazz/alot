@@ -17,9 +17,8 @@ along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
 Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 import urwid
-import os
 from urwid.command_map import command_map
-from twisted.internet import defer
+from twisted.internet import reactor, defer
 
 from settings import config
 from buffer import BufferlistBuffer
@@ -49,7 +48,7 @@ class UI(object):
     buffers = []
     current_buffer = None
 
-    def __init__(self, dbman, log, accountman, initialquery, colourmode):
+    def __init__(self, dbman, log, accountman, initialcmd, colourmode):
         self.dbman = dbman
         self.dbman.ui = self  # register ui with dbman
         self.logger = log
@@ -68,15 +67,15 @@ class UI(object):
 
         self.show_statusbar = config.getboolean('general', 'show_statusbar')
         self.notificationbar = None
-        self.mode = ''
+        self.mode = 'global'
         self.commandprompthistory = []
 
+        self.logger.debug('setup bindings')
         for key, value in config.items('urwid-maps'):
             command_map[key] = value
 
-        self.logger.debug('setup bindings')
-        cmd = commandfactory('search', query=initialquery)
-        self.apply_command(cmd)
+        self.logger.debug('fire first command')
+        self.apply_command(initialcmd)
         self.mainloop.run()
 
     def keypress(self, key):
@@ -105,10 +104,9 @@ class UI(object):
         :returns: a `twisted.defer.Deferred`
         """
         d = defer.Deferred()  # create return deferred
-        main = self.mainloop.widget  # save main widget
 
         def select_or_cancel(text):
-            self.mainloop.widget = main  # restore main screen
+            self.mainloop.widget = self.mainframe  # restore main screen
             d.callback(text)
 
         #set up widgets
@@ -125,16 +123,20 @@ class UI(object):
                 ('fixed', len(prefix), leftpart),
                 ('weight', 1, editpart),
             ])
-        prompt_widget = urwid.AttrMap(both, 'prompt', 'prompt')
+        urwid.AttrMap(both, 'prompt', 'prompt')
 
         # put promptwidget as overlay on main widget
-        overlay = urwid.Overlay(both, main,
+        overlay = urwid.Overlay(both, self.mainframe,
                                 ('fixed left', 0),
                                 ('fixed right', 0),
                                 ('fixed bottom', 1),
                                 None)
         self.mainloop.widget = overlay
         return d  # return deferred
+
+    def exit(self):
+        reactor.stop()
+        raise urwid.ExitMainLoop()
 
     @defer.inlineCallbacks
     def commandprompt(self, startstring):
@@ -236,7 +238,6 @@ class UI(object):
         :param messages: The popups to remove. This should be exactly
                          what notify() returned
         """
-        footer = self.mainframe.get_footer()
         newpile = self.notificationbar.widget_list
         for l in messages:
             newpile.remove(l)
@@ -287,7 +288,7 @@ class UI(object):
                 ], dividechars=1)
         else:  # above
             both = urwid.Pile([msgpart, choicespart])
-        prompt_widget = urwid.AttrMap(both, 'prompt', 'prompt')
+        urwid.AttrMap(both, 'prompt', 'prompt')
 
         # put promptwidget as overlay on main widget
         overlay = urwid.Overlay(both, main,
@@ -321,7 +322,6 @@ class UI(object):
         if timeout == -1 and block:
             msgs.append(build_line('(hit any key to proceed)', 'normal'))
 
-        footer = self.mainframe.get_footer()
         if not self.notificationbar:
             self.notificationbar = urwid.Pile(msgs)
         else:
@@ -332,9 +332,10 @@ class UI(object):
         def clear(*args):
             self.clear_notify(msgs)
 
-        self.mainloop.draw_screen()
+        # TODO: replace this with temporarily wrapping self.mainframe
+        # in a ui.show_root_until_keypress..
         if block:
-            keys = self.mainloop.screen.get_input()
+            self.mainloop.screen.get_input()
             clear()
         else:
             if timeout >= 0:
@@ -352,10 +353,16 @@ class UI(object):
         #h=urwid.AttrMap(head, 'header')
         #self.mainframe.set_header(h)
 
-        #body
-        self.mainframe.set_body(self.current_buffer)
+        # body
+        if self.current_buffer:
+            self.mainframe.set_body(self.current_buffer)
+        else:
+            # this happens iff update gets called during
+            # initial command before a first buffer is displayed.
+            # in compose, a prompt is cancelled
+            self.exit()
 
-        #footer
+        # footer
         lines = []
         if self.notificationbar:  # .get_text()[0] != ' ':
             lines.append(self.notificationbar)

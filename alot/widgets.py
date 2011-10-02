@@ -381,8 +381,6 @@ class MessageWidget(urwid.WidgetWrap):
             self.attachmentw = urwid.Pile(lines)
         return self.attachmentw
 
-        attachments = message.get_attachments()
-
     def _get_body_widget(self):
         """creates/returns the widget that displays the mail body"""
         if not self.bodyw:

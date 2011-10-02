@@ -26,15 +26,12 @@ import subprocess
 import shlex
 import email
 import tempfile
-import mimetypes
-from email.parser import Parser
 from email import Charset
 from email.header import Header
-from email.message import Message
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import urwid
-from twisted.internet import reactor, defer
+from twisted.internet import defer
 
 import buffer
 import settings
@@ -70,8 +67,7 @@ class ExitCommand(Command):
             if (yield ui.choice('realy quit?', select='yes', cancel='no',
                                msg_position='left')) == 'no':
                 return
-        reactor.stop()
-        raise urwid.ExitMainLoop()
+        ui.exit()
 
 
 class OpenThreadCommand(Command):
@@ -347,7 +343,6 @@ class ToggleThreadTagCommand(Command):
             #remove line from searchlist if thread doesn't match the query
             qs = "(%s) AND thread:%s" % (cb.querystring,
                                          self.thread.get_thread_id())
-            msg_count = ui.dbman.count_messages(qs)
             if ui.dbman.count_messages(qs) == 0:
                 ui.logger.debug('remove: %s' % self.thread)
                 cb.threadlist.remove(threadwidget)
@@ -448,12 +443,11 @@ class RetagCommand(Command):
             self.thread = ui.current_buffer.get_selected_thread()
         if not self.thread:
             return
-        initial_tagstring = ','.join(self.thread.get_tags())
         tags = filter(lambda x: x, self.tagsstring.split(','))
         ui.logger.info("got %s:%s" % (self.tagsstring, tags))
         try:
             self.thread.set_tags(tags)
-        except DatabaseROError, e:
+        except DatabaseROError:
             ui.notify('index in read-only mode', priority='error')
             return
 

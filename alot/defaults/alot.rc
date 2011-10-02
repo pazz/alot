@@ -54,8 +54,8 @@ timestamp_format = ''
 # muttprint/a2ps works nicely
 print_cmd = ''
 
-# initial searchstring when none is given as argument:
-initial_searchstring = tag:inbox AND NOT tag:killed
+# initial command when none is given as argument:
+initial_command = search tag:inbox AND NOT tag:killed
 
 # in case more than one account has an addressbook:
 # Set this to True to make tabcompletion for recipients during compose only
