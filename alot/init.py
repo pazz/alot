@@ -77,6 +77,7 @@ def main():
     for configfilename in configfiles:
         if os.path.exists(configfilename):
             settings.config.read(configfilename)
+            break # use only the first
 
     notmuchfile = os.path.expanduser(args.notmuchconfigfile)
     settings.notmuchconfig.read(notmuchfile)
