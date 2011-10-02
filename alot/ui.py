@@ -49,7 +49,7 @@ class UI(object):
     buffers = []
     current_buffer = None
 
-    def __init__(self, dbman, log, accountman, initialquery, colourmode):
+    def __init__(self, dbman, log, accountman, initialcmd, colourmode):
         self.dbman = dbman
         self.dbman.ui = self  # register ui with dbman
         self.logger = log
@@ -68,15 +68,15 @@ class UI(object):
 
         self.show_statusbar = config.getboolean('general', 'show_statusbar')
         self.notificationbar = None
-        self.mode = ''
+        self.mode = 'global'
         self.commandprompthistory = []
 
+        self.logger.debug('setup bindings')
         for key, value in config.items('urwid-maps'):
             command_map[key] = value
 
-        self.logger.debug('setup bindings')
-        cmd = commandfactory('search', query=initialquery)
-        self.apply_command(cmd)
+        self.logger.debug('fire first command')
+        self.apply_command(initialcmd)
         self.mainloop.run()
 
     def keypress(self, key):

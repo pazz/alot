@@ -25,6 +25,7 @@ import settings
 from account import AccountManager
 from db import DBManager
 from ui import UI
+from command import interpret_commandline
 
 
 def parse_args():
@@ -51,9 +52,9 @@ def parse_args():
     parser.add_argument('-l', dest='logfile',
                         default='/dev/null',
                         help='logfile')
-    parser.add_argument('query', nargs='?',
+    parser.add_argument('command', nargs='?',
                         default='',
-                        help='initial searchstring')
+                        help='initial command')
     return parser.parse_args()
 
 
@@ -61,7 +62,7 @@ def main():
     # interpret cml arguments
     args = parse_args()
 
-    #locate and read config file
+    # locate and read config file
     configfiles = [
         os.path.join(os.environ.get('XDG_CONFIG_HOME',
                                     os.path.expanduser('~/.config')),
@@ -77,8 +78,9 @@ def main():
     for configfilename in configfiles:
         if os.path.exists(configfilename):
             settings.config.read(configfilename)
-            break # use only the first
+            break  # use only the first
 
+    # read notmuch config
     notmuchfile = os.path.expanduser(args.notmuchconfigfile)
     settings.notmuchconfig.read(notmuchfile)
     settings.hooks.setup(settings.config.get('general', 'hooksfile'))
@@ -96,15 +98,19 @@ def main():
     dbman = DBManager(path=args.db_path, ro=args.read_only)
 
     # get initial searchstring
-    query = settings.config.get('general', 'initial_searchstring')
-    if args.query != '':
-        query = args.query
+    if args.command != '':
+        cmd = interpret_commandline(args.command, 'global')
+        if cmd is None:
+            sys.exit('Invalid command: ' + args.command)
+    else:
+        default_commandline = settings.config.get('general', 'initial_command')
+        cmd = interpret_commandline(default_commandline, 'global')
 
     # set up and start interface
     ui = UI(dbman,
             logger,
             aman,
-            query,
+            cmd,
             args.colours,
     )
 
