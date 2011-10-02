@@ -259,9 +259,6 @@ class ThreadBuffer(Buffer):
                     msg.remove_tags(['unread'])
                     self.ui.apply_command(command.FlushCommand())
 
-    def get_message_widgets(self):
-        return self.body.body.contents
-
 
 class TagListBuffer(Buffer):
     def __init__(self, ui, alltags=[], filtfun=None):
