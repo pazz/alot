@@ -18,7 +18,7 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 import urwid
 from urwid.command_map import command_map
-from twisted.internet import defer
+from twisted.internet import reactor, defer
 
 from settings import config
 from buffer import BufferlistBuffer
@@ -98,10 +98,9 @@ class UI(object):
         :returns: a `twisted.defer.Deferred`
         """
         d = defer.Deferred()  # create return deferred
-        main = self.mainloop.widget  # save main widget
 
         def select_or_cancel(text):
-            self.mainloop.widget = main  # restore main screen
+            self.mainloop.widget = self.mainframe  # restore main screen
             d.callback(text)
 
         #set up widgets
@@ -121,13 +120,17 @@ class UI(object):
         urwid.AttrMap(both, 'prompt', 'prompt')
 
         # put promptwidget as overlay on main widget
-        overlay = urwid.Overlay(both, main,
+        overlay = urwid.Overlay(both, self.mainframe,
                                 ('fixed left', 0),
                                 ('fixed right', 0),
                                 ('fixed bottom', 1),
                                 None)
         self.mainloop.widget = overlay
         return d  # return deferred
+
+    def exit(self):
+        reactor.stop()
+        raise urwid.ExitMainLoop()
 
     @defer.inlineCallbacks
     def commandprompt(self, startstring):
@@ -323,7 +326,8 @@ class UI(object):
         def clear(*args):
             self.clear_notify(msgs)
 
-        self.mainloop.draw_screen()
+        # TODO: replace this with temporarily wrapping self.mainframe
+        # in a ui.show_root_until_keypress..
         if block:
             self.mainloop.screen.get_input()
             clear()
@@ -343,10 +347,16 @@ class UI(object):
         #h=urwid.AttrMap(head, 'header')
         #self.mainframe.set_header(h)
 
-        #body
-        self.mainframe.set_body(self.current_buffer)
+        # body
+        if self.current_buffer:
+            self.mainframe.set_body(self.current_buffer)
+        else:
+            # this happens iff update gets called during
+            # initial command before a first buffer is displayed.
+            # in compose, a prompt is cancelled
+            self.exit()
 
-        #footer
+        # footer
         lines = []
         if self.notificationbar:  # .get_text()[0] != ' ':
             lines.append(self.notificationbar)
