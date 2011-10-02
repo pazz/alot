@@ -26,11 +26,8 @@ import subprocess
 import shlex
 import email
 import tempfile
-import mimetypes
-from email.parser import Parser
 from email import Charset
 from email.header import Header
-from email.message import Message
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import urwid

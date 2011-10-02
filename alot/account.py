@@ -18,8 +18,6 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 
 import mailbox
-import shlex
-import subprocess
 import logging
 import time
 import re
