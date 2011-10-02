@@ -110,7 +110,7 @@ def main():
     UI(dbman,
        logger,
        aman,
-       query,
+       cmd,
        args.colours,
     )
 
