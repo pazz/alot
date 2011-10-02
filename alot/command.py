@@ -31,7 +31,7 @@ from email.header import Header
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import urwid
-from twisted.internet import reactor, defer
+from twisted.internet import defer
 
 import buffer
 import settings
@@ -67,8 +67,7 @@ class ExitCommand(Command):
             if (yield ui.choice('realy quit?', select='yes', cancel='no',
                                msg_position='left')) == 'no':
                 return
-        reactor.stop()
-        raise urwid.ExitMainLoop()
+        ui.exit()
 
 
 class OpenThreadCommand(Command):
