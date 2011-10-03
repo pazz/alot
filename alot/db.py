@@ -16,7 +16,8 @@ along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
 
 Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
-from notmuch import Database, NotmuchError
+from notmuch import Database, NotmuchError, XapianError
+import notmuch
 from datetime import datetime
 from collections import deque
 
@@ -71,7 +72,12 @@ class DBManager(object):
             except NotmuchError:
                 raise DatabaseLockedError()
             while self.writequeue:
-                cmd, querystring, tags, sync = self.writequeue.popleft()
+                current_item = self.writequeue.popleft()
+                cmd, querystring, tags, sync = current_item
+                try:  # make this a transaction
+                    db.begin_atomic()
+                except XapianError:
+                    raise DatabaseError()
                 query = db.create_query(querystring)
                 for msg in query.search_messages():
                     msg.freeze()
@@ -89,6 +95,10 @@ class DBManager(object):
                             msg.remove_tag(tag.encode(DB_ENC),
                                           sync_maildir_flags=sync)
                     msg.thaw()
+
+                # end transaction and reinsert queue item on error
+                if db.end_atomic() != notmuch.STATUS.SUCCESS:
+                    self.writequeue.appendleft(current_item)
 
     def tag(self, querystring, tags, remove_rest=False):
         """
