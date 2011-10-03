@@ -1,3 +1,7 @@
-*.pyc
+*.py[co]
 *.log
 *.swp
+/build
+/dist
+/MANIFEST
+.gdb_history
