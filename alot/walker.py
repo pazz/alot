@@ -18,6 +18,7 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 import urwid
 
+
 class IteratorWalker(urwid.ListWalker):
     def __init__(self, it, containerclass, **kwargs):
         self.kwargs = kwargs

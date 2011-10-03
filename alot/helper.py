@@ -212,6 +212,7 @@ def shell_quote(text):
     '''
     return "'%s'" % text.replace("'", """'"'"'""")
 
+
 def tag_cmp(a, b):
     r'''
     Sorting tags using this function puts all tags of length 1 at the

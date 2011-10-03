@@ -31,7 +31,6 @@ class Buffer(object):
     def __init__(self, ui, widget, name):
         self.ui = ui
         self.typename = name
-        self.autoparms = {}
         self.body = widget
 
     def __str__(self):
@@ -61,7 +60,6 @@ class BufferlistBuffer(Buffer):
         self.isinitialized = False
         self.rebuild()
         Buffer.__init__(self, ui, self.body, 'bufferlist')
-        self.autoparms = {'buffer': self.get_selected_buffer}
 
     def index_of(self, b):
         return self.ui.buffers.index(b)
@@ -100,7 +98,6 @@ class EnvelopeBuffer(Buffer):
         self.mail = mail
         self.rebuild()
         Buffer.__init__(self, ui, self.body, 'envelope')
-        self.autoparms = {'email': self.get_email}
 
     def __str__(self):
         return "to: %s" % decode_header(self.mail['To'])
@@ -145,7 +142,6 @@ class SearchBuffer(Buffer):
         self.isinitialized = False
         self.rebuild()
         Buffer.__init__(self, ui, self.body, 'search')
-        self.autoparms = {'thread': self.get_selected_thread}
 
     def __str__(self):
         return '%s (%d threads)' % (self.querystring, self.result_count)
@@ -193,7 +189,6 @@ class ThreadBuffer(Buffer):
         self.thread = thread
         self.rebuild()
         Buffer.__init__(self, ui, self.body, 'thread')
-        self.autoparms = {'thread': self.thread}
 
     def __str__(self):
         return '%s, (%d)' % (self.thread.get_subject(), self.message_count)
@@ -268,7 +263,6 @@ class TagListBuffer(Buffer):
         self.isinitialized = False
         self.rebuild()
         Buffer.__init__(self, ui, self.body, 'taglist')
-        self.autoparms = {}
 
     def rebuild(self):
         if self.isinitialized:
