@@ -33,15 +33,18 @@ class MainWidget(urwid.Frame):
         urwid.Frame.__init__(self, urwid.SolidFill(), *args, **kwargs)
         self.ui = ui
 
-    def keypress(self, size, key):
-        self.ui.logger.debug('got key: %s' % key)
-        cmdline = config.get_mapping(self.ui.mode, key)
-        if cmdline:
-            cmd = interpret_commandline(cmdline, self.ui.mode)
-            if cmd:
-                self.ui.apply_command(cmd)
-        else:
-            urwid.Frame.keypress(self, size, key)
+    def keypress(self, size, key, interpret=True):
+        self.ui.logger.debug('got key: \'%s\'' % key)
+        if interpret:
+            cmdline = config.get_mapping(self.ui.mode, key)
+            if cmdline:
+                cmd = interpret_commandline(cmdline, self.ui.mode)
+                if cmd:
+                    self.ui.apply_command(cmd)
+                    return None
+        self.ui.logger.debug('relaying key: %s' % key)
+        return urwid.Frame.keypress(self, size, key)
+
 
 
 class UI(object):
@@ -62,7 +65,7 @@ class UI(object):
                 config.get_palette(),
                 handle_mouse=False,
                 event_loop=urwid.TwistedEventLoop(),
-                unhandled_input=self.keypress)
+                unhandled_input=self.unhandeled_input)
         self.mainloop.screen.set_terminal_properties(colors=colourmode)
 
         self.show_statusbar = config.getboolean('general', 'show_statusbar')
@@ -70,7 +73,7 @@ class UI(object):
         self.mode = 'global'
         self.commandprompthistory = []
 
-        self.logger.debug('setup bindings')
+        #self.logger.debug('setup bindings')
         for key, value in config.items('urwid-maps'):
             command_map[key] = value
 
@@ -78,8 +81,11 @@ class UI(object):
         self.apply_command(initialcmd)
         self.mainloop.run()
 
-    def keypress(self, key):
+    def unhandeled_input(self, key):
         self.logger.debug('unhandeled input: %s' % key)
+
+    def keypress(self, key):
+        self.mainloop.widget.keypress((150,20), key, interpret=False)
 
     def prompt(self, prefix='>', text=u'', completer=None, tab=0, history=[]):
         """prompt for text input
