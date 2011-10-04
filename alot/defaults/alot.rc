@@ -63,13 +63,14 @@ initial_command = search tag:inbox AND NOT tag:killed
 complete_matching_abook_only = False
 
 [urwid-maps]
-j = cursor down
-k = cursor up
-' ' = cursor page down
 enter = select
 esc = cancel
 
 [global-maps]
+j = move down
+k = move up
+' ' = move page down
+
 @ = refresh
 I = search tag:inbox AND NOT tag:killed
 L = taglist

@@ -212,6 +212,7 @@ class CompleteEdit(urwid.Edit):
     def keypress(self, size, key):
         cmd = command_map[key]
         # if we tabcomplete
+        logging.debug((key,cmd))
         if cmd in ['next selectable', 'prev selectable'] and self.completer:
             # if not already in completion mode
             if not self.completions:
