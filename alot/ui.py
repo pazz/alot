@@ -61,7 +61,6 @@ class InputWrap(urwid.WidgetWrap):
         return self._w.keypress(size, key)
 
 
-
 class UI(object):
     buffers = []
     current_buffer = None
@@ -101,7 +100,7 @@ class UI(object):
         self.logger.debug('unhandeled input: %s' % key)
 
     def keypress(self, key):
-        self.mainloop.widget.keypress((150,20), key, interpret=False)
+        self.mainloop.widget.keypress((150, 20), key, interpret=False)
 
     def prompt(self, prefix='>', text=u'', completer=None, tab=0, history=[]):
         """prompt for text input
