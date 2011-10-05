@@ -17,7 +17,6 @@ along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
 Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 import urwid
-from urwid.command_map import command_map
 from twisted.internet import reactor, defer
 
 from settings import config

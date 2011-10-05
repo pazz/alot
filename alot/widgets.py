@@ -18,7 +18,6 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 import email
 import urwid
-from urwid.command_map import command_map
 import logging
 
 from settings import config
@@ -184,10 +183,9 @@ class ChoiceWidget(urwid.Text):
         return True
 
     def keypress(self, size, key):
-        cmd = command_map[key]
-        if cmd == 'select' and self.select != None:
+        if key == 'select' and self.select != None:
             self.callback(self.select)
-        elif cmd == 'cancel' and self.cancel != None:
+        elif key == 'cancel' and self.cancel != None:
             self.callback(self.cancel)
         elif key in self.choices:
             self.callback(self.choices[key])
@@ -210,17 +208,15 @@ class CompleteEdit(urwid.Edit):
         urwid.Edit.__init__(self, edit_text=edit_text, **kwargs)
 
     def keypress(self, size, key):
-        cmd = command_map[key]
         # if we tabcomplete
-        logging.debug((key, cmd))
-        if cmd in ['next selectable', 'prev selectable'] and self.completer:
+        if key in ['tab', 'shift tab'] and self.completer:
             # if not already in completion mode
             if not self.completions:
                 self.completions = [(self.edit_text, self.edit_pos)] + \
                     self.completer.complete(self.edit_text, self.edit_pos)
                 self.focus_in_clist = 1
             else:  # otherwise tab through results
-                if cmd == 'next selectable':
+                if key == 'tab':
                     self.focus_in_clist += 1
                 else:
                     self.focus_in_clist -= 1
@@ -244,9 +240,9 @@ class CompleteEdit(urwid.Edit):
                 else:
                     self.historypos = (self.historypos - 1) % len(self.history)
                 self.set_edit_text(self.history[self.historypos])
-        elif cmd == 'select':
+        elif key == 'select':
             self.on_exit(self.edit_text)
-        elif cmd == 'cancel':
+        elif key == 'cancel':
             self.on_exit(None)
         else:
             result = urwid.Edit.keypress(self, size, key)
