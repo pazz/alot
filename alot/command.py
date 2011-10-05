@@ -1103,6 +1103,8 @@ COMMANDS = {
     },
     'global': {
         'move': (SendKeypressCommand, {}),
+        'cancel': (SendKeypressCommand, {'key': 'cancel'}),
+        'select': (SendKeypressCommand, {'key': 'select'}),
         'sendkey': (SendKeypressCommand, {}),
         'bnext': (BufferFocusCommand, {'offset': 1}),
         'bprevious': (BufferFocusCommand, {'offset': -1}),
@@ -1230,7 +1232,7 @@ def interpret_commandline(cmdline, mode):
                                 'refresh', 'bufferlist', 'refineprompt',
                                 'reply', 'open', 'groupreply', 'bounce',
                                 'openthread', 'toggleheaders', 'send',
-                                'reedit', 'select', 'retagprompt']:
+                                'cancel', 'reedit', 'select', 'retagprompt']:
         return commandfactory(cmd, mode=mode)
     else:
         return None
