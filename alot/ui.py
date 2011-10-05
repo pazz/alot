@@ -22,16 +22,31 @@ from twisted.internet import reactor, defer
 
 from settings import config
 from buffer import BufferlistBuffer
+import command
 from command import commandfactory
 from command import interpret_commandline
 import widgets
 from completion import CommandLineCompleter
 
 
-class MainWidget(urwid.Frame):
-    def __init__(self, ui, *args, **kwargs):
-        urwid.Frame.__init__(self, urwid.SolidFill(), *args, **kwargs)
+class InputWrap(urwid.WidgetWrap):
+    def __init__(self, ui, rootwidget):
+        urwid.WidgetWrap.__init__(self, rootwidget)
         self.ui = ui
+        self.rootwidget = rootwidget
+        self.select_cancel_only = False
+
+    def set_root(self, w):
+        self._w = w
+
+    def allowed_command(self, cmd):
+        if not self.select_cancel_only:
+            return True
+        elif isinstance(cmd, command.SendKeypressCommand):
+            if cmd.key in ['select', 'cancel']:
+                return True
+        else:
+            return False
 
     def keypress(self, size, key, interpret=True):
         self.ui.logger.debug('got key: \'%s\'' % key)
@@ -39,11 +54,11 @@ class MainWidget(urwid.Frame):
             cmdline = config.get_mapping(self.ui.mode, key)
             if cmdline:
                 cmd = interpret_commandline(cmdline, self.ui.mode)
-                if cmd:
+                if self.allowed_command(cmd):
                     self.ui.apply_command(cmd)
                     return None
         self.ui.logger.debug('relaying key: %s' % key)
-        return urwid.Frame.keypress(self, size, key)
+        return self._w.keypress(size, key)
 
 
 
@@ -60,8 +75,9 @@ class UI(object):
         if not colourmode:
             colourmode = config.getint('general', 'colourmode')
         self.logger.info('setup gui in %d colours' % colourmode)
-        self.mainframe = MainWidget(self)
-        self.mainloop = urwid.MainLoop(self.mainframe,
+        self.mainframe = urwid.Frame(urwid.SolidFill())
+        self.inputwrap = InputWrap(self, self.mainframe)
+        self.mainloop = urwid.MainLoop(self.inputwrap,
                 config.get_palette(),
                 handle_mouse=False,
                 event_loop=urwid.TwistedEventLoop(),
@@ -106,7 +122,9 @@ class UI(object):
         d = defer.Deferred()  # create return deferred
 
         def select_or_cancel(text):
-            self.mainloop.widget = self.mainframe  # restore main screen
+            # restore main screen
+            self.inputwrap.set_root(self.mainframe)
+            self.inputwrap.select_cancel_only = False
             d.callback(text)
 
         #set up widgets
@@ -131,7 +149,8 @@ class UI(object):
                                 ('fixed right', 0),
                                 ('fixed bottom', 1),
                                 None)
-        self.mainloop.widget = overlay
+        self.inputwrap.set_root(overlay)
+        self.inputwrap.select_cancel_only = True
         return d  # return deferred
 
     def exit(self):
@@ -268,10 +287,10 @@ class UI(object):
         assert msg_position in ['left', 'above']
 
         d = defer.Deferred()  # create return deferred
-        main = self.mainloop.widget  # save main widget
 
         def select_or_cancel(text):
-            self.mainloop.widget = main  # restore main screen
+            self.inputwrap.set_root(self.mainframe)
+            self.inputwrap.select_cancel_only = False
             d.callback(text)
 
         #set up widgets
@@ -291,12 +310,13 @@ class UI(object):
         urwid.AttrMap(both, 'prompt', 'prompt')
 
         # put promptwidget as overlay on main widget
-        overlay = urwid.Overlay(both, main,
+        overlay = urwid.Overlay(both, self.mainframe,
                                 ('fixed left', 0),
                                 ('fixed right', 0),
                                 ('fixed bottom', 1),
                                 None)
-        self.mainloop.widget = overlay
+        self.inputwrap.set_root(overlay)
+        self.inputwrap.select_cancel_only = True
         return d  # return deferred
 
     def notify(self, message, priority='normal', timeout=0, block=False):

@@ -1057,14 +1057,13 @@ class TaglistSelectCommand(Command):
         ui.apply_command(cmd)
 
 
-class MoveCommand(Command):
-    def __init__(self, direction, **kwargs):
+class SendKeypressCommand(Command):
+    def __init__(self, key, **kwargs):
         Command.__init__(self, **kwargs)
-        self.direction = direction
+        self.key = key
 
     def apply(self, ui):
-        if self.direction in ['up', 'down', 'left', 'right', 'page down']:
-            ui.keypress(self.direction)
+        ui.keypress(self.key)
 
 
 COMMANDS = {
@@ -1103,7 +1102,8 @@ COMMANDS = {
         'toggleheaders': (ToggleHeaderCommand, {}),
     },
     'global': {
-        'move': (MoveCommand, {}),
+        'move': (SendKeypressCommand, {}),
+        'sendkey': (SendKeypressCommand, {}),
         'bnext': (BufferFocusCommand, {'offset': 1}),
         'bprevious': (BufferFocusCommand, {'offset': -1}),
         'bufferlist': (OpenBufferlistCommand, {}),
@@ -1172,8 +1172,8 @@ def interpret_commandline(cmdline, mode):
 
     if cmd == 'search':
         return commandfactory(cmd, mode=mode, query=params)
-    if cmd == 'move':
-        return commandfactory(cmd, mode=mode, direction=params)
+    if cmd in ['move', 'sendkey']:
+        return commandfactory(cmd, mode=mode, key=params)
     elif cmd == 'compose':
         h = {}
         if params:
