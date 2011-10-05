@@ -51,7 +51,10 @@ class InputWrap(urwid.WidgetWrap):
     def keypress(self, size, key, interpret=True):
         self.ui.logger.debug('got key: \'%s\'' % key)
         if interpret:
-            cmdline = config.get_mapping(self.ui.mode, key)
+            mode = self.ui.mode
+            if self.select_cancel_only:
+                mode = 'global'
+            cmdline = config.get_mapping(mode, key)
             if cmdline:
                 cmd = interpret_commandline(cmdline, self.ui.mode)
                 if self.allowed_command(cmd):
@@ -88,10 +91,6 @@ class UI(object):
         self.mode = 'global'
         self.commandprompthistory = []
 
-        #self.logger.debug('setup bindings')
-        for key, value in config.items('urwid-maps'):
-            command_map[key] = value
-
         self.logger.debug('fire first command')
         self.apply_command(initialcmd)
         self.mainloop.run()
@@ -100,7 +99,7 @@ class UI(object):
         self.logger.debug('unhandeled input: %s' % key)
 
     def keypress(self, key):
-        self.mainloop.widget.keypress((150, 20), key, interpret=False)
+        self.inputwrap.keypress((150, 20), key, interpret=False)
 
     def prompt(self, prefix='>', text=u'', completer=None, tab=0, history=[]):
         """prompt for text input

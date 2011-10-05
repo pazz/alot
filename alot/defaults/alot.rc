@@ -62,14 +62,12 @@ initial_command = search tag:inbox AND NOT tag:killed
 # look in the abook of the account matching the sender address
 complete_matching_abook_only = False
 
-[urwid-maps]
-enter = select
-esc = cancel
-
 [global-maps]
 j = move down
 k = move up
 ' ' = move page down
+esc = cancel
+enter = select
 
 @ = refresh
 I = search tag:inbox AND NOT tag:killed
