@@ -176,7 +176,7 @@ class Message(object):
 
 
 def extract_body(mail):
-    bodytxt = ''
+    body_parts = []
     for part in mail.walk():
         ctype = part.get_content_type()
         enc = part.get_content_charset()
@@ -187,7 +187,7 @@ def extract_body(mail):
             else:
                 raw_payload = unicode(raw_payload, errors='replace')
         if ctype == 'text/plain':
-            bodytxt += raw_payload
+            body_parts.append(raw_payload)
         else:
             #get mime handler
             handler = get_mime_handler(ctype, key='view',
@@ -201,18 +201,18 @@ def extract_body(mail):
                     tmpfile.write(raw_payload.encode('utf8'))
                 else:
                     tmpfile.write(raw_payload)
+                tmpfile.close()
                 #create and call external command
                 cmd = handler % tmpfile.name
                 rendered_payload = helper.cmd_output(cmd)
                 #remove tempfile
-                tmpfile.close()
                 os.unlink(tmpfile.name)
                 if rendered_payload:  # handler had output
-                    bodytxt += rendered_payload.strip()
+                    body_parts.append(rendered_payload.strip())
                 elif part.get_content_maintype() == 'text':
-                    bodytxt += raw_payload
+                    body_parts.append(raw_payload)
                 # else drop
-    return bodytxt
+    return '\n\n'.join(body_parts)
 
 
 def decode_to_unicode(part):
