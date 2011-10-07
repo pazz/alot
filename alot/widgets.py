@@ -499,7 +499,8 @@ class MessageBodyWidget(urwid.AttrMap):
     """displays printable parts of an email"""
 
     def __init__(self, msg):
-        bodytxt = message.extract_body(msg)
+        ignore_mimetypes = config.getstringlist('general', 'ignore_mimetypes')
+        bodytxt = message.extract_body(msg, ignore_mimetypes)
         urwid.AttrMap.__init__(self, urwid.Text(bodytxt), 'message_body')
 
 

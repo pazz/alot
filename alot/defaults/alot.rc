@@ -62,6 +62,11 @@ initial_command = search tag:inbox AND NOT tag:killed
 # look in the abook of the account matching the sender address
 complete_matching_abook_only = False
 
+# ignore specific mimetypes in message display:
+# Set this to text/html if you do not want html output in the message
+# display
+ignore_mimetypes =
+
 [global-maps]
 j = move down
 k = move up
