@@ -176,7 +176,7 @@ class Message(object):
 
 
 def extract_body(mail):
-    bodytxt = ''
+    body_parts = []
     for part in mail.walk():
         ctype = part.get_content_type()
         enc = part.get_content_charset()
@@ -187,7 +187,7 @@ def extract_body(mail):
             else:
                 raw_payload = unicode(raw_payload, errors='replace')
         if ctype == 'text/plain':
-            bodytxt += raw_payload
+            body_parts.append(raw_payload)
         else:
             #get mime handler
             handler = get_mime_handler(ctype, key='view',
@@ -201,18 +201,18 @@ def extract_body(mail):
                     tmpfile.write(raw_payload.encode('utf8'))
                 else:
                     tmpfile.write(raw_payload)
+                tmpfile.close()
                 #create and call external command
                 cmd = handler % tmpfile.name
                 rendered_payload = helper.cmd_output(cmd)
                 #remove tempfile
-                tmpfile.close()
                 os.unlink(tmpfile.name)
                 if rendered_payload:  # handler had output
-                    bodytxt += rendered_payload.strip()
+                    body_parts.append(rendered_payload.strip())
                 elif part.get_content_maintype() == 'text':
-                    bodytxt += raw_payload
+                    body_parts.append(raw_payload)
                 # else drop
-    return bodytxt
+    return '\n\n'.join(body_parts)
 
 
 def decode_to_unicode(part):
@@ -290,7 +290,7 @@ class Attachment(object):
     def __str__(self):
         return '%s:%s (%s)' % (self.get_content_type(),
                                self.get_filename(),
-                               self.get_size())
+                               helper.humanize_size(self.get_size()))
 
     def get_filename(self):
         """return the filename, extracted from content-disposition header"""
@@ -305,14 +305,9 @@ class Attachment(object):
         if ctype == 'octet/stream' and self.get_filename():
             ctype, enc = mimetypes.guess_type(self.get_filename())
         return ctype
-
     def get_size(self):
-        """returns attachments size as human-readable string"""
-        size_in_kbyte = len(self.part.get_payload()) / 1024
-        if size_in_kbyte > 1024:
-            return "%.1fM" % (size_in_kbyte / 1024.0)
-        else:
-            return "%dK" % size_in_kbyte
+        """returns attachments size in bytes"""
+        return len(self.part.get_payload())
 
     def save(self, path):
         """save the attachment to disk. Uses self.get_filename
