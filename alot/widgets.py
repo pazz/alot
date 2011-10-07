@@ -71,7 +71,7 @@ class ThreadlineWidget(urwid.AttrMap):
         self.subject_w = urwid.AttrMap(urwid.Text(subjectstring, wrap='clip'),
                                  'threadline_subject')
         if subjectstring:
-            cols.append(('fixed', len(subjectstring), self.subject_w))
+            cols.append(('weight', 2, self.subject_w))
 
         if self.display_content:
             msgs = self.thread.get_messages().keys()
