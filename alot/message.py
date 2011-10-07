@@ -175,10 +175,12 @@ class Message(object):
         return res
 
 
-def extract_body(mail):
+def extract_body(mail, ignore_mimetypes):
     body_parts = []
     for part in mail.walk():
         ctype = part.get_content_type()
+        if ctype in ignore_mimetypes:
+            continue
         enc = part.get_content_charset()
         raw_payload = part.get_payload(decode=True)
         if part.get_content_maintype() == 'text':
