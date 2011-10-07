@@ -290,7 +290,7 @@ class Attachment(object):
     def __str__(self):
         return '%s:%s (%s)' % (self.get_content_type(),
                                self.get_filename(),
-                               self.get_size())
+                               helper.humanize_size(self.get_size()))
 
     def get_filename(self):
         """return the filename, extracted from content-disposition header"""
@@ -305,14 +305,9 @@ class Attachment(object):
         if ctype == 'octet/stream' and self.get_filename():
             ctype, enc = mimetypes.guess_type(self.get_filename())
         return ctype
-
     def get_size(self):
-        """returns attachments size as human-readable string"""
-        size_in_kbyte = len(self.part.get_payload()) / 1024
-        if size_in_kbyte > 1024:
-            return "%.1fM" % (size_in_kbyte / 1024.0)
-        else:
-            return "%dK" % size_in_kbyte
+        """returns attachments size in bytes"""
+        return len(self.part.get_payload())
 
     def save(self, path):
         """save the attachment to disk. Uses self.get_filename

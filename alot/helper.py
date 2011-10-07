@@ -222,3 +222,23 @@ def tag_cmp(a, b):
         return cmp(len(a), len(b))
     else:
         return cmp(a, b)
+
+def humanize_size(size):
+    r'''
+    >>> humanize_size(1)
+    '1'
+    >>> humanize_size(123)
+    '123'
+    >>> humanize_size(1234)
+    '1K'
+    >>> humanize_size(1234 * 1024)
+    '1.2M'
+    >>> humanize_size(1234 * 1024 * 1024)
+    '1234.0M'
+    '''
+    for factor, format_string in ((1, '%i'),
+                                  (1024, '%iK'),
+                                  (1024 * 1024, '%.1fM')):
+        if size / factor < 1024:
+            return format_string % (float(size) / factor)
+    return format_string % (size / factor)
