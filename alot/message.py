@@ -201,11 +201,11 @@ def extract_body(mail):
                     tmpfile.write(raw_payload.encode('utf8'))
                 else:
                     tmpfile.write(raw_payload)
+                tmpfile.close()
                 #create and call external command
                 cmd = handler % tmpfile.name
                 rendered_payload = helper.cmd_output(cmd)
                 #remove tempfile
-                tmpfile.close()
                 os.unlink(tmpfile.name)
                 if rendered_payload:  # handler had output
                     body_parts.append(rendered_payload.strip())
