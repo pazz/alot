@@ -194,6 +194,15 @@ class CommandLineCompleter(Completer):
             elif cmd == 'refine':
                 if self.mode == 'search':
                     res = self._querycompleter.complete(params, localpos)
+            elif cmd == 'set' and self.mode == 'envelope':
+                header, params = params.split(' ', 1)
+                localpos = localpos - (len(header) + 1)
+                if header.lower() in ['to', 'cc', 'bcc']:
+                    res = self._contactscompleter.complete(params,
+                                                           localpos)
+                    # prepend 'set ' + header and correct position
+                    res = [('%s %s' % (header, t), p + len(header) + 1) for (t, p) in res]
+                logging.debug(res)
             elif cmd == 'retag':
                 res = self._tagscompleter.complete(params, localpos,
                                                    single_tag=False)
@@ -201,10 +210,11 @@ class CommandLineCompleter(Completer):
                 res = self._tagscompleter.complete(params, localpos)
             elif cmd == 'help':
                 res = self._commandcompleter.complete(params, localpos)
-            elif cmd in ['to', 'compose']:
+            elif cmd in ['compose']:
                 res = self._contactscompleter.complete(params, localpos)
             elif cmd in ['attach', 'edit', 'save']:
                 res = self._pathcompleter.complete(params, localpos)
+            # prepend cmd and correct position
             res = [('%s %s' % (cmd, t), p + len(cmd) + 1) for (t, p) in res]
         return res
 

@@ -102,8 +102,8 @@ a = prompt attach ~/
 y = send
 s = 'refine Subject'
 t = 'refine To'
-b = 'refine BCC'
-c = 'refine CC'
+b = 'refine Bcc'
+c = 'refine Cc'
 enter = reedit
 
 [taglist-maps]
