@@ -100,8 +100,10 @@ enter = openthread
 [envelope-maps]
 a = prompt attach ~/
 y = send
-s = 'prompt subject '
-t = 'prompt to '
+s = 'refine Subject'
+t = 'refine To'
+b = 'refine Bcc'
+c = 'refine Cc'
 enter = reedit
 
 [taglist-maps]

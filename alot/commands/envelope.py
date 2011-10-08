@@ -115,6 +115,19 @@ class EnvelopeSetCommand(Command):
         envelope.rebuild()
 
 
+class EnvelopeRefineCommand(Command):
+    """prompt to change current value of header field"""
+
+    def __init__(self, key='', **kwargs):
+        Command.__init__(self, **kwargs)
+        self.key = key
+
+    def apply(self, ui):
+        mail = ui.current_buffer.get_email()
+        value = mail.get(self.key, '')
+        ui.commandprompt('set %s %s' % (self.key, value))
+
+
 class EnvelopeSendCommand(Command):
     @defer.inlineCallbacks
     def apply(self, ui):

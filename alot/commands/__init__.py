@@ -65,6 +65,7 @@ class registerCommand(object):
         COMMANDS[mode][name] = (klass, defaultparms)
         return klass
 
+
 def commandfactory(cmdname, mode='global', **kwargs):
     if cmdname in COMMANDS[mode]:
         (cmdclass, parms) = COMMANDS[mode][cmdname]
@@ -131,15 +132,18 @@ def interpret_commandline(cmdline, mode):
     elif cmd == 'prompt':
         return commandfactory(cmd, mode=mode, startstring=params)
     elif cmd == 'refine':
-        return commandfactory(cmd, mode=mode, query=params)
+        if mode == 'search':
+            return commandfactory(cmd, mode=mode, query=params)
+        elif mode == 'envelope':
+            return commandfactory(cmd, mode=mode, key=params)
+
     elif cmd == 'retag':
         return commandfactory(cmd, mode=mode, tagsstring=params)
-    elif cmd == 'subject':
-        return commandfactory(cmd, mode=mode, key='Subject', value=params)
     elif cmd == 'shellescape':
         return commandfactory(cmd, mode=mode, commandstring=params)
-    elif cmd == 'to':
-        return commandfactory(cmd, mode=mode, key='To', value=params)
+    elif cmd == 'set':
+        key, value = params.split(' ', 1)
+        return commandfactory(cmd, mode=mode, key=key, value=value)
     elif cmd == 'toggletag':
         return commandfactory(cmd, mode=mode, tags=params.split())
     elif cmd == 'fold':
@@ -181,5 +185,4 @@ def interpret_commandline(cmdline, mode):
         return None
 
 
-
-#__all__ = list(filename[:-3] for filename in glob.glob1(os.path.dirname(__file__), '*.py'))
+__all__ = list(filename[:-3] for filename in glob.glob1(os.path.dirname(__file__), '*.py'))
