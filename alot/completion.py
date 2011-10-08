@@ -189,18 +189,21 @@ class CommandLineCompleter(Completer):
         else:
             cmd, params = words
             localpos = pos - (len(cmd) + 1)
-            if cmd in ['search', 'refine']:
+            if cmd == 'search':
                 res = self._querycompleter.complete(params, localpos)
-            if cmd == 'retag':
+            elif cmd == 'refine':
+                if self.mode == 'search':
+                    res = self._querycompleter.complete(params, localpos)
+            elif cmd == 'retag':
                 res = self._tagscompleter.complete(params, localpos,
                                                    single_tag=False)
-            if cmd == 'toggletag':
+            elif cmd == 'toggletag':
                 res = self._tagscompleter.complete(params, localpos)
-            if cmd == 'help':
+            elif cmd == 'help':
                 res = self._commandcompleter.complete(params, localpos)
-            if cmd in ['to', 'compose']:
+            elif cmd in ['to', 'compose']:
                 res = self._contactscompleter.complete(params, localpos)
-            if cmd in ['attach', 'edit', 'save']:
+            elif cmd in ['attach', 'edit', 'save']:
                 res = self._pathcompleter.complete(params, localpos)
             res = [('%s %s' % (cmd, t), p + len(cmd) + 1) for (t, p) in res]
         return res
