@@ -38,6 +38,9 @@ class InputWrap(urwid.WidgetWrap):
     def set_root(self, w):
         self._w = w
 
+    def get_root(self):
+        return self._w
+
     def allowed_command(self, cmd):
         if not self.select_cancel_only:
             return True
@@ -123,10 +126,11 @@ class UI(object):
         :returns: a `twisted.defer.Deferred`
         """
         d = defer.Deferred()  # create return deferred
+        oldroot = self.inputwrap.get_root()
 
         def select_or_cancel(text):
             # restore main screen
-            self.inputwrap.set_root(self.mainframe)
+            self.inputwrap.set_root(oldroot)
             self.inputwrap.select_cancel_only = False
             d.callback(text)
 
@@ -147,7 +151,7 @@ class UI(object):
         urwid.AttrMap(both, 'prompt', 'prompt')
 
         # put promptwidget as overlay on main widget
-        overlay = urwid.Overlay(both, self.mainframe,
+        overlay = urwid.Overlay(both, oldroot,
                                 ('fixed left', 0),
                                 ('fixed right', 0),
                                 ('fixed bottom', 1),
@@ -230,7 +234,9 @@ class UI(object):
         if buf not in self.buffers:
             self.logger.error('tried to focus unknown buffer')
         else:
-            self.current_buffer = buf
+            if self.current_buffer != buf:
+                self.current_buffer = buf
+                self.inputwrap.set_root(self.mainframe)
             self.mode = buf.typename
             if isinstance(self.current_buffer, BufferlistBuffer):
                 self.current_buffer.rebuild()
@@ -291,8 +297,9 @@ class UI(object):
 
         d = defer.Deferred()  # create return deferred
 
+        oldroot = self.inputwrap.get_root()
         def select_or_cancel(text):
-            self.inputwrap.set_root(self.mainframe)
+            self.inputwrap.set_root(oldroot)
             self.inputwrap.select_cancel_only = False
             d.callback(text)
 
@@ -313,7 +320,7 @@ class UI(object):
         urwid.AttrMap(both, 'prompt', 'prompt')
 
         # put promptwidget as overlay on main widget
-        overlay = urwid.Overlay(both, self.mainframe,
+        overlay = urwid.Overlay(both, oldroot,
                                 ('fixed left', 0),
                                 ('fixed right', 0),
                                 ('fixed bottom', 1),
