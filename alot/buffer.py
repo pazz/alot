@@ -22,7 +22,7 @@ from notmuch.globals import NotmuchError
 
 import widgets
 import settings
-import command
+import commands
 from walker import IteratorWalker
 from message import decode_header
 

@@ -21,9 +21,9 @@ from twisted.internet import reactor, defer
 
 from settings import config
 from buffer import BufferlistBuffer
-import command
-from command import commandfactory
-from command import interpret_commandline
+import commands
+from commands import commandfactory
+from commands import interpret_commandline
 import widgets
 from completion import CommandLineCompleter
 

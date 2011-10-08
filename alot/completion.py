@@ -22,7 +22,7 @@ import os
 import glob
 import logging
 
-import command
+import commands
 
 
 class Completer(object):
