@@ -27,6 +27,46 @@ from helper import tag_cmp
 import message
 
 
+class DialogBox(urwid.WidgetWrap):
+    def __init__(self, body, title, bodyattr=None, titleattr=None):
+        self.body = urwid.LineBox(body)
+        self.title = urwid.Text(title)
+        if titleattr is not None:
+            self.title = urwid.AttrMap(self.title, titleattr)
+        if bodyattr is not None:
+            self.body = urwid.AttrMap(self.body, bodyattr)
+
+        box = urwid.Overlay(self.title, self.body,
+                            align='center',
+                            valign='top',
+                            width=len(title),
+                            height=None,
+                           )
+        urwid.WidgetWrap.__init__(self, box)
+
+    def selectable(self):
+        return self.body.selectable()
+
+    def keypress(self, size, key):
+        return self.body.keypress(size, key)
+
+
+class CatchKeyWidgetWrap(urwid.WidgetWrap):
+    def __init__(self, widget, key, on_catch):
+        urwid.WidgetWrap.__init__(self, widget)
+        self.key = key
+        self.on_catch = on_catch
+
+    def selectable(self):
+        return True
+
+    def keypress(self, size, key):
+        if key == self.key:
+            self.on_catch()
+        elif self._w.selectable():
+            return self._w.keypress(size, key)
+
+
 class ThreadlineWidget(urwid.AttrMap):
     def __init__(self, tid, dbman):
         self.dbman = dbman

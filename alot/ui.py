@@ -100,6 +100,12 @@ class UI(object):
     def keypress(self, key):
         self.inputwrap.keypress((150, 20), key, interpret=False)
 
+    def show_as_root_until_keypress(self, w, key):
+        def oe():
+            self.inputwrap.set_root(self.mainframe)
+        helpwrap = widgets.CatchKeyWidgetWrap(w, key, on_catch=oe)
+        self.inputwrap.set_root(helpwrap)
+
     def prompt(self, prefix='>', text=u'', completer=None, tab=0, history=[]):
         """prompt for text input
 

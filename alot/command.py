@@ -1066,6 +1066,63 @@ class SendKeypressCommand(Command):
         ui.keypress(self.key)
 
 
+class HelpCommand(Command):
+    def __init__(self, commandline='', **kwargs):
+        Command.__init__(self, **kwargs)
+        self.commandline = commandline.strip()
+
+    def apply(self, ui):
+        if self.commandline:
+            cmd = self.commandline.split(' ', 1)[0]
+            # TODO: how to I access COMMANDS from below?
+            ui.notify('no help for \'%s\'' % cmd, priority='error')
+            titletext = 'help for %s' % cmd
+            body = urwid.Text('helpstring')
+            return
+        else:
+            # get mappings
+            modemaps = dict(settings.config.items('%s-maps' % ui.mode))
+            globalmaps = dict(settings.config.items('global-maps'))
+
+            # build table
+            maxkeylength = len(max((modemaps).keys() + globalmaps.keys(),
+                                   key=len))
+            keycolumnwidth = maxkeylength + 2
+
+            linewidgets = []
+            # mode specific maps
+            linewidgets.append(urwid.Text(('helptexth1',
+                                '\n%s-mode specific maps' % ui.mode)))
+            for (k, v) in modemaps.items():
+                line = urwid.Columns([('fixed', keycolumnwidth, urwid.Text(k)),
+                                      urwid.Text(v)])
+                linewidgets.append(line)
+
+            # global maps
+            linewidgets.append(urwid.Text(('helptexth1',
+                                           '\nglobal maps')))
+            for (k, v) in globalmaps.items():
+                if k not in modemaps:
+                    line = urwid.Columns(
+                        [('fixed', keycolumnwidth, urwid.Text(k)),
+                         urwid.Text(v)])
+                    linewidgets.append(line)
+
+            body = urwid.ListBox(linewidgets)
+            ckey = 'cancel'
+            titletext = 'Bindings Help (%s cancels)' % ckey
+
+        box = widgets.DialogBox(body, titletext,
+                                bodyattr='helptext',
+                                titleattr='helptitle')
+
+        # put promptwidget as overlay on main widget
+        overlay = urwid.Overlay(box, ui.mainframe, 'center',
+                                ('relative', 70), 'middle',
+                                ('relative', 70))
+        ui.show_as_root_until_keypress(overlay, 'cancel')
+
+
 COMMANDS = {
     'search': {
         'refine': (RefineCommand, {}),
@@ -1120,6 +1177,7 @@ COMMANDS = {
         'search': (SearchCommand, {}),
         'shellescape': (ExternalCommand, {}),
         'taglist': (TagListCommand, {}),
+        'help': (HelpCommand, {}),
     }
 }
 
@@ -1183,6 +1241,8 @@ def interpret_commandline(cmdline, mode):
         return commandfactory(cmd, mode=mode, headers=h)
     elif cmd == 'attach':
         return commandfactory(cmd, mode=mode, path=params)
+    elif cmd == 'help':
+        return commandfactory(cmd, mode=mode, commandline=params)
     elif cmd == 'forward':
         return commandfactory(cmd, mode=mode, inline=(params == '--inline'))
     elif cmd == 'prompt':

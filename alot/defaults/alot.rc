@@ -70,6 +70,7 @@ esc = cancel
 enter = select
 
 @ = refresh
+? = help
 I = search tag:inbox AND NOT tag:killed
 L = taglist
 shift tab = bprevious
@@ -195,6 +196,12 @@ notify_normal_bg = default
 message_attachment_focussed_fg = light gray
 threadline_authors_fg = dark green
 message_header_bg = dark gray
+helptitle_bg = dark blue
+helptitle_fg = white
+helptext_bg = dark gray
+helptext_fg = default
+helptexth1_bg = dark gray
+helptexth1_fg = bold,underline
 
 [256c-theme]
 bufferlist_focus_fg = #ffa
@@ -263,6 +270,12 @@ notify_normal_bg = default
 message_attachment_focussed_fg = light gray
 threadline_authors_fg = #6d6
 message_header_bg = dark gray
+helptitle_bg = g35
+helptitle_fg = white,bold,underline
+helptext_bg = g35
+helptext_fg = default
+helptexth1_bg = g35
+helptexth1_fg = bold,underline
 
 [1c-theme]
 message_body = default
@@ -298,3 +311,6 @@ threadline_mailcount = default
 threadline_focus = standout
 threadline_tags = bold
 bufferlist_focus = standout
+helptitle = standout
+helptext = default
+helptexth1 = underline

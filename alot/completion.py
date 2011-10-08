@@ -196,6 +196,8 @@ class CommandLineCompleter(Completer):
                                                    single_tag=False)
             if cmd == 'toggletag':
                 res = self._tagscompleter.complete(params, localpos)
+            if cmd == 'help':
+                res = self._commandcompleter.complete(params, localpos)
             if cmd in ['to', 'compose']:
                 res = self._contactscompleter.complete(params, localpos)
             if cmd in ['attach', 'edit', 'save']:
