@@ -991,7 +991,7 @@ class EnvelopeRefineCommand(Command):
 
     def apply(self, ui):
         mail = ui.current_buffer.get_email()
-        value = mail.get(self.key, '')
+        value = decode_header(mail.get(self.key, ''))
         ui.commandprompt('set %s %s' % (self.key, value))
 
 
