@@ -187,7 +187,7 @@ class ExternalCommand(Command):
                 cmd = '%s %s' % (settings.config.get('general',
                                                       'terminal_cmd'),
                                   cmd)
-            cmd = cmd.encode('ascii', errors='ignore')
+            cmd = cmd.encode('utf-8', errors='ignore')
             ui.logger.info('calling external command: %s' % cmd)
             returncode = subprocess.call(shlex.split(cmd))
             if returncode == 0:
