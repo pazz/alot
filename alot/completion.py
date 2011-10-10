@@ -175,7 +175,7 @@ class CommandLineCompleter(Completer):
         self._querycompleter = QueryCompleter(dbman, accountman)
         self._tagscompleter = TagsCompleter(dbman)
         abooks = accountman.get_addressbooks()
-        self._contactscompleter = ContactsCompleter(abooks, addressesonly=True)
+        self._contactscompleter = ContactsCompleter(abooks)
         self._pathcompleter = PathCompleter()
 
     def complete(self, line, pos):
