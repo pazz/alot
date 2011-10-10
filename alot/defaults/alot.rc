@@ -87,14 +87,14 @@ colon = prompt
 
 [bufferlist-maps]
 x = closefocussed
-enter = openfocussed
+select = openfocussed
 
 [search-maps]
 a = toggletag inbox
 & = toggletag killed
 l = retagprompt
 O = refineprompt
-enter = openthread
+select = openthread
 | = refineprompt
 
 [envelope-maps]
@@ -104,10 +104,9 @@ s = 'refine Subject'
 t = 'refine To'
 b = 'refine Bcc'
 c = 'refine Cc'
-enter = reedit
+select = reedit
 
 [taglist-maps]
-enter = select
 
 [thread-maps]
 C = fold --all
@@ -121,7 +120,6 @@ f = forward
 p = print
 s = save
 r = reply
-enter = select
 | = 'prompt pipeto '
 
 [command-aliases]
