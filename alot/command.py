@@ -186,8 +186,8 @@ class ExternalCommand(Command):
             if self.spawn:
                 cmd = '%s %s' % (settings.config.get('general',
                                                       'terminal_cmd'),
-                                  cmd)
-            cmd = cmd.encode('ascii', errors='ignore')
+                                 cmd)
+            cmd = cmd.encode('utf-8', errors='ignore')
             ui.logger.info('calling external command: %s' % cmd)
             returncode = subprocess.call(shlex.split(cmd))
             if returncode == 0:
@@ -834,7 +834,7 @@ class OpenAttachmentCommand(Command):
         handler = settings.get_mime_handler(mimetype)
         if handler:
             path = self.attachment.save(tempfile.gettempdir())
-            handler = handler.replace('\'%s\'', '{}')
+            handler = handler.replace('%s', '{}')
 
             def afterwards():
                 os.remove(path)
@@ -991,7 +991,7 @@ class EnvelopeRefineCommand(Command):
 
     def apply(self, ui):
         mail = ui.current_buffer.get_email()
-        value = mail.get(self.key, '')
+        value = decode_header(mail.get(self.key, ''))
         ui.commandprompt('set %s %s' % (self.key, value))
 
 

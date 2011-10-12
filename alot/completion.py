@@ -158,7 +158,7 @@ class CommandCompleter(Completer):
         #TODO refine <tab> should get current querystring
         commandprefix = original[:pos]
         logging.debug('original="%s" prefix="%s"' % (original, commandprefix))
-        cmdlist = command.COMMANDS['global']
+        cmdlist = command.COMMANDS['global'].copy()
         cmdlist.update(command.COMMANDS[self.mode])
         matching = [t for t in cmdlist if t.startswith(commandprefix)]
         return [(t, len(t)) for t in matching]
@@ -175,7 +175,7 @@ class CommandLineCompleter(Completer):
         self._querycompleter = QueryCompleter(dbman, accountman)
         self._tagscompleter = TagsCompleter(dbman)
         abooks = accountman.get_addressbooks()
-        self._contactscompleter = ContactsCompleter(abooks, addressesonly=True)
+        self._contactscompleter = ContactsCompleter(abooks)
         self._pathcompleter = PathCompleter()
 
     def complete(self, line, pos):

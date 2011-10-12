@@ -138,7 +138,7 @@ def pretty_datetime(d):
 
 
 def cmd_output(command_line):
-    args = shlex.split(command_line.encode('ascii', errors='ignore'))
+    args = shlex.split(command_line.encode('utf-8', errors='ignore'))
     try:
         output = subprocess.check_output(args)
         output = output.decode(urwid.util.detected_encoding, errors='replace')
@@ -150,8 +150,7 @@ def cmd_output(command_line):
 
 
 def pipe_to_command(cmd, stdin):
-        # no unicode in shlex on 2.x
-        args = shlex.split(cmd.encode('ascii'))
+        args = shlex.split(cmd.encode('utf-8', errors='ignore'))
         try:
             proc = subprocess.Popen(args, stdin=subprocess.PIPE,
                                     stdout=subprocess.PIPE,

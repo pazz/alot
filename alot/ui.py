@@ -50,18 +50,17 @@ class InputWrap(urwid.WidgetWrap):
         else:
             return False
 
-    def keypress(self, size, key, interpret=True):
+    def keypress(self, size, key):
         self.ui.logger.debug('got key: \'%s\'' % key)
-        if interpret:
-            mode = self.ui.mode
-            if self.select_cancel_only:
-                mode = 'global'
-            cmdline = config.get_mapping(mode, key)
-            if cmdline:
-                cmd = interpret_commandline(cmdline, self.ui.mode)
-                if self.allowed_command(cmd):
-                    self.ui.apply_command(cmd)
-                    return None
+        mode = self.ui.mode
+        if self.select_cancel_only:
+            mode = 'global'
+        cmdline = config.get_mapping(mode, key)
+        if cmdline:
+            cmd = interpret_commandline(cmdline, mode)
+            if self.allowed_command(cmd):
+                self.ui.apply_command(cmd)
+                return None
         self.ui.logger.debug('relaying key: %s' % key)
         return self._w.keypress(size, key)
 
@@ -101,7 +100,7 @@ class UI(object):
         self.logger.debug('unhandeled input: %s' % key)
 
     def keypress(self, key):
-        self.inputwrap.keypress((150, 20), key, interpret=False)
+        self.inputwrap.keypress((150, 20), key)
 
     def show_as_root_until_keypress(self, w, key):
         def oe():
