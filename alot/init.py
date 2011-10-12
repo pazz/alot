@@ -25,8 +25,8 @@ import settings
 from account import AccountManager
 from db import DBManager
 from ui import UI
-import commands
-from commands import *
+import command
+from Commands import *
 
 
 def parse_args():
@@ -92,7 +92,7 @@ def main():
     logging.basicConfig(level=numeric_loglevel, filename=logfilename)
     logger = logging.getLogger()
 
-    logger.debug(commands.COMMANDS)
+    logger.debug(command.COMMANDS)
     #accountman
     aman = AccountManager(settings.config)
 
@@ -101,12 +101,12 @@ def main():
 
     # get initial searchstring
     if args.command != '':
-        cmd = commands.interpret_commandline(args.command, 'global')
+        cmd = command.interpret_commandline(args.command, 'global')
         if cmd is None:
             sys.exit('Invalid command: ' + args.command)
     else:
         default_commandline = settings.config.get('general', 'initial_command')
-        cmd = commands.interpret_commandline(default_commandline, 'global')
+        cmd = command.interpret_commandline(default_commandline, 'global')
 
     # set up and start interface
     UI(dbman,
