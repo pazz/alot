@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 """
 This file is part of alot, a terminal UI to notmuch mail (notmuchmail.org).
 Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
@@ -16,6 +16,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
+import sys
 import argparse
 import logging
 import os
@@ -24,13 +25,13 @@ import settings
 from account import AccountManager
 from db import DBManager
 from ui import UI
-from urwid.command_map import command_map
+from command import interpret_commandline
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', dest='configfile',
-                        default='~/.alot.rc',
+                        default=None,
                         help='alot\'s config file')
     parser.add_argument('-n', dest='notmuchconfigfile',
                         default='~/.notmuch-config',
@@ -51,9 +52,9 @@ def parse_args():
     parser.add_argument('-l', dest='logfile',
                         default='/dev/null',
                         help='logfile')
-    parser.add_argument('query', nargs='?',
-                        default='tag:inbox AND NOT tag:killed',
-                        help='initial searchstring')
+    parser.add_argument('command', nargs='?',
+                        default='',
+                        help='initial command')
     return parser.parse_args()
 
 
@@ -61,9 +62,25 @@ def main():
     # interpret cml arguments
     args = parse_args()
 
-    #read config file
-    configfilename = os.path.expanduser(args.configfile)
-    settings.config.read(configfilename)
+    # locate and read config file
+    configfiles = [
+        os.path.join(os.environ.get('XDG_CONFIG_HOME',
+                                    os.path.expanduser('~/.config')),
+                     'alot', 'config'),
+        os.path.expanduser('~/.alot.rc'),
+    ]
+    if args.configfile:
+        expanded_path = os.path.expanduser(args.configfile)
+        if not os.path.exists(expanded_path):
+            sys.exit('File %s does not exist' % expanded_path)
+        configfiles.insert(0, expanded_path)
+
+    for configfilename in configfiles:
+        if os.path.exists(configfilename):
+            settings.config.read(configfilename)
+            break  # use only the first
+
+    # read notmuch config
     notmuchfile = os.path.expanduser(args.notmuchconfigfile)
     settings.notmuchconfig.read(notmuchfile)
     settings.hooks.setup(settings.config.get('general', 'hooksfile'))
@@ -80,19 +97,21 @@ def main():
     # get ourselves a database manager
     dbman = DBManager(path=args.db_path, ro=args.read_only)
 
-    # set up global urwid command maps
-    command_map['j'] = 'cursor down'
-    command_map['k'] = 'cursor up'
-    command_map[' '] = 'cursor page down'
-    command_map['enter'] = 'select'
-    command_map['esc'] = 'cancel'
+    # get initial searchstring
+    if args.command != '':
+        cmd = interpret_commandline(args.command, 'global')
+        if cmd is None:
+            sys.exit('Invalid command: ' + args.command)
+    else:
+        default_commandline = settings.config.get('general', 'initial_command')
+        cmd = interpret_commandline(default_commandline, 'global')
 
     # set up and start interface
-    ui = UI(dbman,
-            logger,
-            aman,
-            args.query,
-            args.colours,
+    UI(dbman,
+       logger,
+       aman,
+       cmd,
+       args.colours,
     )
 
 if __name__ == "__main__":

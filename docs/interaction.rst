@@ -10,6 +10,10 @@ User Interaction
 
     .. automethod:: choice
 
+    .. automethod:: commandprompt
+
+    .. automethod:: interpret_commandline
+    
     .. automethod:: notify
 
     .. automethod:: prompt

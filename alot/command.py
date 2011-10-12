@@ -17,25 +17,21 @@ along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
 Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 import os
+import re
 import code
 import glob
 import logging
 import threading
 import subprocess
+import shlex
 import email
 import tempfile
-import mimetypes
-from email.parser import Parser
 from email import Charset
 from email.header import Header
-from email import encoders
-from email.message import Message
-from email.mime.audio import MIMEAudio
-from email.mime.base import MIMEBase
-from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import urwid
+from twisted.internet import defer
 
 import buffer
 import settings
@@ -51,7 +47,7 @@ from message import decode_header
 from message import encode_header
 
 
-class Command:
+class Command(object):
     """base class for commands"""
     def __init__(self, prehook=None, posthook=None):
         self.prehook = prehook
@@ -65,12 +61,13 @@ class Command:
 
 class ExitCommand(Command):
     """shuts the MUA down cleanly"""
+    @defer.inlineCallbacks
     def apply(self, ui):
         if settings.config.getboolean('general', 'bug_on_exit'):
-            if not ui.choice('realy quit?', choices={'yes': ['y', 'enter'],
-                                                     'no': ['n']}) == 'yes':
+            if (yield ui.choice('realy quit?', select='yes', cancel='no',
+                               msg_position='left')) == 'no':
                 return
-        raise urwid.ExitMainLoop()
+        ui.exit()
 
 
 class OpenThreadCommand(Command):
@@ -100,11 +97,12 @@ class SearchCommand(Command):
         self.query = query
         Command.__init__(self, **kwargs)
 
+    @defer.inlineCallbacks
     def apply(self, ui):
         if self.query:
             if self.query == '*' and ui.current_buffer:
                 s = 'really search for all threads? This takes a while..'
-                if not ui.choice(s) == 'yes':
+                if (yield ui.choice(s, select='yes', cancel='no')) == 'no':
                     return
             open_searches = ui.get_buffers_of_type(buffer.SearchBuffer)
             to_be_focused = None
@@ -138,11 +136,13 @@ class RefreshCommand(Command):
 
 class ExternalCommand(Command):
     """calls external command"""
-    def __init__(self, commandstring, spawn=False, refocus=True,
+    def __init__(self, commandstring, path=None, spawn=False, refocus=True,
                  in_thread=False, on_success=None, **kwargs):
         """
         :param commandstring: the command to call
         :type commandstring: str
+        :param path: a path to a file (or None)
+        :type path: str
         :param spawn: run command in a new terminal
         :type spawn: boolean
         :param in_thread: run asynchronously, don't block alot
@@ -153,6 +153,7 @@ class ExternalCommand(Command):
         :type on_success: callable
         """
         self.commandstring = commandstring
+        self.path = path
         self.spawn = spawn
         self.refocus = refocus
         self.in_thread = in_thread
@@ -172,13 +173,23 @@ class ExternalCommand(Command):
         write_fd = ui.mainloop.watch_pipe(afterwards)
 
         def thread_code(*args):
-            cmd = self.commandstring
+            if self.path:
+                if '{}' in self.commandstring:
+                    cmd = self.commandstring.replace('{}',
+                            helper.shell_quote(self.path))
+                else:
+                    cmd = '%s %s' % (self.commandstring,
+                                     helper.shell_quote(self.path))
+            else:
+                cmd = self.commandstring
+
             if self.spawn:
                 cmd = '%s %s' % (settings.config.get('general',
                                                       'terminal_cmd'),
-                                  cmd)
+                                 cmd)
+            cmd = cmd.encode('utf-8', errors='ignore')
             ui.logger.info('calling external command: %s' % cmd)
-            returncode = subprocess.call(cmd, shell=True)
+            returncode = subprocess.call(shlex.split(cmd))
             if returncode == 0:
                 os.write(write_fd, 'success')
 
@@ -199,9 +210,9 @@ class EditCommand(ExternalCommand):
         else:
             self.spawn = settings.config.getboolean('general', 'spawn_editor')
         editor_cmd = settings.config.get('general', 'editor_cmd')
-        cmd = editor_cmd + ' ' + self.path
-        ExternalCommand.__init__(self, cmd, spawn=self.spawn,
-                                 in_thread=self.spawn,
+
+        ExternalCommand.__init__(self, editor_cmd, path=self.path,
+                                 spawn=self.spawn, in_thread=self.spawn,
                                  **kwargs)
 
 
@@ -226,6 +237,7 @@ class BufferCloseCommand(Command):
 
     def apply(self, ui):
         if self.focussed:
+            #if in bufferlist, this is ugly.
             self.buffer = ui.current_buffer.get_selected_buffer()
         elif not self.buffer:
             self.buffer = ui.current_buffer
@@ -301,10 +313,10 @@ class FlushCommand(Command):
 
 class ToggleThreadTagCommand(Command):
     """toggles tag in given or currently selected thread"""
-    def __init__(self, tag, thread=None, **kwargs):
-        assert tag
+    def __init__(self, tags, thread=None, **kwargs):
+        assert tags
         self.thread = thread
-        self.tag = tag
+        self.tags = set(tags)
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
@@ -313,10 +325,7 @@ class ToggleThreadTagCommand(Command):
         if not self.thread:
             return
         try:
-            if self.tag in self.thread.get_tags():
-                self.thread.remove_tags([self.tag])
-            else:
-                self.thread.add_tags([self.tag])
+            self.thread.set_tags(set(self.thread.get_tags()) ^ self.tags)
         except DatabaseROError:
             ui.notify('index in read-only mode', priority='error')
             return
@@ -334,7 +343,6 @@ class ToggleThreadTagCommand(Command):
             #remove line from searchlist if thread doesn't match the query
             qs = "(%s) AND thread:%s" % (cb.querystring,
                                          self.thread.get_thread_id())
-            msg_count = ui.dbman.count_messages(qs)
             if ui.dbman.count_messages(qs) == 0:
                 ui.logger.debug('remove: %s' % self.thread)
                 cb.threadlist.remove(threadwidget)
@@ -356,6 +364,7 @@ class ComposeCommand(Command):
         for key, value in headers.items():
             self.mail[key] = encode_header(key, value)
 
+    @defer.inlineCallbacks
     def apply(self, ui):
         # TODO: fill with default header (per account)
         # get From header
@@ -368,11 +377,13 @@ class ComposeCommand(Command):
                 a = accounts[0]
             else:
                 cmpl = AccountCompleter(ui.accountman)
-                fromaddress = ui.prompt(prefix='From>', completer=cmpl, tab=1)
+                fromaddress = yield ui.prompt(prefix='From>', completer=cmpl,
+                                              tab=1)
                 validaddresses = [a.address for a in accounts] + [None]
-                while fromaddress not in validaddresses:
+                while fromaddress not in validaddresses:  # TODO: not cool
                     ui.notify('no account for this address. (<esc> cancels)')
-                    fromaddress = ui.prompt(prefix='From>', completer=cmpl)
+                    fromaddress = yield ui.prompt(prefix='From>',
+                                                  completer=cmpl)
                 if not fromaddress:
                     ui.notify('canceled')
                     return
@@ -381,11 +392,27 @@ class ComposeCommand(Command):
 
         #get To header
         if 'To' not in self.mail:
-            to = ui.prompt(prefix='To>', completer=ContactsCompleter())
+            name, addr = email.Utils.parseaddr(unicode(self.mail.get('From')))
+            a = ui.accountman.get_account_by_address(addr)
+
+            allbooks = not settings.config.getboolean('general',
+                                'complete_matching_abook_only')
+            ui.logger.debug(allbooks)
+            abooks = ui.accountman.get_addressbooks(order=[a],
+                                                    append_remaining=allbooks)
+            ui.logger.debug(abooks)
+            to = yield ui.prompt(prefix='To>',
+                                 completer=ContactsCompleter(abooks))
+            if to == None:
+                ui.notify('canceled')
+                return
             self.mail['To'] = encode_header('to', to)
         if settings.config.getboolean('general', 'ask_subject') and \
            not 'Subject' in self.mail:
-            subject = ui.prompt(prefix='Subject>')
+            subject = yield ui.prompt(prefix='Subject>')
+            if subject == None:
+                ui.notify('canceled')
+                return
             self.mail['Subject'] = encode_header('subject', subject)
 
         ui.apply_command(EnvelopeEditCommand(mail=self.mail))
@@ -393,27 +420,34 @@ class ComposeCommand(Command):
 
 # SEARCH
 class RetagPromptCommand(Command):
-    """start a commandprompt to retag selected threads' tags"""
+    """start a commandprompt to retag selected threads' tags
+    this is needed to fill the prompt with the current tags..
+    """
     def apply(self, ui):
         thread = ui.current_buffer.get_selected_thread()
+        if not thread:
+            return
         initial_tagstring = ','.join(thread.get_tags())
         ui.commandprompt('retag ' + initial_tagstring)
 
 
 class RetagCommand(Command):
     """tag selected thread"""
-    def __init__(self, tagsstring=u'', **kwargs):
+    def __init__(self, tagsstring=u'', thread=None, **kwargs):
         self.tagsstring = tagsstring
+        self.thread = thread
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        thread = ui.current_buffer.get_selected_thread()
-        initial_tagstring = ','.join(thread.get_tags())
+        if not self.thread:
+            self.thread = ui.current_buffer.get_selected_thread()
+        if not self.thread:
+            return
         tags = filter(lambda x: x, self.tagsstring.split(','))
         ui.logger.info("got %s:%s" % (self.tagsstring, tags))
         try:
-            thread.set_tags(tags)
-        except DatabaseROError, e:
+            self.thread.set_tags(tags)
+        except DatabaseROError:
             ui.notify('index in read-only mode', priority='error')
             return
 
@@ -432,11 +466,12 @@ class RefineCommand(Command):
         self.querystring = query
         Command.__init__(self, **kwargs)
 
+    @defer.inlineCallbacks
     def apply(self, ui):
         if self.querystring:
             if self.querystring == '*':
                 s = 'really search for all threads? This takes a while..'
-                if not ui.choice(s) == 'yes':
+                if (yield ui.choice(s, select='yes', cancel='no')) == 'no':
                     return
             sbuffer = ui.current_buffer
             oldquery = sbuffer.querystring
@@ -476,8 +511,16 @@ class ReplyCommand(Command):
             self.message = ui.current_buffer.get_selected_message()
         mail = self.message.get_email()
         # set body text
-        mailcontent = '\nOn %s, %s wrote:\n' % (self.message.get_datestring(),
-                self.message.get_author()[0])
+        name, address = self.message.get_author()
+        timestamp = self.message.get_date()
+        qf = settings.hooks.get('reply_prefix')
+        if qf:
+            quotestring = qf(name, address, timestamp,
+                             ui=ui, dbm=ui.dbman, aman=ui.accountman,
+                             log=ui.logger, config=settings.config)
+        else:
+            quotestring = 'Quoting %s (%s)\n' % (name, timestamp)
+        mailcontent = quotestring
         for line in self.message.accumulate_body().splitlines():
             mailcontent += '>' + line + '\n'
 
@@ -487,10 +530,7 @@ class ReplyCommand(Command):
         reply.attach(bodypart)
 
         # copy subject
-        if 'Subject' not in mail or mail['Subject'] == None:
-            subject = ''
-        else:
-            subject = mail['Subject']
+        subject = mail.get('Subject', '')
         if not subject.startswith('Re:'):
             subject = 'Re: ' + subject
         reply['Subject'] = Header(subject.encode('utf-8'), 'UTF-8').encode()
@@ -498,7 +538,7 @@ class ReplyCommand(Command):
         # set From
         my_addresses = ui.accountman.get_addresses()
         matched_address = ''
-        in_to = [a for a in my_addresses if a in mail['To']]
+        in_to = [a for a in my_addresses if a in mail.get('To', '')]
         if in_to:
             matched_address = in_to[0]
         else:
@@ -512,10 +552,9 @@ class ReplyCommand(Command):
             reply['From'] = encode_header('From', fromstring)
 
         # set To
-        #reply['To'] = Header(mail['From'].encode('utf-8'), 'UTF-8').encode()
         del(reply['To'])
         if self.groupreply:
-            cleared = self.clear_my_address(my_addresses, mail['To'])
+            cleared = self.clear_my_address(my_addresses, mail.get('To', ''))
             if cleared:
                 logging.info(mail['From'] + ', ' + cleared)
                 to = mail['From'] + ', ' + cleared
@@ -538,7 +577,7 @@ class ReplyCommand(Command):
         reply['In-Reply-To'] = '<%s>' % self.message.get_message_id()
 
         # set References header
-        old_references = mail['References']
+        old_references = mail.get('References', '')
         if old_references:
             old_references = old_references.split()
             references = old_references[-8:]
@@ -582,8 +621,16 @@ class ForwardCommand(Command):
         Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
         if self.inline:  # inline mode
             # set body text
-            author = self.message.get_author()[0]
-            mailcontent = '\nForwarded message from %s:\n' % author
+            name, address = self.message.get_author()
+            timestamp = self.message.get_date()
+            qf = settings.hooks.get('forward_prefix')
+            if qf:
+                quote = qf(name, address, timestamp,
+                             ui=ui, dbm=ui.dbman, aman=ui.accountman,
+                             log=ui.logger, config=settings.config)
+            else:
+                quote = 'Forwarded message from %s (%s):\n' % (name, timestamp)
+            mailcontent = quote
             for line in self.message.accumulate_body().splitlines():
                 mailcontent += '>' + line + '\n'
 
@@ -598,14 +645,14 @@ class ForwardCommand(Command):
             reply.attach(mail)
 
         # copy subject
-        subject = mail['Subject']
+        subject = mail.get('Subject', '')
         subject = 'Fwd: ' + subject
         reply['Subject'] = Header(subject.encode('utf-8'), 'UTF-8').encode()
 
         # set From
         my_addresses = ui.accountman.get_addresses()
         matched_address = ''
-        in_to = [a for a in my_addresses if a in mail['To']]
+        in_to = [a for a in my_addresses if a in mail.get('To', '')]
         if in_to:
             matched_address = in_to[0]
         else:
@@ -652,28 +699,106 @@ class ToggleHeaderCommand(Command):
         msgw.toggle_full_header()
 
 
+class PipeCommand(Command):
+    def __init__(self, command, whole_thread=False, separately=False,
+                 noop_msg='no command specified', confirm_msg='',
+                 done_msg='done', **kwargs):
+        Command.__init__(self, **kwargs)
+        self.cmd = command
+        self.whole_thread = whole_thread
+        self.separately = separately
+        self.noop_msg = noop_msg
+        self.confirm_msg = confirm_msg
+        self.done_msg = done_msg
+
+    @defer.inlineCallbacks
+    def apply(self, ui):
+        # abort if command unset
+        if not self.cmd:
+            ui.notify(self.noop_msg, priority='error')
+            return
+
+        # get messages to pipe
+        if self.whole_thread:
+            thread = ui.current_buffer.get_selected_thread()
+            if not thread:
+                return
+            to_print = thread.get_messages().keys()
+        else:
+            to_print = [ui.current_buffer.get_selected_message()]
+
+        # ask for confirmation if needed
+        if self.confirm_msg:
+            if (yield ui.choice(self.confirm_msg, select='yes',
+                                cancel='no')) == 'no':
+                return
+
+        # prepare message sources
+        mailstrings = [m.get_email().as_string() for m in to_print]
+        if not self.separately:
+            mailstrings = ['\n\n'.join(mailstrings)]
+
+        # do teh monkey
+        for mail in mailstrings:
+            out, err = helper.pipe_to_command(self.cmd, mail)
+            if err:
+                ui.notify(err, priority='error')
+                return
+
+        # display 'done' message
+        if self.done_msg:
+            ui.notify(self.done_msg)
+
+
+class PrintCommand(PipeCommand):
+    def __init__(self, whole_thread=False, separately=False, **kwargs):
+        # get print command
+        cmd = settings.config.get('general', 'print_cmd', fallback='')
+
+        # set up notification strings
+        if whole_thread:
+            confirm_msg = 'print all messages in thread?'
+            ok_msg = 'printed thread using %s' % cmd
+        else:
+            confirm_msg = 'print selected message?'
+            ok_msg = 'printed message using %s' % cmd
+
+        # no print cmd set
+        noop_msg = 'no print command specified. Set "print_cmd" in the '\
+                    'global section.'
+        PipeCommand.__init__(self, cmd, whole_thread=whole_thread,
+                             separately=separately,
+                             noop_msg=noop_msg, confirm_msg=confirm_msg,
+                             done_msg=ok_msg, **kwargs)
+
+
 class SaveAttachmentCommand(Command):
     def __init__(self, all=False, path=None, **kwargs):
         Command.__init__(self, **kwargs)
         self.all = all
         self.path = path
 
+    @defer.inlineCallbacks
     def apply(self, ui):
         pcomplete = completion.PathCompleter()
         if self.all:
             msg = ui.current_buffer.get_selected_message()
             if not self.path:
-                self.path = ui.prompt(prefix='save attachments to:',
+                self.path = yield ui.prompt(prefix='save attachments to:',
                                       text=os.path.join('~', ''),
                                       completer=pcomplete)
             if self.path:
-                self.path = os.path.expanduser(self.path)
-                if os.path.isdir(self.path):
+                if os.path.isdir(os.path.expanduser(self.path)):
                     for a in msg.get_attachments():
                         dest = a.save(self.path)
-                        ui.notify('saved attachment as: %s' % dest)
+                        name = a.get_filename()
+                        if name:
+                            ui.notify('saved %s as: %s' % (name, dest))
+                        else:
+                            ui.notify('saved attachment as: %s' % dest)
                 else:
-                    ui.notify('not a directory: %s' % self.path)
+                    ui.notify('not a directory: %s' % self.path,
+                              priority='error')
             else:
                 ui.notify('canceled')
         else:  # save focussed attachment
@@ -682,12 +807,17 @@ class SaveAttachmentCommand(Command):
                 attachment = focus.get_attachment()
                 filename = attachment.get_filename()
                 if not self.path:
-                    self.path = ui.prompt(prefix='save attachment as:',
-                                          text=os.path.join('~', filename),
-                                          completer=pcomplete)
+                    msg = 'save attachment (%s) to:' % filename
+                    initialtext = os.path.join('~', filename)
+                    self.path = yield ui.prompt(prefix=msg,
+                                                completer=pcomplete,
+                                                text=initialtext)
                 if self.path:
-                    attachment.save(os.path.expanduser(self.path))
-                    ui.notify('saved attachment as: %s' % self.path)
+                    try:
+                        dest = attachment.save(self.path)
+                        ui.notify('saved attachment as: %s' % dest)
+                    except (IOError, OSError), e:
+                        ui.notify(str(e), priority='error')
                 else:
                     ui.notify('canceled')
 
@@ -704,14 +834,12 @@ class OpenAttachmentCommand(Command):
         handler = settings.get_mime_handler(mimetype)
         if handler:
             path = self.attachment.save(tempfile.gettempdir())
-            if '%s' in handler:
-                cmd = handler % path.replace(' ', '\ ')
-            else:
-                cmd = '%s %s' % (handler, path.replace(' ', '\ '))
+            handler = handler.replace('%s', '{}')
 
             def afterwards():
                 os.remove(path)
-            ui.apply_command(ExternalCommand(cmd, on_success=afterwards,
+            ui.apply_command(ExternalCommand(handler, path=path,
+                                             on_success=afterwards,
                                              in_thread=True))
         else:
             ui.notify('unknown mime type')
@@ -753,16 +881,36 @@ class EnvelopeEditCommand(Command):
             self.mail = ui.current_buffer.get_email()
 
         def openEnvelopeFromTmpfile():
-            f = open(tf.name)
-            editor_input = f.read().decode('utf-8')
+            # This parses the input from the tempfile.
+            # we do this ourselves here because we want to be able to
+            # just type utf-8 encoded stuff into the tempfile and let alot
+            # worry about encodings.
 
-            #split editor out
+            # get input
+            f = open(tf.name)
+            enc = settings.config.get('general', 'editor_writes_encoding')
+            editor_input = f.read().decode(enc)
             headertext, bodytext = editor_input.split('\n\n', 1)
 
+            # call post-edit translate hook
+            translate = settings.hooks.get('post_edit_translate')
+            if translate:
+                bodytext = translate(bodytext, ui=ui, dbm=ui.dbman,
+                                     aman=ui.accountman, log=ui.logger,
+                                     config=settings.config)
+
+            # go through multiline, utf-8 encoded headers
+            key = value = None
             for line in headertext.splitlines():
-                key, value = line.strip().split(':', 1)
-                value = value.strip()
-                del self.mail[key]  # ensure there is only one
+                if re.match('\w+:', line):  # new k/v pair
+                    if key and value:  # save old one from stack
+                        del self.mail[key]  # ensure unique values in mails
+                        self.mail[key] = encode_header(key, value)  # save
+                    key, value = line.strip().split(':', 1)  # parse new pair
+                elif key and value:  # append new line without key prefix
+                    value += line
+            if key and value:  # save last one if present
+                del self.mail[key]
                 self.mail[key] = encode_header(key, value)
 
             if self.mail.is_multipart():
@@ -786,7 +934,7 @@ class EnvelopeEditCommand(Command):
         for key in edit_headers:
             value = u''
             if key in self.mail:
-                value = decode_header(self.mail[key])
+                value = decode_header(self.mail.get(key, ''))
             headertext += '%s: %s\n' % (key, value)
 
         if self.mail.is_multipart():
@@ -796,6 +944,13 @@ class EnvelopeEditCommand(Command):
                     break
         else:
             bodytext = decode_to_unicode(self.mail)
+
+        # call pre-edit translate hook
+        translate = settings.hooks.get('pre_edit_translate')
+        if translate:
+            bodytext = translate(bodytext, ui=ui, dbm=ui.dbman,
+                                 aman=ui.accountman, log=ui.logger,
+                                 config=settings.config)
 
         #write stuff to tempfile
         tf = tempfile.NamedTemporaryFile(delete=False)
@@ -827,7 +982,21 @@ class EnvelopeSetCommand(Command):
         envelope.rebuild()
 
 
+class EnvelopeRefineCommand(Command):
+    """prompt to change current value of header field"""
+
+    def __init__(self, key='', **kwargs):
+        Command.__init__(self, **kwargs)
+        self.key = key
+
+    def apply(self, ui):
+        mail = ui.current_buffer.get_email()
+        value = decode_header(mail.get(self.key, ''))
+        ui.commandprompt('set %s %s' % (self.key, value))
+
+
 class EnvelopeSendCommand(Command):
+    @defer.inlineCallbacks
     def apply(self, ui):
         envelope = ui.current_buffer
         mail = envelope.get_email()
@@ -845,8 +1014,10 @@ class EnvelopeSendCommand(Command):
                         name = None
                     helper.attach(sig, mail, filename=name)
                 else:
-                    ui.notify('could not locate signature: %s' % sig, priority='error')
-                    if not ui.choice('send without signature') == 'yes':
+                    ui.notify('could not locate signature: %s' % sig,
+                              priority='error')
+                    if (yield ui.choice('send without signature',
+                                        select='yes', cancel='no')) == 'no':
                         return
 
             clearme = ui.notify('sending..', timeout=-1, block=False)
@@ -866,26 +1037,25 @@ class EnvelopeSendCommand(Command):
 class EnvelopeAttachCommand(Command):
     def __init__(self, path=None, mail=None, **kwargs):
         Command.__init__(self, **kwargs)
-        self.files = []
-        if path:
-            self.files = glob.glob(os.path.expanduser(path))
         self.mail = mail
+        self.path = path
 
     def apply(self, ui):
-        if not self.files:
-            path = ui.prompt(prefix='attach files matching:', text='~/',
-                             completer=completion.PathCompleter())
-            if path:
-                self.files = glob.glob(os.path.expanduser(path))
-            if not self.files:
-                ui.notify('no matches, abort')
-                return
-        logging.info(self.files)
-
         msg = self.mail
         if not msg:
             msg = ui.current_buffer.get_email()
-        for path in self.files:
+
+        if self.path:
+            files = filter(os.path.isfile,
+                           glob.glob(os.path.expanduser(self.path)))
+            if not files:
+                ui.notify('no matches, abort')
+                return
+        else:
+            ui.notify('no files specified, abort')
+
+        logging.info("attaching: %s" % files)
+        for path in files:
             helper.attach(path, msg)
 
         if not self.mail:  # set the envelope msg iff we got it from there
@@ -900,12 +1070,78 @@ class TaglistSelectCommand(Command):
         ui.apply_command(cmd)
 
 
+class SendKeypressCommand(Command):
+    def __init__(self, key, **kwargs):
+        Command.__init__(self, **kwargs)
+        self.key = key
+
+    def apply(self, ui):
+        ui.keypress(self.key)
+
+
+class HelpCommand(Command):
+    def __init__(self, commandline='', **kwargs):
+        Command.__init__(self, **kwargs)
+        self.commandline = commandline.strip()
+
+    def apply(self, ui):
+        if self.commandline:
+            cmd = self.commandline.split(' ', 1)[0]
+            # TODO: how to I access COMMANDS from below?
+            ui.notify('no help for \'%s\'' % cmd, priority='error')
+            titletext = 'help for %s' % cmd
+            body = urwid.Text('helpstring')
+            return
+        else:
+            # get mappings
+            modemaps = dict(settings.config.items('%s-maps' % ui.mode))
+            globalmaps = dict(settings.config.items('global-maps'))
+
+            # build table
+            maxkeylength = len(max((modemaps).keys() + globalmaps.keys(),
+                                   key=len))
+            keycolumnwidth = maxkeylength + 2
+
+            linewidgets = []
+            # mode specific maps
+            linewidgets.append(urwid.Text(('helptexth1',
+                                '\n%s-mode specific maps' % ui.mode)))
+            for (k, v) in modemaps.items():
+                line = urwid.Columns([('fixed', keycolumnwidth, urwid.Text(k)),
+                                      urwid.Text(v)])
+                linewidgets.append(line)
+
+            # global maps
+            linewidgets.append(urwid.Text(('helptexth1',
+                                           '\nglobal maps')))
+            for (k, v) in globalmaps.items():
+                if k not in modemaps:
+                    line = urwid.Columns(
+                        [('fixed', keycolumnwidth, urwid.Text(k)),
+                         urwid.Text(v)])
+                    linewidgets.append(line)
+
+            body = urwid.ListBox(linewidgets)
+            ckey = 'cancel'
+            titletext = 'Bindings Help (%s cancels)' % ckey
+
+        box = widgets.DialogBox(body, titletext,
+                                bodyattr='helptext',
+                                titleattr='helptitle')
+
+        # put promptwidget as overlay on main widget
+        overlay = urwid.Overlay(box, ui.mainframe, 'center',
+                                ('relative', 70), 'middle',
+                                ('relative', 70))
+        ui.show_as_root_until_keypress(overlay, 'cancel')
+
+
 COMMANDS = {
     'search': {
         'refine': (RefineCommand, {}),
         'refineprompt': (RefinePromptCommand, {}),
         'openthread': (OpenThreadCommand, {}),
-        'toggletag': (ToggleThreadTagCommand, {'tag': 'inbox'}),
+        'toggletag': (ToggleThreadTagCommand, {'tags': ['inbox']}),
         'retag': (RetagCommand, {}),
         'retagprompt': (RetagPromptCommand, {}),
     },
@@ -913,8 +1149,8 @@ COMMANDS = {
         'attach': (EnvelopeAttachCommand, {}),
         'send': (EnvelopeSendCommand, {}),
         'reedit': (EnvelopeEditCommand, {}),
-        'subject': (EnvelopeSetCommand, {'key': 'Subject'}),
-        'to': (EnvelopeSetCommand, {'key': 'To'}),
+        'refine': (EnvelopeRefineCommand, {}),
+        'set': (EnvelopeSetCommand, {}),
     },
     'bufferlist': {
         'closefocussed': (BufferCloseCommand, {'focussed': True}),
@@ -928,12 +1164,18 @@ COMMANDS = {
         'groupreply': (ReplyCommand, {'groupreply': True}),
         'forward': (ForwardCommand, {}),
         'fold': (FoldMessagesCommand, {'visible': False}),
+        'pipeto': (PipeCommand, {}),
+        'print': (PrintCommand, {}),
         'unfold': (FoldMessagesCommand, {'visible': True}),
         'select': (ThreadSelectCommand, {}),
         'save': (SaveAttachmentCommand, {}),
         'toggleheaders': (ToggleHeaderCommand, {}),
     },
     'global': {
+        'move': (SendKeypressCommand, {}),
+        'cancel': (SendKeypressCommand, {'key': 'cancel'}),
+        'select': (SendKeypressCommand, {'key': 'select'}),
+        'sendkey': (SendKeypressCommand, {}),
         'bnext': (BufferFocusCommand, {'offset': 1}),
         'bprevious': (BufferFocusCommand, {'offset': -1}),
         'bufferlist': (OpenBufferlistCommand, {}),
@@ -948,6 +1190,7 @@ COMMANDS = {
         'search': (SearchCommand, {}),
         'shellescape': (ExternalCommand, {}),
         'taglist': (TagListCommand, {}),
+        'help': (HelpCommand, {}),
     }
 }
 
@@ -975,6 +1218,7 @@ def commandfactory(cmdname, mode='global', **kwargs):
 
 
 def interpret_commandline(cmdline, mode):
+    # TODO: use argparser here!
     if not cmdline:
         return None
     logging.debug('mode:%s got commandline "%s"' % (mode, cmdline))
@@ -1001,6 +1245,8 @@ def interpret_commandline(cmdline, mode):
 
     if cmd == 'search':
         return commandfactory(cmd, mode=mode, query=params)
+    if cmd in ['move', 'sendkey']:
+        return commandfactory(cmd, mode=mode, key=params)
     elif cmd == 'compose':
         h = {}
         if params:
@@ -1008,22 +1254,27 @@ def interpret_commandline(cmdline, mode):
         return commandfactory(cmd, mode=mode, headers=h)
     elif cmd == 'attach':
         return commandfactory(cmd, mode=mode, path=params)
+    elif cmd == 'help':
+        return commandfactory(cmd, mode=mode, commandline=params)
     elif cmd == 'forward':
         return commandfactory(cmd, mode=mode, inline=(params == '--inline'))
     elif cmd == 'prompt':
         return commandfactory(cmd, mode=mode, startstring=params)
     elif cmd == 'refine':
-        return commandfactory(cmd, mode=mode, query=params)
+        if mode == 'search':
+            return commandfactory(cmd, mode=mode, query=params)
+        elif mode == 'envelope':
+            return commandfactory(cmd, mode=mode, key=params)
+
     elif cmd == 'retag':
         return commandfactory(cmd, mode=mode, tagsstring=params)
-    elif cmd == 'subject':
-        return commandfactory(cmd, mode=mode, key='Subject', value=params)
     elif cmd == 'shellescape':
         return commandfactory(cmd, mode=mode, commandstring=params)
-    elif cmd == 'to':
-        return commandfactory(cmd, mode=mode, key='To', value=params)
+    elif cmd == 'set':
+        key, value = params.split(' ', 1)
+        return commandfactory(cmd, mode=mode, key=key, value=value)
     elif cmd == 'toggletag':
-        return commandfactory(cmd, mode=mode, tag=params)
+        return commandfactory(cmd, mode=mode, tags=params.split())
     elif cmd == 'fold':
         return commandfactory(cmd, mode=mode, all=(params == '--all'))
     elif cmd == 'unfold':
@@ -1043,6 +1294,13 @@ def interpret_commandline(cmdline, mode):
         filepath = os.path.expanduser(params)
         if os.path.isfile(filepath):
             return commandfactory(cmd, mode=mode, path=filepath)
+    elif cmd == 'print':
+        args = [a.strip() for a in params.split()]
+        return commandfactory(cmd, mode=mode,
+                              whole_thread=('--thread' in args),
+                              separately=('--separately' in args))
+    elif cmd == 'pipeto':
+        return commandfactory(cmd, mode=mode, command=params)
 
     elif not params and cmd in ['exit', 'flush', 'pyshell', 'taglist',
                                 'bclose', 'compose', 'openfocussed',
@@ -1050,7 +1308,7 @@ def interpret_commandline(cmdline, mode):
                                 'refresh', 'bufferlist', 'refineprompt',
                                 'reply', 'open', 'groupreply', 'bounce',
                                 'openthread', 'toggleheaders', 'send',
-                                'reedit', 'select', 'retagprompt']:
+                                'cancel', 'reedit', 'select', 'retagprompt']:
         return commandfactory(cmd, mode=mode)
     else:
         return None

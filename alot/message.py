@@ -29,7 +29,7 @@ from settings import get_mime_handler
 from settings import config
 
 
-class Message:
+class Message(object):
     def __init__(self, dbman, msg, thread=None):
         """
         :param dbman: db manager that is used for further lookups
@@ -164,7 +164,6 @@ class Message:
     def get_text_content(self):
         res = ''
         for part in self.get_email().walk():
-            ctype = part.get_content_type()
             enc = part.get_content_charset()
             if part.get_content_maintype() == 'text':
                 raw_payload = part.get_payload(decode=True)
@@ -177,18 +176,18 @@ class Message:
 
 
 def extract_body(mail):
-    bodytxt = ''
+    body_parts = []
     for part in mail.walk():
         ctype = part.get_content_type()
         enc = part.get_content_charset()
         raw_payload = part.get_payload(decode=True)
         if part.get_content_maintype() == 'text':
             if enc:
-                raw_payload = unicode(raw_payload, enc)
+                raw_payload = unicode(raw_payload, enc, errors='replace')
             else:
                 raw_payload = unicode(raw_payload, errors='replace')
         if ctype == 'text/plain':
-            bodytxt += raw_payload
+            body_parts.append(raw_payload)
         else:
             #get mime handler
             handler = get_mime_handler(ctype, key='view',
@@ -202,19 +201,18 @@ def extract_body(mail):
                     tmpfile.write(raw_payload.encode('utf8'))
                 else:
                     tmpfile.write(raw_payload)
+                tmpfile.close()
                 #create and call external command
                 cmd = handler % tmpfile.name
                 rendered_payload = helper.cmd_output(cmd)
                 #remove tempfile
-                tmpfile.close()
                 os.unlink(tmpfile.name)
                 if rendered_payload:  # handler had output
-                    bodytxt += unicode(rendered_payload.strip(),
-                                       encoding='utf8', errors='replace')
+                    body_parts.append(rendered_payload.strip())
                 elif part.get_content_maintype() == 'text':
-                    bodytxt += raw_payload
+                    body_parts.append(raw_payload)
                 # else drop
-    return bodytxt
+    return '\n\n'.join(body_parts)
 
 
 def decode_to_unicode(part):
@@ -228,40 +226,58 @@ def decode_to_unicode(part):
 
 
 def decode_header(header):
+    """decode a header value to a unicode string
+
+    values are usually a mixture of different substrings
+    encoded in quoted printable using diffetrent encodings.
+    This turns it into a single unicode string
+
+    :param header: the header value
+    :type header: str in us-ascii
+    :rtype: unicode
+    """
+
     valuelist = email.header.decode_header(header)
-    value = u''
+    decoded_list = []
     for v, enc in valuelist:
         if enc:
-            value = value + v.decode(enc)
+            decoded_list.append(v.decode(enc))
         else:
-            value = value + v
-    value = value.replace('\r', '')
-    value = value.replace('\n', ' ')
-    return value
+            decoded_list.append(v)
+    return u' '.join(decoded_list)
 
 
 def encode_header(key, value):
+    """encodes a unicode string as a valid header value
+
+    :param key: the header field this value will be stored in
+    :type key: str
+    :param value: the value to be encoded
+    :type value: unicode
+    """
+    # handle list of "realname <email>" entries separately
     if key.lower() in ['from', 'to', 'cc', 'bcc']:
         rawentries = value.split(',')
         encodedentries = []
         for entry in rawentries:
             m = re.search('\s*(.*)\s+<(.*\@.*\.\w*)>$', entry)
-            if m:
+            if m:  # If a realname part is contained
                 name, address = m.groups()
-                header = Header(name + ' ', 'utf-8')
+                # try to encode as ascii, if that fails, revert to utf-8
+                # name must be a unicode string here
+                header = Header(name)
+                # append address part encoded as ascii
                 header.append('<%s>' % address, charset='ascii')
                 encodedentries.append(header.encode())
-            else:
-                encodedentries.append(entry.encode('ascii', errors='replace'))
+            else:  # pure email address
+                encodedentries.append(entry)
         value = Header(','.join(encodedentries))
-    elif key.lower() == 'subject':
-        value = Header(value, 'UTF-8')
     else:
-        value = Header(value.encode('ascii', errors='replace'))
+        value = Header(value)
     return value
 
 
-class Attachment:
+class Attachment(object):
     """represents a single mail attachment"""
 
     def __init__(self, emailpart):
@@ -274,11 +290,14 @@ class Attachment:
     def __str__(self):
         return '%s:%s (%s)' % (self.get_content_type(),
                                self.get_filename(),
-                               self.get_size())
+                               helper.humanize_size(self.get_size()))
 
     def get_filename(self):
         """return the filename, extracted from content-disposition header"""
-        return self.part.get_filename()
+        extracted_name = self.part.get_filename()
+        if extracted_name:
+            return os.path.basename(extracted_name)
+        return None
 
     def get_content_type(self):
         """mime type of the attachment"""
@@ -286,23 +305,23 @@ class Attachment:
         if ctype == 'octet/stream' and self.get_filename():
             ctype, enc = mimetypes.guess_type(self.get_filename())
         return ctype
-
     def get_size(self):
-        """returns attachments size as human-readable string"""
-        size_in_kbyte = len(self.part.get_payload()) / 1024
-        if size_in_kbyte > 1024:
-            return "%.1fM" % (size_in_kbyte / 1024.0)
-        else:
-            return "%dK" % size_in_kbyte
+        """returns attachments size in bytes"""
+        return len(self.part.get_payload())
 
     def save(self, path):
         """save the attachment to disk. Uses self.get_filename
         in case path is a directory"""
-        if self.get_filename() and os.path.isdir(path):
-            path = os.path.join(path, self.get_filename())
-            FILE = open(path, "w")
+        filename = self.get_filename()
+        path = os.path.expanduser(path)
+        if os.path.isdir(path):
+            if filename:
+                basename = os.path.basename(filename)
+                FILE = open(os.path.join(path, basename), "w")
+            else:
+                FILE = tempfile.NamedTemporaryFile(delete=False, dir=path)
         else:
-            FILE = tempfile.NamedTemporaryFile(delete=False)
+            FILE = open(path, "w")  # this throws IOErrors for invalid path
         FILE.write(self.part.get_payload(decode=True))
         FILE.close()
         return FILE.name

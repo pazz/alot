@@ -2,7 +2,6 @@
 colourmode = 256  ; number of colours your terminal supports
 hooksfile = hooks.py
 editor_cmd = /usr/bin/vim -f -c 'set filetype=mail'
-pager_cmd = /usr/bin/view -f -c 'set filetype=mail'
 terminal_cmd = /usr/bin/urxvt -T notmuch -e 
 spawn_editor = False
 authors_maxlength = 30
@@ -10,6 +9,7 @@ displayed_headers = From,To,Cc,Bcc,Subject
 ask_subject = True
 notify_timeout = 1  # how long (in seconds) notifications are shown
 flush_retry_timeout = 5  # timeout in secs after a failed attempt to flush is repeated
+print_cmd = muttprint
 
 [account gmail]
 realname = john doe
@@ -19,7 +19,9 @@ gpg_key = 123ABC
 signature = /home/john/.signature.gmail  # path to signature file
 signature_filename = sig.txt  # filename in attachment part
 sendmail_command = msmtp --account=gmail -t
-sent_mailbox = maildir:///home/john/mail/gmail/Sent  # we accept mbox,maildir,mh,babyl,mmdf here
+sent_box = maildir:///home/john/mail/gmail/Sent  # we accept mbox,maildir,mh,babyl,mmdf here
+draft_box = maildir:///home/john/mail/gmail/Drafts  # we accept mbox,maildir,mh,babyl,mmdf here
+abook_command = abook --mutt-query
 
 [search-maps]
 t = toggletag todo

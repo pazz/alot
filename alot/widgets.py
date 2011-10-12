@@ -18,13 +18,53 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 import email
 import urwid
-from urwid.command_map import command_map
 import logging
 
 from settings import config
-from helper import shorten
+from helper import shorten_author_string
 from helper import pretty_datetime
+from helper import tag_cmp
 import message
+
+
+class DialogBox(urwid.WidgetWrap):
+    def __init__(self, body, title, bodyattr=None, titleattr=None):
+        self.body = urwid.LineBox(body)
+        self.title = urwid.Text(title)
+        if titleattr is not None:
+            self.title = urwid.AttrMap(self.title, titleattr)
+        if bodyattr is not None:
+            self.body = urwid.AttrMap(self.body, bodyattr)
+
+        box = urwid.Overlay(self.title, self.body,
+                            align='center',
+                            valign='top',
+                            width=len(title),
+                            height=None,
+                           )
+        urwid.WidgetWrap.__init__(self, box)
+
+    def selectable(self):
+        return self.body.selectable()
+
+    def keypress(self, size, key):
+        return self.body.keypress(size, key)
+
+
+class CatchKeyWidgetWrap(urwid.WidgetWrap):
+    def __init__(self, widget, key, on_catch):
+        urwid.WidgetWrap.__init__(self, widget)
+        self.key = key
+        self.on_catch = on_catch
+
+    def selectable(self):
+        return True
+
+    def keypress(self, size, key):
+        if key == self.key:
+            self.on_catch()
+        elif self._w.selectable():
+            return self._w.keypress(size, key)
 
 
 class ThreadlineWidget(urwid.AttrMap):
@@ -54,16 +94,15 @@ class ThreadlineWidget(urwid.AttrMap):
                                    'threadline_mailcount')
         cols.append(('fixed', len(mailcountstring), self.mailcount_w))
 
-        tags = self.thread.get_tags()
-        tags.sort()
-        for tag in tags:
-            tw = TagWidget(tag)
-            self.tag_widgets.append(tw)
-            cols.append(('fixed', tw.len(), tw))
+        self.tag_widgets = [TagWidget(tag) for tag in self.thread.get_tags()]
+        self.tag_widgets.sort(tag_cmp,
+                              lambda tag_widget: tag_widget.translated)
+        for tag_widget in self.tag_widgets:
+            cols.append(('fixed', tag_widget.width(), tag_widget))
 
         authors = self.thread.get_authors() or '(None)'
         maxlength = config.getint('general', 'authors_maxlength')
-        authorsstring = shorten(authors, maxlength).strip()
+        authorsstring = shorten_author_string(authors, maxlength)
         self.authors_w = urwid.AttrMap(urwid.Text(authorsstring),
                                        'threadline_authors')
         cols.append(('fixed', len(authorsstring), self.authors_w))
@@ -72,7 +111,7 @@ class ThreadlineWidget(urwid.AttrMap):
         self.subject_w = urwid.AttrMap(urwid.Text(subjectstring, wrap='clip'),
                                  'threadline_subject')
         if subjectstring:
-            cols.append(('fixed', len(subjectstring), self.subject_w))
+            cols.append(('weight', 2, self.subject_w))
 
         if self.display_content:
             msgs = self.thread.get_messages().keys()
@@ -138,16 +177,16 @@ class BufferlineWidget(urwid.Text):
 class TagWidget(urwid.AttrMap):
     def __init__(self, tag):
         self.tag = tag
-        self.translated = config.get('tag translate', tag, fallback=tag)
-        # encode to utf-8 before passing to urwid (issue #4)
-        self.translated = self.translated.encode('utf-8')
-        txt = urwid.Text(self.translated, wrap='clip')
+        self.translated = config.get('tag-translate', tag, fallback=tag)
+        self.txt = urwid.Text(self.translated.encode('utf-8'), wrap='clip')
         normal = config.get_tagattr(tag)
         focus = config.get_tagattr(tag, focus=True)
-        urwid.AttrMap.__init__(self, txt, normal, focus)
+        urwid.AttrMap.__init__(self, self.txt, normal, focus)
 
-    def len(self):
-        return len(self.translated)
+    def width(self):
+        # evil voodoo hotfix for double width chars that may
+        # lead e.g. to strings with length 1 that need width 2
+        return self.txt.pack()[0]
 
     def selectable(self):
         return True
@@ -165,43 +204,89 @@ class TagWidget(urwid.AttrMap):
         self.set_attr_map({None: config.get_tagattr(self.tag)})
 
 
+class ChoiceWidget(urwid.Text):
+    def __init__(self, choices, callback, cancel=None, select=None):
+        self.choices = choices
+        self.callback = callback
+        self.cancel = cancel
+        self.select = select
+
+        items = []
+        for k, v in choices.items():
+            if v == select and select != None:
+                items.append('[%s]:%s' % (k, v))
+            else:
+                items.append('(%s):%s' % (k, v))
+        urwid.Text.__init__(self, ' '.join(items))
+
+    def selectable(self):
+        return True
+
+    def keypress(self, size, key):
+        if key == 'select' and self.select != None:
+            self.callback(self.select)
+        elif key == 'cancel' and self.cancel != None:
+            self.callback(self.cancel)
+        elif key in self.choices:
+            self.callback(self.choices[key])
+        else:
+            return key
+
+
 class CompleteEdit(urwid.Edit):
-    def __init__(self, completer, edit_text=u'', **kwargs):
+    def __init__(self, completer, on_exit, edit_text=u'',
+                 history=None, **kwargs):
         self.completer = completer
+        self.on_exit = on_exit
+        self.history = list(history)  # we temporarily add stuff here
+        self.historypos = None
+
         if not isinstance(edit_text, unicode):
             edit_text = unicode(edit_text, errors='replace')
         self.start_completion_pos = len(edit_text)
-        self.completion_results = None
+        self.completions = None
         urwid.Edit.__init__(self, edit_text=edit_text, **kwargs)
 
     def keypress(self, size, key):
-        cmd = command_map[key]
-        if cmd in ['next selectable', 'prev selectable']:
-            pos = self.start_completion_pos
-            original = self.edit_text[:pos]
-            if not self.completion_results:  # not in completion mode
-                self.completion_results = [''] + \
-                    self.completer.complete(original)
+        # if we tabcomplete
+        if key in ['tab', 'shift tab'] and self.completer:
+            # if not already in completion mode
+            if not self.completions:
+                self.completions = [(self.edit_text, self.edit_pos)] + \
+                    self.completer.complete(self.edit_text, self.edit_pos)
                 self.focus_in_clist = 1
-            else:
-                if cmd == 'next selectable':
+            else:  # otherwise tab through results
+                if key == 'tab':
                     self.focus_in_clist += 1
                 else:
                     self.focus_in_clist -= 1
-            if len(self.completion_results) > 1:
-                suffix = self.completion_results[self.focus_in_clist %
-                                          len(self.completion_results)]
-                self.set_edit_text(original + suffix)
-                self.edit_pos += len(suffix)
+            if len(self.completions) > 1:
+                ctext, cpos = self.completions[self.focus_in_clist %
+                                          len(self.completions)]
+                self.set_edit_text(ctext)
+                self.set_edit_pos(cpos)
             else:
-                self.set_edit_text(original + ' ')
                 self.edit_pos += 1
-                self.start_completion_pos = self.edit_pos
-                self.completion_results = None
+                if self.edit_pos >= len(self.edit_text):
+                    self.edit_text += ' '
+                self.completions = None
+        elif key in ['up', 'down']:
+            if self.history:
+                if self.historypos == None:
+                    self.history.append(self.edit_text)
+                    self.historypos = len(self.history) - 1
+                if key == 'cursor up':
+                    self.historypos = (self.historypos + 1) % len(self.history)
+                else:
+                    self.historypos = (self.historypos - 1) % len(self.history)
+                self.set_edit_text(self.history[self.historypos])
+        elif key == 'select':
+            self.on_exit(self.edit_text)
+        elif key == 'cancel':
+            self.on_exit(None)
         else:
             result = urwid.Edit.keypress(self, size, key)
-            self.start_completion_pos = self.edit_pos
-            self.completion_results = None
+            self.completions = None
             return result
 
 
@@ -293,8 +378,6 @@ class MessageWidget(urwid.WidgetWrap):
                 lines.append(urwid.Columns(cols, box_columns=bc))
             self.attachmentw = urwid.Pile(lines)
         return self.attachmentw
-
-        attachments = message.get_attachments()
 
     def _get_body_widget(self):
         """creates/returns the widget that displays the mail body"""
@@ -442,8 +525,8 @@ class MessageHeaderWidget(urwid.AttrMap):
                     else:
                         value = value + v
                 #sanitize it a bit:
-                value = value.replace('\t', '')
-                value = value.replace('\r', '')
+                value = value.replace('\t', ' ')
+                value = ' '.join([line.strip() for line in value.splitlines()])
                 keyw = ('fixed', max_key_len + 1,
                         urwid.Text(('message_header_key', key)))
                 valuew = urwid.Text(('message_header_value', value))

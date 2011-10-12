@@ -27,11 +27,10 @@ from walker import IteratorWalker
 from message import decode_header
 
 
-class Buffer:
+class Buffer(object):
     def __init__(self, ui, widget, name):
         self.ui = ui
         self.typename = name
-        self.autoparms = {}
         self.body = widget
 
     def __str__(self):
@@ -61,7 +60,6 @@ class BufferlistBuffer(Buffer):
         self.isinitialized = False
         self.rebuild()
         Buffer.__init__(self, ui, self.body, 'bufferlist')
-        self.autoparms = {'buffer': self.get_selected_buffer}
 
     def index_of(self, b):
         return self.ui.buffers.index(b)
@@ -100,7 +98,6 @@ class EnvelopeBuffer(Buffer):
         self.mail = mail
         self.rebuild()
         Buffer.__init__(self, ui, self.body, 'envelope')
-        self.autoparms = {'email': self.get_email}
 
     def __str__(self):
         return "to: %s" % decode_header(self.mail['To'])
@@ -124,7 +121,8 @@ class EnvelopeBuffer(Buffer):
         for part in self.mail.walk():
             if not part.is_multipart():
                 if part.get_content_maintype() != 'text':
-                    lines.append(widgets.AttachmentWidget(part, selectable=False))
+                    lines.append(widgets.AttachmentWidget(part,
+                                                        selectable=False))
         self.attachment_wgt = urwid.Pile(lines)
         displayed_widgets.append(self.attachment_wgt)
 
@@ -144,16 +142,16 @@ class SearchBuffer(Buffer):
         self.isinitialized = False
         self.rebuild()
         Buffer.__init__(self, ui, self.body, 'search')
-        self.autoparms = {'thread': self.get_selected_thread}
 
     def __str__(self):
         return '%s (%d threads)' % (self.querystring, self.result_count)
 
     def rebuild(self):
         if self.isinitialized:
-            focusposition = self.threadlist.get_focus()[1]
+            pass
+            #focusposition = self.threadlist.get_focus()[1]
         else:
-            focusposition = 0
+            #focusposition = 0
             self.isinitialized = True
 
         self.result_count = self.dbman.count_messages(self.querystring)
@@ -191,7 +189,6 @@ class ThreadBuffer(Buffer):
         self.thread = thread
         self.rebuild()
         Buffer.__init__(self, ui, self.body, 'thread')
-        self.autoparms = {'thread': self.thread}
 
     def __str__(self):
         return '%s, (%d)' % (self.thread.get_subject(), self.message_count)
@@ -205,6 +202,7 @@ class ThreadBuffer(Buffer):
             self._build_pile(acc, reply, msg, depth + 1)
 
     def rebuild(self):
+        self.thread.refresh()
         # depth-first traversing the thread-tree, thereby
         # 1) build a list of tuples (parentmsg, depth, message) in DF order
         # 2) create a dict that counts no. of direct replies per message
@@ -256,9 +254,6 @@ class ThreadBuffer(Buffer):
                     msg.remove_tags(['unread'])
                     self.ui.apply_command(command.FlushCommand())
 
-    def get_message_widgets(self):
-        return self.body.body.contents
-
 
 class TagListBuffer(Buffer):
     def __init__(self, ui, alltags=[], filtfun=None):
@@ -268,7 +263,6 @@ class TagListBuffer(Buffer):
         self.isinitialized = False
         self.rebuild()
         Buffer.__init__(self, ui, self.body, 'taglist')
-        self.autoparms = {}
 
     def rebuild(self):
         if self.isinitialized:
@@ -281,7 +275,7 @@ class TagListBuffer(Buffer):
         displayedtags = filter(self.filtfun, self.tags)
         for (num, b) in enumerate(displayedtags):
             tw = widgets.TagWidget(b)
-            lines.append(urwid.Columns([('fixed', tw.len(), tw)]))
+            lines.append(urwid.Columns([('fixed', tw.width(), tw)]))
         self.taglist = urwid.ListBox(urwid.SimpleListWalker(lines))
         self.body = self.taglist
 

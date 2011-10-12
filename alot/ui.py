@@ -17,38 +17,59 @@ along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
 Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 import urwid
-import os
-from urwid.command_map import command_map
+from twisted.internet import reactor, defer
 
 from settings import config
 from buffer import BufferlistBuffer
+import command
 from command import commandfactory
 from command import interpret_commandline
-from widgets import CompleteEdit
+import widgets
 from completion import CommandLineCompleter
 
 
-class MainWidget(urwid.Frame):
-    def __init__(self, ui, *args, **kwargs):
-        urwid.Frame.__init__(self, urwid.SolidFill(' '), *args, **kwargs)
+class InputWrap(urwid.WidgetWrap):
+    def __init__(self, ui, rootwidget):
+        urwid.WidgetWrap.__init__(self, rootwidget)
         self.ui = ui
+        self.rootwidget = rootwidget
+        self.select_cancel_only = False
+
+    def set_root(self, w):
+        self._w = w
+
+    def get_root(self):
+        return self._w
+
+    def allowed_command(self, cmd):
+        if not self.select_cancel_only:
+            return True
+        elif isinstance(cmd, command.SendKeypressCommand):
+            if cmd.key in ['select', 'cancel']:
+                return True
+        else:
+            return False
 
     def keypress(self, size, key):
-        self.ui.logger.debug('got key: %s' % key)
-        cmdline = config.get_mapping(self.ui.mode, key)
+        self.ui.logger.debug('got key: \'%s\'' % key)
+        mode = self.ui.mode
+        if self.select_cancel_only:
+            mode = 'global'
+        cmdline = config.get_mapping(mode, key)
         if cmdline:
-            cmd = interpret_commandline(cmdline, self.ui.mode)
-            if cmd:
+            cmd = interpret_commandline(cmdline, mode)
+            if self.allowed_command(cmd):
                 self.ui.apply_command(cmd)
-        else:
-            urwid.Frame.keypress(self, size, key)
+                return None
+        self.ui.logger.debug('relaying key: %s' % key)
+        return self._w.keypress(size, key)
 
 
-class UI:
+class UI(object):
     buffers = []
     current_buffer = None
 
-    def __init__(self, dbman, log, accountman, initialquery, colourmode):
+    def __init__(self, dbman, log, accountman, initialcmd, colourmode):
         self.dbman = dbman
         self.dbman.ui = self  # register ui with dbman
         self.logger = log
@@ -57,84 +78,119 @@ class UI:
         if not colourmode:
             colourmode = config.getint('general', 'colourmode')
         self.logger.info('setup gui in %d colours' % colourmode)
-        self.mainframe = MainWidget(self)
-        self.mainloop = urwid.MainLoop(self.mainframe,
+        self.mainframe = urwid.Frame(urwid.SolidFill())
+        self.inputwrap = InputWrap(self, self.mainframe)
+        self.mainloop = urwid.MainLoop(self.inputwrap,
                 config.get_palette(),
                 handle_mouse=False,
-                unhandled_input=self.keypress)
+                event_loop=urwid.TwistedEventLoop(),
+                unhandled_input=self.unhandeled_input)
         self.mainloop.screen.set_terminal_properties(colors=colourmode)
 
         self.show_statusbar = config.getboolean('general', 'show_statusbar')
         self.notificationbar = None
-        self.mode = ''
+        self.mode = 'global'
+        self.commandprompthistory = []
 
-        self.logger.debug('setup bindings')
-        cmd = commandfactory('search', query=initialquery)
-        self.apply_command(cmd)
+        self.logger.debug('fire first command')
+        self.apply_command(initialcmd)
         self.mainloop.run()
 
-    def keypress(self, key):
+    def unhandeled_input(self, key):
         self.logger.debug('unhandeled input: %s' % key)
 
-    def prompt(self, prefix='>', text=u'', tab=0, completer=None):
+    def keypress(self, key):
+        self.inputwrap.keypress((150, 20), key)
+
+    def show_as_root_until_keypress(self, w, key):
+        def oe():
+            self.inputwrap.set_root(self.mainframe)
+        helpwrap = widgets.CatchKeyWidgetWrap(w, key, on_catch=oe)
+        self.inputwrap.set_root(helpwrap)
+
+    def prompt(self, prefix='>', text=u'', completer=None, tab=0, history=[]):
         """prompt for text input
 
         :param prefix: text to print before the input field
         :type prefix: str
         :param text: initial content of the input field
         :type text: str
+        :param completer: completion object to use
+        :type completer: `alot.completion.Completer`
         :param tab: number of tabs to press initially
                     (to select completion results)
         :type tab: int
-        :param completer: completion object to use
-        :type completer: `alot.completion.Completer`
+        :param history: history to be used for up/down keys
+        :type history: list of str
+        :returns: a `twisted.defer.Deferred`
         """
-        self.logger.info('open prompt')
+        d = defer.Deferred()  # create return deferred
+        oldroot = self.inputwrap.get_root()
+
+        def select_or_cancel(text):
+            # restore main screen
+            self.inputwrap.set_root(oldroot)
+            self.inputwrap.select_cancel_only = False
+            d.callback(text)
+
+        #set up widgets
         leftpart = urwid.Text(prefix, align='left')
-        if completer:
-            editpart = CompleteEdit(completer, edit_text=text)
-            for i in range(tab):
-                editpart.keypress((0,), 'tab')
-        else:
-            editpart = urwid.Edit(edit_text=text)
+        editpart = widgets.CompleteEdit(completer, on_exit=select_or_cancel,
+                                edit_text=text, history=history)
+
+        for i in range(tab):  # hit some tabs
+            editpart.keypress((0,), 'tab')
+
+        # build promptwidget
         both = urwid.Columns(
             [
                 ('fixed', len(prefix), leftpart),
                 ('weight', 1, editpart),
             ])
-        prompt_widget = urwid.AttrMap(both, 'prompt', 'prompt')
-        footer = self.mainframe.get_footer()
-        self.mainframe.set_footer(prompt_widget)
-        self.mainframe.set_focus('footer')
-        self.mainloop.draw_screen()
+        urwid.AttrMap(both, 'prompt', 'prompt')
 
-        while True:
-            keys = None
-            while not keys:
-                keys = self.mainloop.screen.get_input()
-            for key in keys:
-                if command_map[key] == 'select':
-                    self.mainframe.set_footer(footer)
-                    self.mainframe.set_focus('body')
-                    return editpart.get_edit_text()
-                if command_map[key] == 'cancel':
-                    self.mainframe.set_footer(footer)
-                    self.mainframe.set_focus('body')
-                    return None
-                else:
-                    size = (20,)  # don't know why they want a size here
-                    editpart.keypress(size, key)
-                    self.mainloop.draw_screen()
+        # put promptwidget as overlay on main widget
+        overlay = urwid.Overlay(both, oldroot,
+                                ('fixed left', 0),
+                                ('fixed right', 0),
+                                ('fixed bottom', 1),
+                                None)
+        self.inputwrap.set_root(overlay)
+        self.inputwrap.select_cancel_only = True
+        return d  # return deferred
 
+    def exit(self):
+        reactor.stop()
+        raise urwid.ExitMainLoop()
+
+    @defer.inlineCallbacks
     def commandprompt(self, startstring):
+        """prompt for a commandline and interpret/apply it upon enter
+
+        :param startstring: initial text in edit part
+        :type startstring: str
+        """
         self.logger.info('open command shell')
         mode = self.current_buffer.typename
-        cmdline = self.prompt(prefix=':',
+        cmdline = yield self.prompt(prefix=':',
                               text=startstring,
                               completer=CommandLineCompleter(self.dbman,
                                                              self.accountman,
-                                                             mode))
+                                                             mode),
+                              history=self.commandprompthistory,
+                             )
+        self.logger.debug('CMDLINE: %s' % cmdline)
+        self.interpret_commandline(cmdline)
+
+    def interpret_commandline(self, cmdline):
+        """interpret and apply a commandstring
+
+        :param cmdline: command string to apply
+        :type cmdline: str
+        """
         if cmdline:
+            mode = self.current_buffer.typename
+            self.commandprompthistory.append(cmdline)
             cmd = interpret_commandline(cmdline, mode)
             if cmd:
                 self.apply_command(cmd)
@@ -162,7 +218,8 @@ class UI:
                 self.logger.debug('UI: closing current buffer %s' % buf)
                 index = buffers.index(buf)
                 buffers.remove(buf)
-                self.current_buffer = buffers[index % len(buffers)]
+                offset = config.getint('general', 'bufferclose_focus_offset')
+                self.current_buffer = buffers[(index + offset) % len(buffers)]
             else:
                 string = 'closing buffer %d:%s'
                 self.logger.debug(string % (buffers.index(buf), buf))
@@ -176,7 +233,9 @@ class UI:
         if buf not in self.buffers:
             self.logger.error('tried to focus unknown buffer')
         else:
-            self.current_buffer = buf
+            if self.current_buffer != buf:
+                self.current_buffer = buf
+                self.inputwrap.set_root(self.mainframe)
             self.mode = buf.typename
             if isinstance(self.current_buffer, BufferlistBuffer):
                 self.current_buffer.rebuild()
@@ -206,7 +265,6 @@ class UI:
         :param messages: The popups to remove. This should be exactly
                          what notify() returned
         """
-        footer = self.mainframe.get_footer()
         newpile = self.notificationbar.widget_list
         for l in messages:
             newpile.remove(l)
@@ -216,42 +274,59 @@ class UI:
             self.notificationbar = None
         self.update()
 
-    def choice(self, message, choices={'yes': ['y'], 'no': ['n']}):
+    def choice(self, message, choices={'y': 'yes', 'n': 'no'},
+               select=None, cancel=None, msg_position='above'):
         """prompt user to make a choice
 
         :param message: string to display before list of choices
         :type message: unicode
         :param choices: dict of possible choices
-        :type choices: str->list of keys
+        :type choices: keymap->choice (both str)
+        :param select: choice to return if enter/return is hit.
+                       Ignored if set to None.
+        :type select: str
+        :param cancel: choice to return if escape is hit.
+                       Ignored if set to None.
+        :type cancel: str
+        :returns: a `twisted.defer.Deferred`
         """
-        def build_line(msg, prio):
-            cols = urwid.Columns([urwid.Text(msg)])
-            return urwid.AttrMap(cols, 'notify_' + prio)
+        assert select in choices.values() + [None]
+        assert cancel in choices.values() + [None]
+        assert msg_position in ['left', 'above']
 
-        cstrings = ['(%s):%s' % ('/'.join(v), k) for k, v in choices.items()]
-        line = ', '.join(cstrings)
-        msgs = [build_line(message + ' ' + line, 'normal')]
+        d = defer.Deferred()  # create return deferred
 
-        footer = self.mainframe.get_footer()
-        if not self.notificationbar:
-            self.notificationbar = urwid.Pile(msgs)
-        else:
-            newpile = self.notificationbar.widget_list + msgs
-            self.notificationbar = urwid.Pile(newpile)
-        self.update()
+        oldroot = self.inputwrap.get_root()
+        def select_or_cancel(text):
+            self.inputwrap.set_root(oldroot)
+            self.inputwrap.select_cancel_only = False
+            d.callback(text)
 
-        self.mainloop.draw_screen()
-        while True:
-            result = self.mainloop.screen.get_input()
-            self.logger.info('got: %s ' % result)
-            if not result:
-                self.clear_notify(msgs)
-                self.mainloop.screen.get_input()
-                return None
-            for k, v in choices.items():
-                if result[0] in v:
-                    self.clear_notify(msgs)
-                    return k
+        #set up widgets
+        msgpart = urwid.Text(message)
+        choicespart = widgets.ChoiceWidget(choices, callback=select_or_cancel,
+                                           select=select, cancel=cancel)
+
+        # build widget
+        if msg_position == 'left':
+            both = urwid.Columns(
+                [
+                    ('fixed', len(message), msgpart),
+                    ('weight', 1, choicespart),
+                ], dividechars=1)
+        else:  # above
+            both = urwid.Pile([msgpart, choicespart])
+        urwid.AttrMap(both, 'prompt', 'prompt')
+
+        # put promptwidget as overlay on main widget
+        overlay = urwid.Overlay(both, oldroot,
+                                ('fixed left', 0),
+                                ('fixed right', 0),
+                                ('fixed bottom', 1),
+                                None)
+        self.inputwrap.set_root(overlay)
+        self.inputwrap.select_cancel_only = True
+        return d  # return deferred
 
     def notify(self, message, priority='normal', timeout=0, block=False):
         """notify popup
@@ -276,7 +351,6 @@ class UI:
         if timeout == -1 and block:
             msgs.append(build_line('(hit any key to proceed)', 'normal'))
 
-        footer = self.mainframe.get_footer()
         if not self.notificationbar:
             self.notificationbar = urwid.Pile(msgs)
         else:
@@ -287,9 +361,10 @@ class UI:
         def clear(*args):
             self.clear_notify(msgs)
 
-        self.mainloop.draw_screen()
+        # TODO: replace this with temporarily wrapping self.mainframe
+        # in a ui.show_root_until_keypress..
         if block:
-            keys = self.mainloop.screen.get_input()
+            self.mainloop.screen.get_input()
             clear()
         else:
             if timeout >= 0:
@@ -307,10 +382,16 @@ class UI:
         #h=urwid.AttrMap(head, 'header')
         #self.mainframe.set_header(h)
 
-        #body
-        self.mainframe.set_body(self.current_buffer)
+        # body
+        if self.current_buffer:
+            self.mainframe.set_body(self.current_buffer)
+        else:
+            # this happens iff update gets called during
+            # initial command before a first buffer is displayed.
+            # in compose, a prompt is cancelled
+            self.exit()
 
-        #footer
+        # footer
         lines = []
         if self.notificationbar:  # .get_text()[0] != ' ':
             lines.append(self.notificationbar)
@@ -342,7 +423,9 @@ class UI:
             if cmd.prehook:
                 self.logger.debug('calling pre-hook')
                 try:
-                    cmd.prehook(self, self.dbman, self.accountman, config)
+                    cmd.prehook(ui=self, dbm=self.dbman, aman=self.accountman,
+                                log=self.logger, config=config)
+
                 except:
                     self.logger.exception('prehook failed')
             self.logger.debug('apply command: %s' % cmd)
@@ -350,6 +433,7 @@ class UI:
             if cmd.posthook:
                 self.logger.debug('calling post-hook')
                 try:
-                    cmd.posthook(self, self.dbman, self.accountman, config)
+                    cmd.posthook(ui=self, dbm=self.dbman, aman=self.accountman,
+                                log=self.logger, config=config)
                 except:
                     self.logger.exception('posthook failed')
