@@ -25,5 +25,3 @@ __description__ = "Command-line MUA using notmuch mail"
 __url__ = "https://github.com/pazz/alot"
 __license__ = "Licensed under the GNU GPL v3+."
 
-import command
-from commands import *
