@@ -1,6 +1,5 @@
-from commands import Command, registerCommand
-
-import commands
+from alot.commands import Command, registerCommand
+from alot.commands.globals import SearchCommand
 
 MODE = 'taglist'
 
@@ -9,7 +8,5 @@ MODE = 'taglist'
 class TaglistSelectCommand(Command):
     def apply(self, ui):
         tagstring = ui.current_buffer.get_selected_tag()
-        cmd = commands.globals.SearchCommand(query='tag:%s' % tagstring)
+        cmd = SearchCommand(query='tag:%s' % tagstring)
         ui.apply_command(cmd)
-
-

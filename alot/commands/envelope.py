@@ -1,6 +1,3 @@
-from commands import Command, registerCommand
-from twisted.internet import defer
-
 import os
 import re
 import glob
@@ -8,16 +5,21 @@ import logging
 import email
 import tempfile
 from email import Charset
+from twisted.internet import defer
 
-import settings
-import helper
-from message import decode_to_unicode
-from message import decode_header
-from message import encode_header
-import commands
+from alot.commands import Command, registerCommand
+from alot import settings
+from alot import helper
+from alot.message import decode_to_unicode
+from alot.message import decode_header
+from alot.message import encode_header
+from alot.commands.globals import EditCommand
+from alot.commands.globals import BufferCloseCommand
+from alot.commands.globals import EnvelopeOpenCommand
 
 
 MODE = 'envelope'
+
 
 @registerCommand(MODE, 'attach', {})
 class EnvelopeAttachCommand(Command):
@@ -46,6 +48,7 @@ class EnvelopeAttachCommand(Command):
 
         if not self.mail:  # set the envelope msg iff we got it from there
             ui.current_buffer.set_email(msg)
+
 
 @registerCommand(MODE, 'refine', {})
 class EnvelopeRefineCommand(Command):
@@ -91,7 +94,7 @@ class EnvelopeSendCommand(Command):
             reason = account.send_mail(mail)
             ui.clear_notify([clearme])
             if not reason:  # sucessfully send mail
-                cmd = commands.globals.BufferCloseCommand(buffer=envelope)
+                cmd = BufferCloseCommand(buffer=envelope)
                 ui.apply_command(cmd)
                 ui.notify('mail send successful')
             else:
@@ -158,7 +161,7 @@ class EnvelopeEditCommand(Command):
             f.close()
             os.unlink(tf.name)
             if self.openNew:
-                ui.apply_command(commands.globals.EnvelopeOpenCommand(mail=self.mail))
+                ui.apply_command(EnvelopeOpenCommand(mail=self.mail))
             else:
                 ui.current_buffer.set_email(self.mail)
 
@@ -193,7 +196,7 @@ class EnvelopeEditCommand(Command):
         tf.write(content.encode('utf-8'))
         tf.flush()
         tf.close()
-        cmd = commands.globals.EditCommand(tf.name, on_success=openEnvelopeFromTmpfile,
+        cmd = EditCommand(tf.name, on_success=openEnvelopeFromTmpfile,
                           refocus=False)
         ui.apply_command(cmd)
 
@@ -215,4 +218,3 @@ class EnvelopeSetCommand(Command):
             del(mail[self.key])
         mail[self.key] = self.value
         envelope.rebuild()
-

@@ -1,6 +1,3 @@
-from commands import Command, registerCommand
-from twisted.internet import defer
-
 import os
 import code
 import threading
@@ -10,18 +7,21 @@ import email
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import urwid
+from twisted.internet import defer
 
-import buffers
-import settings
-import widgets
-import helper
-from db import DatabaseLockedError
-from completion import ContactsCompleter
-from completion import AccountCompleter
-from message import encode_header
-import commands
+from alot.commands import Command, registerCommand
+from alot import buffers
+from alot import settings
+from alot import widgets
+from alot import helper
+from alot.db import DatabaseLockedError
+from alot.completion import ContactsCompleter
+from alot.completion import AccountCompleter
+from alot.message import encode_header
+from alot import commands
 
 MODE = 'global'
+
 
 @registerCommand(MODE, 'exit', {})
 class ExitCommand(Command):
@@ -202,7 +202,7 @@ class BufferCloseCommand(Command):
 
 @registerCommand(MODE, 'bprevious', {'offset': -1})
 @registerCommand(MODE, 'bnext', {'offset': +1})
-@registerCommand('bufferlist', 'openfocussed', {}) # todo separate
+@registerCommand('bufferlist', 'openfocussed', {})  # todo separate
 class BufferFocusCommand(Command):
     """focus a buffer"""
     def __init__(self, buffer=None, offset=0, **kwargs):
@@ -417,5 +417,3 @@ class EnvelopeOpenCommand(Command):
 
     def apply(self, ui):
         ui.buffer_open(buffers.EnvelopeBuffer(ui, mail=self.mail))
-
-

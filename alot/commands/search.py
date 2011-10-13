@@ -1,14 +1,15 @@
-from commands import Command, registerCommand
+from alot.commands import Command, registerCommand
 from twisted.internet import defer
 
 
-from db import DatabaseROError
-import commands
-import buffers
+from alot.db import DatabaseROError
+from alot import commands
+from alot import buffers
 
 MODE = 'search'
 
-@registerCommand(MODE, 'openthread', {}) #todo: make this select
+
+@registerCommand(MODE, 'openthread', {})  # todo: make this select
 class OpenThreadCommand(Command):
     """open a new thread-view buffer"""
     def __init__(self, thread=None, **kwargs):
@@ -67,6 +68,7 @@ class ToggleThreadTagCommand(Command):
                 ui.update()
         elif isinstance(cb, buffers.ThreadBuffer):
             pass
+
 
 @registerCommand(MODE, 'refine', {})
 class RefineCommand(Command):
@@ -143,5 +145,3 @@ class RetagCommand(Command):
         sbuffer = ui.current_buffer
         threadwidget = sbuffer.get_selected_threadline()
         threadwidget.rebuild()  # rebuild and redraw the line
-
-

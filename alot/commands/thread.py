@@ -1,6 +1,3 @@
-from commands import Command, registerCommand
-from twisted.internet import defer
-
 import os
 import logging
 import tempfile
@@ -8,14 +5,20 @@ from email import Charset
 from email.header import Header
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from twisted.internet import defer
 
-import commands
-import settings
-import widgets
-import completion
-import helper
-from message import encode_header
+from alot.commands import Command, registerCommand
+from alot.commands.globals import ExternalCommand
+from alot.commands.globals import FlushCommand
+from alot.commands.globals import ComposeCommand
+from alot import settings
+from alot import widgets
+from alot import completion
+from alot import helper
+from alot.message import encode_header
+
 MODE = 'thread'
+
 
 @registerCommand(MODE, 'reply', {})
 @registerCommand(MODE, 'groupreply', {'groupreply': True})
@@ -114,7 +117,7 @@ class ReplyCommand(Command):
         else:
             reply['References'] = '<%s>' % self.message.get_message_id()
 
-        ui.apply_command(commands.globals.ComposeCommand(mail=reply))
+        ui.apply_command(ComposeCommand(mail=reply))
 
     def clear_my_address(self, my_addresses, value):
         new_value = []
@@ -191,7 +194,7 @@ class ForwardCommand(Command):
             account = ui.accountman.get_account_by_address(matched_address)
             fromstring = '%s <%s>' % (account.realname, account.address)
             reply['From'] = encode_header('From', fromstring)
-        ui.apply_command(commands.globals.ComposeCommand(mail=reply))
+        ui.apply_command(ComposeCommand(mail=reply))
 
 
 @registerCommand(MODE, 'fold', {'visible': False})
@@ -215,7 +218,7 @@ class FoldMessagesCommand(Command):
             if self.visible or (self.visible == None and widget.folded):
                 if 'unread' in msg.get_tags():
                     msg.remove_tags(['unread'])
-                    ui.apply_command(commands.globalsFlushCommand())
+                    ui.apply_command(FlushCommand())
                     widget.rebuild()
                 widget.fold(visible=True)
             else:
@@ -371,7 +374,7 @@ class OpenAttachmentCommand(Command):
 
             def afterwards():
                 os.remove(path)
-            ui.apply_command(commands.globals.ExternalCommand(handler, path=path,
+            ui.apply_command(ExternalCommand(handler, path=path,
                                              on_success=afterwards,
                                              in_thread=True))
         else:
@@ -389,4 +392,3 @@ class ThreadSelectCommand(Command):
             ui.apply_command(OpenAttachmentCommand(focus.get_attachment()))
         else:
             logging.info('unknown widget %s' % focus)
-

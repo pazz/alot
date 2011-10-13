@@ -1,31 +1,8 @@
 import os
-#import re
-#import code
 import glob
 import logging
-#import threading
-#import subprocess
-#import shlex
-#import email
-#import tempfile
-#from email import Charset
-#from email.header import Header
-#from email.mime.text import MIMEText
-#from email.mime.multipart import MIMEMultipart
-#import urwid
-#
-#import buffer
-import settings
-#import widgets
-#import completion
-#import helper
-#from db import DatabaseROError
-#from db import DatabaseLockedError
-#from completion import ContactsCompleter
-#from completion import AccountCompleter
-#from message import decode_to_unicode
-#from message import decode_header
-#from message import encode_header
+
+import alot.settings
 
 
 class Command(object):
@@ -41,18 +18,12 @@ class Command(object):
 
 
 COMMANDS = {
-    'search': {
-    },
-    'envelope': {
-    },
-    'bufferlist': {
-    },
-    'taglist': {
-    },
-    'thread': {
-    },
-    'global': {
-    }
+    'search': {},
+    'envelope': {},
+    'bufferlist': {},
+    'taglist': {},
+    'thread': {},
+    'global': {},
 }
 
 
@@ -65,6 +36,7 @@ class registerCommand(object):
     def __call__(self, klass):
         COMMANDS[self.mode][self.name] = (klass, self.defaultparms)
         return klass
+
 
 def register(klass):
     COMMANDS['classes'] = klass
@@ -86,8 +58,8 @@ def commandfactory(cmdname, mode='global', **kwargs):
         else:
             parms[key] = value
 
-    parms['prehook'] = settings.hooks.get('pre_' + cmdname)
-    parms['posthook'] = settings.hooks.get('post_' + cmdname)
+    parms['prehook'] = alot.settings.hooks.get('pre_' + cmdname)
+    parms['posthook'] = alot.settings.hooks.get('post_' + cmdname)
 
     logging.debug('cmd parms %s' % parms)
     return cmdclass(**parms)
@@ -106,8 +78,8 @@ def interpret_commandline(cmdline, mode):
         params = ''
 
     # unfold aliases
-    if settings.config.has_option('command-aliases', cmd):
-        cmd = settings.config.get('command-aliases', cmd)
+    if alot.settings.config.has_option('command-aliases', cmd):
+        cmd = alot.settings.config.get('command-aliases', cmd)
 
     # allow to shellescape without a space after '!'
     if cmd.startswith('!'):
@@ -188,7 +160,6 @@ def interpret_commandline(cmdline, mode):
         return commandfactory(cmd, mode=mode)
     else:
         return None
-
 
 
 __all__ = list(filename[:-3] for filename in glob.glob1(os.path.dirname(__file__), '*.py'))
