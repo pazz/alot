@@ -1,6 +1,11 @@
 from commands import Command, registerCommand
 from twisted.internet import defer
 
+
+from db import DatabaseROError
+import commands
+import buffers
+
 MODE = 'search'
 
 @registerCommand(MODE, 'openthread', {}) #todo: make this select
@@ -17,7 +22,7 @@ class OpenThreadCommand(Command):
             query = ui.current_buffer.querystring
             ui.logger.info('open thread view for %s' % self.thread)
 
-            sb = buffer.ThreadBuffer(ui, self.thread)
+            sb = buffers.ThreadBuffer(ui, self.thread)
             ui.buffer_open(sb)
             sb.unfold_matching(query)
 
@@ -43,12 +48,12 @@ class ToggleThreadTagCommand(Command):
             return
 
         # flush index
-        ui.apply_command(FlushCommand())
+        ui.apply_command(commands.globals.FlushCommand())
 
         # update current buffer
         # TODO: what if changes not yet flushed?
         cb = ui.current_buffer
-        if isinstance(cb, buffer.SearchBuffer):
+        if isinstance(cb, buffers.SearchBuffer):
             # refresh selected threadline
             threadwidget = cb.get_selected_threadline()
             threadwidget.rebuild()  # rebuild and redraw the line
@@ -60,7 +65,7 @@ class ToggleThreadTagCommand(Command):
                 cb.threadlist.remove(threadwidget)
                 cb.result_count -= self.thread.get_total_messages()
                 ui.update()
-        elif isinstance(cb, buffer.ThreadBuffer):
+        elif isinstance(cb, buffers.ThreadBuffer):
             pass
 
 @registerCommand(MODE, 'refine', {})
@@ -132,7 +137,7 @@ class RetagCommand(Command):
             return
 
         # flush index
-        ui.apply_command(FlushCommand())
+        ui.apply_command(commands.globals.FlushCommand())
 
         # refresh selected threadline
         sbuffer = ui.current_buffer

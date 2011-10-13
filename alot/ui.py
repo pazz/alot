@@ -20,7 +20,7 @@ import urwid
 from twisted.internet import reactor, defer
 
 from settings import config
-from buffer import BufferlistBuffer
+from buffers import BufferlistBuffer
 import commands
 from commands import commandfactory
 from commands import interpret_commandline
@@ -44,7 +44,7 @@ class InputWrap(urwid.WidgetWrap):
     def allowed_command(self, cmd):
         if not self.select_cancel_only:
             return True
-        elif isinstance(cmd, command.SendKeypressCommand):
+        elif isinstance(cmd, commands.globals.SendKeypressCommand):
             if cmd.key in ['select', 'cancel']:
                 return True
         else:

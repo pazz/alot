@@ -2,34 +2,24 @@ from commands import Command, registerCommand
 from twisted.internet import defer
 
 import os
-import re
 import code
-import glob
-import logging
 import threading
 import subprocess
 import shlex
 import email
-import tempfile
-from email import Charset
-from email.header import Header
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import urwid
-from twisted.internet import defer
 
-import buffer
+import buffers
 import settings
 import widgets
-import completion
 import helper
-from db import DatabaseROError
 from db import DatabaseLockedError
 from completion import ContactsCompleter
 from completion import AccountCompleter
-from message import decode_to_unicode
-from message import decode_header
 from message import encode_header
+import commands
 
 MODE = 'global'
 
@@ -62,7 +52,7 @@ class SearchCommand(Command):
                 s = 'really search for all threads? This takes a while..'
                 if (yield ui.choice(s, select='yes', cancel='no')) == 'no':
                     return
-            open_searches = ui.get_buffers_of_type(buffer.SearchBuffer)
+            open_searches = ui.get_buffers_of_type(buffers.SearchBuffer)
             to_be_focused = None
             for sb in open_searches:
                 if sb.querystring == self.query:
@@ -70,7 +60,7 @@ class SearchCommand(Command):
             if to_be_focused:
                 ui.buffer_focus(to_be_focused)
             else:
-                ui.buffer_open(buffer.SearchBuffer(ui, self.query))
+                ui.buffer_open(buffers.SearchBuffer(ui, self.query))
         else:
             ui.notify('empty query string')
 
@@ -194,7 +184,7 @@ class BufferCloseCommand(Command):
     def __init__(self, buffer=None, focussed=False, **kwargs):
         """
         :param buffer: the selected buffer
-        :type buffer: `alot.buffer.Buffer`
+        :type buffer: `alot.buffers.Buffer`
         """
         self.buffer = buffer
         self.focussed = focussed
@@ -218,7 +208,7 @@ class BufferFocusCommand(Command):
     def __init__(self, buffer=None, offset=0, **kwargs):
         """
         :param buffer: the buffer to focus
-        :type buffer: `alot.buffer.Buffer`
+        :type buffer: `alot.buffers.Buffer`
         """
         self.buffer = buffer
         self.offset = offset
@@ -243,11 +233,11 @@ class OpenBufferlistCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        blists = ui.get_buffers_of_type(buffer.BufferlistBuffer)
+        blists = ui.get_buffers_of_type(buffers.BufferlistBuffer)
         if blists:
             ui.buffer_focus(blists[0])
         else:
-            ui.buffer_open(buffer.BufferlistBuffer(ui, self.filtfun))
+            ui.buffer_open(buffers.BufferlistBuffer(ui, self.filtfun))
 
 
 @registerCommand(MODE, 'taglist', {})
@@ -259,7 +249,7 @@ class TagListCommand(Command):
 
     def apply(self, ui):
         tags = ui.dbman.get_all_tags()
-        buf = buffer.TagListBuffer(ui, tags, self.filtfun)
+        buf = buffers.TagListBuffer(ui, tags, self.filtfun)
         ui.buffers.append(buf)
         buf.rebuild()
         ui.buffer_focus(buf)
@@ -404,7 +394,7 @@ class ComposeCommand(Command):
                 return
             self.mail['Subject'] = encode_header('subject', subject)
 
-        ui.apply_command(EnvelopeEditCommand(mail=self.mail))
+        ui.apply_command(commands.envelope.EnvelopeEditCommand(mail=self.mail))
 
 
 @registerCommand(MODE, 'move', {})
@@ -426,6 +416,6 @@ class EnvelopeOpenCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        ui.buffer_open(buffer.EnvelopeBuffer(ui, mail=self.mail))
+        ui.buffer_open(buffers.EnvelopeBuffer(ui, mail=self.mail))
 
 

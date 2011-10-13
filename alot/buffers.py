@@ -252,7 +252,7 @@ class ThreadBuffer(Buffer):
                 mw.fold(visible=True)
                 if 'unread' in msg.get_tags():
                     msg.remove_tags(['unread'])
-                    self.ui.apply_command(command.FlushCommand())
+                    self.ui.apply_command(commands.globals.FlushCommand())
 
 
 class TagListBuffer(Buffer):

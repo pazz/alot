@@ -2,33 +2,18 @@ from commands import Command, registerCommand
 from twisted.internet import defer
 
 import os
-import re
-import code
-import glob
 import logging
-import threading
-import subprocess
-import shlex
-import email
 import tempfile
 from email import Charset
 from email.header import Header
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-import urwid
-from twisted.internet import defer
 
-import buffer
+import commands
 import settings
 import widgets
 import completion
 import helper
-from db import DatabaseROError
-from db import DatabaseLockedError
-from completion import ContactsCompleter
-from completion import AccountCompleter
-from message import decode_to_unicode
-from message import decode_header
 from message import encode_header
 MODE = 'thread'
 
@@ -129,7 +114,7 @@ class ReplyCommand(Command):
         else:
             reply['References'] = '<%s>' % self.message.get_message_id()
 
-        ui.apply_command(ComposeCommand(mail=reply))
+        ui.apply_command(commands.globals.ComposeCommand(mail=reply))
 
     def clear_my_address(self, my_addresses, value):
         new_value = []
@@ -206,7 +191,7 @@ class ForwardCommand(Command):
             account = ui.accountman.get_account_by_address(matched_address)
             fromstring = '%s <%s>' % (account.realname, account.address)
             reply['From'] = encode_header('From', fromstring)
-        ui.apply_command(ComposeCommand(mail=reply))
+        ui.apply_command(commands.globals.ComposeCommand(mail=reply))
 
 
 @registerCommand(MODE, 'fold', {'visible': False})
@@ -230,7 +215,7 @@ class FoldMessagesCommand(Command):
             if self.visible or (self.visible == None and widget.folded):
                 if 'unread' in msg.get_tags():
                     msg.remove_tags(['unread'])
-                    ui.apply_command(FlushCommand())
+                    ui.apply_command(commands.globalsFlushCommand())
                     widget.rebuild()
                 widget.fold(visible=True)
             else:
@@ -386,7 +371,7 @@ class OpenAttachmentCommand(Command):
 
             def afterwards():
                 os.remove(path)
-            ui.apply_command(ExternalCommand(handler, path=path,
+            ui.apply_command(commands.globals.ExternalCommand(handler, path=path,
                                              on_success=afterwards,
                                              in_thread=True))
         else:
