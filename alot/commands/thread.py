@@ -127,19 +127,20 @@ class ReplyCommand(Command):
         return ', '.join(new_value)
 
 
-@registerCommand(MODE, 'forward', {})
+@registerCommand(MODE, 'forward', arguments=[
+    (['--attach'], {'action':'store_true', 'help':'attach original mail'})]
+)
 class ForwardCommand(Command):
-    def __init__(self, message=None, inline=False, **kwargs):
+    def __init__(self, message=None, attach=True, **kwargs):
         """
         :param message: the original message to forward. If None, the currently
                         selected one is used
         :type message: `alot.message.Message`
-        :param inline: Copy originals body text instead of attaching the whole
-                       mail
-        :type inline: boolean
+        :param attach: attach original mail instead of inline quoting its body
+        :type attach: boolean
         """
         self.message = message
-        self.inline = inline
+        self.inline = not attach
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
