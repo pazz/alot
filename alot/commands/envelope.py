@@ -52,7 +52,9 @@ class EnvelopeAttachCommand(Command):
             ui.current_buffer.set_email(msg)
 
 
-@registerCommand(MODE, 'refine', {})
+@registerCommand(MODE, 'refine', arguments=[
+    (['key'], {'help':'header to refine'})]
+)
 class EnvelopeRefineCommand(Command):
     """prompt to change current value of header field"""
 
