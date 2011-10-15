@@ -21,8 +21,9 @@ from alot.commands.globals import EnvelopeOpenCommand
 MODE = 'envelope'
 
 
-@registerCommand(MODE, 'attach', arguments=[
-    (['path'], {'help':'file(s) to attach'})]
+@registerCommand(MODE, 'attach',
+                 help='attach files to the mail', arguments=[
+    (['path'], {'help':'file(s) to attach (accepts wildcads)'})]
 )
 class EnvelopeAttachCommand(Command):
     def __init__(self, path=None, mail=None, **kwargs):
@@ -52,11 +53,12 @@ class EnvelopeAttachCommand(Command):
             ui.current_buffer.set_email(msg)
 
 
-@registerCommand(MODE, 'refine', arguments=[
+@registerCommand(MODE, 'refine',
+                 help='prompt to change the value of a header',
+                 arguments=[
     (['key'], {'help':'header to refine'})]
 )
 class EnvelopeRefineCommand(Command):
-    """prompt to change current value of header field"""
 
     def __init__(self, key='', **kwargs):
         Command.__init__(self, **kwargs)
@@ -68,7 +70,7 @@ class EnvelopeRefineCommand(Command):
         ui.commandprompt('set %s %s' % (self.key, value))
 
 
-@registerCommand(MODE, 'send', {})
+@registerCommand(MODE, 'send', help='sends mail')
 class EnvelopeSendCommand(Command):
     @defer.inlineCallbacks
     def apply(self, ui):
@@ -108,9 +110,8 @@ class EnvelopeSendCommand(Command):
                       priority='error')
 
 
-@registerCommand(MODE, 'reedit', {})
+@registerCommand(MODE, 'reedit', help='edit currently open mail')
 class EnvelopeEditCommand(Command):
-    """re-edits mail in from envelope buffer"""
     def __init__(self, mail=None, **kwargs):
         self.mail = mail
         self.openNew = (mail != None)
@@ -205,7 +206,7 @@ class EnvelopeEditCommand(Command):
         ui.apply_command(cmd)
 
 
-@registerCommand(MODE, 'set', arguments=[
+@registerCommand(MODE, 'set', help='set header value', arguments=[
     (['--replace'], {'action': 'store_true', 'help':'remove old value'}),
     (['key'], {'help':'header to refine'}),
     (['value'], {'nargs':'+', 'help':'value'})]
