@@ -1,6 +1,7 @@
 import os
 import sys
 import glob
+import shlex
 import logging
 import argparse
 import cStringIO
@@ -74,12 +75,10 @@ def commandfactory(cmdline, mode='global'):
     if not cmdline:
         return None
     logging.debug('mode:%s got commandline "%s"' % (mode, cmdline))
-    args = cmdline.split(' ', 1)
+    args = shlex.split(cmdline.encode('utf-8'))
+    logging.debug('ARGS: %s' % args)
     cmdname = args[0]
-    if args[1:]:
-        argstring = args[1]
-    else:
-        argstring = ''
+    args = args[1:]
 
     # unfold aliases
     if alot.settings.config.has_option('command-aliases', cmdname):
@@ -97,9 +96,8 @@ def commandfactory(cmdline, mode='global'):
         logging.debug(msg)
         raise CommandParseError(msg)
 
-    logging.debug('PARSE: %s' % argstring)
     #logging.debug(parser)
-    parms = vars(parser.parse_args(argstring.split()))
+    parms = vars(parser.parse_args(args))
     logging.debug('PARMS: %s' % parms)
     logging.debug(parms)
 
@@ -125,12 +123,6 @@ def commandfactory(cmdline, mode='global'):
 #        if params:
 #            h = {'To': params}
 #        return commandfactory(cmd, mode=mode, headers=h)
-#    elif cmd == 'attach':
-#        return commandfactory(cmd, mode=mode, path=params)
-#    elif cmd == 'help':
-#        return commandfactory(cmd, mode=mode, commandline=params)
-#    elif cmd == 'forward':
-#        return commandfactory(cmd, mode=mode, inline=(params == '--inline'))
 #    elif cmd == 'prompt':
 #        return commandfactory(cmd, mode=mode, startstring=params)
 #    elif cmd == 'refine':
