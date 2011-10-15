@@ -159,7 +159,11 @@ class ExternalCommand(Command):
             ui.mainloop.screen.start()
 
 
-@registerCommand(MODE, 'edit')
+#@registerCommand(MODE, 'edit', arguments=[
+#    (['--nospawn'], {'action': 'store_true', 'help':'spawn '}), #todo
+#    (['path'], {'help':'file to edit'})] 
+#]
+#)
 class EditCommand(ExternalCommand):
     def __init__(self, path, spawn=None, **kwargs):
         self.path = path
@@ -279,7 +283,7 @@ class FlushCommand(Command):
 
 
 @registerCommand(MODE, 'help', arguments=[
-    (['commandname'], {'help':'command'})]
+    (['commandname'], {'nargs': '?', 'help':'command'})]
 )
 class HelpCommand(Command):
     def __init__(self, commandname='', **kwargs):

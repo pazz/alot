@@ -119,13 +119,6 @@ def commandfactory(cmdline, mode='global'):
 
 #def interpret_commandline(cmdline, mode):
 #
-#    elif cmd == 'compose':
-#        h = {}
-#        if params:
-#            h = {'To': params}
-#        return commandfactory(cmd, mode=mode, headers=h)
-#    elif cmd == 'retag':
-#        return commandfactory(cmd, mode=mode, tagsstring=params)
 #    elif cmd == 'shellescape':
 #        return commandfactory(cmd, mode=mode, commandstring=params)
 #    elif cmd == 'edit':
