@@ -21,7 +21,9 @@ from alot.commands.globals import EnvelopeOpenCommand
 MODE = 'envelope'
 
 
-@registerCommand(MODE, 'attach', {})
+@registerCommand(MODE, 'attach', arguments=[
+    (['path'], {'help':'file(s) to attach'})]
+)
 class EnvelopeAttachCommand(Command):
     def __init__(self, path=None, mail=None, **kwargs):
         Command.__init__(self, **kwargs)

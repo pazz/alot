@@ -23,7 +23,7 @@ from settings import config
 from buffers import BufferlistBuffer
 import commands
 from commands import commandfactory
-from commands import interpret_commandline
+from alot.commands import CommandParseError
 import widgets
 from completion import CommandLineCompleter
 
@@ -57,10 +57,13 @@ class InputWrap(urwid.WidgetWrap):
             mode = 'global'
         cmdline = config.get_mapping(mode, key)
         if cmdline:
-            cmd = interpret_commandline(cmdline, mode)
-            if self.allowed_command(cmd):
-                self.ui.apply_command(cmd)
-                return None
+            try:
+                cmd = commandfactory(cmdline, mode)
+                if self.allowed_command(cmd):
+                    self.ui.apply_command(cmd)
+                    return None
+            except CommandParseError, e:
+                self.ui.notify(e.message, priority='error')
         self.ui.logger.debug('relaying key: %s' % key)
         return self._w.keypress(size, key)
 
@@ -191,11 +194,11 @@ class UI(object):
         if cmdline:
             mode = self.current_buffer.typename
             self.commandprompthistory.append(cmdline)
-            cmd = interpret_commandline(cmdline, mode)
-            if cmd:
+            try:
+                cmd = commandfactory(cmdline, mode)
                 self.apply_command(cmd)
-            else:
-                self.notify('invalid command')
+            except CommandParseError, e:
+                self.notify(e.message, priority='error')
 
     def buffer_open(self, b):
         """

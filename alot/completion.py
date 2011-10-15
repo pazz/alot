@@ -22,7 +22,7 @@ import os
 import glob
 import logging
 
-import commands
+import alot.commands as commands
 
 
 class Completer(object):
@@ -158,8 +158,8 @@ class CommandCompleter(Completer):
         #TODO refine <tab> should get current querystring
         commandprefix = original[:pos]
         logging.debug('original="%s" prefix="%s"' % (original, commandprefix))
-        cmdlist = command.COMMANDS['global'].copy()
-        cmdlist.update(command.COMMANDS[self.mode])
+        cmdlist = commands.COMMANDS['global'].copy()
+        cmdlist.update(commands.COMMANDS[self.mode])
         matching = [t for t in cmdlist if t.startswith(commandprefix)]
         return [(t, len(t)) for t in matching]
 

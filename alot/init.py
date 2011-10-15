@@ -25,8 +25,9 @@ import settings
 from account import AccountManager
 from db import DBManager
 from ui import UI
-import commands
+import alot.commands as commands
 from commands import *
+from alot.commands import CommandParseError
 
 
 def parse_args():
@@ -92,7 +93,7 @@ def main():
     logging.basicConfig(level=numeric_loglevel, filename=logfilename)
     logger = logging.getLogger()
 
-    logger.debug(commands.COMMANDS)
+    #logger.debug(commands.COMMANDS)
     #accountman
     aman = AccountManager(settings.config)
 
@@ -100,13 +101,15 @@ def main():
     dbman = DBManager(path=args.db_path, ro=args.read_only)
 
     # get initial searchstring
-    if args.command != '':
-        cmd = commands.interpret_commandline(args.command, 'global')
-        if cmd is None:
-            sys.exit('Invalid command: ' + args.command)
-    else:
-        default_commandline = settings.config.get('general', 'initial_command')
-        cmd = commands.interpret_commandline(default_commandline, 'global')
+    try:
+        if args.command != '':
+            cmd = commands.commandfactory(args.command, 'global')
+        else:
+            default_commandline = settings.config.get('general',
+                                                      'initial_command')
+            cmd = commands.commandfactory(default_commandline, 'global')
+    except CommandParseError, e:
+        sys.exit(e)
 
     # set up and start interface
     UI(dbman,

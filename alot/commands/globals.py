@@ -23,7 +23,7 @@ from alot import commands
 MODE = 'global'
 
 
-@registerCommand(MODE, 'exit', {})
+@registerCommand(MODE, 'exit')
 class ExitCommand(Command):
     """shuts the MUA down cleanly"""
     @defer.inlineCallbacks
@@ -35,14 +35,16 @@ class ExitCommand(Command):
         ui.exit()
 
 
-@registerCommand(MODE, 'search', {})
+@registerCommand(MODE, 'search', arguments=[
+    (['query'], {'nargs':'*', 'default':'', 'help':'search string'})]
+)
 class SearchCommand(Command):
     """open a new search buffer"""
     def __init__(self, query, **kwargs):
         """
         :param query: initial querystring
         """
-        self.query = query
+        self.query = ' '.join(query)
         Command.__init__(self, **kwargs)
 
     @defer.inlineCallbacks
@@ -65,18 +67,20 @@ class SearchCommand(Command):
             ui.notify('empty query string')
 
 
-@registerCommand(MODE, 'prompt', {})
+@registerCommand(MODE, 'prompt', arguments=[
+    (['startwith'], {'nargs':'*', 'default':'', 'help':'initial content of commandprompt'})]
+)
 class PromptCommand(Command):
     """starts commandprompt"""
-    def __init__(self, startstring=u'', **kwargs):
-        self.startstring = startstring
+    def __init__(self, startwith=[], **kwargs):
+        self.startwith = ' '.join(startwith)
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        ui.commandprompt(self.startstring)
+        ui.commandprompt(self.startwith)
 
 
-@registerCommand(MODE, 'refresh', {})
+@registerCommand(MODE, 'refresh')
 class RefreshCommand(Command):
     """refreshes the current buffer"""
     def apply(self, ui):
@@ -84,7 +88,7 @@ class RefreshCommand(Command):
         ui.update()
 
 
-@registerCommand(MODE, 'shellescape', {})
+@registerCommand(MODE, 'shellescape')
 class ExternalCommand(Command):
     """calls external command"""
     def __init__(self, commandstring, path=None, spawn=False, refocus=True,
@@ -153,7 +157,7 @@ class ExternalCommand(Command):
             ui.mainloop.screen.start()
 
 
-@registerCommand(MODE, 'edit', {})
+@registerCommand(MODE, 'edit')
 class EditCommand(ExternalCommand):
     def __init__(self, path, spawn=None, **kwargs):
         self.path = path
@@ -168,7 +172,7 @@ class EditCommand(ExternalCommand):
                                  **kwargs)
 
 
-@registerCommand(MODE, 'pyshell', {})
+@registerCommand(MODE, 'pyshell')
 class PythonShellCommand(Command):
     """opens an interactive shell for introspection"""
     def apply(self, ui):
@@ -177,7 +181,7 @@ class PythonShellCommand(Command):
         ui.mainloop.screen.start()
 
 
-@registerCommand(MODE, 'bclose', {})
+@registerCommand(MODE, 'bclose')
 @registerCommand('bufferlist', 'closefocussed', {'focussed': True})
 class BufferCloseCommand(Command):
     """close a buffer"""
@@ -200,9 +204,9 @@ class BufferCloseCommand(Command):
         ui.buffer_focus(ui.current_buffer)
 
 
-@registerCommand(MODE, 'bprevious', {'offset': -1})
-@registerCommand(MODE, 'bnext', {'offset': +1})
-@registerCommand('bufferlist', 'openfocussed', {})  # todo separate
+@registerCommand(MODE, 'bprevious', forced={'offset': -1})
+@registerCommand(MODE, 'bnext', forced={'offset': +1})
+@registerCommand('bufferlist', 'openfocussed')  # todo separate
 class BufferFocusCommand(Command):
     """focus a buffer"""
     def __init__(self, buffer=None, offset=0, **kwargs):
@@ -225,7 +229,7 @@ class BufferFocusCommand(Command):
         ui.buffer_focus(self.buffer)
 
 
-@registerCommand(MODE, 'bufferlist', {})
+@registerCommand(MODE, 'bufferlist')
 class OpenBufferlistCommand(Command):
     """open a bufferlist buffer"""
     def __init__(self, filtfun=None, **kwargs):
@@ -240,7 +244,7 @@ class OpenBufferlistCommand(Command):
             ui.buffer_open(buffers.BufferlistBuffer(ui, self.filtfun))
 
 
-@registerCommand(MODE, 'taglist', {})
+@registerCommand(MODE, 'taglist')
 class TagListCommand(Command):
     """open a taglisat buffer"""
     def __init__(self, filtfun=None, **kwargs):
@@ -255,7 +259,7 @@ class TagListCommand(Command):
         ui.buffer_focus(buf)
 
 
-@registerCommand(MODE, 'flush', {})
+@registerCommand(MODE, 'flush')
 class FlushCommand(Command):
     """Flushes writes to the index. Retries until committed"""
     def apply(self, ui):
@@ -272,19 +276,24 @@ class FlushCommand(Command):
             return
 
 
-@registerCommand(MODE, 'help', {})
+@registerCommand(MODE, 'help', arguments=[
+    (['commandname'], {'help':'command'})]
+)
 class HelpCommand(Command):
-    def __init__(self, commandline='', **kwargs):
+    def __init__(self, commandname='', **kwargs):
         Command.__init__(self, **kwargs)
-        self.commandline = commandline.strip()
+        self.commandname = commandname
 
     def apply(self, ui):
-        if self.commandline:
-            cmd = self.commandline.split(' ', 1)[0]
-            # TODO: how to I access COMMANDS from below?
-            ui.notify('no help for \'%s\'' % cmd, priority='error')
-            titletext = 'help for %s' % cmd
-            body = urwid.Text('helpstring')
+        ui.logger.debug('HELP')
+        if self.commandname:
+            ui.logger.debug('HELP %s' % self.commandname)
+            parser = commands.lookup_parser(self.commandname, ui.mode)
+            if parser:
+                ui.notify(parser.format_help())
+            else:
+                ui.notify('command %s not known in mode %s' % (self.commandname,
+                                                              ui.mode))
             return
         else:
             # get mappings
@@ -397,12 +406,16 @@ class ComposeCommand(Command):
         ui.apply_command(commands.envelope.EnvelopeEditCommand(mail=self.mail))
 
 
-@registerCommand(MODE, 'move', {})
+@registerCommand(MODE, 'move', arguments=[
+    (['key'], {'nargs':'+', 'help':'keypress to send'})]
+)
 @registerCommand(MODE, 'cancel', {'key': 'cancel'})
 @registerCommand(MODE, 'select', {'key': 'select'})
 class SendKeypressCommand(Command):
     def __init__(self, key, **kwargs):
         Command.__init__(self, **kwargs)
+        if isinstance(key, list):
+            key = ' '.join(key)
         self.key = key
 
     def apply(self, ui):
