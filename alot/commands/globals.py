@@ -88,7 +88,9 @@ class RefreshCommand(Command):
         ui.update()
 
 
-@registerCommand(MODE, 'shellescape')
+@registerCommand(MODE, 'shellescape', arguments=[
+    (['cmdline'], {'help':'command line to execute'})]
+)
 class ExternalCommand(Command):
     """calls external command"""
     def __init__(self, commandstring, path=None, spawn=False, refocus=True,

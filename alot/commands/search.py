@@ -121,11 +121,13 @@ class RetagPromptCommand(Command):
         ui.commandprompt('retag ' + initial_tagstring)
 
 
-@registerCommand(MODE, 'retag', {})
+@registerCommand(MODE, 'retag', arguments=[
+    (['tags'], {'help':'comma separated list of tags'})]
+)
 class RetagCommand(Command):
     """tag selected thread"""
-    def __init__(self, tagsstring=u'', thread=None, **kwargs):
-        self.tagsstring = tagsstring
+    def __init__(self, tags=u'', thread=None, **kwargs):
+        self.tagsstring = tags
         self.thread = thread
         Command.__init__(self, **kwargs)
 
