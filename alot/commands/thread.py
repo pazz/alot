@@ -198,8 +198,10 @@ class ForwardCommand(Command):
         ui.apply_command(ComposeCommand(mail=reply))
 
 
-@registerCommand(MODE, 'fold', {'visible': False})
-@registerCommand(MODE, 'unfold', {'visible': True})
+@registerCommand(MODE, 'fold', forced={'visible': False}, arguments=[
+    (['--all'], {'action': 'store_true', 'help':'fold all messages'})])
+@registerCommand(MODE, 'unfold', forced={'visible': True}, arguments=[
+    (['--all'], {'action': 'store_true', 'help':'unfold all messages'})])
 class FoldMessagesCommand(Command):
     def __init__(self, all=False, visible=None, **kwargs):
         self.all = all
