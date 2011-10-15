@@ -68,12 +68,12 @@ class SearchCommand(Command):
 
 
 @registerCommand(MODE, 'prompt', arguments=[
-    (['startwith'], {'nargs':'*', 'default':'', 'help':'initial content of commandprompt'})]
+    (['startwith'], {'nargs':'?', 'default':'', 'help':'initial content of commandprompt'})]
 )
 class PromptCommand(Command):
     """starts commandprompt"""
-    def __init__(self, startwith=[], **kwargs):
-        self.startwith = ' '.join(startwith)
+    def __init__(self, startwith='', **kwargs):
+        self.startwith = startwith
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
