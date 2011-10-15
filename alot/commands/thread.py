@@ -310,7 +310,10 @@ class PrintCommand(PipeCommand):
                              done_msg=ok_msg, **kwargs)
 
 
-@registerCommand(MODE, 'save', {})
+@registerCommand(MODE, 'save', arguments=[
+    (['--all'], {'action': 'store_true', 'help':'save all attachments'}),
+    (['path'], {'nargs':'?', 'help':'path to save to'})]
+)
 class SaveAttachmentCommand(Command):
     def __init__(self, all=False, path=None, **kwargs):
         Command.__init__(self, **kwargs)
