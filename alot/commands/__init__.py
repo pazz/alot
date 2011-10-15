@@ -76,6 +76,7 @@ def commandfactory(cmdline, mode='global'):
         return None
     logging.debug('mode:%s got commandline "%s"' % (mode, cmdline))
     args = shlex.split(cmdline.encode('utf-8'))
+    args = filter(lambda x: x.decode('utf-8'), args)
     logging.debug('ARGS: %s' % args)
     cmdname = args[0]
     args = args[1:]
@@ -123,14 +124,6 @@ def commandfactory(cmdline, mode='global'):
 #        if params:
 #            h = {'To': params}
 #        return commandfactory(cmd, mode=mode, headers=h)
-#    elif cmd == 'prompt':
-#        return commandfactory(cmd, mode=mode, startstring=params)
-#    elif cmd == 'refine':
-#        if mode == 'search':
-#            return commandfactory(cmd, mode=mode, query=params)
-#        elif mode == 'envelope':
-#            return commandfactory(cmd, mode=mode, key=params)
-#
 #    elif cmd == 'retag':
 #        return commandfactory(cmd, mode=mode, tagsstring=params)
 #    elif cmd == 'shellescape':

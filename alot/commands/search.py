@@ -28,13 +28,15 @@ class OpenThreadCommand(Command):
             sb.unfold_matching(query)
 
 
-@registerCommand(MODE, 'toggletag', {})
+@registerCommand(MODE, 'toggletag', arguments=[
+    (['tag'], {'nargs':'+', 'default':'', 'help':'tag to flip'})]
+)
 class ToggleThreadTagCommand(Command):
-    """toggles tag in given or currently selected thread"""
-    def __init__(self, tags, thread=None, **kwargs):
-        assert tags
+    """toggles tags in given or currently selected thread"""
+    def __init__(self, tag, thread=None, **kwargs):
+        assert tag
         self.thread = thread
-        self.tags = set(tags)
+        self.tags = set(tag)
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):

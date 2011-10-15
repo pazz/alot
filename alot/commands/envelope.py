@@ -205,12 +205,17 @@ class EnvelopeEditCommand(Command):
         ui.apply_command(cmd)
 
 
-@registerCommand(MODE, 'set', {})
+@registerCommand(MODE, 'set', arguments=[
+    (['--replace'], {'action': 'store_true', 'help':'remove old value'}),
+    (['key'], {'help':'header to refine'}),
+    (['value'], {'nargs':'+', 'help':'value'})]
+)
 class EnvelopeSetCommand(Command):
     """sets header fields of mail open in envelope buffer"""
 
-    def __init__(self, key='', value=u'', replace=True, **kwargs):
+    def __init__(self, key, value, replace=True, **kwargs):
         self.key = key
+        value = ' '.join(value)
         self.value = encode_header(key, value)
         self.replace = replace
         Command.__init__(self, **kwargs)
