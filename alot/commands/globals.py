@@ -341,10 +341,19 @@ class HelpCommand(Command):
         ui.show_as_root_until_keypress(overlay, 'cancel')
 
 
-@registerCommand(MODE, 'compose', {})
+@registerCommand(MODE, 'compose', arguments=[
+    (['--sender'], {'nargs': '?', 'help':'sender'}),
+    (['--subject'], {'nargs':'?', 'help':'subject line'}),
+    (['--to'], {'nargs':'+', 'help':'recipient'}),
+    (['--cc'], {'nargs':'+', 'help':'copy to'}),
+    (['--bcc'], {'nargs':'+', 'help':'blind copy to'}),
+]
+)
 class ComposeCommand(Command):
     """compose a new email and open an envelope for it"""
-    def __init__(self, mail=None, headers={}, **kwargs):
+    def __init__(self, mail=None, headers={},
+                 sender=u'', subject=u'', to=[], cc=[], bcc=[],
+                 **kwargs):
         Command.__init__(self, **kwargs)
         if not mail:
             self.mail = MIMEMultipart()
@@ -353,6 +362,18 @@ class ComposeCommand(Command):
             self.mail = mail
         for key, value in headers.items():
             self.mail[key] = encode_header(key, value)
+
+        if sender:
+            self.mail['From'] = encode_header('From', sender)
+        if subject:
+            self.mail['Subject'] = encode_header('Subject', subject)
+        if to:
+            self.mail['To'] = encode_header('To', ','.join(to))
+        if cc:
+            self.mail['Cc'] = encode_header('Cc', ','.join(cc))
+        if bcc:
+            self.mail['Bcc'] = encode_header('Bcc', ','.join(bcc))
+
 
     @defer.inlineCallbacks
     def apply(self, ui):
