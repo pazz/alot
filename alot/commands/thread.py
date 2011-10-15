@@ -235,14 +235,18 @@ class ToggleHeaderCommand(Command):
         msgw.toggle_full_header()
 
 
-@registerCommand(MODE, 'pipeto', {})
+@registerCommand(MODE, 'pipeto', arguments=[
+    (['--all'], {'action': 'store_true', 'help':'pass all messages'}),
+    (['--separately'], {'action': 'store_true',
+                        'help':'call command once for each message'})]
+)
 class PipeCommand(Command):
-    def __init__(self, command, whole_thread=False, separately=False,
+    def __init__(self, command, all=False, separately=False,
                  noop_msg='no command specified', confirm_msg='',
                  done_msg='done', **kwargs):
         Command.__init__(self, **kwargs)
         self.cmd = command
-        self.whole_thread = whole_thread
+        self.whole_thread = all
         self.separately = separately
         self.noop_msg = noop_msg
         self.confirm_msg = confirm_msg
@@ -287,14 +291,18 @@ class PipeCommand(Command):
             ui.notify(self.done_msg)
 
 
-@registerCommand(MODE, 'print', {})
+@registerCommand(MODE, 'print', arguments=[
+    (['--all'], {'action': 'store_true', 'help':'print all messages'}),
+    (['--separately'], {'action': 'store_true',
+                        'help':'call print command once for each message'})]
+)
 class PrintCommand(PipeCommand):
-    def __init__(self, whole_thread=False, separately=False, **kwargs):
+    def __init__(self, all=False, separately=False, **kwargs):
         # get print command
         cmd = settings.config.get('general', 'print_cmd', fallback='')
 
         # set up notification strings
-        if whole_thread:
+        if all:
             confirm_msg = 'print all messages in thread?'
             ok_msg = 'printed thread using %s' % cmd
         else:
@@ -304,7 +312,7 @@ class PrintCommand(PipeCommand):
         # no print cmd set
         noop_msg = 'no print command specified. Set "print_cmd" in the '\
                     'global section.'
-        PipeCommand.__init__(self, cmd, whole_thread=whole_thread,
+        PipeCommand.__init__(self, cmd, all=all,
                              separately=separately,
                              noop_msg=noop_msg, confirm_msg=confirm_msg,
                              done_msg=ok_msg, **kwargs)
