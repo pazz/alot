@@ -70,11 +70,13 @@ class ToggleThreadTagCommand(Command):
             pass
 
 
-@registerCommand(MODE, 'refine', {})
+@registerCommand(MODE, 'refine', arguments=[
+    (['query'], {'nargs':'*', 'default':'', 'help':'search string'})]
+)
 class RefineCommand(Command):
     """refine the query of the currently open searchbuffer"""
     def __init__(self, query=None, **kwargs):
-        self.querystring = query
+        self.querystring = ' '.join(query)
         Command.__init__(self, **kwargs)
 
     @defer.inlineCallbacks
