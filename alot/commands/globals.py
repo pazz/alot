@@ -23,9 +23,8 @@ from alot import commands
 MODE = 'global'
 
 
-@registerCommand(MODE, 'exit')
+@registerCommand(MODE, 'exit', help='shut alot down cleanly')
 class ExitCommand(Command):
-    """shuts the MUA down cleanly"""
     @defer.inlineCallbacks
     def apply(self, ui):
         if settings.config.getboolean('general', 'bug_on_exit'):
@@ -35,15 +34,12 @@ class ExitCommand(Command):
         ui.exit()
 
 
-@registerCommand(MODE, 'search', arguments=[
+@registerCommand(MODE, 'search',
+                 help='open a new search buffer', arguments=[
     (['query'], {'nargs':'*', 'default':'', 'help':'search string'})]
 )
 class SearchCommand(Command):
-    """open a new search buffer"""
     def __init__(self, query, **kwargs):
-        """
-        :param query: initial querystring
-        """
         self.query = ' '.join(query)
         Command.__init__(self, **kwargs)
 
@@ -67,11 +63,10 @@ class SearchCommand(Command):
             ui.notify('empty query string')
 
 
-@registerCommand(MODE, 'prompt', arguments=[
+@registerCommand(MODE, 'prompt', help='starts commandprompt', arguments=[
     (['startwith'], {'nargs':'?', 'default':'', 'help':'initial content of commandprompt'})]
 )
 class PromptCommand(Command):
-    """starts commandprompt"""
     def __init__(self, startwith='', **kwargs):
         self.startwith = startwith
         Command.__init__(self, **kwargs)
@@ -80,24 +75,23 @@ class PromptCommand(Command):
         ui.commandprompt(self.startwith)
 
 
-@registerCommand(MODE, 'refresh')
+@registerCommand(MODE, 'refresh', help='refreshes the current buffer')
 class RefreshCommand(Command):
-    """refreshes the current buffer"""
     def apply(self, ui):
         ui.current_buffer.rebuild()
         ui.update()
 
 
-@registerCommand(MODE, 'shellescape', arguments=[
-    (['cmdline'], {'help':'command line to execute'})]
+@registerCommand(MODE, 'shellescape',help='calls external command',
+                 arguments=[
+    (['cmd'], {'help':'command line to execute'})]
 )
 class ExternalCommand(Command):
-    """calls external command"""
-    def __init__(self, commandstring, path=None, spawn=False, refocus=True,
+    def __init__(self, cmd, path=None, spawn=False, refocus=True,
                  in_thread=False, on_success=None, **kwargs):
         """
-        :param commandstring: the command to call
-        :type commandstring: str
+        :param cmd: the command to call
+        :type cmd: str
         :param path: a path to a file (or None)
         :type path: str
         :param spawn: run command in a new terminal
@@ -109,7 +103,7 @@ class ExternalCommand(Command):
         :param on_success: code to execute after command successfully exited
         :type on_success: callable
         """
-        self.commandstring = commandstring
+        self.commandstring = cmd
         self.path = path
         self.spawn = spawn
         self.refocus = refocus
@@ -165,6 +159,7 @@ class ExternalCommand(Command):
 #]
 #)
 class EditCommand(ExternalCommand):
+    """opens editor"""
     def __init__(self, path, spawn=None, **kwargs):
         self.path = path
         if spawn != None:
@@ -178,19 +173,20 @@ class EditCommand(ExternalCommand):
                                  **kwargs)
 
 
-@registerCommand(MODE, 'pyshell')
+@registerCommand(MODE, 'pyshell',
+                 help="opens an interactive python shell for introspection")
 class PythonShellCommand(Command):
-    """opens an interactive shell for introspection"""
     def apply(self, ui):
         ui.mainloop.screen.stop()
         code.interact(local=locals())
         ui.mainloop.screen.start()
 
 
-@registerCommand(MODE, 'bclose')
-@registerCommand('bufferlist', 'closefocussed', {'focussed': True})
+@registerCommand(MODE, 'bclose',
+                 help="close current buffer or exit if it is the last")
+@registerCommand('bufferlist', 'closefocussed', forced={'focussed': True},
+                 help='close focussed buffer')
 class BufferCloseCommand(Command):
-    """close a buffer"""
     def __init__(self, buffer=None, focussed=False, **kwargs):
         """
         :param buffer: the selected buffer
@@ -210,11 +206,13 @@ class BufferCloseCommand(Command):
         ui.buffer_focus(ui.current_buffer)
 
 
-@registerCommand(MODE, 'bprevious', forced={'offset': -1})
-@registerCommand(MODE, 'bnext', forced={'offset': +1})
-@registerCommand('bufferlist', 'openfocussed')  # todo separate
+@registerCommand(MODE, 'bprevious', forced={'offset': -1},
+                 help='focus previous buffer')
+@registerCommand(MODE, 'bnext', forced={'offset': +1},
+                 help='focus next buffer')
+@registerCommand('bufferlist', 'openfocussed',  # todo separate
+                 help='focus selected buffer')
 class BufferFocusCommand(Command):
-    """focus a buffer"""
     def __init__(self, buffer=None, offset=0, **kwargs):
         """
         :param buffer: the buffer to focus
@@ -235,9 +233,8 @@ class BufferFocusCommand(Command):
         ui.buffer_focus(self.buffer)
 
 
-@registerCommand(MODE, 'bufferlist')
+@registerCommand(MODE, 'bufferlist', help='opens buffer list')
 class OpenBufferlistCommand(Command):
-    """open a bufferlist buffer"""
     def __init__(self, filtfun=None, **kwargs):
         self.filtfun = filtfun
         Command.__init__(self, **kwargs)
@@ -250,9 +247,8 @@ class OpenBufferlistCommand(Command):
             ui.buffer_open(buffers.BufferlistBuffer(ui, self.filtfun))
 
 
-@registerCommand(MODE, 'taglist')
+@registerCommand(MODE, 'taglist', help='opens taglist buffer')
 class TagListCommand(Command):
-    """open a taglisat buffer"""
     def __init__(self, filtfun=None, **kwargs):
         self.filtfun = filtfun
         Command.__init__(self, **kwargs)
@@ -265,9 +261,9 @@ class TagListCommand(Command):
         ui.buffer_focus(buf)
 
 
-@registerCommand(MODE, 'flush')
+@registerCommand(MODE, 'flush',
+                 help='Flushes write operations or retries until committed')
 class FlushCommand(Command):
-    """Flushes writes to the index. Retries until committed"""
     def apply(self, ui):
         try:
             ui.dbman.flush()
@@ -281,9 +277,11 @@ class FlushCommand(Command):
             ui.update()
             return
 
-
-@registerCommand(MODE, 'help', arguments=[
-    (['commandname'], {'nargs': '?', 'help':'command'})]
+#todo choices
+@registerCommand(MODE, 'help',
+                 help='display help for a command. Use \'bindings\' to display \
+                 all keybings interpreted in current mode.', arguments=[
+    (['commandname'], {'help':'command or \'bindings\''})]
 )
 class HelpCommand(Command):
     def __init__(self, commandname='', **kwargs):
@@ -292,16 +290,7 @@ class HelpCommand(Command):
 
     def apply(self, ui):
         ui.logger.debug('HELP')
-        if self.commandname:
-            ui.logger.debug('HELP %s' % self.commandname)
-            parser = commands.lookup_parser(self.commandname, ui.mode)
-            if parser:
-                ui.notify(parser.format_help())
-            else:
-                ui.notify('command %s not known in mode %s' % (self.commandname,
-                                                              ui.mode))
-            return
-        else:
+        if self.commandname == 'bindings':
             # get mappings
             modemaps = dict(settings.config.items('%s-maps' % ui.mode))
             globalmaps = dict(settings.config.items('global-maps'))
@@ -334,27 +323,34 @@ class HelpCommand(Command):
             ckey = 'cancel'
             titletext = 'Bindings Help (%s cancels)' % ckey
 
-        box = widgets.DialogBox(body, titletext,
-                                bodyattr='helptext',
-                                titleattr='helptitle')
+            box = widgets.DialogBox(body, titletext,
+                                    bodyattr='helptext',
+                                    titleattr='helptitle')
 
-        # put promptwidget as overlay on main widget
-        overlay = urwid.Overlay(box, ui.mainframe, 'center',
-                                ('relative', 70), 'middle',
-                                ('relative', 70))
-        ui.show_as_root_until_keypress(overlay, 'cancel')
+            # put promptwidget as overlay on main widget
+            overlay = urwid.Overlay(box, ui.mainframe, 'center',
+                                    ('relative', 70), 'middle',
+                                    ('relative', 70))
+            ui.show_as_root_until_keypress(overlay, 'cancel')
+        else:
+            ui.logger.debug('HELP %s' % self.commandname)
+            parser = commands.lookup_parser(self.commandname, ui.mode)
+            if parser:
+                ui.notify(parser.format_help())
+            else:
+                ui.notify('command %s not known in mode %s' % (self.commandname,
+                                                              ui.mode))
 
 
-@registerCommand(MODE, 'compose', arguments=[
+@registerCommand(MODE, 'compose', help='compose a new email',
+                 arguments=[
     (['--sender'], {'nargs': '?', 'help':'sender'}),
     (['--subject'], {'nargs':'?', 'help':'subject line'}),
     (['--to'], {'nargs':'+', 'help':'recipient'}),
     (['--cc'], {'nargs':'+', 'help':'copy to'}),
     (['--bcc'], {'nargs':'+', 'help':'blind copy to'}),
-]
-)
+])
 class ComposeCommand(Command):
-    """compose a new email and open an envelope for it"""
     def __init__(self, mail=None, headers={},
                  sender=u'', subject=u'', to=[], cc=[], bcc=[],
                  **kwargs):
@@ -433,11 +429,13 @@ class ComposeCommand(Command):
         ui.apply_command(commands.envelope.EnvelopeEditCommand(mail=self.mail))
 
 
-@registerCommand(MODE, 'move', arguments=[
-    (['key'], {'nargs':'+', 'help':'keypress to send'})]
+@registerCommand(MODE, 'move', help='move focus', arguments=[
+    (['key'], {'nargs':'+', 'help':'direction'})]
 )
-@registerCommand(MODE, 'cancel', {'key': 'cancel'})
-@registerCommand(MODE, 'select', {'key': 'select'})
+@registerCommand(MODE, 'cancel', help='send cancel event',
+                 forced={'key': 'cancel'})
+@registerCommand(MODE, 'select', help='send select event',
+                 forced={'key': 'select'})
 class SendKeypressCommand(Command):
     def __init__(self, key, **kwargs):
         Command.__init__(self, **kwargs)

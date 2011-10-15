@@ -20,6 +20,10 @@ class Command(object):
     def apply(self, caller):
         pass
 
+    @classmethod
+    def get_helpstring(cls):
+        return cls.__doc__
+
 
 COMMANDS = {
     'search': {},
@@ -58,16 +62,19 @@ class CommandArgumentParser(argparse.ArgumentParser):
 
 
 class registerCommand(object):
-    def __init__(self, mode, name, forced={}, arguments=[]):
-        self.argparser = CommandArgumentParser(prog=name, add_help=False)
-        for args,kwargs in arguments:
-            self.argparser.add_argument(*args,**kwargs)
+    def __init__(self, mode, name, help=None, forced={}, arguments=[]):
         self.mode = mode
         self.name = name
+        self.help = help
         self.forced = forced
+        self.arguments = arguments
 
     def __call__(self, klass):
-        COMMANDS[self.mode][self.name] = (klass, self.argparser, self.forced)
+        argparser = CommandArgumentParser(description=self.help,
+                                          prog=self.name, add_help=False)
+        for args,kwargs in self.arguments:
+            argparser.add_argument(*args, **kwargs)
+        COMMANDS[self.mode][self.name] = (klass, argparser, self.forced)
         return klass
 
 def commandfactory(cmdline, mode='global'):
