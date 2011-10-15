@@ -20,11 +20,12 @@ from alot.message import encode_header
 MODE = 'thread'
 
 
-@registerCommand(MODE, 'reply', {})
-@registerCommand(MODE, 'groupreply', {'groupreply': True})
+@registerCommand(MODE, 'reply', arguments=[
+    (['--all'], {'action':'store_true', 'help':'reply to all'})]
+)
 class ReplyCommand(Command):
     """format reply for currently selected message and open envelope for it"""
-    def __init__(self, message=None, groupreply=False, **kwargs):
+    def __init__(self, message=None, all=False, **kwargs):
         """
         :param message: the original message to reply to
         :type message: `alot.message.Message`
@@ -32,7 +33,7 @@ class ReplyCommand(Command):
         :type groupreply: boolean
         """
         self.message = message
-        self.groupreply = groupreply
+        self.groupreply = all
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
@@ -228,7 +229,7 @@ class FoldMessagesCommand(Command):
                 widget.fold(visible=False)
 
 
-@registerCommand(MODE, 'toggleheaders', {})
+@registerCommand(MODE, 'toggleheaders')
 class ToggleHeaderCommand(Command):
     def apply(self, ui):
         msgw = ui.current_buffer.get_selection()
@@ -395,7 +396,7 @@ class OpenAttachmentCommand(Command):
             ui.notify('unknown mime type')
 
 
-@registerCommand(MODE, 'select', {})
+@registerCommand(MODE, 'select')
 class ThreadSelectCommand(Command):
     def apply(self, ui):
         focus = ui.get_deep_focus()
