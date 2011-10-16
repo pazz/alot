@@ -34,6 +34,7 @@ COMMANDS = {
     'global': {},
 }
 
+
 def lookup_command(cmdname, mode):
     """returns commandclass, argparser and forcedparams
     for `cmdname` in `mode`"""
@@ -44,8 +45,10 @@ def lookup_command(cmdname, mode):
     else:
         return None, None, None
 
+
 def lookup_parser(cmdname, mode):
     return lookup_command(cmdname, mode)[1]
+
 
 class CommandParseError(Exception):
     pass
@@ -72,10 +75,11 @@ class registerCommand(object):
     def __call__(self, klass):
         argparser = CommandArgumentParser(description=self.help,
                                           prog=self.name, add_help=False)
-        for args,kwargs in self.arguments:
+        for args, kwargs in self.arguments:
             argparser.add_argument(*args, **kwargs)
         COMMANDS[self.mode][self.name] = (klass, argparser, self.forced)
         return klass
+
 
 def commandfactory(cmdline, mode='global'):
     # split commandname and parameters
@@ -98,7 +102,7 @@ def commandfactory(cmdline, mode='global'):
         cmdname = 'shellescape'
 
     # get class, argparser and forced parameter
-    (cmdclass, parser, forcedparms) = lookup_command(cmdname,mode)
+    (cmdclass, parser, forcedparms) = lookup_command(cmdname, mode)
     if cmdclass is None:
         msg = 'unknown command: %s' % cmdname
         logging.debug(msg)

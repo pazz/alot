@@ -4,7 +4,7 @@ from alot.commands.globals import SearchCommand
 MODE = 'taglist'
 
 
-@registerCommand(MODE, 'select', {})
+@registerCommand(MODE, 'select', help='open search for selected tag')
 class TaglistSelectCommand(Command):
     def apply(self, ui):
         tagstring = ui.current_buffer.get_selected_tag()

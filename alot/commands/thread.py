@@ -21,10 +21,9 @@ MODE = 'thread'
 
 
 @registerCommand(MODE, 'reply', arguments=[
-    (['--all'], {'action':'store_true', 'help':'reply to all'})]
-)
+    (['--all'], {'action':'store_true', 'help':'reply to all'})],
+    help='reply to currently selected message')
 class ReplyCommand(Command):
-    """format reply for currently selected message and open envelope for it"""
     def __init__(self, message=None, all=False, **kwargs):
         """
         :param message: the original message to reply to
@@ -129,8 +128,8 @@ class ReplyCommand(Command):
 
 
 @registerCommand(MODE, 'forward', arguments=[
-    (['--attach'], {'action':'store_true', 'help':'attach original mail'})]
-)
+    (['--attach'], {'action':'store_true', 'help':'attach original mail'})],
+    help='forward currently selected message')
 class ForwardCommand(Command):
     def __init__(self, message=None, attach=True, **kwargs):
         """
@@ -200,9 +199,11 @@ class ForwardCommand(Command):
 
 
 @registerCommand(MODE, 'fold', forced={'visible': False}, arguments=[
-    (['--all'], {'action': 'store_true', 'help':'fold all messages'})])
+    (['--all'], {'action': 'store_true', 'help':'fold all messages'})],
+    help='fold message(s)')
 @registerCommand(MODE, 'unfold', forced={'visible': True}, arguments=[
-    (['--all'], {'action': 'store_true', 'help':'unfold all messages'})])
+    (['--all'], {'action': 'store_true', 'help':'unfold all messages'})],
+    help='unfold message(s)')
 class FoldMessagesCommand(Command):
     def __init__(self, all=False, visible=None, **kwargs):
         self.all = all
@@ -229,7 +230,8 @@ class FoldMessagesCommand(Command):
                 widget.fold(visible=False)
 
 
-@registerCommand(MODE, 'toggleheaders')
+@registerCommand(MODE, 'toggleheaders',
+                help='toggle display of all headers')
 class ToggleHeaderCommand(Command):
     def apply(self, ui):
         msgw = ui.current_buffer.get_selection()
@@ -237,16 +239,17 @@ class ToggleHeaderCommand(Command):
 
 
 @registerCommand(MODE, 'pipeto', arguments=[
+    (['cmd'], {'help':'shellcommand to pipe to'}),
     (['--all'], {'action': 'store_true', 'help':'pass all messages'}),
     (['--separately'], {'action': 'store_true',
-                        'help':'call command once for each message'})]
-)
+                        'help':'call command once for each message'})],
+    help='pipe message(s) to stdin of a shellcommand')
 class PipeCommand(Command):
-    def __init__(self, command, all=False, separately=False,
+    def __init__(self, cmd, all=False, separately=False,
                  noop_msg='no command specified', confirm_msg='',
                  done_msg='done', **kwargs):
         Command.__init__(self, **kwargs)
-        self.cmd = command
+        self.cmd = cmd
         self.whole_thread = all
         self.separately = separately
         self.noop_msg = noop_msg
@@ -296,7 +299,7 @@ class PipeCommand(Command):
     (['--all'], {'action': 'store_true', 'help':'print all messages'}),
     (['--separately'], {'action': 'store_true',
                         'help':'call print command once for each message'})]
-)
+    help='print message(s)')
 class PrintCommand(PipeCommand):
     def __init__(self, all=False, separately=False, **kwargs):
         # get print command
@@ -321,8 +324,8 @@ class PrintCommand(PipeCommand):
 
 @registerCommand(MODE, 'save', arguments=[
     (['--all'], {'action': 'store_true', 'help':'save all attachments'}),
-    (['path'], {'nargs':'?', 'help':'path to save to'})]
-)
+    (['path'], {'nargs':'?', 'help':'path to save to'})],
+    help='save attachment(s)')
 class SaveAttachmentCommand(Command):
     def __init__(self, all=False, path=None, **kwargs):
         Command.__init__(self, **kwargs)

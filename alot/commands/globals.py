@@ -34,10 +34,8 @@ class ExitCommand(Command):
         ui.exit()
 
 
-@registerCommand(MODE, 'search',
-                 help='open a new search buffer', arguments=[
-    (['query'], {'nargs':'*', 'default':'', 'help':'search string'})]
-)
+@registerCommand(MODE, 'search', help='open a new search buffer', arguments=[
+    (['query'], {'nargs':'*', 'default':'', 'help':'search string'})])
 class SearchCommand(Command):
     def __init__(self, query, **kwargs):
         self.query = ' '.join(query)
@@ -64,8 +62,7 @@ class SearchCommand(Command):
 
 
 @registerCommand(MODE, 'prompt', help='starts commandprompt', arguments=[
-    (['startwith'], {'nargs':'?', 'default':'', 'help':'initial content of commandprompt'})]
-)
+    (['startwith'], {'nargs':'?', 'default':'', 'help':'initial content'})])
 class PromptCommand(Command):
     def __init__(self, startwith='', **kwargs):
         self.startwith = startwith
@@ -82,10 +79,9 @@ class RefreshCommand(Command):
         ui.update()
 
 
-@registerCommand(MODE, 'shellescape',help='calls external command',
-                 arguments=[
-    (['cmd'], {'help':'command line to execute'})]
-)
+@registerCommand(MODE, 'shellescape', arguments=[
+    (['cmd'], {'help':'command line to execute'})],
+                 help='calls external command')
 class ExternalCommand(Command):
     def __init__(self, cmd, path=None, spawn=False, refocus=True,
                  in_thread=False, on_success=None, **kwargs):
@@ -155,7 +151,7 @@ class ExternalCommand(Command):
 
 #@registerCommand(MODE, 'edit', arguments=[
 #    (['--nospawn'], {'action': 'store_true', 'help':'spawn '}), #todo
-#    (['path'], {'help':'file to edit'})] 
+#    (['path'], {'help':'file to edit'})]
 #]
 #)
 class EditCommand(ExternalCommand):
@@ -277,11 +273,12 @@ class FlushCommand(Command):
             ui.update()
             return
 
+
 #todo choices
-@registerCommand(MODE, 'help',
-                 help='display help for a command. Use \'bindings\' to display \
-                 all keybings interpreted in current mode.', arguments=[
-    (['commandname'], {'help':'command or \'bindings\''})]
+@registerCommand(MODE, 'help', arguments=[
+    (['commandname'], {'help':'command or \'bindings\''})],
+                 help='display help for a command. Use \'bindings\' to\
+                 display all keybings interpreted in current mode.',
 )
 class HelpCommand(Command):
     def __init__(self, commandname='', **kwargs):
@@ -338,8 +335,7 @@ class HelpCommand(Command):
             if parser:
                 ui.notify(parser.format_help())
             else:
-                ui.notify('command %s not known in mode %s' % (self.commandname,
-                                                              ui.mode))
+                ui.notify('command not known: %s' % self.commandname)
 
 
 @registerCommand(MODE, 'compose', help='compose a new email',
@@ -373,7 +369,6 @@ class ComposeCommand(Command):
             self.mail['Cc'] = encode_header('Cc', ','.join(cc))
         if bcc:
             self.mail['Bcc'] = encode_header('Bcc', ','.join(bcc))
-
 
     @defer.inlineCallbacks
     def apply(self, ui):
@@ -430,8 +425,7 @@ class ComposeCommand(Command):
 
 
 @registerCommand(MODE, 'move', help='move focus', arguments=[
-    (['key'], {'nargs':'+', 'help':'direction'})]
-)
+    (['key'], {'nargs':'+', 'help':'direction'})])
 @registerCommand(MODE, 'cancel', help='send cancel event',
                  forced={'key': 'cancel'})
 @registerCommand(MODE, 'select', help='send select event',

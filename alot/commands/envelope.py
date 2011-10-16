@@ -21,10 +21,8 @@ from alot.commands.globals import EnvelopeOpenCommand
 MODE = 'envelope'
 
 
-@registerCommand(MODE, 'attach',
-                 help='attach files to the mail', arguments=[
-    (['path'], {'help':'file(s) to attach (accepts wildcads)'})]
-)
+@registerCommand(MODE, 'attach', help='attach files to the mail', arguments=[
+    (['path'], {'help':'file(s) to attach (accepts wildcads)'})])
 class EnvelopeAttachCommand(Command):
     def __init__(self, path=None, mail=None, **kwargs):
         Command.__init__(self, **kwargs)
@@ -53,11 +51,9 @@ class EnvelopeAttachCommand(Command):
             ui.current_buffer.set_email(msg)
 
 
-@registerCommand(MODE, 'refine',
-                 help='prompt to change the value of a header',
+@registerCommand(MODE, 'refine', help='prompt to change the value of a header',
                  arguments=[
-    (['key'], {'help':'header to refine'})]
-)
+    (['key'], {'help':'header to refine'})])
 class EnvelopeRefineCommand(Command):
 
     def __init__(self, key='', **kwargs):
@@ -209,8 +205,7 @@ class EnvelopeEditCommand(Command):
 @registerCommand(MODE, 'set', help='set header value', arguments=[
     (['--replace'], {'action': 'store_true', 'help':'remove old value'}),
     (['key'], {'help':'header to refine'}),
-    (['value'], {'nargs':'+', 'help':'value'})]
-)
+    (['value'], {'nargs':'+', 'help':'value'})])
 class EnvelopeSetCommand(Command):
     """sets header fields of mail open in envelope buffer"""
 
