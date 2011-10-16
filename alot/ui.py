@@ -105,9 +105,13 @@ class UI(object):
     def keypress(self, key):
         self.inputwrap.keypress((150, 20), key)
 
-    def show_as_root_until_keypress(self, w, key):
+    def show_as_root_until_keypress(self, w, key, afterwards=None):
         def oe():
             self.inputwrap.set_root(self.mainframe)
+            self.logger.debug('AFTERWARDS')
+            if callable(afterwards):
+                self.logger.debug('called')
+                afterwards()
         helpwrap = widgets.CatchKeyWidgetWrap(w, key, on_catch=oe)
         self.inputwrap.set_root(helpwrap)
 
@@ -298,8 +302,8 @@ class UI(object):
         assert msg_position in ['left', 'above']
 
         d = defer.Deferred()  # create return deferred
-
         oldroot = self.inputwrap.get_root()
+
         def select_or_cancel(text):
             self.inputwrap.set_root(oldroot)
             self.inputwrap.select_cancel_only = False
@@ -364,11 +368,16 @@ class UI(object):
         def clear(*args):
             self.clear_notify(msgs)
 
-        # TODO: replace this with temporarily wrapping self.mainframe
-        # in a ui.show_root_until_keypress..
         if block:
-            self.mainloop.screen.get_input()
-            clear()
+            # put "cancel to continue" widget as overlay on main widget
+            txt = urwid.Text('(cancel continues)')
+            overlay = urwid.Overlay(txt, self.mainframe,
+                                    ('fixed left', 0),
+                                    ('fixed right', 0),
+                                    ('fixed bottom', 0),
+                                    None)
+            self.show_as_root_until_keypress(overlay, 'cancel',
+                                             afterwards=clear)
         else:
             if timeout >= 0:
                 if timeout == 0:
