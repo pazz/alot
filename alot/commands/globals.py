@@ -344,9 +344,10 @@ class HelpCommand(Command):
             ui.logger.debug('HELP %s' % self.commandname)
             parser = commands.lookup_parser(self.commandname, ui.mode)
             if parser:
-                ui.notify(parser.format_help())
+                ui.notify(parser.format_help(), block=True)
             else:
-                ui.notify('command not known: %s' % self.commandname)
+                ui.notify('command not known: %s' % self.commandname,
+                          priority='error')
 
 
 @registerCommand(MODE, 'compose', help='compose a new email',
