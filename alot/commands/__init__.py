@@ -89,6 +89,9 @@ def commandfactory(cmdline, mode='global'):
     if not cmdline:
         return None
     logging.debug('mode:%s got commandline "%s"' % (mode, cmdline))
+    # allow to shellescape without a space after '!'
+    if cmdline.startswith('!'):
+        cmdline = 'shellescape \'%s\'' % cmdline[1:]
     args = shlex.split(cmdline.encode('utf-8'))
     args = map(lambda x: x.decode('utf-8'), args)  # get unicode strings
     logging.debug('ARGS: %s' % args)
@@ -99,10 +102,6 @@ def commandfactory(cmdline, mode='global'):
     if alot.settings.config.has_option('command-aliases', cmdname):
         cmdname = alot.settings.config.get('command-aliases', cmdname)
 
-    # allow to shellescape without a space after '!'
-    if cmdname.startswith('!'):
-        argstring = cmdname[1:] + ' ' + argstring
-        cmdname = 'shellescape'
 
     # get class, argparser and forced parameter
     (cmdclass, parser, forcedparms) = lookup_command(cmdname, mode)

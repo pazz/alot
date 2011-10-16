@@ -117,8 +117,11 @@ class ExternalCommand(Command):
         callerbuffer = ui.current_buffer
 
         def afterwards(data):
-            if callable(self.on_success) and data == 'success':
-                self.on_success()
+            if data == 'success':
+                if callable(self.on_success):
+                    self.on_success()
+            else:
+                ui.notify(data, priority='error')
             if self.refocus and callerbuffer in ui.buffers:
                 ui.logger.info('refocussing')
                 ui.buffer_focus(callerbuffer)
@@ -142,9 +145,11 @@ class ExternalCommand(Command):
                                  cmd)
             cmd = cmd.encode('utf-8', errors='ignore')
             ui.logger.info('calling external command: %s' % cmd)
-            returncode = subprocess.call(shlex.split(cmd))
-            if returncode == 0:
-                os.write(write_fd, 'success')
+            try:
+                if 0 == subprocess.call(shlex.split(cmd)):
+                    os.write(write_fd, 'success')
+            except OSError, e:
+                os.write(write_fd, str(e))
 
         if self.in_thread:
             thread = threading.Thread(target=thread_code)
