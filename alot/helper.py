@@ -222,6 +222,7 @@ def tag_cmp(a, b):
     else:
         return cmp(a, b)
 
+
 def humanize_size(size):
     r'''
     >>> humanize_size(1)

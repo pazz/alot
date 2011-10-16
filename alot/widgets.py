@@ -541,7 +541,7 @@ class MessageHeaderWidget(urwid.AttrMap):
 class MessageBodyWidget(urwid.AttrMap):
     """displays printable parts of an email"""
 
-    def __init__(self, msg, tab_width = 8):
+    def __init__(self, msg, tab_width=8):
         bodytxt = message.extract_body(msg).replace('\t', ' ' * tab_width)
         urwid.AttrMap.__init__(self, urwid.Text(bodytxt), 'message_body')
 

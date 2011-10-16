@@ -102,7 +102,6 @@ def commandfactory(cmdline, mode='global'):
     if alot.settings.config.has_option('command-aliases', cmdname):
         cmdname = alot.settings.config.get('command-aliases', cmdname)
 
-
     # get class, argparser and forced parameter
     (cmdclass, parser, forcedparms) = lookup_command(cmdname, mode)
     if cmdclass is None:
