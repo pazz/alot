@@ -52,18 +52,21 @@ class DialogBox(urwid.WidgetWrap):
 
 
 class CatchKeyWidgetWrap(urwid.WidgetWrap):
-    def __init__(self, widget, key, on_catch):
+    def __init__(self, widget, key, on_catch, relay_rest=True):
         urwid.WidgetWrap.__init__(self, widget)
         self.key = key
+        self.relay = relay_rest
         self.on_catch = on_catch
 
     def selectable(self):
         return True
 
     def keypress(self, size, key):
+        logging.debug('CATCH KEY: %s' % key)
+        logging.debug('relay: %s' % self.relay)
         if key == self.key:
             self.on_catch()
-        elif self._w.selectable():
+        elif self._w.selectable() and self.relay:
             return self._w.keypress(size, key)
 
 

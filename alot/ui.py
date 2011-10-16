@@ -105,15 +105,19 @@ class UI(object):
     def keypress(self, key):
         self.inputwrap.keypress((150, 20), key)
 
-    def show_as_root_until_keypress(self, w, key, afterwards=None):
+    def show_as_root_until_keypress(self, w, key, relay_rest=True,
+                                    afterwards=None):
         def oe():
             self.inputwrap.set_root(self.mainframe)
-            self.logger.debug('AFTERWARDS')
+            self.inputwrap.select_cancel_only = False
             if callable(afterwards):
                 self.logger.debug('called')
                 afterwards()
-        helpwrap = widgets.CatchKeyWidgetWrap(w, key, on_catch=oe)
+        self.logger.debug('relay: %s' % relay_rest)
+        helpwrap = widgets.CatchKeyWidgetWrap(w, key, on_catch=oe,
+                                              relay_rest=relay_rest)
         self.inputwrap.set_root(helpwrap)
+        self.inputwrap.select_cancel_only = True
 
     def prompt(self, prefix='>', text=u'', completer=None, tab=0, history=[]):
         """prompt for text input
@@ -377,6 +381,7 @@ class UI(object):
                                     ('fixed bottom', 0),
                                     None)
             self.show_as_root_until_keypress(overlay, 'cancel',
+                                             relay_rest=False,
                                              afterwards=clear)
         else:
             if timeout >= 0:
