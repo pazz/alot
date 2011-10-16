@@ -80,11 +80,15 @@ class RefreshCommand(Command):
 
 
 @registerCommand(MODE, 'shellescape', arguments=[
+    (['--spawn'], {'action': 'store_true', 'help':'run in terminal window'}),
+    (['--thread'], {'action': 'store_true', 'help':'run in separate thread'}),
+    (['--refocus'], {'action': 'store_true', 'help':'refocus current buffer \
+                     after command has finished'}),
     (['cmd'], {'help':'command line to execute'})],
                  help='calls external command')
 class ExternalCommand(Command):
     def __init__(self, cmd, path=None, spawn=False, refocus=True,
-                 in_thread=False, on_success=None, **kwargs):
+                 thread=False, on_success=None, **kwargs):
         """
         :param cmd: the command to call
         :type cmd: str
@@ -92,8 +96,8 @@ class ExternalCommand(Command):
         :type path: str
         :param spawn: run command in a new terminal
         :type spawn: boolean
-        :param in_thread: run asynchronously, don't block alot
-        :type in_thread: boolean
+        :param thread: run asynchronously, don't block alot
+        :type thread: boolean
         :param refocus: refocus calling buffer after cmd termination
         :type refocus: boolean
         :param on_success: code to execute after command successfully exited
@@ -103,7 +107,7 @@ class ExternalCommand(Command):
         self.path = path
         self.spawn = spawn
         self.refocus = refocus
-        self.in_thread = in_thread
+        self.in_thread = thread
         self.on_success = on_success
         Command.__init__(self, **kwargs)
 
@@ -165,7 +169,7 @@ class EditCommand(ExternalCommand):
         editor_cmd = settings.config.get('general', 'editor_cmd')
 
         ExternalCommand.__init__(self, editor_cmd, path=self.path,
-                                 spawn=self.spawn, in_thread=self.spawn,
+                                 spawn=self.spawn, thread=self.spawn,
                                  **kwargs)
 
 

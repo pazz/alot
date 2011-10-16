@@ -394,7 +394,7 @@ class OpenAttachmentCommand(Command):
                 os.remove(path)
             ui.apply_command(ExternalCommand(handler, path=path,
                                              on_success=afterwards,
-                                             in_thread=True))
+                                             thread=True))
         else:
             ui.notify('unknown mime type')
 
