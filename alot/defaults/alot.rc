@@ -92,6 +92,7 @@ select = openfocussed
 [search-maps]
 a = toggletag inbox
 & = toggletag killed
+! = toggletag flagged
 l = retagprompt
 O = refineprompt
 select = openthread
