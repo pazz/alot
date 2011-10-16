@@ -109,18 +109,9 @@ def commandfactory(cmdline, mode='global'):
         logging.debug(msg)
         raise CommandParseError(msg)
 
-    #logging.debug(parser)
     parms = vars(parser.parse_args(args))
-    logging.debug('PARMS: %s' % parms)
-    logging.debug(parms)
-
     parms.update(forcedparms)
-    # still needed?
-    #for (key, value) in kwargs.items():
-    #    if callable(value):
-    #        parms[key] = value()
-    #    else:
-    #        parms[key] = value
+    logging.debug('PARMS: %s' % parms)
 
     parms['prehook'] = alot.settings.hooks.get('pre_' + cmdname)
     parms['posthook'] = alot.settings.hooks.get('post_' + cmdname)
@@ -130,12 +121,5 @@ def commandfactory(cmdline, mode='global'):
 
 
 #def interpret_commandline(cmdline, mode):
-#
-#    elif cmd == 'shellescape':
-#        return commandfactory(cmd, mode=mode, commandstring=params)
-#    elif cmd == 'edit':
-#        filepath = os.path.expanduser(params)
-#        if os.path.isfile(filepath):
-#            return commandfactory(cmd, mode=mode, path=filepath)
 
 __all__ = list(filename[:-3] for filename in glob.glob1(os.path.dirname(__file__), '*.py'))
