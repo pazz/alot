@@ -1,5 +1,6 @@
 from alot.commands import Command, registerCommand
 from twisted.internet import defer
+import argparse
 
 
 from alot.db import DatabaseROError
@@ -71,8 +72,8 @@ class ToggleThreadTagCommand(Command):
             pass
 
 
-@registerCommand(MODE, 'refine', arguments=[
-    (['query'], {'nargs':'*', 'default':'', 'help':'search string'})],
+@registerCommand(MODE, 'refine', usage='refine query', arguments=[
+    (['query'], {'nargs':argparse.REMAINDER, 'help':'search string'})],
     help='refine the query of the currently open searchbuffer')
 class RefineCommand(Command):
     def __init__(self, query=None, **kwargs):

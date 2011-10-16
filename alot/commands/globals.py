@@ -19,6 +19,7 @@ from alot.completion import ContactsCompleter
 from alot.completion import AccountCompleter
 from alot.message import encode_header
 from alot import commands
+import argparse
 
 MODE = 'global'
 
@@ -34,8 +35,9 @@ class ExitCommand(Command):
         ui.exit()
 
 
-@registerCommand(MODE, 'search', help='open a new search buffer', arguments=[
-    (['query'], {'nargs':'*', 'default':'', 'help':'search string'})])
+@registerCommand(MODE, 'search', usage='search query', arguments=[
+    (['query'], {'nargs':argparse.REMAINDER, 'help':'search string'})],
+    help='open a new search buffer')
 class SearchCommand(Command):
     def __init__(self, query, **kwargs):
         self.query = ' '.join(query)

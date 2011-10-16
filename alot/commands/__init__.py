@@ -65,15 +65,18 @@ class CommandArgumentParser(argparse.ArgumentParser):
 
 
 class registerCommand(object):
-    def __init__(self, mode, name, help=None, forced={}, arguments=[]):
+    def __init__(self, mode, name, help=None, usage=None,
+                 forced={}, arguments=[]):
         self.mode = mode
         self.name = name
         self.help = help
+        self.usage = usage
         self.forced = forced
         self.arguments = arguments
 
     def __call__(self, klass):
         argparser = CommandArgumentParser(description=self.help,
+                                          usage=self.usage,
                                           prog=self.name, add_help=False)
         for args, kwargs in self.arguments:
             argparser.add_argument(*args, **kwargs)
