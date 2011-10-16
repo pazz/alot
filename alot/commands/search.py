@@ -10,7 +10,7 @@ from alot import buffers
 MODE = 'search'
 
 
-@registerCommand(MODE, 'openthread',  # todo: make this a select
+@registerCommand(MODE, 'select',
                  help='open a new thread buffer')
 class OpenThreadCommand(Command):
     def __init__(self, thread=None, **kwargs):

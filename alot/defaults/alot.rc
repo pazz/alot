@@ -95,7 +95,6 @@ a = toggletag inbox
 ! = toggletag flagged
 l = retagprompt
 O = refineprompt
-select = openthread
 | = refineprompt
 
 [envelope-maps]
