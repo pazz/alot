@@ -9,9 +9,9 @@ from alot import buffers
 MODE = 'search'
 
 
-@registerCommand(MODE, 'openthread', {})  # todo: make this select
+@registerCommand(MODE, 'openthread',  # todo: make this a select
+                 help='open a new thread buffer')
 class OpenThreadCommand(Command):
-    """open a new thread-view buffer"""
     def __init__(self, thread=None, **kwargs):
         self.thread = thread
         Command.__init__(self, **kwargs)
@@ -29,10 +29,9 @@ class OpenThreadCommand(Command):
 
 
 @registerCommand(MODE, 'toggletag', arguments=[
-    (['tag'], {'nargs':'+', 'default':'', 'help':'tag to flip'})]
-)
+    (['tag'], {'nargs':'+', 'default':'', 'help':'tag to flip'})],
+    help='toggles tags in selected thread')
 class ToggleThreadTagCommand(Command):
-    """toggles tags in given or currently selected thread"""
     def __init__(self, tag, thread=None, **kwargs):
         assert tag
         self.thread = thread
@@ -73,10 +72,9 @@ class ToggleThreadTagCommand(Command):
 
 
 @registerCommand(MODE, 'refine', arguments=[
-    (['query'], {'nargs':'*', 'default':'', 'help':'search string'})]
-)
+    (['query'], {'nargs':'*', 'default':'', 'help':'search string'})],
+    help='refine the query of the currently open searchbuffer')
 class RefineCommand(Command):
-    """refine the query of the currently open searchbuffer"""
     def __init__(self, query=None, **kwargs):
         self.querystring = ' '.join(query)
         Command.__init__(self, **kwargs)
@@ -99,20 +97,18 @@ class RefineCommand(Command):
             ui.notify('empty query string')
 
 
-@registerCommand(MODE, 'refineprompt', {})
+@registerCommand(MODE, 'refineprompt',
+                 help='prompt to change current search buffers query')
 class RefinePromptCommand(Command):
-    """prompt to change current search buffers query"""
     def apply(self, ui):
         sbuffer = ui.current_buffer
         oldquery = sbuffer.querystring
         ui.commandprompt('refine ' + oldquery)
 
 
-@registerCommand(MODE, 'retagprompt', {})
+@registerCommand(MODE, 'retagprompt',
+                 help='prompt to retag selected threads\' tags')
 class RetagPromptCommand(Command):
-    """start a commandprompt to retag selected threads' tags
-    this is needed to fill the prompt with the current tags..
-    """
     def apply(self, ui):
         thread = ui.current_buffer.get_selected_thread()
         if not thread:
@@ -122,10 +118,9 @@ class RetagPromptCommand(Command):
 
 
 @registerCommand(MODE, 'retag', arguments=[
-    (['tags'], {'help':'comma separated list of tags'})]
-)
+    (['tags'], {'help':'comma separated list of tags'})],
+                 help='overwrite selected thread\'s tags')
 class RetagCommand(Command):
-    """tag selected thread"""
     def __init__(self, tags=u'', thread=None, **kwargs):
         self.tagsstring = tags
         self.thread = thread
@@ -150,4 +145,5 @@ class RetagCommand(Command):
         # refresh selected threadline
         sbuffer = ui.current_buffer
         threadwidget = sbuffer.get_selected_threadline()
-        threadwidget.rebuild()  # rebuild and redraw the line
+        # rebuild and redraw the line
+        threadwidget.rebuild()
