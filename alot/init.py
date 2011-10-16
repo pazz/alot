@@ -28,41 +28,12 @@ from ui import UI
 import alot.commands as commands
 from commands import *
 from alot.commands import CommandParseError
-
-
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-c', dest='configfile',
-                        default=None,
-                        help='alot\'s config file')
-    parser.add_argument('-n', dest='notmuchconfigfile',
-                        default='~/.notmuch-config',
-                        help='notmuch\'s config file')
-    parser.add_argument('-C', dest='colours',
-                        type=int,
-                        choices=[1, 16, 256],
-                        help='colour mode')
-    parser.add_argument('-r', dest='read_only',
-                        action='store_true',
-                        help='open db in read only mode')
-    parser.add_argument('-p', dest='db_path',
-                        help='path to notmuch index')
-    parser.add_argument('-d', dest='debug_level',
-                        default='info',
-                        choices=['debug', 'info', 'warning', 'error'],
-                        help='debug level')
-    parser.add_argument('-l', dest='logfile',
-                        default='/dev/null',
-                        help='logfile')
-    parser.add_argument('command', nargs='?',
-                        default='',
-                        help='initial command')
-    return parser.parse_args()
+import alot.args
 
 
 def main():
     # interpret cml arguments
-    args = parse_args()
+    args = alot.args.globalparser.parse_args()
 
     # locate and read config file
     configfiles = [
@@ -101,9 +72,13 @@ def main():
     dbman = DBManager(path=args.db_path, ro=args.read_only)
 
     # get initial searchstring
+    logger.debug(args)
     try:
         if args.command != '':
-            cmd = commands.commandfactory(args.command, 'global')
+            parms = vars(args)
+            logger.debug(parms)
+            cmdclass = commands.interpret_commandline(args.command, 'global')[0]
+            cmd = cmdclass(**parms)
         else:
             default_commandline = settings.config.get('general',
                                                       'initial_command')

@@ -7,11 +7,13 @@ import argparse
 import cStringIO
 
 import alot.settings
+from alot.args import VISIBLECOMMANDS
+from alot.args import subparsers
 
 
 class Command(object):
     """base class for commands"""
-    def __init__(self, prehook=None, posthook=None):
+    def __init__(self, prehook=None, posthook=None, **rest):
         self.prehook = prehook
         self.posthook = posthook
         self.undoable = False
@@ -64,6 +66,7 @@ class CommandArgumentParser(argparse.ArgumentParser):
         raise CommandParseError(message)
 
 
+
 class registerCommand(object):
     def __init__(self, mode, name, help=None, usage=None,
                  forced={}, arguments=[]):
@@ -81,10 +84,15 @@ class registerCommand(object):
         for args, kwargs in self.arguments:
             argparser.add_argument(*args, **kwargs)
         COMMANDS[self.mode][self.name] = (klass, argparser, self.forced)
+
+        if self.mode == 'global' and self.name in VISIBLECOMMANDS:
+            localparser = subparsers.add_parser(self.name, help=self.help)
+            for args, kwargs in self.arguments:
+                localparser.add_argument(*args, **kwargs)
         return klass
 
 
-def commandfactory(cmdline, mode='global'):
+def interpret_commandline(cmdline, mode='global'):
     # split commandname and parameters
     if not cmdline:
         return None
@@ -117,9 +125,12 @@ def commandfactory(cmdline, mode='global'):
     parms['posthook'] = alot.settings.hooks.get('post_' + cmdname)
 
     logging.debug('cmd parms %s' % parms)
+    return cmdclass, parms
+
+def commandfactory(cmdline, mode='global'):
+    cmdclass, parms = interpret_commandline(cmdline, mode)
     return cmdclass(**parms)
 
 
-#def interpret_commandline(cmdline, mode):
 
 __all__ = list(filename[:-3] for filename in glob.glob1(os.path.dirname(__file__), '*.py'))
