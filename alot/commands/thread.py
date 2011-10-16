@@ -298,7 +298,7 @@ class PipeCommand(Command):
 @registerCommand(MODE, 'print', arguments=[
     (['--all'], {'action': 'store_true', 'help':'print all messages'}),
     (['--separately'], {'action': 'store_true',
-                        'help':'call print command once for each message'})]
+                        'help':'call print command once for each message'})],
     help='print message(s)')
 class PrintCommand(PipeCommand):
     def __init__(self, all=False, separately=False, **kwargs):
