@@ -117,7 +117,7 @@ class UI(object):
         helpwrap = widgets.CatchKeyWidgetWrap(w, key, on_catch=oe,
                                               relay_rest=relay_rest)
         self.inputwrap.set_root(helpwrap)
-        self.inputwrap.select_cancel_only = True
+        self.inputwrap.select_cancel_only = not relay_rest
 
     def prompt(self, prefix='>', text=u'', completer=None, tab=0, history=[]):
         """prompt for text input
