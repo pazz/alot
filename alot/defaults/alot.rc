@@ -108,6 +108,7 @@ t = 'refine To'
 b = 'refine Bcc'
 c = 'refine Cc'
 select = reedit
+H = toggleheaders
 
 [taglist-maps]
 

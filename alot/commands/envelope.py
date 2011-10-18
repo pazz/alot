@@ -234,3 +234,10 @@ class EnvelopeSetCommand(Command):
         mail = ui.current_buffer.get_email()
         del(mail[self.key])
         ui.current_buffer.set_email(mail)
+
+
+@registerCommand(MODE, 'toggleheaders',
+                help='toggle display of all headers')
+class ToggleHeaderCommand(Command):
+    def apply(self, ui):
+        ui.current_buffer.header_wgt.toggle_all()
