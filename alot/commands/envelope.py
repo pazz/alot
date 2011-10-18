@@ -221,3 +221,16 @@ class EnvelopeSetCommand(Command):
         mail[self.key] = self.value
         envelope.set_email(mail)
         envelope.rebuild()
+
+
+@registerCommand(MODE, 'unset', help='remove header field', arguments=[
+    (['key'], {'help':'header to refine'})])
+class EnvelopeSetCommand(Command):
+    def __init__(self, key, **kwargs):
+        self.key = key
+        Command.__init__(self, **kwargs)
+
+    def apply(self, ui):
+        mail = ui.current_buffer.get_email()
+        del(mail[self.key])
+        ui.current_buffer.set_email(mail)
