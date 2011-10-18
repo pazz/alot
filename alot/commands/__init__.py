@@ -1,5 +1,6 @@
 import os
 import sys
+import re
 import glob
 import shlex
 import logging
@@ -92,7 +93,11 @@ def commandfactory(cmdline, mode='global'):
     # allow to shellescape without a space after '!'
     if cmdline.startswith('!'):
         cmdline = 'shellescape \'%s\'' % cmdline[1:]
-    args = shlex.split(cmdline.encode('utf-8'))
+    cmdline = re.sub(r'"(.*)"', r'"\\"\1\\""', cmdline)
+    try:
+        args = shlex.split(cmdline.encode('utf-8'))
+    except ValueError, e:
+        raise CommandParseError(e.message)
     args = map(lambda x: x.decode('utf-8'), args)  # get unicode strings
     logging.debug('ARGS: %s' % args)
     cmdname = args[0]
