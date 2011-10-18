@@ -114,7 +114,13 @@ class RetagPromptCommand(Command):
         thread = ui.current_buffer.get_selected_thread()
         if not thread:
             return
-        initial_tagstring = ','.join(thread.get_tags())
+        tags = []
+        for tag in thread.get_tags():
+            if ' ' in tag:
+                tags.append('"%s"' % tag)
+            else:
+                tags.append(tag)
+        initial_tagstring = ','.join(tags)
         ui.commandprompt('retag ' + initial_tagstring)
 
 
