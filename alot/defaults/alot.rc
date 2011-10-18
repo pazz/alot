@@ -118,7 +118,6 @@ E = unfold --all
 H = toggleheaders
 P = print --all
 S = save --all
-a = toggletag inbox
 g = reply --all
 f = forward
 p = print
