@@ -111,9 +111,9 @@ class EnvelopeBuffer(Buffer):
 
     def rebuild(self):
         displayed_widgets = []
-        dh = settings.config.getstringlist('general', 'displayed_headers')
+        hidden = settings.config.getstringlist('general', 'envelope_headers_blacklist')
         self.header_wgt = widgets.MessageHeaderWidget(self.mail,
-                                                      displayed_headers=dh)
+                                                      hidden_headers=hidden)
         displayed_widgets.append(self.header_wgt)
 
         #display attachments
