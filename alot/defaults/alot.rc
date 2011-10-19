@@ -3,9 +3,6 @@
 # ask for subject when compose
 ask_subject = True
 
-# max length of authors line in thread widgets
-authors_maxlength = 30
-
 # confirm exit
 bug_on_exit = False
 
@@ -24,9 +21,20 @@ displayed_headers = From,To,Cc,Bcc,Subject
 # headers that are hidden in envelope buffers by default
 envelope_headers_blacklist = Content-Type,MIME-Version
 
+# set terminal command used for spawning shell commands
+terminal_cmd = x-terminal-emulator -e
+
 # editor command
 editor_cmd = /usr/bin/vim -f -c 'set filetype=mail' +
 editor_writes_encoding = UTF-8
+
+# use terminal_command to spawn a new terminal for the editor?
+spawn_editor = False
+
+# call editor in separate thread.
+# in case your editor doesn't run in the same window as alot, setting true here
+# will make alot non-blocking during edits
+editor_in_thread = False
 
 # timeout in secs after a failed attempt to flush is repeated
 flush_retry_timeout = 5
@@ -40,21 +48,13 @@ notify_timeout = 2
 # display statusline?
 show_statusbar = True
 
-# use terminal_command to spawn a new terminal for the editor?
-spawn_editor = False
-
-# call editor in separate thread.
-# in case your editor doesn't run in the same window as alot, setting true here
-# will make alot non-blocking during edits
-editor_in_thread = False
-
-# set terminal for asynchronous editing
-terminal_cmd = x-terminal-emulator -e
-
 # strftime format for timestamps. Note: you must escape % here:
 # use '%%' instead of '%'. otherwise see
 # http://docs.python.org/library/datetime.html#strftime-strptime-behavior
 timestamp_format = ''
+
+# max length of authors line in thread widgets
+authors_maxlength = 30
 
 # how to print messages:
 # this specifies a shellcommand used pro printing.
