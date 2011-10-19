@@ -52,18 +52,21 @@ class DialogBox(urwid.WidgetWrap):
 
 
 class CatchKeyWidgetWrap(urwid.WidgetWrap):
-    def __init__(self, widget, key, on_catch):
+    def __init__(self, widget, key, on_catch, relay_rest=True):
         urwid.WidgetWrap.__init__(self, widget)
         self.key = key
+        self.relay = relay_rest
         self.on_catch = on_catch
 
     def selectable(self):
         return True
 
     def keypress(self, size, key):
+        logging.debug('CATCH KEY: %s' % key)
+        logging.debug('relay: %s' % self.relay)
         if key == self.key:
             self.on_catch()
-        elif self._w.selectable():
+        elif self._w.selectable() and self.relay:
             return self._w.keypress(size, key)
 
 
@@ -482,34 +485,40 @@ class MessageHeaderWidget(urwid.AttrMap):
     RFC 2822 style encoded values are decoded into utf8 first.
     """
 
-    def __init__(self, eml, displayed_headers=None):
+    def __init__(self, eml, displayed_headers=None, hidden_headers=None):
         """
         :param eml: the email
         :type eml: email.Message
         :param displayed_headers: a whitelist of header fields to display
-        :type state: list(str)
+        :type displayed_headers: list(str)
+        :param hidden_headers: a blacklist of header fields to display
+        :type hidden_headers: list(str)
         """
         self.eml = eml
         self.display_all = False
         self.displayed_headers = displayed_headers
-        headerlines = self._build_lines(displayed_headers)
+        self.hidden_headers = hidden_headers
+        headerlines = self._build_lines(displayed_headers, hidden_headers)
         urwid.AttrMap.__init__(self, urwid.Pile(headerlines), 'message_header')
 
     def toggle_all(self):
         if self.display_all:
             self.display_all = False
-            headerlines = self._build_lines(self.displayed_headers)
+            headerlines = self._build_lines(self.displayed_headers,
+                                            self.hidden_headers)
         else:
             self.display_all = True
-            headerlines = self._build_lines(None)
+            headerlines = self._build_lines(None, None)
         logging.info('all : %s' % headerlines)
         self.original_widget = urwid.Pile(headerlines)
 
-    def _build_lines(self, displayed):
+    def _build_lines(self, displayed, hidden):
         max_key_len = 1
         headerlines = []
         if not displayed:
             displayed = self.eml.keys()
+        if hidden:
+            displayed = filter(lambda x: x not in hidden, displayed)
         for key in displayed:
             if key in self.eml:
                 if len(key) > max_key_len:
@@ -538,8 +547,8 @@ class MessageHeaderWidget(urwid.AttrMap):
 class MessageBodyWidget(urwid.AttrMap):
     """displays printable parts of an email"""
 
-    def __init__(self, msg):
-        bodytxt = message.extract_body(msg)
+    def __init__(self, msg, tab_width=8):
+        bodytxt = message.extract_body(msg).replace('\t', ' ' * tab_width)
         urwid.AttrMap.__init__(self, urwid.Text(bodytxt), 'message_body')
 
 

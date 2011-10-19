@@ -9,6 +9,8 @@
 * initial command configurable in configfile
 * non-blocking prompt/choice (new syntax for prompts!)
 * fix attachment saving
+* usage help for every command
+* bindings help
 
 Thanks: Ruben Pollan, Luke Macken, Justus Winter, Jaime Huerta-Cepas
 

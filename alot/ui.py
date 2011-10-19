@@ -20,10 +20,10 @@ import urwid
 from twisted.internet import reactor, defer
 
 from settings import config
-from buffer import BufferlistBuffer
-import command
-from command import commandfactory
-from command import interpret_commandline
+from buffers import BufferlistBuffer
+import commands
+from commands import commandfactory
+from alot.commands import CommandParseError
 import widgets
 from completion import CommandLineCompleter
 
@@ -44,7 +44,7 @@ class InputWrap(urwid.WidgetWrap):
     def allowed_command(self, cmd):
         if not self.select_cancel_only:
             return True
-        elif isinstance(cmd, command.SendKeypressCommand):
+        elif isinstance(cmd, commands.globals.SendKeypressCommand):
             if cmd.key in ['select', 'cancel']:
                 return True
         else:
@@ -57,10 +57,13 @@ class InputWrap(urwid.WidgetWrap):
             mode = 'global'
         cmdline = config.get_mapping(mode, key)
         if cmdline:
-            cmd = interpret_commandline(cmdline, mode)
-            if self.allowed_command(cmd):
-                self.ui.apply_command(cmd)
-                return None
+            try:
+                cmd = commandfactory(cmdline, mode)
+                if self.allowed_command(cmd):
+                    self.ui.apply_command(cmd)
+                    return None
+            except CommandParseError, e:
+                self.ui.notify(e.message, priority='error')
         self.ui.logger.debug('relaying key: %s' % key)
         return self._w.keypress(size, key)
 
@@ -102,11 +105,19 @@ class UI(object):
     def keypress(self, key):
         self.inputwrap.keypress((150, 20), key)
 
-    def show_as_root_until_keypress(self, w, key):
+    def show_as_root_until_keypress(self, w, key, relay_rest=True,
+                                    afterwards=None):
         def oe():
             self.inputwrap.set_root(self.mainframe)
-        helpwrap = widgets.CatchKeyWidgetWrap(w, key, on_catch=oe)
+            self.inputwrap.select_cancel_only = False
+            if callable(afterwards):
+                self.logger.debug('called')
+                afterwards()
+        self.logger.debug('relay: %s' % relay_rest)
+        helpwrap = widgets.CatchKeyWidgetWrap(w, key, on_catch=oe,
+                                              relay_rest=relay_rest)
         self.inputwrap.set_root(helpwrap)
+        self.inputwrap.select_cancel_only = not relay_rest
 
     def prompt(self, prefix='>', text=u'', completer=None, tab=0, history=[]):
         """prompt for text input
@@ -191,11 +202,11 @@ class UI(object):
         if cmdline:
             mode = self.current_buffer.typename
             self.commandprompthistory.append(cmdline)
-            cmd = interpret_commandline(cmdline, mode)
-            if cmd:
+            try:
+                cmd = commandfactory(cmdline, mode)
                 self.apply_command(cmd)
-            else:
-                self.notify('invalid command')
+            except CommandParseError, e:
+                self.notify(e.message, priority='error')
 
     def buffer_open(self, b):
         """
@@ -295,8 +306,8 @@ class UI(object):
         assert msg_position in ['left', 'above']
 
         d = defer.Deferred()  # create return deferred
-
         oldroot = self.inputwrap.get_root()
+
         def select_or_cancel(text):
             self.inputwrap.set_root(oldroot)
             self.inputwrap.select_cancel_only = False
@@ -361,11 +372,17 @@ class UI(object):
         def clear(*args):
             self.clear_notify(msgs)
 
-        # TODO: replace this with temporarily wrapping self.mainframe
-        # in a ui.show_root_until_keypress..
         if block:
-            self.mainloop.screen.get_input()
-            clear()
+            # put "cancel to continue" widget as overlay on main widget
+            txt = urwid.Text('(cancel continues)')
+            overlay = urwid.Overlay(txt, self.mainframe,
+                                    ('fixed left', 0),
+                                    ('fixed right', 0),
+                                    ('fixed bottom', 0),
+                                    None)
+            self.show_as_root_until_keypress(overlay, 'cancel',
+                                             relay_rest=False,
+                                             afterwards=clear)
         else:
             if timeout >= 0:
                 if timeout == 0:

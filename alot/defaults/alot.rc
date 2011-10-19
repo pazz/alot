@@ -21,6 +21,9 @@ display_content_in_threadline = False
 # headers that get displayed by default
 displayed_headers = From,To,Cc,Bcc,Subject
 
+# headers that are hidden in envelope buffers by default
+envelope_headers_blacklist = Content-Type,MIME-Version
+
 # editor command
 editor_cmd = /usr/bin/vim -f -c 'set filetype=mail' +
 editor_writes_encoding = UTF-8
@@ -70,17 +73,17 @@ esc = cancel
 enter = select
 
 @ = refresh
-? = help
+? = help bindings
 I = search tag:inbox AND NOT tag:killed
 L = taglist
 shift tab = bprevious
 U = search tag:unread
 tab = bnext
-\ = 'prompt search '
+\ = prompt 'search '
 d = bclose
 $ = flush
 m = compose
-o = 'prompt search '
+o = prompt 'search '
 q = exit
 ';' = bufferlist
 colon = prompt
@@ -92,9 +95,9 @@ select = openfocussed
 [search-maps]
 a = toggletag inbox
 & = toggletag killed
+! = toggletag flagged
 l = retagprompt
 O = refineprompt
-select = openthread
 | = refineprompt
 
 [envelope-maps]
@@ -105,6 +108,7 @@ t = 'refine To'
 b = 'refine Bcc'
 c = 'refine Cc'
 select = reedit
+H = toggleheaders
 
 [taglist-maps]
 
@@ -112,10 +116,9 @@ select = reedit
 C = fold --all
 E = unfold --all
 H = toggleheaders
-P = print --thread
+P = print --all
 S = save --all
-a = toggletag inbox
-g = groupreply
+g = reply --all
 f = forward
 p = print
 s = save

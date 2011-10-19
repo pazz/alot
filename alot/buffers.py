@@ -22,7 +22,7 @@ from notmuch.globals import NotmuchError
 
 import widgets
 import settings
-import command
+import commands
 from walker import IteratorWalker
 from message import decode_header
 
@@ -111,9 +111,10 @@ class EnvelopeBuffer(Buffer):
 
     def rebuild(self):
         displayed_widgets = []
-        dh = settings.config.getstringlist('general', 'displayed_headers')
+        hidden = settings.config.getstringlist('general',
+                                               'envelope_headers_blacklist')
         self.header_wgt = widgets.MessageHeaderWidget(self.mail,
-                                                      displayed_headers=dh)
+                                                      hidden_headers=hidden)
         displayed_widgets.append(self.header_wgt)
 
         #display attachments
@@ -252,7 +253,7 @@ class ThreadBuffer(Buffer):
                 mw.fold(visible=True)
                 if 'unread' in msg.get_tags():
                     msg.remove_tags(['unread'])
-                    self.ui.apply_command(command.FlushCommand())
+                    self.ui.apply_command(commands.globals.FlushCommand())
 
 
 class TagListBuffer(Buffer):

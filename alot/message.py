@@ -305,6 +305,7 @@ class Attachment(object):
         if ctype == 'octet/stream' and self.get_filename():
             ctype, enc = mimetypes.guess_type(self.get_filename())
         return ctype
+
     def get_size(self):
         """returns attachments size in bytes"""
         return len(self.part.get_payload())
