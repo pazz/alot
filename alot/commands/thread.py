@@ -16,6 +16,7 @@ from alot import widgets
 from alot import completion
 from alot import helper
 from alot.message import encode_header
+from alot.message import decode_header
 
 MODE = 'thread'
 
@@ -59,7 +60,7 @@ class ReplyCommand(Command):
         reply.attach(bodypart)
 
         # copy subject
-        subject = mail.get('Subject', '')
+        subject = decode_header(mail.get('Subject', ''))
         if not subject.startswith('Re:'):
             subject = 'Re: ' + subject
         reply['Subject'] = Header(subject.encode('utf-8'), 'UTF-8').encode()
@@ -176,7 +177,7 @@ class ForwardCommand(Command):
             reply.attach(mail)
 
         # copy subject
-        subject = mail.get('Subject', '')
+        subject = decode_header(mail.get('Subject', ''))
         subject = 'Fwd: ' + subject
         reply['Subject'] = Header(subject.encode('utf-8'), 'UTF-8').encode()
 

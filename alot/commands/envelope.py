@@ -55,7 +55,6 @@ class EnvelopeAttachCommand(Command):
                  arguments=[
     (['key'], {'help':'header to refine'})])
 class EnvelopeRefineCommand(Command):
-
     def __init__(self, key='', **kwargs):
         Command.__init__(self, **kwargs)
         self.key = key
