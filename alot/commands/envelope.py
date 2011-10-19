@@ -140,7 +140,7 @@ class EnvelopeEditCommand(Command):
             # go through multiline, utf-8 encoded headers
             key = value = None
             for line in headertext.splitlines():
-                if re.match('\w+:', line):  # new k/v pair
+                if re.match('[a-zA-Z0-9_-]+:', line):  # new k/v pair
                     if key and value:  # save old one from stack
                         del self.mail[key]  # ensure unique values in mails
                         self.mail[key] = encode_header(key, value)  # save
@@ -167,7 +167,15 @@ class EnvelopeEditCommand(Command):
                 ui.current_buffer.set_email(self.mail)
 
         # decode header
-        edit_headers = ['Subject', 'To', 'From']
+        edit_headers  = set(settings.config.getstringlist('general',
+                                                    'edit_headers_whitelist'))
+        if '*' in edit_headers:
+            edit_headers = set(self.mail.keys())
+        blacklist = set(settings.config.getstringlist('general',
+                                                  'edit_headers_blacklist'))
+        ui.logger.debug('BLACKLIST: %s' % blacklist)
+        edit_headers = edit_headers - blacklist
+
         headertext = u''
         for key in edit_headers:
             value = u''
