@@ -42,6 +42,14 @@ editor_spawn = False
 # will make alot non-blocking during edits
 editor_in_thread = False
 
+
+# Which header fields should be editable in your editor
+# used are those that match the whitelist and don't macht the blacklist.
+# in both cases '*' may be used to indicate all fields.
+edit_headers_whitelist = *
+edit_headers_blacklist = Content-Type,MIME-Version,References,In-Reply-To
+
+
 # timeout in secs after a failed attempt to flush is repeated
 flush_retry_timeout = 5
 
