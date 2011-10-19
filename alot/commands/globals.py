@@ -172,7 +172,7 @@ class EditCommand(ExternalCommand):
         if spawn != None:
             self.spawn = spawn
         else:
-            self.spawn = settings.config.getboolean('general', 'spawn_editor')
+            self.spawn = settings.config.getboolean('general', 'editor_spawn')
         if thread != None:
             self.thread = thread
         else:

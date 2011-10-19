@@ -24,12 +24,15 @@ envelope_headers_blacklist = Content-Type,MIME-Version
 # set terminal command used for spawning shell commands
 terminal_cmd = x-terminal-emulator -e
 
+####################
+# EDITOR settings  #
+####################
 # editor command
 editor_cmd = /usr/bin/vim -f -c 'set filetype=mail' +
 editor_writes_encoding = UTF-8
 
 # use terminal_command to spawn a new terminal for the editor?
-spawn_editor = False
+editor_spawn = False
 
 # call editor in separate thread.
 # in case your editor doesn't run in the same window as alot, setting true here
