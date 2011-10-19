@@ -117,6 +117,19 @@ class EnvelopeEditCommand(Command):
         if not self.mail:
             self.mail = ui.current_buffer.get_email()
 
+        #determine editable headers
+        edit_headers = set(settings.config.getstringlist('general',
+                                                    'edit_headers_whitelist'))
+        if '*' in edit_headers:
+            edit_headers = set(self.mail.keys())
+        blacklist = set(settings.config.getstringlist('general',
+                                                  'edit_headers_blacklist'))
+        if '*' in blacklist:
+            blacklist = set(self.mail.keys())
+        ui.logger.debug('BLACKLIST: %s' % blacklist)
+        self.edit_headers = edit_headers - blacklist
+        ui.logger.info('editable headers: %s' % blacklist)
+
         def openEnvelopeFromTmpfile():
             # This parses the input from the tempfile.
             # we do this ourselves here because we want to be able to
@@ -127,7 +140,11 @@ class EnvelopeEditCommand(Command):
             f = open(tf.name)
             enc = settings.config.get('general', 'editor_writes_encoding')
             editor_input = f.read().decode(enc)
-            headertext, bodytext = editor_input.split('\n\n', 1)
+            if self.edit_headers:
+                headertext, bodytext = editor_input.split('\n\n', 1)
+            else:
+                headertext = ''
+                bodytext = editor_input
 
             # call post-edit translate hook
             translate = settings.hooks.get('post_edit_translate')
@@ -139,7 +156,7 @@ class EnvelopeEditCommand(Command):
             # go through multiline, utf-8 encoded headers
             key = value = None
             for line in headertext.splitlines():
-                if re.match('\w+:', line):  # new k/v pair
+                if re.match('[a-zA-Z0-9_-]+:', line):  # new k/v pair
                     if key and value:  # save old one from stack
                         del self.mail[key]  # ensure unique values in mails
                         self.mail[key] = encode_header(key, value)  # save
@@ -166,9 +183,8 @@ class EnvelopeEditCommand(Command):
                 ui.current_buffer.set_email(self.mail)
 
         # decode header
-        edit_headers = ['Subject', 'To', 'From']
         headertext = u''
-        for key in edit_headers:
+        for key in self.edit_headers:
             value = u''
             if key in self.mail:
                 value = decode_header(self.mail.get(key, ''))
@@ -191,8 +207,9 @@ class EnvelopeEditCommand(Command):
 
         #write stuff to tempfile
         tf = tempfile.NamedTemporaryFile(delete=False)
-        content = '%s\n\n%s' % (headertext,
-                                bodytext)
+        content = bodytext
+        if headertext:
+            content = '%s\n\n%s' % (headertext, content)
         tf.write(content.encode('utf-8'))
         tf.flush()
         tf.close()
