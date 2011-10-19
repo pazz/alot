@@ -8,6 +8,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import urwid
 from twisted.internet import defer
+import logging
 
 from alot.commands import Command, registerCommand
 from alot import buffers
@@ -177,11 +178,23 @@ class EditCommand(ExternalCommand):
             self.thread = thread
         else:
             self.thread = settings.config.getboolean('general', 'editor_in_thread')
-        editor_cmd = settings.config.get('general', 'editor_cmd')
 
-        ExternalCommand.__init__(self, editor_cmd, path=self.path,
+        self.editor_cmd = None
+        if os.path.isfile('/usr/bin/editor'):
+            self.editor_cmd = '/usr/bin/editor'
+        self.editor_cmd = os.environ.get('EDITOR', self.editor_cmd)
+        self.editor_cmd = settings.config.get('general', 'editor_cmd',
+                                         fallback=self.editor_cmd)
+        logging.debug('using editor_cmd: %s' %self.editor_cmd)
+
+        ExternalCommand.__init__(self, self.editor_cmd, path=self.path,
                                  spawn=self.spawn, thread=self.thread,
                                  **kwargs)
+    def apply(self, ui):
+        if self.editor_cmd == None:
+            ui.notify('no editor set', priority='error')
+        else:
+            return ExternalCommand.apply(self, ui)
 
 
 @registerCommand(MODE, 'pyshell',

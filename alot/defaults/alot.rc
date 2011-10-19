@@ -28,7 +28,10 @@ terminal_cmd = x-terminal-emulator -e
 # EDITOR settings  #
 ####################
 # editor command
-editor_cmd = /usr/bin/vim -f -c 'set filetype=mail' +
+# if unset, alot will first the EDITOR env variable, then /usr/bin/editor
+#editor_cmd = /usr/bin/vim -f -c 'set filetype=mail' +
+
+# file encoding used by your editor
 editor_writes_encoding = UTF-8
 
 # use terminal_command to spawn a new terminal for the editor?
