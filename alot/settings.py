@@ -37,7 +37,7 @@ class FallbackConfigParser(SafeConfigParser):
 
     def getstringlist(self, section, option, **kwargs):
         value = self.get(section, option, **kwargs)
-        return [s.strip() for s in value.split(',')]
+        return [s.strip() for s in value.split(',') if s.strip()]
 
 
 class AlotConfigParser(FallbackConfigParser):
