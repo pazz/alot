@@ -43,6 +43,11 @@ show_statusbar = True
 # use terminal_command to spawn a new terminal for the editor?
 spawn_editor = False
 
+# call editor in separate thread.
+# in case your editor doesn't run in the same window as alot, setting true here
+# will make alot non-blocking during edits
+editor_in_thread = False
+
 # set terminal for asynchronous editing
 terminal_cmd = x-terminal-emulator -e
 

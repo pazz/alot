@@ -167,16 +167,20 @@ class ExternalCommand(Command):
 #)
 class EditCommand(ExternalCommand):
     """opens editor"""
-    def __init__(self, path, spawn=None, **kwargs):
+    def __init__(self, path, spawn=None, thread=None, **kwargs):
         self.path = path
         if spawn != None:
             self.spawn = spawn
         else:
             self.spawn = settings.config.getboolean('general', 'spawn_editor')
+        if thread != None:
+            self.thread = thread
+        else:
+            self.thread = settings.config.getboolean('general', 'editor_in_thread')
         editor_cmd = settings.config.get('general', 'editor_cmd')
 
         ExternalCommand.__init__(self, editor_cmd, path=self.path,
-                                 spawn=self.spawn, thread=self.spawn,
+                                 spawn=self.spawn, thread=self.thread,
                                  **kwargs)
 
 
