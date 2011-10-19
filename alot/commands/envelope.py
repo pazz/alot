@@ -131,7 +131,6 @@ class EnvelopeEditCommand(Command):
         self.edit_headers = edit_headers - blacklist
         ui.logger.info('editable headers: %s' % blacklist)
 
-
         def openEnvelopeFromTmpfile():
             # This parses the input from the tempfile.
             # we do this ourselves here because we want to be able to
