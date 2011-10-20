@@ -260,18 +260,16 @@ def encode_header(key, value):
         rawentries = value.split(',')
         encodedentries = []
         for entry in rawentries:
-            m = re.search('\s*(.*)\s+<(.*\@.*\.\w*)>$', entry)
+            m = re.search('\s*(.*)\s+<(.*\@.*\.\w*)>\s*$', entry)
             if m:  # If a realname part is contained
                 name, address = m.groups()
                 # try to encode as ascii, if that fails, revert to utf-8
                 # name must be a unicode string here
-                header = Header(name)
+                namepart = Header(name)
                 # append address part encoded as ascii
-                header.append('<%s>' % address, charset='ascii')
-                encodedentries.append(header.encode())
-            else:  # pure email address
-                encodedentries.append(entry)
-        value = Header(','.join(encodedentries))
+                entry = '%s <%s>' % (namepart.encode(), address)
+            encodedentries.append(entry)
+        value = Header(', '.join(encodedentries))
     else:
         value = Header(value)
     return value
