@@ -526,16 +526,7 @@ class MessageHeaderWidget(urwid.AttrMap):
         for key in displayed:
             #todo: parse from,cc,bcc seperately into name-addr-widgets
             if key in self.eml:
-                valuelist = email.header.decode_header(self.eml[key])
-                value = ''
-                for v, enc in valuelist:
-                    if enc:
-                        value = value + v.decode(enc)
-                    else:
-                        value = value + v
-                #sanitize it a bit:
-                value = value.replace('\t', ' ')
-                value = ' '.join([line.strip() for line in value.splitlines()])
+                value = message.decode_header(self.eml.get(key))
                 keyw = ('fixed', max_key_len + 1,
                         urwid.Text(('message_header_key', key)))
                 valuew = urwid.Text(('message_header_value', value))
