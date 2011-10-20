@@ -5,6 +5,7 @@ from email import Charset
 from email.header import Header
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.iterators import body_line_iterator
 from twisted.internet import defer
 
 from alot.commands import Command, registerCommand
@@ -242,17 +243,20 @@ class ToggleHeaderCommand(Command):
 @registerCommand(MODE, 'pipeto', arguments=[
     (['cmd'], {'help':'shellcommand to pipe to'}),
     (['--all'], {'action': 'store_true', 'help':'pass all messages'}),
+    (['--decode'], {'action': 'store_true',
+                    'help':'use only decoded body lines'}),
     (['--separately'], {'action': 'store_true',
                         'help':'call command once for each message'})],
     help='pipe message(s) to stdin of a shellcommand')
 class PipeCommand(Command):
-    def __init__(self, cmd, all=False, separately=False,
+    def __init__(self, cmd, all=False, separately=False, decode=True,
                  noop_msg='no command specified', confirm_msg='',
                  done_msg='done', **kwargs):
         Command.__init__(self, **kwargs)
         self.cmd = cmd
         self.whole_thread = all
         self.separately = separately
+        self.decode = decode
         self.noop_msg = noop_msg
         self.confirm_msg = confirm_msg
         self.done_msg = done_msg
@@ -280,7 +284,13 @@ class PipeCommand(Command):
                 return
 
         # prepare message sources
-        mailstrings = [m.get_email().as_string() for m in to_print]
+        mails = [m.get_email() for m in to_print]
+        if self.decode:
+            #TODO: include header
+            #TODO: add flag to exclude html
+            mailstrings = [''.join(body_line_iterator(e, True)) for e in mails]
+        else:
+            mailstrings = [e.as_string() for e in mails]
         if not self.separately:
             mailstrings = ['\n\n'.join(mailstrings)]
 
@@ -298,11 +308,12 @@ class PipeCommand(Command):
 
 @registerCommand(MODE, 'print', arguments=[
     (['--all'], {'action': 'store_true', 'help':'print all messages'}),
+    (['--raw'], {'action': 'store_true', 'help':'pass raw mail string'}),
     (['--separately'], {'action': 'store_true',
                         'help':'call print command once for each message'})],
     help='print message(s)')
 class PrintCommand(PipeCommand):
-    def __init__(self, all=False, separately=False, **kwargs):
+    def __init__(self, all=False, separately=False, raw=False, **kwargs):
         # get print command
         cmd = settings.config.get('general', 'print_cmd', fallback='')
 
@@ -319,6 +330,7 @@ class PrintCommand(PipeCommand):
                     'global section.'
         PipeCommand.__init__(self, cmd, all=all,
                              separately=separately,
+                             decode=not raw,
                              noop_msg=noop_msg, confirm_msg=confirm_msg,
                              done_msg=ok_msg, **kwargs)
 
