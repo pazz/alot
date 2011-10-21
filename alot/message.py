@@ -246,9 +246,9 @@ def decode_header(header):
     decoded_list = []
     for v, enc in valuelist:
         if enc:
-            decoded_list.append(v.decode(enc))
-        else:
-            decoded_list.append(v)
+            v = v.decode(enc, errors='replace')
+        #v = re.sub('^\s+', ' ', v, flags=re.MULTILINE)
+        decoded_list.append(v)
     return u' '.join(decoded_list)
 
 
