@@ -13,6 +13,7 @@ from alot import helper
 from alot.message import decode_to_unicode
 from alot.message import decode_header
 from alot.message import encode_header
+from alot.message import extract_headers
 from alot.commands.globals import EditCommand
 from alot.commands.globals import BufferCloseCommand
 from alot.commands.globals import EnvelopeOpenCommand
@@ -183,12 +184,7 @@ class EnvelopeEditCommand(Command):
                 ui.current_buffer.set_email(self.mail)
 
         # decode header
-        headertext = u''
-        for key in self.edit_headers:
-            value = u''
-            if key in self.mail:
-                value = decode_header(self.mail.get(key, ''))
-            headertext += '%s: %s\n' % (key, value)
+        headertext = extract_headers(self.mail, self.edit_headers)
 
         if self.mail.is_multipart():
             for part in self.mail.walk():

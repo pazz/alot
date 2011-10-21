@@ -128,6 +128,9 @@ class Message(object):
         """returns realname and address pair of this messages author"""
         return email.Utils.parseaddr(self._from)
 
+    def get_headers_string(self, headers):
+        return extract_headers(self.get_mail(), headers)
+
     def add_tags(self, tags):
         """adds tags to message
 
@@ -173,6 +176,18 @@ class Message(object):
                     raw_payload = unicode(raw_payload, errors='replace')
                 res += raw_payload
         return res
+
+
+def extract_headers(mail, headers=None):
+    headertext = u''
+    if headers == None:
+        headers = mail.keys()
+    for key in headers:
+        value = u''
+        if key in mail:
+            value = decode_header(mail.get(key, ''))
+        headertext += '%s: %s\n' % (key, value)
+    return headertext
 
 
 def extract_body(mail):
