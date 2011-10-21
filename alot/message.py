@@ -43,7 +43,10 @@ class Message(object):
         self._id = msg.get_message_id()
         self._thread_id = msg.get_thread_id()
         self._thread = thread
-        self._datetime = datetime.fromtimestamp(msg.get_date())
+        try:
+            self._datetime = datetime.fromtimestamp(msg.get_date())
+        except ValueError:  # year is out of range
+            self._datetime = None
         self._filename = msg.get_filename()
         self._from = msg.get_header('From')
         self._email = None  # will be read upon first use
@@ -117,6 +120,8 @@ class Message(object):
 
     def get_datestring(self):
         """returns formated datestring"""
+        if self._datetime == None:
+            return None
         formatstring = config.get('general', 'timestamp_format')
         if formatstring:
             res = self._datetime.strftime(formatstring)
@@ -190,8 +195,17 @@ def extract_headers(mail, headers=None):
     return headertext
 
 
+def urwid_sanitize(string):
+    tab_width = config.getint('general', 'tabwidth')
+    string = string.strip()
+    string = string.replace('\t', ' ' * tab_width)
+    string = string.replace('\r', '')
+    return string
+
+
 def extract_body(mail):
     body_parts = []
+    tab_width = config.getint('general', 'tabwidth')
     for part in mail.walk():
         ctype = part.get_content_type()
         enc = part.get_content_charset() or 'ascii'
@@ -199,7 +213,7 @@ def extract_body(mail):
         if part.get_content_maintype() == 'text':
             raw_payload = unicode(raw_payload, enc, errors='replace')
         if ctype == 'text/plain':
-            body_parts.append(raw_payload)
+            body_parts.append(urwid_sanitize(raw_payload))
         else:
             #get mime handler
             handler = get_mime_handler(ctype, key='view',
@@ -220,9 +234,9 @@ def extract_body(mail):
                 #remove tempfile
                 os.unlink(tmpfile.name)
                 if rendered_payload:  # handler had output
-                    body_parts.append(rendered_payload.strip())
+                    body_parts.append(urwid_sanitize(rendered_payload))
                 elif part.get_content_maintype() == 'text':
-                    body_parts.append(raw_payload)
+                    body_parts.append(urwid_sanitize(raw_payload))
                 # else drop
     return '\n\n'.join(body_parts)
 
@@ -251,11 +265,11 @@ def decode_header(header):
 
     valuelist = email.header.decode_header(header)
     decoded_list = []
+    tab_width = config.getint('general', 'tabwidth')
     for v, enc in valuelist:
         if enc:
-            decoded_list.append(v.decode(enc))
-        else:
-            decoded_list.append(v)
+            v = v.decode(enc, errors='replace')
+        decoded_list.append(urwid_sanitize(v))
     return u' '.join(decoded_list)
 
 
@@ -272,18 +286,16 @@ def encode_header(key, value):
         rawentries = value.split(',')
         encodedentries = []
         for entry in rawentries:
-            m = re.search('\s*(.*)\s+<(.*\@.*\.\w*)>$', entry)
+            m = re.search('\s*(.*)\s+<(.*\@.*\.\w*)>\s*$', entry)
             if m:  # If a realname part is contained
                 name, address = m.groups()
                 # try to encode as ascii, if that fails, revert to utf-8
                 # name must be a unicode string here
-                header = Header(name)
+                namepart = Header(name)
                 # append address part encoded as ascii
-                header.append('<%s>' % address, charset='ascii')
-                encodedentries.append(header.encode())
-            else:  # pure email address
-                encodedentries.append(entry)
-        value = Header(','.join(encodedentries))
+                entry = '%s <%s>' % (namepart.encode(), address)
+            encodedentries.append(entry)
+        value = Header(', '.join(encodedentries))
     else:
         value = Header(value)
     return value

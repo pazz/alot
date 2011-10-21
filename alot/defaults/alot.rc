@@ -12,6 +12,9 @@ bufferclose_focus_offset=-1
 # number of colours your terminal supports
 colourmode = 256
 
+# number of spaces used to replace tab characters
+tabwidth = 8
+
 # fill threadline with message content
 display_content_in_threadline = False
 

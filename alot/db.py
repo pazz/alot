@@ -204,8 +204,16 @@ class Thread(object):
         self._authors = thread.get_authors()
         self._subject = thread.get_subject()
         ts = thread.get_oldest_date()
-        self._oldest_date = datetime.fromtimestamp(ts)
-        self._newest_date = datetime.fromtimestamp(thread.get_newest_date())
+
+        try:
+            self._oldest_date = datetime.fromtimestamp(ts)
+        except ValueError: # year is out of range
+            self._oldest_date = None
+        try:
+            self._newest_date = datetime.fromtimestamp(thread.get_newest_date())
+        except ValueError: # year is out of range
+            self._newest_date = None
+
         self._tags = set([t for t in thread.get_tags()])
         self._messages = {}  # this maps messages to its children
         self._toplevel_messages = []
