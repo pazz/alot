@@ -185,13 +185,10 @@ def extract_body(mail):
     tab_width = config.getint('general', 'tabwidth')
     for part in mail.walk():
         ctype = part.get_content_type()
-        enc = part.get_content_charset()
+        enc = part.get_content_charset() or 'ascii'
         raw_payload = part.get_payload(decode=True)
         if part.get_content_maintype() == 'text':
-            if enc:
-                raw_payload = unicode(raw_payload, enc, errors='replace')
-            else:
-                raw_payload = unicode(raw_payload, errors='replace')
+            raw_payload = unicode(raw_payload, enc, errors='replace')
         if ctype == 'text/plain':
             body_parts.append(raw_payload)
         else:
