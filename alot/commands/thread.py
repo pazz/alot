@@ -6,6 +6,7 @@ from email.header import Header
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.iterators import body_line_iterator
+from email.iterators import typed_subpart_iterator
 from twisted.internet import defer
 
 from alot.commands import Command, registerCommand
@@ -289,13 +290,26 @@ class PipeCommand(Command):
         mailstrings = []
         if self.decode:
             for mail in mails:
-                #displayed = settings.config.getstringlist('general', 'displayed_headers')
-                displayed = mail.keys()
-                headertext = extract_headers(mail, displayed)
-                bodytext = ''.join(body_line_iterator(mail, True))
+                headertext = extract_headers(mail)
 
-                #TODO: add flag to exclude html
-                mailstrings.append('%s\n\n%s' % (headertext, bodytext))
+                html = list(typed_subpart_iterator(mail, 'text', 'html'))
+                plain = list(typed_subpart_iterator(mail, 'text', 'plain'))
+
+                # body
+                partsstrings = []
+                # only take html parts if no plaintext alternative exists
+                parts = plain
+                if html and not plain:
+                    parts = html
+
+                for part in parts:
+                    enc = part.get_content_charset() or 'ascii'
+                    partstring = ''.join(body_line_iterator(part, True))
+                    decoded = unicode(partstring, enc, errors='replace')
+                    partsstrings.append(decoded)
+                bodytext = '\n\n'.join(partsstrings)
+                msg = '%s\n\n %s' % (headertext, bodytext)
+                mailstrings.append(msg.encode('utf-8'))
         else:
             mailstrings = [e.as_string() for e in mails]
         if not self.separately:
