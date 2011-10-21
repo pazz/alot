@@ -45,7 +45,7 @@ class Message(object):
         self._thread = thread
         try:
             self._datetime = datetime.fromtimestamp(msg.get_date())
-        except ValueError: # year is out of range
+        except ValueError:  # year is out of range
             self._datetime = None
         self._filename = msg.get_filename()
         self._from = msg.get_header('From')
@@ -180,6 +180,14 @@ class Message(object):
         return res
 
 
+def urwid_sanitize(string):
+    tab_width = config.getint('general', 'tabwidth')
+    string = string.strip()
+    string = string.replace('\t', ' ' * tab_width)
+    string = string.replace('\r', '')
+    return string
+
+
 def extract_body(mail):
     body_parts = []
     tab_width = config.getint('general', 'tabwidth')
@@ -190,7 +198,7 @@ def extract_body(mail):
         if part.get_content_maintype() == 'text':
             raw_payload = unicode(raw_payload, enc, errors='replace')
         if ctype == 'text/plain':
-            body_parts.append(raw_payload)
+            body_parts.append(urwid_sanitize(raw_payload))
         else:
             #get mime handler
             handler = get_mime_handler(ctype, key='view',
@@ -211,11 +219,10 @@ def extract_body(mail):
                 #remove tempfile
                 os.unlink(tmpfile.name)
                 if rendered_payload:  # handler had output
-                    payload = rendered_payload.strip()
+                    body_parts.append(urwid_sanitize(rendered_payload))
                 elif part.get_content_maintype() == 'text':
-                    payload = raw_payload
+                    body_parts.append(urwid_sanitize(raw_payload))
                 # else drop
-                body_parts.append(payload.replace('\t', ' ' * tab_width))
     return '\n\n'.join(body_parts)
 
 
@@ -246,9 +253,8 @@ def decode_header(header):
     tab_width = config.getint('general', 'tabwidth')
     for v, enc in valuelist:
         if enc:
-            v = v.decode(enc, errors='replace').strip()
-        v = v.replace('\t', ' ' * tab_width)
-        decoded_list.append(v)
+            v = v.decode(enc, errors='replace')
+        decoded_list.append(urwid_sanitize(v))
     return u' '.join(decoded_list)
 
 
