@@ -83,12 +83,15 @@ class ThreadlineWidget(urwid.AttrMap):
 
     def rebuild(self):
         cols = []
-        formatstring = config.get('general', 'timestamp_format')
         newest = self.thread.get_newest_date()
-        if formatstring:
-            datestring = newest.strftime(formatstring)
+        if newest == None:
+            datestring = u' ' * 10
         else:
-            datestring = pretty_datetime(newest).rjust(10)
+            formatstring = config.get('general', 'timestamp_format')
+            if formatstring:
+                datestring = newest.strftime(formatstring)
+            else:
+                datestring = pretty_datetime(newest).rjust(10)
         self.date_w = urwid.AttrMap(urwid.Text(datestring), 'threadline_date')
         cols.append(('fixed', len(datestring), self.date_w))
 
