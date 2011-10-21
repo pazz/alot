@@ -528,15 +528,16 @@ class MessageHeaderWidget(urwid.AttrMap):
             displayed = self.eml.keys()
         if hidden:
             displayed = filter(lambda x: x not in hidden, displayed)
+        #calc max length of key-string
         for key in displayed:
             if key in self.eml:
                 if len(key) > max_key_len:
                     max_key_len = len(key)
-        for key in displayed:
+        for key, value in self.eml.items():
             #todo: parse from,cc,bcc seperately into name-addr-widgets
             # TODO: check indexed keys for None and highlight as invalid
-            if key in self.eml:
-                value = message.decode_header(self.eml.get(key))
+            if key in displayed:
+                value = message.decode_header(value)
                 keyw = ('fixed', max_key_len + 1,
                         urwid.Text(('message_header_key', key)))
                 valuew = urwid.Text(('message_header_value', value))
