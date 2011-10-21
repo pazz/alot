@@ -470,7 +470,13 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         urwid.WidgetWrap.__init__(self, txt)
 
     def __str__(self):
-        return self.message.__str__()
+        author, address = self.message.get_author()
+        date = self.message.get_datestring()
+        if date == None:
+            rep = author
+        else:
+            rep = '%s (%s)' % (author, date)
+        return rep
 
     def selectable(self):
         return True
@@ -525,6 +531,7 @@ class MessageHeaderWidget(urwid.AttrMap):
                     max_key_len = len(key)
         for key in displayed:
             #todo: parse from,cc,bcc seperately into name-addr-widgets
+            # TODO: check indexed keys for None and highlight as invalid
             if key in self.eml:
                 value = message.decode_header(self.eml.get(key))
                 keyw = ('fixed', max_key_len + 1,

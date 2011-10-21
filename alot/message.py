@@ -43,7 +43,10 @@ class Message(object):
         self._id = msg.get_message_id()
         self._thread_id = msg.get_thread_id()
         self._thread = thread
-        self._datetime = datetime.fromtimestamp(msg.get_date())
+        try:
+            self._datetime = datetime.fromtimestamp(msg.get_date())
+        except ValueError: # year is out of range
+            self._datetime = None
         self._filename = msg.get_filename()
         self._from = msg.get_header('From')
         self._email = None  # will be read upon first use
@@ -117,6 +120,8 @@ class Message(object):
 
     def get_datestring(self):
         """returns formated datestring"""
+        if self._datetime == None:
+            return None
         formatstring = config.get('general', 'timestamp_format')
         if formatstring:
             res = self._datetime.strftime(formatstring)
