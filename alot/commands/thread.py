@@ -18,6 +18,7 @@ from alot import completion
 from alot import helper
 from alot.message import encode_header
 from alot.message import decode_header
+from alot.message import extract_headers
 
 MODE = 'thread'
 
@@ -285,10 +286,16 @@ class PipeCommand(Command):
 
         # prepare message sources
         mails = [m.get_email() for m in to_print]
+        mailstrings = []
         if self.decode:
-            #TODO: include header
-            #TODO: add flag to exclude html
-            mailstrings = [''.join(body_line_iterator(e, True)) for e in mails]
+            for mail in mails:
+                #displayed = settings.config.getstringlist('general', 'displayed_headers')
+                displayed = mail.keys()
+                headertext = extract_headers(mail, displayed)
+                bodytext = ''.join(body_line_iterator(mail, True))
+
+                #TODO: add flag to exclude html
+                mailstrings.append('%s\n\n%s' % (headertext, bodytext))
         else:
             mailstrings = [e.as_string() for e in mails]
         if not self.separately:
