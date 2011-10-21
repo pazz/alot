@@ -182,6 +182,7 @@ class Message(object):
 
 def extract_body(mail):
     body_parts = []
+    tab_width = config.getint('general', 'tabwidth')
     for part in mail.walk():
         ctype = part.get_content_type()
         enc = part.get_content_charset()
@@ -213,10 +214,11 @@ def extract_body(mail):
                 #remove tempfile
                 os.unlink(tmpfile.name)
                 if rendered_payload:  # handler had output
-                    body_parts.append(rendered_payload.strip())
+                    payload = rendered_payload.strip()
                 elif part.get_content_maintype() == 'text':
-                    body_parts.append(raw_payload)
+                    payload = raw_payload
                 # else drop
+                body_parts.append(payload.replace('\t', ' ' * tab_width))
     return '\n\n'.join(body_parts)
 
 
@@ -244,10 +246,11 @@ def decode_header(header):
 
     valuelist = email.header.decode_header(header)
     decoded_list = []
+    tab_width = config.getint('general', 'tabwidth')
     for v, enc in valuelist:
         if enc:
-            v = v.decode(enc, errors='replace')
-        #v = re.sub('^\s+', ' ', v, flags=re.MULTILINE)
+            v = v.decode(enc, errors='replace').strip()
+        v = v.replace('\t', ' ' * tab_width)
         decoded_list.append(v)
     return u' '.join(decoded_list)
 
