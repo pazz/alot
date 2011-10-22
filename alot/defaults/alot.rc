@@ -134,7 +134,7 @@ s = 'refine Subject'
 t = 'refine To'
 b = 'refine Bcc'
 c = 'refine Cc'
-select = reedit
+select = edit
 H = toggleheaders
 
 [taglist-maps]

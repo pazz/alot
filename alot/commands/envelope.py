@@ -107,7 +107,7 @@ class EnvelopeSendCommand(Command):
                       priority='error')
 
 
-@registerCommand(MODE, 'reedit', help='edit currently open mail')
+@registerCommand(MODE, 'edit', help='edit currently open mail')
 class EnvelopeEditCommand(Command):
     def __init__(self, mail=None, **kwargs):
         self.mail = mail
