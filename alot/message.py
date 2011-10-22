@@ -237,16 +237,6 @@ def extract_body(mail, types=None):
     return '\n\n'.join(body_parts)
 
 
-def decode_to_unicode(part):
-    enc = part.get_content_charset()
-    raw_payload = part.get_payload(decode=True)
-    if enc:
-        raw_payload = unicode(raw_payload, enc)
-    else:
-        raw_payload = unicode(raw_payload, errors='replace')
-    return raw_payload
-
-
 def decode_header(header):
     """decode a header value to a unicode string
 
