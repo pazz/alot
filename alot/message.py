@@ -23,6 +23,7 @@ import re
 import mimetypes
 from datetime import datetime
 from email.header import Header
+from email.iterators import typed_subpart_iterator
 
 import helper
 from settings import get_mime_handler
@@ -204,15 +205,20 @@ def urwid_sanitize(string):
 
 
 def extract_body(mail):
+    html = list(typed_subpart_iterator(mail, 'text', 'html'))
+
+    drop_plaintext = False
+    if html:
+        drop_plaintext = True
+
     body_parts = []
-    tab_width = config.getint('general', 'tabwidth')
     for part in mail.walk():
         ctype = part.get_content_type()
         enc = part.get_content_charset() or 'ascii'
         raw_payload = part.get_payload(decode=True)
         if part.get_content_maintype() == 'text':
             raw_payload = unicode(raw_payload, enc, errors='replace')
-        if ctype == 'text/plain':
+        if ctype == 'text/plain' and not drop_plaintext:
             body_parts.append(urwid_sanitize(raw_payload))
         else:
             #get mime handler
