@@ -359,8 +359,6 @@ class UI(object):
             cols = urwid.Columns([urwid.Text(msg)])
             return urwid.AttrMap(cols, 'notify_' + prio)
         msgs = [build_line(message, priority)]
-        if timeout == -1 and block:
-            msgs.append(build_line('(hit any key to proceed)', 'normal'))
 
         if not self.notificationbar:
             self.notificationbar = urwid.Pile(msgs)
