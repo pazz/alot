@@ -158,7 +158,7 @@ class UI(object):
                 ('fixed', len(prefix), leftpart),
                 ('weight', 1, editpart),
             ])
-        urwid.AttrMap(both, 'prompt', 'prompt')
+        both = urwid.AttrMap(both, 'prompt', 'prompt')
 
         # put promptwidget as overlay on main widget
         overlay = urwid.Overlay(both, oldroot,
