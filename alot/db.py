@@ -207,11 +207,12 @@ class Thread(object):
 
         try:
             self._oldest_date = datetime.fromtimestamp(ts)
-        except ValueError: # year is out of range
+        except ValueError:  # year is out of range
             self._oldest_date = None
         try:
-            self._newest_date = datetime.fromtimestamp(thread.get_newest_date())
-        except ValueError: # year is out of range
+            timestamp = thread.get_newest_date()
+            self._newest_date = datetime.fromtimestamp(timestamp)
+        except ValueError:  # year is out of range
             self._newest_date = None
 
         self._tags = set([t for t in thread.get_tags()])

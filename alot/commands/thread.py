@@ -293,7 +293,7 @@ class PipeCommand(Command):
             for mail in mails:
                 headertext = extract_headers(mail)
                 bodytext = extract_body(mail)
-                msg = '%s\n\n %s' % (headertext, bodytext)
+                msg = '%s\n\n%s' % (headertext, bodytext)
                 mailstrings.append(msg.encode('utf-8'))
         else:
             mailstrings = [e.as_string() for e in mails]
