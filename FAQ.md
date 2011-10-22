@@ -34,7 +34,7 @@ I want feature X!
 -----------------
 Me too! Feel free to file a new (or comment on an existing) [issue][issue] if you don't
 want/have the time/know how to implement it yourself. Be verbose as to
-how it should look or work when its finished and give it some thought how you
+how it should look or work when it's finished and give it some thought how you
 think we should implement it. We'll discuss it from there.
 
 Why are the default key bindings so counter-intuitive?
