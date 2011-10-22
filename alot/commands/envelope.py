@@ -6,6 +6,7 @@ import email
 import tempfile
 from email import Charset
 from twisted.internet import defer
+import threading
 
 from alot.commands import Command, registerCommand
 from alot import settings
@@ -105,15 +106,30 @@ class EnvelopeSendCommand(Command):
 
         # send
         clearme = ui.notify('sending..', timeout=-1)
-        # TODO: next cmd blocks he interface!! must use defer here
-        reason = account.send_mail(mail)
-        ui.clear_notify([clearme])
-        if not reason:  # sucessfully send mail
-            cmd = BufferCloseCommand(buffer=envelope)
-            ui.apply_command(cmd)
-            ui.notify('mail send successful')
-        else:
-            ui.notify('failed to send: %s' % reason, priority='error')
+
+        def afterwards(returnvalue):
+            ui.clear_notify([clearme])
+            if returnvalue is 'success':  # sucessfully send mail
+                cmd = BufferCloseCommand(buffer=envelope)
+                ui.apply_command(cmd)
+                ui.notify('mail send successful')
+            else:
+                ui.notify('failed to send: %s' % returnvalue,
+                          priority='error')
+
+        write_fd = ui.mainloop.watch_pipe(afterwards)
+
+        def thread_code():
+            ui.logger.debug('THREAD:SEND')
+            ret = account.send_mail(mail)
+            ui.logger.debug('THREAD:SEND')
+            os.write(write_fd, ret or 'success')
+
+        ui.logger.debug('STARTING THREAD')
+        #thread_code()
+
+        thread = threading.Thread(target=thread_code)
+        thread.start()
 
 
 @registerCommand(MODE, 'edit', help='edit currently open mail')
