@@ -49,8 +49,10 @@ def string_decode(string, enc='ascii'):
         enc = 'ascii'
     try:
         string = unicode(string, enc, errors='replace')
-    except LookupError:
+    except LookupError:  # malformed enc string
         string = string.decode('ascii', errors='replace')
+    except TypeError:  # already unicode
+        pass
     return string
 
 
