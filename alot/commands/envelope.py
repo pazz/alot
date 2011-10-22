@@ -156,6 +156,8 @@ class EnvelopeEditCommand(Command):
                                      config=settings.config)
 
             # go through multiline, utf-8 encoded headers
+            # we decode the edited text ourselves here as
+            # email.message_from_file can't deal with raw utf8 header values
             key = value = None
             for line in headertext.splitlines():
                 if re.match('[a-zA-Z0-9_-]+:', line):  # new k/v pair
