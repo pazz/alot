@@ -327,7 +327,7 @@ class UI(object):
                 ], dividechars=1)
         else:  # above
             both = urwid.Pile([msgpart, choicespart])
-        urwid.AttrMap(both, 'prompt', 'prompt')
+        both = urwid.AttrMap(both, 'prompt', 'prompt')
 
         # put promptwidget as overlay on main widget
         overlay = urwid.Overlay(both, oldroot,
