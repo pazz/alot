@@ -20,6 +20,7 @@ from alot import helper
 from alot.message import encode_header
 from alot.message import decode_header
 from alot.message import extract_headers
+from alot.message import extract_body
 
 MODE = 'thread'
 
@@ -291,23 +292,7 @@ class PipeCommand(Command):
         if self.decode:
             for mail in mails:
                 headertext = extract_headers(mail)
-
-                html = list(typed_subpart_iterator(mail, 'text', 'html'))
-                plain = list(typed_subpart_iterator(mail, 'text', 'plain'))
-
-                # body
-                partsstrings = []
-                # only take html parts if no plaintext alternative exists
-                parts = plain
-                if html and not plain:
-                    parts = html
-
-                for part in parts:
-                    enc = part.get_content_charset() or 'ascii'
-                    partstring = ''.join(body_line_iterator(part, True))
-                    decoded = unicode(partstring, enc, errors='replace')
-                    partsstrings.append(decoded)
-                bodytext = '\n\n'.join(partsstrings)
+                bodytext = extract_body(mail)
                 msg = '%s\n\n %s' % (headertext, bodytext)
                 mailstrings.append(msg.encode('utf-8'))
         else:
