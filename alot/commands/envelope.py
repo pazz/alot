@@ -10,10 +10,10 @@ from twisted.internet import defer
 from alot.commands import Command, registerCommand
 from alot import settings
 from alot import helper
-from alot.message import decode_to_unicode
 from alot.message import decode_header
 from alot.message import encode_header
 from alot.message import extract_headers
+from alot.message import extract_body
 from alot.commands.globals import EditCommand
 from alot.commands.globals import BufferCloseCommand
 from alot.commands.globals import EnvelopeOpenCommand
@@ -186,13 +186,7 @@ class EnvelopeEditCommand(Command):
         # decode header
         headertext = extract_headers(self.mail, self.edit_headers)
 
-        if self.mail.is_multipart():
-            for part in self.mail.walk():
-                if part.get_content_maintype() == 'text':
-                    bodytext = decode_to_unicode(part)
-                    break
-        else:
-            bodytext = decode_to_unicode(self.mail)
+        bodytext = extract_body(self.mail)
 
         # call pre-edit translate hook
         translate = settings.hooks.get('pre_edit_translate')
