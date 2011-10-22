@@ -31,6 +31,17 @@ from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
 import urwid
 
+from settings import config
+
+
+def string_sanitize(string):
+    """strips, and replaces non-printable characters"""
+    tab_width = config.getint('general', 'tabwidth')
+    string = string.strip()
+    string = string.replace('\t', ' ' * tab_width)
+    string = string.replace('\r', '')
+    return string
+
 
 def shorten(string, maxlen):
     if maxlen > 1 and len(string) > maxlen:

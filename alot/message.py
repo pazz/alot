@@ -28,6 +28,7 @@ from email.iterators import typed_subpart_iterator
 import helper
 from settings import get_mime_handler
 from settings import config
+from helper import string_sanitize
 
 
 class Message(object):
@@ -196,14 +197,6 @@ def extract_headers(mail, headers=None):
     return headertext
 
 
-def urwid_sanitize(string):
-    tab_width = config.getint('general', 'tabwidth')
-    string = string.strip()
-    string = string.replace('\t', ' ' * tab_width)
-    string = string.replace('\r', '')
-    return string
-
-
 def extract_body(mail):
     html = list(typed_subpart_iterator(mail, 'text', 'html'))
 
@@ -219,7 +212,7 @@ def extract_body(mail):
         if part.get_content_maintype() == 'text':
             raw_payload = unicode(raw_payload, enc, errors='replace')
         if ctype == 'text/plain' and not drop_plaintext:
-            body_parts.append(urwid_sanitize(raw_payload))
+            body_parts.append(string_sanitize(raw_payload))
         else:
             #get mime handler
             handler = get_mime_handler(ctype, key='view',
@@ -240,9 +233,9 @@ def extract_body(mail):
                 #remove tempfile
                 os.unlink(tmpfile.name)
                 if rendered_payload:  # handler had output
-                    body_parts.append(urwid_sanitize(rendered_payload))
+                    body_parts.append(string_sanitize(rendered_payload))
                 elif part.get_content_maintype() == 'text':
-                    body_parts.append(urwid_sanitize(raw_payload))
+                    body_parts.append(string_sanitize(raw_payload))
                 # else drop
     return '\n\n'.join(body_parts)
 
@@ -271,11 +264,10 @@ def decode_header(header):
 
     valuelist = email.header.decode_header(header)
     decoded_list = []
-    tab_width = config.getint('general', 'tabwidth')
     for v, enc in valuelist:
         if enc:
             v = v.decode(enc, errors='replace')
-        decoded_list.append(urwid_sanitize(v))
+        decoded_list.append(string_sanitize(v))
     return u' '.join(decoded_list)
 
 
