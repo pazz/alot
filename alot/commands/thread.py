@@ -5,6 +5,8 @@ from email import Charset
 from email.header import Header
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.iterators import body_line_iterator
+from email.iterators import typed_subpart_iterator
 from twisted.internet import defer
 
 from alot.commands import Command, registerCommand
@@ -16,6 +18,9 @@ from alot import widgets
 from alot import completion
 from alot import helper
 from alot.message import encode_header
+from alot.message import decode_header
+from alot.message import extract_headers
+from alot.message import extract_body
 
 MODE = 'thread'
 
@@ -59,7 +64,7 @@ class ReplyCommand(Command):
         reply.attach(bodypart)
 
         # copy subject
-        subject = mail.get('Subject', '')
+        subject = decode_header(mail.get('Subject', ''))
         if not subject.startswith('Re:'):
             subject = 'Re: ' + subject
         reply['Subject'] = Header(subject.encode('utf-8'), 'UTF-8').encode()
@@ -176,7 +181,7 @@ class ForwardCommand(Command):
             reply.attach(mail)
 
         # copy subject
-        subject = mail.get('Subject', '')
+        subject = decode_header(mail.get('Subject', ''))
         subject = 'Fwd: ' + subject
         reply['Subject'] = Header(subject.encode('utf-8'), 'UTF-8').encode()
 
@@ -241,17 +246,20 @@ class ToggleHeaderCommand(Command):
 @registerCommand(MODE, 'pipeto', arguments=[
     (['cmd'], {'help':'shellcommand to pipe to'}),
     (['--all'], {'action': 'store_true', 'help':'pass all messages'}),
+    (['--decode'], {'action': 'store_true',
+                    'help':'use only decoded body lines'}),
     (['--separately'], {'action': 'store_true',
                         'help':'call command once for each message'})],
     help='pipe message(s) to stdin of a shellcommand')
 class PipeCommand(Command):
-    def __init__(self, cmd, all=False, separately=False,
+    def __init__(self, cmd, all=False, separately=False, decode=True,
                  noop_msg='no command specified', confirm_msg='',
                  done_msg='done', **kwargs):
         Command.__init__(self, **kwargs)
         self.cmd = cmd
         self.whole_thread = all
         self.separately = separately
+        self.decode = decode
         self.noop_msg = noop_msg
         self.confirm_msg = confirm_msg
         self.done_msg = done_msg
@@ -279,7 +287,16 @@ class PipeCommand(Command):
                 return
 
         # prepare message sources
-        mailstrings = [m.get_email().as_string() for m in to_print]
+        mails = [m.get_email() for m in to_print]
+        mailstrings = []
+        if self.decode:
+            for mail in mails:
+                headertext = extract_headers(mail)
+                bodytext = extract_body(mail)
+                msg = '%s\n\n%s' % (headertext, bodytext)
+                mailstrings.append(msg.encode('utf-8'))
+        else:
+            mailstrings = [e.as_string() for e in mails]
         if not self.separately:
             mailstrings = ['\n\n'.join(mailstrings)]
 
@@ -297,11 +314,12 @@ class PipeCommand(Command):
 
 @registerCommand(MODE, 'print', arguments=[
     (['--all'], {'action': 'store_true', 'help':'print all messages'}),
+    (['--raw'], {'action': 'store_true', 'help':'pass raw mail string'}),
     (['--separately'], {'action': 'store_true',
                         'help':'call print command once for each message'})],
     help='print message(s)')
 class PrintCommand(PipeCommand):
-    def __init__(self, all=False, separately=False, **kwargs):
+    def __init__(self, all=False, separately=False, raw=False, **kwargs):
         # get print command
         cmd = settings.config.get('general', 'print_cmd', fallback='')
 
@@ -318,6 +336,7 @@ class PrintCommand(PipeCommand):
                     'global section.'
         PipeCommand.__init__(self, cmd, all=all,
                              separately=separately,
+                             decode=not raw,
                              noop_msg=noop_msg, confirm_msg=confirm_msg,
                              done_msg=ok_msg, **kwargs)
 

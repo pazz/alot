@@ -8,6 +8,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import urwid
 from twisted.internet import defer
+import logging
 
 from alot.commands import Command, registerCommand
 from alot import buffers
@@ -167,17 +168,35 @@ class ExternalCommand(Command):
 #)
 class EditCommand(ExternalCommand):
     """opens editor"""
-    def __init__(self, path, spawn=None, **kwargs):
+    def __init__(self, path, spawn=None, thread=None, **kwargs):
         self.path = path
         if spawn != None:
             self.spawn = spawn
         else:
-            self.spawn = settings.config.getboolean('general', 'spawn_editor')
-        editor_cmd = settings.config.get('general', 'editor_cmd')
+            self.spawn = settings.config.getboolean('general', 'editor_spawn')
+        if thread != None:
+            self.thread = thread
+        else:
+            self.thread = settings.config.getboolean('general',
+                                                     'editor_in_thread')
 
-        ExternalCommand.__init__(self, editor_cmd, path=self.path,
-                                 spawn=self.spawn, thread=self.spawn,
+        self.editor_cmd = None
+        if os.path.isfile('/usr/bin/editor'):
+            self.editor_cmd = '/usr/bin/editor'
+        self.editor_cmd = os.environ.get('EDITOR', self.editor_cmd)
+        self.editor_cmd = settings.config.get('general', 'editor_cmd',
+                                         fallback=self.editor_cmd)
+        logging.debug('using editor_cmd: %s' % self.editor_cmd)
+
+        ExternalCommand.__init__(self, self.editor_cmd, path=self.path,
+                                 spawn=self.spawn, thread=self.thread,
                                  **kwargs)
+
+    def apply(self, ui):
+        if self.editor_cmd == None:
+            ui.notify('no editor set', priority='error')
+        else:
+            return ExternalCommand.apply(self, ui)
 
 
 @registerCommand(MODE, 'pyshell',
@@ -353,64 +372,100 @@ class HelpCommand(Command):
 @registerCommand(MODE, 'compose', help='compose a new email',
                  arguments=[
     (['--sender'], {'nargs': '?', 'help':'sender'}),
+    (['--template'], {'nargs':'?',
+                      'help':'path to a template message file'}),
     (['--subject'], {'nargs':'?', 'help':'subject line'}),
-    (['--to'], {'nargs':'+', 'help':'recipient'}),
+    (['--to'], {'nargs':'+', 'help':'recipients'}),
     (['--cc'], {'nargs':'+', 'help':'copy to'}),
     (['--bcc'], {'nargs':'+', 'help':'blind copy to'}),
 ])
 class ComposeCommand(Command):
-    def __init__(self, mail=None, headers={},
+    def __init__(self, mail=None, headers={}, template=None,
                  sender=u'', subject=u'', to=[], cc=[], bcc=[],
                  **kwargs):
         Command.__init__(self, **kwargs)
-        if not mail:
-            self.mail = MIMEMultipart()
-            self.mail.attach(MIMEText('', 'plain', 'UTF-8'))
-        else:
-            self.mail = mail
-        for key, value in headers.items():
-            self.mail[key] = encode_header(key, value)
 
-        if sender:
-            self.mail['From'] = encode_header('From', sender)
-        if subject:
-            self.mail['Subject'] = encode_header('Subject', subject)
-        if to:
-            self.mail['To'] = encode_header('To', ','.join(to))
-        if cc:
-            self.mail['Cc'] = encode_header('Cc', ','.join(cc))
-        if bcc:
-            self.mail['Bcc'] = encode_header('Bcc', ','.join(bcc))
+        self.mail = mail
+        self.template = template
+        self.headers = headers
+        self.sender = sender
+        self.subject = subject
+        self.to = to
+        self.cc = cc
+        self.bcc = bcc
 
     @defer.inlineCallbacks
     def apply(self, ui):
-        # TODO: fill with default header (per account)
-        # get From header
+        # set self.mail
+        if self.mail is None:
+            if self.template is not None:
+                #get location of tempsdir, containing msg templates
+                tempdir = settings.config.get('general', 'template_dir')
+                tempdir = os.path.expanduser(tempdir)
+                if not tempdir:
+                    xdgdir = os.environ.get('XDG_CONFIG_HOME',
+                                            os.path.expanduser('~/.config'))
+                    tempdir = os.path.join(xdgdir, 'alot', 'templates')
+
+                path = os.path.expanduser(self.template)
+                if not os.path.dirname(path):  # use tempsdir
+                    if not os.path.isdir(tempdir):
+                        ui.notify('no templates directory: %s' % tempdir,
+                                  priority='error')
+                        return
+                    path = os.path.join(tempdir, path)
+
+                if not os.path.isfile(path):
+                    ui.notify('could not find template: %s' % path,
+                              priority='error')
+                    return
+                try:
+                    self.mail = email.message_from_file(open(path))
+                except Exception, e:
+                    ui.notify(str(e), priority='error')
+                    return
+            else:  # no mail or template given
+                self.mail = MIMEMultipart()
+                self.mail.attach(MIMEText('', 'plain', 'UTF-8'))
+
+        # set forced headers
+        for key, value in self.headers.items():
+            self.mail[key] = encode_header(key, value)
+
+        # set forced headers for separate parameters
+        if self.sender:
+            self.mail['From'] = encode_header('From', self.sender)
+        if self.subject:
+            self.mail['Subject'] = encode_header('Subject', self.subject)
+        if self.to:
+            self.mail['To'] = encode_header('To', ','.join(self.to))
+        if self.cc:
+            self.mail['Cc'] = encode_header('Cc', ','.join(self.cc))
+        if self.bcc:
+            self.mail['Bcc'] = encode_header('Bcc', ','.join(self.bcc))
+
+        # get missing From header
         if not 'From' in self.mail:
             accounts = ui.accountman.get_accounts()
-            if len(accounts) == 0:
-                ui.notify('no accounts set')
-                return
-            elif len(accounts) == 1:
+            if len(accounts) == 1:
                 a = accounts[0]
+                self.mail['From'] = "%s <%s>" % (a.realname, a.address)
             else:
                 cmpl = AccountCompleter(ui.accountman)
                 fromaddress = yield ui.prompt(prefix='From>', completer=cmpl,
                                               tab=1)
-                validaddresses = [a.address for a in accounts] + [None]
-                while fromaddress not in validaddresses:  # TODO: not cool
-                    ui.notify('no account for this address. (<esc> cancels)')
-                    fromaddress = yield ui.prompt(prefix='From>',
-                                                  completer=cmpl)
-                if not fromaddress:
+                if fromaddress is None:
                     ui.notify('canceled')
                     return
                 a = ui.accountman.get_account_by_address(fromaddress)
-            self.mail['From'] = "%s <%s>" % (a.realname, a.address)
+                if a is not None:
+                    self.mail['From'] = "%s <%s>" % (a.realname, a.address)
+                else:
+                    self.mail['From'] = fromaddress
 
-        #get To header
+        # get missing To header
         if 'To' not in self.mail:
-            name, addr = email.Utils.parseaddr(unicode(self.mail.get('From')))
+            name, addr = email.Utils.parseaddr(self.mail.get('From'))
             a = ui.accountman.get_account_by_address(addr)
 
             allbooks = not settings.config.getboolean('general',

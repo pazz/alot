@@ -24,6 +24,7 @@ from settings import config
 from helper import shorten_author_string
 from helper import pretty_datetime
 from helper import tag_cmp
+from helper import string_decode
 import message
 
 
@@ -83,12 +84,15 @@ class ThreadlineWidget(urwid.AttrMap):
 
     def rebuild(self):
         cols = []
-        formatstring = config.get('general', 'timestamp_format')
         newest = self.thread.get_newest_date()
-        if formatstring:
-            datestring = newest.strftime(formatstring)
+        if newest == None:
+            datestring = u' ' * 10
         else:
-            datestring = pretty_datetime(newest).rjust(10)
+            formatstring = config.get('general', 'timestamp_format')
+            if formatstring:
+                datestring = newest.strftime(formatstring)
+            else:
+                datestring = pretty_datetime(newest).rjust(10)
         self.date_w = urwid.AttrMap(urwid.Text(datestring), 'threadline_date')
         cols.append(('fixed', len(datestring), self.date_w))
 
@@ -164,7 +168,7 @@ class ThreadlineWidget(urwid.AttrMap):
 class BufferlineWidget(urwid.Text):
     def __init__(self, buffer):
         self.buffer = buffer
-        line = '[' + buffer.typename + '] ' + unicode(buffer)
+        line = '[' + buffer.typename + '] ' + buffer.__str__()
         urwid.Text.__init__(self, line, wrap='clip')
 
     def selectable(self):
@@ -245,7 +249,7 @@ class CompleteEdit(urwid.Edit):
         self.historypos = None
 
         if not isinstance(edit_text, unicode):
-            edit_text = unicode(edit_text, errors='replace')
+            edit_text = string_decode(edit_text)
         self.start_completion_pos = len(edit_text)
         self.completions = None
         urwid.Edit.__init__(self, edit_text=edit_text, **kwargs)
@@ -470,7 +474,13 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         urwid.WidgetWrap.__init__(self, txt)
 
     def __str__(self):
-        return self.message.__str__()
+        author, address = self.message.get_author()
+        date = self.message.get_datestring()
+        if date == None:
+            rep = author
+        else:
+            rep = '%s (%s)' % (author, date)
+        return rep
 
     def selectable(self):
         return True
@@ -519,23 +529,16 @@ class MessageHeaderWidget(urwid.AttrMap):
             displayed = self.eml.keys()
         if hidden:
             displayed = filter(lambda x: x not in hidden, displayed)
+        #calc max length of key-string
         for key in displayed:
             if key in self.eml:
                 if len(key) > max_key_len:
                     max_key_len = len(key)
-        for key in displayed:
+        for key, value in self.eml.items():
             #todo: parse from,cc,bcc seperately into name-addr-widgets
-            if key in self.eml:
-                valuelist = email.header.decode_header(self.eml[key])
-                value = ''
-                for v, enc in valuelist:
-                    if enc:
-                        value = value + v.decode(enc)
-                    else:
-                        value = value + v
-                #sanitize it a bit:
-                value = value.replace('\t', ' ')
-                value = ' '.join([line.strip() for line in value.splitlines()])
+            # TODO: check indexed keys for None and highlight as invalid
+            if key in displayed:
+                value = message.decode_header(value)
                 keyw = ('fixed', max_key_len + 1,
                         urwid.Text(('message_header_key', key)))
                 valuew = urwid.Text(('message_header_value', value))
@@ -547,8 +550,8 @@ class MessageHeaderWidget(urwid.AttrMap):
 class MessageBodyWidget(urwid.AttrMap):
     """displays printable parts of an email"""
 
-    def __init__(self, msg, tab_width=8):
-        bodytxt = message.extract_body(msg).replace('\t', ' ' * tab_width)
+    def __init__(self, msg):
+        bodytxt = message.extract_body(msg)
         urwid.AttrMap.__init__(self, urwid.Text(bodytxt), 'message_body')
 
 
@@ -558,7 +561,7 @@ class AttachmentWidget(urwid.WidgetWrap):
         self.attachment = attachment
         if not isinstance(attachment, message.Attachment):
             self.attachment = message.Attachment(self.attachment)
-        widget = urwid.AttrMap(urwid.Text(unicode(self.attachment)),
+        widget = urwid.AttrMap(urwid.Text(self.attachment.__str__()),
                                'message_attachment',
                                'message_attachment_focussed')
         urwid.WidgetWrap.__init__(self, widget)

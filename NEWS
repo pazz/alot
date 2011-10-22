@@ -2,6 +2,7 @@
 
 * fancy shortening for authors list
 * moved default location for config to ~/.config/alot/config
+* message templates
 * hooks for pre/post editing and RE/FWD quotestrings
 * recipient completion gives priority to abook of sender account
 * smarter in-string-tabcompletion

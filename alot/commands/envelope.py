@@ -10,12 +10,14 @@ from twisted.internet import defer
 from alot.commands import Command, registerCommand
 from alot import settings
 from alot import helper
-from alot.message import decode_to_unicode
 from alot.message import decode_header
 from alot.message import encode_header
+from alot.message import extract_headers
+from alot.message import extract_body
 from alot.commands.globals import EditCommand
 from alot.commands.globals import BufferCloseCommand
 from alot.commands.globals import EnvelopeOpenCommand
+from alot.helper import string_decode
 
 
 MODE = 'envelope'
@@ -55,7 +57,6 @@ class EnvelopeAttachCommand(Command):
                  arguments=[
     (['key'], {'help':'header to refine'})])
 class EnvelopeRefineCommand(Command):
-
     def __init__(self, key='', **kwargs):
         Command.__init__(self, **kwargs)
         self.key = key
@@ -70,43 +71,52 @@ class EnvelopeRefineCommand(Command):
 class EnvelopeSendCommand(Command):
     @defer.inlineCallbacks
     def apply(self, ui):
-        envelope = ui.current_buffer
+        envelope = ui.current_buffer  # needed to close later
         mail = envelope.get_email()
         frm = decode_header(mail.get('From'))
         sname, saddr = email.Utils.parseaddr(frm)
+        omit_signature = False
+
+        # determine account to use for sending
         account = ui.accountman.get_account_by_address(saddr)
-        if account:
-            # attach signature file if present
-            if account.signature:
-                sig = os.path.expanduser(account.signature)
-                if os.path.isfile(sig):
-                    if account.signature_filename:
-                        name = account.signature_filename
-                    else:
-                        name = None
-                    helper.attach(sig, mail, filename=name)
-                else:
-                    ui.notify('could not locate signature: %s' % sig,
-                              priority='error')
-                    if (yield ui.choice('send without signature',
-                                        select='yes', cancel='no')) == 'no':
-                        return
-
-            clearme = ui.notify('sending..', timeout=-1, block=False)
-            reason = account.send_mail(mail)
-            ui.clear_notify([clearme])
-            if not reason:  # sucessfully send mail
-                cmd = BufferCloseCommand(buffer=envelope)
-                ui.apply_command(cmd)
-                ui.notify('mail send successful')
+        if account == None:
+            if not ui.accountman.get_accounts():
+                ui.notify('no accounts set', priority='error')
+                return
             else:
-                ui.notify('failed to send: %s' % reason, priority='error')
+                account = ui.accountman.get_accounts()[0]
+                omit_signature = True
+
+        # attach signature file if present
+        if account.signature and not omit_signature:
+            sig = os.path.expanduser(account.signature)
+            if os.path.isfile(sig):
+                if account.signature_filename:
+                    name = account.signature_filename
+                else:
+                    name = None
+                helper.attach(sig, mail, filename=name)
+            else:
+                ui.notify('could not locate signature: %s' % sig,
+                          priority='error')
+                if (yield ui.choice('send without signature',
+                                    select='yes', cancel='no')) == 'no':
+                    return
+
+        # send
+        clearme = ui.notify('sending..', timeout=-1)
+        # TODO: next cmd blocks he interface!! must use defer here
+        reason = account.send_mail(mail)
+        ui.clear_notify([clearme])
+        if not reason:  # sucessfully send mail
+            cmd = BufferCloseCommand(buffer=envelope)
+            ui.apply_command(cmd)
+            ui.notify('mail send successful')
         else:
-            ui.notify('failed to send: no account set up for %s' % saddr,
-                      priority='error')
+            ui.notify('failed to send: %s' % reason, priority='error')
 
 
-@registerCommand(MODE, 'reedit', help='edit currently open mail')
+@registerCommand(MODE, 'edit', help='edit currently open mail')
 class EnvelopeEditCommand(Command):
     def __init__(self, mail=None, **kwargs):
         self.mail = mail
@@ -118,6 +128,19 @@ class EnvelopeEditCommand(Command):
         if not self.mail:
             self.mail = ui.current_buffer.get_email()
 
+        #determine editable headers
+        edit_headers = set(settings.config.getstringlist('general',
+                                                    'edit_headers_whitelist'))
+        if '*' in edit_headers:
+            edit_headers = set(self.mail.keys())
+        blacklist = set(settings.config.getstringlist('general',
+                                                  'edit_headers_blacklist'))
+        if '*' in blacklist:
+            blacklist = set(self.mail.keys())
+        ui.logger.debug('BLACKLIST: %s' % blacklist)
+        self.edit_headers = edit_headers - blacklist
+        ui.logger.info('editable headers: %s' % blacklist)
+
         def openEnvelopeFromTmpfile():
             # This parses the input from the tempfile.
             # we do this ourselves here because we want to be able to
@@ -127,8 +150,12 @@ class EnvelopeEditCommand(Command):
             # get input
             f = open(tf.name)
             enc = settings.config.get('general', 'editor_writes_encoding')
-            editor_input = f.read().decode(enc)
-            headertext, bodytext = editor_input.split('\n\n', 1)
+            editor_input = string_decode(f.read(), enc)
+            if self.edit_headers:
+                headertext, bodytext = editor_input.split('\n\n', 1)
+            else:
+                headertext = ''
+                bodytext = editor_input
 
             # call post-edit translate hook
             translate = settings.hooks.get('post_edit_translate')
@@ -138,9 +165,11 @@ class EnvelopeEditCommand(Command):
                                      config=settings.config)
 
             # go through multiline, utf-8 encoded headers
+            # we decode the edited text ourselves here as
+            # email.message_from_file can't deal with raw utf8 header values
             key = value = None
             for line in headertext.splitlines():
-                if re.match('\w+:', line):  # new k/v pair
+                if re.match('[a-zA-Z0-9_-]+:', line):  # new k/v pair
                     if key and value:  # save old one from stack
                         del self.mail[key]  # ensure unique values in mails
                         self.mail[key] = encode_header(key, value)  # save
@@ -167,21 +196,9 @@ class EnvelopeEditCommand(Command):
                 ui.current_buffer.set_email(self.mail)
 
         # decode header
-        edit_headers = ['Subject', 'To', 'From']
-        headertext = u''
-        for key in edit_headers:
-            value = u''
-            if key in self.mail:
-                value = decode_header(self.mail.get(key, ''))
-            headertext += '%s: %s\n' % (key, value)
+        headertext = extract_headers(self.mail, self.edit_headers)
 
-        if self.mail.is_multipart():
-            for part in self.mail.walk():
-                if part.get_content_maintype() == 'text':
-                    bodytext = decode_to_unicode(part)
-                    break
-        else:
-            bodytext = decode_to_unicode(self.mail)
+        bodytext = extract_body(self.mail)
 
         # call pre-edit translate hook
         translate = settings.hooks.get('pre_edit_translate')
@@ -192,8 +209,9 @@ class EnvelopeEditCommand(Command):
 
         #write stuff to tempfile
         tf = tempfile.NamedTemporaryFile(delete=False)
-        content = '%s\n\n%s' % (headertext,
-                                bodytext)
+        content = bodytext
+        if headertext:
+            content = '%s\n\n%s' % (headertext, content)
         tf.write(content.encode('utf-8'))
         tf.flush()
         tf.close()

@@ -61,11 +61,11 @@ class QueryCompleter(Completer):
     def complete(self, original, pos):
         mypart, start, end, mypos = self.relevant_part(original, pos)
         myprefix = mypart[:mypos]
-        m = re.search('(tag|is|to):(\w*)', myprefix)
+        m = re.search('(tag|is|to|from):(\w*)', myprefix)
         if m:
             cmd, params = m.groups()
             cmdlen = len(cmd) + 1  # length of the keyword part incld colon
-            if cmd == 'to':
+            if cmd in ['to', 'from']:
                 localres = self._contactscompleter.complete(mypart[cmdlen:],
                                                             mypos - cmdlen)
             else:

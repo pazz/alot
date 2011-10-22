@@ -23,10 +23,13 @@ import re
 import mimetypes
 from datetime import datetime
 from email.header import Header
+from email.iterators import typed_subpart_iterator
 
 import helper
 from settings import get_mime_handler
 from settings import config
+from helper import string_sanitize
+from helper import string_decode
 
 
 class Message(object):
@@ -43,7 +46,10 @@ class Message(object):
         self._id = msg.get_message_id()
         self._thread_id = msg.get_thread_id()
         self._thread = thread
-        self._datetime = datetime.fromtimestamp(msg.get_date())
+        try:
+            self._datetime = datetime.fromtimestamp(msg.get_date())
+        except ValueError:  # year is out of range
+            self._datetime = None
         self._filename = msg.get_filename()
         self._from = msg.get_header('From')
         self._email = None  # will be read upon first use
@@ -117,6 +123,8 @@ class Message(object):
 
     def get_datestring(self):
         """returns formated datestring"""
+        if self._datetime == None:
+            return None
         formatstring = config.get('general', 'timestamp_format')
         if formatstring:
             res = self._datetime.strftime(formatstring)
@@ -127,6 +135,9 @@ class Message(object):
     def get_author(self):
         """returns realname and address pair of this messages author"""
         return email.Utils.parseaddr(self._from)
+
+    def get_headers_string(self, headers):
+        return extract_headers(self.get_mail(), headers)
 
     def add_tags(self, tags):
         """adds tags to message
@@ -162,32 +173,43 @@ class Message(object):
         return self._dbman.count_messages(searchfor) > 0
 
     def get_text_content(self):
-        res = ''
-        for part in self.get_email().walk():
-            enc = part.get_content_charset()
-            if part.get_content_maintype() == 'text':
-                raw_payload = part.get_payload(decode=True)
-                if enc:
-                    raw_payload = raw_payload.decode(enc, errors='replace')
-                else:
-                    raw_payload = unicode(raw_payload, errors='replace')
-                res += raw_payload
-        return res
+        return extract_body(self.get_email(), types=['text/plain'])
 
 
-def extract_body(mail):
+def extract_headers(mail, headers=None):
+    headertext = u''
+    if headers == None:
+        headers = mail.keys()
+    for key in headers:
+        value = u''
+        if key in mail:
+            value = decode_header(mail.get(key, ''))
+        headertext += '%s: %s\n' % (key, value)
+    return headertext
+
+
+def extract_body(mail, types=None):
+    html = list(typed_subpart_iterator(mail, 'text', 'html'))
+
+    # if no specific types are given, we favor text/html over text/plain
+    drop_plaintext = False
+    if html and not types:
+        drop_plaintext = True
+
     body_parts = []
     for part in mail.walk():
         ctype = part.get_content_type()
-        enc = part.get_content_charset()
+
+        if types is not None:
+            if ctype not in types:
+                continue
+
+        enc = part.get_content_charset() or 'ascii'
         raw_payload = part.get_payload(decode=True)
         if part.get_content_maintype() == 'text':
-            if enc:
-                raw_payload = unicode(raw_payload, enc, errors='replace')
-            else:
-                raw_payload = unicode(raw_payload, errors='replace')
-        if ctype == 'text/plain':
-            body_parts.append(raw_payload)
+            raw_payload = string_decode(raw_payload, enc)
+        if ctype == 'text/plain' and not drop_plaintext:
+            body_parts.append(string_sanitize(raw_payload))
         else:
             #get mime handler
             handler = get_mime_handler(ctype, key='view',
@@ -208,21 +230,11 @@ def extract_body(mail):
                 #remove tempfile
                 os.unlink(tmpfile.name)
                 if rendered_payload:  # handler had output
-                    body_parts.append(rendered_payload.strip())
+                    body_parts.append(string_sanitize(rendered_payload))
                 elif part.get_content_maintype() == 'text':
-                    body_parts.append(raw_payload)
+                    body_parts.append(string_sanitize(raw_payload))
                 # else drop
     return '\n\n'.join(body_parts)
-
-
-def decode_to_unicode(part):
-    enc = part.get_content_charset()
-    raw_payload = part.get_payload(decode=True)
-    if enc:
-        raw_payload = unicode(raw_payload, enc)
-    else:
-        raw_payload = unicode(raw_payload, errors='replace')
-    return raw_payload
 
 
 def decode_header(header):
@@ -240,10 +252,8 @@ def decode_header(header):
     valuelist = email.header.decode_header(header)
     decoded_list = []
     for v, enc in valuelist:
-        if enc:
-            decoded_list.append(v.decode(enc))
-        else:
-            decoded_list.append(v)
+        v = string_decode(v, enc)
+        decoded_list.append(string_sanitize(v))
     return u' '.join(decoded_list)
 
 
@@ -260,18 +270,16 @@ def encode_header(key, value):
         rawentries = value.split(',')
         encodedentries = []
         for entry in rawentries:
-            m = re.search('\s*(.*)\s+<(.*\@.*\.\w*)>$', entry)
+            m = re.search('\s*(.*)\s+<(.*\@.*\.\w*)>\s*$', entry)
             if m:  # If a realname part is contained
                 name, address = m.groups()
                 # try to encode as ascii, if that fails, revert to utf-8
                 # name must be a unicode string here
-                header = Header(name)
+                namepart = Header(name)
                 # append address part encoded as ascii
-                header.append('<%s>' % address, charset='ascii')
-                encodedentries.append(header.encode())
-            else:  # pure email address
-                encodedentries.append(entry)
-        value = Header(','.join(encodedentries))
+                entry = '%s <%s>' % (namepart.encode(), address)
+            encodedentries.append(entry)
+        value = Header(', '.join(encodedentries))
     else:
         value = Header(value)
     return value
@@ -288,9 +296,10 @@ class Attachment(object):
         self.part = emailpart
 
     def __str__(self):
-        return '%s:%s (%s)' % (self.get_content_type(),
-                               self.get_filename(),
-                               helper.humanize_size(self.get_size()))
+        desc = '%s:%s (%s)' % (self.get_content_type(),
+                              self.get_filename(),
+                              helper.humanize_size(self.get_size()))
+        return string_decode(desc)
 
     def get_filename(self):
         """return the filename, extracted from content-disposition header"""

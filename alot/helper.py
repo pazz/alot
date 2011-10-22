@@ -31,6 +31,31 @@ from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
 import urwid
 
+from settings import config
+
+
+def string_sanitize(string):
+    """strips, and replaces non-printable characters"""
+    tab_width = config.getint('general', 'tabwidth')
+    string = string.strip()
+    string = string.replace('\t', ' ' * tab_width)
+    string = string.replace('\r', '')
+    return string
+
+
+def string_decode(string, enc='ascii'):
+    """decodes string to unicode bytestring, respecting enc as a hint"""
+
+    if enc is None:
+        enc = 'ascii'
+    try:
+        string = unicode(string, enc, errors='replace')
+    except LookupError:  # malformed enc string
+        string = string.decode('ascii', errors='replace')
+    except TypeError:  # already unicode
+        pass
+    return string
+
 
 def shorten(string, maxlen):
     if maxlen > 1 and len(string) > maxlen:
@@ -141,7 +166,7 @@ def cmd_output(command_line):
     args = shlex.split(command_line.encode('utf-8', errors='ignore'))
     try:
         output = subprocess.check_output(args)
-        output = output.decode(urwid.util.detected_encoding, errors='replace')
+        output = string_decode(output, urwid.util.detected_encoding)
     except subprocess.CalledProcessError:
         return None
     except OSError:

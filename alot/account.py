@@ -229,9 +229,7 @@ class AccountManager(object):
         for myad in self.get_addresses():
             if myad in address:
                 return self.accountmap[myad]
-        else:
-            return None
-            # log info
+        return None
 
     def get_main_addresses(self):
         """returns addresses of known accounts without its aliases"""

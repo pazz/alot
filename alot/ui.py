@@ -158,7 +158,7 @@ class UI(object):
                 ('fixed', len(prefix), leftpart),
                 ('weight', 1, editpart),
             ])
-        urwid.AttrMap(both, 'prompt', 'prompt')
+        both = urwid.AttrMap(both, 'prompt', 'prompt')
 
         # put promptwidget as overlay on main widget
         overlay = urwid.Overlay(both, oldroot,
@@ -327,7 +327,7 @@ class UI(object):
                 ], dividechars=1)
         else:  # above
             both = urwid.Pile([msgpart, choicespart])
-        urwid.AttrMap(both, 'prompt', 'prompt')
+        both = urwid.AttrMap(both, 'prompt', 'prompt')
 
         # put promptwidget as overlay on main widget
         overlay = urwid.Overlay(both, oldroot,
@@ -359,8 +359,6 @@ class UI(object):
             cols = urwid.Columns([urwid.Text(msg)])
             return urwid.AttrMap(cols, 'notify_' + prio)
         msgs = [build_line(message, priority)]
-        if timeout == -1 and block:
-            msgs.append(build_line('(hit any key to proceed)', 'normal'))
 
         if not self.notificationbar:
             self.notificationbar = urwid.Pile(msgs)
