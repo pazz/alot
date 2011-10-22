@@ -29,6 +29,7 @@ import helper
 from settings import get_mime_handler
 from settings import config
 from helper import string_sanitize
+from helper import string_decode
 
 
 class Message(object):
@@ -172,17 +173,7 @@ class Message(object):
         return self._dbman.count_messages(searchfor) > 0
 
     def get_text_content(self):
-        res = ''
-        for part in self.get_email().walk():
-            enc = part.get_content_charset()
-            if part.get_content_maintype() == 'text':
-                raw_payload = part.get_payload(decode=True)
-                if enc:
-                    raw_payload = raw_payload.decode(enc, errors='replace')
-                else:
-                    raw_payload = unicode(raw_payload, errors='replace')
-                res += raw_payload
-        return res
+        return extract_body(self.get_email(), types=['text/plain'])
 
 
 def extract_headers(mail, headers=None):
@@ -197,20 +188,26 @@ def extract_headers(mail, headers=None):
     return headertext
 
 
-def extract_body(mail):
+def extract_body(mail, types=None):
     html = list(typed_subpart_iterator(mail, 'text', 'html'))
 
+    # if no specific types are given, we favor text/html over text/plain
     drop_plaintext = False
-    if html:
+    if html and not types:
         drop_plaintext = True
 
     body_parts = []
     for part in mail.walk():
         ctype = part.get_content_type()
+
+        if types is not None:
+            if ctype not in types:
+                continue
+
         enc = part.get_content_charset() or 'ascii'
         raw_payload = part.get_payload(decode=True)
         if part.get_content_maintype() == 'text':
-            raw_payload = unicode(raw_payload, enc, errors='replace')
+            raw_payload = string_decode(raw_payload, enc)
         if ctype == 'text/plain' and not drop_plaintext:
             body_parts.append(string_sanitize(raw_payload))
         else:
