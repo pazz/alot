@@ -447,25 +447,21 @@ class ComposeCommand(Command):
         # get missing From header
         if not 'From' in self.mail:
             accounts = ui.accountman.get_accounts()
-            if len(accounts) == 0:
-                ui.notify('no accounts set')
-                return
-            elif len(accounts) == 1:
+            if len(accounts) == 1:
                 a = accounts[0]
+                self.mail['From'] = "%s <%s>" % (a.realname, a.address)
             else:
                 cmpl = AccountCompleter(ui.accountman)
                 fromaddress = yield ui.prompt(prefix='From>', completer=cmpl,
                                               tab=1)
-                validaddresses = [a.address for a in accounts] + [None]
-                while fromaddress not in validaddresses:  # TODO: not cool
-                    ui.notify('no account for this address. (<esc> cancels)')
-                    fromaddress = yield ui.prompt(prefix='From>',
-                                                  completer=cmpl)
-                if not fromaddress:
+                if fromaddress is None:
                     ui.notify('canceled')
                     return
                 a = ui.accountman.get_account_by_address(fromaddress)
-            self.mail['From'] = "%s <%s>" % (a.realname, a.address)
+                if a is not None:
+                    self.mail['From'] = "%s <%s>" % (a.realname, a.address)
+                else:
+                    self.mail['From'] = fromaddress
 
         # get missing To header
         if 'To' not in self.mail:
