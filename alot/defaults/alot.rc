@@ -15,6 +15,11 @@ colourmode = 256
 # number of spaces used to replace tab characters
 tabwidth = 8
 
+# templates directory that contains your message templates.
+# It will be used if you give `compose --template` a filename without a path prefix.
+# This defaults to `$XDG_CONFIG_HOME/alot/templates` if unset.
+template_dir = 
+
 # fill threadline with message content
 display_content_in_threadline = False
 
