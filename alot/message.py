@@ -297,9 +297,10 @@ class Attachment(object):
         self.part = emailpart
 
     def __str__(self):
-        return '%s:%s (%s)' % (self.get_content_type(),
-                               self.get_filename(),
-                               helper.humanize_size(self.get_size()))
+        desc = '%s:%s (%s)' % (self.get_content_type(),
+                              self.get_filename(),
+                              helper.humanize_size(self.get_size()))
+        return string_decode(desc)
 
     def get_filename(self):
         """return the filename, extracted from content-disposition header"""

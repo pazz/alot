@@ -429,7 +429,7 @@ class ComposeCommand(Command):
 
         #get To header
         if 'To' not in self.mail:
-            name, addr = email.Utils.parseaddr(unicode(self.mail.get('From')))
+            name, addr = email.Utils.parseaddr(self.mail.get('From'))
             a = ui.accountman.get_account_by_address(addr)
 
             allbooks = not settings.config.getboolean('general',

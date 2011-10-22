@@ -24,6 +24,7 @@ from settings import config
 from helper import shorten_author_string
 from helper import pretty_datetime
 from helper import tag_cmp
+from helper import string_decode
 import message
 
 
@@ -167,7 +168,7 @@ class ThreadlineWidget(urwid.AttrMap):
 class BufferlineWidget(urwid.Text):
     def __init__(self, buffer):
         self.buffer = buffer
-        line = '[' + buffer.typename + '] ' + unicode(buffer)
+        line = '[' + buffer.typename + '] ' + buffer.__str__()
         urwid.Text.__init__(self, line, wrap='clip')
 
     def selectable(self):
@@ -248,7 +249,7 @@ class CompleteEdit(urwid.Edit):
         self.historypos = None
 
         if not isinstance(edit_text, unicode):
-            edit_text = unicode(edit_text, errors='replace')
+            edit_text = string_decode(edit_text)
         self.start_completion_pos = len(edit_text)
         self.completions = None
         urwid.Edit.__init__(self, edit_text=edit_text, **kwargs)
@@ -560,7 +561,7 @@ class AttachmentWidget(urwid.WidgetWrap):
         self.attachment = attachment
         if not isinstance(attachment, message.Attachment):
             self.attachment = message.Attachment(self.attachment)
-        widget = urwid.AttrMap(urwid.Text(unicode(self.attachment)),
+        widget = urwid.AttrMap(urwid.Text(self.attachment.__str__()),
                                'message_attachment',
                                'message_attachment_focussed')
         urwid.WidgetWrap.__init__(self, widget)
