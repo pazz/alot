@@ -42,6 +42,17 @@ def string_sanitize(string):
     string = string.replace('\r', '')
     return string
 
+def string_decode(string, enc='ascii'):
+    """decodes string to unicode bytestring, respecting enc as a hint"""
+
+    if enc is None:
+        enc = 'ascii'
+    try:
+        string = unicode(string, enc, errors='replace')
+    except LookupError:
+        string = string.decode('ascii', errors='replace')
+    return string
+
 
 def shorten(string, maxlen):
     if maxlen > 1 and len(string) > maxlen:
