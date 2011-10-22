@@ -71,40 +71,49 @@ class EnvelopeRefineCommand(Command):
 class EnvelopeSendCommand(Command):
     @defer.inlineCallbacks
     def apply(self, ui):
-        envelope = ui.current_buffer
+        envelope = ui.current_buffer  # needed to close later
         mail = envelope.get_email()
         frm = decode_header(mail.get('From'))
         sname, saddr = email.Utils.parseaddr(frm)
-        account = ui.accountman.get_account_by_address(saddr)
-        if account:
-            # attach signature file if present
-            if account.signature:
-                sig = os.path.expanduser(account.signature)
-                if os.path.isfile(sig):
-                    if account.signature_filename:
-                        name = account.signature_filename
-                    else:
-                        name = None
-                    helper.attach(sig, mail, filename=name)
-                else:
-                    ui.notify('could not locate signature: %s' % sig,
-                              priority='error')
-                    if (yield ui.choice('send without signature',
-                                        select='yes', cancel='no')) == 'no':
-                        return
+        omit_signature = False
 
-            clearme = ui.notify('sending..', timeout=-1, block=False)
-            reason = account.send_mail(mail)
-            ui.clear_notify([clearme])
-            if not reason:  # sucessfully send mail
-                cmd = BufferCloseCommand(buffer=envelope)
-                ui.apply_command(cmd)
-                ui.notify('mail send successful')
+        # determine account to use for sending
+        account = ui.accountman.get_account_by_address(saddr)
+        if account == None:
+            if not ui.accountman.get_accounts():
+                ui.notify('no accounts set', priority='error')
+                return
             else:
-                ui.notify('failed to send: %s' % reason, priority='error')
+                account = ui.accountman.get_accounts()[0]
+                omit_signature = True
+
+        # attach signature file if present
+        if account.signature and not omit_signature:
+            sig = os.path.expanduser(account.signature)
+            if os.path.isfile(sig):
+                if account.signature_filename:
+                    name = account.signature_filename
+                else:
+                    name = None
+                helper.attach(sig, mail, filename=name)
+            else:
+                ui.notify('could not locate signature: %s' % sig,
+                          priority='error')
+                if (yield ui.choice('send without signature',
+                                    select='yes', cancel='no')) == 'no':
+                    return
+
+        # send
+        clearme = ui.notify('sending..', timeout=-1)
+        # TODO: next cmd blocks he interface!! must use defer here
+        reason = account.send_mail(mail)
+        ui.clear_notify([clearme])
+        if not reason:  # sucessfully send mail
+            cmd = BufferCloseCommand(buffer=envelope)
+            ui.apply_command(cmd)
+            ui.notify('mail send successful')
         else:
-            ui.notify('failed to send: no account set up for %s' % saddr,
-                      priority='error')
+            ui.notify('failed to send: %s' % reason, priority='error')
 
 
 @registerCommand(MODE, 'edit', help='edit currently open mail')
