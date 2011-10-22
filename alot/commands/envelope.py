@@ -17,6 +17,7 @@ from alot.message import extract_body
 from alot.commands.globals import EditCommand
 from alot.commands.globals import BufferCloseCommand
 from alot.commands.globals import EnvelopeOpenCommand
+from alot.helper import string_decode
 
 
 MODE = 'envelope'
@@ -140,7 +141,7 @@ class EnvelopeEditCommand(Command):
             # get input
             f = open(tf.name)
             enc = settings.config.get('general', 'editor_writes_encoding')
-            editor_input = f.read().decode(enc)
+            editor_input = string_decode(f.read(), enc)
             if self.edit_headers:
                 headertext, bodytext = editor_input.split('\n\n', 1)
             else:

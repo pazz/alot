@@ -165,7 +165,7 @@ def cmd_output(command_line):
     args = shlex.split(command_line.encode('utf-8', errors='ignore'))
     try:
         output = subprocess.check_output(args)
-        output = output.decode(urwid.util.detected_encoding, errors='replace')
+        output = string_decode(output, urwid.util.detected_encoding)
     except subprocess.CalledProcessError:
         return None
     except OSError:

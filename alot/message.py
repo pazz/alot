@@ -252,8 +252,7 @@ def decode_header(header):
     valuelist = email.header.decode_header(header)
     decoded_list = []
     for v, enc in valuelist:
-        if enc:
-            v = v.decode(enc, errors='replace')
+        v = string_decode(v, enc)
         decoded_list.append(string_sanitize(v))
     return u' '.join(decoded_list)
 

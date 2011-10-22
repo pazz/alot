@@ -8,6 +8,7 @@ import argparse
 import cStringIO
 
 import alot.settings
+import alot.helper
 
 
 class Command(object):
@@ -98,7 +99,7 @@ def commandfactory(cmdline, mode='global'):
         args = shlex.split(cmdline.encode('utf-8'))
     except ValueError, e:
         raise CommandParseError(e.message)
-    args = map(lambda x: x.decode('utf-8'), args)  # get unicode strings
+    args = map(lambda x: alot.helper.string_decode(x, 'utf-8'), args)
     logging.debug('ARGS: %s' % args)
     cmdname = args[0]
     args = args[1:]
