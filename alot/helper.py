@@ -42,6 +42,7 @@ def string_sanitize(string):
     string = string.replace('\r', '')
     return string
 
+
 def string_decode(string, enc='ascii'):
     """decodes string to unicode bytestring, respecting enc as a hint"""
 
