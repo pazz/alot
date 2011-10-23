@@ -128,7 +128,7 @@ O = refineprompt
 | = refineprompt
 
 [envelope-maps]
-a = prompt attach ~/
+a = prompt 'attach ~/'
 y = send
 s = 'refine Subject'
 t = 'refine To'
@@ -150,7 +150,7 @@ f = forward
 p = print
 s = save
 r = reply
-| = 'prompt pipeto '
+| = prompt 'pipeto '
 
 [command-aliases]
 quit = exit
