@@ -109,7 +109,7 @@ class EnvelopeSendCommand(Command):
 
         def afterwards(returnvalue):
             ui.clear_notify([clearme])
-            if returnvalue is 'success':  # sucessfully send mail
+            if returnvalue == 'success':  # sucessfully send mail
                 cmd = BufferCloseCommand(buffer=envelope)
                 ui.apply_command(cmd)
                 ui.notify('mail send successful')
@@ -120,13 +120,7 @@ class EnvelopeSendCommand(Command):
         write_fd = ui.mainloop.watch_pipe(afterwards)
 
         def thread_code():
-            ui.logger.debug('THREAD:SEND')
-            ret = account.send_mail(mail)
-            ui.logger.debug('THREAD:SEND')
-            os.write(write_fd, ret or 'success')
-
-        ui.logger.debug('STARTING THREAD')
-        #thread_code()
+            os.write(write_fd, account.send_mail(mail) or 'success')
 
         thread = threading.Thread(target=thread_code)
         thread.start()
