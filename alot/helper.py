@@ -34,13 +34,43 @@ import urwid
 from settings import config
 
 
-def string_sanitize(string):
-    """strips, and replaces non-printable characters"""
-    tab_width = config.getint('general', 'tabwidth')
+def string_sanitize(string, tab_width = None):
+    r"""
+    strips, and replaces non-printable characters
+
+    >>> string_sanitize(' foo\rbar ', 8)
+    'foobar'
+    >>> string_sanitize('foo\tbar', 8)
+    'foo     bar'
+    >>> string_sanitize('foo\t\tbar', 8)
+    'foo             bar'
+    """
+    if tab_width == None:
+        tab_width = config.getint('general', 'tabwidth')
+
     string = string.strip()
-    string = string.replace('\t', ' ' * tab_width)
     string = string.replace('\r', '')
-    return string
+
+    lines = list()
+    for line in string.split('\n'):
+        tab_count = line.count('\t')
+
+        if tab_count > 0:
+            line_length = 0
+            new_line = list()
+            for i, chunk in enumerate(line.split('\t')):
+                line_length += len(chunk)
+                new_line.append(chunk)
+
+                if i < tab_count:
+                    next_tab_stop_in = tab_width - (line_length % tab_width)
+                    new_line.append(' ' * next_tab_stop_in)
+                    line_length += next_tab_stop_in
+            lines.append(''.join(new_line))
+        else:
+            lines.append(line)
+
+    return '\n'.join(lines)
 
 
 def string_decode(string, enc='ascii'):
