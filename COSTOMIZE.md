@@ -1,63 +1,3 @@
-Usage
-=====
-In all views, arrows, page-up/down, j,k and space can be used to move the focus.
-Escape cancels prompts. You can hit ":" at any time and type in commands
-to the prompt. Any commandline can be mapped by using the "MODE-maps" sections
-in the config file. These are the default keymaps:
-
-    [global-maps]
-    @ = refresh
-    I = search tag:inbox AND NOT tag:killed
-    L = taglist
-    shift tab = bprevious
-    U = search tag:unread
-    tab = bnext
-    \ = 'prompt search '
-    d = bclose
-    $ = flush
-    m = compose
-    o = 'prompt search '
-    q = exit
-    ';' = bufferlist
-    colon = prompt
-
-    [bufferlist-maps]
-    x = closefocussed
-    enter = openfocussed
-
-    [search-maps]
-    a = toggletag inbox
-    & = toggletag killed
-    l = retagprompt
-    O = refineprompt
-    enter = openthread
-    | = refineprompt
-
-    [envelope-maps]
-    a = prompt attach ~/
-    y = send
-    s = 'prompt subject '
-    t = 'prompt to '
-    enter = reedit
-
-    [taglist-maps]
-    enter = select
-
-    [thread-maps]
-    C = fold --all
-    E = unfold --all
-    H = toggleheaders
-    P = print --thread
-    S = save --all
-    a = toggletag inbox
-    g = groupreply
-    f = forward
-    p = print
-    s = save
-    r = reply
-    enter = select
-    | = 'prompt pipeto '
-
 Config
 ------
 Just like offlineimap or notmuch itself, alot reads a config file in the "INI" syntax:
@@ -65,7 +5,7 @@ It consists of some sections whose names are given in square brackets, followed 
 key-value pairs that use "=" or ":" as separator, ';' and '#' are comment-prefixes.
 
 The default location for the config file is `~/.config/alot/config`.
-You can find a complete example config with the default values in
+You can find a complete example config with the default values and their decriptions in
 `alot/defaults/alot.rc`.
 
 Note that since ":" is a separator for key-value pairs you need to use "colon" to bind
@@ -116,7 +56,6 @@ I use this for my uni-account:
     signature = ~/my_uni_vcard.vcs
     signature_filename = p.totzke.vcs
     abook_command = abook --mutt-query
-
 
 Caution: Sending mails is only supported via sendmail for now. If you want
 to use a sendmail command different from `sendmail`, specify it as `sendmail_command`.
@@ -178,7 +117,6 @@ Apart from command pre and posthooks, the following hooks will be interpreted:
  * `post_edit_translate(bodytext, **kwargs)`
    can be used to manipulate a messages bodytext after the editor is called
    Receives and returns a string.
-
 
 
 Theming
