@@ -297,12 +297,78 @@ class CompleteEdit(urwid.Edit):
             return result
 
 
+class MessagelineWidget(urwid.AttrMap):
+    """displays a msg in one line. used in messages-buffer"""
+    def __init__(self, message, even=False):
+        self.message = message
+        self.even = even
+        self.tag_widgets = []
+        self.rebuild()
+        urwid.AttrMap.__init__(self, self.columns,
+                               'threadline', 'threadline_focus')
+
+    def rebuild(self):
+        cols = []
+        date = self.message.get_date()
+        if date == None:
+            datestring = u' ' * 10
+        else:
+            formatstring = config.get('general', 'timestamp_format')
+            if formatstring:
+                datestring = date.strftime(formatstring)
+            else:
+                datestring = pretty_datetime(date).rjust(10)
+        self.date_w = urwid.AttrMap(urwid.Text(datestring), 'threadline_date')
+        cols.append(('fixed', len(datestring), self.date_w))
+
+        self.tag_widgets = [TagWidget(tag) for tag in self.message.get_tags()]
+        self.tag_widgets.sort(tag_cmp,
+                              lambda tag_widget: tag_widget.translated)
+        for tag_widget in self.tag_widgets:
+            cols.append(('fixed', tag_widget.width(), tag_widget))
+
+        author, address = self.message.get_author()
+        self.authors_w = urwid.AttrMap(urwid.Text(author),
+                                       'threadline_authors')
+        cols.append(('fixed', len(author), self.authors_w))
+
+        subjectstring = self.message.get_subject().strip()
+        self.subject_w = urwid.AttrMap(urwid.Text(subjectstring, wrap='clip'),
+                                 'threadline_subject')
+        if subjectstring:
+            cols.append(('weight', 2, self.subject_w))
+
+        self.columns = urwid.Columns(cols, dividechars=1)
+        self.original_widget = self.columns
+
+    def render(self, size, focus=False):
+        if focus:
+            self.date_w.set_attr_map({None: 'threadline_date_focus'})
+            for tw in self.tag_widgets:
+                tw.set_focussed()
+            self.authors_w.set_attr_map({None: 'threadline_authors_focus'})
+            self.subject_w.set_attr_map({None: 'threadline_subject_focus'})
+        else:
+            self.date_w.set_attr_map({None: 'threadline_date'})
+            for tw in self.tag_widgets:
+                tw.set_unfocussed()
+            self.authors_w.set_attr_map({None: 'threadline_authors'})
+            self.subject_w.set_attr_map({None: 'threadline_subject'})
+        return urwid.AttrMap.render(self, size, focus)
+
+    def selectable(self):
+        return True
+
+    def keypress(self, size, key):
+        return key
+
+    def get_thread(self):
+        return self.thread
+
+
 class MessageWidget(urwid.WidgetWrap):
     """flow widget that displays a single message"""
-    #TODO: atm this is heavily bend to work nicely with ThreadBuffer to display
-    #a tree structure. A better way would be to keep this widget simple
-    #(subclass urwid.Pile) and use urwids new Tree widgets
-    def __init__(self, message, even=False, folded=True, depth=0, bars_at=[]):
+    def __init__(self, message, even=False, folded=True, indent=False):
         """
         :param message: the message to display
         :type message: alot.db.Message
@@ -310,20 +376,14 @@ class MessageWidget(urwid.WidgetWrap):
         :type even: boolean
         :param unfolded: unfold message initially
         :type unfolded: boolean
-        :param depth: number of characters to shift content to the right
-        :type depth: int
-        :param bars_at: list of positions smaller than depth where horizontal
-                        ars are used instead of spaces.
-        :type bars_at: list(int)
         """
         self.message = message
-        self.depth = depth
-        self.bars_at = bars_at
         self.even = even
         self.folded = folded
+        self.indent = indent
 
         # build the summary line, header and body will be created on demand
-        self.sumline = self._build_sum_line()
+        self.sumline = MessagelineWidget(message, even=even)
         self.headerw = None
         self.attachmentw = None
         self.bodyw = None
@@ -340,82 +400,42 @@ class MessageWidget(urwid.WidgetWrap):
 
     #TODO re-read tags
     def rebuild(self):
+        #rows = [self.sumline]
+        #x = 5
+        #cols = [[('fixed', x, urwid.SolidFill(' ')), w] for w in self.displayed_list[1:]]
+        #self.pile = urwid.Pile([self.displayed_list[0],
+        #                       urwid.Columns(cols)])
         self.pile = urwid.Pile(self.displayed_list)
         self._w = self.pile
-
-    def _build_sum_line(self):
-        """creates/returns the widget that displays the summary line."""
-        self.sumw = MessageSummaryWidget(self.message, even=self.even)
-        cols = []
-        bc = list()  # box_columns
-        if self.depth > 1:
-            bc.append(0)
-            cols.append(self._get_spacer(self.bars_at[1:-1]))
-        if self.depth > 0:
-            if self.bars_at[-1]:
-                arrowhead = u'\u251c\u25b6'
-            else:
-                arrowhead = u'\u2514\u25b6'
-            cols.append(('fixed', 2, urwid.Text(arrowhead)))
-        cols.append(self.sumw)
-        line = urwid.Columns(cols, box_columns=bc)
-        return line
 
     def _get_header_widget(self):
         """creates/returns the widget that displays the mail header"""
         if not self.headerw:
             displayed = config.getstringlist('general', 'displayed_headers')
-            cols = [MessageHeaderWidget(self.message.get_email(), displayed)]
-            bc = list()
-            if self.depth:
-                cols.insert(0, self._get_spacer(self.bars_at[1:]))
-                bc.append(0)
-            self.headerw = urwid.Columns(cols, box_columns=bc)
+            self.headerw = MessageHeaderWidget(self.message.get_email(), displayed)
         return self.headerw
 
     def _get_attachment_widget(self):
         if self.message.get_attachments() and not self.attachmentw:
             lines = []
             for a in self.message.get_attachments():
-                cols = [AttachmentWidget(a)]
-                bc = list()
-                if self.depth:
-                    cols.insert(0, self._get_spacer(self.bars_at[1:]))
-                    bc.append(0)
-                lines.append(urwid.Columns(cols, box_columns=bc))
+                lines.append(AttachmentWidget(a))
             self.attachmentw = urwid.Pile(lines)
         return self.attachmentw
 
     def _get_body_widget(self):
         """creates/returns the widget that displays the mail body"""
         if not self.bodyw:
-            cols = [MessageBodyWidget(self.message.get_email())]
-            bc = list()
-            if self.depth:
-                cols.insert(0, self._get_spacer(self.bars_at[1:]))
-                bc.append(0)
-            self.bodyw = urwid.Columns(cols, box_columns=bc)
+            self.bodyw = MessageBodyWidget(self.message.get_email())
         return self.bodyw
-
-    def _get_spacer(self, bars_at):
-        prefixchars = []
-        length = len(bars_at)
-        for b in bars_at:
-            if b:
-                c = u'\u2502'
-            else:
-                c = ' '
-            prefixchars.append(('fixed', 1, urwid.SolidFill(c)))
-
-        spacer = urwid.Columns(prefixchars, box_columns=range(length))
-        return ('fixed', length, spacer)
 
     def toggle_full_header(self):
         """toggles if message headers are shown"""
         # caution: this is very ugly, it's supposed to get the headerwidget.
-        col = self._get_header_widget().widget_list
-        hws = [h for h in col if isinstance(h, MessageHeaderWidget)][0]
-        hws.toggle_all()
+        self._get_header_widget().toggle_all()
+
+    def is_folded(self):
+        return self.folded
 
     def fold(self, visible=False):
         hw = self._get_header_widget()
@@ -453,40 +473,6 @@ class MessageWidget(urwid.WidgetWrap):
         """get contained email
         returns: email.Message"""
         return self.message.get_email()
-
-
-class MessageSummaryWidget(urwid.WidgetWrap):
-    """a one line summary of a message"""
-
-    def __init__(self, message, even=True):
-        """
-        :param message: the message to summarize
-        :type message: alot.db.Message
-        """
-        self.message = message
-        self.even = even
-        if even:
-            attr = 'messagesummary_even'
-        else:
-            attr = 'messagesummary_odd'
-        sumstr = self.__str__()
-        txt = urwid.AttrMap(urwid.Text(sumstr), attr, 'messagesummary_focus')
-        urwid.WidgetWrap.__init__(self, txt)
-
-    def __str__(self):
-        author, address = self.message.get_author()
-        date = self.message.get_datestring()
-        if date == None:
-            rep = author
-        else:
-            rep = '%s (%s)' % (author, date)
-        return rep
-
-    def selectable(self):
-        return True
-
-    def keypress(self, size, key):
-        return key
 
 
 class MessageHeaderWidget(urwid.AttrMap):

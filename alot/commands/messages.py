@@ -218,14 +218,16 @@ class FoldMessagesCommand(Command):
     def apply(self, ui):
         lines = []
         if not self.all:
-            lines.append(ui.current_buffer.get_selection())
+            w = ui.current_buffer.get_selected_message_widget()
+            lines.append(w)
+            ui.logger.debug('SELECTED WIDGET: %s' % w)
         else:
             lines = ui.current_buffer.get_message_widgets()
 
         for widget in lines:
             # in case the thread is yet unread, remove this tag
             msg = widget.get_message()
-            if self.visible or (self.visible == None and widget.folded):
+            if self.visible or (self.visible == None and widget.is_folded()):
                 if 'unread' in msg.get_tags():
                     msg.remove_tags(['unread'])
                     ui.apply_command(FlushCommand())
@@ -422,10 +424,10 @@ class OpenAttachmentCommand(Command):
 class ThreadSelectCommand(Command):
     def apply(self, ui):
         focus = ui.get_deep_focus()
-        if isinstance(focus, widgets.MessageSummaryWidget):
+        if isinstance(focus, widgets.MessagelineWidget):
             ui.apply_command(FoldMessagesCommand())
         elif isinstance(focus, widgets.AttachmentWidget):
             logging.info('open attachment')
             ui.apply_command(OpenAttachmentCommand(focus.get_attachment()))
         else:
-            logging.info('unknown widget %s' % focus)
+            logging.info('unknown widget %s: %s' % (type(focus),focus))

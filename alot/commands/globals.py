@@ -37,27 +37,34 @@ class ExitCommand(Command):
 
 
 @registerCommand(MODE, 'search', usage='search query', arguments=[
-    (['query'], {'nargs':argparse.REMAINDER, 'help':'search string'})],
+    (['query'], {'nargs':argparse.REMAINDER, 'help':'search string'}),
+    (['--sort'], {'help':'search string'}),
+    (['--messages'], {'action': 'store_true', 'help':'list messages'})],
     help='open a new search buffer')
 class SearchCommand(Command):
-    def __init__(self, query, **kwargs):
+    def __init__(self, query, messages=False, sort='oldest_first', **kwargs):
         self.query = ' '.join(query)
+        self.message_search = messages
         Command.__init__(self, **kwargs)
 
     @defer.inlineCallbacks
     def apply(self, ui):
         if self.query:
             if self.query == '*' and ui.current_buffer:
-                s = 'really search for all threads? This takes a while..'
+                s = 'really search for \'*\'? This takes a while..'
                 if (yield ui.choice(s, select='yes', cancel='no')) == 'no':
                     return
-            open_searches = ui.get_buffers_of_type(buffers.SearchBuffer)
-            to_be_focused = None
-            for sb in open_searches:
-                if sb.querystring == self.query:
-                    to_be_focused = sb
-            if to_be_focused:
-                ui.buffer_focus(to_be_focused)
+            #open_searches = ui.get_buffers_of_type(buffers.SearchBuffer)
+            #to_be_focused = None
+            #for sb in open_searches:
+            #    if sb.querystring == self.query:
+            #        to_be_focused = sb
+            #if to_be_focused:
+            #    ui.buffer_focus(to_be_focused)
+            #else:
+            #    ui.buffer_open(buffers.SearchBuffer(ui, self.query))
+            if self.message_search:
+                ui.buffer_open(buffers.MessagesBuffer(ui, self.query))
             else:
                 ui.buffer_open(buffers.SearchBuffer(ui, self.query))
         else:

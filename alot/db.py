@@ -26,6 +26,11 @@ from settings import notmuchconfig as config
 
 DB_ENC = 'utf-8'
 
+SORT = {
+    'oldest_first': notmuch.Query.SORT.OLDEST_FIRST,
+    'newest_first': notmuch.Query.SORT.NEWEST_FIRST,
+    'message_id': notmuch.Query.SORT.MESSAGE_ID,
+}
 
 class DatabaseError(Exception):
     pass
@@ -150,6 +155,12 @@ class DBManager(object):
         threads = self.query(querystring).search_threads()
         return [thread.get_thread_id() for thread in threads]
 
+    def search_message_ids(self, querystring, sort_by='oldest_first'):
+        """returns the ids of all messages that match the querystring
+        This copies! all ids into an new list."""
+        msgs = self.query(querystring, sort_by=sort_by).search_messages()
+        return [m.get_message_id() for m in msgs]
+
     def get_thread(self, tid):
         """returns the thread with given id as alot.db.Thread object"""
         query = self.query('thread:' + tid)
@@ -171,7 +182,7 @@ class DBManager(object):
         db = Database(path=self.path)
         return [t for t in db.get_all_tags()]
 
-    def query(self, querystring):
+    def query(self, querystring, sort_by='newest_first'):
         """creates notmuch.Query objects on demand
 
         :param querystring: The query string to use for the lookup
@@ -181,7 +192,10 @@ class DBManager(object):
         """
         mode = Database.MODE.READ_ONLY
         db = Database(path=self.path, mode=mode)
-        return db.create_query(querystring)
+        q = db.create_query(querystring)
+        q.set_sort(SORT[sort_by])  # TODO catch exceptions here!
+
+        return q
 
 
 class Thread(object):

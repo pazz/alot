@@ -24,9 +24,10 @@ class OpenThreadCommand(Command):
             query = ui.current_buffer.querystring
             ui.logger.info('open thread view for %s' % self.thread)
 
-            sb = buffers.ThreadBuffer(ui, self.thread)
+            tid = self.thread.get_thread_id()
+            sb = buffers.MessagesBuffer(ui, 'thread:%s' % tid)
             ui.buffer_open(sb)
-            sb.unfold_matching(query)
+            #sb.unfold_matching(query)
 
 
 @registerCommand(MODE, 'toggletag', arguments=[

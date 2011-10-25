@@ -18,6 +18,7 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 import urwid
 from notmuch.globals import NotmuchError
+from itertools import imap
 
 
 import widgets
@@ -132,6 +133,70 @@ class EnvelopeBuffer(Buffer):
         self.body = urwid.ListBox(displayed_widgets)
 
 
+class MessagesBuffer(Buffer):
+    threads = []
+
+    def __init__(self, ui, query, sort_by='oldest_first'):
+        self.dbman = ui.dbman
+        self.sort_by = sort_by
+        self.ui = ui
+        self.querystring = query
+        self.result_count = 0
+        self.isinitialized = False
+        self.rebuild()
+        Buffer.__init__(self, ui, self.body, 'messages')
+
+    def __str__(self):
+        return '%s (%d threads)' % (self.querystring, self.result_count)
+
+    def rebuild(self):
+        self.result_count = self.dbman.count_messages(self.querystring)
+        try:
+            self.mids = self.dbman.search_message_ids(self.querystring,
+                                                      sort_by=self.sort_by
+                                                     )
+        except NotmuchError:
+            self.ui.notify('malformed query string: %s' % self.querystring,
+                           'error')
+            self.mids = []
+
+
+        message_iterator = imap(lambda mid: self.dbman.get_message(mid),
+                                self.mids)
+
+        self.messages_walker = IteratorWalker(message_iterator,
+                                              widgets.MessageWidget)
+        self.listbox = urwid.ListBox(self.messages_walker)
+        self.body = self.listbox
+
+    def get_selected_message_widget(self):
+        (widget, size) = self.messages_walker.get_focus()
+        return widget
+
+    def get_selected_message(self):
+        widget = self.get_selected_message_widget()
+        msg = None
+        if widget:
+            msg = widget.get_message()
+        return msg
+
+    def get_focus(self):
+        return self.body.get_focus()
+
+    def get_selection(self):
+        (messagewidget, size) = self.body.get_focus()
+        return messagewidget
+
+    def unfold_matching(self, querystring):
+        # TODO: do this only for already opened msgs (in mem)
+        for mw in self.get_message_widgets():
+            msg = mw.get_message()
+            if msg.matches(querystring):
+                mw.fold(visible=True)
+                if 'unread' in msg.get_tags():
+                    msg.remove_tags(['unread'])
+                    self.ui.apply_command(commands.globals.FlushCommand())
+
 class SearchBuffer(Buffer):
     threads = []
 
@@ -184,76 +249,76 @@ class SearchBuffer(Buffer):
         return thread
 
 
-class ThreadBuffer(Buffer):
-    def __init__(self, ui, thread):
-        self.message_count = thread.get_total_messages()
-        self.thread = thread
-        self.rebuild()
-        Buffer.__init__(self, ui, self.body, 'thread')
-
-    def __str__(self):
-        return '%s, (%d)' % (self.thread.get_subject(), self.message_count)
-
-    def get_selected_thread(self):
-        return self.thread
-
-    def _build_pile(self, acc, msg, parent, depth):
-        acc.append((parent, depth, msg))
-        for reply in self.thread.get_replies_to(msg):
-            self._build_pile(acc, reply, msg, depth + 1)
-
-    def rebuild(self):
-        self.thread.refresh()
-        # depth-first traversing the thread-tree, thereby
-        # 1) build a list of tuples (parentmsg, depth, message) in DF order
-        # 2) create a dict that counts no. of direct replies per message
-        messages = list()  # accumulator for 1,
-        childcount = {None: 0}  # accumulator for 2)
-        for msg, replies in self.thread.get_messages().items():
-            childcount[msg] = len(replies)
-        # start with all toplevel msgs, then recursively call _build_pile
-        for msg in self.thread.get_toplevel_messages():
-            self._build_pile(messages, msg, None, 0)
-            childcount[None] += 1
-
-        # go through list from 1) and pile up message widgets for all msgs.
-        # each one will be given its depth, if siblings follow and where to
-        # draw bars (siblings follow at lower depths)
-        msglines = list()
-        bars = []
-        for (num, (p, depth, m)) in enumerate(messages):
-            bars = bars[:depth]
-            childcount[p] -= 1
-
-            bars.append(childcount[p] > 0)
-            mwidget = widgets.MessageWidget(m, even=(num % 2 == 0),
-                                            depth=depth,
-                                            bars_at=bars)
-            msglines.append(mwidget)
-        self.body = urwid.ListBox(msglines)
-
-    def get_selection(self):
-        (messagewidget, size) = self.body.get_focus()
-        return messagewidget
-
-    def get_selected_message(self):
-        messagewidget = self.get_selection()
-        return messagewidget.get_message()
-
-    def get_message_widgets(self):
-        return self.body.body.contents
-
-    def get_focus(self):
-        return self.body.get_focus()
-
-    def unfold_matching(self, querystring):
-        for mw in self.get_message_widgets():
-            msg = mw.get_message()
-            if msg.matches(querystring):
-                mw.fold(visible=True)
-                if 'unread' in msg.get_tags():
-                    msg.remove_tags(['unread'])
-                    self.ui.apply_command(commands.globals.FlushCommand())
+#class ThreadBuffer(Buffer):
+#    def __init__(self, ui, thread):
+#        self.message_count = thread.get_total_messages()
+#        self.thread = thread
+#        self.rebuild()
+#        Buffer.__init__(self, ui, self.body, 'thread')
+#
+#    def __str__(self):
+#        return '%s, (%d)' % (self.thread.get_subject(), self.message_count)
+#
+#    def get_selected_thread(self):
+#        return self.thread
+#
+#    def _build_pile(self, acc, msg, parent, depth):
+#        acc.append((parent, depth, msg))
+#        for reply in self.thread.get_replies_to(msg):
+#            self._build_pile(acc, reply, msg, depth + 1)
+#
+#    def rebuild(self):
+#        self.thread.refresh()
+#        # depth-first traversing the thread-tree, thereby
+#        # 1) build a list of tuples (parentmsg, depth, message) in DF order
+#        # 2) create a dict that counts no. of direct replies per message
+#        messages = list()  # accumulator for 1,
+#        childcount = {None: 0}  # accumulator for 2)
+#        for msg, replies in self.thread.get_messages().items():
+#            childcount[msg] = len(replies)
+#        # start with all toplevel msgs, then recursively call _build_pile
+#        for msg in self.thread.get_toplevel_messages():
+#            self._build_pile(messages, msg, None, 0)
+#            childcount[None] += 1
+#
+#        # go through list from 1) and pile up message widgets for all msgs.
+#        # each one will be given its depth, if siblings follow and where to
+#        # draw bars (siblings follow at lower depths)
+#        msglines = list()
+#        bars = []
+#        for (num, (p, depth, m)) in enumerate(messages):
+#            bars = bars[:depth]
+#            childcount[p] -= 1
+#
+#            bars.append(childcount[p] > 0)
+#            mwidget = widgets.MessageWidget(m, even=(num % 2 == 0),
+#                                            depth=depth,
+#                                            bars_at=bars)
+#            msglines.append(mwidget)
+#        self.body = urwid.ListBox(msglines)
+#
+#    def get_selection(self):
+#        (messagewidget, size) = self.body.get_focus()
+#        return messagewidget
+#
+#    def get_selected_message(self):
+#        messagewidget = self.get_selection()
+#        return messagewidget.get_message()
+#
+#    def get_message_widgets(self):
+#        return self.body.body.contents
+#
+#    def get_focus(self):
+#        return self.body.get_focus()
+#
+#    def unfold_matching(self, querystring):
+#        for mw in self.get_message_widgets():
+#            msg = mw.get_message()
+#            if msg.matches(querystring):
+#                mw.fold(visible=True)
+#                if 'unread' in msg.get_tags():
+#                    msg.remove_tags(['unread'])
+#                    self.ui.apply_command(commands.globals.FlushCommand())
 
 
 class TagListBuffer(Buffer):

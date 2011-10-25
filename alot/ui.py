@@ -435,20 +435,23 @@ class UI(object):
 
     def apply_command(self, cmd):
         if cmd:
-            if cmd.prehook:
-                self.logger.debug('calling pre-hook')
-                try:
-                    cmd.prehook(ui=self, dbm=self.dbman, aman=self.accountman,
-                                log=self.logger, config=config)
+            try:
+                if cmd.prehook:
+                    self.logger.debug('calling pre-hook')
+                    try:
+                        cmd.prehook(ui=self, dbm=self.dbman, aman=self.accountman,
+                                    log=self.logger, config=config)
 
-                except:
-                    self.logger.exception('prehook failed')
-            self.logger.debug('apply command: %s' % cmd)
-            cmd.apply(self)
-            if cmd.posthook:
-                self.logger.debug('calling post-hook')
-                try:
-                    cmd.posthook(ui=self, dbm=self.dbman, aman=self.accountman,
-                                log=self.logger, config=config)
-                except:
-                    self.logger.exception('posthook failed')
+                    except:
+                        self.logger.exception('prehook failed')
+                self.logger.debug('apply command: %s' % cmd)
+                cmd.apply(self)
+                if cmd.posthook:
+                    self.logger.debug('calling post-hook')
+                    try:
+                        cmd.posthook(ui=self, dbm=self.dbman, aman=self.accountman,
+                                    log=self.logger, config=config)
+                    except:
+                        self.logger.exception('posthook failed')
+            except Exception,e:
+                self.logger.exception(e)

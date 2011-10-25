@@ -139,7 +139,7 @@ H = toggleheaders
 
 [taglist-maps]
 
-[thread-maps]
+[messages-maps]
 C = fold --all
 E = unfold --all
 H = toggleheaders

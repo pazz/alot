@@ -52,6 +52,7 @@ class Message(object):
             self._datetime = None
         self._filename = msg.get_filename()
         self._from = msg.get_header('From')
+        self._subject = msg.get_header('Subject')
         self._email = None  # will be read upon first use
         self._attachments = None  # will be read upon first use
         self._tags = set(msg.get_tags())
@@ -87,6 +88,9 @@ class Message(object):
     def get_filename(self):
         """returns absolute path of messages location"""
         return self._filename
+
+    def get_subject(self):
+        return self._subject
 
     def get_message_id(self):
         """returns messages id (a string)"""
