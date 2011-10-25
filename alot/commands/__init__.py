@@ -32,7 +32,7 @@ COMMANDS = {
     'envelope': {},
     'bufferlist': {},
     'taglist': {},
-    'thread': {},
+    'messages': {},
     'global': {},
 }
 

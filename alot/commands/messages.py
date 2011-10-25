@@ -22,7 +22,7 @@ from alot.message import decode_header
 from alot.message import extract_headers
 from alot.message import extract_body
 
-MODE = 'thread'
+MODE = 'messages'
 
 
 @registerCommand(MODE, 'reply', arguments=[
