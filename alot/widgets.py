@@ -28,6 +28,38 @@ from helper import string_decode
 import message
 
 
+class MessageTreeWidget(urwid.TreeWidget):
+    """ Display widget for leaf nodes """
+    def get_inner_widget(self):
+        return MessageWidget(self.get_node().get_value())
+
+    def keypress(self, size, key):
+        return key
+
+    def unfold(self):
+        self.fold(expanded=True)
+
+    def fold(self, expanded=False):
+        self.expanded = expanded
+        self.update_expanded_icon()
+
+
+class MSGNode(urwid.ParentNode):
+    """ Data storage object for interior/parent nodes """
+    def load_widget(self):
+        return MessageTreeWidget(self)
+
+    def load_child_keys(self):
+        msg = self.get_value()
+        return msg.get_replies()
+
+    def load_child_node(self, key):
+        """Return either an ExampleNode or ExampleParentNode"""
+        childdata = key  # msg obj is the key
+        childdepth = self.get_depth() + 1
+        return MSGNode(childdata, parent=self, key=key, depth=childdepth)
+
+
 class DialogBox(urwid.WidgetWrap):
     def __init__(self, body, title, bodyattr=None, titleattr=None):
         self.body = urwid.LineBox(body)
@@ -368,7 +400,7 @@ class MessagelineWidget(urwid.AttrMap):
 
 class MessageWidget(urwid.WidgetWrap):
     """flow widget that displays a single message"""
-    def __init__(self, message, even=False, folded=True, indent=False):
+    def __init__(self, message, even=False, folded=True, indent=True):
         """
         :param message: the message to display
         :type message: alot.db.Message
@@ -387,9 +419,9 @@ class MessageWidget(urwid.WidgetWrap):
         self.headerw = None
         self.attachmentw = None
         self.bodyw = None
-        self.displayed_list = [self.sumline]
+        self.displayed_list = []
         #build pile and call super constructor
-        self.pile = urwid.Pile(self.displayed_list)
+        self.pile = urwid.Pile([self.sumline])
         urwid.WidgetWrap.__init__(self, self.pile)
         #unfold if requested
         if not folded:
@@ -400,13 +432,17 @@ class MessageWidget(urwid.WidgetWrap):
 
     #TODO re-read tags
     def rebuild(self):
-        #rows = [self.sumline]
-        #x = 5
-        #cols = [[('fixed', x, urwid.SolidFill(' ')), w] for w in self.displayed_list[1:]]
-        #self.pile = urwid.Pile([self.displayed_list[0],
-        #                       urwid.Columns(cols)])
         self.pile = urwid.Pile(self.displayed_list)
-        self._w = self.pile
+        #logging.debug('REBUILD1')
+        #displaypile = [self.sumline]
+        if self.displayed_list:
+            if self.indent:
+                x = 10
+                rest = urwid.Columns([('fixed', x, urwid.Text(' ' * x)),self.pile])
+                pile= [self.sumline, rest]
+                self._w = urwid.Pile(pile)
+        else:
+            self._w = self.pile
 
     def _get_header_widget(self):
         """creates/returns the widget that displays the mail header"""

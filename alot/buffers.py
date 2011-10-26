@@ -197,6 +197,64 @@ class MessagesBuffer(Buffer):
                     msg.remove_tags(['unread'])
                     self.ui.apply_command(commands.globals.FlushCommand())
 
+
+class ThreadsBuffer(Buffer):
+    threads = []
+
+    def __init__(self, ui, thread):
+        self.dbman = ui.dbman
+        self.ui = ui
+        self.thread = thread
+        self.rebuild()
+        Buffer.__init__(self, ui, self.body, 'messages')
+
+    def __str__(self):
+        return '%s' % (self.thread)
+
+    def rebuild(self):
+        #try:
+        #    self.tids = self.dbman.search_thread_ids(self.querystring)
+        #except NotmuchError:
+        #    self.ui.notify('malformed query string: %s' % self.querystring,
+        #                   'error')
+        #    self.tids = []
+
+
+        #iterator = imap(lambda tid: self.dbman.get_thread(tid),
+        #                        self.tids)
+
+        #walker = IteratorWalker(iterator, Parent)
+        tlm = self.thread.get_toplevel_messages()
+        self.body = urwid.TreeListBox(urwid.TreeWalker(widgets.MSGNode(tlm[0])))
+
+    def get_selected_message_widget(self):
+        (widget, size) = self.messages_walker.get_focus()
+        return widget
+
+    def get_selected_message(self):
+        widget = self.get_selected_message_widget()
+        msg = None
+        if widget:
+            msg = widget.get_message()
+        return msg
+
+    def get_focus(self):
+        return self.body.get_focus()
+
+    def get_selection(self):
+        (messagewidget, size) = self.body.get_focus()
+        return messagewidget
+
+    def unfold_matching(self, querystring):
+        # TODO: do this only for already opened msgs (in mem)
+        for mw in self.get_message_widgets():
+            msg = mw.get_message()
+            if msg.matches(querystring):
+                mw.fold(visible=True)
+                if 'unread' in msg.get_tags():
+                    msg.remove_tags(['unread'])
+                    self.ui.apply_command(commands.globals.FlushCommand())
+
 class SearchBuffer(Buffer):
     threads = []
 

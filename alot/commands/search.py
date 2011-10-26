@@ -25,7 +25,8 @@ class OpenThreadCommand(Command):
             ui.logger.info('open thread view for %s' % self.thread)
 
             tid = self.thread.get_thread_id()
-            sb = buffers.MessagesBuffer(ui, 'thread:%s' % tid)
+            #sb = buffers.MessagesBuffer(ui, 'thread:%s' % tid)
+            sb = buffers.ThreadsBuffer(ui, self.thread)
             ui.buffer_open(sb)
             #sb.unfold_matching(query)
 

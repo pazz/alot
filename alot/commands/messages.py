@@ -424,7 +424,7 @@ class OpenAttachmentCommand(Command):
 class ThreadSelectCommand(Command):
     def apply(self, ui):
         focus = ui.get_deep_focus()
-        if isinstance(focus, widgets.MessagelineWidget):
+        if isinstance(focus, widgets.MessageTreeWidget):
             ui.apply_command(FoldMessagesCommand())
         elif isinstance(focus, widgets.AttachmentWidget):
             logging.info('open attachment')

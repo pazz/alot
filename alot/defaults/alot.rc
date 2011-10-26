@@ -95,6 +95,8 @@ complete_matching_abook_only = False
 [global-maps]
 j = move down
 k = move up
+h = move left
+l = move right
 ' ' = move page down
 esc = cancel
 enter = select
