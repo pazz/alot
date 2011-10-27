@@ -19,6 +19,7 @@ from alot.db import DatabaseLockedError
 from alot.completion import ContactsCompleter
 from alot.completion import AccountCompleter
 from alot.message import encode_header
+from alot.message import decode_header
 from alot import commands
 import argparse
 
@@ -449,7 +450,8 @@ class ComposeCommand(Command):
             accounts = ui.accountman.get_accounts()
             if len(accounts) == 1:
                 a = accounts[0]
-                self.mail['From'] = "%s <%s>" % (a.realname, a.address)
+                fromstring = "%s <%s>" % (a.realname, a.address)
+                self.mail['From'] = encode_header('From', fromstring)
             else:
                 cmpl = AccountCompleter(ui.accountman)
                 fromaddress = yield ui.prompt(prefix='From>', completer=cmpl,
@@ -459,13 +461,15 @@ class ComposeCommand(Command):
                     return
                 a = ui.accountman.get_account_by_address(fromaddress)
                 if a is not None:
-                    self.mail['From'] = "%s <%s>" % (a.realname, a.address)
+                    fromstring = "%s <%s>" % (a.realname, a.address)
+                    self.mail['From'] = encode_header('From', fromstring)
                 else:
                     self.mail['From'] = fromaddress
 
         # get missing To header
         if 'To' not in self.mail:
-            name, addr = email.Utils.parseaddr(self.mail.get('From'))
+            sender = decode_header(self.mail.get('From'))
+            name, addr = email.Utils.parseaddr(sender)
             a = ui.accountman.get_account_by_address(addr)
 
             allbooks = not settings.config.getboolean('general',
