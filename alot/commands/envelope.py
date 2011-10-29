@@ -48,10 +48,8 @@ class EnvelopeAttachCommand(Command):
 
         logging.info("attaching: %s" % files)
         for path in files:
-            helper.attach(path, msg)
-
-        if not self.mail:  # set the envelope msg iff we got it from there
-            ui.current_buffer.set_email(msg)
+            msg = helper.attach(path, msg)
+        ui.current_buffer.set_email(msg)
 
 
 @registerCommand(MODE, 'refine', help='prompt to change the value of a header',

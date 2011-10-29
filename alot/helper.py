@@ -29,12 +29,13 @@ from email.mime.audio import MIMEAudio
 from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 import urwid
 
 from settings import config
 
 
-def string_sanitize(string, tab_width = None):
+def string_sanitize(string, tab_width=None):
     r"""
     strips, and replaces non-printable characters
 
@@ -254,7 +255,16 @@ def attach(path, mail, filename=None):
         filename = os.path.basename(path)
     part.add_header('Content-Disposition', 'attachment',
                     filename=filename)
+    #wrap in multipart if not already
+    if not mail.is_multipart():
+        newmail = MIMEMultipart()
+        #move headers to new outer mail
+        for k in mail.keys():
+            newmail[k] = mail[k]
+            del(mail[k])
+        mail = newmail
     mail.attach(part)
+    return mail
 
 
 def shell_quote(text):
