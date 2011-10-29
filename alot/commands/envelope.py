@@ -1,4 +1,5 @@
 import os
+import sys
 import re
 import glob
 import logging
@@ -7,6 +8,7 @@ import tempfile
 from email import Charset
 from twisted.internet import defer
 import threading
+from email.iterators import typed_subpart_iterator
 
 from alot.commands import Command, registerCommand
 from alot import settings
@@ -19,6 +21,7 @@ from alot.commands.globals import EditCommand
 from alot.commands.globals import BufferCloseCommand
 from alot.commands.globals import EnvelopeOpenCommand
 from alot.helper import string_decode
+from alot.crypto import GPGManager
 
 
 MODE = 'envelope'
@@ -50,6 +53,48 @@ class EnvelopeAttachCommand(Command):
         for path in files:
             msg = helper.attach(path, msg)
         ui.current_buffer.set_email(msg)
+
+
+@registerCommand(MODE, 'sign', help='',
+                 arguments=[
+    (['hint'], {'nargs':'?', 'help':''})])
+class SignCommand(Command):
+    def __init__(self, hint=None, **kwargs):
+        Command.__init__(self, **kwargs)
+        self.hint = hint
+
+    @defer.inlineCallbacks
+    def apply(self, ui):
+        mail = ui.current_buffer.get_email()
+
+        if self.hint == None:
+            #try to determine fingerprint from From-header
+            frm = decode_header(mail.get('From'))
+            if frm:
+                sname, saddr = email.Utils.parseaddr(frm)
+                account = ui.accountman.get_account_by_address(saddr)
+                if not account == None:
+                    self.hint = account.gpg_key
+        if self.hint == None:
+            ui.notify('could not determine fingerprint', priority='error')
+            return
+
+        tosignpart = typed_subpart_iterator(mail, 'text').next()
+        tosigntext = tosignpart.get_payload()
+
+        ui.logger.debug('TOSIGN: %s' % tosigntext)
+        self.hint = self.hint.encode('utf-8')
+
+        g = GPGManager(ui)
+
+        #signed = yield g._defer_wrap(g._sign, tosigntext, self.hint)
+        signed = yield g.sign(tosigntext, self.hint)
+        ui.logger.debug('SIGNED: %s' % signed)
+
+        ui.logger.info(signed)
+        tosigntext = tosignpart.set_payload(signed)
+        ui.logger.info(mail)
+        ui.current_buffer.set_email(mail)
 
 
 @registerCommand(MODE, 'refine', help='prompt to change the value of a header',
