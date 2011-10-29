@@ -262,6 +262,7 @@ def attach(path, mail, filename=None):
         for k in mail.keys():
             newmail[k] = mail[k]
             del(mail[k])
+        newmail.attach(mail)
         mail = newmail
     mail.attach(part)
     return mail
