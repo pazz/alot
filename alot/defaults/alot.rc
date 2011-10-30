@@ -27,7 +27,7 @@ display_content_in_threadline = False
 displayed_headers = From,To,Cc,Bcc,Subject
 
 # headers that are hidden in envelope buffers by default
-envelope_headers_blacklist = Content-Type,MIME-Version,In-Reply-To,References
+envelope_headers_blacklist = Content-Type,MIME-Version,In-Reply-To,References,Content-Transfer-Encoding
 
 # set terminal command used for spawning shell commands
 terminal_cmd = x-terminal-emulator -e

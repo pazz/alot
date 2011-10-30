@@ -6,6 +6,7 @@ import logging
 import email
 import tempfile
 from email import Charset
+from email.iterators import typed_subpart_iterator
 from twisted.internet import defer
 import threading
 from email.iterators import typed_subpart_iterator
@@ -233,13 +234,8 @@ class EnvelopeEditCommand(Command):
                 del self.mail[key]
                 self.mail[key] = encode_header(key, value)
 
-            if self.mail.is_multipart():
-                for part in self.mail.walk():
-                    if part.get_content_maintype() == 'text':
-                        if 'Content-Transfer-Encoding' in part:
-                            del(part['Content-Transfer-Encoding'])
-                        part.set_payload(bodytext, 'utf-8')
-                        break
+            bodypart = typed_subpart_iterator(self.mail, 'text').next()
+            bodypart.set_payload(bodytext, 'utf-8')
 
             f.close()
             os.unlink(tf.name)
