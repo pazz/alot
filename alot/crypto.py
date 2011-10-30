@@ -1,9 +1,23 @@
-import sys, os, re
 from twisted.internet.defer import inlineCallbacks, returnValue
 import pyme
 from pyme import core, callbacks
 from pyme.constants.sig import mode
 
+from cStringIO import StringIO
+import os
+import re
+#import GnuPGInterface # Maybe should use this instead of subprocess
+import sys
+import types
+
+from email import Message
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
+from email.encoders import encode_7or8bit
+from email.generator import Generator
+from email.parser import Parser
+from email.utils import getaddresses
 
 class GPGManager:
     def __init__(self, ui):
@@ -50,7 +64,18 @@ class GPGManager:
         except Exception,e:
             self.ui.logger.exception(e)
 
-    def _sign(self, tosign, keyhint):
+
+    def encrypt_block(self, plain, keylist):
+        """encrypts a plaintext string to a list of recipients keys,
+        as indicated by `keylist`"""
+        plaindata = self.pyme.core.Data(plain)
+        cipher = self.pyme.core.Data(plain)
+        self.context.op_encrypt(keylist, 1, plaindata, cipher)
+        cipher.seek(0, 0)
+        return cipher.read()
+
+    def sign_block(self, tosign, keyhint):
+        """signs a plaintext with private key as indicated by `keyhint`"""
         plain = core.Data(tosign)
         sig = core.Data()
 
@@ -59,53 +84,16 @@ class GPGManager:
             if sigkey.can_sign:
                 self.context.signers_add(sigkey)
         #if not c.signers_enum(0):
+            # todo: raise err
          #   ui.notify("No secret %s's keys suitable for signing!" % user)
-        self.context.op_sign(plain, sig, mode.CLEAR)
+        self.context.op_sign(plain, sig, mode.DETACH)
         sig.seek(0,0)
         r = sig.read()
         #self.ui.logger.debug(r)
         return r #returnValue(r)
 
-    @inlineCallbacks
-    def sign(self, *args, **kwargs):
-        r = yield self._defer_wrap(self._sign, *args, **kwargs)
-        returnValue(r)
-
-    def get_valid_keys(self, pattern=""):
-		return [ key for key in self.context.op_keylist_all(pattern, 0)
-				if (key.can_encrypt != 0) ]
-
-    def encrypt_to_keys(self, plain, keylist):
-		plaindata = self.pyme.core.Data(plain)
-		cipher = self.pyme.core.Data(plain)
-		self.context.op_encrypt(keylist, 1, plaindata, cipher)
-		cipher.seek(0, 0)
-		return cipher.read()
-
-
-#	def reencrypt_mail(self, mail, keys):
-#		if mail.is_multipart():
-#			payloads = mail.get_payload()
-#			index = 0
-#			while index < len(payloads):
-#				if self.is_encrypted(payloads[index].get_payload()):
-#					decrypted_part = email.message_from_string(
-#							self.decrypt_block(payloads[index].get_payload()))
-#					if keys:
-#						payloads[index].set_payload(self.encrypt_to_keys(
-#								decrypted_part.as_string(), keys))
-#				index += 1
-#		else:
-#			if self.is_encrypted(mail.get_payload()):
-#				if keys:
-#					mail.set_payload(self.encrypt_to_keys(
-#							self.decrypt_block(mail.get_payload()), keys))
-#
-    def is_encrypted(self, text):
-		return text.find("-----BEGIN PGP MESSAGE-----") != -1
-
-
     def decrypt_block(self, text):
+        """tries to decode ciphertext"""
         cipher = self.pyme.core.Data(text)
         plain = self.pyme.core.Data()
         try:
@@ -115,3 +103,76 @@ class GPGManager:
             plain = self.pyme.core.Data(DECRYPT_ERROR)
         plain.seek(0, 0)
         return plain.read()
+
+    @inlineCallbacks
+    def sign(self, *args, **kwargs):
+        r = yield self._defer_wrap(self.sign_block, *args, **kwargs)
+        returnValue(r)
+
+    def get_valid_keys(self, pattern=""):
+		return [ key for key in self.context.op_keylist_all(pattern, 0)
+				if (key.can_encrypt != 0) ]
+
+    def is_encrypted(self, text):
+		return text.find("-----BEGIN PGP MESSAGE-----") != -1
+
+    @inlineCallbacks
+    def sign_mail(self, mail, keyhint):
+        """
+        returns mail signed and wrapped in a multipart/signed email
+        """
+        tosign = mail.as_string()
+        signature = yield self._defer_wrap(self.sign_block, tosign, keyhint)
+
+        sig = MIMEApplication(_data=signature,
+                              _subtype='pgp-signature; name="signature.asc"',
+                              _encoder=encode_7or8bit)
+        sig['Content-Description'] = 'signature'
+        sig.set_charset('us-ascii')
+
+        msg = MIMEMultipart('signed', micalg='pgp-sha1',
+                            protocol='application/pgp-signature')
+        msg.attach(mail)
+        msg.attach(sig)
+
+        msg['Content-Disposition'] = 'inline'
+        returnValue(msg)
+
+
+    def encrypt(self, header, passphrase=None):
+        """
+        multipart/encrypted
+         +-> application/pgp-encrypted  (control information)
+         +-> application/octet-stream   (body)
+        """
+        body = self.clearBodyPart()
+        toenc = flatten(body)
+
+        recipients = []
+        #TODO magic
+        encrypted = output
+
+        enc = MIMEApplication(_data=encrypted, _subtype='octet-stream',
+                              _encoder=encode_7or8bit)
+        enc.set_charset('us-ascii')
+
+        control = MIMEApplication(_data='Version: 1\n', _subtype='pgp-encrypted',
+                                  _encoder=encode_7or8bit)
+
+        msg = MIMEMultipart('encrypted', micalg='pgp-sha1',
+                            protocol='application/pgp-encrypted')
+        msg.attach(control)
+        msg.attach(enc)
+
+        msg['Content-Disposition'] = 'inline'
+        return msg
+    def signAndEncrypt(self, header, passphrase=None):
+        """
+        multipart/encrypted
+         +-> application/pgp-encrypted  (control information)
+         +-> application/octet-stream   (body)
+        """
+        body = self.sign(header, passphrase)
+        body.__delitem__('Bcc')
+        original = flatten(body)
+        return self.encrypt(original)
