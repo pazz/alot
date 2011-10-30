@@ -66,36 +66,41 @@ class SignCommand(Command):
 
     @defer.inlineCallbacks
     def apply(self, ui):
-        mail = ui.current_buffer.get_email()
+        try:
+            mail = ui.current_buffer.get_email()
 
-        if self.hint == None:
-            #try to determine fingerprint from From-header
-            frm = decode_header(mail.get('From'))
-            if frm:
-                sname, saddr = email.Utils.parseaddr(frm)
-                account = ui.accountman.get_account_by_address(saddr)
-                if not account == None:
-                    self.hint = account.gpg_key
-        if self.hint == None:
-            ui.notify('could not determine fingerprint', priority='error')
-            return
+            if self.hint == None:
+                #try to determine fingerprint from From-header
+                frm = decode_header(mail.get('From'))
+                if frm:
+                    sname, saddr = email.Utils.parseaddr(frm)
+                    account = ui.accountman.get_account_by_address(saddr)
+                    if not account == None:
+                        self.hint = account.gpg_key
+            if self.hint == None:
+                ui.notify('could not determine fingerprint', priority='error')
+                return
 
-        tosignpart = typed_subpart_iterator(mail, 'text').next()
-        tosigntext = tosignpart.get_payload()
+            tosignpart = typed_subpart_iterator(mail, 'text').next()
+            tosigntext = tosignpart.get_payload()
 
-        ui.logger.debug('TOSIGN: %s' % tosigntext)
-        self.hint = self.hint.encode('utf-8')
+            ui.logger.debug('TOSIGN: %s' % tosigntext)
+            self.hint = self.hint.encode('utf-8')
 
-        g = GPGManager(ui)
+            g = GPGManager(ui)
 
-        #signed = yield g._defer_wrap(g._sign, tosigntext, self.hint)
-        signed = yield g.sign(tosigntext, self.hint)
-        ui.logger.debug('SIGNED: %s' % signed)
+            #signed = yield g._defer_wrap(g._sign, tosigntext, self.hint)
+            signedmail = yield g.sign_mail(mail, self.hint)
+            for k in mail.keys():
+                signedmail[k] = mail[k]
+                #del(mail[k])
+            ui.logger.debug('SIGNED: %s' % signedmail)
 
-        ui.logger.info(signed)
-        tosigntext = tosignpart.set_payload(signed)
-        ui.logger.info(mail)
-        ui.current_buffer.set_email(mail)
+            #tosigntext = tosignpart.set_payload(signed)
+            #ui.logger.info(mail)
+            ui.current_buffer.set_email(signedmail)
+        except Exception, e:
+            ui.logger.exception(e)
 
 
 @registerCommand(MODE, 'refine', help='prompt to change the value of a header',
