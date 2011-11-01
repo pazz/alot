@@ -116,12 +116,18 @@ class GPGManager:
     def is_encrypted(self, text):
 		return text.find("-----BEGIN PGP MESSAGE-----") != -1
 
+    def canonical_form(self, string):
+        """normalises string to canonical form (cf rfc2015)"""
+        cf = tosign.replace('\\t', ' '*4)
+        cf = re.sub("\r?\n", "\r\n", cf)
+        return cf
+
     @inlineCallbacks
     def sign_mail(self, mail, keyhint):
         """
         returns mail signed and wrapped in a multipart/signed email
         """
-        tosign = mail.as_string()
+        tosign = self.canonical_form(mail.as_string())
         signature = yield self._defer_wrap(self.sign_block, tosign, keyhint)
 
         sig = MIMEApplication(_data=signature,
