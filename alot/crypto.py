@@ -10,6 +10,8 @@ import re
 import sys
 import types
 
+import logging
+
 from email import Message
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -18,6 +20,7 @@ from email.encoders import encode_7or8bit
 from email.generator import Generator
 from email.parser import Parser
 from email.utils import getaddresses
+import email
 
 class GPGManager:
     def __init__(self, ui):
@@ -118,7 +121,7 @@ class GPGManager:
 
     def canonical_form(self, string):
         """normalises string to canonical form (cf rfc2015)"""
-        cf = tosign.replace('\\t', ' '*4)
+        cf = string.replace('\\t', ' '*4)
         cf = re.sub("\r?\n", "\r\n", cf)
         return cf
 
@@ -127,22 +130,28 @@ class GPGManager:
         """
         returns mail signed and wrapped in a multipart/signed email
         """
-        tosign = self.canonical_form(mail.as_string())
-        signature = yield self._defer_wrap(self.sign_block, tosign, keyhint)
+        try:
+            tosign = self.canonical_form(mail.as_string())
+            boundary = mail.get_boundary()
+            mail = email.message_from_string(tosign)
+            mail.set_boundary(boundary)
+            signature = yield self._defer_wrap(self.sign_block, tosign, keyhint)
 
-        sig = MIMEApplication(_data=signature,
-                              _subtype='pgp-signature; name="signature.asc"',
-                              _encoder=encode_7or8bit)
-        sig['Content-Description'] = 'signature'
-        sig.set_charset('us-ascii')
+            sig = MIMEApplication(_data=signature,
+                                  _subtype='pgp-signature; name="signature.asc"',
+                                  _encoder=encode_7or8bit)
+            sig['Content-Description'] = 'signature'
+            sig.set_charset('us-ascii')
 
-        msg = MIMEMultipart('signed', micalg='pgp-sha1',
-                            protocol='application/pgp-signature')
-        msg.attach(mail)
-        msg.attach(sig)
+            msg = MIMEMultipart('signed', micalg='pgp-sha1',
+                                protocol='application/pgp-signature')
+            msg.attach(mail)
+            msg.attach(sig)
 
-        msg['Content-Disposition'] = 'inline'
-        returnValue(msg)
+            msg['Content-Disposition'] = 'inline'
+            returnValue(msg)
+        except Exception, e:
+            logging.exception(e)
 
 
     def encrypt(self, header, passphrase=None):
