@@ -22,6 +22,20 @@ from email.parser import Parser
 from email.utils import getaddresses
 import email
 
+def flatten(msg, to_unicode=False):
+    """
+    Produce flat text output from an email Message instance.
+    """
+    assert msg != None
+    fp = StringIO()
+    g = Generator(fp, mangle_from_=False)
+    g.flatten(msg)
+    text = fp.getvalue()
+    if to_unicode == True:
+        encoding = msg.get_content_charset() or "utf-8"
+        text = unicode(text, encoding=encoding)
+    return text
+
 class GPGManager:
     def __init__(self, ui):
         self.ui = ui
@@ -131,10 +145,17 @@ class GPGManager:
         returns mail signed and wrapped in a multipart/signed email
         """
         try:
+            signedmail = MIMEMultipart('signed', micalg='pgp-sha1',
+                                protocol='application/pgp-signature')
+            for k in mail.keys():
+                signedmail[k] = mail[k]
+                #del(mail[k])
+
             tosign = self.canonical_form(mail.as_string())
-            boundary = mail.get_boundary()
-            mail = email.message_from_string(tosign)
-            mail.set_boundary(boundary)
+            #tosign = flatten(mail)
+            logging.debug(tosign)
+            #mail = email.message_from_string(tosign)
+
             signature = yield self._defer_wrap(self.sign_block, tosign, keyhint)
 
             sig = MIMEApplication(_data=signature,
@@ -143,13 +164,11 @@ class GPGManager:
             sig['Content-Description'] = 'signature'
             sig.set_charset('us-ascii')
 
-            msg = MIMEMultipart('signed', micalg='pgp-sha1',
-                                protocol='application/pgp-signature')
-            msg.attach(mail)
-            msg.attach(sig)
+            signedmail.attach(mail)
+            signedmail.attach(sig)
 
-            msg['Content-Disposition'] = 'inline'
-            returnValue(msg)
+            signedmail['Content-Disposition'] = 'inline'
+            returnValue(signedmail)
         except Exception, e:
             logging.exception(e)
 

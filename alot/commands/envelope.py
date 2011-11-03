@@ -313,3 +313,6 @@ class EnvelopeSetCommand(Command):
 class ToggleHeaderCommand(Command):
     def apply(self, ui):
         ui.current_buffer.header_wgt.toggle_all()
+
+
+#  e=ui.current_buffer.get_email()
