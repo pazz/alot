@@ -93,14 +93,17 @@ class BufferlistBuffer(Buffer):
 
 
 class EnvelopeBuffer(Buffer):
-    def __init__(self, ui, mail):
+    def __init__(self, ui, dmail):
         self.ui = ui
-        self.mail = mail
+        self.dmail = dmail
+        self.mail = dmail.construct_mail()
         self.rebuild()
+        ui.logger.debug(dmail)
         Buffer.__init__(self, ui, self.body, 'envelope')
 
     def __str__(self):
         return "to: %s" % decode_header(self.mail['To'])
+
 
     def get_email(self):
         return self.mail
@@ -110,6 +113,7 @@ class EnvelopeBuffer(Buffer):
         self.rebuild()
 
     def rebuild(self):
+        self.mail = self.dmail.construct_mail()
         displayed_widgets = []
         hidden = settings.config.getstringlist('general',
                                                'envelope_headers_blacklist')

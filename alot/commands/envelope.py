@@ -9,12 +9,14 @@ from email.iterators import typed_subpart_iterator
 from twisted.internet import defer
 import threading
 
+from alot import buffers
 from alot.commands import Command, registerCommand
 from alot import settings
 from alot import helper
 from alot.message import decode_header
 from alot.message import encode_header
 from alot.message import extract_headers
+from alot.message import DisensembledMail
 from alot.message import extract_body
 from alot.commands.globals import EditCommand
 from alot.commands.globals import BufferCloseCommand
@@ -133,99 +135,82 @@ class EnvelopeEditCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
-        if not self.mail:
-            self.mail = ui.current_buffer.get_email()
+        try:
+            envelope = ui.current_buffer
+            if not self.mail:
+                self.mail = DisensembledMail()
+            ui.logger.debug('ENVELOPEEDIT %s ' % self.mail)
 
-        #determine editable headers
-        edit_headers = set(settings.config.getstringlist('general',
-                                                    'edit_headers_whitelist'))
-        if '*' in edit_headers:
-            edit_headers = set(self.mail.keys())
-        blacklist = set(settings.config.getstringlist('general',
-                                                  'edit_headers_blacklist'))
-        if '*' in blacklist:
-            blacklist = set(self.mail.keys())
-        ui.logger.debug('BLACKLIST: %s' % blacklist)
-        self.edit_headers = edit_headers - blacklist
-        ui.logger.info('editable headers: %s' % blacklist)
+            #determine editable headers
+            edit_headers = set(settings.config.getstringlist('general',
+                                                        'edit_headers_whitelist'))
+            if '*' in edit_headers:
+                edit_headers = set(self.mail.headers.keys())
+            blacklist = set(settings.config.getstringlist('general',
+                                                      'edit_headers_blacklist'))
+            if '*' in blacklist:
+                blacklist = set(self.mail.headers.keys())
+            ui.logger.debug('BLACKLIST: %s' % blacklist)
+            self.edit_headers = edit_headers - blacklist
+            ui.logger.info('editable headers: %s' % blacklist)
 
-        def openEnvelopeFromTmpfile():
-            # This parses the input from the tempfile.
-            # we do this ourselves here because we want to be able to
-            # just type utf-8 encoded stuff into the tempfile and let alot
-            # worry about encodings.
+            def openEnvelopeFromTmpfile():
+                # This parses the input from the tempfile.
+                # we do this ourselves here because we want to be able to
+                # just type utf-8 encoded stuff into the tempfile and let alot
+                # worry about encodings.
 
-            # get input
-            f = open(tf.name)
-            enc = settings.config.get('general', 'editor_writes_encoding')
-            editor_input = string_decode(f.read(), enc)
-            if self.edit_headers:
-                headertext, bodytext = editor_input.split('\n\n', 1)
-            else:
-                headertext = ''
-                bodytext = editor_input
+                # get input
+                f = open(tf.name)
+                os.unlink(tf.name)
+                enc = settings.config.get('general', 'editor_writes_encoding')
+                template = string_decode(f.read(), enc)
+                ui.logger.debug('OPENTEMPLATE: %s' % template)
+                f.close()
 
-            # call post-edit translate hook
-            translate = settings.hooks.get('post_edit_translate')
+                # call post-edit translate hook
+                translate = settings.hooks.get('post_edit_translate')
+                if translate:
+                    template = translate(template, ui=ui, dbm=ui.dbman,
+                                         aman=ui.accountman, log=ui.logger,
+                                         config=settings.config)
+                self.mail.parse_template(template)
+                ui.logger.debug('ENVELOPEEDIT %s ' % self.mail)
+                if self.openNew:
+                    ui.buffer_open(buffers.EnvelopeBuffer(ui, dmail=self.mail))
+                else:
+                    envelope.dmail = dmail
+                    envelope.rebuild()
+
+            # decode header
+            headertext = ''#TODO extract_headers(self.mail, self.edit_headers)
+
+            bodytext = self.mail.body
+
+            # call pre-edit translate hook
+            translate = settings.hooks.get('pre_edit_translate')
             if translate:
                 bodytext = translate(bodytext, ui=ui, dbm=ui.dbman,
                                      aman=ui.accountman, log=ui.logger,
                                      config=settings.config)
 
-            # go through multiline, utf-8 encoded headers
-            # we decode the edited text ourselves here as
-            # email.message_from_file can't deal with raw utf8 header values
-            key = value = None
-            for line in headertext.splitlines():
-                if re.match('[a-zA-Z0-9_-]+:', line):  # new k/v pair
-                    if key and value:  # save old one from stack
-                        del self.mail[key]  # ensure unique values in mails
-                        self.mail[key] = encode_header(key, value)  # save
-                    key, value = line.strip().split(':', 1)  # parse new pair
-                elif key and value:  # append new line without key prefix
-                    value += line
-            if key and value:  # save last one if present
-                del self.mail[key]
-                self.mail[key] = encode_header(key, value)
-
-            bodypart = typed_subpart_iterator(self.mail, 'text').next()
-            bodypart.set_payload(bodytext, 'utf-8')
-
-            f.close()
-            os.unlink(tf.name)
-            if self.openNew:
-                ui.apply_command(EnvelopeOpenCommand(mail=self.mail))
-            else:
-                ui.current_buffer.set_email(self.mail)
-
-        # decode header
-        headertext = extract_headers(self.mail, self.edit_headers)
-
-        bodytext = extract_body(self.mail)
-
-        # call pre-edit translate hook
-        translate = settings.hooks.get('pre_edit_translate')
-        if translate:
-            bodytext = translate(bodytext, ui=ui, dbm=ui.dbman,
-                                 aman=ui.accountman, log=ui.logger,
-                                 config=settings.config)
-
-        #write stuff to tempfile
-        tf = tempfile.NamedTemporaryFile(delete=False)
-        content = bodytext
-        if headertext:
-            content = '%s\n\n%s' % (headertext, content)
-        tf.write(content.encode('utf-8'))
-        tf.flush()
-        tf.close()
-        cmd = EditCommand(tf.name, on_success=openEnvelopeFromTmpfile,
-                          refocus=False)
-        ui.apply_command(cmd)
+            #write stuff to tempfile
+            tf = tempfile.NamedTemporaryFile(delete=False)
+            content = bodytext
+            if headertext:
+                content = '%s\n\n%s' % (headertext, content)
+            tf.write(content.encode('utf-8'))
+            tf.flush()
+            tf.close()
+            cmd = EditCommand(tf.name, on_success=openEnvelopeFromTmpfile,
+                              refocus=False)
+            ui.apply_command(cmd)
+        except Exception, e:
+            ui.logger.exception(e)
 
 
 @registerCommand(MODE, 'set', help='set header value', arguments=[
-    (['--append'], {'action': 'store_true', 'help':'keep previous value'}),
+    #(['--append'], {'action': 'store_true', 'help':'keep previous value'}),
     (['key'], {'help':'header to refine'}),
     (['value'], {'nargs':'+', 'help':'value'})])
 class EnvelopeSetCommand(Command):
@@ -237,11 +222,9 @@ class EnvelopeSetCommand(Command):
 
     def apply(self, ui):
         envelope = ui.current_buffer
-        mail = envelope.get_email()
-        if not self.append:
-            del(mail[self.key])
-        mail[self.key] = self.value
-        envelope.set_email(mail)
+        dmail = envelope.dismail
+        dmail.headers[self.key] = self.value
+        #envelope.set_email(mail)
         envelope.rebuild()
 
 
@@ -253,9 +236,10 @@ class EnvelopeSetCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        mail = ui.current_buffer.get_email()
-        del(mail[self.key])
-        ui.current_buffer.set_email(mail)
+        envelope = ui.current_buffer
+        dmail = envelope.dismail
+        del(dmail.headers[self.key])
+        envelope.rebuild()
 
 
 @registerCommand(MODE, 'toggleheaders',

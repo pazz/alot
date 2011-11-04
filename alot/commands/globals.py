@@ -4,8 +4,6 @@ import threading
 import subprocess
 import shlex
 import email
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 import urwid
 from twisted.internet import defer
 import logging
@@ -20,6 +18,7 @@ from alot.completion import ContactsCompleter
 from alot.completion import AccountCompleter
 from alot.message import encode_header
 from alot.message import decode_header
+from alot.message import DisensembledMail
 from alot import commands
 import argparse
 
@@ -381,12 +380,11 @@ class HelpCommand(Command):
     (['--bcc'], {'nargs':'+', 'help':'blind copy to'}),
 ])
 class ComposeCommand(Command):
-    def __init__(self, mail=None, headers={}, template=None,
+    def __init__(self, headers={}, template=None,
                  sender=u'', subject=u'', to=[], cc=[], bcc=[],
                  **kwargs):
         Command.__init__(self, **kwargs)
 
-        self.mail = mail
         self.template = template
         self.headers = headers
         self.sender = sender
@@ -397,8 +395,8 @@ class ComposeCommand(Command):
 
     @defer.inlineCallbacks
     def apply(self, ui):
-        # set self.mail
-        if self.mail is None:
+        try:
+            dmail = DisensembledMail()
             if self.template is not None:
                 #get location of tempsdir, containing msg templates
                 tempdir = settings.config.get('general', 'template_dir')
@@ -421,78 +419,77 @@ class ComposeCommand(Command):
                               priority='error')
                     return
                 try:
-                    self.mail = email.message_from_file(open(path))
+                    dmail.parse_template(open(path).read())
                 except Exception, e:
                     ui.notify(str(e), priority='error')
                     return
-            else:  # no mail or template given
-                self.mail = MIMEMultipart()
-                self.mail.attach(MIMEText('', 'plain', 'UTF-8'))
 
-        # set forced headers
-        for key, value in self.headers.items():
-            self.mail[key] = encode_header(key, value)
+            # set forced headers
+            for key, value in self.headers.items():
+                dmail.headers[key] = encode_header(key, value)
 
-        # set forced headers for separate parameters
-        if self.sender:
-            self.mail['From'] = encode_header('From', self.sender)
-        if self.subject:
-            self.mail['Subject'] = encode_header('Subject', self.subject)
-        if self.to:
-            self.mail['To'] = encode_header('To', ','.join(self.to))
-        if self.cc:
-            self.mail['Cc'] = encode_header('Cc', ','.join(self.cc))
-        if self.bcc:
-            self.mail['Bcc'] = encode_header('Bcc', ','.join(self.bcc))
+            # set forced headers for separate parameters
+            if self.sender:
+                dmail.headers['From'] = encode_header('From', self.sender)
+            if self.subject:
+                dmail.headers['Subject'] = encode_header('Subject', self.subject)
+            if self.to:
+                dmail.headers['To'] = encode_header('To', ','.join(self.to))
+            if self.cc:
+                dmail.headers['Cc'] = encode_header('Cc', ','.join(self.cc))
+            if self.bcc:
+                dmail.headers['Bcc'] = encode_header('Bcc', ','.join(self.bcc))
 
-        # get missing From header
-        if not 'From' in self.mail:
-            accounts = ui.accountman.get_accounts()
-            if len(accounts) == 1:
-                a = accounts[0]
-                fromstring = "%s <%s>" % (a.realname, a.address)
-                self.mail['From'] = encode_header('From', fromstring)
-            else:
-                cmpl = AccountCompleter(ui.accountman)
-                fromaddress = yield ui.prompt(prefix='From>', completer=cmpl,
-                                              tab=1)
-                if fromaddress is None:
+            # get missing From header
+            if not 'From' in dmail.headers:
+                accounts = ui.accountman.get_accounts()
+                if len(accounts) == 1:
+                    a = accounts[0]
+                    fromstring = "%s <%s>" % (a.realname, a.address)
+                    dmail.headers['From'] = encode_header('From', fromstring)
+                else:
+                    cmpl = AccountCompleter(ui.accountman)
+                    fromaddress = yield ui.prompt(prefix='From>', completer=cmpl,
+                                                  tab=1)
+                    if fromaddress is None:
+                        ui.notify('canceled')
+                        return
+                    a = ui.accountman.get_account_by_address(fromaddress)
+                    if a is not None:
+                        fromstring = "%s <%s>" % (a.realname, a.address)
+                        dmail.headers['From'] = encode_header('From', fromstring)
+                    else:
+                        dmail.headers['From'] = fromaddress
+
+            # get missing To header
+            if 'To' not in dmail.headers:
+                sender = decode_header(dmail.headers.get('From'))
+                name, addr = email.Utils.parseaddr(sender)
+                a = ui.accountman.get_account_by_address(addr)
+
+                allbooks = not settings.config.getboolean('general',
+                                    'complete_matching_abook_only')
+                ui.logger.debug(allbooks)
+                abooks = ui.accountman.get_addressbooks(order=[a],
+                                                        append_remaining=allbooks)
+                ui.logger.debug(abooks)
+                to = yield ui.prompt(prefix='To>',
+                                     completer=ContactsCompleter(abooks))
+                if to == None:
                     ui.notify('canceled')
                     return
-                a = ui.accountman.get_account_by_address(fromaddress)
-                if a is not None:
-                    fromstring = "%s <%s>" % (a.realname, a.address)
-                    self.mail['From'] = encode_header('From', fromstring)
-                else:
-                    self.mail['From'] = fromaddress
-
-        # get missing To header
-        if 'To' not in self.mail:
-            sender = decode_header(self.mail.get('From'))
-            name, addr = email.Utils.parseaddr(sender)
-            a = ui.accountman.get_account_by_address(addr)
-
-            allbooks = not settings.config.getboolean('general',
-                                'complete_matching_abook_only')
-            ui.logger.debug(allbooks)
-            abooks = ui.accountman.get_addressbooks(order=[a],
-                                                    append_remaining=allbooks)
-            ui.logger.debug(abooks)
-            to = yield ui.prompt(prefix='To>',
-                                 completer=ContactsCompleter(abooks))
-            if to == None:
-                ui.notify('canceled')
-                return
-            self.mail['To'] = encode_header('to', to)
-        if settings.config.getboolean('general', 'ask_subject') and \
-           not 'Subject' in self.mail:
-            subject = yield ui.prompt(prefix='Subject>')
-            if subject == None:
-                ui.notify('canceled')
-                return
-            self.mail['Subject'] = encode_header('subject', subject)
-
-        ui.apply_command(commands.envelope.EnvelopeEditCommand(mail=self.mail))
+                dmail.headers['To'] = encode_header('to', to)
+            if settings.config.getboolean('general', 'ask_subject') and \
+               not 'Subject' in dmail.headers:
+                subject = yield ui.prompt(prefix='Subject>')
+                if subject == None:
+                    ui.notify('canceled')
+                    return
+                dmail.headers['Subject'] = encode_header('subject', subject)
+            ui.logger.debug('COMPOSED DMAIL: %s' % dmail)
+            ui.apply_command(commands.envelope.EnvelopeEditCommand(mail=dmail))
+        except Exception, e:
+            ui.logger.exception(e)
 
 
 @registerCommand(MODE, 'move', help='move focus', arguments=[

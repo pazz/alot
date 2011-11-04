@@ -23,8 +23,14 @@ import re
 import mimetypes
 from datetime import datetime
 from email.header import Header
+#from email.charse import Charset
+import email.charset as charset
+charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 from email.iterators import typed_subpart_iterator
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
+import logging
 import helper
 from settings import get_mime_handler
 from settings import config
@@ -335,3 +341,64 @@ class Attachment(object):
         FILE.write(self.part.get_payload(decode=True))
         FILE.close()
         return FILE.name
+    def get_mime_representation(self):
+        return self.part
+
+
+class DisensembledMail(object):
+    def __init__(self, template=None, bodytext=u'', headers={}, attachments=[],
+            sign=False, encrypt=False):
+        assert isinstance(bodytext, unicode)
+        self.headers = {}
+        self.body = None
+        logging.debug('TEMPLATE: %s' % template)
+        if template:
+            self.parse_template(template)
+            logging.debug('PARSED TEMPLATE: %s' % template)
+            logging.debug('BODY: %s' % self.body)
+        if self.body == None:
+            self.body = bodytext
+        self.headers.update(headers)
+        self.attachments = attachments
+        self.sign = sign
+        self.encrypt = encrypt
+
+    def __str__(self):
+        return "DMAIL %s %s" % (self.headers,self.body)
+
+    def construct_mail(self):
+        textpart =  MIMEText(self.body.encode('utf-8'), 'plain', 'utf-8')
+        if self.attachments or self.sign or self.encrypt:
+            msg = MIMEMultipart()
+        else:
+            msg = textpart
+        for k, v in self.headers.items():
+            msg[k] = v
+        for a in self.attachments:
+            msg.attach(a)
+            logging.debug(msg)
+        return msg
+
+    def parse_template(self,tmp):
+        m = re.match('(?P<h>([a-zA-Z0-9_-]+:.+\n)*)(?P<b>\s*.*)',tmp)
+        assert m
+
+        d = m.groupdict()
+        headertext = d['h']
+        self.body = d['b']
+
+        # go through multiline, utf-8 encoded headers
+        # we decode the edited text ourselves here as
+        # email.message_from_file can't deal with raw utf8 header values
+        key = value = None
+        for line in headertext.splitlines():
+            if re.match('[a-zA-Z0-9_-]+:', line):  # new k/v pair
+                if key and value:  # save old one from stack
+                    #del self.mail.headers[key]  # ensure unique values in mails
+                    self.headers[key] = encode_header(key, value)  # save
+                key, value = line.strip().split(':', 1)  # parse new pair
+            elif key and value:  # append new line without key prefix
+                value += line
+        if key and value:  # save last one if present
+            #del self.headers[key]
+            self.headers[key] = encode_header(key, value)
