@@ -380,11 +380,12 @@ class HelpCommand(Command):
     (['--bcc'], {'nargs':'+', 'help':'blind copy to'}),
 ])
 class ComposeCommand(Command):
-    def __init__(self, headers={}, template=None,
+    def __init__(self, dmail=None, headers={}, template=None,
                  sender=u'', subject=u'', to=[], cc=[], bcc=[],
                  **kwargs):
         Command.__init__(self, **kwargs)
 
+        self.dmail = dmail
         self.template = template
         self.headers = headers
         self.sender = sender
@@ -395,7 +396,8 @@ class ComposeCommand(Command):
 
     @defer.inlineCallbacks
     def apply(self, ui):
-        dmail = DisensembledMail()
+        if self.dmail == None:
+            self.dmail = DisensembledMail()
         if self.template is not None:
             #get location of tempsdir, containing msg templates
             tempdir = settings.config.get('general', 'template_dir')
@@ -418,34 +420,34 @@ class ComposeCommand(Command):
                           priority='error')
                 return
             try:
-                dmail.parse_template(open(path).read())
+                self.dmail.parse_template(open(path).read())
             except Exception, e:
                 ui.notify(str(e), priority='error')
                 return
 
         # set forced headers
         for key, value in self.headers.items():
-            dmail.headers[key] = encode_header(key, value)
+            self.dmail.headers[key] = encode_header(key, value)
 
         # set forced headers for separate parameters
         if self.sender:
-            dmail.headers['From'] = encode_header('From', self.sender)
+            self.dmail.headers['From'] = encode_header('From', self.sender)
         if self.subject:
-            dmail.headers['Subject'] = encode_header('Subject', self.subject)
+            self.dmail.headers['Subject'] = encode_header('Subject', self.subject)
         if self.to:
-            dmail.headers['To'] = encode_header('To', ','.join(self.to))
+            self.dmail.headers['To'] = encode_header('To', ','.join(self.to))
         if self.cc:
-            dmail.headers['Cc'] = encode_header('Cc', ','.join(self.cc))
+            self.dmail.headers['Cc'] = encode_header('Cc', ','.join(self.cc))
         if self.bcc:
-            dmail.headers['Bcc'] = encode_header('Bcc', ','.join(self.bcc))
+            self.dmail.headers['Bcc'] = encode_header('Bcc', ','.join(self.bcc))
 
         # get missing From header
-        if not 'From' in dmail.headers:
+        if not 'From' in self.dmail.headers:
             accounts = ui.accountman.get_accounts()
             if len(accounts) == 1:
                 a = accounts[0]
                 fromstring = "%s <%s>" % (a.realname, a.address)
-                dmail.headers['From'] = encode_header('From', fromstring)
+                self.dmail.headers['From'] = encode_header('From', fromstring)
             else:
                 cmpl = AccountCompleter(ui.accountman)
                 fromaddress = yield ui.prompt(prefix='From>', completer=cmpl,
@@ -456,13 +458,13 @@ class ComposeCommand(Command):
                 a = ui.accountman.get_account_by_address(fromaddress)
                 if a is not None:
                     fromstring = "%s <%s>" % (a.realname, a.address)
-                    dmail.headers['From'] = encode_header('From', fromstring)
+                    self.dmail.headers['From'] = encode_header('From', fromstring)
                 else:
-                    dmail.headers['From'] = fromaddress
+                    self.dmail.headers['From'] = fromaddress
 
         # get missing To header
-        if 'To' not in dmail.headers:
-            sender = decode_header(dmail.headers.get('From'))
+        if 'To' not in self.dmail.headers:
+            sender = decode_header(self.dmail.headers.get('From'))
             name, addr = email.Utils.parseaddr(sender)
             a = ui.accountman.get_account_by_address(addr)
 
@@ -477,16 +479,16 @@ class ComposeCommand(Command):
             if to == None:
                 ui.notify('canceled')
                 return
-            dmail.headers['To'] = encode_header('to', to)
+            self.dmail.headers['To'] = encode_header('to', to)
         if settings.config.getboolean('general', 'ask_subject') and \
-           not 'Subject' in dmail.headers:
+           not 'Subject' in self.dmail.headers:
             subject = yield ui.prompt(prefix='Subject>')
             if subject == None:
                 ui.notify('canceled')
                 return
-            dmail.headers['Subject'] = encode_header('subject', subject)
-        ui.logger.debug('COMPOSED DMAIL: %s' % dmail)
-        ui.apply_command(commands.envelope.EnvelopeEditCommand(mail=dmail))
+            self.dmail.headers['Subject'] = encode_header('subject', subject)
+        ui.logger.debug('COMPOSED DMAIL: %s' % self.dmail)
+        ui.apply_command(commands.envelope.EnvelopeEditCommand(mail=self.dmail))
 
 
 @registerCommand(MODE, 'move', help='move focus', arguments=[

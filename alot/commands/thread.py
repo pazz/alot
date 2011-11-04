@@ -21,6 +21,7 @@ from alot.message import encode_header
 from alot.message import decode_header
 from alot.message import extract_headers
 from alot.message import extract_body
+from alot.message import DisensembledMail
 
 MODE = 'thread'
 
@@ -58,10 +59,7 @@ class ReplyCommand(Command):
         for line in self.message.accumulate_body().splitlines():
             mailcontent += '>' + line + '\n'
 
-        Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
-        bodypart = MIMEText(mailcontent.encode('utf-8'), 'plain', 'UTF-8')
-        reply = MIMEMultipart()
-        reply.attach(bodypart)
+        reply = DisensembledMail(bodytext=mailcontent)
 
         # copy subject
         subject = decode_header(mail.get('Subject', ''))
@@ -86,7 +84,6 @@ class ReplyCommand(Command):
             reply['From'] = encode_header('From', fromstring)
 
         # set To
-        del(reply['To'])
         if self.groupreply:
             cleared = self.clear_my_address(my_addresses, mail.get('To', ''))
             if cleared:
@@ -107,7 +104,6 @@ class ReplyCommand(Command):
             reply['To'] = encode_header('To', mail['From'])
 
         # set In-Reply-To header
-        del(reply['In-Reply-To'])
         reply['In-Reply-To'] = '<%s>' % self.message.get_message_id()
 
         # set References header
@@ -122,7 +118,7 @@ class ReplyCommand(Command):
         else:
             reply['References'] = '<%s>' % self.message.get_message_id()
 
-        ui.apply_command(ComposeCommand(mail=reply))
+        ui.apply_command(ComposeCommand(dmail=reply))
 
     def clear_my_address(self, my_addresses, value):
         new_value = []
