@@ -377,6 +377,7 @@ class DisensembledMail(object):
         textpart = MIMEText(self.body.encode('utf-8'), 'plain', 'utf-8')
         if self.attachments or self.sign or self.encrypt:
             msg = MIMEMultipart()
+            msg.attach(textpart)
         else:
             msg = textpart
         for k, v in self.headers.items():
@@ -387,7 +388,7 @@ class DisensembledMail(object):
         return msg
 
     def parse_template(self, tmp):
-        m = re.match('(?P<h>([a-zA-Z0-9_-]+:.+\n)*)(?P<b>\s*.*)', tmp)
+        m = re.match('(?P<h>([a-zA-Z0-9_-]+:.+\n)*)(?P<b>(\s*.*)*)', tmp)
         assert m
 
         d = m.groupdict()
