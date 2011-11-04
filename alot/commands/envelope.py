@@ -220,9 +220,7 @@ class EnvelopeSetCommand(Command):
 
     def apply(self, ui):
         envelope = ui.current_buffer
-        dmail = envelope.dismail
-        dmail.headers[self.key] = self.value
-        #envelope.set_email(mail)
+        envelope.dmail.headers[self.key] = self.value
         envelope.rebuild()
 
 
@@ -235,7 +233,7 @@ class EnvelopeSetCommand(Command):
 
     def apply(self, ui):
         envelope = ui.current_buffer
-        dmail = envelope.dismail
+        dmail = envelope.dmail
         del(dmail.headers[self.key])
         envelope.rebuild()
 
