@@ -367,6 +367,12 @@ class DisensembledMail(object):
     def __str__(self):
         return "DMAIL %s %s" % (self.headers, self.body)
 
+    def __setitem__(self, name, val):
+        self.headers[name] = val
+
+    def __getitem__(self, name):
+        return self.headers[name]
+
     def construct_mail(self):
         textpart = MIMEText(self.body.encode('utf-8'), 'plain', 'utf-8')
         if self.attachments or self.sign or self.encrypt:
