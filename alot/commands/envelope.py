@@ -137,8 +137,7 @@ class EnvelopeEditCommand(Command):
     def apply(self, ui):
         envelope = ui.current_buffer
         if not self.mail:
-            self.mail = DisensembledMail()
-        ui.logger.debug('ENVELOPEEDIT %s ' % self.mail)
+            self.mail = ui.current_buffer.dmail
 
         #determine editable headers
         edit_headers = set(settings.config.getstringlist('general',
@@ -149,7 +148,6 @@ class EnvelopeEditCommand(Command):
                                                   'edit_headers_blacklist'))
         if '*' in blacklist:
             blacklist = set(self.mail.headers.keys())
-        ui.logger.debug('BLACKLIST: %s' % blacklist)
         self.edit_headers = edit_headers - blacklist
         ui.logger.info('editable headers: %s' % blacklist)
 
@@ -164,7 +162,6 @@ class EnvelopeEditCommand(Command):
             os.unlink(tf.name)
             enc = settings.config.get('general', 'editor_writes_encoding')
             template = string_decode(f.read(), enc)
-            ui.logger.debug('OPENTEMPLATE: %s' % template)
             f.close()
 
             # call post-edit translate hook
@@ -174,11 +171,10 @@ class EnvelopeEditCommand(Command):
                                      aman=ui.accountman, log=ui.logger,
                                      config=settings.config)
             self.mail.parse_template(template)
-            ui.logger.debug('ENVELOPEEDIT %s ' % self.mail)
             if self.openNew:
                 ui.buffer_open(buffers.EnvelopeBuffer(ui, dmail=self.mail))
             else:
-                envelope.dmail = dmail
+                envelope.dmail = self.mail
                 envelope.rebuild()
 
         # decode header
@@ -200,7 +196,7 @@ class EnvelopeEditCommand(Command):
         tf = tempfile.NamedTemporaryFile(delete=False)
         content = bodytext
         if headertext:
-            content = '%s\n\n%s' % (headertext, content)
+            content = '%s%s' % (headertext, content)
         tf.write(content.encode('utf-8'))
         tf.flush()
         tf.close()
