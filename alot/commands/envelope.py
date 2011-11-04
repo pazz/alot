@@ -135,78 +135,80 @@ class EnvelopeEditCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        try:
-            envelope = ui.current_buffer
-            if not self.mail:
-                self.mail = DisensembledMail()
-            ui.logger.debug('ENVELOPEEDIT %s ' % self.mail)
+        envelope = ui.current_buffer
+        if not self.mail:
+            self.mail = DisensembledMail()
+        ui.logger.debug('ENVELOPEEDIT %s ' % self.mail)
 
-            #determine editable headers
-            edit_headers = set(settings.config.getstringlist('general',
-                                                        'edit_headers_whitelist'))
-            if '*' in edit_headers:
-                edit_headers = set(self.mail.headers.keys())
-            blacklist = set(settings.config.getstringlist('general',
-                                                      'edit_headers_blacklist'))
-            if '*' in blacklist:
-                blacklist = set(self.mail.headers.keys())
-            ui.logger.debug('BLACKLIST: %s' % blacklist)
-            self.edit_headers = edit_headers - blacklist
-            ui.logger.info('editable headers: %s' % blacklist)
+        #determine editable headers
+        edit_headers = set(settings.config.getstringlist('general',
+                                                    'edit_headers_whitelist'))
+        if '*' in edit_headers:
+            edit_headers = set(self.mail.headers.keys())
+        blacklist = set(settings.config.getstringlist('general',
+                                                  'edit_headers_blacklist'))
+        if '*' in blacklist:
+            blacklist = set(self.mail.headers.keys())
+        ui.logger.debug('BLACKLIST: %s' % blacklist)
+        self.edit_headers = edit_headers - blacklist
+        ui.logger.info('editable headers: %s' % blacklist)
 
-            def openEnvelopeFromTmpfile():
-                # This parses the input from the tempfile.
-                # we do this ourselves here because we want to be able to
-                # just type utf-8 encoded stuff into the tempfile and let alot
-                # worry about encodings.
+        def openEnvelopeFromTmpfile():
+            # This parses the input from the tempfile.
+            # we do this ourselves here because we want to be able to
+            # just type utf-8 encoded stuff into the tempfile and let alot
+            # worry about encodings.
 
-                # get input
-                f = open(tf.name)
-                os.unlink(tf.name)
-                enc = settings.config.get('general', 'editor_writes_encoding')
-                template = string_decode(f.read(), enc)
-                ui.logger.debug('OPENTEMPLATE: %s' % template)
-                f.close()
+            # get input
+            f = open(tf.name)
+            os.unlink(tf.name)
+            enc = settings.config.get('general', 'editor_writes_encoding')
+            template = string_decode(f.read(), enc)
+            ui.logger.debug('OPENTEMPLATE: %s' % template)
+            f.close()
 
-                # call post-edit translate hook
-                translate = settings.hooks.get('post_edit_translate')
-                if translate:
-                    template = translate(template, ui=ui, dbm=ui.dbman,
-                                         aman=ui.accountman, log=ui.logger,
-                                         config=settings.config)
-                self.mail.parse_template(template)
-                ui.logger.debug('ENVELOPEEDIT %s ' % self.mail)
-                if self.openNew:
-                    ui.buffer_open(buffers.EnvelopeBuffer(ui, dmail=self.mail))
-                else:
-                    envelope.dmail = dmail
-                    envelope.rebuild()
-
-            # decode header
-            headertext = ''#TODO extract_headers(self.mail, self.edit_headers)
-
-            bodytext = self.mail.body
-
-            # call pre-edit translate hook
-            translate = settings.hooks.get('pre_edit_translate')
+            # call post-edit translate hook
+            translate = settings.hooks.get('post_edit_translate')
             if translate:
-                bodytext = translate(bodytext, ui=ui, dbm=ui.dbman,
+                template = translate(template, ui=ui, dbm=ui.dbman,
                                      aman=ui.accountman, log=ui.logger,
                                      config=settings.config)
+            self.mail.parse_template(template)
+            ui.logger.debug('ENVELOPEEDIT %s ' % self.mail)
+            if self.openNew:
+                ui.buffer_open(buffers.EnvelopeBuffer(ui, dmail=self.mail))
+            else:
+                envelope.dmail = dmail
+                envelope.rebuild()
 
-            #write stuff to tempfile
-            tf = tempfile.NamedTemporaryFile(delete=False)
-            content = bodytext
-            if headertext:
-                content = '%s\n\n%s' % (headertext, content)
-            tf.write(content.encode('utf-8'))
-            tf.flush()
-            tf.close()
-            cmd = EditCommand(tf.name, on_success=openEnvelopeFromTmpfile,
-                              refocus=False)
-            ui.apply_command(cmd)
-        except Exception, e:
-            ui.logger.exception(e)
+        # decode header
+        headertext = u''
+        for key in edit_headers:
+            value = decode_header(self.mail.headers.get(key, ''))
+            headertext += '%s: %s\n' % (key, value)
+
+        bodytext = self.mail.body
+
+        # call pre-edit translate hook
+        translate = settings.hooks.get('pre_edit_translate')
+        if translate:
+            bodytext = translate(bodytext, ui=ui, dbm=ui.dbman,
+                                 aman=ui.accountman, log=ui.logger,
+                                 config=settings.config)
+
+        #write stuff to tempfile
+        tf = tempfile.NamedTemporaryFile(delete=False)
+        content = bodytext
+        if headertext:
+            content = '%s\n\n%s' % (headertext, content)
+        tf.write(content.encode('utf-8'))
+        tf.flush()
+        tf.close()
+        cmd = EditCommand(tf.name, on_success=openEnvelopeFromTmpfile,
+                          refocus=False)
+        ui.apply_command(cmd)
+        #except Exception, e:
+        #    ui.logger.exception(e)
 
 
 @registerCommand(MODE, 'set', help='set header value', arguments=[
