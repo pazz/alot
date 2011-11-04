@@ -149,8 +149,7 @@ class ForwardCommand(Command):
             self.message = ui.current_buffer.get_selected_message()
         mail = self.message.get_email()
 
-        reply = MIMEMultipart()
-        Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
+        fwd = DisensembledMail()
         if self.inline:  # inline mode
             # set body text
             name, address = self.message.get_author()
@@ -166,20 +165,16 @@ class ForwardCommand(Command):
             for line in self.message.accumulate_body().splitlines():
                 mailcontent += '>' + line + '\n'
 
-            bodypart = MIMEText(mailcontent.encode('utf-8'), 'plain', 'UTF-8')
-            reply.attach(bodypart)
+            fwd.body = mailcontent
 
         else:  # attach original mode
-            # create empty text msg
-            bodypart = MIMEText('', 'plain', 'UTF-8')
-            reply.attach(bodypart)
             # attach original msg
-            reply.attach(mail)
+            fwd.attachments.append(mail)
 
         # copy subject
         subject = decode_header(mail.get('Subject', ''))
         subject = 'Fwd: ' + subject
-        reply['Subject'] = Header(subject.encode('utf-8'), 'UTF-8').encode()
+        fwd['Subject'] = Header(subject.encode('utf-8'), 'UTF-8').encode()
 
         # set From
         my_addresses = ui.accountman.get_addresses()
@@ -195,8 +190,8 @@ class ForwardCommand(Command):
         if matched_address:
             account = ui.accountman.get_account_by_address(matched_address)
             fromstring = '%s <%s>' % (account.realname, account.address)
-            reply['From'] = encode_header('From', fromstring)
-        ui.apply_command(ComposeCommand(mail=reply))
+            fwd['From'] = encode_header('From', fromstring)
+        ui.apply_command(ComposeCommand(dmail=fwd))
 
 
 @registerCommand(MODE, 'fold', forced={'visible': False}, arguments=[
