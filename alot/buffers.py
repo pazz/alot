@@ -104,7 +104,6 @@ class EnvelopeBuffer(Buffer):
     def __str__(self):
         return "to: %s" % decode_header(self.mail['To'])
 
-
     def get_email(self):
         return self.mail
 

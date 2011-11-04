@@ -341,6 +341,7 @@ class Attachment(object):
         FILE.write(self.part.get_payload(decode=True))
         FILE.close()
         return FILE.name
+
     def get_mime_representation(self):
         return self.part
 
@@ -364,10 +365,10 @@ class DisensembledMail(object):
         self.encrypt = encrypt
 
     def __str__(self):
-        return "DMAIL %s %s" % (self.headers,self.body)
+        return "DMAIL %s %s" % (self.headers, self.body)
 
     def construct_mail(self):
-        textpart =  MIMEText(self.body.encode('utf-8'), 'plain', 'utf-8')
+        textpart = MIMEText(self.body.encode('utf-8'), 'plain', 'utf-8')
         if self.attachments or self.sign or self.encrypt:
             msg = MIMEMultipart()
         else:
@@ -379,8 +380,8 @@ class DisensembledMail(object):
             logging.debug(msg)
         return msg
 
-    def parse_template(self,tmp):
-        m = re.match('(?P<h>([a-zA-Z0-9_-]+:.+\n)*)(?P<b>\s*.*)',tmp)
+    def parse_template(self, tmp):
+        m = re.match('(?P<h>([a-zA-Z0-9_-]+:.+\n)*)(?P<b>\s*.*)', tmp)
         assert m
 
         d = m.groupdict()
@@ -394,7 +395,7 @@ class DisensembledMail(object):
         for line in headertext.splitlines():
             if re.match('[a-zA-Z0-9_-]+:', line):  # new k/v pair
                 if key and value:  # save old one from stack
-                    #del self.mail.headers[key]  # ensure unique values in mails
+            #del self.mail.headers[key]  # ensure unique values in mails
                     self.headers[key] = encode_header(key, value)  # save
                 key, value = line.strip().split(':', 1)  # parse new pair
             elif key and value:  # append new line without key prefix
