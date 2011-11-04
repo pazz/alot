@@ -169,6 +169,8 @@ class ForwardCommand(Command):
 
         else:  # attach original mode
             # attach original msg
+            mail.set_default_type('message/rfc822')
+            mail['Content-Disposition'] = 'attachment'
             fwd.attachments.append(mail)
 
         # copy subject
