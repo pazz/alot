@@ -30,15 +30,12 @@ MODE = 'envelope'
 @registerCommand(MODE, 'attach', help='attach files to the mail', arguments=[
     (['path'], {'help':'file(s) to attach (accepts wildcads)'})])
 class EnvelopeAttachCommand(Command):
-    def __init__(self, path=None, mail=None, **kwargs):
+    def __init__(self, path=None, **kwargs):
         Command.__init__(self, **kwargs)
-        self.mail = mail
         self.path = path
 
     def apply(self, ui):
-        msg = self.mail
-        if not msg:
-            msg = ui.current_buffer.get_email()
+        msg = ui.current_buffer.dmail
 
         if self.path:
             files = filter(os.path.isfile,
@@ -51,8 +48,8 @@ class EnvelopeAttachCommand(Command):
 
         logging.info("attaching: %s" % files)
         for path in files:
-            msg = helper.attach(path, msg)
-        ui.current_buffer.set_email(msg)
+            msg.attachments.append(helper.mimewrap(path))
+        ui.current_buffer.rebuild()
 
 
 @registerCommand(MODE, 'refine', help='prompt to change the value of a header',
@@ -97,7 +94,7 @@ class EnvelopeSendCommand(Command):
                     name = account.signature_filename
                 else:
                     name = None
-                helper.attach(sig, mail, filename=name)
+                mail.attach(helper.mimewrap(sig, filename=name))
             else:
                 ui.notify('could not locate signature: %s' % sig,
                           priority='error')

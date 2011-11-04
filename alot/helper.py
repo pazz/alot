@@ -223,7 +223,7 @@ def pipe_to_command(cmd, stdin):
             return out, err
 
 
-def attach(path, mail, filename=None):
+def mimewrap(path, filename=None):
     ctype, encoding = mimetypes.guess_type(path)
     if ctype is None or encoding is not None:
         # No guess could be made, or the file is encoded (compressed),
@@ -255,6 +255,10 @@ def attach(path, mail, filename=None):
         filename = os.path.basename(path)
     part.add_header('Content-Disposition', 'attachment',
                     filename=filename)
+    return part
+
+def attach(path, mail, filename=None):
+    part = mimewrap(path, filename)
     #wrap in multipart if not already
     if not mail.is_multipart():
         newmail = MIMEMultipart()
