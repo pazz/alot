@@ -21,7 +21,7 @@ from alot.message import encode_header
 from alot.message import decode_header
 from alot.message import extract_headers
 from alot.message import extract_body
-from alot.message import DisensembledMail
+from alot.message import Envelope
 
 MODE = 'thread'
 
@@ -59,13 +59,13 @@ class ReplyCommand(Command):
         for line in self.message.accumulate_body().splitlines():
             mailcontent += '>' + line + '\n'
 
-        reply = DisensembledMail(bodytext=mailcontent)
+        envelope = Envelope(bodytext=mailcontent)
 
         # copy subject
         subject = decode_header(mail.get('Subject', ''))
         if not subject.startswith('Re:'):
             subject = 'Re: ' + subject
-        reply['Subject'] = Header(subject.encode('utf-8'), 'UTF-8').encode()
+        envelope['Subject'] = Header(subject.encode('utf-8'), 'UTF-8').encode()
 
         # set From
         my_addresses = ui.accountman.get_addresses()
@@ -81,7 +81,7 @@ class ReplyCommand(Command):
         if matched_address:
             account = ui.accountman.get_account_by_address(matched_address)
             fromstring = '%s <%s>' % (account.realname, account.address)
-            reply['From'] = encode_header('From', fromstring)
+            envelope['From'] = encode_header('From', fromstring)
 
         # set To
         if self.groupreply:
@@ -89,22 +89,22 @@ class ReplyCommand(Command):
             if cleared:
                 logging.info(mail['From'] + ', ' + cleared)
                 to = mail['From'] + ', ' + cleared
-                reply['To'] = encode_header('To', to)
-                logging.info(reply['To'])
+                envelope['To'] = encode_header('To', to)
+                logging.info(envelope['To'])
             else:
-                reply['To'] = encode_header('To', mail['From'])
+                envelope['To'] = encode_header('To', mail['From'])
             # copy cc and bcc for group-replies
             if 'Cc' in mail:
                 cc = self.clear_my_address(my_addresses, mail['Cc'])
-                reply['Cc'] = encode_header('Cc', cc)
+                envelope['Cc'] = encode_header('Cc', cc)
             if 'Bcc' in mail:
                 bcc = self.clear_my_address(my_addresses, mail['Bcc'])
-                reply['Bcc'] = encode_header('Bcc', bcc)
+                envelope['Bcc'] = encode_header('Bcc', bcc)
         else:
-            reply['To'] = encode_header('To', mail['From'])
+            envelope['To'] = encode_header('To', mail['From'])
 
         # set In-Reply-To header
-        reply['In-Reply-To'] = '<%s>' % self.message.get_message_id()
+        envelope['In-Reply-To'] = '<%s>' % self.message.get_message_id()
 
         # set References header
         old_references = mail.get('References', '')
@@ -114,11 +114,11 @@ class ReplyCommand(Command):
             if len(old_references) > 8:
                 references = old_references[:1] + references
             references.append('<%s>' % self.message.get_message_id())
-            reply['References'] = ' '.join(references)
+            envelope['References'] = ' '.join(references)
         else:
-            reply['References'] = '<%s>' % self.message.get_message_id()
+            envelope['References'] = '<%s>' % self.message.get_message_id()
 
-        ui.apply_command(ComposeCommand(dmail=reply))
+        ui.apply_command(ComposeCommand(envelope=envelope))
 
     def clear_my_address(self, my_addresses, value):
         new_value = []
@@ -149,7 +149,7 @@ class ForwardCommand(Command):
             self.message = ui.current_buffer.get_selected_message()
         mail = self.message.get_email()
 
-        fwd = DisensembledMail()
+        envelope = Envelope()
         if self.inline:  # inline mode
             # set body text
             name, address = self.message.get_author()
@@ -165,18 +165,18 @@ class ForwardCommand(Command):
             for line in self.message.accumulate_body().splitlines():
                 mailcontent += '>' + line + '\n'
 
-            fwd.body = mailcontent
+            envelope.body = mailcontent
 
         else:  # attach original mode
             # attach original msg
             mail.set_default_type('message/rfc822')
             mail['Content-Disposition'] = 'attachment'
-            fwd.attachments.append(mail)
+            envelope.attachments.append(mail)
 
         # copy subject
         subject = decode_header(mail.get('Subject', ''))
         subject = 'Fwd: ' + subject
-        fwd['Subject'] = Header(subject.encode('utf-8'), 'UTF-8').encode()
+        envelope['Subject'] = Header(subject.encode('utf-8'), 'UTF-8').encode()
 
         # set From
         my_addresses = ui.accountman.get_addresses()
@@ -192,8 +192,8 @@ class ForwardCommand(Command):
         if matched_address:
             account = ui.accountman.get_account_by_address(matched_address)
             fromstring = '%s <%s>' % (account.realname, account.address)
-            fwd['From'] = encode_header('From', fromstring)
-        ui.apply_command(ComposeCommand(dmail=fwd))
+            envelope['From'] = encode_header('From', fromstring)
+        ui.apply_command(ComposeCommand(envelope=envelope))
 
 
 @registerCommand(MODE, 'fold', forced={'visible': False}, arguments=[

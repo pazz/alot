@@ -1,5 +1,5 @@
-import os
 import re
+import os
 import glob
 import logging
 import email
@@ -16,7 +16,7 @@ from alot import helper
 from alot.message import decode_header
 from alot.message import encode_header
 from alot.message import extract_headers
-from alot.message import DisensembledMail
+from alot.message import Envelope
 from alot.message import extract_body
 from alot.commands.globals import EditCommand
 from alot.commands.globals import BufferCloseCommand
@@ -35,7 +35,7 @@ class EnvelopeAttachCommand(Command):
         self.path = path
 
     def apply(self, ui):
-        msg = ui.current_buffer.dmail
+        envelope = ui.current_buffer.envelope
 
         if self.path:
             files = filter(os.path.isfile,
@@ -48,7 +48,7 @@ class EnvelopeAttachCommand(Command):
 
         logging.info("attaching: %s" % files)
         for path in files:
-            msg.attachments.append(helper.mimewrap(path))
+            envelope.attachments.append(helper.mimewrap(path))
         ui.current_buffer.rebuild()
 
 
@@ -126,25 +126,25 @@ class EnvelopeSendCommand(Command):
 
 @registerCommand(MODE, 'edit', help='edit currently open mail')
 class EnvelopeEditCommand(Command):
-    def __init__(self, mail=None, **kwargs):
-        self.mail = mail
-        self.openNew = (mail != None)
+    def __init__(self, envelope=None, **kwargs):
+        self.envelope = envelope
+        self.openNew = (envelope != None)
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        envelope = ui.current_buffer
-        if not self.mail:
-            self.mail = ui.current_buffer.dmail
+        ebuffer = ui.current_buffer
+        if not self.envelope:
+            self.envelope = ui.current_buffer.envelope
 
         #determine editable headers
         edit_headers = set(settings.config.getstringlist('general',
                                                     'edit_headers_whitelist'))
         if '*' in edit_headers:
-            edit_headers = set(self.mail.headers.keys())
+            edit_headers = set(self.envelope.headers.keys())
         blacklist = set(settings.config.getstringlist('general',
                                                   'edit_headers_blacklist'))
         if '*' in blacklist:
-            blacklist = set(self.mail.headers.keys())
+            blacklist = set(self.envelope.headers.keys())
         self.edit_headers = edit_headers - blacklist
         ui.logger.info('editable headers: %s' % blacklist)
 
@@ -167,20 +167,20 @@ class EnvelopeEditCommand(Command):
                 template = translate(template, ui=ui, dbm=ui.dbman,
                                      aman=ui.accountman, log=ui.logger,
                                      config=settings.config)
-            self.mail.parse_template(template)
+            self.envelope.parse_template(template)
             if self.openNew:
-                ui.buffer_open(buffers.EnvelopeBuffer(ui, dmail=self.mail))
+                ui.buffer_open(buffers.EnvelopeBuffer(ui, self.envelope))
             else:
-                envelope.dmail = self.mail
-                envelope.rebuild()
+                ebuffer.envelope = self.envelope
+                ebuffer.rebuild()
 
         # decode header
         headertext = u''
         for key in edit_headers:
-            value = decode_header(self.mail.headers.get(key, ''))
+            value = decode_header(self.envelope.headers.get(key, ''))
             headertext += '%s: %s\n' % (key, value)
 
-        bodytext = self.mail.body
+        bodytext = self.envelope.body
 
         # call pre-edit translate hook
         translate = settings.hooks.get('pre_edit_translate')
@@ -216,9 +216,8 @@ class EnvelopeSetCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        envelope = ui.current_buffer
-        envelope.dmail.headers[self.key] = self.value
-        envelope.rebuild()
+        ui.current_buffer.envelope[self.key] = self.value
+        ui.current_buffer.rebuild()
 
 
 @registerCommand(MODE, 'unset', help='remove header field', arguments=[
@@ -229,10 +228,8 @@ class EnvelopeSetCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        envelope = ui.current_buffer
-        dmail = envelope.dmail
-        del(dmail.headers[self.key])
-        envelope.rebuild()
+        del(ui.current_buffer.envelope[self.key])
+        ui.current_buffer.rebuild()
 
 
 @registerCommand(MODE, 'toggleheaders',

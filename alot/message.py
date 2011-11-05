@@ -346,7 +346,8 @@ class Attachment(object):
         return self.part
 
 
-class DisensembledMail(object):
+class Envelope(object):
+    """datastructure to be manipulated in envelopebuffer"""
     def __init__(self, template=None, bodytext=u'', headers={}, attachments=[],
             sign=False, encrypt=False):
         assert isinstance(bodytext, unicode)
@@ -372,6 +373,9 @@ class DisensembledMail(object):
 
     def __getitem__(self, name):
         return self.headers[name]
+
+    def __delitem__(self, name):
+        del(self.headers[name])
 
     def construct_mail(self):
         textpart = MIMEText(self.body.encode('utf-8'), 'plain', 'utf-8')
