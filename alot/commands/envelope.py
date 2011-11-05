@@ -1,11 +1,8 @@
-import re
 import os
 import glob
 import logging
 import email
 import tempfile
-from email import Charset
-from email.iterators import typed_subpart_iterator
 from twisted.internet import defer
 import threading
 
@@ -15,12 +12,8 @@ from alot import settings
 from alot import helper
 from alot.message import decode_header
 from alot.message import encode_header
-from alot.message import extract_headers
-from alot.message import Envelope
-from alot.message import extract_body
 from alot.commands.globals import EditCommand
 from alot.commands.globals import BufferCloseCommand
-from alot.commands.globals import EnvelopeOpenCommand
 from alot.helper import string_decode
 
 

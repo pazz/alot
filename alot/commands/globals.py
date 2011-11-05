@@ -431,15 +431,15 @@ class ComposeCommand(Command):
 
         # set forced headers for separate parameters
         if self.sender:
-            self.envelope.headers['From'] = encode_header('From', self.sender)
+            self.envelope['From'] = encode_header('From', self.sender)
         if self.subject:
-            self.envelope.headers['Subject'] = encode_header('Subject', self.subject)
+            self.envelopes['Subject'] = encode_header('Subject', self.subject)
         if self.to:
-            self.envelope.headers['To'] = encode_header('To', ','.join(self.to))
+            self.envelope['To'] = encode_header('To', ','.join(self.to))
         if self.cc:
-            self.envelope.headers['Cc'] = encode_header('Cc', ','.join(self.cc))
+            self.envelope['Cc'] = encode_header('Cc', ','.join(self.cc))
         if self.bcc:
-            self.envelope.headers['Bcc'] = encode_header('Bcc', ','.join(self.bcc))
+            self.envelope['Bcc'] = encode_header('Bcc', ','.join(self.bcc))
 
         # get missing From header
         if not 'From' in self.envelope.headers:
@@ -447,7 +447,7 @@ class ComposeCommand(Command):
             if len(accounts) == 1:
                 a = accounts[0]
                 fromstring = "%s <%s>" % (a.realname, a.address)
-                self.envelope.headers['From'] = encode_header('From', fromstring)
+                self.envelope['From'] = encode_header('From', fromstring)
             else:
                 cmpl = AccountCompleter(ui.accountman)
                 fromaddress = yield ui.prompt(prefix='From>', completer=cmpl,
@@ -458,7 +458,7 @@ class ComposeCommand(Command):
                 a = ui.accountman.get_account_by_address(fromaddress)
                 if a is not None:
                     fromstring = "%s <%s>" % (a.realname, a.address)
-                    self.envelope.headers['From'] = encode_header('From', fromstring)
+                    self.envelope['From'] = encode_header('From', fromstring)
                 else:
                     self.envelope.headers['From'] = fromaddress
 
@@ -486,8 +486,9 @@ class ComposeCommand(Command):
             if subject == None:
                 ui.notify('canceled')
                 return
-            self.envelope.headers['Subject'] = encode_header('subject', subject)
-        ui.apply_command(commands.envelope.EnvelopeEditCommand(envelope=self.envelope))
+            self.envelope['Subject'] = encode_header('subject', subject)
+        cmd = commands.envelope.EnvelopeEditCommand(envelope=self.envelope)
+        ui.apply_command(cmd)
 
 
 @registerCommand(MODE, 'move', help='move focus', arguments=[
@@ -505,13 +506,3 @@ class SendKeypressCommand(Command):
 
     def apply(self, ui):
         ui.keypress(self.key)
-
-
-class EnvelopeOpenCommand(Command):
-    """open a new envelope buffer"""
-    def __init__(self, mail=None, **kwargs):
-        self.mail = mail
-        Command.__init__(self, **kwargs)
-
-    def apply(self, ui):
-        ui.buffer_open(buffers.EnvelopeBuffer(ui, mail=self.mail))

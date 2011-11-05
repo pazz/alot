@@ -16,7 +16,6 @@ along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
 
 Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
-import email
 import urwid
 import logging
 

@@ -1,12 +1,7 @@
 import os
 import logging
 import tempfile
-from email import Charset
 from email.header import Header
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.iterators import body_line_iterator
-from email.iterators import typed_subpart_iterator
 from twisted.internet import defer
 
 from alot.commands import Command, registerCommand

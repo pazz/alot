@@ -257,6 +257,7 @@ def mimewrap(path, filename=None):
                     filename=filename)
     return part
 
+
 def attach(path, mail, filename=None):
     part = mimewrap(path, filename)
     #wrap in multipart if not already

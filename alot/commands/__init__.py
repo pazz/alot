@@ -1,11 +1,9 @@
 import os
-import sys
 import re
 import glob
 import shlex
 import logging
 import argparse
-import cStringIO
 
 import alot.settings
 import alot.helper
