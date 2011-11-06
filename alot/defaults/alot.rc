@@ -70,8 +70,9 @@ notify_timeout = 2
 # display statusline?
 show_statusbar = True
 
-# strftime format for timestamps. Note: you must escape % here:
-# use '%%' instead of '%'. otherwise see
+# strftime format for timestamps. Note: you must escape % twice here:
+# use '%%%%' instead of '%' (and use '%%%%%%%%' to get a literal '%').
+# for the strftime format, see
 # http://docs.python.org/library/datetime.html#strftime-strptime-behavior
 timestamp_format = ''
 
