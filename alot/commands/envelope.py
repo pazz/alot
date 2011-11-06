@@ -229,4 +229,4 @@ class EnvelopeSetCommand(Command):
                 help='toggle display of all headers')
 class ToggleHeaderCommand(Command):
     def apply(self, ui):
-        ui.current_buffer.header_wgt.toggle_all()
+        ui.current_buffer.toggle_all_headers()

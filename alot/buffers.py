@@ -97,6 +97,7 @@ class EnvelopeBuffer(Buffer):
         self.ui = ui
         self.envelope = envelope
         self.mail = envelope.construct_mail()
+        self.all_headers = False
         self.rebuild()
         Buffer.__init__(self, ui, self.body, 'envelope')
 
@@ -115,23 +116,30 @@ class EnvelopeBuffer(Buffer):
         displayed_widgets = []
         hidden = settings.config.getstringlist('general',
                                                'envelope_headers_blacklist')
-        self.header_wgt = widgets.MessageHeaderWidget(self.mail,
-                                                      hidden_headers=hidden)
+        #build lines
+        lines = []
+        for (k, v) in self.envelope.headers.items():
+            if (k not in hidden) or self.all_headers:
+                lines.append((k, decode_header(v)))
+
+        self.header_wgt = widgets.HeadersList(lines)
         displayed_widgets.append(self.header_wgt)
 
         #display attachments
         lines = []
-        for part in self.mail.walk():
-            if not part.is_multipart():
-                if part.get_content_maintype() != 'text':
-                    lines.append(widgets.AttachmentWidget(part,
-                                                        selectable=False))
+        for a in self.envelope.attachments:
+            lines.append(widgets.AttachmentWidget(a, selectable=False))
         self.attachment_wgt = urwid.Pile(lines)
         displayed_widgets.append(self.attachment_wgt)
 
-        self.body_wgt = widgets.MessageBodyWidget(self.mail)
+        #self.body_wgt = widgets.MessageBodyWidget(self.mail)
+        self.body_wgt = urwid.Text(self.envelope.body)
         displayed_widgets.append(self.body_wgt)
         self.body = urwid.ListBox(displayed_widgets)
+
+    def toggle_all_headers(self):
+        self.all_headers = not self.all_headers
+        self.rebuild()
 
 
 class SearchBuffer(Buffer):
