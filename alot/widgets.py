@@ -548,65 +548,6 @@ class HeadersList(urwid.WidgetWrap):
         return headerlines
 
 
-#TODO: must go (after removed in envelope buffer)
-class MessageHeaderWidget(urwid.AttrMap):
-    """
-    displays a "key:value\n" list of email headers.
-    RFC 2822 style encoded values are decoded into utf8 first.
-    """
-
-    def __init__(self, eml, displayed_headers=None, hidden_headers=None):
-        """
-        :param eml: the email
-        :type eml: email.Message
-        :param displayed_headers: a whitelist of header fields to display
-        :type displayed_headers: list(str)
-        :param hidden_headers: a blacklist of header fields to display
-        :type hidden_headers: list(str)
-        """
-        self.eml = eml
-        self.display_all = False
-        self.displayed_headers = displayed_headers
-        self.hidden_headers = hidden_headers
-        headerlines = self._build_lines(displayed_headers, hidden_headers)
-        urwid.AttrMap.__init__(self, urwid.Pile(headerlines), 'message_header')
-
-    def toggle_all(self):
-        if self.display_all:
-            self.display_all = False
-            headerlines = self._build_lines(self.displayed_headers,
-                                            self.hidden_headers)
-        else:
-            self.display_all = True
-            headerlines = self._build_lines(None, None)
-        logging.info('all : %s' % headerlines)
-        self.original_widget = urwid.Pile(headerlines)
-
-    def _build_lines(self, displayed, hidden):
-        max_key_len = 1
-        headerlines = []
-        if not displayed:
-            displayed = self.eml.keys()
-        if hidden:
-            displayed = filter(lambda x: x not in hidden, displayed)
-        #calc max length of key-string
-        for key in displayed:
-            if key in self.eml:
-                if len(key) > max_key_len:
-                    max_key_len = len(key)
-        for key, value in self.eml.items():
-            #todo: parse from,cc,bcc seperately into name-addr-widgets
-            # TODO: check indexed keys for None and highlight as invalid
-            if key in displayed:
-                value = message.decode_header(value)
-                keyw = ('fixed', max_key_len + 1,
-                        urwid.Text(('message_header_key', key)))
-                valuew = urwid.Text(('message_header_value', value))
-                line = urwid.Columns([keyw, valuew])
-                headerlines.append(line)
-        return headerlines
-
-
 class MessageBodyWidget(urwid.AttrMap):
     """displays printable parts of an email"""
 
