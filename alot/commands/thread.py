@@ -248,17 +248,20 @@ class ToggleHeaderCommand(Command):
     (['--all'], {'action': 'store_true', 'help':'pass all messages'}),
     (['--decode'], {'action': 'store_true',
                     'help':'use only decoded body lines'}),
+    (['--ids'], {'action': 'store_true',
+                    'help':'only pass message ids'}),
     (['--separately'], {'action': 'store_true',
                         'help':'call command once for each message'})],
     help='pipe message(s) to stdin of a shellcommand')
 class PipeCommand(Command):
-    def __init__(self, cmd, all=False, separately=False, decode=True,
+    def __init__(self, cmd, all=False, ids=False, separately=False, decode=True,
                  noop_msg='no command specified', confirm_msg='',
                  done_msg='done', **kwargs):
         Command.__init__(self, **kwargs)
         self.cmd = cmd
         self.whole_thread = all
         self.separately = separately
+        self.ids = ids
         self.decode = decode
         self.noop_msg = noop_msg
         self.confirm_msg = confirm_msg
@@ -287,21 +290,25 @@ class PipeCommand(Command):
                 return
 
         # prepare message sources
-        mails = [m.get_email() for m in to_print]
         mailstrings = []
-        if self.decode:
-            for mail in mails:
-                headertext = extract_headers(mail)
-                bodytext = extract_body(mail)
-                msg = '%s\n\n%s' % (headertext, bodytext)
-                mailstrings.append(msg.encode('utf-8'))
+        if self.ids:
+          mailstrings = [e.get_message_id() for e in to_print]
         else:
-            mailstrings = [e.as_string() for e in mails]
+          mails = [m.get_email() for m in to_print]
+          if self.decode:
+              for mail in mails:
+                  headertext = extract_headers(mail)
+                  bodytext = extract_body(mail)
+                  msg = '%s\n\n%s' % (headertext, bodytext)
+                  mailstrings.append(msg.encode('utf-8'))
+          else:
+              mailstrings = [e.as_string() for e in mails]
         if not self.separately:
             mailstrings = ['\n\n'.join(mailstrings)]
 
         # do teh monkey
         for mail in mailstrings:
+            ui.logger.debug("%s" % mail)
             out, err = helper.pipe_to_command(self.cmd, mail)
             if err:
                 ui.notify(err, priority='error')
