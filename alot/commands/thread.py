@@ -227,8 +227,11 @@ class FoldMessagesCommand(Command):
                 help='toggle display of all headers')
 class ToggleHeaderCommand(Command):
     def apply(self, ui):
-        msgw = ui.current_buffer.get_selection()
-        msgw.toggle_full_header()
+        try:
+            msgw = ui.current_buffer.get_selection()
+            msgw.toggle_full_header()
+        except Exception, e:
+            ui.logger.exception(e)
 
 
 @registerCommand(MODE, 'pipeto', arguments=[

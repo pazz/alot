@@ -316,6 +316,8 @@ class MessageWidget(urwid.WidgetWrap):
         :type bars_at: list(int)
         """
         self.message = message
+        self.mail = self.message.get_email()
+
         self.depth = depth
         self.bars_at = bars_at
         self.even = even
@@ -330,6 +332,11 @@ class MessageWidget(urwid.WidgetWrap):
         #build pile and call super constructor
         self.pile = urwid.Pile(self.displayed_list)
         urwid.WidgetWrap.__init__(self, self.pile)
+        # set available and to be displayed headers if unfolded
+        self.all_headers = self.mail.keys()
+        displayed = config.getstringlist('general', 'displayed_headers')
+        self.filtered_headers = [k for k in displayed if k in self.all_headers]
+        self.displayed_headers = self.filtered_headers
         #unfold if requested
         if not folded:
             self.fold(visible=True)
@@ -339,8 +346,24 @@ class MessageWidget(urwid.WidgetWrap):
 
     #TODO re-read tags
     def rebuild(self):
+        if self.folded:  # only if not already unfolded
+            hw = self._get_header_widget()
+            aw = self._get_attachment_widget()
+            bw = self._get_body_widget()
+            self.displayed_list = [self.sumline, hw, bw]
+            if aw:
+                self.displayed_list.insert(2, aw)
+        else:
+            self.displayed_list = [self.sumline]
         self.pile = urwid.Pile(self.displayed_list)
         self._w = self.pile
+
+    def fold(self, visible=False):
+        if visible:
+            self.folded = False
+        else:
+            self.folded = True
+        self.rebuild()
 
     def _build_sum_line(self):
         """creates/returns the widget that displays the summary line."""
@@ -360,11 +383,17 @@ class MessageWidget(urwid.WidgetWrap):
         line = urwid.Columns(cols, box_columns=bc)
         return line
 
-    def _get_header_widget(self):
+    def _get_header_widget(self, force_update=False):
         """creates/returns the widget that displays the mail header"""
-        if not self.headerw:
-            displayed = config.getstringlist('general', 'displayed_headers')
-            cols = [MessageHeaderWidget(self.message.get_email(), displayed)]
+        if not self.headerw or force_update:
+            mail = self.message.get_email()
+            #build lines
+            lines = []
+            for (k, v) in mail.items():
+                if k in self.displayed_headers:
+                    lines.append((k, message.decode_header(v)))
+
+            cols = [HeadersList(lines)]
             bc = list()
             if self.depth:
                 cols.insert(0, self._get_spacer(self.bars_at[1:]))
@@ -411,31 +440,14 @@ class MessageWidget(urwid.WidgetWrap):
 
     def toggle_full_header(self):
         """toggles if message headers are shown"""
-        # caution: this is very ugly, it's supposed to get the headerwidget.
-        col = self._get_header_widget().widget_list
-        hws = [h for h in col if isinstance(h, MessageHeaderWidget)][0]
-        hws.toggle_all()
-
-    def fold(self, visible=False):
-        hw = self._get_header_widget()
-        aw = self._get_attachment_widget()
-        bw = self._get_body_widget()
-        if visible:
-            if self.folded:  # only if not already unfolded
-                self.displayed_list.append(hw)
-                if aw:
-                    self.displayed_list.append(aw)
-                self.displayed_list.append(bw)
-                self.folded = False
-                self.rebuild()
+        # todo: normalize if not all show..
+        if self.displayed_headers == self.all_headers:
+            self.displayed_headers = self.filtered_headers
         else:
-            if not self.folded:
-                self.displayed_list.remove(hw)
-                if aw:
-                    self.displayed_list.remove(aw)
-                self.displayed_list.remove(bw)
-                self.folded = True
-                self.rebuild()
+            self.displayed_headers = self.all_headers
+        hw = self._get_header_widget(force_update=True)
+        logging.debug(hw.widget_list[0])
+        self.rebuild()
 
     def selectable(self):
         return True
@@ -488,6 +500,34 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         return key
 
 
+class HeadersList(urwid.WidgetWrap):
+    def __init__(self, headerslist):
+        self.headers = headerslist
+        pile = urwid.Pile(self._build_lines(headerslist))
+        pile = urwid.AttrMap(pile, 'message_header')
+        urwid.WidgetWrap.__init__(self, pile)
+
+    def __str__(self):
+        return str(self.headers)
+
+    def _build_lines(self, lines):
+        max_key_len = 1
+        headerlines = []
+        #calc max length of key-string
+        for key, value in lines:
+            if len(key) > max_key_len:
+                max_key_len = len(key)
+        for key, value in lines:
+            ##todo : even/odd
+            keyw = ('fixed', max_key_len + 1,
+                    urwid.Text(('message_header_key', key)))
+            valuew = urwid.Text(('message_header_value', value))
+            line = urwid.Columns([keyw, valuew])
+            headerlines.append(line)
+        return headerlines
+
+
+#TODO: must go (after removed in envelope buffer)
 class MessageHeaderWidget(urwid.AttrMap):
     """
     displays a "key:value\n" list of email headers.
