@@ -20,9 +20,9 @@ import urwid
 
 
 class IteratorWalker(urwid.ListWalker):
-    def __init__(self, it, containerclass, **kwargs):
+    def __init__(self, pipe, containerclass, **kwargs):
         self.kwargs = kwargs
-        self.it = it
+        self.pipe = pipe
         self.containerclass = containerclass
         self.lines = []
         self.focus = 0
@@ -66,7 +66,9 @@ class IteratorWalker(urwid.ListWalker):
 
     def _get_next_item(self):
         try:
-            next_obj = self.it.next()
+            next_obj = self.pipe.recv()
+            if not next_obj:
+                raise StopIteration
             next_widget = self.containerclass(next_obj, **self.kwargs)
             self.lines.append(next_widget)
         except StopIteration:

@@ -19,6 +19,7 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 import urwid
 from notmuch.globals import NotmuchError
 
+import multiprocessing
 
 import widgets
 import settings
@@ -161,10 +162,13 @@ class SearchBuffer(Buffer):
         except NotmuchError:
             self.ui.notify('malformed query string: %s' % self.querystring,
                            'error')
-            self.tids = []
-        self.threadlist = IteratorWalker(iter(self.tids),
+            self.tids = multiprocessing.Pipe(False)
+            self.tids.put(None)
+        
+        self.threadlist = IteratorWalker(self.tids,
                                          widgets.ThreadlineWidget,
                                          dbman=self.dbman)
+
         self.listbox = urwid.ListBox(self.threadlist)
         #self.threadlist.set_focus(focusposition)
         self.body = self.listbox
