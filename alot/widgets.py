@@ -348,25 +348,22 @@ class MessageWidget(urwid.WidgetWrap):
         self.headerw = None
         self.attachmentw = None
         self.bodyw = None
-        self.displayed_list = [self.sumline]
-        #build pile and call super constructor
-        self.pile = urwid.Pile(self.displayed_list)
-        urwid.WidgetWrap.__init__(self, self.pile)
-        # set available and to be displayed headers if unfolded
+
+        # set available and to be displayed headers
         self.all_headers = self.mail.keys()
         displayed = config.getstringlist('general', 'displayed_headers')
         self.filtered_headers = [k for k in displayed if k in self.all_headers]
         self.displayed_headers = self.filtered_headers
-        #unfold if requested
-        if not folded:
-            self.fold(visible=True)
+
+        self.rebuild()  # this will build self.pile
+        urwid.WidgetWrap.__init__(self, self.pile)
 
     def get_focus(self):
         return self.pile.get_focus()
 
     #TODO re-read tags
     def rebuild(self):
-        if self.folded:  # only if not already unfolded
+        if not self.folded:  # only if not already unfolded
             hw = self._get_header_widget()
             aw = self._get_attachment_widget()
             bw = self._get_body_widget()
@@ -379,10 +376,7 @@ class MessageWidget(urwid.WidgetWrap):
         self._w = self.pile
 
     def fold(self, visible=False):
-        if visible:
-            self.folded = False
-        else:
-            self.folded = True
+        self.folded = not visible
         self.rebuild()
 
     def _build_sum_line(self):
