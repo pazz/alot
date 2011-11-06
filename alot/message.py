@@ -243,7 +243,7 @@ def extract_body(mail, types=None):
     return '\n\n'.join(body_parts)
 
 
-def decode_header(header):
+def decode_header(header, normalize=False):
     """decode a header value to a unicode string
 
     values are usually a mixture of different substrings
@@ -252,6 +252,8 @@ def decode_header(header):
 
     :param header: the header value
     :type header: str in us-ascii
+    :param normalize: replace trailing spaces after newlines
+    :type normalize: boolean
     :rtype: unicode
     """
 
@@ -260,7 +262,10 @@ def decode_header(header):
     for v, enc in valuelist:
         v = string_decode(v, enc)
         decoded_list.append(string_sanitize(v))
-    return u' '.join(decoded_list)
+    value = u' '.join(decoded_list)
+    if normalize:
+        value = re.sub(r'\n\s+', r' ', value)
+    return value
 
 
 def encode_header(key, value):
