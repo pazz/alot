@@ -53,12 +53,13 @@ class NotmuchProcess(multiprocessing.Process):
     mode = Database.MODE.READ_ONLY
     db = Database(path=self.path, mode=mode)
     q = db.create_query(self.query)
-    for a in q.search_threads():
-      #print "enqueue %s" % a.get_thread_id()
-      self.pipe.send(a.get_thread_id())
-    #print "enqueue None"
-    self.pipe.send(None)
-    #print "thread terminated!"
+    try:
+      for a in q.search_threads():
+        self.pipe.send(a.get_thread_id())
+      self.pipe.send(None)
+    except IOError:
+      # looks like the main process exited, so we stop
+      pass
 
 
 class DBManager(object):
