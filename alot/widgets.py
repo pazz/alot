@@ -74,7 +74,9 @@ class CatchKeyWidgetWrap(urwid.WidgetWrap):
 class ThreadlineWidget(urwid.AttrMap):
     def __init__(self, tid, dbman):
         self.dbman = dbman
+        #logging.debug('tid: %s' % tid)
         self.thread = dbman.get_thread(tid)
+        #logging.debug('tid: %s' % self.thread)
         self.tag_widgets = []
         self.display_content = config.getboolean('general',
                                     'display_content_in_threadline')
@@ -84,7 +86,10 @@ class ThreadlineWidget(urwid.AttrMap):
 
     def rebuild(self):
         cols = []
-        newest = self.thread.get_newest_date()
+        if self.thread:
+          newest = self.thread.get_newest_date()
+        else:
+          newest = None
         if newest == None:
             datestring = u' ' * 10
         else:
@@ -96,32 +101,47 @@ class ThreadlineWidget(urwid.AttrMap):
         self.date_w = urwid.AttrMap(urwid.Text(datestring), 'threadline_date')
         cols.append(('fixed', len(datestring), self.date_w))
 
-        mailcountstring = "(%d)" % self.thread.get_total_messages()
+        if self.thread:
+          mailcountstring = "(%d)" % self.thread.get_total_messages()
+        else:
+          mailcountstring = "(?)"
         self.mailcount_w = urwid.AttrMap(urwid.Text(mailcountstring),
                                    'threadline_mailcount')
         cols.append(('fixed', len(mailcountstring), self.mailcount_w))
 
-        self.tag_widgets = [TagWidget(tag) for tag in self.thread.get_tags()]
+        if self.thread:
+          self.tag_widgets = [TagWidget(tag) for tag in self.thread.get_tags()]
+        else:
+          self.tag_widgets = []
         self.tag_widgets.sort(tag_cmp,
                               lambda tag_widget: tag_widget.translated)
         for tag_widget in self.tag_widgets:
             cols.append(('fixed', tag_widget.width(), tag_widget))
 
-        authors = self.thread.get_authors() or '(None)'
+        if self.thread:
+          authors = self.thread.get_authors() or '(None)'
+        else:
+          authors = '(None)'
         maxlength = config.getint('general', 'authors_maxlength')
         authorsstring = shorten_author_string(authors, maxlength)
         self.authors_w = urwid.AttrMap(urwid.Text(authorsstring),
                                        'threadline_authors')
         cols.append(('fixed', len(authorsstring), self.authors_w))
 
-        subjectstring = self.thread.get_subject().strip()
+        if self.thread:
+          subjectstring = self.thread.get_subject().strip()
+        else:
+          subjectstring = ''
         self.subject_w = urwid.AttrMap(urwid.Text(subjectstring, wrap='clip'),
                                  'threadline_subject')
         if subjectstring:
             cols.append(('weight', 2, self.subject_w))
 
         if self.display_content:
-            msgs = self.thread.get_messages().keys()
+            if self.thread:
+                msgs = self.thread.get_messages().keys()
+            else:
+                msgs = []
             msgs.sort()
             lastcontent = ' '.join([m.get_text_content() for m in msgs])
             contentstring = lastcontent.replace('\n', ' ').strip()
