@@ -174,7 +174,7 @@ class SearchBuffer(Buffer):
                            'error')
             self.tids = multiprocessing.Pipe(False)
             self.tids.put(None)
-        
+
         self.threadlist = IteratorWalker(self.tids,
                                          widgets.ThreadlineWidget,
                                          dbman=self.dbman)

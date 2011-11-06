@@ -42,24 +42,24 @@ class DatabaseLockedError(DatabaseError):
 
 
 class NotmuchProcess(multiprocessing.Process):
-  def __init__(self, path, query, pipe):
-    multiprocessing.Process.__init__(self)
-    self.path = path
-    self.query = query
-    self.pipe = pipe
-    self.daemon = True
+    def __init__(self, path, query, pipe):
+        multiprocessing.Process.__init__(self)
+        self.path = path
+        self.query = query
+        self.pipe = pipe
+        self.daemon = True
 
-  def run(self):
-    mode = Database.MODE.READ_ONLY
-    db = Database(path=self.path, mode=mode)
-    q = db.create_query(self.query)
-    try:
-      for a in q.search_threads():
-        self.pipe.send(a.get_thread_id())
-      self.pipe.send(None)
-    except IOError:
-      # looks like the main process exited, so we stop
-      pass
+    def run(self):
+        mode = Database.MODE.READ_ONLY
+        db = Database(path=self.path, mode=mode)
+        q = db.create_query(self.query)
+        try:
+            for a in q.search_threads():
+                self.pipe.send(a.get_thread_id())
+            self.pipe.send(None)
+        except IOError:
+            # looks like the main process exited, so we stop
+            pass
 
 
 class DBManager(object):
@@ -170,7 +170,7 @@ class DBManager(object):
     def search_thread_ids(self, querystring):
         """returns the ids of all threads that match the querystring
         This copies! all integer thread ids into an new list."""
-        
+
         return self.query_threaded(querystring)
 
     def get_thread(self, tid):
@@ -206,7 +206,7 @@ class DBManager(object):
         t = NotmuchProcess(self.path, querystring, o)
         t.start()
         return i
- 
+
     def query_simple(self, querystring):
         """creates notmuch.Query objects on demand
 

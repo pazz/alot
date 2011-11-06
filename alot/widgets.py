@@ -86,9 +86,9 @@ class ThreadlineWidget(urwid.AttrMap):
     def rebuild(self):
         cols = []
         if self.thread:
-          newest = self.thread.get_newest_date()
+            newest = self.thread.get_newest_date()
         else:
-          newest = None
+            newest = None
         if newest == None:
             datestring = u' ' * 10
         else:
@@ -101,26 +101,26 @@ class ThreadlineWidget(urwid.AttrMap):
         cols.append(('fixed', len(datestring), self.date_w))
 
         if self.thread:
-          mailcountstring = "(%d)" % self.thread.get_total_messages()
+            mailcountstring = "(%d)" % self.thread.get_total_messages()
         else:
-          mailcountstring = "(?)"
+            mailcountstring = "(?)"
         self.mailcount_w = urwid.AttrMap(urwid.Text(mailcountstring),
                                    'threadline_mailcount')
         cols.append(('fixed', len(mailcountstring), self.mailcount_w))
 
         if self.thread:
-          self.tag_widgets = [TagWidget(tag) for tag in self.thread.get_tags()]
+            self.tag_widgets = [TagWidget(t) for t in self.thread.get_tags()]
         else:
-          self.tag_widgets = []
+            self.tag_widgets = []
         self.tag_widgets.sort(tag_cmp,
                               lambda tag_widget: tag_widget.translated)
         for tag_widget in self.tag_widgets:
             cols.append(('fixed', tag_widget.width(), tag_widget))
 
         if self.thread:
-          authors = self.thread.get_authors() or '(None)'
+            authors = self.thread.get_authors() or '(None)'
         else:
-          authors = '(None)'
+            authors = '(None)'
         maxlength = config.getint('general', 'authors_maxlength')
         authorsstring = shorten_author_string(authors, maxlength)
         self.authors_w = urwid.AttrMap(urwid.Text(authorsstring),
@@ -128,9 +128,9 @@ class ThreadlineWidget(urwid.AttrMap):
         cols.append(('fixed', len(authorsstring), self.authors_w))
 
         if self.thread:
-          subjectstring = self.thread.get_subject().strip()
+            subjectstring = self.thread.get_subject().strip()
         else:
-          subjectstring = ''
+            subjectstring = ''
         self.subject_w = urwid.AttrMap(urwid.Text(subjectstring, wrap='clip'),
                                  'threadline_subject')
         if subjectstring:

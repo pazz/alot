@@ -245,8 +245,8 @@ class ToggleHeaderCommand(Command):
                         'help':'call command once for each message'})],
     help='pipe message(s) to stdin of a shellcommand')
 class PipeCommand(Command):
-    def __init__(self, cmd, all=False, ids=False, separately=False, decode=True,
-                 noop_msg='no command specified', confirm_msg='',
+    def __init__(self, cmd, all=False, ids=False, separately=False,
+                 decode=True, noop_msg='no command specified', confirm_msg='',
                  done_msg='done', **kwargs):
         Command.__init__(self, **kwargs)
         self.cmd = cmd
@@ -283,17 +283,17 @@ class PipeCommand(Command):
         # prepare message sources
         mailstrings = []
         if self.ids:
-          mailstrings = [e.get_message_id() for e in to_print]
+            mailstrings = [e.get_message_id() for e in to_print]
         else:
-          mails = [m.get_email() for m in to_print]
-          if self.decode:
-              for mail in mails:
-                  headertext = extract_headers(mail)
-                  bodytext = extract_body(mail)
-                  msg = '%s\n\n%s' % (headertext, bodytext)
-                  mailstrings.append(msg.encode('utf-8'))
-          else:
-              mailstrings = [e.as_string() for e in mails]
+            mails = [m.get_email() for m in to_print]
+            if self.decode:
+                for mail in mails:
+                    headertext = extract_headers(mail)
+                    bodytext = extract_body(mail)
+                    msg = '%s\n\n%s' % (headertext, bodytext)
+                    mailstrings.append(msg.encode('utf-8'))
+            else:
+                mailstrings = [e.as_string() for e in mails]
         if not self.separately:
             mailstrings = ['\n\n'.join(mailstrings)]
 
