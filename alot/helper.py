@@ -206,6 +206,9 @@ def cmd_output(command_line):
 
 
 def pipe_to_command(cmd, stdin):
+        # remove quotes which have been put around the whole command
+        if cmd[0] == '"' and cmd[-1] == '"':
+            cmd = cmd[1:-1]
         args = shlex.split(cmd.encode('utf-8', errors='ignore'))
         try:
             proc = subprocess.Popen(args, stdin=subprocess.PIPE,
