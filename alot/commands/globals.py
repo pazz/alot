@@ -44,13 +44,8 @@ class SearchCommand(Command):
         self.query = ' '.join(query)
         Command.__init__(self, **kwargs)
 
-    @defer.inlineCallbacks
     def apply(self, ui):
         if self.query:
-            if self.query == '*' and ui.current_buffer:
-                s = 'really search for all threads? This takes a while..'
-                if (yield ui.choice(s, select='yes', cancel='no')) == 'no':
-                    return
             open_searches = ui.get_buffers_of_type(buffers.SearchBuffer)
             to_be_focused = None
             for sb in open_searches:
