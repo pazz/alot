@@ -408,10 +408,11 @@ class MessageWidget(urwid.WidgetWrap):
         if not self.headerw or force_update:
             mail = self.message.get_email()
             #build lines
+            norm = not (self.displayed_headers == self.all_headers)
             lines = []
             for (k, v) in mail.items():
                 if k in self.displayed_headers:
-                    lines.append((k, message.decode_header(v)))
+                    lines.append((k, message.decode_header(v, normalize=norm)))
 
             cols = [HeadersList(lines)]
             bc = list()
