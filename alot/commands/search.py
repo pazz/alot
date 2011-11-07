@@ -80,13 +80,8 @@ class RefineCommand(Command):
         self.querystring = ' '.join(query)
         Command.__init__(self, **kwargs)
 
-    @defer.inlineCallbacks
     def apply(self, ui):
         if self.querystring:
-            if self.querystring == '*':
-                s = 'really search for all threads? This takes a while..'
-                if (yield ui.choice(s, select='yes', cancel='no')) == 'no':
-                    return
             sbuffer = ui.current_buffer
             oldquery = sbuffer.querystring
             if self.querystring not in [None, oldquery]:
