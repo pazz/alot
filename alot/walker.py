@@ -19,10 +19,13 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 import urwid
 
 
-class IteratorWalker(urwid.ListWalker):
+class PipeWalker(urwid.ListWalker):
+    """urwid.ListWalker that reads next items from a pipe and
+    wraps them in `containerclass` widgets for displaying
+    """
     def __init__(self, pipe, containerclass, **kwargs):
-        self.kwargs = kwargs
         self.pipe = pipe
+        self.kwargs = kwargs
         self.containerclass = containerclass
         self.lines = []
         self.focus = 0
@@ -65,13 +68,11 @@ class IteratorWalker(urwid.ListWalker):
                     return (None, None)
 
     def _get_next_item(self):
-        try:
-            next_obj = self.pipe.recv()
-            if not next_obj:
-                raise StopIteration
+        next_obj = self.pipe.recv()
+        if next_obj:
             next_widget = self.containerclass(next_obj, **self.kwargs)
             self.lines.append(next_widget)
-        except StopIteration:
+        else:
             next_widget = None
             self.empty = True
         return next_widget

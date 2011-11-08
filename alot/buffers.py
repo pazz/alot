@@ -24,7 +24,7 @@ import multiprocessing
 import widgets
 import settings
 import commands
-from walker import IteratorWalker
+from walker import PipeWalker
 from message import decode_header
 
 
@@ -168,16 +168,15 @@ class SearchBuffer(Buffer):
 
         self.result_count = self.dbman.count_messages(self.querystring)
         try:
-            self.tids = self.dbman.search_thread_ids(self.querystring)
-        except NotmuchError:
+            self.pipe = self.dbman.query_threaded(self.querystring)
+        except NotmuchError: #TODO: this never happens for malformed queries
             self.ui.notify('malformed query string: %s' % self.querystring,
                            'error')
-            self.tids = multiprocessing.Pipe(False)
-            self.tids.put(None)
+            self.pipe = multiprocessing.Pipe(False)
+            self.pipe.put(None)
 
-        self.threadlist = IteratorWalker(self.tids,
-                                         widgets.ThreadlineWidget,
-                                         dbman=self.dbman)
+        self.threadlist = PipeWalker(self.pipe, widgets.ThreadlineWidget,
+                                     dbman=self.dbman)
 
         self.listbox = urwid.ListBox(self.threadlist)
         #self.threadlist.set_focus(focusposition)
