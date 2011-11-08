@@ -42,7 +42,7 @@ class DatabaseLockedError(DatabaseError):
 
 
 class FillPipeProcess(multiprocessing.Process):
-    def __init__(self, it, pipe, fun=(lambda x:xa)):
+    def __init__(self, it, pipe, fun=(lambda x: xa)):
         multiprocessing.Process.__init__(self)
         self.it = it
         self.pipe = pipe
@@ -161,7 +161,7 @@ class DBManager(object):
 
     def count_messages(self, querystring):
         """returns number of messages that match querystring"""
-        return self.query_simple(querystring).count_messages()
+        return self.query(querystring).count_messages()
 
     def search_thread_ids(self, querystring):
         """returns the ids of all threads that match the querystring
@@ -171,7 +171,7 @@ class DBManager(object):
 
     def get_thread(self, tid):
         """returns the thread with given id as alot.db.Thread object"""
-        query = self.query_simple('thread:' + tid)
+        query = self.query('thread:' + tid)
         #TODO raise exceptions here in 0<case msgcount>1
         try:
             return Thread(self, query.search_threads().next())
@@ -190,22 +190,27 @@ class DBManager(object):
         db = Database(path=self.path)
         return [t for t in db.get_all_tags()]
 
-    def query_threaded(self, querystring):
-        """creates notmuch.Query objects on demand with multiprocess
+    def async(self, cbl, fun):
+        """return a `Pipe` object to which `fun(a)` is written for each a in
+        cbl"""
+        (i, o) = multiprocessing.Pipe(False)
+        t = FillPipeProcess(cbl(), o, fun)
+        t.start()
+        return i
 
+    def get_threads(self, querystring):
+        """
+        returns a `multiprocessing.Pipe` object from which threads can be
+        received stepwise.
         :param querystring: The query string to use for the lookup
         :type query: str.
         :returns:  pipe with thread ids
 
         """
-        (i, o) = multiprocessing.Pipe(False)
-        q = self.query_simple(querystring)
-        threads = q.search_threads()
-        t = FillPipeProcess(threads, o, fun=(lambda a: a.get_thread_id()))
-        t.start()
-        return i
+        q = self.query(querystring)
+        return self.async(q.search_threads, (lambda a: a.get_thread_id()))
 
-    def query_simple(self, querystring):
+    def query(self, querystring):
         """creates notmuch.Query objects on demand
 
         :param querystring: The query string to use for the lookup
@@ -232,7 +237,7 @@ class Thread(object):
 
     def refresh(self, thread=None):
         if not thread:
-            query = self._dbman.query_simple('thread:' + self._id)
+            query = self._dbman.query('thread:' + self._id)
             thread = query.search_threads().next()
         self._total_messages = thread.get_total_messages()
         self._authors = thread.get_authors()
@@ -320,7 +325,7 @@ class Thread(object):
         their respective children.
         """
         if not self._messages:
-            query = self._dbman.query_simple('thread:' + self._id)
+            query = self._dbman.query('thread:' + self._id)
             thread = query.search_threads().next()
 
             def accumulate(acc, msg):

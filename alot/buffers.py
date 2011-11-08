@@ -168,7 +168,7 @@ class SearchBuffer(Buffer):
 
         self.result_count = self.dbman.count_messages(self.querystring)
         try:
-            self.pipe = self.dbman.query_threaded(self.querystring)
+            self.pipe = self.dbman.get_threads(self.querystring)
         except NotmuchError: #TODO: this never happens for malformed queries
             self.ui.notify('malformed query string: %s' % self.querystring,
                            'error')
