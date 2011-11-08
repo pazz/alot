@@ -42,7 +42,7 @@ class DatabaseLockedError(DatabaseError):
 
 
 class FillPipeProcess(multiprocessing.Process):
-    def __init__(self, it, pipe, fun=(lambda x: xa)):
+    def __init__(self, it, pipe, fun=(lambda x: x)):
         multiprocessing.Process.__init__(self)
         self.it = it
         self.pipe = pipe
