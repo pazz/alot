@@ -41,21 +41,17 @@ class DatabaseLockedError(DatabaseError):
     pass
 
 
-class NotmuchProcess(multiprocessing.Process):
-    def __init__(self, path, query, pipe):
+class FillPipeProcess(multiprocessing.Process):
+    def __init__(self, it, pipe, fun=(lambda x:xa)):
         multiprocessing.Process.__init__(self)
-        self.path = path
-        self.query = query
+        self.it = it
         self.pipe = pipe
-        self.daemon = True
+        self.fun = fun
 
     def run(self):
-        mode = Database.MODE.READ_ONLY
-        db = Database(path=self.path, mode=mode)
-        q = db.create_query(self.query)
         try:
-            for a in q.search_threads():
-                self.pipe.send(a.get_thread_id())
+            for a in self.it:
+                self.pipe.send(self.fun(a))
             self.pipe.send(None)
         except IOError:
             # looks like the main process exited, so we stop
@@ -203,7 +199,9 @@ class DBManager(object):
 
         """
         (i, o) = multiprocessing.Pipe(False)
-        t = NotmuchProcess(self.path, querystring, o)
+        q = self.query_simple(querystring)
+        threads = q.search_threads()
+        t = FillPipeProcess(threads, o, fun=(lambda a: a.get_thread_id()))
         t.start()
         return i
 
