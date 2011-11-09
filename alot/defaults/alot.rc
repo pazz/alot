@@ -143,6 +143,10 @@ H = toggleheaders
 [thread-maps]
 C = fold --all
 E = unfold --all
+c = fold
+e = unfold
+< = fold
+> = unfold
 H = toggleheaders
 P = print --all
 S = save --all
