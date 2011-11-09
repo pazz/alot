@@ -3,6 +3,7 @@ import logging
 import tempfile
 from email.header import Header
 from twisted.internet import defer
+import mimetypes
 
 from alot.commands import Command, registerCommand
 from alot.commands.globals import ExternalCommand
@@ -402,6 +403,9 @@ class OpenAttachmentCommand(Command):
     def apply(self, ui):
         logging.info('open attachment')
         mimetype = self.attachment.get_content_type()
+        filename = self.attachment.get_filename()
+        if mimetype == 'application/octet-stream' and filename != None:
+            mimetype, encoding = mimetypes.guess_type(filename)
         handler = settings.get_mime_handler(mimetype)
         if handler:
             path = self.attachment.save(tempfile.gettempdir())
