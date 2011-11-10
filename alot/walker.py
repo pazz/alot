@@ -68,11 +68,13 @@ class PipeWalker(urwid.ListWalker):
                     return (None, None)
 
     def _get_next_item(self):
-        next_obj = self.pipe.recv()
-        if next_obj:
+        if self.empty:
+            return None
+        try:
+            next_obj = self.pipe.recv()
             next_widget = self.containerclass(next_obj, **self.kwargs)
             self.lines.append(next_widget)
-        else:
+        except EOFError:
             next_widget = None
             self.empty = True
         return next_widget

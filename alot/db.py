@@ -42,17 +42,20 @@ class DatabaseLockedError(DatabaseError):
 
 
 class FillPipeProcess(multiprocessing.Process):
-    def __init__(self, it, pipe, fun=(lambda x: x)):
+    def __init__(self, it, pipe_i, pipe_o, fun=(lambda x: x)):
         multiprocessing.Process.__init__(self)
         self.it = it
-        self.pipe = pipe
+        self.i = pipe_i
+        self.o = pipe_o
         self.fun = fun
 
     def run(self):
         try:
             for a in self.it:
-                self.pipe.send(self.fun(a))
-            self.pipe.send(None)
+                self.i.send(self.fun(a))
+            self.o.close()
+            self.i.close()
+            #self.terminate()
         except IOError:
             # looks like the main process exited, so we stop
             pass
@@ -194,8 +197,10 @@ class DBManager(object):
         """return a `Pipe` object to which `fun(a)` is written for each a in
         cbl"""
         (i, o) = multiprocessing.Pipe(False)
-        t = FillPipeProcess(cbl(), o, fun)
+        t = FillPipeProcess(cbl(), o, i, fun)
         t.start()
+        o.close()  # guarantees that both ends are closed and i.close in child
+                   # raises EOFError in parent
         return (i, t)
 
     def get_threads(self, querystring):
