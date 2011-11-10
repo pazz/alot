@@ -17,6 +17,7 @@ along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
 Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 import urwid
+import logging
 
 
 class PipeWalker(urwid.ListWalker):
@@ -75,6 +76,7 @@ class PipeWalker(urwid.ListWalker):
             next_widget = self.containerclass(next_obj, **self.kwargs)
             self.lines.append(next_widget)
         except EOFError:
+            logging.debug('EMPTY PIPE')
             next_widget = None
             self.empty = True
         return next_widget
