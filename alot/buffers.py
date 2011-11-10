@@ -157,6 +157,11 @@ class SearchBuffer(Buffer):
     def __str__(self):
         return '%s (%d threads)' % (self.querystring, self.result_count)
 
+    def kill_filler_process(self):
+        if self.proc:
+            if self.proc.is_alive():
+                self.proc.terminate()
+
     def rebuild(self):
         if self.isinitialized:
             pass
@@ -165,9 +170,7 @@ class SearchBuffer(Buffer):
             #focusposition = 0
             self.isinitialized = True
 
-        if self.proc:
-            if self.proc.is_alive():
-                self.proc.terminate()
+        self.kill_filler_process()
 
         self.result_count = self.dbman.count_messages(self.querystring)
         try:

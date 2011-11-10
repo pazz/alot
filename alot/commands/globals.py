@@ -33,6 +33,7 @@ class ExitCommand(Command):
             if (yield ui.choice('realy quit?', select='yes', cancel='no',
                                msg_position='left')) == 'no':
                 return
+        ui.dbman.kill_search_processes()
         ui.exit()
 
 
@@ -223,6 +224,9 @@ class BufferCloseCommand(Command):
             self.buffer = ui.current_buffer.get_selected_buffer()
         elif not self.buffer:
             self.buffer = ui.current_buffer
+
+        if isinstance(self.buffer, buffers.SearchBuffer):
+            self.buffer.kill_filler_process()
         ui.buffer_close(self.buffer)
         ui.buffer_focus(ui.current_buffer)
 

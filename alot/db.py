@@ -76,6 +76,7 @@ class DBManager(object):
         self.ro = ro
         self.path = path
         self.writequeue = deque([])
+        self.processes = []
 
     def flush(self):
         """
@@ -120,6 +121,11 @@ class DBManager(object):
                 # end transaction and reinsert queue item on error
                 if db.end_atomic() != notmuch.STATUS.SUCCESS:
                     self.writequeue.appendleft(current_item)
+
+    def kill_search_processes(self):
+        for p in self.processes:
+            p.terminate()
+        self.processes = []
 
     def tag(self, querystring, tags, remove_rest=False):
         """
@@ -199,6 +205,7 @@ class DBManager(object):
         receiver, sender = pipe
         process = FillPipeProcess(cbl(), pipe, fun)
         process.start()
+        self.processes.append(process)
         # closing the sending end in tis (receiving) process guarantees
         # that here the apropriate EOFError is raisedupon .recv
         sender.close()
