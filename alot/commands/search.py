@@ -1,7 +1,5 @@
 from alot.commands import Command, registerCommand
-from twisted.internet import defer
 import argparse
-
 
 from alot.db import DatabaseROError
 from alot import commands

@@ -12,8 +12,7 @@ from alot import settings
 from alot import helper
 from alot.message import decode_header
 from alot.message import encode_header
-from alot.commands.globals import EditCommand
-from alot.commands.globals import BufferCloseCommand
+from alot.commands import globals
 from alot.helper import string_decode
 
 
@@ -22,7 +21,7 @@ MODE = 'envelope'
 
 @registerCommand(MODE, 'attach', help='attach files to the mail', arguments=[
     (['path'], {'help':'file(s) to attach (accepts wildcads)'})])
-class EnvelopeAttachCommand(Command):
+class AttachCommand(Command):
     def __init__(self, path=None, **kwargs):
         Command.__init__(self, **kwargs)
         self.path = path
@@ -48,7 +47,7 @@ class EnvelopeAttachCommand(Command):
 @registerCommand(MODE, 'refine', help='prompt to change the value of a header',
                  arguments=[
     (['key'], {'help':'header to refine'})])
-class EnvelopeRefineCommand(Command):
+class RefineCommand(Command):
     def __init__(self, key='', **kwargs):
         Command.__init__(self, **kwargs)
         self.key = key
@@ -60,7 +59,7 @@ class EnvelopeRefineCommand(Command):
 
 
 @registerCommand(MODE, 'send', help='sends mail')
-class EnvelopeSendCommand(Command):
+class SendCommand(Command):
     @defer.inlineCallbacks
     def apply(self, ui):
         envelope = ui.current_buffer  # needed to close later
@@ -101,7 +100,7 @@ class EnvelopeSendCommand(Command):
         def afterwards(returnvalue):
             ui.clear_notify([clearme])
             if returnvalue == 'success':  # sucessfully send mail
-                cmd = BufferCloseCommand(buffer=envelope)
+                cmd = globals.BufferCloseCommand(buffer=envelope)
                 ui.apply_command(cmd)
                 ui.notify('mail send successful')
             else:
@@ -118,7 +117,7 @@ class EnvelopeSendCommand(Command):
 
 
 @registerCommand(MODE, 'edit', help='edit currently open mail')
-class EnvelopeEditCommand(Command):
+class EditCommand(Command):
     def __init__(self, envelope=None, **kwargs):
         self.envelope = envelope
         self.openNew = (envelope != None)
@@ -190,18 +189,16 @@ class EnvelopeEditCommand(Command):
         tf.write(content.encode('utf-8'))
         tf.flush()
         tf.close()
-        cmd = EditCommand(tf.name, on_success=openEnvelopeFromTmpfile,
+        cmd = globals.EditCommand(tf.name, on_success=openEnvelopeFromTmpfile,
                           refocus=False)
         ui.apply_command(cmd)
-        #except Exception, e:
-        #    ui.logger.exception(e)
 
 
 @registerCommand(MODE, 'set', help='set header value', arguments=[
     #(['--append'], {'action': 'store_true', 'help':'keep previous value'}),
     (['key'], {'help':'header to refine'}),
     (['value'], {'nargs':'+', 'help':'value'})])
-class EnvelopeSetCommand(Command):
+class SetCommand(Command):
     def __init__(self, key, value, append=False, **kwargs):
         self.key = key
         self.value = encode_header(key, ' '.join(value))
@@ -215,7 +212,7 @@ class EnvelopeSetCommand(Command):
 
 @registerCommand(MODE, 'unset', help='remove header field', arguments=[
     (['key'], {'help':'header to refine'})])
-class EnvelopeSetCommand(Command):
+class UnsetCommand(Command):
     def __init__(self, key, **kwargs):
         self.key = key
         Command.__init__(self, **kwargs)
