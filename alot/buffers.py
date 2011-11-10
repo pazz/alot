@@ -19,8 +19,6 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 import urwid
 from notmuch.globals import NotmuchError
 
-import multiprocessing
-
 import widgets
 import settings
 import commands
@@ -152,6 +150,7 @@ class SearchBuffer(Buffer):
         self.querystring = initialquery
         self.result_count = 0
         self.isinitialized = False
+        self.proc = None  # process that fills our pipe
         self.rebuild()
         Buffer.__init__(self, ui, self.body, 'search')
 
@@ -166,14 +165,19 @@ class SearchBuffer(Buffer):
             #focusposition = 0
             self.isinitialized = True
 
+        if self.proc:
+            if self.proc.is_alive():
+                self.proc.terminate()
+
         self.result_count = self.dbman.count_messages(self.querystring)
         try:
-            self.pipe = self.dbman.get_threads(self.querystring)
+            self.pipe, self.proc = self.dbman.get_threads(self.querystring)
         except NotmuchError: #TODO: this never happens for malformed queries
             self.ui.notify('malformed query string: %s' % self.querystring,
                            'error')
-            self.pipe = multiprocessing.Pipe(False)
-            self.pipe.put(None)
+            self.listbox = urwid.ListBox(self.threadlist)
+            self.body = self.listbox
+            return
 
         self.threadlist = PipeWalker(self.pipe, widgets.ThreadlineWidget,
                                      dbman=self.dbman)

@@ -196,7 +196,7 @@ class DBManager(object):
         (i, o) = multiprocessing.Pipe(False)
         t = FillPipeProcess(cbl(), o, fun)
         t.start()
-        return i
+        return (i, t)
 
     def get_threads(self, querystring):
         """
