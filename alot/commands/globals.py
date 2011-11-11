@@ -486,7 +486,7 @@ class ComposeCommand(Command):
                 ui.notify('canceled')
                 return
             self.envelope['Subject'] = encode_header('subject', subject)
-        cmd = commands.envelope.EnvelopeEditCommand(envelope=self.envelope)
+        cmd = commands.envelope.EditCommand(envelope=self.envelope)
         ui.apply_command(cmd)
 
 
