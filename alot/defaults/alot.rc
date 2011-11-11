@@ -117,7 +117,7 @@ q = exit
 colon = prompt
 
 [bufferlist-maps]
-x = closefocussed
+x = close
 select = openfocussed
 
 [search-maps]

@@ -206,28 +206,12 @@ class PythonShellCommand(Command):
 
 @registerCommand(MODE, 'bclose',
                  help="close current buffer or exit if it is the last")
-@registerCommand('bufferlist', 'closefocussed', forced={'focussed': True},
-                 help='close focussed buffer')
 class BufferCloseCommand(Command):
-    def __init__(self, buffer=None, focussed=False, **kwargs):
-        """
-        :param buffer: the selected buffer
-        :type buffer: `alot.buffers.Buffer`
-        """
-        self.buffer = buffer
-        self.focussed = focussed
-        Command.__init__(self, **kwargs)
-
     def apply(self, ui):
-        if self.focussed:
-            #if in bufferlist, this is ugly.
-            self.buffer = ui.current_buffer.get_selected_buffer()
-        elif not self.buffer:
-            self.buffer = ui.current_buffer
-
-        if isinstance(self.buffer, buffers.SearchBuffer):
-            self.buffer.kill_filler_process()
-        ui.buffer_close(self.buffer)
+        selected = ui.current_buffer
+        if isinstance(selected, buffers.SearchBuffer):
+            selected.kill_filler_process()
+        ui.buffer_close(selected)
         ui.buffer_focus(ui.current_buffer)
 
 
@@ -235,8 +219,6 @@ class BufferCloseCommand(Command):
                  help='focus previous buffer')
 @registerCommand(MODE, 'bnext', forced={'offset': +1},
                  help='focus next buffer')
-@registerCommand('bufferlist', 'openfocussed',  # todo separate
-                 help='focus selected buffer')
 class BufferFocusCommand(Command):
     def __init__(self, buffer=None, offset=0, **kwargs):
         """
@@ -252,9 +234,6 @@ class BufferFocusCommand(Command):
             idx = ui.buffers.index(ui.current_buffer)
             num = len(ui.buffers)
             self.buffer = ui.buffers[(idx + self.offset) % num]
-        else:
-            if not self.buffer:
-                self.buffer = ui.current_buffer.get_selected_buffer()
         ui.buffer_focus(self.buffer)
 
 
