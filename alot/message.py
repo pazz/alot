@@ -382,6 +382,19 @@ class Envelope(object):
     def __delitem__(self, name):
         del(self.headers[name])
 
+    def get(self, key, decode=False, fallback=None):
+        if key in self.headers:
+            value = self.headers[key]
+            if decode:
+                value = decode_header(value)
+        else:
+            value = fallback
+        return value
+
+    def attach(self, path, filename=None, ctype=None):
+        part = helper.mimewrap(path, filename, ctype)
+        self.attachments.append(part)
+
     def construct_mail(self):
         textpart = MIMEText(self.body.encode('utf-8'), 'plain', 'utf-8')
         if self.attachments or self.sign or self.encrypt:

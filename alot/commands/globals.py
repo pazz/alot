@@ -432,7 +432,7 @@ class ComposeCommand(Command):
         if self.sender:
             self.envelope['From'] = encode_header('From', self.sender)
         if self.subject:
-            self.envelopes['Subject'] = encode_header('Subject', self.subject)
+            self.envelope['Subject'] = encode_header('Subject', self.subject)
         if self.to:
             self.envelope['To'] = encode_header('To', ','.join(self.to))
         if self.cc:

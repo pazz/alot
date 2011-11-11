@@ -62,9 +62,9 @@ class RefineCommand(Command):
 class SendCommand(Command):
     @defer.inlineCallbacks
     def apply(self, ui):
-        envelope = ui.current_buffer  # needed to close later
-        mail = envelope.get_email()
-        frm = decode_header(mail.get('From'))
+        currentbuffer = ui.current_buffer  # needed to close later
+        envelope = currentbuffer.envelope
+        frm = envelope.get('From', decode=True)
         sname, saddr = email.Utils.parseaddr(frm)
         omit_signature = False
 
@@ -86,21 +86,20 @@ class SendCommand(Command):
                     name = account.signature_filename
                 else:
                     name = None
-                mail.attach(helper.mimewrap(sig, filename=name))
+                envelope.attach(sig, filename=name)
             else:
                 ui.notify('could not locate signature: %s' % sig,
                           priority='error')
                 if (yield ui.choice('send without signature',
                                     select='yes', cancel='no')) == 'no':
                     return
-
         # send
         clearme = ui.notify('sending..', timeout=-1)
 
         def afterwards(returnvalue):
             ui.clear_notify([clearme])
             if returnvalue == 'success':  # sucessfully send mail
-                cmd = globals.BufferCloseCommand(buffer=envelope)
+                cmd = globals.BufferCloseCommand(buffer=currentbuffer)
                 ui.apply_command(cmd)
                 ui.notify('mail send successful')
             else:
@@ -110,6 +109,7 @@ class SendCommand(Command):
         write_fd = ui.mainloop.watch_pipe(afterwards)
 
         def thread_code():
+            mail = envelope.construct_mail()
             os.write(write_fd, account.send_mail(mail) or 'success')
 
         thread = threading.Thread(target=thread_code)
