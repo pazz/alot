@@ -1,5 +1,4 @@
 from alot.commands import Command, registerCommand
-from alot import buffers
 
 MODE = 'bufferlist'
 
