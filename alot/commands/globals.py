@@ -33,7 +33,8 @@ class ExitCommand(Command):
             if (yield ui.choice('realy quit?', select='yes', cancel='no',
                                msg_position='left')) == 'no':
                 return
-        ui.dbman.kill_search_processes()
+        for b in ui.buffers:
+            b.cleanup()
         ui.exit()
 
 
@@ -209,10 +210,7 @@ class PythonShellCommand(Command):
 class BufferCloseCommand(Command):
     def apply(self, ui):
         selected = ui.current_buffer
-        if isinstance(selected, buffers.SearchBuffer):
-            selected.kill_filler_process()
         ui.buffer_close(selected)
-        ui.buffer_focus(ui.current_buffer)
 
 
 @registerCommand(MODE, 'bprevious', forced={'offset': -1},
@@ -248,7 +246,9 @@ class OpenBufferlistCommand(Command):
         if blists:
             ui.buffer_focus(blists[0])
         else:
-            ui.buffer_open(buffers.BufferlistBuffer(ui, self.filtfun))
+            bl = buffers.BufferlistBuffer(ui, self.filtfun)
+            ui.buffer_open(bl)
+            bl.rebuild()
 
 
 @registerCommand(MODE, 'taglist', help='opens taglist buffer')

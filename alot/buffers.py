@@ -67,8 +67,6 @@ class BufferlistBuffer(Buffer):
         return self.ui.buffers.index(b)
 
     def rebuild(self):
-        self.ui.logger.debug('BUFFERS')
-        self.ui.logger.debug(self.ui.buffers)
         if self.isinitialized:
             focusposition = self.bufferlist.get_focus()[1]
         else:

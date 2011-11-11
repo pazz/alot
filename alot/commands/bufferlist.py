@@ -14,8 +14,9 @@ class BufferFocusCommand(Command):
 @registerCommand(MODE, 'close', help='close focussed buffer')
 class BufferCloseCommand(Command):
     def apply(self, ui):
-        selected = ui.current_buffer.get_selected_buffer()
-        if isinstance(selected, buffers.SearchBuffer):
-            selected.kill_filler_process()
+        bufferlist = ui.current_buffer
+        selected = bufferlist.get_selected_buffer()
         ui.buffer_close(selected)
-        ui.buffer_focus(ui.current_buffer)
+        if bufferlist is not selected:
+            bufferlist.rebuild()
+        ui.update()
