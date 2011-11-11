@@ -51,6 +51,9 @@ class Buffer(object):
     def keypress(self, size, key):
             return self.body.keypress(size, key)
 
+    def cleanup(self):
+        pass
+
 
 class BufferlistBuffer(Buffer):
     def __init__(self, ui, filtfun=None):
@@ -64,6 +67,8 @@ class BufferlistBuffer(Buffer):
         return self.ui.buffers.index(b)
 
     def rebuild(self):
+        self.ui.logger.debug('BUFFERS')
+        self.ui.logger.debug(self.ui.buffers)
         if self.isinitialized:
             focusposition = self.bufferlist.get_focus()[1]
         else:
@@ -156,6 +161,9 @@ class SearchBuffer(Buffer):
 
     def __str__(self):
         return '%s (%d threads)' % (self.querystring, self.result_count)
+
+    def cleanup(self):
+        self.kill_filler_process()
 
     def kill_filler_process(self):
         if self.proc:
