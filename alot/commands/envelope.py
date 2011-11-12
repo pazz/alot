@@ -99,8 +99,7 @@ class SendCommand(Command):
         def afterwards(returnvalue):
             ui.clear_notify([clearme])
             if returnvalue == 'success':  # sucessfully send mail
-                cmd = globals.BufferCloseCommand(buffer=currentbuffer)
-                ui.apply_command(cmd)
+                ui.buffer_close(currentbuffer)
                 ui.notify('mail send successful')
             else:
                 ui.notify('failed to send: %s' % returnvalue,
