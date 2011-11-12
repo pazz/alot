@@ -412,13 +412,18 @@ class OpenAttachmentCommand(Command):
         handler = settings.get_mime_handler(mimetype)
         if handler:
             path = self.attachment.save(tempfile.gettempdir())
-            handler = handler.replace('%s', '{}')
+            handler = handler.replace('\'%s\'', '{}')
+
+            # 'needsterminal' makes handler overtake the terminal
+            nt = settings.get_mime_handler(mimetype, key='needsterminal')
+            overtakes = (nt is None)
 
             def afterwards():
                 os.remove(path)
+
             ui.apply_command(ExternalCommand(handler, path=path,
                                              on_success=afterwards,
-                                             thread=True))
+                                             thread=overtakes))
         else:
             ui.notify('unknown mime type')
 
