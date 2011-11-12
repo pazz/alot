@@ -139,7 +139,7 @@ class ExternalCommand(Command):
 
             if self.spawn:
                 cmd = '%s %s' % (settings.config.get('general',
-                                                      'terminal_cmd'),
+                                                     'terminal_cmd'),
                                  cmd)
             cmd = cmd.encode('utf-8', errors='ignore')
             ui.logger.info('calling external command: %s' % cmd)
