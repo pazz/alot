@@ -106,13 +106,6 @@ class EnvelopeBuffer(Buffer):
     def __str__(self):
         return "to: %s" % decode_header(self.mail['To'])
 
-    def get_email(self):
-        return self.mail
-
-    def set_email(self, mail):
-        self.mail = mail
-        self.rebuild()
-
     def rebuild(self):
         self.mail = self.envelope.construct_mail()
         displayed_widgets = []

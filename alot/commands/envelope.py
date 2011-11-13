@@ -48,8 +48,7 @@ class AttachCommand(Command):
         ui.current_buffer.rebuild()
 
 
-@registerCommand(MODE, 'sign', help='',
-                 arguments=[
+@registerCommand(MODE, 'sign', help='', arguments=[
     (['hint'], {'nargs':'?', 'help':''})])
 class SignCommand(Command):
     def __init__(self, hint=None, **kwargs):
@@ -90,7 +89,7 @@ class SignCommand(Command):
 
             #tosigntext = tosignpart.set_payload(signed)
             #ui.logger.info(mail)
-            ui.current_buffer.set_email(signedmail)
+            #ui.current_buffer.set_email(signedmail)
         except Exception, e:
             ui.logger.exception(e)
 
@@ -104,8 +103,8 @@ class RefineCommand(Command):
         self.key = key
 
     def apply(self, ui):
-        mail = ui.current_buffer.get_email()
-        value = decode_header(mail.get(self.key, ''))
+        envelope = ui.current_buffer.envelope
+        value = envelope.get(self.key, decode=True, fallback='')
         ui.commandprompt('set %s %s' % (self.key, value))
 
 
