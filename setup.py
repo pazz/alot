@@ -17,7 +17,8 @@ setup(name='alot',
         'notmuch (>=0.7.1)',
         'argparse (>=2.7)',
         'urwid (>=1.0)',
-        'subprocess (>=2.7)'],
+        'subprocess (>=2.7)',
+        'pyme'],
       provides='alot'
 )
 
