@@ -1,13 +1,9 @@
 import os
 import logging
 import tempfile
-from email import Charset
 from email.header import Header
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.iterators import body_line_iterator
-from email.iterators import typed_subpart_iterator
 from twisted.internet import defer
+import mimetypes
 
 from alot.commands import Command, registerCommand
 from alot.commands.globals import ExternalCommand
@@ -21,6 +17,7 @@ from alot.message import encode_header
 from alot.message import decode_header
 from alot.message import extract_headers
 from alot.message import extract_body
+from alot.message import Envelope
 
 MODE = 'thread'
 
@@ -58,16 +55,13 @@ class ReplyCommand(Command):
         for line in self.message.accumulate_body().splitlines():
             mailcontent += '>' + line + '\n'
 
-        Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
-        bodypart = MIMEText(mailcontent.encode('utf-8'), 'plain', 'UTF-8')
-        reply = MIMEMultipart()
-        reply.attach(bodypart)
+        envelope = Envelope(bodytext=mailcontent)
 
         # copy subject
         subject = decode_header(mail.get('Subject', ''))
         if not subject.startswith('Re:'):
             subject = 'Re: ' + subject
-        reply['Subject'] = Header(subject.encode('utf-8'), 'UTF-8').encode()
+        envelope['Subject'] = Header(subject.encode('utf-8'), 'UTF-8').encode()
 
         # set From
         my_addresses = ui.accountman.get_addresses()
@@ -83,32 +77,30 @@ class ReplyCommand(Command):
         if matched_address:
             account = ui.accountman.get_account_by_address(matched_address)
             fromstring = '%s <%s>' % (account.realname, account.address)
-            reply['From'] = encode_header('From', fromstring)
+            envelope['From'] = encode_header('From', fromstring)
 
         # set To
-        del(reply['To'])
         if self.groupreply:
             cleared = self.clear_my_address(my_addresses, mail.get('To', ''))
             if cleared:
                 logging.info(mail['From'] + ', ' + cleared)
                 to = mail['From'] + ', ' + cleared
-                reply['To'] = encode_header('To', to)
-                logging.info(reply['To'])
+                envelope['To'] = encode_header('To', to)
+                logging.info(envelope['To'])
             else:
-                reply['To'] = encode_header('To', mail['From'])
+                envelope['To'] = encode_header('To', mail['From'])
             # copy cc and bcc for group-replies
             if 'Cc' in mail:
                 cc = self.clear_my_address(my_addresses, mail['Cc'])
-                reply['Cc'] = encode_header('Cc', cc)
+                envelope['Cc'] = encode_header('Cc', cc)
             if 'Bcc' in mail:
                 bcc = self.clear_my_address(my_addresses, mail['Bcc'])
-                reply['Bcc'] = encode_header('Bcc', bcc)
+                envelope['Bcc'] = encode_header('Bcc', bcc)
         else:
-            reply['To'] = encode_header('To', mail['From'])
+            envelope['To'] = encode_header('To', mail['From'])
 
         # set In-Reply-To header
-        del(reply['In-Reply-To'])
-        reply['In-Reply-To'] = '<%s>' % self.message.get_message_id()
+        envelope['In-Reply-To'] = '<%s>' % self.message.get_message_id()
 
         # set References header
         old_references = mail.get('References', '')
@@ -118,11 +110,11 @@ class ReplyCommand(Command):
             if len(old_references) > 8:
                 references = old_references[:1] + references
             references.append('<%s>' % self.message.get_message_id())
-            reply['References'] = ' '.join(references)
+            envelope['References'] = ' '.join(references)
         else:
-            reply['References'] = '<%s>' % self.message.get_message_id()
+            envelope['References'] = '<%s>' % self.message.get_message_id()
 
-        ui.apply_command(ComposeCommand(mail=reply))
+        ui.apply_command(ComposeCommand(envelope=envelope))
 
     def clear_my_address(self, my_addresses, value):
         new_value = []
@@ -153,8 +145,7 @@ class ForwardCommand(Command):
             self.message = ui.current_buffer.get_selected_message()
         mail = self.message.get_email()
 
-        reply = MIMEMultipart()
-        Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
+        envelope = Envelope()
         if self.inline:  # inline mode
             # set body text
             name, address = self.message.get_author()
@@ -170,20 +161,18 @@ class ForwardCommand(Command):
             for line in self.message.accumulate_body().splitlines():
                 mailcontent += '>' + line + '\n'
 
-            bodypart = MIMEText(mailcontent.encode('utf-8'), 'plain', 'UTF-8')
-            reply.attach(bodypart)
+            envelope.body = mailcontent
 
         else:  # attach original mode
-            # create empty text msg
-            bodypart = MIMEText('', 'plain', 'UTF-8')
-            reply.attach(bodypart)
             # attach original msg
-            reply.attach(mail)
+            mail.set_default_type('message/rfc822')
+            mail['Content-Disposition'] = 'attachment'
+            envelope.attachments.append(mail)
 
         # copy subject
         subject = decode_header(mail.get('Subject', ''))
         subject = 'Fwd: ' + subject
-        reply['Subject'] = Header(subject.encode('utf-8'), 'UTF-8').encode()
+        envelope['Subject'] = Header(subject.encode('utf-8'), 'UTF-8').encode()
 
         # set From
         my_addresses = ui.accountman.get_addresses()
@@ -199,8 +188,8 @@ class ForwardCommand(Command):
         if matched_address:
             account = ui.accountman.get_account_by_address(matched_address)
             fromstring = '%s <%s>' % (account.realname, account.address)
-            reply['From'] = encode_header('From', fromstring)
-        ui.apply_command(ComposeCommand(mail=reply))
+            envelope['From'] = encode_header('From', fromstring)
+        ui.apply_command(ComposeCommand(envelope=envelope))
 
 
 @registerCommand(MODE, 'fold', forced={'visible': False}, arguments=[
@@ -239,8 +228,11 @@ class FoldMessagesCommand(Command):
                 help='toggle display of all headers')
 class ToggleHeaderCommand(Command):
     def apply(self, ui):
-        msgw = ui.current_buffer.get_selection()
-        msgw.toggle_full_header()
+        try:
+            msgw = ui.current_buffer.get_selection()
+            msgw.toggle_full_header()
+        except Exception, e:
+            ui.logger.exception(e)
 
 
 @registerCommand(MODE, 'pipeto', arguments=[
@@ -248,17 +240,20 @@ class ToggleHeaderCommand(Command):
     (['--all'], {'action': 'store_true', 'help':'pass all messages'}),
     (['--decode'], {'action': 'store_true',
                     'help':'use only decoded body lines'}),
+    (['--ids'], {'action': 'store_true',
+                    'help':'only pass message ids'}),
     (['--separately'], {'action': 'store_true',
                         'help':'call command once for each message'})],
     help='pipe message(s) to stdin of a shellcommand')
 class PipeCommand(Command):
-    def __init__(self, cmd, all=False, separately=False, decode=True,
-                 noop_msg='no command specified', confirm_msg='',
+    def __init__(self, cmd, all=False, ids=False, separately=False,
+                 decode=True, noop_msg='no command specified', confirm_msg='',
                  done_msg='done', **kwargs):
         Command.__init__(self, **kwargs)
         self.cmd = cmd
         self.whole_thread = all
         self.separately = separately
+        self.ids = ids
         self.decode = decode
         self.noop_msg = noop_msg
         self.confirm_msg = confirm_msg
@@ -287,21 +282,25 @@ class PipeCommand(Command):
                 return
 
         # prepare message sources
-        mails = [m.get_email() for m in to_print]
         mailstrings = []
-        if self.decode:
-            for mail in mails:
-                headertext = extract_headers(mail)
-                bodytext = extract_body(mail)
-                msg = '%s\n\n%s' % (headertext, bodytext)
-                mailstrings.append(msg.encode('utf-8'))
+        if self.ids:
+            mailstrings = [e.get_message_id() for e in to_print]
         else:
-            mailstrings = [e.as_string() for e in mails]
+            mails = [m.get_email() for m in to_print]
+            if self.decode:
+                for mail in mails:
+                    headertext = extract_headers(mail)
+                    bodytext = extract_body(mail)
+                    msg = '%s\n\n%s' % (headertext, bodytext)
+                    mailstrings.append(msg.encode('utf-8'))
+            else:
+                mailstrings = [e.as_string() for e in mails]
         if not self.separately:
             mailstrings = ['\n\n'.join(mailstrings)]
 
         # do teh monkey
         for mail in mailstrings:
+            ui.logger.debug("%s" % mail)
             out, err = helper.pipe_to_command(self.cmd, mail)
             if err:
                 ui.notify(err, priority='error')
@@ -404,16 +403,27 @@ class OpenAttachmentCommand(Command):
     def apply(self, ui):
         logging.info('open attachment')
         mimetype = self.attachment.get_content_type()
+        filename = self.attachment.get_filename()
+        if mimetype == 'application/octet-stream' and filename:
+            mt, enc = mimetypes.guess_type(filename)
+            if mt:
+                mimetype = mt
+
         handler = settings.get_mime_handler(mimetype)
         if handler:
             path = self.attachment.save(tempfile.gettempdir())
-            handler = handler.replace('%s', '{}')
+            handler = handler.replace('\'%s\'', '{}')
+
+            # 'needsterminal' makes handler overtake the terminal
+            nt = settings.get_mime_handler(mimetype, key='needsterminal')
+            overtakes = (nt is None)
 
             def afterwards():
                 os.remove(path)
+
             ui.apply_command(ExternalCommand(handler, path=path,
                                              on_success=afterwards,
-                                             thread=True))
+                                             thread=overtakes))
         else:
             ui.notify('unknown mime type')
 

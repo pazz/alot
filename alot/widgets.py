@@ -16,7 +16,6 @@ along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
 
 Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
-import email
 import urwid
 import logging
 
@@ -74,7 +73,9 @@ class CatchKeyWidgetWrap(urwid.WidgetWrap):
 class ThreadlineWidget(urwid.AttrMap):
     def __init__(self, tid, dbman):
         self.dbman = dbman
+        #logging.debug('tid: %s' % tid)
         self.thread = dbman.get_thread(tid)
+        #logging.debug('tid: %s' % self.thread)
         self.tag_widgets = []
         self.display_content = config.getboolean('general',
                                     'display_content_in_threadline')
@@ -84,7 +85,10 @@ class ThreadlineWidget(urwid.AttrMap):
 
     def rebuild(self):
         cols = []
-        newest = self.thread.get_newest_date()
+        if self.thread:
+            newest = self.thread.get_newest_date()
+        else:
+            newest = None
         if newest == None:
             datestring = u' ' * 10
         else:
@@ -96,32 +100,47 @@ class ThreadlineWidget(urwid.AttrMap):
         self.date_w = urwid.AttrMap(urwid.Text(datestring), 'threadline_date')
         cols.append(('fixed', len(datestring), self.date_w))
 
-        mailcountstring = "(%d)" % self.thread.get_total_messages()
+        if self.thread:
+            mailcountstring = "(%d)" % self.thread.get_total_messages()
+        else:
+            mailcountstring = "(?)"
         self.mailcount_w = urwid.AttrMap(urwid.Text(mailcountstring),
                                    'threadline_mailcount')
         cols.append(('fixed', len(mailcountstring), self.mailcount_w))
 
-        self.tag_widgets = [TagWidget(tag) for tag in self.thread.get_tags()]
+        if self.thread:
+            self.tag_widgets = [TagWidget(t) for t in self.thread.get_tags()]
+        else:
+            self.tag_widgets = []
         self.tag_widgets.sort(tag_cmp,
                               lambda tag_widget: tag_widget.translated)
         for tag_widget in self.tag_widgets:
             cols.append(('fixed', tag_widget.width(), tag_widget))
 
-        authors = self.thread.get_authors() or '(None)'
+        if self.thread:
+            authors = self.thread.get_authors() or '(None)'
+        else:
+            authors = '(None)'
         maxlength = config.getint('general', 'authors_maxlength')
         authorsstring = shorten_author_string(authors, maxlength)
         self.authors_w = urwid.AttrMap(urwid.Text(authorsstring),
                                        'threadline_authors')
         cols.append(('fixed', len(authorsstring), self.authors_w))
 
-        subjectstring = self.thread.get_subject().strip()
+        if self.thread:
+            subjectstring = self.thread.get_subject().strip()
+        else:
+            subjectstring = ''
         self.subject_w = urwid.AttrMap(urwid.Text(subjectstring, wrap='clip'),
                                  'threadline_subject')
         if subjectstring:
             cols.append(('weight', 2, self.subject_w))
 
         if self.display_content:
-            msgs = self.thread.get_messages().keys()
+            if self.thread:
+                msgs = self.thread.get_messages().keys()
+            else:
+                msgs = []
             msgs.sort()
             lastcontent = ' '.join([m.get_text_content() for m in msgs])
             contentstring = lastcontent.replace('\n', ' ').strip()
@@ -317,6 +336,8 @@ class MessageWidget(urwid.WidgetWrap):
         :type bars_at: list(int)
         """
         self.message = message
+        self.mail = self.message.get_email()
+
         self.depth = depth
         self.bars_at = bars_at
         self.even = even
@@ -327,21 +348,36 @@ class MessageWidget(urwid.WidgetWrap):
         self.headerw = None
         self.attachmentw = None
         self.bodyw = None
-        self.displayed_list = [self.sumline]
-        #build pile and call super constructor
-        self.pile = urwid.Pile(self.displayed_list)
+
+        # set available and to be displayed headers
+        self.all_headers = self.mail.keys()
+        displayed = config.getstringlist('general', 'displayed_headers')
+        self.filtered_headers = [k for k in displayed if k in self.mail]
+        self.displayed_headers = self.filtered_headers
+
+        self.rebuild()  # this will build self.pile
         urwid.WidgetWrap.__init__(self, self.pile)
-        #unfold if requested
-        if not folded:
-            self.fold(visible=True)
 
     def get_focus(self):
         return self.pile.get_focus()
 
     #TODO re-read tags
     def rebuild(self):
+        if not self.folded:  # only if not already unfolded
+            hw = self._get_header_widget()
+            aw = self._get_attachment_widget()
+            bw = self._get_body_widget()
+            self.displayed_list = [self.sumline, hw, bw]
+            if aw:
+                self.displayed_list.insert(2, aw)
+        else:
+            self.displayed_list = [self.sumline]
         self.pile = urwid.Pile(self.displayed_list)
         self._w = self.pile
+
+    def fold(self, visible=False):
+        self.folded = not visible
+        self.rebuild()
 
     def _build_sum_line(self):
         """creates/returns the widget that displays the summary line."""
@@ -361,11 +397,18 @@ class MessageWidget(urwid.WidgetWrap):
         line = urwid.Columns(cols, box_columns=bc)
         return line
 
-    def _get_header_widget(self):
+    def _get_header_widget(self, force_update=False):
         """creates/returns the widget that displays the mail header"""
-        if not self.headerw:
-            displayed = config.getstringlist('general', 'displayed_headers')
-            cols = [MessageHeaderWidget(self.message.get_email(), displayed)]
+        if not self.headerw or force_update:
+            mail = self.message.get_email()
+            #build lines
+            norm = not (self.displayed_headers == self.all_headers)
+            lines = []
+            for k in self.displayed_headers:
+                v = mail.get(k)
+                lines.append((k, message.decode_header(v, normalize=norm)))
+
+            cols = [HeadersList(lines)]
             bc = list()
             if self.depth:
                 cols.insert(0, self._get_spacer(self.bars_at[1:]))
@@ -412,31 +455,14 @@ class MessageWidget(urwid.WidgetWrap):
 
     def toggle_full_header(self):
         """toggles if message headers are shown"""
-        # caution: this is very ugly, it's supposed to get the headerwidget.
-        col = self._get_header_widget().widget_list
-        hws = [h for h in col if isinstance(h, MessageHeaderWidget)][0]
-        hws.toggle_all()
-
-    def fold(self, visible=False):
-        hw = self._get_header_widget()
-        aw = self._get_attachment_widget()
-        bw = self._get_body_widget()
-        if visible:
-            if self.folded:  # only if not already unfolded
-                self.displayed_list.append(hw)
-                if aw:
-                    self.displayed_list.append(aw)
-                self.displayed_list.append(bw)
-                self.folded = False
-                self.rebuild()
+        # todo: normalize if not all show..
+        if self.displayed_headers == self.all_headers:
+            self.displayed_headers = self.filtered_headers
         else:
-            if not self.folded:
-                self.displayed_list.remove(hw)
-                if aw:
-                    self.displayed_list.remove(aw)
-                self.displayed_list.remove(bw)
-                self.folded = True
-                self.rebuild()
+            self.displayed_headers = self.all_headers
+        hw = self._get_header_widget(force_update=True)
+        logging.debug(hw.widget_list[0])
+        self.rebuild()
 
     def selectable(self):
         return True
@@ -489,61 +515,30 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         return key
 
 
-class MessageHeaderWidget(urwid.AttrMap):
-    """
-    displays a "key:value\n" list of email headers.
-    RFC 2822 style encoded values are decoded into utf8 first.
-    """
+class HeadersList(urwid.WidgetWrap):
+    def __init__(self, headerslist):
+        self.headers = headerslist
+        pile = urwid.Pile(self._build_lines(headerslist))
+        pile = urwid.AttrMap(pile, 'message_header')
+        urwid.WidgetWrap.__init__(self, pile)
 
-    def __init__(self, eml, displayed_headers=None, hidden_headers=None):
-        """
-        :param eml: the email
-        :type eml: email.Message
-        :param displayed_headers: a whitelist of header fields to display
-        :type displayed_headers: list(str)
-        :param hidden_headers: a blacklist of header fields to display
-        :type hidden_headers: list(str)
-        """
-        self.eml = eml
-        self.display_all = False
-        self.displayed_headers = displayed_headers
-        self.hidden_headers = hidden_headers
-        headerlines = self._build_lines(displayed_headers, hidden_headers)
-        urwid.AttrMap.__init__(self, urwid.Pile(headerlines), 'message_header')
+    def __str__(self):
+        return str(self.headers)
 
-    def toggle_all(self):
-        if self.display_all:
-            self.display_all = False
-            headerlines = self._build_lines(self.displayed_headers,
-                                            self.hidden_headers)
-        else:
-            self.display_all = True
-            headerlines = self._build_lines(None, None)
-        logging.info('all : %s' % headerlines)
-        self.original_widget = urwid.Pile(headerlines)
-
-    def _build_lines(self, displayed, hidden):
+    def _build_lines(self, lines):
         max_key_len = 1
         headerlines = []
-        if not displayed:
-            displayed = self.eml.keys()
-        if hidden:
-            displayed = filter(lambda x: x not in hidden, displayed)
         #calc max length of key-string
-        for key in displayed:
-            if key in self.eml:
-                if len(key) > max_key_len:
-                    max_key_len = len(key)
-        for key, value in self.eml.items():
-            #todo: parse from,cc,bcc seperately into name-addr-widgets
-            # TODO: check indexed keys for None and highlight as invalid
-            if key in displayed:
-                value = message.decode_header(value)
-                keyw = ('fixed', max_key_len + 1,
-                        urwid.Text(('message_header_key', key)))
-                valuew = urwid.Text(('message_header_value', value))
-                line = urwid.Columns([keyw, valuew])
-                headerlines.append(line)
+        for key, value in lines:
+            if len(key) > max_key_len:
+                max_key_len = len(key)
+        for key, value in lines:
+            ##todo : even/odd
+            keyw = ('fixed', max_key_len + 1,
+                    urwid.Text(('message_header_key', key)))
+            valuew = urwid.Text(('message_header_value', value))
+            line = urwid.Columns([keyw, valuew])
+            headerlines.append(line)
         return headerlines
 
 

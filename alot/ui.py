@@ -230,12 +230,13 @@ class UI(object):
                 index = buffers.index(buf)
                 buffers.remove(buf)
                 offset = config.getint('general', 'bufferclose_focus_offset')
-                self.current_buffer = buffers[(index + offset) % len(buffers)]
+                nextbuffer = buffers[(index + offset) % len(buffers)]
+                self.buffer_focus(nextbuffer)
             else:
                 string = 'closing buffer %d:%s'
                 self.logger.debug(string % (buffers.index(buf), buf))
-                index = buffers.index(buf)
                 buffers.remove(buf)
+            buf.cleanup()
 
     def buffer_focus(self, buf):
         """

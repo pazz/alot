@@ -27,7 +27,7 @@ display_content_in_threadline = False
 displayed_headers = From,To,Cc,Bcc,Subject
 
 # headers that are hidden in envelope buffers by default
-envelope_headers_blacklist = Content-Type,MIME-Version,In-Reply-To,References,Content-Transfer-Encoding,Content-Disposition
+envelope_headers_blacklist = In-Reply-To,References
 
 # set terminal command used for spawning shell commands
 terminal_cmd = x-terminal-emulator -e
@@ -70,8 +70,9 @@ notify_timeout = 2
 # display statusline?
 show_statusbar = True
 
-# strftime format for timestamps. Note: you must escape % here:
-# use '%%' instead of '%'. otherwise see
+# strftime format for timestamps. Note: you must escape % twice here:
+# use '%%%%' instead of '%' (and use '%%%%%%%%' to get a literal '%').
+# for the strftime format, see
 # http://docs.python.org/library/datetime.html#strftime-strptime-behavior
 timestamp_format = ''
 
@@ -116,7 +117,7 @@ q = exit
 colon = prompt
 
 [bufferlist-maps]
-x = closefocussed
+x = close
 select = openfocussed
 
 [search-maps]
@@ -142,6 +143,10 @@ H = toggleheaders
 [thread-maps]
 C = fold --all
 E = unfold --all
+c = fold
+e = unfold
+< = fold
+> = unfold
 H = toggleheaders
 P = print --all
 S = save --all

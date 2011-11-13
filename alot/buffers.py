@@ -19,11 +19,10 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 import urwid
 from notmuch.globals import NotmuchError
 
-
 import widgets
 import settings
 import commands
-from walker import IteratorWalker
+from walker import PipeWalker
 from message import decode_header
 
 
@@ -51,6 +50,9 @@ class Buffer(object):
 
     def keypress(self, size, key):
             return self.body.keypress(size, key)
+
+    def cleanup(self):
+        pass
 
 
 class BufferlistBuffer(Buffer):
@@ -93,9 +95,11 @@ class BufferlistBuffer(Buffer):
 
 
 class EnvelopeBuffer(Buffer):
-    def __init__(self, ui, mail):
+    def __init__(self, ui, envelope):
         self.ui = ui
-        self.mail = mail
+        self.envelope = envelope
+        self.mail = envelope.construct_mail()
+        self.all_headers = False
         self.rebuild()
         Buffer.__init__(self, ui, self.body, 'envelope')
 
@@ -110,26 +114,34 @@ class EnvelopeBuffer(Buffer):
         self.rebuild()
 
     def rebuild(self):
+        self.mail = self.envelope.construct_mail()
         displayed_widgets = []
         hidden = settings.config.getstringlist('general',
                                                'envelope_headers_blacklist')
-        self.header_wgt = widgets.MessageHeaderWidget(self.mail,
-                                                      hidden_headers=hidden)
+        #build lines
+        lines = []
+        for (k, v) in self.envelope.headers.items():
+            if (k not in hidden) or self.all_headers:
+                lines.append((k, decode_header(v)))
+
+        self.header_wgt = widgets.HeadersList(lines)
         displayed_widgets.append(self.header_wgt)
 
         #display attachments
         lines = []
-        for part in self.mail.walk():
-            if not part.is_multipart():
-                if part.get_content_maintype() != 'text':
-                    lines.append(widgets.AttachmentWidget(part,
-                                                        selectable=False))
+        for a in self.envelope.attachments:
+            lines.append(widgets.AttachmentWidget(a, selectable=False))
         self.attachment_wgt = urwid.Pile(lines)
         displayed_widgets.append(self.attachment_wgt)
 
-        self.body_wgt = widgets.MessageBodyWidget(self.mail)
+        #self.body_wgt = widgets.MessageBodyWidget(self.mail)
+        self.body_wgt = urwid.Text(self.envelope.body)
         displayed_widgets.append(self.body_wgt)
         self.body = urwid.ListBox(displayed_widgets)
+
+    def toggle_all_headers(self):
+        self.all_headers = not self.all_headers
+        self.rebuild()
 
 
 class SearchBuffer(Buffer):
@@ -141,11 +153,20 @@ class SearchBuffer(Buffer):
         self.querystring = initialquery
         self.result_count = 0
         self.isinitialized = False
+        self.proc = None  # process that fills our pipe
         self.rebuild()
         Buffer.__init__(self, ui, self.body, 'search')
 
     def __str__(self):
         return '%s (%d threads)' % (self.querystring, self.result_count)
+
+    def cleanup(self):
+        self.kill_filler_process()
+
+    def kill_filler_process(self):
+        if self.proc:
+            if self.proc.is_alive():
+                self.proc.terminate()
 
     def rebuild(self):
         if self.isinitialized:
@@ -155,16 +176,21 @@ class SearchBuffer(Buffer):
             #focusposition = 0
             self.isinitialized = True
 
+        self.kill_filler_process()
+
         self.result_count = self.dbman.count_messages(self.querystring)
         try:
-            self.tids = self.dbman.search_thread_ids(self.querystring)
+            self.pipe, self.proc = self.dbman.get_threads(self.querystring)
         except NotmuchError:
             self.ui.notify('malformed query string: %s' % self.querystring,
                            'error')
-            self.tids = []
-        self.threadlist = IteratorWalker(iter(self.tids),
-                                         widgets.ThreadlineWidget,
-                                         dbman=self.dbman)
+            self.listbox = urwid.ListBox(self.threadlist)
+            self.body = self.listbox
+            return
+
+        self.threadlist = PipeWalker(self.pipe, widgets.ThreadlineWidget,
+                                     dbman=self.dbman)
+
         self.listbox = urwid.ListBox(self.threadlist)
         #self.threadlist.set_focus(focusposition)
         self.body = self.listbox

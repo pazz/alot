@@ -17,12 +17,16 @@ along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
 Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 import urwid
+import logging
 
 
-class IteratorWalker(urwid.ListWalker):
-    def __init__(self, it, containerclass, **kwargs):
+class PipeWalker(urwid.ListWalker):
+    """urwid.ListWalker that reads next items from a pipe and
+    wraps them in `containerclass` widgets for displaying
+    """
+    def __init__(self, pipe, containerclass, **kwargs):
+        self.pipe = pipe
         self.kwargs = kwargs
-        self.it = it
         self.containerclass = containerclass
         self.lines = []
         self.focus = 0
@@ -65,11 +69,14 @@ class IteratorWalker(urwid.ListWalker):
                     return (None, None)
 
     def _get_next_item(self):
+        if self.empty:
+            return None
         try:
-            next_obj = self.it.next()
+            next_obj = self.pipe.recv()
             next_widget = self.containerclass(next_obj, **self.kwargs)
             self.lines.append(next_widget)
-        except StopIteration:
+        except EOFError:
+            logging.debug('EMPTY PIPE')
             next_widget = None
             self.empty = True
         return next_widget

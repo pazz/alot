@@ -206,6 +206,11 @@ def cmd_output(command_line):
 
 
 def pipe_to_command(cmd, stdin):
+        # remove quotes which have been put around the whole command
+        cmd = cmd.strip()
+        stdin = stdin + '\n'
+        if cmd[0] == '"' and cmd[-1] == '"':
+            cmd = cmd[1:-1]
         args = shlex.split(cmd.encode('utf-8', errors='ignore'))
         try:
             proc = subprocess.Popen(args, stdin=subprocess.PIPE,
@@ -223,12 +228,13 @@ def pipe_to_command(cmd, stdin):
             return out, err
 
 
-def attach(path, mail, filename=None):
-    ctype, encoding = mimetypes.guess_type(path)
-    if ctype is None or encoding is not None:
-        # No guess could be made, or the file is encoded (compressed),
-        # so use a generic bag-of-bits type.
-        ctype = 'application/octet-stream'
+def mimewrap(path, filename=None, ctype=None):
+    if ctype == None:
+        ctype, encoding = mimetypes.guess_type(path)
+        if ctype is None or encoding is not None:
+            # No guess could be made, or the file is encoded (compressed),
+            # so use a generic bag-of-bits type.
+            ctype = 'application/octet-stream'
     maintype, subtype = ctype.split('/', 1)
     if maintype == 'text':
         fp = open(path)
@@ -255,6 +261,11 @@ def attach(path, mail, filename=None):
         filename = os.path.basename(path)
     part.add_header('Content-Disposition', 'attachment',
                     filename=filename)
+    return part
+
+
+def attach(path, mail, filename=None):
+    part = mimewrap(path, filename)
     #wrap in multipart if not already
     if not mail.is_multipart():
         newmail = MIMEMultipart()

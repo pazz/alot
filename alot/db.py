@@ -18,6 +18,8 @@ Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
 """
 from notmuch import Database, NotmuchError, XapianError
 import notmuch
+import multiprocessing
+
 from datetime import datetime
 from collections import deque
 
@@ -39,6 +41,25 @@ class DatabaseLockedError(DatabaseError):
     pass
 
 
+class FillPipeProcess(multiprocessing.Process):
+    def __init__(self, it, pipe, fun=(lambda x: x)):
+        multiprocessing.Process.__init__(self)
+        self.it = it
+        self.pipe = pipe[1]
+        #pipe[0].close()
+        self.fun = fun
+
+    def run(self):
+        #try:
+        for a in self.it:
+            self.pipe.send(self.fun(a))
+        self.pipe.close()
+            #self.terminate()
+        #except IOError:
+            # looks like the main process exited, so we stop
+         #   pass
+
+
 class DBManager(object):
     """
     keeps track of your index parameters, can create notmuch.Query
@@ -55,6 +76,7 @@ class DBManager(object):
         self.ro = ro
         self.path = path
         self.writequeue = deque([])
+        self.processes = []
 
     def flush(self):
         """
@@ -99,6 +121,11 @@ class DBManager(object):
                 # end transaction and reinsert queue item on error
                 if db.end_atomic() != notmuch.STATUS.SUCCESS:
                     self.writequeue.appendleft(current_item)
+
+    def kill_search_processes(self):
+        for p in self.processes:
+            p.terminate()
+        self.processes = []
 
     def tag(self, querystring, tags, remove_rest=False):
         """
@@ -147,8 +174,8 @@ class DBManager(object):
     def search_thread_ids(self, querystring):
         """returns the ids of all threads that match the querystring
         This copies! all integer thread ids into an new list."""
-        threads = self.query(querystring).search_threads()
-        return [thread.get_thread_id() for thread in threads]
+
+        return self.query_threaded(querystring)
 
     def get_thread(self, tid):
         """returns the thread with given id as alot.db.Thread object"""
@@ -170,6 +197,31 @@ class DBManager(object):
         """returns all tags as list of strings"""
         db = Database(path=self.path)
         return [t for t in db.get_all_tags()]
+
+    def async(self, cbl, fun):
+        """return a `Pipe` object to which `fun(a)` is written for each a in
+        cbl"""
+        pipe = multiprocessing.Pipe(False)
+        receiver, sender = pipe
+        process = FillPipeProcess(cbl(), pipe, fun)
+        process.start()
+        self.processes.append(process)
+        # closing the sending end in tis (receiving) process guarantees
+        # that here the apropriate EOFError is raisedupon .recv
+        sender.close()
+        return receiver, process
+
+    def get_threads(self, querystring):
+        """
+        returns a `multiprocessing.Pipe` object from which threads can be
+        received stepwise.
+        :param querystring: The query string to use for the lookup
+        :type query: str.
+        :returns:  pipe with thread ids
+
+        """
+        q = self.query(querystring)
+        return self.async(q.search_threads, (lambda a: a.get_thread_id()))
 
     def query(self, querystring):
         """creates notmuch.Query objects on demand

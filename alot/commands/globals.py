@@ -4,8 +4,6 @@ import threading
 import subprocess
 import shlex
 import email
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 import urwid
 from twisted.internet import defer
 import logging
@@ -20,6 +18,7 @@ from alot.completion import ContactsCompleter
 from alot.completion import AccountCompleter
 from alot.message import encode_header
 from alot.message import decode_header
+from alot.message import Envelope
 from alot import commands
 import argparse
 
@@ -34,6 +33,8 @@ class ExitCommand(Command):
             if (yield ui.choice('realy quit?', select='yes', cancel='no',
                                msg_position='left')) == 'no':
                 return
+        for b in ui.buffers:
+            b.cleanup()
         ui.exit()
 
 
@@ -45,13 +46,8 @@ class SearchCommand(Command):
         self.query = ' '.join(query)
         Command.__init__(self, **kwargs)
 
-    @defer.inlineCallbacks
     def apply(self, ui):
         if self.query:
-            if self.query == '*' and ui.current_buffer:
-                s = 'really search for all threads? This takes a while..'
-                if (yield ui.choice(s, select='yes', cancel='no')) == 'no':
-                    return
             open_searches = ui.get_buffers_of_type(buffers.SearchBuffer)
             to_be_focused = None
             for sb in open_searches:
@@ -143,7 +139,7 @@ class ExternalCommand(Command):
 
             if self.spawn:
                 cmd = '%s %s' % (settings.config.get('general',
-                                                      'terminal_cmd'),
+                                                     'terminal_cmd'),
                                  cmd)
             cmd = cmd.encode('utf-8', errors='ignore')
             ui.logger.info('calling external command: %s' % cmd)
@@ -211,34 +207,16 @@ class PythonShellCommand(Command):
 
 @registerCommand(MODE, 'bclose',
                  help="close current buffer or exit if it is the last")
-@registerCommand('bufferlist', 'closefocussed', forced={'focussed': True},
-                 help='close focussed buffer')
 class BufferCloseCommand(Command):
-    def __init__(self, buffer=None, focussed=False, **kwargs):
-        """
-        :param buffer: the selected buffer
-        :type buffer: `alot.buffers.Buffer`
-        """
-        self.buffer = buffer
-        self.focussed = focussed
-        Command.__init__(self, **kwargs)
-
     def apply(self, ui):
-        if self.focussed:
-            #if in bufferlist, this is ugly.
-            self.buffer = ui.current_buffer.get_selected_buffer()
-        elif not self.buffer:
-            self.buffer = ui.current_buffer
-        ui.buffer_close(self.buffer)
-        ui.buffer_focus(ui.current_buffer)
+        selected = ui.current_buffer
+        ui.buffer_close(selected)
 
 
 @registerCommand(MODE, 'bprevious', forced={'offset': -1},
                  help='focus previous buffer')
 @registerCommand(MODE, 'bnext', forced={'offset': +1},
                  help='focus next buffer')
-@registerCommand('bufferlist', 'openfocussed',  # todo separate
-                 help='focus selected buffer')
 class BufferFocusCommand(Command):
     def __init__(self, buffer=None, offset=0, **kwargs):
         """
@@ -254,9 +232,6 @@ class BufferFocusCommand(Command):
             idx = ui.buffers.index(ui.current_buffer)
             num = len(ui.buffers)
             self.buffer = ui.buffers[(idx + self.offset) % num]
-        else:
-            if not self.buffer:
-                self.buffer = ui.current_buffer.get_selected_buffer()
         ui.buffer_focus(self.buffer)
 
 
@@ -271,7 +246,9 @@ class OpenBufferlistCommand(Command):
         if blists:
             ui.buffer_focus(blists[0])
         else:
-            ui.buffer_open(buffers.BufferlistBuffer(ui, self.filtfun))
+            bl = buffers.BufferlistBuffer(ui, self.filtfun)
+            ui.buffer_open(bl)
+            bl.rebuild()
 
 
 @registerCommand(MODE, 'taglist', help='opens taglist buffer')
@@ -381,12 +358,12 @@ class HelpCommand(Command):
     (['--bcc'], {'nargs':'+', 'help':'blind copy to'}),
 ])
 class ComposeCommand(Command):
-    def __init__(self, mail=None, headers={}, template=None,
+    def __init__(self, envelope=None, headers={}, template=None,
                  sender=u'', subject=u'', to=[], cc=[], bcc=[],
                  **kwargs):
         Command.__init__(self, **kwargs)
 
-        self.mail = mail
+        self.envelope = envelope
         self.template = template
         self.headers = headers
         self.sender = sender
@@ -397,61 +374,58 @@ class ComposeCommand(Command):
 
     @defer.inlineCallbacks
     def apply(self, ui):
-        # set self.mail
-        if self.mail is None:
-            if self.template is not None:
-                #get location of tempsdir, containing msg templates
-                tempdir = settings.config.get('general', 'template_dir')
-                tempdir = os.path.expanduser(tempdir)
-                if not tempdir:
-                    xdgdir = os.environ.get('XDG_CONFIG_HOME',
-                                            os.path.expanduser('~/.config'))
-                    tempdir = os.path.join(xdgdir, 'alot', 'templates')
+        if self.envelope == None:
+            self.envelope = Envelope()
+        if self.template is not None:
+            #get location of tempsdir, containing msg templates
+            tempdir = settings.config.get('general', 'template_dir')
+            tempdir = os.path.expanduser(tempdir)
+            if not tempdir:
+                xdgdir = os.environ.get('XDG_CONFIG_HOME',
+                                        os.path.expanduser('~/.config'))
+                tempdir = os.path.join(xdgdir, 'alot', 'templates')
 
-                path = os.path.expanduser(self.template)
-                if not os.path.dirname(path):  # use tempsdir
-                    if not os.path.isdir(tempdir):
-                        ui.notify('no templates directory: %s' % tempdir,
-                                  priority='error')
-                        return
-                    path = os.path.join(tempdir, path)
-
-                if not os.path.isfile(path):
-                    ui.notify('could not find template: %s' % path,
+            path = os.path.expanduser(self.template)
+            if not os.path.dirname(path):  # use tempsdir
+                if not os.path.isdir(tempdir):
+                    ui.notify('no templates directory: %s' % tempdir,
                               priority='error')
                     return
-                try:
-                    self.mail = email.message_from_file(open(path))
-                except Exception, e:
-                    ui.notify(str(e), priority='error')
-                    return
-            else:  # no mail or template given
-                self.mail = MIMEMultipart()
-                self.mail.attach(MIMEText('', 'plain', 'UTF-8'))
+                path = os.path.join(tempdir, path)
+
+            if not os.path.isfile(path):
+                ui.notify('could not find template: %s' % path,
+                          priority='error')
+                return
+            try:
+                self.envelope.parse_template(open(path).read())
+            except Exception, e:
+                ui.notify(str(e), priority='error')
+                return
 
         # set forced headers
         for key, value in self.headers.items():
-            self.mail[key] = encode_header(key, value)
+            self.envelope.headers[key] = encode_header(key, value)
 
         # set forced headers for separate parameters
         if self.sender:
-            self.mail['From'] = encode_header('From', self.sender)
+            self.envelope['From'] = encode_header('From', self.sender)
         if self.subject:
-            self.mail['Subject'] = encode_header('Subject', self.subject)
+            self.envelope['Subject'] = encode_header('Subject', self.subject)
         if self.to:
-            self.mail['To'] = encode_header('To', ','.join(self.to))
+            self.envelope['To'] = encode_header('To', ','.join(self.to))
         if self.cc:
-            self.mail['Cc'] = encode_header('Cc', ','.join(self.cc))
+            self.envelope['Cc'] = encode_header('Cc', ','.join(self.cc))
         if self.bcc:
-            self.mail['Bcc'] = encode_header('Bcc', ','.join(self.bcc))
+            self.envelope['Bcc'] = encode_header('Bcc', ','.join(self.bcc))
 
         # get missing From header
-        if not 'From' in self.mail:
+        if not 'From' in self.envelope.headers:
             accounts = ui.accountman.get_accounts()
             if len(accounts) == 1:
                 a = accounts[0]
                 fromstring = "%s <%s>" % (a.realname, a.address)
-                self.mail['From'] = encode_header('From', fromstring)
+                self.envelope['From'] = encode_header('From', fromstring)
             else:
                 cmpl = AccountCompleter(ui.accountman)
                 fromaddress = yield ui.prompt(prefix='From>', completer=cmpl,
@@ -462,13 +436,13 @@ class ComposeCommand(Command):
                 a = ui.accountman.get_account_by_address(fromaddress)
                 if a is not None:
                     fromstring = "%s <%s>" % (a.realname, a.address)
-                    self.mail['From'] = encode_header('From', fromstring)
+                    self.envelope['From'] = encode_header('From', fromstring)
                 else:
-                    self.mail['From'] = fromaddress
+                    self.envelope.headers['From'] = fromaddress
 
         # get missing To header
-        if 'To' not in self.mail:
-            sender = decode_header(self.mail.get('From'))
+        if 'To' not in self.envelope.headers:
+            sender = decode_header(self.envelope.headers.get('From'))
             name, addr = email.Utils.parseaddr(sender)
             a = ui.accountman.get_account_by_address(addr)
 
@@ -483,16 +457,16 @@ class ComposeCommand(Command):
             if to == None:
                 ui.notify('canceled')
                 return
-            self.mail['To'] = encode_header('to', to)
+            self.envelope.headers['To'] = encode_header('to', to)
         if settings.config.getboolean('general', 'ask_subject') and \
-           not 'Subject' in self.mail:
+           not 'Subject' in self.envelope.headers:
             subject = yield ui.prompt(prefix='Subject>')
             if subject == None:
                 ui.notify('canceled')
                 return
-            self.mail['Subject'] = encode_header('subject', subject)
-
-        ui.apply_command(commands.envelope.EnvelopeEditCommand(mail=self.mail))
+            self.envelope['Subject'] = encode_header('subject', subject)
+        cmd = commands.envelope.EditCommand(envelope=self.envelope)
+        ui.apply_command(cmd)
 
 
 @registerCommand(MODE, 'move', help='move focus', arguments=[
@@ -510,13 +484,3 @@ class SendKeypressCommand(Command):
 
     def apply(self, ui):
         ui.keypress(self.key)
-
-
-class EnvelopeOpenCommand(Command):
-    """open a new envelope buffer"""
-    def __init__(self, mail=None, **kwargs):
-        self.mail = mail
-        Command.__init__(self, **kwargs)
-
-    def apply(self, ui):
-        ui.buffer_open(buffers.EnvelopeBuffer(ui, mail=self.mail))
