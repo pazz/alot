@@ -358,11 +358,8 @@ class Envelope(object):
         assert isinstance(bodytext, unicode)
         self.headers = {}
         self.body = None
-        logging.debug('TEMPLATE: %s' % template)
         if template:
             self.parse_template(template)
-            logging.debug('PARSED TEMPLATE: %s' % template)
-            logging.debug('BODY: %s' % self.body)
         if self.body == None:
             self.body = bodytext
         self.headers.update(headers)
