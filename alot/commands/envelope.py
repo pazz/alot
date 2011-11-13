@@ -55,43 +55,9 @@ class SignCommand(Command):
         Command.__init__(self, **kwargs)
         self.hint = hint
 
-    @defer.inlineCallbacks
     def apply(self, ui):
-        try:
-            mail = ui.current_buffer.get_email()
-
-            if self.hint == None:
-                #try to determine fingerprint from From-header
-                frm = decode_header(mail.get('From'))
-                if frm:
-                    sname, saddr = email.Utils.parseaddr(frm)
-                    account = ui.accountman.get_account_by_address(saddr)
-                    if not account == None:
-                        self.hint = account.gpg_key
-            if self.hint == None:
-                ui.notify('could not determine fingerprint', priority='error')
-                return
-
-            tosignpart = typed_subpart_iterator(mail, 'text').next()
-            tosigntext = tosignpart.get_payload()
-
-            ui.logger.debug('TOSIGN: %s' % tosigntext)
-            self.hint = self.hint.encode('utf-8')
-
-            g = GPGManager(ui)
-
-            #signed = yield g._defer_wrap(g._sign, tosigntext, self.hint)
-            signedmail = yield g.sign_mail(mail, self.hint)
-            for k in mail.keys():
-                signedmail[k] = mail[k]
-                #del(mail[k])
-            ui.logger.debug('SIGNED: %s' % signedmail)
-
-            #tosigntext = tosignpart.set_payload(signed)
-            #ui.logger.info(mail)
-            #ui.current_buffer.set_email(signedmail)
-        except Exception, e:
-            ui.logger.exception(e)
+        envelope = ui.current_buffer.envelope
+        envelope.sign = True
 
 
 @registerCommand(MODE, 'refine', help='prompt to change the value of a header',
@@ -112,57 +78,86 @@ class RefineCommand(Command):
 class SendCommand(Command):
     @defer.inlineCallbacks
     def apply(self, ui):
-        currentbuffer = ui.current_buffer  # needed to close later
-        envelope = currentbuffer.envelope
-        frm = envelope.get('From', decode=True)
-        sname, saddr = email.Utils.parseaddr(frm)
-        omit_signature = False
+        try:
+            currentbuffer = ui.current_buffer  # needed to close later
+            envelope = currentbuffer.envelope
+            frm = envelope.get('From', decode=True)
+            sname, saddr = email.Utils.parseaddr(frm)
+            omit_signature = False
 
-        # determine account to use for sending
-        account = ui.accountman.get_account_by_address(saddr)
-        if account == None:
-            if not ui.accountman.get_accounts():
-                ui.notify('no accounts set', priority='error')
-                return
-            else:
-                account = ui.accountman.get_accounts()[0]
-                omit_signature = True
-
-        # attach signature file if present
-        if account.signature and not omit_signature:
-            sig = os.path.expanduser(account.signature)
-            if os.path.isfile(sig):
-                if account.signature_filename:
-                    name = account.signature_filename
-                else:
-                    name = None
-                envelope.attach(sig, filename=name)
-            else:
-                ui.notify('could not locate signature: %s' % sig,
-                          priority='error')
-                if (yield ui.choice('send without signature',
-                                    select='yes', cancel='no')) == 'no':
+            # determine account to use for sending
+            account = ui.accountman.get_account_by_address(saddr)
+            if account == None:
+                if not ui.accountman.get_accounts():
+                    ui.notify('no accounts set', priority='error')
                     return
-        # send
-        clearme = ui.notify('sending..', timeout=-1)
+                else:
+                    account = ui.accountman.get_accounts()[0]
+                    omit_signature = True
 
-        def afterwards(returnvalue):
-            ui.clear_notify([clearme])
-            if returnvalue == 'success':  # sucessfully send mail
-                ui.buffer_close(currentbuffer)
-                ui.notify('mail send successful')
+            # attach signature file if present
+            if account.signature and not omit_signature:
+                sig = os.path.expanduser(account.signature)
+                if os.path.isfile(sig):
+                    if account.signature_filename:
+                        name = account.signature_filename
+                    else:
+                        name = None
+                    envelope.attach(sig, filename=name)
+                else:
+                    ui.notify('could not locate signature: %s' % sig,
+                              priority='error')
+                    if (yield ui.choice('send without signature',
+                                        select='yes', cancel='no')) == 'no':
+                        return
+            # send
+            # sign or encrypt
+            #try to determine fingerprint from From-header
+            hint = account.gpg_key.encode('utf-8')
+            if hint == None:
+                ui.notify('could not determine fingerprint', priority='error')
+                return
+
+            if envelope.encrypt or envelope.sign:
+                g = GPGManager(ui)
+                imail = envelope.construct_inner_mail()
+                if envelope.encrypt and envelope.sign:
+                    pass
+                elif envelope.encrypt:
+                    pass
+                elif envelope.sign:
+                    mail = yield g.pwdget_wrap(g.sign_mail, *[imail, hint])
+                for k, v in envelope.headers.items():
+                    mail[k] = v
             else:
-                ui.notify('failed to send: %s' % returnvalue,
-                          priority='error')
+                mail = envelope.construct_mail()
 
-        write_fd = ui.mainloop.watch_pipe(afterwards)
+            ui.logger.debug('MAIL:\n %s' % mail)
 
-        def thread_code():
-            mail = envelope.construct_mail()
-            os.write(write_fd, account.send_mail(mail) or 'success')
+            def thread_code():
+                os.write(write_fd, account.send_mail(mail) or 'success')
 
-        thread = threading.Thread(target=thread_code)
-        thread.start()
+            if (yield ui.choice('send?', select='yes', cancel='no')) == 'no':
+                return
+
+            clearme = ui.notify('sending..', timeout=-1)
+
+            def afterwards(returnvalue):
+                ui.clear_notify([clearme])
+                if returnvalue == 'success':  # sucessfully send mail
+                    ui.buffer_close(currentbuffer)
+                    ui.notify('mail send successful')
+                else:
+                    ui.notify('failed to send: %s' % returnvalue,
+                              priority='error')
+
+            write_fd = ui.mainloop.watch_pipe(afterwards)
+
+
+            thread = threading.Thread(target=thread_code)
+            thread.start()
+        except Exception, e:
+            ui.logger.exception(e)
 
 
 @registerCommand(MODE, 'edit', help='edit currently open mail')

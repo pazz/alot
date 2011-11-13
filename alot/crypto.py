@@ -48,7 +48,7 @@ class GPGManager:
         self.context.set_armor(1)
 
     @inlineCallbacks
-    def _defer_wrap(self, fun, *args, **kwargs):
+    def pwdget_wrap(self, fun, *args, **kwargs):
         try:
             hint = ''
             desc = ''
@@ -139,38 +139,31 @@ class GPGManager:
         cf = re.sub("\r?\n", "\r\n", cf)
         return cf
 
-    @inlineCallbacks
     def sign_mail(self, mail, keyhint):
         """
         returns mail signed and wrapped in a multipart/signed email
         """
-        try:
-            signedmail = MIMEMultipart('signed', micalg='pgp-sha1',
-                                protocol='application/pgp-signature')
-            for k in mail.keys():
-                signedmail[k] = mail[k]
-                #del(mail[k])
+        signedmail = MIMEMultipart('signed', micalg='pgp-sha1',
+                            protocol='application/pgp-signature')
 
-            tosign = self.canonical_form(mail.as_string())
-            #tosign = flatten(mail)
-            logging.debug(tosign)
-            #mail = email.message_from_string(tosign)
+        tosign = self.canonical_form(mail.as_string())
+        #tosign = flatten(mail)
+        logging.debug(tosign)
+        #mail = email.message_from_string(tosign)
 
-            signature = yield self._defer_wrap(self.sign_block, tosign, keyhint)
+        signature = self.sign_block(tosign, keyhint)
 
-            sig = MIMEApplication(_data=signature,
-                                  _subtype='pgp-signature; name="signature.asc"',
-                                  _encoder=encode_7or8bit)
-            sig['Content-Description'] = 'signature'
-            sig.set_charset('us-ascii')
+        sig = MIMEApplication(_data=signature,
+                              _subtype='pgp-signature; name="signature.asc"',
+                              _encoder=encode_7or8bit)
+        sig['Content-Description'] = 'signature'
+        sig.set_charset('us-ascii')
 
-            signedmail.attach(mail)
-            signedmail.attach(sig)
+        signedmail.attach(mail)
+        signedmail.attach(sig)
 
-            signedmail['Content-Disposition'] = 'inline'
-            returnValue(signedmail)
-        except Exception, e:
-            logging.exception(e)
+        signedmail['Content-Disposition'] = 'inline'
+        return signedmail
 
 
     def encrypt(self, header, passphrase=None):

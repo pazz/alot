@@ -392,18 +392,21 @@ class Envelope(object):
         part = helper.mimewrap(path, filename, ctype)
         self.attachments.append(part)
 
-    def construct_mail(self):
+    def construct_inner_mail(self):
         textpart = MIMEText(self.body.encode('utf-8'), 'plain', 'utf-8')
-        if self.attachments or self.sign or self.encrypt:
+        if self.attachments:
             msg = MIMEMultipart()
             msg.attach(textpart)
+            for a in self.attachments:
+                msg.attach(a)
         else:
             msg = textpart
+        return msg
+
+    def construct_mail(self):
+        msg = self.construct_inner_mail()
         for k, v in self.headers.items():
             msg[k] = v
-        for a in self.attachments:
-            msg.attach(a)
-            logging.debug(msg)
         return msg
 
     def parse_template(self, tmp):
