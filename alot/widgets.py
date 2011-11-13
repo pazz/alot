@@ -352,7 +352,7 @@ class MessageWidget(urwid.WidgetWrap):
         # set available and to be displayed headers
         self.all_headers = self.mail.keys()
         displayed = config.getstringlist('general', 'displayed_headers')
-        self.filtered_headers = [k for k in displayed if k in self.all_headers]
+        self.filtered_headers = [k for k in displayed if k in self.mail]
         self.displayed_headers = self.filtered_headers
 
         self.rebuild()  # this will build self.pile
@@ -404,9 +404,9 @@ class MessageWidget(urwid.WidgetWrap):
             #build lines
             norm = not (self.displayed_headers == self.all_headers)
             lines = []
-            for (k, v) in mail.items():
-                if k in self.displayed_headers:
-                    lines.append((k, message.decode_header(v, normalize=norm)))
+            for k in self.displayed_headers:
+                v = mail.get(k)
+                lines.append((k, message.decode_header(v, normalize=norm)))
 
             cols = [HeadersList(lines)]
             bc = list()
