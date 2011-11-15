@@ -189,7 +189,7 @@ class UI(object):
         """
         self.logger.info('open command shell')
         mode = self.current_buffer.typename
-        cmdline = yield self.prompt(prefix=':', hidechars=True,
+        cmdline = yield self.prompt(prefix=':',
                               text=startstring,
                               completer=CommandLineCompleter(self.dbman,
                                                              self.accountman,

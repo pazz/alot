@@ -48,18 +48,16 @@ class GPGManager:
         self.context.set_armor(1)
 
     @inlineCallbacks
-    def pwdget_wrap(self, fun, *args, **kwargs):
+    def pwdget_wrap(self, fun, hint='', *args, **kwargs):
         try:
-            hint = ''
-            desc = ''
+            self.hint = hint
             times = 3
             self.ui.logger.debug(args)
             self.ui.logger.debug(kwargs)
 
             def constant_callback(pwd):
-                def g(x,y,z, hook=None):
-                    hint = x
-                    desc = y
+                def g(x, y, z, hook=None):
+                    self.hint = x
                     return pwd
                 return g
             f = constant_callback('')
@@ -69,10 +67,10 @@ class GPGManager:
                     #self.ui.logger.debug('RESULT: %s' % v)
                     returnValue(v)
                 except pyme.errors.GPGMEError, e:
-                    #self.ui.notify(e.getstring(), priority='error')
                     if 'Bad passphrase' in e.getstring():
-                        msg = "Please supply %s' password%s>" % (hint, desc)
-                        pwd = yield self.ui.prompt(prefix=msg)
+                        #msg = "Please supply password for: %s>" % (self.hint)
+                        msg = "Please supply password for: %s>" % (self.hint)
+                        pwd = yield self.ui.prompt(prefix=msg, hidechars=True)
                         #self.ui.notify('PASSWORD %s' % pwd)
                         f = constant_callback(pwd)
                         self.context.set_passphrase_cb(f)

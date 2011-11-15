@@ -110,7 +110,7 @@ class SendCommand(Command):
                     if (yield ui.choice('send without signature',
                                         select='yes', cancel='no')) == 'no':
                         return
-            # send
+
             # sign or encrypt
             #try to determine fingerprint from From-header
             hint = account.gpg_key.encode('utf-8')
@@ -124,9 +124,17 @@ class SendCommand(Command):
                 if envelope.encrypt and envelope.sign:
                     pass
                 elif envelope.encrypt:
+                    failquestion = 'send in plain-text?'
                     pass
                 elif envelope.sign:
-                    mail = yield g.pwdget_wrap(g.sign_mail, *[imail, hint])
+                    mail = yield g.pwdget_wrap(g.sign_mail, hint, *[imail, hint])
+                    failquestion = 'unable to unlock private key: %s\n' % hint
+                    failquestion += 'send without digital signature?'
+                if mail == None:
+                    if (yield ui.choice(failquestion, cancel='no')) == 'no':
+                        ui.notify('canceled')
+                        return
+
                 for k, v in envelope.headers.items():
                     mail[k] = v
             else:
@@ -137,9 +145,10 @@ class SendCommand(Command):
             def thread_code():
                 os.write(write_fd, account.send_mail(mail) or 'success')
 
-            if (yield ui.choice('send?', select='yes', cancel='no')) == 'no':
-                return
+            #if (yield ui.choice('send?', select='yes', cancel='no')) == 'no':
+            #    return
 
+            # sending msg
             clearme = ui.notify('sending..', timeout=-1)
 
             def afterwards(returnvalue):
@@ -153,7 +162,7 @@ class SendCommand(Command):
 
             write_fd = ui.mainloop.watch_pipe(afterwards)
 
-
+            # send
             thread = threading.Thread(target=thread_code)
             thread.start()
         except Exception, e:
