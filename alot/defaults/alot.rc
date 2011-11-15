@@ -187,6 +187,14 @@ message_attachment_focussed_bg = light green
 message_attachment_focussed_fg = light gray
 message_body_bg = default
 message_body_fg = light gray
+
+envelope_cryptoinfo_bg = dark gray
+envelope_cryptoinfo_fg = white
+envelope_cryptoinfo_key_bg = dark gray
+envelope_cryptoinfo_key_fg = white
+envelope_cryptoinfo_value_bg = dark gray
+envelope_cryptoinfo_value_fg = light gray
+
 message_header_bg = dark gray
 message_header_fg = white
 message_header_key_bg = dark gray
@@ -261,6 +269,14 @@ message_attachment_focussed_bg = light green
 message_attachment_focussed_fg = light gray
 message_body_bg = default
 message_body_fg = light gray
+
+envelope_cryptoinfo_bg = dark gray
+envelope_cryptoinfo_fg = white
+envelope_cryptoinfo_key_bg = dark gray
+envelope_cryptoinfo_key_fg = white
+envelope_cryptoinfo_value_bg = dark gray
+envelope_cryptoinfo_value_fg = light gray
+
 message_header_bg = dark gray
 message_header_fg = white
 message_header_key_bg = dark gray
@@ -324,6 +340,9 @@ helptitle = standout
 message_attachment = default
 message_attachment_focussed = underline
 message_body = default
+
+envelope_cryptoinfo = standout
+
 message_header = default
 message_header_key = default
 message_header_value = default
