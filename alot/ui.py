@@ -119,7 +119,8 @@ class UI(object):
         self.inputwrap.set_root(helpwrap)
         self.inputwrap.select_cancel_only = not relay_rest
 
-    def prompt(self, prefix='>', text=u'', completer=None, tab=0, history=[]):
+    def prompt(self, prefix='>', text=u'', completer=None, tab=0, history=[],
+            hidechars=False):
         """prompt for text input
 
         :param prefix: text to print before the input field
@@ -134,6 +135,8 @@ class UI(object):
         :param history: history to be used for up/down keys
         :type history: list of str
         :returns: a `twisted.defer.Deferred`
+        :param hidechars: hide input repeating '*' for pwd entries
+        :type prefix: boolean
         """
         d = defer.Deferred()  # create return deferred
         oldroot = self.inputwrap.get_root()
@@ -146,8 +149,11 @@ class UI(object):
 
         #set up widgets
         leftpart = urwid.Text(prefix, align='left')
-        editpart = widgets.CompleteEdit(completer, on_exit=select_or_cancel,
-                                edit_text=text, history=history)
+        if hidechars:
+            editpart = widgets.PasswordEdit(on_exit=select_or_cancel)
+        else:
+            editpart = widgets.CompleteEdit(completer, on_exit=select_or_cancel,
+                                    edit_text=text, history=history)
 
         for i in range(tab):  # hit some tabs
             editpart.keypress((0,), 'tab')
@@ -183,7 +189,7 @@ class UI(object):
         """
         self.logger.info('open command shell')
         mode = self.current_buffer.typename
-        cmdline = yield self.prompt(prefix=':',
+        cmdline = yield self.prompt(prefix=':', hidechars=True,
                               text=startstring,
                               completer=CommandLineCompleter(self.dbman,
                                                              self.accountman,

@@ -569,3 +569,32 @@ class AttachmentWidget(urwid.WidgetWrap):
 
     def keypress(self, size, key):
         return key
+
+
+class PasswordEdit(urwid.Edit):
+    """Edit box which doesn't show what is entered (show '*' or other char instead)"""
+
+    def __init__(self, on_exit=None, **kwargs):
+        urwid.Edit.__init__(self, **kwargs)
+        self.real_text = ''
+        self.on_exit = on_exit
+
+    def set_edit_text(self, text):
+        self.real_text = text
+        hidden_txt = len(text) * '*'
+        urwid.Edit.set_edit_text(self, hidden_txt)
+
+    def get_edit_text(self):
+        return self.real_text
+
+    def insert_text(self, text):
+        self._edit_text = self.real_text
+        urwid.Edit.insert_text(self, text)
+
+    def keypress(self, size, key):
+        if key == 'select':
+            self.on_exit(self.real_text)
+        elif key == 'cancel':
+            self.on_exit(None)
+        else:
+            return urwid.Edit.keypress(self, size, key)
