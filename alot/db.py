@@ -1,6 +1,7 @@
 from notmuch import Database, NotmuchError, XapianError
 import notmuch
 import multiprocessing
+import logging
 
 from datetime import datetime
 from collections import deque
@@ -32,14 +33,16 @@ class FillPipeProcess(multiprocessing.Process):
         self.fun = fun
 
     def run(self):
-        #try:
-        for a in self.it:
-            self.pipe.send(self.fun(a))
-        self.pipe.close()
+        try:
+            for a in self.it:
+                self.pipe.send(self.fun(a))
+            self.pipe.close()
             #self.terminate()
-        #except IOError:
+        except IOError:
             # looks like the main process exited, so we stop
-         #   pass
+           pass
+        except Exception,e:
+            logging.exception(e)
 
 
 class DBManager(object):
