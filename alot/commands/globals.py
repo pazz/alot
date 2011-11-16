@@ -1,4 +1,5 @@
 import os
+import argparse
 import code
 import threading
 import subprocess
@@ -20,7 +21,7 @@ from alot.message import encode_header
 from alot.message import decode_header
 from alot.message import Envelope
 from alot import commands
-import argparse
+from alot.completion import QueryCompleter
 
 MODE = 'global'
 
@@ -59,6 +60,25 @@ class SearchCommand(Command):
                 ui.buffer_open(buffers.SearchBuffer(ui, self.query))
         else:
             ui.notify('empty query string')
+
+@registerCommand(MODE, 'livesearch', help='start live search')
+class LiveSearchCommand(Command):
+    def apply(self, ui):
+        try:
+            startstring = ''
+            ui.buffer_open(buffers.SearchBuffer(ui, startstring))
+            sb = ui.current_buffer
+
+            def updatebuffer(query):
+                sb.update_query(query)
+                sb.rebuild()
+                ui.update()
+
+            ui.prompt(prefix='', text=startstring,
+                    completer=QueryCompleter(ui.dbman, ui.accountman),
+                    on_keypress=updatebuffer)
+        except Exception, e:
+            ui.logger.exception
 
 
 @registerCommand(MODE, 'prompt', help='starts commandprompt', arguments=[
