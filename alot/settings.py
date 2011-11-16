@@ -73,9 +73,9 @@ class AlotConfigParser(FallbackConfigParser):
             hb = self.get('256c-theme', attr + '_bg', fallback='default')
             p.append((attr, nf, nb, m, hf, hb))
             if attr.startswith('tag_') and attr + '_focus' not in names:
-                nb = self.get('16c-theme', 'threadline_focus_bg',
+                nb = self.get('16c-theme', 'tag_focus_bg',
                               fallback='default')
-                hb = self.get('256c-theme', 'threadline_focus_bg',
+                hb = self.get('256c-theme', 'tag_focus_bg',
                               fallback='default')
                 p.append((attr + '_focus', nf, nb, m, hf, hb))
         return p
