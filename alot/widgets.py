@@ -242,10 +242,11 @@ class ChoiceWidget(urwid.Text):
 
 
 class CompleteEdit(urwid.Edit):
-    def __init__(self, completer, on_exit, edit_text=u'',
+    def __init__(self, completer, on_exit, on_keypress=None, edit_text=u'',
                  history=None, **kwargs):
         self.completer = completer
         self.on_exit = on_exit
+        self.on_keypress = on_keypress
         self.history = list(history)  # we temporarily add stuff here
         self.historypos = None
 
@@ -256,6 +257,7 @@ class CompleteEdit(urwid.Edit):
         urwid.Edit.__init__(self, edit_text=edit_text, **kwargs)
 
     def keypress(self, size, key):
+        result = None
         # if we tabcomplete
         if key in ['tab', 'shift tab'] and self.completer:
             # if not already in completion mode
@@ -295,7 +297,9 @@ class CompleteEdit(urwid.Edit):
         else:
             result = urwid.Edit.keypress(self, size, key)
             self.completions = None
-            return result
+        if callable(self.on_keypress):
+            self.on_keypress(self.get_edit_text())
+        return result
 
 
 class MessageWidget(urwid.WidgetWrap):
