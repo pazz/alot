@@ -33,7 +33,7 @@ class InputWrap(urwid.WidgetWrap):
             return False
 
     def keypress(self, size, key):
-        self.ui.logger.debug('got key: \'%s\'' % key)
+        #self.ui.logger.debug('got key: \'%s\'' % key)
         mode = self.ui.mode
         if self.select_cancel_only:
             mode = 'global'
@@ -46,7 +46,7 @@ class InputWrap(urwid.WidgetWrap):
                     return None
             except CommandParseError, e:
                 self.ui.notify(e.message, priority='error')
-        self.ui.logger.debug('relaying key: %s' % key)
+        #self.ui.logger.debug('relaying key: %s' % key)
         return self._w.keypress(size, key)
 
 
