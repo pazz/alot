@@ -17,7 +17,7 @@ Here is a key for the interpreted sections:
         global settings: set your editor etc
     
     [account X]
-        defines the account X: realname, email address, sendmail
+        defines properties of account X: (see below)
     
     [X-maps]
         defines keymaps for mode X. possible modes are:
@@ -33,39 +33,47 @@ Here is a key for the interpreted sections:
 
 All configs are optional, but if you want to send mails you need to
 specify at least one account section.
-A sample gmail section looks like this:
+A sample gmail section looks like this (provided you have configured msmtp accordingly):
 
     [account gmail]
     realname = Patrick Totzke
     address = patricktotzke@gmail.com
     aliases = patricktotzke@googlemail.com
-    gpg_key = D7D6C5AA
-    sender_type = sendmail
     sendmail_command = msmtp --account=gmail -t
 
-I use this for my uni-account:
+Here's a full list of the interpreted keywords in account sections:
 
-    [account uoe]
-    realname = Patrick Totzke
-    address = ...
+    # used to format the (proposed) From-header in outgoing mails
+    realname = your name
+    address = this accounts email address
+
+    # used to clear your addresses/ match account when formating replies 
     aliases = foobar@myuni.uk;f.bar@myuni.uk;f.b100@students.myuni.uk
-    sender_type = sendmail
-    sendmail_command = msmtp --account=uoe -t
-    sent_box = maildir:///home/pazz/mail/uoe/Sent
-    draft_box = maildir:///home/pazz/mail/uoe/Drafts
-    signature = ~/my_uni_vcard.vcs
-    signature_filename = p.totzke.vcs
+    
+    # how to send mails
+    sendmail_command = command, defaults to 'sendmail'
+
+    # where to store outgoing mail
+    sent_box = maildir:///home/you/mail//Sent
+
+    # file to append before sending
+    signature = ~/your_vcard_for_this_account.vcs
+    # signature file's name as it appears in outgoing mails
+    signature_filename = you.vcs
+
+    # command to lookup contacts
     abook_command = abook --mutt-query
+    abook_regexp = regexp to match name & address in abook_commands output.
 
 Caution: Sending mails is only supported via sendmail for now. If you want
 to use a sendmail command different from `sendmail`, specify it as `sendmail_command`.
 
-`send_mailbox` specifies the mailbox where you want outgoing mails to be stored
+`send_box` specifies the mailbox where you want outgoing mails to be stored
 after successfully sending them. You can use mbox, maildir, mh, babyl and mmdf
 in the protocol part of the url.
 
-The file specified by `signature` is attached to all outgoing mails from this account, optionally renamed to
-`signature_filename`.
+The file specified by `signature` is attached to all outgoing mails from this account, optionally
+renamed to `signature_filename`.
 
 If you specified `abook_command`, it will be used for tab completion in queries (to/from)
 and in message composition. The command will be called with your prefix as only argument
@@ -107,7 +115,6 @@ Apart from command pre and posthooks, the following hooks will be interpreted:
  * `reply_prefix(realname, address, timestamp, **kwargs)`
    Is used to reformat the first indented line in a reply message.
    Should return a string and defaults to 'Quoting %s (%s)\n' % (realname, timestamp)
- 
  * `forward_prefix(realname, address, timestamp, **kwargs)`
    Is used to reformat the first indented line in a inline forwarded message.
    Returns a string and defaults to 'Forwarded message from %s (%s)\n' % (realname, timestamp)
@@ -132,8 +139,9 @@ http://excess.org/urwid/reference.html#AttrSpec
 Urwid privides a neat script that makes choosing colours easy, which can be found here:
 http://excess.org/urwid/browser/palette_test.py
 
-See `data/example.full.rc` for a complete list of widgets that can be themed.
-Moreover, keywords that start with "tag_" will be used to display specific tags. For instance, you
+See the contents of `alot/defaults/alot.rc` for a complete list of widgets that can be themed.
+
+Keywords that start with "tag_" will be used to display specific tags. For instance, you
 can use the following to always display the "todo" tag in white on red, when in 256c-mode.
 
     [256c-theme]
