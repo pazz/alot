@@ -132,11 +132,12 @@ class SearchBuffer(Buffer):
     def __init__(self, ui, initialquery=''):
         self.dbman = ui.dbman
         self.ui = ui
-        self.querystring = initialquery
+        self.threadlist = urwid.SimpleListWalker([])
         self.result_count = 0
         self.isinitialized = False
         self.proc = None  # process that fills our pipe
         self.rebuild()
+        self.update_query(initialquery)
         Buffer.__init__(self, ui, self.body, 'search')
 
     def __str__(self):
@@ -150,6 +151,20 @@ class SearchBuffer(Buffer):
             if self.proc.is_alive():
                 self.proc.terminate()
 
+    def update_query(self, query):
+        self.kill_filler_process()
+        self.querystring = query
+        try:
+            self.result_count = self.dbman.count_messages(self.querystring)
+            self.pipe, self.proc = self.dbman.get_threads(self.querystring)
+            self.threadlist = PipeWalker(self.pipe, widgets.ThreadlineWidget,
+                                         dbman=self.dbman)
+            self.listbox = urwid.ListBox(self.threadlist)
+            self.body = self.listbox
+        except NotmuchError:
+            self.ui.notify('malformed query string: %s' % self.querystring,
+                           'error')
+
     def rebuild(self):
         if self.isinitialized:
             pass
@@ -157,23 +172,10 @@ class SearchBuffer(Buffer):
         else:
             #focusposition = 0
             self.isinitialized = True
-
-        self.kill_filler_process()
-
-        self.result_count = self.dbman.count_messages(self.querystring)
-        try:
-            self.pipe, self.proc = self.dbman.get_threads(self.querystring)
-        except NotmuchError:
-            self.ui.notify('malformed query string: %s' % self.querystring,
-                           'error')
             self.listbox = urwid.ListBox(self.threadlist)
             self.body = self.listbox
             return
 
-        self.threadlist = PipeWalker(self.pipe, widgets.ThreadlineWidget,
-                                     dbman=self.dbman)
-
-        self.listbox = urwid.ListBox(self.threadlist)
         #self.threadlist.set_focus(focusposition)
         self.body = self.listbox
 
