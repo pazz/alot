@@ -63,7 +63,7 @@ class ThreadlineWidget(urwid.AttrMap):
                                     'display_content_in_threadline')
         self.rebuild()
         urwid.AttrMap.__init__(self, self.columns,
-                               'threadline', 'threadline_focus')
+                               'search_thread', 'search_thread_focus')
 
     def rebuild(self):
         cols = []
@@ -79,7 +79,7 @@ class ThreadlineWidget(urwid.AttrMap):
                 datestring = newest.strftime(formatstring)
             else:
                 datestring = pretty_datetime(newest).rjust(10)
-        self.date_w = urwid.AttrMap(urwid.Text(datestring), 'threadline_date')
+        self.date_w = urwid.AttrMap(urwid.Text(datestring), 'search_thread_date')
         cols.append(('fixed', len(datestring), self.date_w))
 
         if self.thread:
@@ -87,7 +87,7 @@ class ThreadlineWidget(urwid.AttrMap):
         else:
             mailcountstring = "(?)"
         self.mailcount_w = urwid.AttrMap(urwid.Text(mailcountstring),
-                                   'threadline_mailcount')
+                                   'search_thread_mailcount')
         cols.append(('fixed', len(mailcountstring), self.mailcount_w))
 
         if self.thread:
@@ -106,7 +106,7 @@ class ThreadlineWidget(urwid.AttrMap):
         maxlength = config.getint('general', 'authors_maxlength')
         authorsstring = shorten_author_string(authors, maxlength)
         self.authors_w = urwid.AttrMap(urwid.Text(authorsstring),
-                                       'threadline_authors')
+                                       'search_thread_authors')
         cols.append(('fixed', len(authorsstring), self.authors_w))
 
         if self.thread:
@@ -114,7 +114,7 @@ class ThreadlineWidget(urwid.AttrMap):
         else:
             subjectstring = ''
         self.subject_w = urwid.AttrMap(urwid.Text(subjectstring, wrap='clip'),
-                                 'threadline_subject')
+                                 'search_thread_subject')
         if subjectstring:
             cols.append(('weight', 2, self.subject_w))
 
@@ -128,7 +128,7 @@ class ThreadlineWidget(urwid.AttrMap):
             contentstring = lastcontent.replace('\n', ' ').strip()
             self.content_w = urwid.AttrMap(urwid.Text(contentstring,
                                                       wrap='clip'),
-                                           'threadline_content')
+                                           'search_thread_content')
             cols.append(self.content_w)
 
         self.columns = urwid.Columns(cols, dividechars=1)
@@ -136,24 +136,24 @@ class ThreadlineWidget(urwid.AttrMap):
 
     def render(self, size, focus=False):
         if focus:
-            self.date_w.set_attr_map({None: 'threadline_date_focus'})
+            self.date_w.set_attr_map({None: 'search_thread_date_focus'})
             self.mailcount_w.set_attr_map({None:
-                                           'threadline_mailcount_focus'})
+                                           'search_thread_mailcount_focus'})
             for tw in self.tag_widgets:
                 tw.set_focussed()
-            self.authors_w.set_attr_map({None: 'threadline_authors_focus'})
-            self.subject_w.set_attr_map({None: 'threadline_subject_focus'})
+            self.authors_w.set_attr_map({None: 'search_thread_authors_focus'})
+            self.subject_w.set_attr_map({None: 'search_thread_subject_focus'})
             if self.display_content:
-                self.content_w.set_attr_map({None: 'threadline_content_focus'})
+                self.content_w.set_attr_map({None: 'search_thread_content_focus'})
         else:
-            self.date_w.set_attr_map({None: 'threadline_date'})
-            self.mailcount_w.set_attr_map({None: 'threadline_mailcount'})
+            self.date_w.set_attr_map({None: 'search_thread_date'})
+            self.mailcount_w.set_attr_map({None: 'search_thread_mailcount'})
             for tw in self.tag_widgets:
                 tw.set_unfocussed()
-            self.authors_w.set_attr_map({None: 'threadline_authors'})
-            self.subject_w.set_attr_map({None: 'threadline_subject'})
+            self.authors_w.set_attr_map({None: 'search_thread_authors'})
+            self.subject_w.set_attr_map({None: 'search_thread_subject'})
             if self.display_content:
-                self.content_w.set_attr_map({None: 'threadline_content'})
+                self.content_w.set_attr_map({None: 'search_thread_content'})
         return urwid.AttrMap.render(self, size, focus)
 
     def selectable(self):
@@ -474,11 +474,11 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         self.message = message
         self.even = even
         if even:
-            attr = 'messagesummary_even'
+            attr = 'thread_summary_even'
         else:
-            attr = 'messagesummary_odd'
+            attr = 'thread_summary_odd'
         sumstr = self.__str__()
-        txt = urwid.AttrMap(urwid.Text(sumstr), attr, 'messagesummary_focus')
+        txt = urwid.AttrMap(urwid.Text(sumstr), attr, 'thread_summary_focus')
         urwid.WidgetWrap.__init__(self, txt)
 
     def __str__(self):
@@ -501,7 +501,7 @@ class HeadersList(urwid.WidgetWrap):
     def __init__(self, headerslist):
         self.headers = headerslist
         pile = urwid.Pile(self._build_lines(headerslist))
-        pile = urwid.AttrMap(pile, 'message_header')
+        pile = urwid.AttrMap(pile, 'thread_header')
         urwid.WidgetWrap.__init__(self, pile)
 
     def __str__(self):
@@ -517,8 +517,8 @@ class HeadersList(urwid.WidgetWrap):
         for key, value in lines:
             ##todo : even/odd
             keyw = ('fixed', max_key_len + 1,
-                    urwid.Text(('message_header_key', key)))
-            valuew = urwid.Text(('message_header_value', value))
+                    urwid.Text(('thread_header_key', key)))
+            valuew = urwid.Text(('thread_header_value', value))
             line = urwid.Columns([keyw, valuew])
             headerlines.append(line)
         return headerlines
@@ -529,7 +529,7 @@ class MessageBodyWidget(urwid.AttrMap):
 
     def __init__(self, msg):
         bodytxt = message.extract_body(msg)
-        urwid.AttrMap.__init__(self, urwid.Text(bodytxt), 'message_body')
+        urwid.AttrMap.__init__(self, urwid.Text(bodytxt), 'thread_body')
 
 
 class AttachmentWidget(urwid.WidgetWrap):
@@ -539,8 +539,8 @@ class AttachmentWidget(urwid.WidgetWrap):
         if not isinstance(attachment, message.Attachment):
             self.attachment = message.Attachment(self.attachment)
         widget = urwid.AttrMap(urwid.Text(self.attachment.__str__()),
-                               'message_attachment',
-                               'message_attachment_focussed')
+                               'thread_attachment',
+                               'thread_attachment_focus')
         urwid.WidgetWrap.__init__(self, widget)
 
     def get_attachment(self):
