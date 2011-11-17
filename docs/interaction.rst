@@ -6,14 +6,5 @@ User Interaction
 :class:`alot.ui.UI`
 ---------------------
 
-.. autoclass:: UI()
-
-    .. automethod:: choice
-
-    .. automethod:: commandprompt
-
-    .. automethod:: interpret_commandline
-    
-    .. automethod:: notify
-
-    .. automethod:: prompt
+.. autoclass:: alot.ui.UI
+   :members:
