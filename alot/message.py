@@ -348,7 +348,7 @@ class Envelope(object):
         if self.body == None:
             self.body = bodytext
         self.headers.update(headers)
-        self.attachments = attachments
+        self.attachments = list(attachments)
         self.sign = sign
         self.encrypt = encrypt
 
