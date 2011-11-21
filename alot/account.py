@@ -25,13 +25,13 @@ class Account(object):
     realname = None
     """real name used to format from-headers"""
     gpg_key = None
-    """gpg fingerprint. CURRENTLY IGNORED"""
+    """gpg fingerprint for this account's private key"""
     signature = None
     """signature to append to outgoing mails"""
     signature_filename = None
     """filename of signature file in attachment"""
     abook = None
-    """addressbook"""
+    """addressbook (`AddressBook` instance) managing this accounts contacts"""
 
     def __init__(self, address=None, aliases=None, realname=None, gpg_key=None,
                  signature=None, signature_filename=None, sent_box=None,
@@ -235,9 +235,11 @@ class AccountManager(object):
 
 class AddressBook(object):
     def get_contacts(self):
+        """list all contacts tuples in this abook as (name, email) tuples"""
         return []
 
     def lookup(self, prefix=''):
+        """looks up all contacts with given prefix (in name or address)"""
         res = []
         for name, email in self.get_contacts():
             if name.startswith(prefix) or email.startswith(prefix):
@@ -246,6 +248,7 @@ class AddressBook(object):
 
 
 class AbookAddressBook(AddressBook):
+    """adressbook that directly parses abook's config/database files"""
     def __init__(self, config=None):
         self.abook = SafeConfigParser()
         if not config:
@@ -263,6 +266,7 @@ class AbookAddressBook(AddressBook):
 
 
 class MatchSdtoutAddressbook(AddressBook):
+    """addressbook that parses a shell command's output for lookups"""
     def __init__(self, command, match=None):
         self.command = command
         if not match:

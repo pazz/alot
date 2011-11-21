@@ -21,3 +21,8 @@ Getting Account information
 -----------------------------
 .. autoclass:: alot.account.Account()
    :members:
+
+:class:`alot.account.AddressBook`
+-----------------------------
+.. autoclass:: alot.account.AddressBook()
+   :members:
