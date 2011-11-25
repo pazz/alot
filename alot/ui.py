@@ -11,6 +11,12 @@ from completion import CommandLineCompleter
 
 
 class InputWrap(urwid.WidgetWrap):
+    """
+    This is the topmost widget used in the widget tree.
+    Its purpose is to capture and interpret keypresses
+    by instanciating and applying the relevant `Command` objects
+    or relaying them to the wrapped rootwidget.
+    """
     def __init__(self, ui, rootwidget):
         urwid.WidgetWrap.__init__(self, rootwidget)
         self.ui = ui
@@ -24,6 +30,8 @@ class InputWrap(urwid.WidgetWrap):
         return self._w
 
     def allowed_command(self, cmd):
+        """sanity check if the given command should be applied.
+        this is used in self.keypress"""
         if not self.select_cancel_only:
             return True
         elif isinstance(cmd, commands.globals.SendKeypressCommand):
@@ -33,7 +41,7 @@ class InputWrap(urwid.WidgetWrap):
             return False
 
     def keypress(self, size, key):
-        #self.ui.logger.debug('got key: \'%s\'' % key)
+        """overwrites `urwid.WidgetWrap.keypress`"""
         mode = self.ui.mode
         if self.select_cancel_only:
             mode = 'global'
@@ -46,13 +54,14 @@ class InputWrap(urwid.WidgetWrap):
                     return None
             except CommandParseError, e:
                 self.ui.notify(e.message, priority='error')
-        #self.ui.logger.debug('relaying key: %s' % key)
         return self._w.keypress(size, key)
 
 
 class UI(object):
     buffers = []
+    """list of active buffers"""
     current_buffer = None
+    """currently active buffer"""
 
     def __init__(self, dbman, log, accountman, initialcmd, colourmode):
         self.dbman = dbman
@@ -82,9 +91,11 @@ class UI(object):
         self.mainloop.run()
 
     def unhandeled_input(self, key):
+        """called if a keypress is not handeled. just log it"""
         self.logger.debug('unhandeled input: %s' % key)
 
     def keypress(self, key):
+        """relay all keypresses to our `InputWrap`"""
         self.inputwrap.keypress((150, 20), key)
 
     def show_as_root_until_keypress(self, w, key, relay_rest=True,
@@ -121,7 +132,8 @@ class UI(object):
         oldroot = self.inputwrap.get_root()
 
         def select_or_cancel(text):
-            # restore main screen
+            # restore main screen and invoke callback
+            # (delayed return) with given text
             self.inputwrap.set_root(oldroot)
             self.inputwrap.select_cancel_only = False
             d.callback(text)
@@ -153,6 +165,7 @@ class UI(object):
         return d  # return deferred
 
     def exit(self):
+        """shut down user interface"""
         reactor.stop()
         raise urwid.ExitMainLoop()
 
@@ -193,11 +206,25 @@ class UI(object):
     def buffer_open(self, b):
         """
         register and focus new buffer
+
+        :param b: buffer to open
+        :type b: `Buffer`
         """
         self.buffers.append(b)
         self.buffer_focus(b)
 
     def buffer_close(self, buf):
+        """
+        closes given buffer.
+
+        This shuts down alot in case its the last
+        active buffer. Otherwise it removes it from the bufferlist
+        and calls its cleanup() method.
+
+        :param b: buffer to close
+        :type b: `Buffer`
+        """
+
         buffers = self.buffers
         if buf not in buffers:
             string = 'tried to close unknown buffer: %s. \n\ni have:%s'
@@ -223,6 +250,9 @@ class UI(object):
     def buffer_focus(self, buf):
         """
         focus given buffer. must be contained in self.buffers
+
+        :param b: buffer to focus
+        :type b: `Buffer`
         """
         if buf not in self.buffers:
             self.logger.error('tried to focus unknown buffer')
@@ -236,6 +266,10 @@ class UI(object):
             self.update()
 
     def get_deep_focus(self, startfrom=None):
+        """
+        return the bottom most focussed widget
+        of the widget tree
+        """
         if not startfrom:
             startfrom = self.current_buffer
         if 'get_focus' in dir(startfrom):
