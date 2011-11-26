@@ -10,6 +10,9 @@ import logging
 import argparse
 
 from alot.commands import Command, registerCommand
+from alot.completion import CommandLineCompleter
+from alot.commands import CommandParseError
+from alot.commands import commandfactory
 from alot import buffers
 from alot import settings
 from alot import widgets
@@ -21,8 +24,6 @@ from alot.message import encode_header
 from alot.message import decode_header
 from alot.message import Envelope
 from alot import commands
-from alot.completion import CommandLineCompleter
-from alot.commands import commandfactory
 
 MODE = 'global'
 

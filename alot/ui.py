@@ -185,8 +185,8 @@ class UI(object):
 
     def buffer_open(self, buf):
         """register and focus new :class:`~alot.buffers.Buffer`."""
-        self.buffers.append(b)
-        self.buffer_focus(b)
+        self.buffers.append(buf)
+        self.buffer_focus(buf)
 
     def buffer_close(self, buf):
         """
