@@ -7,7 +7,7 @@ into debian testing.
 
 urwid
 -----
-make sure you have urwid v >=1.0. It is available on debian (weeze)
+make sure you have urwid v >=1.0. It is available on debian (wheezy)
 and in *buntu 12.04. To install from git use:
 
     git clone http://github.com/wardi/urwid
