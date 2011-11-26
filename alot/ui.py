@@ -7,7 +7,6 @@ import commands
 from commands import commandfactory
 from alot.commands import CommandParseError
 import widgets
-from completion import CommandLineCompleter
 
 
 class InputWrap(urwid.WidgetWrap):
@@ -168,40 +167,6 @@ class UI(object):
         """shut down user interface"""
         reactor.stop()
         raise urwid.ExitMainLoop()
-
-    @defer.inlineCallbacks
-    def commandprompt(self, startstring):
-        """prompt for a commandline and interpret/apply it upon enter
-
-        :param startstring: initial text in edit part
-        :type startstring: str
-        """
-        self.logger.info('open command shell')
-        mode = self.current_buffer.typename
-        cmdline = yield self.prompt(prefix=':',
-                              text=startstring,
-                              completer=CommandLineCompleter(self.dbman,
-                                                             self.accountman,
-                                                             mode),
-                              history=self.commandprompthistory,
-                             )
-        self.logger.debug('CMDLINE: %s' % cmdline)
-        self.interpret_commandline(cmdline)
-
-    def interpret_commandline(self, cmdline):
-        """interpret and apply a commandstring
-
-        :param cmdline: command string to apply
-        :type cmdline: str
-        """
-        if cmdline:
-            mode = self.current_buffer.typename
-            self.commandprompthistory.append(cmdline)
-            try:
-                cmd = commandfactory(cmdline, mode)
-                self.apply_command(cmd)
-            except CommandParseError, e:
-                self.notify(e.message, priority='error')
 
     def buffer_open(self, b):
         """
