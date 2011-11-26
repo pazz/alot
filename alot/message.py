@@ -5,7 +5,6 @@ import re
 import mimetypes
 from datetime import datetime
 from email.header import Header
-#from email.charse import Charset
 import email.charset as charset
 charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 from email.iterators import typed_subpart_iterator
@@ -284,7 +283,7 @@ class Attachment(object):
     def __init__(self, emailpart):
         """
         :param emailpart: a non-multipart email that is the attachment
-        :type emailpart: email.message.Message
+        :type emailpart: :class:`email.message.Message`
         """
         self.part = emailpart
 
@@ -313,8 +312,10 @@ class Attachment(object):
         return len(self.part.get_payload())
 
     def save(self, path):
-        """save the attachment to disk. Uses self.get_filename
-        in case path is a directory"""
+        """
+        save the attachment to disk. Uses :meth:`get_filename` in case path
+        is a directory
+        """
         filename = self.get_filename()
         path = os.path.expanduser(path)
         if os.path.isdir(path):

@@ -13,8 +13,8 @@ class InputWrap(urwid.WidgetWrap):
     """
     This is the topmost widget used in the widget tree.
     Its purpose is to capture and interpret keypresses
-    by instanciating and applying the relevant `Command` objects
-    or relaying them to the wrapped rootwidget.
+    by instantiating and applying the relevant :class:`Command` objects
+    or relaying them to the wrapped `rootwidget`.
     """
     def __init__(self, ui, rootwidget):
         urwid.WidgetWrap.__init__(self, rootwidget)
@@ -30,7 +30,7 @@ class InputWrap(urwid.WidgetWrap):
 
     def allowed_command(self, cmd):
         """sanity check if the given command should be applied.
-        this is used in self.keypress"""
+        This is used in :meth:`keypress`"""
         if not self.select_cancel_only:
             return True
         elif isinstance(cmd, commands.globals.SendKeypressCommand):
@@ -102,8 +102,8 @@ class UI(object):
         self.mainloop.run()
 
     def unhandeled_input(self, key):
-        """called if a keypress is not handeled. just log it"""
-        self.logger.debug('unhandeled input: %s' % key)
+        """called if a keypress is not handled."""
+        self.logger.debug('unhandled input: %s' % key)
 
     def keypress(self, key):
         """relay all keypresses to our `InputWrap`"""
@@ -131,13 +131,13 @@ class UI(object):
         :param text: initial content of the input field
         :type text: str
         :param completer: completion object to use
-        :type completer: `alot.completion.Completer`
+        :type completer: :meth:`alot.completion.Completer`
         :param tab: number of tabs to press initially
                     (to select completion results)
         :type tab: int
         :param history: history to be used for up/down keys
         :type history: list of str
-        :returns: a `twisted.defer.Deferred`
+        :returns: a :meth:`twisted.defer.Deferred`
         """
         d = defer.Deferred()  # create return deferred
         oldroot = self.inputwrap.get_root()
@@ -233,10 +233,7 @@ class UI(object):
             self.update()
 
     def get_deep_focus(self, startfrom=None):
-        """
-        return the bottom most focussed widget
-        of the widget tree
-        """
+        """return the bottom most focussed widget of the widget tree"""
         if not startfrom:
             startfrom = self.current_buffer
         if 'get_focus' in dir(startfrom):
@@ -248,14 +245,16 @@ class UI(object):
         return startfrom
 
     def get_buffers_of_type(self, t):
-        """returns currently open buffers for a given subclass of
-        `alot.buffer.Buffer`
+        """
+        returns currently open buffers for a given subclass of
+        :class:`alot.buffer.Buffer`
         """
         return filter(lambda x: isinstance(x, t), self.buffers)
 
     def clear_notify(self, messages):
-        """clears notification popups. Call this to ged rid of messages that
-        don't time out.
+        """
+        clears notification popups. Call this to ged rid of messages that don't
+        time out.
 
         :param messages: The popups to remove. This should be exactly
                          what :meth:`notify` returned when creating the popup
@@ -271,7 +270,8 @@ class UI(object):
 
     def choice(self, message, choices={'y': 'yes', 'n': 'no'},
                select=None, cancel=None, msg_position='above'):
-        """prompt user to make a choice
+        """
+        prompt user to make a choice
 
         :param message: string to display before list of choices
         :type message: unicode
@@ -283,7 +283,7 @@ class UI(object):
         :param cancel: choice to return if escape is hit.
                        Ignored if set to None.
         :type cancel: str
-        :returns: a `twisted.defer.Deferred`
+        :returns: a :class:`twisted.defer.Deferred`
         """
         assert select in choices.values() + [None]
         assert cancel in choices.values() + [None]
@@ -324,7 +324,8 @@ class UI(object):
         return d  # return deferred
 
     def notify(self, message, priority='normal', timeout=0, block=False):
-        """opens notification popup
+        """
+        opens notification popup
 
         :param message: message to print
         :type message: str
@@ -376,9 +377,7 @@ class UI(object):
         return msgs[0]
 
     def update(self):
-        """
-        redraw interface
-        """
+        """redraw interface"""
         #who needs a header?
         #head = urwid.Text('notmuch gui')
         #h=urwid.AttrMap(head, 'header')
@@ -406,6 +405,7 @@ class UI(object):
             self.mainframe.set_footer(None)
 
     def build_statusbar(self):
+        """construct and return statusbar widget"""
         idx = self.buffers.index(self.current_buffer)
         lefttxt = '%d: [%s] %s' % (idx, self.current_buffer.typename,
                                    self.current_buffer)

@@ -1,23 +1,26 @@
-
 Database Abstraction
 ======================================
 
-:class:`alot.db.DBManager`
+.. module:: alot.db
+
+:class:`DBManager`
 ---------------------------
-.. autoclass:: alot.db.DBManager
+.. autoclass:: DBManager
    :members:
 
-:class:`alot.db.Thread`
+:class:`Thread`
 ---------------------------
-.. autoclass:: alot.db.Thread
+.. autoclass:: Thread
    :members:
 
-:class:`alot.message.Message`
+.. module:: alot.message
+
+:class:`Message`
 ---------------------------
-.. autoclass:: alot.message.Message
+.. autoclass:: Message
    :members:
 
-:class:`alot.message.Attachment`
+:class:`Attachment`
 ---------------------------
-.. autoclass:: alot.message.Attachment
+.. autoclass:: Attachment
    :members:
