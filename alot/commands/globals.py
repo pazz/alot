@@ -307,7 +307,7 @@ class HelpCommand(Command):
 
             linewidgets = []
             # mode specific maps
-            linewidgets.append(urwid.Text(('helptexth1',
+            linewidgets.append(urwid.Text(('help_section',
                                 '\n%s-mode specific maps' % ui.mode)))
             for (k, v) in modemaps.items():
                 line = urwid.Columns([('fixed', keycolumnwidth, urwid.Text(k)),
@@ -315,7 +315,7 @@ class HelpCommand(Command):
                 linewidgets.append(line)
 
             # global maps
-            linewidgets.append(urwid.Text(('helptexth1',
+            linewidgets.append(urwid.Text(('help_section',
                                            '\nglobal maps')))
             for (k, v) in globalmaps.items():
                 if k not in modemaps:
@@ -329,8 +329,8 @@ class HelpCommand(Command):
             titletext = 'Bindings Help (%s cancels)' % ckey
 
             box = widgets.DialogBox(body, titletext,
-                                    bodyattr='helptext',
-                                    titleattr='helptitle')
+                                    bodyattr='help_text',
+                                    titleattr='help_title')
 
             # put promptwidget as overlay on main widget
             overlay = urwid.Overlay(box, ui.mainframe, 'center',

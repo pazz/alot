@@ -152,7 +152,7 @@ class UI(object):
                 ('fixed', len(prefix), leftpart),
                 ('weight', 1, editpart),
             ])
-        both = urwid.AttrMap(both, 'prompt', 'prompt')
+        both = urwid.AttrMap(both, 'global_prompt')
 
         # put promptwidget as overlay on main widget
         overlay = urwid.Overlay(both, oldroot,
@@ -363,7 +363,7 @@ class UI(object):
         :type message: str
         :param priority: priority string, used to format the popup: currently,
                          'normal' and 'error' are defined. If you use 'X' here,
-                         the attribute 'notify_X' is used to format the popup.
+                         the attribute 'global_notify_X' is used to format the popup.
         :type priority: str
         :param timeout: seconds until message disappears. Defaults to the value
                         of 'notify_timeout' in the general config section.
@@ -374,7 +374,7 @@ class UI(object):
         """
         def build_line(msg, prio):
             cols = urwid.Columns([urwid.Text(msg)])
-            return urwid.AttrMap(cols, 'notify_' + prio)
+            return urwid.AttrMap(cols, 'global_notify_' + prio)
         msgs = [build_line(message, priority)]
 
         if not self.notificationbar:
@@ -448,7 +448,7 @@ class UI(object):
         columns = urwid.Columns([
             footerleft,
             ('fixed', len(righttxt), footerright)])
-        return urwid.AttrMap(columns, 'footer')
+        return urwid.AttrMap(columns, 'global_footer')
 
     def apply_command(self, cmd):
         if cmd:
