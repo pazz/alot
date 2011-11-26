@@ -215,3 +215,6 @@ man_pages = [
     ('index', 'alot', u'alot Documentation',
      [u'Patrick Totzke'], 1)
 ]
+
+autodoc_member_order = 'bysource'
+intersphinx_mapping = {'python': ('http://docs.python.org/3.2', None)}

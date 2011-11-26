@@ -57,10 +57,22 @@ class InputWrap(urwid.WidgetWrap):
 
 
 class UI(object):
+    """
+    This class integrates all components of alot and offers
+    methods for user interaction like :meth:`prompt`, :meth:`notify` etc.
+    It handles the urwid widget tree and mainloop (we use twisted) and is
+    responsible for opening, closing and focussing buffers.
+    """
     buffers = []
     """list of active buffers"""
     current_buffer = None
-    """currently active buffer"""
+    """points to currently active :class:`~alot.buffers.Buffer`"""
+    dbman = None
+    """Database manager (:class:`~alot.db.DBManager`)"""
+    logger = None
+    """:class:`logging.Logger` used to write to log file"""
+    accountman = None
+    """account manager (:class:`~alot.account.AccountManager`)"""
 
     def __init__(self, dbman, log, accountman, initialcmd, colourmode):
         self.dbman = dbman
@@ -164,30 +176,25 @@ class UI(object):
         return d  # return deferred
 
     def exit(self):
-        """shut down user interface"""
+        """
+        shuts down user interface without cleaning up.
+        Use a :class:`commands.globals.ExitCommand` for a clean shutdown.
+        """
         reactor.stop()
         raise urwid.ExitMainLoop()
 
-    def buffer_open(self, b):
-        """
-        register and focus new buffer
-
-        :param b: buffer to open
-        :type b: `Buffer`
-        """
+    def buffer_open(self, buf):
+        """register and focus new :class:`~alot.buffers.Buffer`."""
         self.buffers.append(b)
         self.buffer_focus(b)
 
     def buffer_close(self, buf):
         """
-        closes given buffer.
+        closes given :class:`~alot.buffers.Buffer`.
 
         This shuts down alot in case its the last
         active buffer. Otherwise it removes it from the bufferlist
         and calls its cleanup() method.
-
-        :param b: buffer to close
-        :type b: `Buffer`
         """
 
         buffers = self.buffers
@@ -213,12 +220,7 @@ class UI(object):
             buf.cleanup()
 
     def buffer_focus(self, buf):
-        """
-        focus given buffer. must be contained in self.buffers
-
-        :param b: buffer to focus
-        :type b: `Buffer`
-        """
+        """focus given :class:`~alot.buffers.Buffer`."""
         if buf not in self.buffers:
             self.logger.error('tried to focus unknown buffer')
         else:
@@ -252,11 +254,11 @@ class UI(object):
         return filter(lambda x: isinstance(x, t), self.buffers)
 
     def clear_notify(self, messages):
-        """clears notification popups. Usually called in order
-        to ged rid of messages that don't time out
+        """clears notification popups. Call this to ged rid of messages that
+        don't time out.
 
         :param messages: The popups to remove. This should be exactly
-                         what notify() returned
+                         what :meth:`notify` returned when creating the popup
         """
         newpile = self.notificationbar.widget_list
         for l in messages:
@@ -322,13 +324,14 @@ class UI(object):
         return d  # return deferred
 
     def notify(self, message, priority='normal', timeout=0, block=False):
-        """notify popup
+        """opens notification popup
 
         :param message: message to print
         :type message: str
         :param priority: priority string, used to format the popup: currently,
                          'normal' and 'error' are defined. If you use 'X' here,
-                         the attribute 'global_notify_X' is used to format the popup.
+                         the attribute 'global_notify_X' is used to format the
+                         popup.
         :type priority: str
         :param timeout: seconds until message disappears. Defaults to the value
                         of 'notify_timeout' in the general config section.
@@ -336,6 +339,8 @@ class UI(object):
         :type timeout: int
         :param block: this notification blocks until a keypress is made
         :type block: boolean
+        :returns: an urwid widget (this notification) that can be handed to
+                  :meth:`clear_notify` for removal
         """
         def build_line(msg, prio):
             cols = urwid.Columns([urwid.Text(msg)])
