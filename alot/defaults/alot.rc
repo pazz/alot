@@ -164,7 +164,26 @@ clo = close
 bp = bprevious
 ls = bufferlist
 
-[256c-theme]
+
+[256c-theme] 
+
+# default formating for tagstrings
+# add 'tag_X_fg' and 'tag_X_bg' to your config to specify
+# formating for tagstring 'X'
+tag_bg = default
+tag_fg = brown
+tag_focus_bg = #68a
+tag_focus_fg = #ffa
+
+# formating of the `help bindings` overlay
+help_text_bg = g35
+help_text_fg = default
+help_section_bg = g35
+help_section_fg = bold,underline
+help_title_bg = g35
+help_title_fg = white,bold,underline
+
+# attributes used in all modi
 global_footer_bg = #006
 global_footer_fg = white
 global_notify_error_bg = dark red
@@ -173,16 +192,8 @@ global_notify_normal_bg = #68a
 global_notify_normal_fg = light gray
 global_prompt_bg = g10
 global_prompt_fg = light gray
-help_text_bg = g35
-help_text_fg = default
-help_section_bg = g35
-help_section_fg = bold,underline
-help_title_bg = g35
-help_title_fg = white,bold,underline
-tag_bg = default
-tag_fg = brown
-tag_focus_bg = #68a
-tag_focus_fg = #ffa
+
+# mode specific attributes
 bufferlist_focus_bg = #68a
 bufferlist_focus_fg = #ffa
 bufferlist_results_even_bg = g3
@@ -235,6 +246,7 @@ thread_summary_focus_bg = g58
 thread_summary_focus_fg = #ff8
 thread_summary_odd_bg = #006
 thread_summary_odd_fg = white
+
 
 [16c-theme]
 global_footer_bg = dark blue
@@ -307,6 +319,7 @@ search_thread_tags_bg = default
 search_thread_tags_fg = brown
 search_thread_tags_focus_bg = dark gray
 search_thread_tags_focus_fg = yellow,bold
+
 
 [1c-theme]
 global_footer = standout
