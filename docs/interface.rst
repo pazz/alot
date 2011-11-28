@@ -49,4 +49,4 @@ TODO: describe use of buffers, link to subclasses
 
 Widgets
 --------
-non-standart urwid widgets used throughout alot
+non-standard urwid widgets used throughout alot
