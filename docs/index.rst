@@ -1,11 +1,9 @@
 `alot` API overview
 ====================
 
-The main component is :class:`alot.ui.UI`, which integrates all "manager" objects,
-provides methods for user input and notifications.
-It sets up an urwid `mainloop` and widget tree and maintains the list of active buffers.
-
-There are different "managers" responsible for core functionalities:
+The main component is :class:`alot.ui.UI`, which provides methods for user input and notifications,
+sets up an urwid `mainloop` and widget tree and maintains the list of active buffers.
+Moreover, it integrates different "managers" responsible for core functionalities:
 
 * a :class:`~alot.db.DBManager` to access the email database
 * an :class:`~alot.account.AccountManager` to deal with user accounts
