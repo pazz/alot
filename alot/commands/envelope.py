@@ -56,7 +56,7 @@ class RefineCommand(Command):
         mail = ui.current_buffer.get_email()
         value = decode_header(mail.get(self.key, ''))
         cmdstring = 'set %s %s' % (self.key, value)
-        ui.apply_command(PromptCommand(cmdstring))
+        ui.apply_command(globals.PromptCommand(cmdstring))
 
 
 @registerCommand(MODE, 'send', help='sends mail')
