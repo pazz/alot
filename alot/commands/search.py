@@ -1,4 +1,5 @@
 from alot.commands import Command, registerCommand
+from alot.commands.globals import PromptCommand
 import argparse
 
 from alot.db import DatabaseROError
@@ -97,7 +98,7 @@ class RefinePromptCommand(Command):
     def apply(self, ui):
         sbuffer = ui.current_buffer
         oldquery = sbuffer.querystring
-        ui.commandprompt('refine ' + oldquery)
+        ui.apply_command(PromptCommand('refine ' + oldquery))
 
 
 @registerCommand(MODE, 'retagprompt',
@@ -114,7 +115,7 @@ class RetagPromptCommand(Command):
             else:
                 tags.append(tag)
         initial_tagstring = ','.join(tags)
-        ui.commandprompt('retag ' + initial_tagstring)
+        ui.apply_command(PromptCommand('retag ' + initial_tagstring))
 
 
 @registerCommand(MODE, 'retag', arguments=[
