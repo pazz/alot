@@ -22,6 +22,6 @@ Accounts
    :members:
 
 :class:`alot.account.AddressBook`
------------------------------
+----------------------------------
 .. autoclass:: alot.account.AddressBook()
    :members:

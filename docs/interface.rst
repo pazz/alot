@@ -1,5 +1,5 @@
-User Interaction
-================================
+User Interface
+==================
 
 In order to keep the interface non-blocking, alot makes use of 
 twisted's deferred - a framework that makes it easy to deal with callbacks.
@@ -40,4 +40,13 @@ Many commands in alot make use of a construct called
     .. automethod:: buffer_focus
     .. automethod:: buffer_close
     .. automethod:: get_buffers_of_type
-    .. automethod:: get_deep_focus
+
+
+Buffers
+---------------------
+TODO: describe use of buffers, link to subclasses
+
+
+Widgets
+--------
+non-standart urwid widgets used throughout alot
