@@ -189,7 +189,6 @@ class Message(object):
         return self._dbman.count_messages(searchfor) > 0
 
 
-
 def extract_headers(mail, headers=None):
     headertext = u''
     if headers == None:
