@@ -1,19 +1,17 @@
-.. alot documentation master file, created by
-   sphinx-quickstart on Tue Aug  9 15:00:51 2011.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-Welcome to alot's API documentation!
-====================================
+`alot` API overview
+====================
 
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
-   db
+   database
+   interface
    interaction
+   settings
    accounts
+   utils
    
 
 Indices and tables

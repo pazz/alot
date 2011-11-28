@@ -1,6 +1,5 @@
-
-Getting Account information
-======================================
+Accounts
+========
 
 .. currentmodule:: alot.account
 
