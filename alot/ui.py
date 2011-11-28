@@ -75,6 +75,15 @@ class UI(object):
     """account manager (:class:`~alot.account.AccountManager`)"""
 
     def __init__(self, dbman, log, accountman, initialcmd, colourmode):
+        """
+        :param dbman: :class:`~alot.db.DBManager`
+        :param log: :class:`logging.Logger`
+        :param accountman: :class:`~alot.account.AccountManager`
+        :param initialcmd: commandline applied after setting up interface
+        :type initialcmd: str
+        :param colourmode: determines which theme to chose
+        :type colourmode: int in [1,16,256]
+        """
         self.dbman = dbman
         self.dbman.ui = self  # register ui with dbman
         self.logger = log
@@ -137,7 +146,7 @@ class UI(object):
         :type tab: int
         :param history: history to be used for up/down keys
         :type history: list of str
-        :returns: a :meth:`twisted.defer.Deferred`
+        :returns: a :class:`twisted.defer.Deferred`
         """
         d = defer.Deferred()  # create return deferred
         oldroot = self.inputwrap.get_root()

@@ -217,4 +217,5 @@ man_pages = [
 ]
 
 autodoc_member_order = 'bysource'
+autoclass_content = 'both'
 intersphinx_mapping = {'python': ('http://docs.python.org/3.2', None)}
