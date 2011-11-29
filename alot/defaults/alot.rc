@@ -164,28 +164,109 @@ clo = close
 bp = bprevious
 ls = bufferlist
 
+
+[256c-theme] 
+
+# default formating for tagstrings
+# add 'tag_X_fg' and 'tag_X_bg' to your config to specify
+# formating for tagstring 'X'
+tag_bg = default
+tag_fg = brown
+tag_focus_bg = #68a
+tag_focus_fg = #ffa
+
+# formating of the `help bindings` overlay
+help_text_bg = g35
+help_text_fg = default
+help_section_bg = g35
+help_section_fg = bold,underline
+help_title_bg = g35
+help_title_fg = white,bold,underline
+
+# attributes used in all modi
+global_footer_bg = #006
+global_footer_fg = white
+global_notify_error_bg = dark red
+global_notify_error_fg = white
+global_notify_normal_bg = #68a
+global_notify_normal_fg = light gray
+global_prompt_bg = g10
+global_prompt_fg = light gray
+
+# mode specific attributes
+bufferlist_focus_bg = #68a
+bufferlist_focus_fg = #ffa
+bufferlist_results_even_bg = g3
+bufferlist_results_even_fg = default
+bufferlist_results_odd_bg = default
+bufferlist_results_odd_fg = default
+search_thread_authors_bg = default
+search_thread_authors_fg = #6d6
+search_thread_authors_focus_bg = #68a
+search_thread_authors_focus_fg = #8f6
+search_thread_bg = default
+search_thread_content_bg = default
+search_thread_content_fg = #866
+search_thread_content_focus_bg = #68a
+search_thread_content_focus_fg = #866
+search_thread_date_bg = default
+search_thread_date_fg = g58
+search_thread_date_focus_bg = #68a
+search_thread_date_focus_fg = g89
+search_thread_fg = default
+search_thread_focus_bg = #68a
+search_thread_focus_fg = white
+search_thread_mailcount_bg = default
+search_thread_mailcount_fg = light gray
+search_thread_mailcount_focus_bg = #68a
+search_thread_mailcount_focus_fg = g89
+search_thread_subject_bg = default
+search_thread_subject_fg = g58
+search_thread_subject_focus_bg = #68a
+search_thread_subject_focus_fg = g89
+search_thread_tags_bg = default
+search_thread_tags_fg = #a86
+search_thread_tags_focus_bg = #68a
+search_thread_tags_focus_fg = #ff8
+thread_attachment_bg = dark gray
+thread_attachment_fg = light gray
+thread_attachment_focus_bg = light green
+thread_attachment_focus_fg = light gray
+thread_body_bg = default
+thread_body_fg = light gray
+thread_header_bg = dark gray
+thread_header_fg = white
+thread_header_key_bg = dark gray
+thread_header_key_fg = white
+thread_header_value_bg = dark gray
+thread_header_value_fg = light gray
+thread_summary_even_bg = #068
+thread_summary_even_fg = white
+thread_summary_focus_bg = g58
+thread_summary_focus_fg = #ff8
+thread_summary_odd_bg = #006
+thread_summary_odd_fg = white
+
+
 [16c-theme]
-footer_bg = dark blue
-footer_fg = light green
-header_bg = dark blue
-header_fg = white
-helptext_bg = dark gray
-helptext_fg = default
-helptexth1_bg = dark gray
-helptexth1_fg = bold,underline
-helptitle_bg = dark blue
-helptitle_fg = white
-notify_error_bg = dark red
-notify_error_fg = white
-notify_normal_bg = dark gray
-notify_normal_fg = light gray
-prompt_bg = black
-prompt_fg = light gray
+global_footer_bg = dark blue
+global_footer_fg = light green
+global_notify_error_bg = dark red
+global_notify_error_fg = white
+global_notify_normal_bg = dark gray
+global_notify_normal_fg = light gray
+global_prompt_bg = black
+global_prompt_fg = light gray
+help_text_bg = dark gray
+help_text_fg = default
+help_section_bg = dark gray
+help_section_fg = bold,underline
+help_title_bg = dark blue
+help_title_fg = white
 tag_bg = black
 tag_fg = brown
 tag_focus_bg = dark gray
 tag_focus_fg = white
-
 bufferlist_focus_bg = dark gray
 bufferlist_focus_fg = white
 bufferlist_results_even_bg = black
@@ -240,90 +321,14 @@ search_thread_tags_focus_bg = dark gray
 search_thread_tags_focus_fg = yellow,bold
 
 
-
-[256c-theme]
-footer_bg = #006
-footer_fg = white
-header_bg = dark blue
-header_fg = white
-helptext_bg = g35
-helptext_fg = default
-helptexth1_bg = g35
-helptexth1_fg = bold,underline
-helptitle_bg = g35
-helptitle_fg = white,bold,underline
-notify_error_bg = dark red
-notify_error_fg = white
-notify_normal_bg = #68a
-notify_normal_fg = light gray
-prompt_bg = g10
-prompt_fg = light gray
-tag_bg = default
-tag_fg = brown
-tag_focus_bg = #68a
-tag_focus_fg = #ffa
-bufferlist_focus_bg = #68a
-bufferlist_focus_fg = #ffa
-bufferlist_results_even_bg = g3
-bufferlist_results_even_fg = default
-bufferlist_results_odd_bg = default
-bufferlist_results_odd_fg = default
-search_thread_authors_bg = default
-search_thread_authors_fg = #6d6
-search_thread_authors_focus_bg = #68a
-search_thread_authors_focus_fg = #8f6
-search_thread_bg = default
-search_thread_content_bg = default
-search_thread_content_fg = #866
-search_thread_content_focus_bg = #68a
-search_thread_content_focus_fg = #866
-search_thread_date_bg = default
-search_thread_date_fg = g58
-search_thread_date_focus_bg = #68a
-search_thread_date_focus_fg = g89
-search_thread_fg = default
-search_thread_focus_bg = #68a
-search_thread_focus_fg = white
-search_thread_mailcount_bg = default
-search_thread_mailcount_fg = light gray
-search_thread_mailcount_focus_bg = #68a
-search_thread_mailcount_focus_fg = g89
-search_thread_subject_bg = default
-search_thread_subject_fg = g58
-search_thread_subject_focus_bg = #68a
-search_thread_subject_focus_fg = g89
-search_thread_tags_bg = default
-search_thread_tags_fg = #a86
-search_thread_tags_focus_bg = #68a
-search_thread_tags_focus_fg = #ff8
-thread_attachment_bg = dark gray
-thread_attachment_fg = light gray
-thread_attachment_focus_bg = light green
-thread_attachment_focus_fg = light gray
-thread_body_bg = default
-thread_body_fg = light gray
-thread_header_bg = dark gray
-thread_header_fg = white
-thread_header_key_bg = dark gray
-thread_header_key_fg = white
-thread_header_value_bg = dark gray
-thread_header_value_fg = light gray
-thread_summary_even_bg = #068
-thread_summary_even_fg = white
-thread_summary_focus_bg = g58
-thread_summary_focus_fg = #ff8
-thread_summary_odd_bg = #006
-thread_summary_odd_fg = white
-
 [1c-theme]
-footer = standout
-header = standout
-helptext = default
-helptexth1 = underline
-helptitle = standout
-notify_error = standout
-notify_normal = default
-prompt =
+global_footer = standout
+global_notify_error = standout
+global_notify_normal = default
+global_prompt =
+help_text = default
+help_section = underline
+help_title = standout
 tag = default
 tag_focus = standout
 bufferlist_focus = standout

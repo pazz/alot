@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 """
 This file is part of alot, a terminal UI to notmuch mail (notmuchmail.org).
 Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>

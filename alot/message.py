@@ -5,7 +5,6 @@ import re
 import mimetypes
 from datetime import datetime
 from email.header import Header
-#from email.charse import Charset
 import email.charset as charset
 charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 from email.iterators import typed_subpart_iterator
@@ -21,6 +20,11 @@ from helper import string_decode
 
 
 class Message(object):
+    """
+    a persistent notmuch message object.
+    It it uses a :class:`~alot.db.DBManager` for cached manipulation
+    and lazy lookups.
+    """
     def __init__(self, dbman, msg, thread=None):
         """
         :param dbman: db manager that is used for further lookups
@@ -28,7 +32,7 @@ class Message(object):
         :param msg: the wrapped message
         :type msg: notmuch.database.Message
         :param thread: this messages thread
-        :type thread: alot.db.thread
+        :type thread: :class:/`~alot.db.Thread`
         """
         self._dbman = dbman
         self._id = msg.get_message_id()
@@ -52,16 +56,16 @@ class Message(object):
         return "%s (%s)" % (aname, self.get_datestring())
 
     def __hash__(self):
-        """Implement hash(), so we can use Message() sets"""
+        """needed for sets of Messages"""
         return hash(self._id)
 
     def __cmp__(self, other):
-        """Implement cmp(), so we can compare Message()s"""
+        """needed for Message comparison"""
         res = cmp(self.get_message_id(), other.get_message_id())
         return res
 
     def get_email(self):
-        """returns email.Message representing this message"""
+        """returns :class:`email.Message` for this message"""
         if not self._email:
             f_mail = open(self.get_filename())
             self._email = email.message_from_file(f_mail)
@@ -69,23 +73,24 @@ class Message(object):
         return self._email
 
     def get_date(self):
-        """returns date as datetime obj"""
+        """returns date as :class:`~datetime.datetime`"""
         return self._datetime
 
     def get_filename(self):
-        """returns absolute path of messages location"""
+        """returns absolute path of message files location"""
         return self._filename
 
     def get_message_id(self):
-        """returns messages id (a string)"""
+        """returns messages id (str)"""
         return self._id
 
     def get_thread_id(self):
-        """returns id of messages thread (a string)"""
+        """returns id (str) of the thread this message belongs to"""
         return self._thread_id
 
     def get_message_parts(self):
         """returns a list of all body parts of this message"""
+        # TODO really needed? email  iterators can do this
         out = []
         for msg in self.get_email().walk():
             if not msg.is_multipart():
@@ -99,18 +104,23 @@ class Message(object):
         return l
 
     def get_thread(self):
-        """returns the thread this msg belongs to as alot.db.Thread object"""
+        """returns the :class:`~alot.db.Thread` this msg belongs to"""
         if not self._thread:
             self._thread = self._dbman.get_thread(self._thread_id)
         return self._thread
 
     def get_replies(self):
-        """returns a list of replies to this msg"""
+        """returns replies to this message as list of :class:`Message`"""
         t = self.get_thread()
         return t.get_replies_to(self)
 
     def get_datestring(self):
-        """returns formated datestring"""
+        """
+        returns reformated datestring for this messages.
+
+        It uses the format spacified by `timestamp_format` in
+        the general section of the config.
+        """
         if self._datetime == None:
             return None
         formatstring = config.get('general', 'timestamp_format')
@@ -121,31 +131,38 @@ class Message(object):
         return res
 
     def get_author(self):
-        """returns realname and address pair of this messages author"""
+        """returns realname and address of this messages author"""
         return email.Utils.parseaddr(self._from)
 
     def get_headers_string(self, headers):
+        """
+        returns subset of this messages headers as human-readable format:
+        all header values are decoded, the resulting string has
+        one line "KEY: VALUE" for each requested header present in the mail.
+
+        :param headers: headers to extract
+        :type headers: list of str
+        """
         return extract_headers(self.get_mail(), headers)
 
     def add_tags(self, tags):
-        """adds tags to message
-
-        :param tags: tags to add
-        :type tags: list of str
-        """
+        """adds tags (list of str) to message"""
         self._dbman.tag('id:' + self._id, tags)
         self._tags = self._tags.union(tags)
 
     def remove_tags(self, tags):
-        """remove tags from message
-
-        :param tags: tags to remove
-        :type tags: list of str
-        """
+        """remove tags (list of str) from message"""
         self._dbman.untag('id:' + self._id, tags)
         self._tags = self._tags.difference(tags)
 
     def get_attachments(self):
+        """
+        returns all attachments.
+        Presently, all mime parts of this message that don't have content-type
+        'text/plain', or 'text/html' are considered attachments.
+
+        :rtype: list of :class:`Attachment`
+        """
         if not self._attachments:
             self._attachments = []
             for part in self.get_message_parts():
@@ -154,14 +171,22 @@ class Message(object):
         return self._attachments
 
     def accumulate_body(self):
-        return extract_body(self.get_email())
+        """
+        returns bodystring extracted from this mail
 
-    def matches(self, querystring):
-        searchfor = querystring + ' AND id:' + self._id
-        return self._dbman.count_messages(searchfor) > 0
+        TODO: don't hardcode which part is considered body but allow toggle
+        commands and a config default setting
+        """
+
+        return extract_body(self.get_email())
 
     def get_text_content(self):
         return extract_body(self.get_email(), types=['text/plain'])
+
+    def matches(self, querystring):
+        """tests if this messages is in the resultset for `querystring`"""
+        searchfor = querystring + ' AND id:' + self._id
+        return self._dbman.count_messages(searchfor) > 0
 
 
 def extract_headers(mail, headers=None):
@@ -177,6 +202,17 @@ def extract_headers(mail, headers=None):
 
 
 def extract_body(mail, types=None):
+    """
+    returns a body text string for given mail.
+    If types is `None`, 'text/*' is used:
+    In case mail has a 'text/html' part, it is prefered over
+    'text/plain' parts.
+
+    :param mail: the mail to use
+    :type mail: :class:`email.Message`
+    :param types: mime content types to use for body string
+    :type types: list of str
+    """
     html = list(typed_subpart_iterator(mail, 'text', 'html'))
 
     # if no specific types are given, we favor text/html over text/plain
@@ -226,7 +262,8 @@ def extract_body(mail, types=None):
 
 
 def decode_header(header, normalize=False):
-    """decode a header value to a unicode string
+    """
+    decode a header value to a unicode string
 
     values are usually a mixture of different substrings
     encoded in quoted printable using diffetrent encodings.
@@ -251,7 +288,8 @@ def decode_header(header, normalize=False):
 
 
 def encode_header(key, value):
-    """encodes a unicode string as a valid header value
+    """
+    encodes a unicode string as a valid header value
 
     :param key: the header field this value will be stored in
     :type key: str
@@ -279,12 +317,12 @@ def encode_header(key, value):
 
 
 class Attachment(object):
-    """represents a single mail attachment"""
+    """represents a mail attachment"""
 
     def __init__(self, emailpart):
         """
         :param emailpart: a non-multipart email that is the attachment
-        :type emailpart: email.message.Message
+        :type emailpart: :class:`email.message.Message`
         """
         self.part = emailpart
 
@@ -295,14 +333,18 @@ class Attachment(object):
         return string_decode(desc)
 
     def get_filename(self):
-        """return the filename, extracted from content-disposition header"""
+        """
+        return name of attached file.
+        If the content-disposition header contains no file name,
+        this returns `None`
+        """
         extracted_name = self.part.get_filename()
         if extracted_name:
             return os.path.basename(extracted_name)
         return None
 
     def get_content_type(self):
-        """mime type of the attachment"""
+        """mime type of the attachment part"""
         ctype = self.part.get_content_type()
         if ctype == 'octet/stream' and self.get_filename():
             ctype, enc = mimetypes.guess_type(self.get_filename())
@@ -313,8 +355,10 @@ class Attachment(object):
         return len(self.part.get_payload())
 
     def save(self, path):
-        """save the attachment to disk. Uses self.get_filename
-        in case path is a directory"""
+        """
+        save the attachment to disk. Uses :meth:`get_filename` in case path
+        is a directory
+        """
         filename = self.get_filename()
         path = os.path.expanduser(path)
         if os.path.isdir(path):
@@ -330,11 +374,12 @@ class Attachment(object):
         return FILE.name
 
     def get_mime_representation(self):
+        """returns mime part that constitutes this attachment"""
         return self.part
 
 
 class Envelope(object):
-    """datastructure to be manipulated in envelopebuffer"""
+    """data structure to be manipulated in :class:`buffer.Envelope`"""
     def __init__(self, template=None, bodytext=u'', headers={}, attachments=[],
             sign=False, encrypt=False):
         assert isinstance(bodytext, unicode)
@@ -348,7 +393,7 @@ class Envelope(object):
         if self.body == None:
             self.body = bodytext
         self.headers.update(headers)
-        self.attachments = attachments
+        self.attachments = list(attachments)
         self.sign = sign
         self.encrypt = encrypt
 
@@ -374,6 +419,17 @@ class Envelope(object):
         return value
 
     def attach(self, path, filename=None, ctype=None):
+        """
+        attach a file
+
+        :param path: (`glob`able) path of the file(s) to attach.
+        :type path: str
+        :param filename: filename to use in content-disposition.
+                         Will be ignored if `path` matches multiple files
+        :param ctype: force content-type to be used for this attachment
+        :type ctype: str
+        """
+
         part = helper.mimewrap(path, filename, ctype)
         self.attachments.append(part)
 

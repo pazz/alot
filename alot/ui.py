@@ -7,10 +7,15 @@ import commands
 from commands import commandfactory
 from alot.commands import CommandParseError
 import widgets
-from completion import CommandLineCompleter
 
 
 class InputWrap(urwid.WidgetWrap):
+    """
+    This is the topmost widget used in the widget tree.
+    Its purpose is to capture and interpret keypresses
+    by instantiating and applying the relevant :class:`Command` objects
+    or relaying them to the wrapped `rootwidget`.
+    """
     def __init__(self, ui, rootwidget):
         urwid.WidgetWrap.__init__(self, rootwidget)
         self.ui = ui
@@ -24,6 +29,8 @@ class InputWrap(urwid.WidgetWrap):
         return self._w
 
     def allowed_command(self, cmd):
+        """sanity check if the given command should be applied.
+        This is used in :meth:`keypress`"""
         if not self.select_cancel_only:
             return True
         elif isinstance(cmd, commands.globals.SendKeypressCommand):
@@ -33,7 +40,7 @@ class InputWrap(urwid.WidgetWrap):
             return False
 
     def keypress(self, size, key):
-        self.ui.logger.debug('got key: \'%s\'' % key)
+        """overwrites `urwid.WidgetWrap.keypress`"""
         mode = self.ui.mode
         if self.select_cancel_only:
             mode = 'global'
@@ -46,13 +53,26 @@ class InputWrap(urwid.WidgetWrap):
                     return None
             except CommandParseError, e:
                 self.ui.notify(e.message, priority='error')
-        self.ui.logger.debug('relaying key: %s' % key)
         return self._w.keypress(size, key)
 
 
 class UI(object):
+    """
+    This class integrates all components of alot and offers
+    methods for user interaction like :meth:`prompt`, :meth:`notify` etc.
+    It handles the urwid widget tree and mainloop (we use twisted) and is
+    responsible for opening, closing and focussing buffers.
+    """
     buffers = []
+    """list of active buffers"""
     current_buffer = None
+    """points to currently active :class:`~alot.buffers.Buffer`"""
+    dbman = None
+    """Database manager (:class:`~alot.db.DBManager`)"""
+    logger = None
+    """:class:`logging.Logger` used to write to log file"""
+    accountman = None
+    """account manager (:class:`~alot.account.AccountManager`)"""
 
     def __init__(self, dbman, log, accountman, initialcmd, colourmode):
         self.dbman = dbman
@@ -82,9 +102,11 @@ class UI(object):
         self.mainloop.run()
 
     def unhandeled_input(self, key):
-        self.logger.debug('unhandeled input: %s' % key)
+        """called if a keypress is not handled."""
+        self.logger.debug('unhandled input: %s' % key)
 
     def keypress(self, key):
+        """relay all keypresses to our `InputWrap`"""
         self.inputwrap.keypress((150, 20), key)
 
     def show_as_root_until_keypress(self, w, key, relay_rest=True,
@@ -109,19 +131,20 @@ class UI(object):
         :param text: initial content of the input field
         :type text: str
         :param completer: completion object to use
-        :type completer: `alot.completion.Completer`
+        :type completer: :meth:`alot.completion.Completer`
         :param tab: number of tabs to press initially
                     (to select completion results)
         :type tab: int
         :param history: history to be used for up/down keys
         :type history: list of str
-        :returns: a `twisted.defer.Deferred`
+        :returns: a :meth:`twisted.defer.Deferred`
         """
         d = defer.Deferred()  # create return deferred
         oldroot = self.inputwrap.get_root()
 
         def select_or_cancel(text):
-            # restore main screen
+            # restore main screen and invoke callback
+            # (delayed return) with given text
             self.inputwrap.set_root(oldroot)
             self.inputwrap.select_cancel_only = False
             d.callback(text)
@@ -140,7 +163,7 @@ class UI(object):
                 ('fixed', len(prefix), leftpart),
                 ('weight', 1, editpart),
             ])
-        both = urwid.AttrMap(both, 'prompt', 'prompt')
+        both = urwid.AttrMap(both, 'global_prompt')
 
         # put promptwidget as overlay on main widget
         overlay = urwid.Overlay(both, oldroot,
@@ -153,51 +176,27 @@ class UI(object):
         return d  # return deferred
 
     def exit(self):
+        """
+        shuts down user interface without cleaning up.
+        Use a :class:`commands.globals.ExitCommand` for a clean shutdown.
+        """
         reactor.stop()
         raise urwid.ExitMainLoop()
 
-    @defer.inlineCallbacks
-    def commandprompt(self, startstring):
-        """prompt for a commandline and interpret/apply it upon enter
-
-        :param startstring: initial text in edit part
-        :type startstring: str
-        """
-        self.logger.info('open command shell')
-        mode = self.current_buffer.typename
-        cmdline = yield self.prompt(prefix=':',
-                              text=startstring,
-                              completer=CommandLineCompleter(self.dbman,
-                                                             self.accountman,
-                                                             mode),
-                              history=self.commandprompthistory,
-                             )
-        self.logger.debug('CMDLINE: %s' % cmdline)
-        self.interpret_commandline(cmdline)
-
-    def interpret_commandline(self, cmdline):
-        """interpret and apply a commandstring
-
-        :param cmdline: command string to apply
-        :type cmdline: str
-        """
-        if cmdline:
-            mode = self.current_buffer.typename
-            self.commandprompthistory.append(cmdline)
-            try:
-                cmd = commandfactory(cmdline, mode)
-                self.apply_command(cmd)
-            except CommandParseError, e:
-                self.notify(e.message, priority='error')
-
-    def buffer_open(self, b):
-        """
-        register and focus new buffer
-        """
-        self.buffers.append(b)
-        self.buffer_focus(b)
+    def buffer_open(self, buf):
+        """register and focus new :class:`~alot.buffers.Buffer`."""
+        self.buffers.append(buf)
+        self.buffer_focus(buf)
 
     def buffer_close(self, buf):
+        """
+        closes given :class:`~alot.buffers.Buffer`.
+
+        This shuts down alot in case its the last
+        active buffer. Otherwise it removes it from the bufferlist
+        and calls its cleanup() method.
+        """
+
         buffers = self.buffers
         if buf not in buffers:
             string = 'tried to close unknown buffer: %s. \n\ni have:%s'
@@ -221,9 +220,7 @@ class UI(object):
             buf.cleanup()
 
     def buffer_focus(self, buf):
-        """
-        focus given buffer. must be contained in self.buffers
-        """
+        """focus given :class:`~alot.buffers.Buffer`."""
         if buf not in self.buffers:
             self.logger.error('tried to focus unknown buffer')
         else:
@@ -236,6 +233,7 @@ class UI(object):
             self.update()
 
     def get_deep_focus(self, startfrom=None):
+        """return the bottom most focussed widget of the widget tree"""
         if not startfrom:
             startfrom = self.current_buffer
         if 'get_focus' in dir(startfrom):
@@ -247,17 +245,19 @@ class UI(object):
         return startfrom
 
     def get_buffers_of_type(self, t):
-        """returns currently open buffers for a given subclass of
-        `alot.buffer.Buffer`
+        """
+        returns currently open buffers for a given subclass of
+        :class:`alot.buffer.Buffer`
         """
         return filter(lambda x: isinstance(x, t), self.buffers)
 
     def clear_notify(self, messages):
-        """clears notification popups. Usually called in order
-        to ged rid of messages that don't time out
+        """
+        clears notification popups. Call this to ged rid of messages that don't
+        time out.
 
         :param messages: The popups to remove. This should be exactly
-                         what notify() returned
+                         what :meth:`notify` returned when creating the popup
         """
         newpile = self.notificationbar.widget_list
         for l in messages:
@@ -270,7 +270,8 @@ class UI(object):
 
     def choice(self, message, choices={'y': 'yes', 'n': 'no'},
                select=None, cancel=None, msg_position='above'):
-        """prompt user to make a choice
+        """
+        prompt user to make a choice
 
         :param message: string to display before list of choices
         :type message: unicode
@@ -282,7 +283,7 @@ class UI(object):
         :param cancel: choice to return if escape is hit.
                        Ignored if set to None.
         :type cancel: str
-        :returns: a `twisted.defer.Deferred`
+        :returns: a :class:`twisted.defer.Deferred`
         """
         assert select in choices.values() + [None]
         assert cancel in choices.values() + [None]
@@ -323,13 +324,15 @@ class UI(object):
         return d  # return deferred
 
     def notify(self, message, priority='normal', timeout=0, block=False):
-        """notify popup
+        """
+        opens notification popup
 
         :param message: message to print
         :type message: str
         :param priority: priority string, used to format the popup: currently,
                          'normal' and 'error' are defined. If you use 'X' here,
-                         the attribute 'notify_X' is used to format the popup.
+                         the attribute 'global_notify_X' is used to format the
+                         popup.
         :type priority: str
         :param timeout: seconds until message disappears. Defaults to the value
                         of 'notify_timeout' in the general config section.
@@ -337,10 +340,12 @@ class UI(object):
         :type timeout: int
         :param block: this notification blocks until a keypress is made
         :type block: boolean
+        :returns: an urwid widget (this notification) that can be handed to
+                  :meth:`clear_notify` for removal
         """
         def build_line(msg, prio):
             cols = urwid.Columns([urwid.Text(msg)])
-            return urwid.AttrMap(cols, 'notify_' + prio)
+            return urwid.AttrMap(cols, 'global_notify_' + prio)
         msgs = [build_line(message, priority)]
 
         if not self.notificationbar:
@@ -372,9 +377,7 @@ class UI(object):
         return msgs[0]
 
     def update(self):
-        """
-        redraw interface
-        """
+        """redraw interface"""
         #who needs a header?
         #head = urwid.Text('notmuch gui')
         #h=urwid.AttrMap(head, 'header')
@@ -402,6 +405,7 @@ class UI(object):
             self.mainframe.set_footer(None)
 
     def build_statusbar(self):
+        """construct and return statusbar widget"""
         idx = self.buffers.index(self.current_buffer)
         lefttxt = '%d: [%s] %s' % (idx, self.current_buffer.typename,
                                    self.current_buffer)
@@ -414,7 +418,7 @@ class UI(object):
         columns = urwid.Columns([
             footerleft,
             ('fixed', len(righttxt), footerright)])
-        return urwid.AttrMap(columns, 'footer')
+        return urwid.AttrMap(columns, 'global_footer')
 
     def apply_command(self, cmd):
         if cmd:

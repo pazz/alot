@@ -13,9 +13,8 @@ import helper
 
 class Account(object):
     """
-    Datastructure that represents an email account. It manages
-    this account's settings, can send and store mails to
-    maildirs (drafts/send)
+    Datastructure that represents an email account. It manages this account's
+    settings, can send and store mails to maildirs (drafts/send).
     """
 
     address = None
@@ -25,13 +24,13 @@ class Account(object):
     realname = None
     """real name used to format from-headers"""
     gpg_key = None
-    """gpg fingerprint. CURRENTLY IGNORED"""
+    """gpg fingerprint for this account's private key"""
     signature = None
     """signature to append to outgoing mails"""
     signature_filename = None
     """filename of signature file in attachment"""
     abook = None
-    """addressbook"""
+    """addressbook (:class:`AddressBook`) managing this accounts contacts"""
 
     def __init__(self, address=None, aliases=None, realname=None, gpg_key=None,
                  signature=None, signature_filename=None, sent_box=None,
@@ -76,12 +75,13 @@ class Account(object):
                 self.draft_box = mailbox.MMDF(mburl.path)
 
     def store_mail(self, mbx, mail):
-        """stores given mail in mailbox. if mailbox is maildir, set the S-flag.
+        """
+        stores given mail in mailbox. If mailbox is maildir, set the S-flag.
 
         :param mbx: mailbox to use
-        :type mbx: `mailbox.Mailbox`
+        :type mbx: :class:`mailbox.Mailbox`
         :param mail: the mail to store
-        :type mail: `email.message.Message` or string
+        :type mail: :class:`email.message.Message` or str
         """
         mbx.lock()
         if isinstance(mbx, mailbox.Maildir):
@@ -94,19 +94,17 @@ class Account(object):
         mbx.unlock()
 
     def store_sent_mail(self, mail):
-        """stores mail in send-store if sent_box is set
-
-        :param mail: the mail to store
-        :type mail: `email.message.Message` or string
+        """
+        stores mail (:class:`email.message.Message` or str) in send-store if
+        :attr:`sent_box` is set.
         """
         if self.sent_box is not None:
             self.store_mail(self.sent_box, mail)
 
     def store_draft_mail(self, mail):
-        """stores mail as draft if draft_box is set
-
-        :param mail: the mail to store
-        :type mail: `email.message.Message` or string
+        """
+        stores mail (:class:`email.message.Message` or str) as draft if
+        :attr:`draft_box` is set.
         """
         if self.draft_box is not None:
             self.store_mail(self.sent_box, mail)
@@ -116,9 +114,9 @@ class Account(object):
         sends given mail
 
         :param mail: the mail to send
-        :type mail: `email.message.Message` or string
+        :type mail: :class:`email.message.Message` or string
         :returns: None if successful and a string with the reason
-                  for failure otherwise
+                  for failure otherwise.
         """
         return 'not implemented'
 
@@ -193,18 +191,20 @@ class AccountManager(object):
                 logging.info('account section %s lacks %s' % (s, to_set))
 
     def get_accounts(self):
-        """return known accounts
+        """
+        returns known accounts
 
-        :rtype: list of `account.Account`
+        :rtype: list of :class:`Account`
         """
         return self.accounts
 
     def get_account_by_address(self, address):
-        """returns account for given email address
+        """
+        returns :class:`Account` for a given email address (str)
 
         :param address: address to look up
         :type address: string
-        :rtype:  `account.Account` or None
+        :rtype:  :class:`Account` or None
         """
 
         for myad in self.get_addresses():
@@ -221,6 +221,7 @@ class AccountManager(object):
         return self.accountmap.keys()
 
     def get_addressbooks(self, order=[], append_remaining=True):
+        """returns list of all defined :class:`AddressBook` objects"""
         abooks = []
         for a in order:
             if a:
@@ -235,9 +236,11 @@ class AccountManager(object):
 
 class AddressBook(object):
     def get_contacts(self):
+        """list all contacts tuples in this abook as (name, email) tuples"""
         return []
 
     def lookup(self, prefix=''):
+        """looks up all contacts with given prefix (in name or address)"""
         res = []
         for name, email in self.get_contacts():
             if name.startswith(prefix) or email.startswith(prefix):
@@ -246,6 +249,7 @@ class AddressBook(object):
 
 
 class AbookAddressBook(AddressBook):
+    """adressbook that directly parses abook's config/database files"""
     def __init__(self, config=None):
         self.abook = SafeConfigParser()
         if not config:
@@ -263,6 +267,7 @@ class AbookAddressBook(AddressBook):
 
 
 class MatchSdtoutAddressbook(AddressBook):
+    """addressbook that parses a shell command's output for lookups"""
     def __init__(self, command, match=None):
         self.command = command
         if not match:

@@ -7,8 +7,12 @@ import email
 import urwid
 from twisted.internet import defer
 import logging
+import argparse
 
 from alot.commands import Command, registerCommand
+from alot.completion import CommandLineCompleter
+from alot.commands import CommandParseError
+from alot.commands import commandfactory
 from alot import buffers
 from alot import settings
 from alot import widgets
@@ -20,7 +24,6 @@ from alot.message import encode_header
 from alot.message import decode_header
 from alot.message import Envelope
 from alot import commands
-import argparse
 
 MODE = 'global'
 
@@ -61,15 +64,39 @@ class SearchCommand(Command):
             ui.notify('empty query string')
 
 
-@registerCommand(MODE, 'prompt', help='starts commandprompt', arguments=[
+@registerCommand(MODE, 'prompt',
+                 help='prompts for commandline and interprets it upon select',
+                 arguments=[
     (['startwith'], {'nargs':'?', 'default':'', 'help':'initial content'})])
 class PromptCommand(Command):
     def __init__(self, startwith='', **kwargs):
         self.startwith = startwith
         Command.__init__(self, **kwargs)
 
+    @defer.inlineCallbacks
     def apply(self, ui):
-        ui.commandprompt(self.startwith)
+        ui.logger.info('open command shell')
+        mode = ui.current_buffer.typename
+        cmdline = yield ui.prompt(prefix=':',
+                              text=self.startwith,
+                              completer=CommandLineCompleter(ui.dbman,
+                                                             ui.accountman,
+                                                             mode),
+                              history=ui.commandprompthistory,
+                             )
+        ui.logger.debug('CMDLINE: %s' % cmdline)
+
+        # interpret and apply commandline
+        if cmdline:
+            # save into prompt history
+            ui.commandprompthistory.append(cmdline)
+
+            mode = ui.current_buffer.typename
+            try:
+                cmd = commandfactory(cmdline, mode)
+                ui.apply_command(cmd)
+            except CommandParseError, e:
+                ui.notify(e.message, priority='error')
 
 
 @registerCommand(MODE, 'refresh', help='refreshes the current buffer')
@@ -307,7 +334,7 @@ class HelpCommand(Command):
 
             linewidgets = []
             # mode specific maps
-            linewidgets.append(urwid.Text(('helptexth1',
+            linewidgets.append(urwid.Text(('help_section',
                                 '\n%s-mode specific maps' % ui.mode)))
             for (k, v) in modemaps.items():
                 line = urwid.Columns([('fixed', keycolumnwidth, urwid.Text(k)),
@@ -315,7 +342,7 @@ class HelpCommand(Command):
                 linewidgets.append(line)
 
             # global maps
-            linewidgets.append(urwid.Text(('helptexth1',
+            linewidgets.append(urwid.Text(('help_section',
                                            '\nglobal maps')))
             for (k, v) in globalmaps.items():
                 if k not in modemaps:
@@ -329,8 +356,8 @@ class HelpCommand(Command):
             titletext = 'Bindings Help (%s cancels)' % ckey
 
             box = widgets.DialogBox(body, titletext,
-                                    bodyattr='helptext',
-                                    titleattr='helptitle')
+                                    bodyattr='help_text',
+                                    titleattr='help_title')
 
             # put promptwidget as overlay on main widget
             overlay = urwid.Overlay(box, ui.mainframe, 'center',
