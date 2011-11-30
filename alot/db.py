@@ -28,18 +28,12 @@ class FillPipeProcess(multiprocessing.Process):
         multiprocessing.Process.__init__(self)
         self.it = it
         self.pipe = pipe[1]
-        #pipe[0].close()
         self.fun = fun
 
     def run(self):
-        #try:
         for a in self.it:
             self.pipe.send(self.fun(a))
         self.pipe.close()
-            #self.terminate()
-        #except IOError:
-            # looks like the main process exited, so we stop
-         #   pass
 
 
 class DBManager(object):
@@ -166,7 +160,6 @@ class DBManager(object):
     def get_thread(self, tid):
         """returns :class:`Thread` with given id"""
         query = self.query('thread:' + tid)
-        #TODO raise exceptions here in 0<case msgcount>1
         try:
             return Thread(self, query.search_threads().next())
         except:
@@ -199,8 +192,8 @@ class DBManager(object):
         process = FillPipeProcess(cbl(), pipe, fun)
         process.start()
         self.processes.append(process)
-        # closing the sending end in tis (receiving) process guarantees
-        # that here the apropriate EOFError is raisedupon .recv
+        # closing the sending end in this (receiving) process guarantees
+        # that here the apropriate EOFError is raised upon .recv in the walker
         sender.close()
         return receiver, process
 
