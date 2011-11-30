@@ -185,8 +185,15 @@ class DBManager(object):
         return [t for t in db.get_all_tags()]
 
     def async(self, cbl, fun):
-        """return a :class:`Pipe` object to which `fun(a)` is written for each a in
-        cbl"""
+        """
+        return a :class:`Pipe` object to which `fun(a)` is written
+        for each element a in the iterable returned by `cbl`
+
+        :param cbl: a function returning something iterable
+        :type cbl: callable
+        :param fun: an unary translation function
+        :type fun: callable
+        """
         pipe = multiprocessing.Pipe(False)
         receiver, sender = pipe
         process = FillPipeProcess(cbl(), pipe, fun)
@@ -310,17 +317,24 @@ class Thread(object):
         return self._subject
 
     def get_toplevel_messages(self):
-        """returns all toplevel messages as list of :class:`~alot.message.Message`"""
+        """
+        returns all toplevel messages contained in this thread.
+        This are all the messages without a parent message
+        (identified by 'in-reply-to' or 'references' header.
+
+        :rtype: list of :class:`~alot.message.Message`
+        """
         if not self._messages:
             self.get_messages()
         return self._toplevel_messages
 
     def get_messages(self):
-        """returns all messages in this thread
+        """
+        returns all messages in this thread as dict mapping all contained
+        messages to their direct responses.
 
-        :returns: dict mapping all contained messages
-                  (:class:`~alot.message.Message`) to a list of their respective
-                  children.
+        :rtype: dict mapping :class:`~alot.message.Message` to a list of
+                :class:`~alot.message.Message`.
         """
         if not self._messages:
             query = self._dbman.query('thread:' + self._id)
