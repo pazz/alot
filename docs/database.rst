@@ -1,5 +1,5 @@
-Database Abstraction
-======================================
+Email Database
+==============
 
 .. module:: alot.db
 

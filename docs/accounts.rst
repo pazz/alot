@@ -1,6 +1,5 @@
-
-Getting Account information
-======================================
+Accounts
+========
 
 .. currentmodule:: alot.account
 
@@ -23,6 +22,6 @@ Getting Account information
    :members:
 
 :class:`alot.account.AddressBook`
------------------------------
+----------------------------------
 .. autoclass:: alot.account.AddressBook()
    :members:
