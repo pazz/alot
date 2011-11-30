@@ -54,6 +54,8 @@ class PipeWalker(urwid.ListWalker):
         if self.empty:
             return None
         try:
+            # the next line blocks until it can read from the pipe or
+            # EOFError is raised. No races here.
             next_obj = self.pipe.recv()
             next_widget = self.containerclass(next_obj, **self.kwargs)
             self.lines.append(next_widget)
