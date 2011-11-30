@@ -38,9 +38,9 @@ class FillPipeProcess(multiprocessing.Process):
 
 class DBManager(object):
     """
-    keeps track of your index parameters, can create :class:`notmuch.Query`
-    objects from its Database on demand and implements a bunch of
-    database specific functions.
+    Keeps track of your index parameters, maintains a write-queue and
+    lets you look up threads and messages directly to the persistent wrapper
+    classes.
     """
     def __init__(self, path=None, ro=False):
         """
@@ -158,7 +158,7 @@ class DBManager(object):
         return self.query_threaded(querystring)
 
     def get_thread(self, tid):
-        """returns :class:`Thread` with given id"""
+        """returns :class:`Thread` with given thread id (str)"""
         query = self.query('thread:' + tid)
         try:
             return Thread(self, query.search_threads().next())
@@ -166,7 +166,7 @@ class DBManager(object):
             return None
 
     def get_message(self, mid):
-        """returns the :class:`Message` with given id"""
+        """returns the :class:`Message` with given message id (str)"""
         mode = Database.MODE.READ_ONLY
         db = Database(path=self.path, mode=mode)
         msg = db.find_message(mid)
@@ -179,13 +179,16 @@ class DBManager(object):
 
     def async(self, cbl, fun):
         """
-        return a :class:`Pipe` object to which `fun(a)` is written
-        for each element a in the iterable returned by `cbl`
+        return a pair (pipe, process) so that the process writes
+        `fun(a)` to the pipe for each element `a` in the iterable returned
+        by the callable `cbl`.
 
         :param cbl: a function returning something iterable
         :type cbl: callable
         :param fun: an unary translation function
         :type fun: callable
+        :rtype: (:class:`multipricessing.Pipe`,
+                :class:`multiprocessing.Process`)
         """
         pipe = multiprocessing.Pipe(False)
         receiver, sender = pipe
@@ -199,12 +202,13 @@ class DBManager(object):
 
     def get_threads(self, querystring):
         """
-        returns an asynchronously filled) :class:`multiprocessing.Pipe` object
-        from which thread ids can be read stepwise.
+        asyncronously look up thread ids matching `querystring`.
 
         :param querystring: The query string to use for the lookup
         :type query: str.
-        :returns: :class:`multiprocessing.Pipe` containing thread ids
+        :returns: a pipe together with the process that asyncronously fills it.
+        :rtype: (:class:`multipricessing.Pipe`,
+                :class:`multiprocessing.Process`)
         """
         q = self.query(querystring)
         return self.async(q.search_threads, (lambda a: a.get_thread_id()))

@@ -31,8 +31,8 @@ class Message(object):
         :type dbman: alot.db.DBManager
         :param msg: the wrapped message
         :type msg: notmuch.database.Message
-        :param thread: this messages thread
-        :type thread: :class:/`~alot.db.Thread`
+        :param thread: this messages thread (will be looked up later if `None`)
+        :type thread: :class:`~alot.db.Thread` or `None`
         """
         self._dbman = dbman
         self._id = msg.get_message_id()
@@ -73,7 +73,7 @@ class Message(object):
         return self._email
 
     def get_date(self):
-        """returns date as :class:`~datetime.datetime`"""
+        """returns Date header value as :class:`~datetime.datetime`"""
         return self._datetime
 
     def get_filename(self):
@@ -131,7 +131,11 @@ class Message(object):
         return res
 
     def get_author(self):
-        """returns realname and address of this messages author"""
+        """
+        returns realname and address of this messages author
+
+        :rtype: (str,str)
+        """
         return email.Utils.parseaddr(self._from)
 
     def get_headers_string(self, headers):
