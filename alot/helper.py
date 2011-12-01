@@ -61,7 +61,8 @@ def string_sanitize(string, tab_width=None):
 
 
 def string_decode(string, enc='ascii'):
-    """safely decodes string to unicode bytestring, respecting `enc` as a hint"""
+    """safely decodes string to unicode bytestring,
+    respecting `enc` as a hint"""
 
     if enc is None:
         enc = 'ascii'
@@ -264,21 +265,6 @@ def mimewrap(path, filename=None, ctype=None):
     part.add_header('Content-Disposition', 'attachment',
                     filename=filename)
     return part
-
-
-def attach(path, mail, filename=None):
-    part = mimewrap(path, filename)
-    #wrap in multipart if not already
-    if not mail.is_multipart():
-        newmail = MIMEMultipart()
-        #move headers to new outer mail
-        for k in mail.keys():
-            newmail[k] = mail[k]
-            del(mail[k])
-        newmail.attach(mail)
-        mail = newmail
-    mail.attach(part)
-    return mail
 
 
 def shell_quote(text):
