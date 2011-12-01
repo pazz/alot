@@ -21,6 +21,10 @@ def string_sanitize(string, tab_width=None):
     r"""
     strips, and replaces non-printable characters
 
+    :param tab_width: number of spaces to replace tabs with. Read from
+                      `globals.tabwidth` setting if `None`
+    :type tab_width: int or `None`
+
     >>> string_sanitize(' foo\rbar ', 8)
     'foobar'
     >>> string_sanitize('foo\tbar', 8)
@@ -57,7 +61,7 @@ def string_sanitize(string, tab_width=None):
 
 
 def string_decode(string, enc='ascii'):
-    """decodes string to unicode bytestring, respecting enc as a hint"""
+    """safely decodes string to unicode bytestring, respecting `enc` as a hint"""
 
     if enc is None:
         enc = 'ascii'
@@ -163,6 +167,22 @@ def shorten_author_string(authors_string, maxlength):
 
 
 def pretty_datetime(d):
+    """
+    translates :class:`datetime` `d` to a "sup-style" human readable string.
+
+    >>> now = datetime.now()
+    >>> pretty_datetime(now)
+    '09:31am'
+    >>> one_day_ago = datetime.today() - timedelta(1)
+    >>> pretty_datetime(one_day_ago)
+    'Yest. 9am'
+    >>> thirty_days_ago = datetime.today() - timedelta(30)
+    >>> pretty_datetime(thirty_days_ago)
+    'Nov 01'
+    >>> one_year_ago = datetime.today() - timedelta(356)
+    >>> pretty_datetime(one_year_ago)
+    'Dec 2010'
+    """
     today = date.today()
     if today == d.date():
         string = d.strftime('%H:%M%P')
