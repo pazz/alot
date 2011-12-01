@@ -10,6 +10,7 @@ charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 from email.iterators import typed_subpart_iterator
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from notmuch.globals import NullPointerError
 
 import logging
 import helper
@@ -38,15 +39,23 @@ class Message(object):
         self._id = msg.get_message_id()
         self._thread_id = msg.get_thread_id()
         self._thread = thread
-        try:
-            self._datetime = datetime.fromtimestamp(msg.get_date())
-        except ValueError:  # year is out of range
-            self._datetime = None
+        date = msg.get_date()
+        self._datetime = self._safely_get(datetime.fromtimestamp(date),
+                                          ValueError, None)
         self._filename = msg.get_filename()
-        self._from = msg.get_header('From')
+        self._from = self._safely_get(msg.get_header('From'), NullPointerError)
         self._email = None  # will be read upon first use
         self._attachments = None  # will be read upon first use
         self._tags = set(msg.get_tags())
+
+    def _safely_get(self, clb, E, on_error=''):
+        """
+        returns result of :fun:`clb` and `on_error` in case `E` is raised
+        """
+        try:
+            return clb()
+        except E:
+            return on_error
 
     def __str__(self):
         """prettyprint the message"""
