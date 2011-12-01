@@ -39,23 +39,15 @@ class Message(object):
         self._id = msg.get_message_id()
         self._thread_id = msg.get_thread_id()
         self._thread = thread
-        date = msg.get_date()
-        self._datetime = self._safely_get(datetime.fromtimestamp(date),
+        casts_date = lambda: datetime.fromtimestamp(msg.get_date())
+        self._datetime = helper.safely_get(casts_date,
                                           ValueError, None)
         self._filename = msg.get_filename()
-        self._from = self._safely_get(msg.get_header('From'), NullPointerError)
+        self._from = helper.safely_get(lambda: msg.get_header('From'),
+                                       NullPointerError)
         self._email = None  # will be read upon first use
         self._attachments = None  # will be read upon first use
         self._tags = set(msg.get_tags())
-
-    def _safely_get(self, clb, E, on_error=''):
-        """
-        returns result of :fun:`clb` and `on_error` in case `E` is raised
-        """
-        try:
-            return clb()
-        except E:
-            return on_error
 
     def __str__(self):
         """prettyprint the message"""
