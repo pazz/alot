@@ -16,10 +16,12 @@ class DatabaseError(Exception):
 
 
 class DatabaseROError(DatabaseError):
+    """cannot write to read-only database"""
     pass
 
 
 class DatabaseLockedError(DatabaseError):
+    """cannot write to locked index"""
     pass
 
 
@@ -56,7 +58,13 @@ class DBManager(object):
 
     def flush(self):
         """
-        tries to flush all queued write commands to the index.
+        write out all queued write-commands in order, each one in a separate
+        :meth:`atomic <notmuch.Database.begin_atomic>` transaction.
+
+        If this fails the current action is rolled back, stays in the write
+        queue and an exception is raised.
+        You are responsible to retry flushing at a later time if you want to
+        ensure that the cached changes are applied to the database.
 
         :exception: :exc:`DatabaseROError` if db is opened in read-only mode
         :exception: :exc:`DatabaseLockedError` if db is locked
@@ -99,14 +107,19 @@ class DBManager(object):
                     self.writequeue.appendleft(current_item)
 
     def kill_search_processes(self):
+        """
+        terminate all search processes that originate from
+        this managers :meth:`get_threads`.
+        """
         for p in self.processes:
             p.terminate()
         self.processes = []
 
     def tag(self, querystring, tags, remove_rest=False):
         """
-        add tags to all matching messages. Raises :exc:`DatabaseROError` if in
-        read only mode.
+        add tags to messages matching `querystring`.
+        This appends a tag operation to the write queue and raises
+        :exc:`DatabaseROError` if in read only mode.
 
         :param querystring: notmuch search string
         :type querystring: str
@@ -114,7 +127,10 @@ class DBManager(object):
         :type tags: list of str
         :param remove_rest: remove tags from matching messages before tagging
         :type remove_rest: bool
-        :exception: :exc:`NotmuchError`
+        :exception: :exc:`DatabaseROError`
+
+        .. note::
+            You need to call :meth:`DBManager.flush` to actually write out.
         """
         if self.ro:
             raise DatabaseROError()
@@ -128,14 +144,18 @@ class DBManager(object):
 
     def untag(self, querystring, tags):
         """
-        add tags to all matching messages. Raises :exc:`DatabaseROError` if in
-        read only mode.
+        removes tags from messages that match `querystring`.
+        This appends an untag operation to the write queue and raises
+        :exc:`DatabaseROError` if in read only mode.
 
         :param querystring: notmuch search string
         :type querystring: str
         :param tags: a list of tags to be added
         :type tags: list of str
-        :exception: :exc:`NotmuchError`
+        :exception: :exc:`DatabaseROError`
+
+        .. note::
+            You need to call :meth:`DBManager.flush` to actually write out.
         """
         if self.ro:
             raise DatabaseROError()
@@ -144,7 +164,7 @@ class DBManager(object):
                                 sync_maildir_flags))
 
     def count_messages(self, querystring):
-        """returns number of messages that match querystring"""
+        """returns number of messages that match `querystring`"""
         return self.query(querystring).count_messages()
 
     def search_thread_ids(self, querystring):
@@ -166,14 +186,17 @@ class DBManager(object):
             return None
 
     def get_message(self, mid):
-        """returns the :class:`Message` with given message id (str)"""
+        """returns :class:`Message` with given message id (str)"""
         mode = Database.MODE.READ_ONLY
         db = Database(path=self.path, mode=mode)
         msg = db.find_message(mid)
         return Message(self, msg)
 
     def get_all_tags(self):
-        """returns all tags as list of strings"""
+        """
+        returns all tagsstrings used in the database
+        :rtype: list of str
+        """
         db = Database(path=self.path)
         return [t for t in db.get_all_tags()]
 
@@ -187,7 +210,7 @@ class DBManager(object):
         :type cbl: callable
         :param fun: an unary translation function
         :type fun: callable
-        :rtype: (:class:`multipricessing.Pipe`,
+        :rtype: (:class:`multiprocessing.Pipe`,
                 :class:`multiprocessing.Process`)
         """
         pipe = multiprocessing.Pipe(False)
@@ -202,12 +225,12 @@ class DBManager(object):
 
     def get_threads(self, querystring):
         """
-        asyncronously look up thread ids matching `querystring`.
+        asynchronously look up thread ids matching `querystring`.
 
         :param querystring: The query string to use for the lookup
         :type query: str.
-        :returns: a pipe together with the process that asyncronously fills it.
-        :rtype: (:class:`multipricessing.Pipe`,
+        :returns: a pipe together with the process that asynchronously fills it.
+        :rtype: (:class:`multiprocessing.Pipe`,
                 :class:`multiprocessing.Process`)
         """
         q = self.query(querystring)
@@ -277,20 +300,25 @@ class Thread(object):
         return self._id
 
     def get_tags(self):
-        """returns tags attached to this thread as list of strings"""
+        """
+        returns tagsstrings attached to this thread
+
+        :rtype: list of str
+        """
         l = list(self._tags)
         l.sort()
         return l
 
     def add_tags(self, tags):
         """
-        adds tags (list of str) to all messages in this thread
+        add `tags` (list of str) to all messages in this thread
 
         .. note::
 
             This only adds the requested operation to this objects
             :class:`DBManager's <DBManager>` write queue.
             You need to call :meth:`DBManager.flush` to actually write out.
+
         """
         newtags = set(tags).difference(self._tags)
         if newtags:
@@ -299,7 +327,7 @@ class Thread(object):
 
     def remove_tags(self, tags):
         """
-        remove tags (list of str) from all messages in this thread
+        remove `tags` (list of str) from all messages in this thread
 
         .. note::
 
@@ -368,13 +396,20 @@ class Thread(object):
                         acc[M].append(accumulate(acc, m))
                 return M
 
+            # TODO: only do this once
             self._messages = {}
             for m in thread.get_toplevel_messages():
                 self._toplevel_messages.append(accumulate(self._messages, m))
         return self._messages
 
     def get_replies_to(self, msg):
-        """returns all replies to the given (:class:`~alot.message.Message`)"""
+        """
+        returns all replies to the given message contained in this thread.
+
+        :param msg: parent message to look up
+        :type msg: :class:`~alot.message.Message`
+        :returns: list of :class:`~alot.message.Message` or `None`
+        """
         mid = msg.get_message_id()
         msg_hash = self.get_messages()
         for m in msg_hash.keys():
@@ -385,14 +420,14 @@ class Thread(object):
     def get_newest_date(self):
         """
         returns date header of newest message in this thread as
-        :class:`datetime`
+        :class:`~datetime.datetime`
         """
         return self._newest_date
 
     def get_oldest_date(self):
         """
         returns date header of oldest message in this thread as
-        :class:`datetime`
+        :class:`~datetime.datetime`
         """
         return self._oldest_date
 
