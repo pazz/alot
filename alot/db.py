@@ -283,14 +283,30 @@ class Thread(object):
         return l
 
     def add_tags(self, tags):
-        """adds tags (list of str) to all messages in this thread"""
+        """
+        adds tags (list of str) to all messages in this thread
+
+        .. note::
+
+            This only adds the requested operation to this objects
+            :class:`DBManager's <DBManager>` write queue.
+            You need to call :meth:`DBManager.flush` to actually write out.
+        """
         newtags = set(tags).difference(self._tags)
         if newtags:
             self._dbman.tag('thread:' + self._id, newtags)
             self._tags = self._tags.union(newtags)
 
     def remove_tags(self, tags):
-        """remove tags (list of str) from all messages in this thread"""
+        """
+        remove tags (list of str) from all messages in this thread
+
+        .. note::
+
+            This only adds the requested operation to this objects
+            :class:`DBManager's <DBManager>` write queue.
+            You need to call :meth:`DBManager.flush` to actually write out.
+        """
         rmtags = set(tags).intersection(self._tags)
         if rmtags:
             self._dbman.untag('thread:' + self._id, tags)
@@ -300,6 +316,12 @@ class Thread(object):
         """
         set tags (list of str) of all messages in this thread. This removes all
         tags and attaches the given ones in one step.
+
+        .. note::
+
+            This only adds the requested operation to this objects
+            :class:`DBManager's <DBManager>` write queue.
+            You need to call :meth:`DBManager.flush` to actually write out.
         """
         if tags != self._tags:
             self._dbman.tag('thread:' + self._id, tags, remove_rest=True)

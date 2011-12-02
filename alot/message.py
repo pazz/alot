@@ -151,12 +151,28 @@ class Message(object):
         return extract_headers(self.get_mail(), headers)
 
     def add_tags(self, tags):
-        """adds tags (list of str) to message"""
+        """
+        adds tags (list of str) to message
+
+        .. note::
+
+            This only adds the requested operation to this objects
+            :class:`DBManager's <alot.db.DBManager>` write queue.
+            You need to call :meth:`~alot.db.DBManager.flush` to actually write out.
+        """
         self._dbman.tag('id:' + self._id, tags)
         self._tags = self._tags.union(tags)
 
     def remove_tags(self, tags):
-        """remove tags (list of str) from message"""
+        """remove tags (list of str) from message
+
+        .. note::
+
+            This only adds the requested operation to this objects
+            :class:`DBManager's <alot.db.DBManager>` write queue.
+            You need to call :meth:`~alot.db.DBManager.flush` to actually write out.
+        """
+
         self._dbman.untag('id:' + self._id, tags)
         self._tags = self._tags.difference(tags)
 
@@ -178,10 +194,9 @@ class Message(object):
     def accumulate_body(self):
         """
         returns bodystring extracted from this mail
-
-        TODO: don't hardcode which part is considered body but allow toggle
-        commands and a config default setting
         """
+        #TODO: don't hardcode which part is considered body but allow toggle
+        #      commands and a config default setting
 
         return extract_body(self.get_email())
 
