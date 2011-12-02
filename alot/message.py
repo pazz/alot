@@ -292,7 +292,7 @@ def decode_header(header, normalize=False):
     :param header: the header value
     :type header: str in us-ascii
     :param normalize: replace trailing spaces after newlines
-    :type normalize: boolean
+    :type normalize: bool
     :rtype: unicode
     """
 

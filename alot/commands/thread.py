@@ -31,7 +31,7 @@ class ReplyCommand(Command):
         :param message: the original message to reply to
         :type message: `alot.message.Message`
         :param groupreply: copy other recipients from Bcc/Cc/To to the reply
-        :type groupreply: boolean
+        :type groupreply: bool
         """
         self.message = message
         self.groupreply = all
@@ -134,7 +134,7 @@ class ForwardCommand(Command):
                         selected one is used
         :type message: `alot.message.Message`
         :param attach: attach original mail instead of inline quoting its body
-        :type attach: boolean
+        :type attach: bool
         """
         self.message = message
         self.inline = not attach

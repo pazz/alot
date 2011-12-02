@@ -122,11 +122,11 @@ class ExternalCommand(Command):
         :param path: a path to a file (or None)
         :type path: str
         :param spawn: run command in a new terminal
-        :type spawn: boolean
+        :type spawn: bool
         :param thread: run asynchronously, don't block alot
-        :type thread: boolean
+        :type thread: bool
         :param refocus: refocus calling buffer after cmd termination
-        :type refocus: boolean
+        :type refocus: bool
         :param on_success: code to execute after command successfully exited
         :type on_success: callable
         """

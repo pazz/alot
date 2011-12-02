@@ -348,7 +348,7 @@ class UI(object):
                         A negative value means never time out.
         :type timeout: int
         :param block: this notification blocks until a keypress is made
-        :type block: boolean
+        :type block: bool
         :returns: an urwid widget (this notification) that can be handed to
                   :meth:`clear_notify` for removal
         """

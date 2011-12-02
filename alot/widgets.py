@@ -308,9 +308,9 @@ class MessageWidget(urwid.WidgetWrap):
         :param message: the message to display
         :type message: alot.db.Message
         :param even: use messagesummary_even theme for summary
-        :type even: boolean
+        :type even: bool
         :param unfolded: unfold message initially
-        :type unfolded: boolean
+        :type unfolded: bool
         :param depth: number of characters to shift content to the right
         :type depth: int
         :param bars_at: list of positions smaller than depth where horizontal
