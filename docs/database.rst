@@ -3,8 +3,8 @@ Email Database
 
 .. module:: alot.db
 
-The python bindings to libnotmuch define :class:`notmuch.database.Thread` and 
-:class:`notmuch.database.Message`, which unfortunately are very fragile.
+The python bindings to libnotmuch define :class:`notmuch.Thread` and 
+:class:`notmuch.Message`, which unfortunately are very fragile.
 Alot defines the wrapper classes :class:`Thread` and :class:`~alot.message.Message` that
 use an :class:`DBManager` instance to transparently provide persistent objects.
 

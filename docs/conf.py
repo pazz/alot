@@ -26,7 +26,7 @@ from alot import __version__,__author__
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -218,4 +218,7 @@ man_pages = [
 
 autodoc_member_order = 'bysource'
 autoclass_content = 'both'
-intersphinx_mapping = {'python': ('http://docs.python.org/3.2', None)}
+intersphinx_mapping = {
+        'python': ('http://docs.python.org/3.2', None),
+        'notmuch': ('http://packages.python.org/notmuch', None),
+        }
