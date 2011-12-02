@@ -19,13 +19,13 @@ from settings import config
 
 def safely_get(clb, E, on_error=''):
     """
-    returns result of callable :fun:`clb` and defaults to `on_error`
+    returns result of :func:`clb` and falls back to `on_error`
     in case `E` is raised.
 
     :param clb: function to evaluate
     :type clb: callable
     :param E: exception to catch
-    :type E: :class:`Exception`
+    :type E: Exception
     :param on_error: default string returned when exception is caught
     :type on_error: str
     """
