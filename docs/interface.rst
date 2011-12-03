@@ -43,9 +43,28 @@ Many commands in alot make use of a construct called
 
 
 Buffers
----------------------
-TODO: describe use of buffers, link to subclasses
+----------
+.. module:: alot.buffers
 
+A buffer defines a view to your data. It knows how to render itself, to interpret
+keypresses and is visible in the "body" part of the widget frame.
+Different modes are defined by subclasses of the following base class.
+
+
+.. autoclass:: Buffer
+    :members:
+
+Available modes are:
+
+========== =================
+   Mode     Buffer Subclass
+========== =================
+search     SearchBuffer
+thread     ThreadBuffer
+bufferlist BufferlistBuffer
+taglist    TaglistBuffer
+envelope   EnvelopeBuffer
+========== =================
 
 Widgets
 --------

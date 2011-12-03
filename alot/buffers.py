@@ -9,6 +9,7 @@ from message import decode_header
 
 
 class Buffer(object):
+    """Abstract base class for buffers."""
     def __init__(self, ui, widget, name):
         self.ui = ui
         self.typename = name
@@ -24,16 +25,19 @@ class Buffer(object):
         return self.body.selectable()
 
     def rebuild(self):
+        """tells the buffer to (re)construct its visible content."""
         pass
 
     def apply_command(self, cmd):
         # call and store it directly for a local cmd history
+        # TODO: not needed for now
         self.ui.apply_command(cmd)
 
     def keypress(self, size, key):
             return self.body.keypress(size, key)
 
     def cleanup(self):
+        """called before buffer is dismissed"""
         pass
 
 
