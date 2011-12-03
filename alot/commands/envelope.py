@@ -3,7 +3,7 @@ import glob
 import logging
 import email
 import tempfile
-from twisted.internet import defer
+from twisted.internet.defer import inlineCallbacks
 import threading
 
 from alot import buffers
@@ -61,7 +61,7 @@ class RefineCommand(Command):
 
 @registerCommand(MODE, 'send', help='sends mail')
 class SendCommand(Command):
-    @defer.inlineCallbacks
+    @inlineCallbacks
     def apply(self, ui):
         currentbuffer = ui.current_buffer  # needed to close later
         envelope = currentbuffer.envelope

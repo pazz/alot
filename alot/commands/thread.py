@@ -2,7 +2,7 @@ import os
 import logging
 import tempfile
 from email.header import Header
-from twisted.internet import defer
+from twisted.internet.defer import inlineCallbacks
 import mimetypes
 
 from alot.commands import Command, registerCommand
@@ -259,7 +259,7 @@ class PipeCommand(Command):
         self.confirm_msg = confirm_msg
         self.done_msg = done_msg
 
-    @defer.inlineCallbacks
+    @inlineCallbacks
     def apply(self, ui):
         # abort if command unset
         if not self.cmd:
@@ -350,7 +350,7 @@ class SaveAttachmentCommand(Command):
         self.all = all
         self.path = path
 
-    @defer.inlineCallbacks
+    @inlineCallbacks
     def apply(self, ui):
         pcomplete = completion.PathCompleter()
         if self.all:

@@ -5,7 +5,7 @@ import subprocess
 import shlex
 import email
 import urwid
-from twisted.internet import defer
+from twisted.internet.defer import inlineCallbacks
 import logging
 import argparse
 
@@ -30,7 +30,7 @@ MODE = 'global'
 
 @registerCommand(MODE, 'exit', help='shut alot down cleanly')
 class ExitCommand(Command):
-    @defer.inlineCallbacks
+    @inlineCallbacks
     def apply(self, ui):
         if settings.config.getboolean('general', 'bug_on_exit'):
             if (yield ui.choice('realy quit?', select='yes', cancel='no',
@@ -73,7 +73,7 @@ class PromptCommand(Command):
         self.startwith = startwith
         Command.__init__(self, **kwargs)
 
-    @defer.inlineCallbacks
+    @inlineCallbacks
     def apply(self, ui):
         ui.logger.info('open command shell')
         mode = ui.current_buffer.typename
@@ -399,7 +399,7 @@ class ComposeCommand(Command):
         self.cc = cc
         self.bcc = bcc
 
-    @defer.inlineCallbacks
+    @inlineCallbacks
     def apply(self, ui):
         if self.envelope == None:
             self.envelope = Envelope()
