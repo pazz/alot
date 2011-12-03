@@ -285,13 +285,16 @@ class UI(object):
         :param message: string to display before list of choices
         :type message: unicode
         :param choices: dict of possible choices
-        :type choices: keymap->choice (both str)
-        :param select: choice to return if enter/return is hit.
-                       Ignored if set to None.
+        :type choices: dict: keymap->choice (both str)
+        :param select: choice to return if enter/return is hit. Ignored if set
+                       to `None`.
         :type select: str
-        :param cancel: choice to return if escape is hit.
-                       Ignored if set to None.
+        :param cancel: choice to return if escape is hit. Ignored if set to
+                       `None`.
         :type cancel: str
+        :param msg_position: determines if `message` is above or left of the
+                             prompt. Must be `above` or `left`.
+        :type msg_position: str
         :returns: a :class:`twisted.defer.Deferred`
         """
         assert select in choices.values() + [None]
