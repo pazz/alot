@@ -27,6 +27,7 @@ class Mock(object):
 
 MOCK_MODULES = ['notmuch', 'notmuch.globals',
                 'twisted', 'twisted.internet',
+                'twisted.internet.defer',
                 'urwid', 'argparse']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()
