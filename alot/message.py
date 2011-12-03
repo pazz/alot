@@ -67,10 +67,16 @@ class Message(object):
 
     def get_email(self):
         """returns :class:`email.Message` for this message"""
+        path = self.get_filename()
+        warning = "Subject: Caution!\n"\
+                  "Message file is no longer accessible:\n%s" % path
         if not self._email:
-            f_mail = open(self.get_filename())
-            self._email = email.message_from_file(f_mail)
-            f_mail.close()
+            try:
+                f_mail = open(path)
+                self._email = email.message_from_file(f_mail)
+                f_mail.close()
+            except IOError:
+                self._email = email.message_from_string(warning)
         return self._email
 
     def get_date(self):
