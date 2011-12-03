@@ -349,9 +349,12 @@ class MessageWidget(urwid.WidgetWrap):
             hw = self._get_header_widget()
             aw = self._get_attachment_widget()
             bw = self._get_body_widget()
-            self.displayed_list = [self.sumline, hw, bw]
+            self.displayed_list = [self.sumline]
+            if hw:
+                self.displayed_list.append(hw)
             if aw:
-                self.displayed_list.insert(2, aw)
+                self.displayed_list.append(aw)
+            self.displayed_list.append(bw)
         else:
             self.displayed_list = [self.sumline]
         self.pile = urwid.Pile(self.displayed_list)
@@ -381,10 +384,13 @@ class MessageWidget(urwid.WidgetWrap):
 
     def _get_header_widget(self, force_update=False):
         """creates/returns the widget that displays the mail header"""
+        if not self.displayed_headers:
+            return None
         if not self.headerw or force_update:
             mail = self.message.get_email()
-            #build lines
+            # normalize values if only filtered list is shown
             norm = not (self.displayed_headers == self.all_headers)
+            #build lines
             lines = []
             for k in self.displayed_headers:
                 v = mail.get(k)
