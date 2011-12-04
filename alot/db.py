@@ -229,7 +229,8 @@ class DBManager(object):
 
         :param querystring: The query string to use for the lookup
         :type query: str.
-        :returns: a pipe together with the process that asynchronously fills it.
+        :returns: a pipe together with the process that asynchronously
+                  writes to it.
         :rtype: (:class:`multiprocessing.Pipe`,
                 :class:`multiprocessing.Process`)
         """

@@ -164,7 +164,7 @@ class Message(object):
 
             This only adds the requested operation to this objects
             :class:`DBManager's <alot.db.DBManager>` write queue.
-            You need to call :meth:`~alot.db.DBManager.flush` to actually write out.
+            You need to call :meth:`~alot.db.DBManager.flush` to write out.
         """
         self._dbman.tag('id:' + self._id, tags)
         self._tags = self._tags.union(tags)
@@ -176,7 +176,7 @@ class Message(object):
 
             This only adds the requested operation to this objects
             :class:`DBManager's <alot.db.DBManager>` write queue.
-            You need to call :meth:`~alot.db.DBManager.flush` to actually write out.
+            You need to call :meth:`~alot.db.DBManager.flush` to actually out.
         """
 
         self._dbman.untag('id:' + self._id, tags)
