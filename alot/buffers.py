@@ -16,6 +16,8 @@ class Buffer(object):
         self.body = widget
 
     def __str__(self):
+        # TODO rename this: its used to display this buffer
+        # in the buffer list and gets displayed in the footer
         return self.typename
 
     def render(self, size, focus=False):
@@ -42,6 +44,7 @@ class Buffer(object):
 
 
 class BufferlistBuffer(Buffer):
+    """selectable list of active buffers"""
     def __init__(self, ui, filtfun=None):
         self.filtfun = filtfun
         self.ui = ui
@@ -50,6 +53,10 @@ class BufferlistBuffer(Buffer):
         Buffer.__init__(self, ui, self.body, 'bufferlist')
 
     def index_of(self, b):
+        """
+        returns the index of :class:`Buffer` `b` in the global list of active
+        buffers.
+        """
         return self.ui.buffers.index(b)
 
     def rebuild(self):
@@ -75,12 +82,14 @@ class BufferlistBuffer(Buffer):
         self.body = self.bufferlist
 
     def get_selected_buffer(self):
+        """returns currently selected :class:`Buffer` element from list"""
         (linewidget, pos) = self.bufferlist.get_focus()
         bufferlinewidget = linewidget.get_focus().original_widget
         return bufferlinewidget.get_buffer()
 
 
 class EnvelopeBuffer(Buffer):
+    """message composition mode"""
     def __init__(self, ui, envelope):
         self.ui = ui
         self.envelope = envelope
@@ -93,9 +102,12 @@ class EnvelopeBuffer(Buffer):
         return "to: %s" % decode_header(self.mail['To'])
 
     def get_email(self):
+        """returns message represented as :class:`email.Message`"""
+        #todo: obsolete?
         return self.mail
 
     def set_email(self, mail):
+        #TODO obsolete. never used.
         self.mail = mail
         self.rebuild()
 
@@ -126,11 +138,16 @@ class EnvelopeBuffer(Buffer):
         self.body = urwid.ListBox(displayed_widgets)
 
     def toggle_all_headers(self):
+        """toggles visibility of all envelope headers"""
         self.all_headers = not self.all_headers
         self.rebuild()
 
 
 class SearchBuffer(Buffer):
+    """
+    shows a result set for a Thread query, one line per
+    :class:`~alot.db.Thread`
+    """
     threads = []
 
     def __init__(self, ui, initialquery=''):
@@ -150,6 +167,10 @@ class SearchBuffer(Buffer):
         self.kill_filler_process()
 
     def kill_filler_process(self):
+        """
+        terminates the process that fills this buffers
+        :class:`~alot.walker.PipeWalker`.
+        """
         if self.proc:
             if self.proc.is_alive():
                 self.proc.terminate()
@@ -182,13 +203,19 @@ class SearchBuffer(Buffer):
         self.body = self.listbox
 
     def debug(self):
+        # TODO: ever used?
         self.ui.logger.debug(self.threadlist.lines)
 
     def get_selected_threadline(self):
+        """
+        returns curently focussed :class:`alot.widgets.ThreadlineWidget`
+        from the result list.
+        """
         (threadlinewidget, size) = self.threadlist.get_focus()
         return threadlinewidget
 
     def get_selected_thread(self):
+        """returns currently selected :class:`~alot.db.Thread`"""
         threadlinewidget = self.get_selected_threadline()
         thread = None
         if threadlinewidget:
@@ -197,6 +224,8 @@ class SearchBuffer(Buffer):
 
 
 class ThreadBuffer(Buffer):
+    """shows a single mailthread as a (collapsible) tree of
+    :class:`MessageWidgets <alot.widgets.MessageWidget>`."""
     def __init__(self, ui, thread):
         self.message_count = thread.get_total_messages()
         self.thread = thread
@@ -207,6 +236,7 @@ class ThreadBuffer(Buffer):
         return '%s, (%d)' % (self.thread.get_subject(), self.message_count)
 
     def get_selected_thread(self):
+        """returns the displayed :class:`~alot.db.Thread`"""
         return self.thread
 
     def _build_pile(self, acc, msg, parent, depth):
@@ -245,20 +275,31 @@ class ThreadBuffer(Buffer):
         self.body = urwid.ListBox(msglines)
 
     def get_selection(self):
+        """returns focussed :class:`~alot.widgets.MessageWidget`"""
         (messagewidget, size) = self.body.get_focus()
         return messagewidget
 
     def get_selected_message(self):
+        """returns focussed :class:`~alot.message.Message`"""
         messagewidget = self.get_selection()
         return messagewidget.get_message()
 
     def get_message_widgets(self):
+        """
+        returns all :class:`MessageWidgets <alot.widgets.MessageWidget>`
+        displayed in this thread-tree.
+        """
         return self.body.body.contents
 
     def get_focus(self):
         return self.body.get_focus()
 
     def unfold_matching(self, querystring):
+        """
+        unfolds those :class:`MessageWidgets <alot.widgets.MessageWidget>`
+        that represent :class:`Messages <alot.message.Message>` matching
+        `querystring`.
+        """
         for mw in self.get_message_widgets():
             msg = mw.get_message()
             if msg.matches(querystring):
@@ -269,6 +310,7 @@ class ThreadBuffer(Buffer):
 
 
 class TagListBuffer(Buffer):
+    """selectable list of tagstrings present in the database"""
     def __init__(self, ui, alltags=[], filtfun=None):
         self.filtfun = filtfun
         self.ui = ui
@@ -295,6 +337,7 @@ class TagListBuffer(Buffer):
         self.taglist.set_focus(focusposition % len(displayedtags))
 
     def get_selected_tag(self):
+        """returns selected tagstring"""
         (cols, pos) = self.taglist.get_focus()
         tagwidget = cols.get_focus()
         return tagwidget.get_tag()

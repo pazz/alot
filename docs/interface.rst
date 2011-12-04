@@ -44,14 +44,12 @@ Many commands in alot make use of a construct called
 
 Buffers
 ----------
-.. module:: alot.buffers
 
 A buffer defines a view to your data. It knows how to render itself, to interpret
 keypresses and is visible in the "body" part of the widget frame.
 Different modes are defined by subclasses of the following base class.
 
-
-.. autoclass:: Buffer
+.. autoclass:: alot.buffers.Buffer
     :members:
 
 Available modes are:
@@ -59,12 +57,16 @@ Available modes are:
 ========== =================
    Mode     Buffer Subclass
 ========== =================
-search     SearchBuffer
-thread     ThreadBuffer
-bufferlist BufferlistBuffer
-taglist    TaglistBuffer
-envelope   EnvelopeBuffer
+search     :class:`~alot.buffers.SearchBuffer`
+thread     :class:`~alot.buffers.ThreadBuffer`
+bufferlist :class:`~alot.buffers.BufferlistBuffer`
+taglist    :class:`~alot.buffers.TagListBuffer`
+envelope   :class:`~alot.buffers.EnvelopeBuffer`
 ========== =================
+
+
+.. automodule:: alot.buffers
+    :members: BufferlistBuffer, EnvelopeBuffer,SearchBuffer,ThreadBuffer,TagListBuffer
 
 Widgets
 --------

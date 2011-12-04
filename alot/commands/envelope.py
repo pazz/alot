@@ -53,6 +53,8 @@ class RefineCommand(Command):
         self.key = key
 
     def apply(self, ui):
+        #TODO: get value from envelope, not mail!
+        # -> obsoletes EnvelopeBuffer.get_email
         mail = ui.current_buffer.get_email()
         value = decode_header(mail.get(self.key, ''))
         cmdstring = 'set %s %s' % (self.key, value)
