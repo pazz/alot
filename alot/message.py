@@ -461,13 +461,14 @@ class Envelope(object):
         else:
             msg = textpart
         for k, v in self.headers.items():
-            msg[k] = v
+            msg[k] = encode_header(k, v)
         for a in self.attachments:
             msg.attach(a)
             logging.debug(msg)
         return msg
 
     def parse_template(self, tmp):
+        logging.debug('GoT: """\n%s\n"""' % tmp)
         m = re.match('(?P<h>([a-zA-Z0-9_-]+:.+\n)*)(?P<b>(\s*.*)*)', tmp)
         assert m
 
@@ -482,11 +483,9 @@ class Envelope(object):
         for line in headertext.splitlines():
             if re.match('[a-zA-Z0-9_-]+:', line):  # new k/v pair
                 if key and value:  # save old one from stack
-            #del self.mail.headers[key]  # ensure unique values in mails
-                    self.headers[key] = encode_header(key, value)  # save
+                    self.headers[key] = value  # save
                 key, value = line.strip().split(':', 1)  # parse new pair
             elif key and value:  # append new line without key prefix
                 value += line
         if key and value:  # save last one if present
-            #del self.headers[key]
-            self.headers[key] = encode_header(key, value)
+            self.headers[key] = value
