@@ -1,13 +1,27 @@
 User Interface
 ==================
 
-In order to keep the interface non-blocking, alot makes use of 
-twisted's deferred - a framework that makes it easy to deal with callbacks.
-See `here <http://twistedmatrix.com/documents/current/core/howto/defer.html>`_
-for an intro.
+Alot sets up a widget tree and an :class:`urwid.Mainloop` (based on `TwistedEventLoop`)
+in the constructor of :class:`alot.ui.UI`. The visible area is
+a :class:`urwid.Frame`, where the footer is used as a status line and the body part
+displays the currently active :class:`alot.buffers.Buffer`.
 
-Many commands in alot make use of a construct called 
-`inline callbacks <http://twistedmatrix.com/documents/8.1.0/api/twisted.internet.defer.html#inlineCallbacks>`_, which allows you to treat deferred-returning functions almost like syncronous functions. Consider the following example of a function that prompts for some input and acts on it:
+To be able to bind keystrokes and translate them to :class:`Commands
+<alot.commands.Command>`, keypresses are *not* propagated down the widget tree as is
+customary in urwid. Instead, the root widget given to urwids mainloop is a custom wrapper
+(:class:`alot.ui.Inputwrap`) that interprets key presses. A dedicated
+:class:`~alot.commands.globals.SendKeypressCommand` can be used to trigger
+key presses to the wrapped root widget and thereby accessing standard urwid
+behaviour.
+
+In order to keep the interface non-blocking, alot makes use of twisted's deferred_ - a
+framework that makes it easy to deal with callbacks. Many commands in alot make use of
+`inline callbacks`_, which allow you to treat deferred-returning functions almost like
+syncronous functions. Consider the following example of a function that prompts for some
+input and acts on it:
+
+.. _deferred: http://twistedmatrix.com/documents/current/core/howto/defer.html
+.. _`inline callbacks`: http://twistedmatrix.com/documents/8.1.0/api/twisted.internet.defer.html#inlineCallbacks
 
 .. code-block:: python
 
@@ -19,9 +33,8 @@ Many commands in alot make use of a construct called
         ui.notify('your name is: ' + name)
 
 
-
-:class:`UI`
----------------------
+:class:`UI` - the main component
+-----------------------------------
 
 .. module:: alot.ui
 .. autoclass:: UI
@@ -54,20 +67,23 @@ Different modes are defined by subclasses of the following base class.
 
 Available modes are:
 
-========== =================
+========== ========================================
    Mode     Buffer Subclass
-========== =================
+========== ========================================
 search     :class:`~alot.buffers.SearchBuffer`
 thread     :class:`~alot.buffers.ThreadBuffer`
 bufferlist :class:`~alot.buffers.BufferlistBuffer`
 taglist    :class:`~alot.buffers.TagListBuffer`
 envelope   :class:`~alot.buffers.EnvelopeBuffer`
-========== =================
-
+========== ========================================
 
 .. automodule:: alot.buffers
     :members: BufferlistBuffer, EnvelopeBuffer,SearchBuffer,ThreadBuffer,TagListBuffer
 
 Widgets
 --------
-non-standard urwid widgets used throughout alot
+What follows is a list of the non-standard urwid widgets used in alot.
+Some of them respect :doc:`user settings <settings>`, themes in particular.
+
+.. automodule:: alot.widgets
+    :members:

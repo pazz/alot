@@ -53,6 +53,22 @@ class CatchKeyWidgetWrap(urwid.WidgetWrap):
 
 
 class ThreadlineWidget(urwid.AttrMap):
+    """
+    selectable line widget that represents a :class:`~alot.db.Thread`
+    in the :class:`~alot.buffers.SearchBuffer`.
+
+    Respected settings:
+        * `general.display_content_in_threadline`
+        * `general.timestamp_format`
+        * `general.authors_maxlength`
+    Theme settings:
+        * `search_thread, search_thread_focus`
+        * `search_thread_date, search_thread_date_focus`
+        * `search_thread_mailcount, search_thread_mailcount_focus`
+        * `search_thread_authors, search_thread_authors_focus`
+        * `search_thread_subject, search_thread_subject_focus`
+        * `search_thread_content, search_thread_content_focus`
+    """
     def __init__(self, tid, dbman):
         self.dbman = dbman
         #logging.debug('tid: %s' % tid)
@@ -167,6 +183,11 @@ class ThreadlineWidget(urwid.AttrMap):
 
 
 class BufferlineWidget(urwid.Text):
+    """
+    selectable text widget that represents a :class:`~alot.buffers.Buffer`
+    in the :class:`~alot.buffers.BufferlistBuffer`.
+    """
+
     def __init__(self, buffer):
         self.buffer = buffer
         line = '[' + buffer.typename + '] ' + buffer.__str__()
@@ -183,6 +204,12 @@ class BufferlineWidget(urwid.Text):
 
 
 class TagWidget(urwid.AttrMap):
+    """
+    text widget that renders a tagstring.
+
+    It looks up the string it displays in the `tag-translate` section
+    of the config as well as custom theme settings for its tag.
+    """
     def __init__(self, tag):
         self.tag = tag
         self.translated = config.get('tag-translate', tag, fallback=tag)
@@ -299,7 +326,12 @@ class CompleteEdit(urwid.Edit):
 
 
 class MessageWidget(urwid.WidgetWrap):
-    """flow widget that displays a single message"""
+    """
+    Flow widget that renders a :class:`~alot.message.Message`.
+
+    Respected settings:
+        * `general.displayed_headers`
+    """
     #TODO: atm this is heavily bend to work nicely with ThreadBuffer to display
     #a tree structure. A better way would be to keep this widget simple
     #(subclass urwid.Pile) and use urwids new Tree widgets
@@ -453,23 +485,30 @@ class MessageWidget(urwid.WidgetWrap):
         return self.pile.keypress(size, key)
 
     def get_message(self):
-        """get contained message
-        returns: alot.db.Message"""
+        """get contained :class`~alot.message.Message`"""
         return self.message
 
     def get_email(self):
-        """get contained email
-        returns: email.Message"""
+        """get contained :class:`email <email.Message>`"""
         return self.message.get_email()
 
 
 class MessageSummaryWidget(urwid.WidgetWrap):
-    """a one line summary of a message"""
+    """
+    one line summary of a :class:`~alot.message.Message`.
+
+    Theme settings:
+        * `thread_summary_even`
+        * `thread_summary_odd`
+        * `thread_summary_focus`
+    """
 
     def __init__(self, message, even=True):
         """
-        :param message: the message to summarize
+        :param message: amessage
         :type message: alot.db.Message
+        :param even: even entry in a pile of messages? Used for theming.
+        :type even: bool
         """
         self.message = message
         self.even = even
@@ -498,6 +537,14 @@ class MessageSummaryWidget(urwid.WidgetWrap):
 
 
 class HeadersList(urwid.WidgetWrap):
+    """
+    renders a pile of header values as key/value list
+
+    Theme settings:
+        * `thread_header`
+        * `thread_header_key`
+        * `thread_header_value`
+    """
     def __init__(self, headerslist):
         self.headers = headerslist
         pile = urwid.Pile(self._build_lines(headerslist))
@@ -525,7 +572,12 @@ class HeadersList(urwid.WidgetWrap):
 
 
 class MessageBodyWidget(urwid.AttrMap):
-    """displays printable parts of an email"""
+    """
+    displays printable parts of an email
+
+    Theme settings:
+        * `thread_body`
+    """
 
     def __init__(self, msg):
         bodytxt = message.extract_body(msg)
@@ -533,6 +585,13 @@ class MessageBodyWidget(urwid.AttrMap):
 
 
 class AttachmentWidget(urwid.WidgetWrap):
+    """
+    one-line summary of an :class:`~alot.message.Attachment`.
+
+    Theme settings:
+        * `thread_attachment`
+        * `thread_attachment_focus`
+    """
     def __init__(self, attachment, selectable=True):
         self._selectable = selectable
         self.attachment = attachment
