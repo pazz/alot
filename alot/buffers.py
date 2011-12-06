@@ -5,7 +5,7 @@ import widgets
 import settings
 import commands
 from walker import PipeWalker
-from message import decode_header
+from helper import shorten_author_string
 
 
 class Buffer(object):
@@ -86,7 +86,8 @@ class EnvelopeBuffer(Buffer):
         Buffer.__init__(self, ui, self.body, 'envelope')
 
     def __str__(self):
-        return "to: %s" % decode_header(self.mail['To'])
+        to = self.envelope.get('To', fallback='unset')
+        return "to: %s" % shorten_author_string(to, 400)
 
     def get_email(self):
         return self.mail
