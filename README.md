@@ -46,5 +46,5 @@ The keybindings for the current mode are listet upon pressing '?'.
 
 [notmuch]: http://notmuchmail.org/
 [urwid]: http://excess.org/urwid/
-[api]: http://pazz.github.com/alot/
+[api]: http://alot.rtfd.org
 [wiki]: https://github.com/pazz/alot/wiki
