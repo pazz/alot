@@ -11,7 +11,6 @@ from alot.commands import Command, registerCommand
 from alot import settings
 from alot import helper
 from alot.message import decode_header
-from alot.message import encode_header
 from alot.commands import globals
 from alot.helper import string_decode
 
@@ -201,7 +200,7 @@ class EditCommand(Command):
 class SetCommand(Command):
     def __init__(self, key, value, append=False, **kwargs):
         self.key = key
-        self.value = encode_header(key, ' '.join(value))
+        self.value = ' '.join(value)
         self.append = append
         Command.__init__(self, **kwargs)
 

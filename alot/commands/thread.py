@@ -13,7 +13,6 @@ from alot import settings
 from alot import widgets
 from alot import completion
 from alot import helper
-from alot.message import encode_header
 from alot.message import decode_header
 from alot.message import extract_headers
 from alot.message import extract_body
@@ -61,7 +60,7 @@ class ReplyCommand(Command):
         subject = decode_header(mail.get('Subject', ''))
         if not subject.startswith('Re:'):
             subject = 'Re: ' + subject
-        envelope['Subject'] = Header(subject.encode('utf-8'), 'UTF-8').encode()
+        envelope['Subject'] = subject
 
         # set From
         my_addresses = ui.accountman.get_addresses()
@@ -77,7 +76,7 @@ class ReplyCommand(Command):
         if matched_address:
             account = ui.accountman.get_account_by_address(matched_address)
             fromstring = '%s <%s>' % (account.realname, account.address)
-            envelope['From'] = encode_header('From', fromstring)
+            envelope['From'] = fromstring
 
         # set To
         if self.groupreply:
@@ -85,19 +84,18 @@ class ReplyCommand(Command):
             if cleared:
                 logging.info(mail['From'] + ', ' + cleared)
                 to = mail['From'] + ', ' + cleared
-                envelope['To'] = encode_header('To', to)
-                logging.info(envelope['To'])
+                envelope['To'] = to
             else:
-                envelope['To'] = encode_header('To', mail['From'])
+                envelope['To'] = mail['From']
             # copy cc and bcc for group-replies
             if 'Cc' in mail:
                 cc = self.clear_my_address(my_addresses, mail['Cc'])
-                envelope['Cc'] = encode_header('Cc', cc)
+                envelope['Cc'] = cc
             if 'Bcc' in mail:
                 bcc = self.clear_my_address(my_addresses, mail['Bcc'])
-                envelope['Bcc'] = encode_header('Bcc', bcc)
+                envelope['Bcc'] = bcc
         else:
-            envelope['To'] = encode_header('To', mail['From'])
+            envelope['To'] = mail['From']
 
         # set In-Reply-To header
         envelope['In-Reply-To'] = '<%s>' % self.message.get_message_id()
@@ -172,7 +170,7 @@ class ForwardCommand(Command):
         # copy subject
         subject = decode_header(mail.get('Subject', ''))
         subject = 'Fwd: ' + subject
-        envelope['Subject'] = Header(subject.encode('utf-8'), 'UTF-8').encode()
+        envelope['Subject'] = subject
 
         # set From
         my_addresses = ui.accountman.get_addresses()
@@ -188,7 +186,7 @@ class ForwardCommand(Command):
         if matched_address:
             account = ui.accountman.get_account_by_address(matched_address)
             fromstring = '%s <%s>' % (account.realname, account.address)
-            envelope['From'] = encode_header('From', fromstring)
+            envelope['From'] = fromstring
         ui.apply_command(ComposeCommand(envelope=envelope))
 
 
