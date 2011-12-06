@@ -20,7 +20,6 @@ from alot import helper
 from alot.db import DatabaseLockedError
 from alot.completion import ContactsCompleter
 from alot.completion import AccountCompleter
-from alot.message import encode_header
 from alot.message import decode_header
 from alot.message import Envelope
 from alot import commands
@@ -432,19 +431,19 @@ class ComposeCommand(Command):
 
         # set forced headers
         for key, value in self.headers.items():
-            self.envelope.headers[key] = encode_header(key, value)
+            self.envelope.headers[key] = value
 
         # set forced headers for separate parameters
         if self.sender:
-            self.envelope['From'] = encode_header('From', self.sender)
+            self.envelope['From'] = self.sender
         if self.subject:
-            self.envelope['Subject'] = encode_header('Subject', self.subject)
+            self.envelope['Subject'] = self.subject
         if self.to:
-            self.envelope['To'] = encode_header('To', ','.join(self.to))
+            self.envelope['To'] = ','.join(self.to)
         if self.cc:
-            self.envelope['Cc'] = encode_header('Cc', ','.join(self.cc))
+            self.envelope['Cc'] = ','.join(self.cc)
         if self.bcc:
-            self.envelope['Bcc'] = encode_header('Bcc', ','.join(self.bcc))
+            self.envelope['Bcc'] = ','.join(self.bcc)
 
         # get missing From header
         if not 'From' in self.envelope.headers:
@@ -452,7 +451,7 @@ class ComposeCommand(Command):
             if len(accounts) == 1:
                 a = accounts[0]
                 fromstring = "%s <%s>" % (a.realname, a.address)
-                self.envelope['From'] = encode_header('From', fromstring)
+                self.envelope['From'] = fromstring
             else:
                 cmpl = AccountCompleter(ui.accountman)
                 fromaddress = yield ui.prompt(prefix='From>', completer=cmpl,
@@ -463,7 +462,7 @@ class ComposeCommand(Command):
                 a = ui.accountman.get_account_by_address(fromaddress)
                 if a is not None:
                     fromstring = "%s <%s>" % (a.realname, a.address)
-                    self.envelope['From'] = encode_header('From', fromstring)
+                    self.envelope['From'] = fromstring
                 else:
                     self.envelope.headers['From'] = fromaddress
 
@@ -484,14 +483,15 @@ class ComposeCommand(Command):
             if to == None:
                 ui.notify('canceled')
                 return
-            self.envelope.headers['To'] = encode_header('to', to)
+            self.envelope.headers['To'] = to
         if settings.config.getboolean('general', 'ask_subject') and \
            not 'Subject' in self.envelope.headers:
             subject = yield ui.prompt(prefix='Subject>')
+            ui.logger.debug('SUBJECT: "%s"' % subject)
             if subject == None:
                 ui.notify('canceled')
                 return
-            self.envelope['Subject'] = encode_header('subject', subject)
+            self.envelope['Subject'] = subject
         cmd = commands.envelope.EditCommand(envelope=self.envelope)
         ui.apply_command(cmd)
 

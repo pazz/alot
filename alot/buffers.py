@@ -120,7 +120,7 @@ class EnvelopeBuffer(Buffer):
         lines = []
         for (k, v) in self.envelope.headers.items():
             if (k not in hidden) or self.all_headers:
-                lines.append((k, decode_header(v)))
+                lines.append((k, v))
 
         self.header_wgt = widgets.HeadersList(lines)
         displayed_widgets.append(self.header_wgt)
