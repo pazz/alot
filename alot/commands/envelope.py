@@ -62,7 +62,7 @@ class SendCommand(Command):
     def apply(self, ui):
         currentbuffer = ui.current_buffer  # needed to close later
         envelope = currentbuffer.envelope
-        frm = envelope.get('From', decode=True)
+        frm = envelope.get('From')
         sname, saddr = email.Utils.parseaddr(frm)
         omit_signature = False
 

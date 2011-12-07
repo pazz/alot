@@ -435,11 +435,9 @@ class Envelope(object):
     def __delitem__(self, name):
         del(self.headers[name])
 
-    def get(self, key, decode=False, fallback=None):
+    def get(self, key, fallback=None):
         if key in self.headers:
             value = self.headers[key]
-            if decode:
-                value = decode_header(value)
         else:
             value = fallback
         return value
