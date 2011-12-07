@@ -87,3 +87,10 @@ Some of them respect :doc:`user settings <settings>`, themes in particular.
 
 .. automodule:: alot.widgets
     :members:
+
+Completion
+----------
+TODO: doc :mod:`alot.completion`
+
+.. automodule:: alot.completion
+    :members:

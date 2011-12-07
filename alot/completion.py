@@ -7,6 +7,7 @@ import alot.commands as commands
 
 
 class Completer(object):
+    """base class for completers"""
     def complete(self, original, pos):
         """returns a list of completions and cursor positions for the
         string original from position pos on.
@@ -14,8 +15,8 @@ class Completer(object):
         :param original: the complete string to complete
         :type original: str
         :param pos: starting position to complete from
-        :returns: a list of tuples (ctext, cpos), where ctext is the completed
-                  string and cpos the cursor position in the new string
+        :returns: pairs of completed string and cursor position in the new string
+        :rtype: list of (str, int)
         """
         return list()
 
