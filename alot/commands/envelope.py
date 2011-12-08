@@ -10,7 +10,6 @@ from alot import buffers
 from alot.commands import Command, registerCommand
 from alot import settings
 from alot import helper
-from alot.message import decode_header
 from alot.commands import globals
 from alot.helper import string_decode
 
@@ -52,10 +51,7 @@ class RefineCommand(Command):
         self.key = key
 
     def apply(self, ui):
-        #TODO: get value from envelope, not mail!
-        # -> obsoletes EnvelopeBuffer.get_email
-        mail = ui.current_buffer.get_email()
-        value = decode_header(mail.get(self.key, ''))
+        value = ui.current_buffer.envelope.get(self.key, '')
         cmdstring = 'set %s %s' % (self.key, value)
         ui.apply_command(globals.PromptCommand(cmdstring))
 
@@ -66,7 +62,7 @@ class SendCommand(Command):
     def apply(self, ui):
         currentbuffer = ui.current_buffer  # needed to close later
         envelope = currentbuffer.envelope
-        frm = envelope.get('From', decode=True)
+        frm = envelope.get('From')
         sname, saddr = email.Utils.parseaddr(frm)
         omit_signature = False
 
@@ -170,7 +166,7 @@ class EditCommand(Command):
         # decode header
         headertext = u''
         for key in edit_headers:
-            value = decode_header(self.envelope.headers.get(key, ''))
+            value = self.envelope.headers.get(key, '')
             headertext += '%s: %s\n' % (key, value)
 
         bodytext = self.envelope.body
