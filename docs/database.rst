@@ -19,24 +19,37 @@ postpone/cache/retry writing operations in case the Xapian index is locked by an
 process.
 
 
-:class:`DBManager`
----------------------------
+Database Manager
+-----------------
 .. autoclass:: DBManager
    :members:
 
-:class:`Thread`
----------------------------
+
+Exceptions
+----------
+.. autoclass:: DatabaseError
+   :members:
+.. autoclass:: DatabaseROError
+   :members:
+.. autoclass:: DatabaseLockedError
+   :members:
+
+Wrapper
+-------
 .. autoclass:: Thread
    :members:
 
 .. module:: alot.message
 
-:class:`Message`
----------------------------
 .. autoclass:: Message
    :members:
 
-:class:`Attachment`
+
+Other Structures
 ---------------------------
+
 .. autoclass:: Attachment
+   :members:
+
+.. autoclass:: Envelope
    :members:

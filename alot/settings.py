@@ -8,21 +8,34 @@ from ConfigParser import SafeConfigParser
 
 
 class FallbackConfigParser(SafeConfigParser):
+    """:class:`~ConfigParser.SafeConfigParser` that allows fallback values"""
     def __init__(self):
         SafeConfigParser.__init__(self)
         self.optionxform = lambda x: x
 
     def get(self, section, option, fallback=None, *args, **kwargs):
+        """get a config option
+
+        :param fallback: the value to fall back if option undefined
+        :type fallback: str
+
+        .. seealso::
+
+            :meth:`ConfigParser.SafeConfigParser.get`
+        """
+
         if SafeConfigParser.has_option(self, section, option):
             return SafeConfigParser.get(self, section, option, *args, **kwargs)
         return fallback
 
     def getstringlist(self, section, option, **kwargs):
+        """directly parses a config value into a list of strings"""
         value = self.get(section, option, **kwargs)
         return [s.strip() for s in value.split(',') if s.strip()]
 
 
 class AlotConfigParser(FallbackConfigParser):
+    """:class:`FallbackConfigParser` for alots config."""
     def __init__(self):
         FallbackConfigParser.__init__(self)
         self.hooks = None
@@ -59,6 +72,12 @@ class AlotConfigParser(FallbackConfigParser):
                     self.set(section, key, value)
 
     def get_palette(self):
+        """parse the sections '1c-theme', '16c-theme' and '256c-theme'
+        into an urwid compatible coulour palette.
+
+        :returns: a palette
+        :rtype: list
+        """
         mode = self.getint('general', 'colourmode')
         ms = "%dc-theme" % mode
         names = self.options(ms)
@@ -81,6 +100,15 @@ class AlotConfigParser(FallbackConfigParser):
         return p
 
     def get_tagattr(self, tag, focus=False):
+        """
+        look up attribute string to use for a given tagstring
+
+        :param tag: tagstring to look up
+        :type tag: str
+        :param focus: return the 'focussed' attribute
+        :type focus: bool
+        """
+
         mode = self.getint('general', 'colourmode')
         base = 'tag_%s' % tag
         if mode == 2:
@@ -107,6 +135,15 @@ class AlotConfigParser(FallbackConfigParser):
         return 'tag'
 
     def get_mapping(self, mode, key):
+        """look up keybiding from `MODE-maps` sections
+
+        :param mode: mode identifier
+        :type mode: str
+        :param key: urwid-style key identifier
+        :type key: str
+        :returns: a command line to be applied upon keypress
+        :rtype: str
+        """
         cmdline = self.get(mode + '-maps', key)
         if not cmdline:
             cmdline = self.get('global-maps', key)
@@ -114,7 +151,13 @@ class AlotConfigParser(FallbackConfigParser):
 
 
 class HookManager(object):
+    """can look up user defined hook code"""
     def setup(self, hooksfile):
+        """read callables from `hooksfile`.
+
+        :param hooksfile: path to a file containing python source
+        :type hooksfile: str
+        """
         hf = os.path.expanduser(hooksfile)
         if os.path.isfile(hf):
             try:
@@ -125,6 +168,8 @@ class HookManager(object):
             self.module = {}
 
     def get(self, key):
+        """return hook (`callable`) identified by `key`"""
+        #TODO: return None if undefined instead of raising a keyError
         if self.module:
             if key in self.module.__dict__:
                 return self.module.__dict__[key]
@@ -142,6 +187,19 @@ mailcaps = mailcap.getcaps()
 
 
 def get_mime_handler(mime_type, key='view', interactive=True):
+    """
+    get shellcomand defined in the users `mailcap` as handler for files of given
+    `mime_type`.
+
+    :param mime_type: file type as extracted :meth:`email.Message.get_content_type`
+    :type mime_type: str
+    :param key: identifies one of possibly many commands for this type by naming
+                the intended usage, e.g. 'edit' or 'view'. Defaults to 'view'.
+    :type key: str
+    :param interactive: choose the "interactive session" handler rather than the
+                        "print to stdout and immediately return" handler
+    :type interactive: bool
+    """
     if interactive:
         mc_tuple = mailcap.findmatch(mailcaps,
                                      mime_type,

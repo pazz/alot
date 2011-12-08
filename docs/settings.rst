@@ -3,10 +3,13 @@ Accessing User Settings
 
 .. module:: alot.settings
 
-There are three types of user settings: notmuchs and alot's config
-files and the hooks-file for user provided python code.
-Alot sets up :class:`Configparser.ConfigParser` objects for the first two
-and a :class:`HookManager` object to access hooks:
+There are four types of user settings: notmuchs and alot's config
+files, the hooks-file for user provided python code and the mailcap,
+defining shellcomands as handlers for files of certain mime types.
+
+Mime handler can be looked up using :func:`alot.settings.get_mime_handler`.
+Alot sets up :class:`FallbackConfigParser` objects to access the configs
+of alot and notmuch` and a :class:`HookManager` object to access hooks.
 
 +----------------+-----------------------------------+------------------------------+
 |     What       |            accessible via         |             Type             |
@@ -15,20 +18,41 @@ and a :class:`HookManager` object to access hooks:
 +----------------+-----------------------------------+------------------------------+
 | notmuch config | :obj:`alot.settings.notmuchconfig`| :class:`FallbackConfigParser`|
 +----------------+-----------------------------------+------------------------------+
-| hooks          | :obj:`alot.settings.hooks`        | :class:`HooksManager`        |
+| hooks          | :obj:`alot.settings.hooks`        | :class:`HookManager`         |
 +----------------+-----------------------------------+------------------------------+
 
 Through these objects you can access user settings (or their default values
-if unset) in the following manner:
+if unset) in the following manner::
 
-.. code-block:: python
+    from alot.settings import config, notmuchconfig
 
-    from alot.settings import config
+    # alot config
+    >>> config.getint('general', 'notify_timeout')
+    5
+    >>> config.getboolean('general', 'show_statusbar')
+    True
+    >>> config.getstringlist('general', 'displayed_headers')
+    [u'From', u'To', u'Cc', u'Bcc', u'Subject']
 
-    timeout_int = config.getint('general', 'notify_timeout')
-    showbar_bool = config.getboolean('general', 'show_statusbar')
-    header_list = config.getstringlist('general', 'displayed_headers')
+    # notmuch config
+    >>> notmuchconfig.get('user', 'primary_email')
+    'patricktotzke@gmail.com'
+    >>> notmuchconfig.getboolean('maildir', 'synchronize_flags')
+    True
 
-    
-.. automodule:: alot.settings
-  :members:
+Hooks can be looked up using :meth:`~HookManager.get` of :obj:`alot.settings.hooks`.
+They are user defined callables that expect to be called with the following parameters:
+
+  :ui: :class:`~alot.ui.UI` -- the initialized main component
+  :dbm: :class:`~alot.db.DBManager` -- :obj:`ui.dbman`
+  :aman: :class:`~alot.account.AccountManager` -- :obj:`ui.accountman`
+  :log: :class:`~logging.Logger` -- :obj:`ui.logger`
+  :config: :class:`AlotConfigParser` :obj:`alot.settings.config`
+
+.. autoclass:: FallbackConfigParser
+    :members:
+.. autoclass:: AlotConfigParser
+    :members:
+.. autoclass:: HookManager
+    :members:
+.. autofunction:: get_mime_handler

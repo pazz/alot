@@ -405,7 +405,7 @@ class Attachment(object):
 
 
 class Envelope(object):
-    """data structure to be manipulated in :class:`buffer.Envelope`"""
+    """a message that is not yet sent and still editable"""
     def __init__(self, template=None, bodytext=u'', headers={}, attachments=[],
             sign=False, encrypt=False):
         assert isinstance(bodytext, unicode)
@@ -448,7 +448,7 @@ class Envelope(object):
         """
         attach a file
 
-        :param path: (`glob`able) path of the file(s) to attach.
+        :param path: (globable) path of the file(s) to attach.
         :type path: str
         :param filename: filename to use in content-disposition.
                          Will be ignored if `path` matches multiple files
