@@ -29,7 +29,9 @@ Current features include:
 
 Soonish to be addressed non-features:
 -------------------------------------
- * encryption/decryption for messages
+ * encryption/decryption for messages (see branch `gnupg`)
+ * live search results (see branch `live`)
+ * search for message (see branch `messagesmode`)
  * search for strings in displayed buffer
  * folding for message parts
  * undo for commands
