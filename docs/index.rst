@@ -12,9 +12,9 @@ Moreover, it integrates different "managers" responsible for core functionalitie
 * a :class:`~settings.AlotConfigParser` (subclasses :class:`configparser.ConfigParser`) for user settings
 * a :class:`~settings.HookManager` to load custom python code to be used as hooks
 
-All user actions, triggered either by keybindings or the prompt, are given as commandline strings
-that are translated into :class:`commands.Command` objects by
-:func:`commands.commandfactory` and applied by :meth:`ui.UI.apply_command`.
+Every user action, triggered either by keybindings or as input to the commandprompt, is
+given as commandline string that gets :func:`translated <commands.commandfactory>`
+to a :class:`~commands.Command` which is then :meth:`applied <ui.UI.apply_command>`.
 Different actions are defined as a subclasses of :class:`~commands.Command`, which live
 in `alot/commands/MODE.py`, where MODE is the name of the mode (:class:`Buffer` type) they
 are used in.

@@ -511,7 +511,7 @@ class MessageSummaryWidget(urwid.WidgetWrap):
 
     def __init__(self, message, even=True):
         """
-        :param message: amessage
+        :param message: a message
         :type message: alot.db.Message
         :param even: even entry in a pile of messages? Used for theming.
         :type even: bool

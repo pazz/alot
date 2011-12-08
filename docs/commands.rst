@@ -3,6 +3,15 @@ Commands
 
 .. module:: alot.commands
 .. autoclass:: Command
+    :members:
+    
+.. autoclass:: CommandParseError
+.. autoclass:: CommandArgumentParser
+.. autofunction:: commandfactory
+.. autofunction:: lookup_command
+.. autofunction:: lookup_parser
+.. autoclass:: registerCommand
+
 
 Globals
 --------

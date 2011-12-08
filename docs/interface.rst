@@ -45,6 +45,7 @@ input and acts on it:
     .. autoattribute:: logger
     .. autoattribute:: accountman
 
+    .. automethod:: apply_command
     .. automethod:: prompt
     .. automethod:: choice
     .. automethod:: notify

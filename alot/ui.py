@@ -433,6 +433,15 @@ class UI(object):
         return urwid.AttrMap(columns, 'global_footer')
 
     def apply_command(self, cmd):
+        """
+        applies a command
+
+        This calls the pre and post hooks attached to the command,
+        as well as :meth:`cmd.apply`.
+
+        :param cmd: an applicable command
+        :type cmd: :class:`~alot.commands.Command`
+        """
         if cmd:
             if cmd.prehook:
                 self.logger.debug('calling pre-hook')
