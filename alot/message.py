@@ -408,6 +408,18 @@ class Envelope(object):
     """a message that is not yet sent and still editable"""
     def __init__(self, template=None, bodytext=u'', headers={}, attachments=[],
             sign=False, encrypt=False):
+        """
+        :param template: if not None, the envelope will be initialised by
+                         :meth:`parsing <parse_template>` this string before
+                         setting any other values given to this constructor.
+        :type template: str
+        :param bodytext: text used as body part
+        :type bodytext: str
+        :param headers: unencoded header values
+        :type headers: dict (str -> unicode)
+        :param attachments: file attachments to include
+        :type attachments: list of :class:`Attachment`
+        """
         assert isinstance(bodytext, unicode)
         self.headers = {}
         self.body = None
@@ -424,18 +436,27 @@ class Envelope(object):
         self.encrypt = encrypt
 
     def __str__(self):
-        return "DMAIL %s %s" % (self.headers, self.body)
+        return "Envelope (%s)\n%s" % (self.headers, self.body)
 
     def __setitem__(self, name, val):
+        """setter for header values. this allows adding header like so:
+
+        >>> envelope['Subject'] = u'sm\xf8rebr\xf8d'
+        """
         self.headers[name] = val
 
     def __getitem__(self, name):
+        """getter for header values.
+        :raises: KeyError if undefined
+        """
         return self.headers[name]
 
     def __delitem__(self, name):
         del(self.headers[name])
 
     def get(self, key, fallback=None):
+        """secure getter for header values that allows specifying a `fallback`
+        return string (defaults to None). This doesn't raise KeyErrors"""
         if key in self.headers:
             value = self.headers[key]
         else:
@@ -458,6 +479,10 @@ class Envelope(object):
         self.attachments.append(part)
 
     def construct_mail(self):
+        """
+        compiles the information contained in this envelope into a
+        :class:`email.Message`.
+        """
         textpart = MIMEText(self.body.encode('utf-8'), 'plain', 'utf-8')
         if self.attachments or self.sign or self.encrypt:
             msg = MIMEMultipart()
@@ -472,6 +497,11 @@ class Envelope(object):
         return msg
 
     def parse_template(self, tmp):
+        """parses a template or user edited string to fills this envelope.
+
+        :param tmp: the string to parse.
+        :type tmp: str
+        """
         logging.debug('GoT: """\n%s\n"""' % tmp)
         m = re.match('(?P<h>([a-zA-Z0-9_-]+:.+\n)*)(?P<b>(\s*.*)*)', tmp)
         assert m
