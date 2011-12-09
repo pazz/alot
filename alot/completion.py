@@ -12,7 +12,7 @@ class Completer(object):
         """returns a list of completions and cursor positions for the
         string original from position pos on.
 
-        :param original: the complete string to complete
+        :param original: the string to complete
         :type original: str
         :param pos: starting position to complete from
         :returns: pairs of completed string and cursor position in the new string
@@ -21,8 +21,8 @@ class Completer(object):
         return list()
 
     def relevant_part(self, original, pos, sep=' '):
-        """calculates the subword in a sep-splitted list of original
-        that pos is in"""
+        """calculates the subword in a `sep`-splitted list of substrings of `original`
+        that `pos` is ia.n"""
         start = original.rfind(sep, 0, pos) + 1
         end = original.find(sep, pos - 1)
         if end == -1:
@@ -33,6 +33,13 @@ class Completer(object):
 class QueryCompleter(Completer):
     """completion for a notmuch query string"""
     def __init__(self, dbman, accountman):
+        """
+        :param dbman: used to look up avaliable tagstrings
+        :type dbman: :class:`~alot.db.DBManager`
+        :param accountman: used to look up known addresses to complete 'from'
+                           and 'to' queries
+        :type accountman: :class:`~alot.account.AccountManager`
+        """
         self.dbman = dbman
         abooks = accountman.get_addressbooks()
         self._contactscompleter = ContactsCompleter(abooks, addressesonly=True)
@@ -72,6 +79,10 @@ class TagsCompleter(Completer):
     """completion for a comma separated list of tagstrings"""
 
     def __init__(self, dbman):
+        """
+        :param dbman: used to look up avaliable tagstrings
+        :type dbman: :class:`~alot.db.DBManager`
+        """
         self.dbman = dbman
 
     def complete(self, original, pos, single_tag=True):
@@ -97,6 +108,13 @@ class TagsCompleter(Completer):
 class ContactsCompleter(Completer):
     """completes contacts"""
     def __init__(self, abooks, addressesonly=False):
+        """
+        :param abooks: used to look up email addresses
+        :type abooks: list of :class:`~alot.account.AddresBook`
+        :param addressesonly: only insert address, not the realname of the
+                              contact
+        :type addressesonly: bool
+        """
         self.abooks = abooks
         self.addressesonly = addressesonly
 
@@ -118,9 +136,13 @@ class ContactsCompleter(Completer):
 
 
 class AccountCompleter(Completer):
-    """completes own mailaddresses"""
+    """completes users' own mailaddresses"""
 
     def __init__(self, accountman):
+        """
+        :param accountman: used to look up the list of addresses
+        :type accountman: :class:`~alot.account.AccountManager`
+        """
         self.accountman = accountman
 
     def complete(self, original, pos):
@@ -133,6 +155,10 @@ class CommandCompleter(Completer):
     """completes commands"""
 
     def __init__(self, dbman, mode):
+        """
+        :param mode: mode identifier
+        :type mode: str
+        """
         self.dbman = dbman
         self.mode = mode
 
@@ -150,6 +176,15 @@ class CommandLineCompleter(Completer):
     """completion for commandline"""
 
     def __init__(self, dbman, accountman, mode):
+        """
+        :param dbman: used to look up avaliable tagstrings
+        :type dbman: :class:`~alot.db.DBManager`
+        :param accountman: used to look up known addresses to complete 'from'
+                           and 'to' queries
+        :type accountman: :class:`~alot.account.AccountManager`
+        :param mode: mode identifier
+        :type mode: str
+        """
         self.dbman = dbman
         self.accountman = accountman
         self.mode = mode
