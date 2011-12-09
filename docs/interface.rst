@@ -91,7 +91,20 @@ Some of them respect :doc:`user settings <settings>`, themes in particular.
 
 Completion
 ----------
-TODO: doc :mod:`alot.completion`
+
+:meth:`alot.ui.UI.prompt` allows tab completion using a :class:`~alot.completion.Completer`
+object handed as 'completer' parameter. :mod:`alot.completion` defines several
+subclasses for different occasions like completing email addresses from an
+:class:`~alot.account.AddressBook`, notmuch tagstrings. Some of these actually build on top 
+of each other; the :class:`~alot.completion.QueryCompleter` for example uses a
+:class:`~alot.completion.TagsCompleter` internally to allow tagstring completion after
+"is:" or "tag:" keywords when typing a notmuch querystring.
+
+All these classes overide the method :class:`~alot.completion.Completer.complete`, which
+for a given string and cursor position in that string returns
+a list of tuples `(completed_string, new_cursor_position)` that are taken to be
+the completed values. Note that `completed_string` does not need to have the original
+string as prefix.
 
 .. automodule:: alot.completion
     :members:

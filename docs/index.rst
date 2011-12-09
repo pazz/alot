@@ -10,7 +10,6 @@ Moreover, it integrates different "managers" responsible for core functionalitie
 * a :class:`~db.DBManager` to access the email database
 * an :class:`~account.AccountManager` to deal with user accounts
 * a :class:`~settings.AlotConfigParser` (subclasses :class:`configparser.ConfigParser`) for user settings
-* a :class:`~settings.HookManager` to load custom python code to be used as hooks
 
 Every user action, triggered either by keybindings or as input to the commandprompt, is
 given as commandline string that gets :func:`translated <commands.commandfactory>`

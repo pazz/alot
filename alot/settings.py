@@ -16,12 +16,12 @@ class FallbackConfigParser(SafeConfigParser):
     def get(self, section, option, fallback=None, *args, **kwargs):
         """get a config option
 
+        :param section: section name
+        :type section: str
+        :param option: option key
+        :type option: str
         :param fallback: the value to fall back if option undefined
         :type fallback: str
-
-        .. seealso::
-
-            :meth:`ConfigParser.SafeConfigParser.get`
         """
 
         if SafeConfigParser.has_option(self, section, option):
