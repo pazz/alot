@@ -75,7 +75,8 @@ class registerCommand(object):
         self.arguments = arguments
 
     def __call__(self, klass):
-        argparser = CommandArgumentParser(description=self.help,
+        helpstring = self.help or klass.__doc__
+        argparser = CommandArgumentParser(description=helpstring,
                                           usage=self.usage,
                                           prog=self.name, add_help=False)
         for args, kwargs in self.arguments:
