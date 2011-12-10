@@ -190,7 +190,7 @@ class BufferlineWidget(urwid.Text):
 
     def __init__(self, buffer):
         self.buffer = buffer
-        line = '[' + buffer.typename + '] ' + buffer.__str__()
+        line = buffer.__str__()
         urwid.Text.__init__(self, line, wrap='clip')
 
     def selectable(self):

@@ -16,9 +16,7 @@ class Buffer(object):
         self.body = widget
 
     def __str__(self):
-        # TODO rename this: its used to display this buffer
-        # in the buffer list and gets displayed in the footer
-        return self.typename
+        return '[%s]' % self.typename
 
     def render(self, size, focus=False):
         return self.body.render(size, focus)
@@ -100,7 +98,7 @@ class EnvelopeBuffer(Buffer):
 
     def __str__(self):
         to = self.envelope.get('To', fallback='unset')
-        return "to: %s" % shorten_author_string(to, 400)
+        return '[%s] to: %s' % (self.typename, shorten_author_string(to, 400))
 
     def get_email(self):
         """returns message represented as :class:`email.Message`"""
@@ -162,7 +160,8 @@ class SearchBuffer(Buffer):
         Buffer.__init__(self, ui, self.body, 'search')
 
     def __str__(self):
-        return '%s (%d threads)' % (self.querystring, self.result_count)
+        formatstring = '[search] for "%s" (%d threads)'
+        return formatstring % (self.querystring, self.result_count)
 
     def cleanup(self):
         self.kill_filler_process()
@@ -234,7 +233,7 @@ class ThreadBuffer(Buffer):
         Buffer.__init__(self, ui, self.body, 'thread')
 
     def __str__(self):
-        return '%s, (%d)' % (self.thread.get_subject(), self.message_count)
+        return '[thread] %s, (%d)' % (self.thread.get_subject(), self.message_count)
 
     def get_selected_thread(self):
         """returns the displayed :class:`~alot.db.Thread`"""

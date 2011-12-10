@@ -419,8 +419,7 @@ class UI(object):
     def build_statusbar(self):
         """construct and return statusbar widget"""
         idx = self.buffers.index(self.current_buffer)
-        lefttxt = '%d: [%s] %s' % (idx, self.current_buffer.typename,
-                                   self.current_buffer)
+        lefttxt = '%d: %s' % (idx, self.current_buffer)
         footerleft = urwid.Text(lefttxt, align='left')
         righttxt = 'total messages: %d' % self.dbman.count_messages('*')
         pending_writes = len(self.dbman.writequeue)
