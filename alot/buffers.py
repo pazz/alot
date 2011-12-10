@@ -100,11 +100,6 @@ class EnvelopeBuffer(Buffer):
         #todo: obsolete?
         return self.mail
 
-    def set_email(self, mail):
-        #TODO obsolete. never used.
-        self.mail = mail
-        self.rebuild()
-
     def rebuild(self):
         self.mail = self.envelope.construct_mail()
         displayed_widgets = []
