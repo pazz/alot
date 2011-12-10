@@ -22,15 +22,15 @@ MODE = 'thread'
 
 
 @registerCommand(MODE, 'reply', arguments=[
-    (['--all'], {'action':'store_true', 'help':'reply to all'})],
-    help='reply to currently selected message')
+    (['--all'], {'action':'store_true', 'help':'reply to all'})])
 class ReplyCommand(Command):
+    """reply to message"""
     def __init__(self, message=None, all=False, **kwargs):
         """
-        :param message: the original message to reply to
+        :param message: message to reply to (defaults to selected message)
         :type message: `alot.message.Message`
-        :param groupreply: copy other recipients from Bcc/Cc/To to the reply
-        :type groupreply: bool
+        :param all: group reply; copies recipients from Bcc/Cc/To to the reply
+        :type all: bool
         """
         self.message = message
         self.groupreply = all
@@ -123,13 +123,12 @@ class ReplyCommand(Command):
 
 
 @registerCommand(MODE, 'forward', arguments=[
-    (['--attach'], {'action':'store_true', 'help':'attach original mail'})],
-    help='forward currently selected message')
+    (['--attach'], {'action':'store_true', 'help':'attach original mail'})])
 class ForwardCommand(Command):
+    """forward message"""
     def __init__(self, message=None, attach=True, **kwargs):
         """
-        :param message: the original message to forward. If None, the currently
-                        selected one is used
+        :param message: message to forward (defaults to selected message)
         :type message: `alot.message.Message`
         :param attach: attach original mail instead of inline quoting its body
         :type attach: bool
@@ -197,7 +196,14 @@ class ForwardCommand(Command):
     (['--all'], {'action': 'store_true', 'help':'unfold all messages'})],
     help='unfold message(s)')
 class FoldMessagesCommand(Command):
+    """fold or unfold messages"""
     def __init__(self, all=False, visible=None, **kwargs):
+        """
+        :param all: toggle all, not only selected message
+        :type all: bool
+        :param visible: unfold if `True`, fold if `False`
+        :type visible: bool
+        """
         self.all = all
         self.visible = visible
         Command.__init__(self, **kwargs)
@@ -222,9 +228,9 @@ class FoldMessagesCommand(Command):
                 widget.fold(visible=False)
 
 
-@registerCommand(MODE, 'toggleheaders',
-                help='toggle display of all headers')
+@registerCommand(MODE, 'toggleheaders')
 class ToggleHeaderCommand(Command):
+    """toggle display of all headers"""
     def apply(self, ui):
         try:
             msgw = ui.current_buffer.get_selection()
@@ -242,11 +248,31 @@ class ToggleHeaderCommand(Command):
                     'help':'only pass message ids'}),
     (['--separately'], {'action': 'store_true',
                         'help':'call command once for each message'})],
-    help='pipe message(s) to stdin of a shellcommand')
+)
 class PipeCommand(Command):
+    """pipe message(s) to stdin of a shellcommand"""
+    #TODO: make cmd a list
+    #TODO: use raw arg from print command here
     def __init__(self, cmd, all=False, ids=False, separately=False,
                  decode=True, noop_msg='no command specified', confirm_msg='',
                  done_msg='done', **kwargs):
+        """
+        :param cmd: shellcommand to open
+        :type cmd: str
+        :param all: pipe all, not only selected message
+        :type all: bool
+        :param ids: only write message ids, not the message source
+        :type ids: bool
+        :param separately: call command once per message
+        :type separately: bool
+        :param noop_msg: error notification to show if `cmd` is empty
+        :type noop_msg: str
+        :param confirm_msg: confirmation question to ask (continues directly if
+                            unset)
+        :type confirm_msg: str
+        :param done_msg: notification message to show upon success
+        :type done_msg: str
+        """
         Command.__init__(self, **kwargs)
         self.cmd = cmd
         self.whole_thread = all
@@ -314,9 +340,18 @@ class PipeCommand(Command):
     (['--raw'], {'action': 'store_true', 'help':'pass raw mail string'}),
     (['--separately'], {'action': 'store_true',
                         'help':'call print command once for each message'})],
-    help='print message(s)')
+)
 class PrintCommand(PipeCommand):
+    """print message(s)"""
     def __init__(self, all=False, separately=False, raw=False, **kwargs):
+        """
+        :param all: print all, not only selected messages
+        :type all: bool
+        :param separately: call print command once per message
+        :type separately: bool
+        :param separately: pipe raw message string to print command
+        :type separately: bool
+        """
         # get print command
         cmd = settings.config.get('general', 'print_cmd', fallback='')
 
@@ -340,10 +375,17 @@ class PrintCommand(PipeCommand):
 
 @registerCommand(MODE, 'save', arguments=[
     (['--all'], {'action': 'store_true', 'help':'save all attachments'}),
-    (['path'], {'nargs':'?', 'help':'path to save to'})],
-    help='save attachment(s)')
+    (['path'], {'nargs':'?', 'help':'path to save to'})])
 class SaveAttachmentCommand(Command):
+    """save attachment(s)"""
     def __init__(self, all=False, path=None, **kwargs):
+        """
+        :param all: save all, not only selected attachment
+        :type all: bool
+        :param path: path to write to. if `all` is set, this must be a
+                     directory.
+        :type path: str
+        """
         Command.__init__(self, **kwargs)
         self.all = all
         self.path = path
@@ -395,6 +437,10 @@ class SaveAttachmentCommand(Command):
 class OpenAttachmentCommand(Command):
     """displays an attachment according to mailcap"""
     def __init__(self, attachment, **kwargs):
+        """
+        :param attachment: attachment to open
+        :type attachment: :class:`~alot.message.Attachment`
+        """
         Command.__init__(self, **kwargs)
         self.attachment = attachment
 
@@ -428,6 +474,9 @@ class OpenAttachmentCommand(Command):
 
 @registerCommand(MODE, 'select')
 class ThreadSelectCommand(Command):
+    """select focussed element. The fired action depends on the focus:
+        - if message summary, this toggles visibility of the message,
+        - if attachment line, this opens the attachment"""
     def apply(self, ui):
         focus = ui.get_deep_focus()
         if isinstance(focus, widgets.MessageSummaryWidget):
