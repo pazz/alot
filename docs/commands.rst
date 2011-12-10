@@ -3,10 +3,12 @@ Commands
 
 .. module:: alot.commands
 
-User actions are given as alot commandline strings that get interpreted
-by :func:`commandfactory` which returns a :class:`Command` object
-representing the action. Commands can then be triggered by
+User actions are represented by :class:`Command` objects that can then be triggered by
 :meth:`alot.ui.UI.apply_command`.
+Commandline strings given by the user via the prompt or keybindings can be translated to
+:class:`Command` objects using :func:`alot.commands.commandfactory`.
+Specific actions are defined as subclasses of :class:`Command` and can be registered
+to a global command pool using the :class:`registerCommand` decorator.
 
 .. Note:: 
 
@@ -15,13 +17,10 @@ representing the action. Commands can then be triggered by
     The mode identifier is a string that is uniquely defined by the currently focussed
     :class:`~alot.buffers.Buffer`.
 
-Specific actions are defined as subclasses of :class:`Command` and can be registered
-to a global command pool using the :class:`registerCommand` decorator.
-
 .. note::
 
     The names of the commands available to the user in any given mode do not correspond
-    one-to-one to these subclasses. You canregister a Command multiple times under different
+    one-to-one to these subclasses. You can register a Command multiple times under different
     names, with different forced constructor parameters and so on. See for instance the
     definition of BufferFocusCommand in 'commands/globals.py'::
 
@@ -30,6 +29,7 @@ to a global command pool using the :class:`registerCommand` decorator.
         @registerCommand(MODE, 'bnext', forced={'offset': +1},
                          help='focus next buffer')
         class BufferFocusCommand(Command):
+            def __init__(self, buffer=None, offset=0, **kwargs):
             ...
 
 .. autoclass:: Command
