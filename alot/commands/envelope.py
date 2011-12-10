@@ -17,10 +17,15 @@ from alot.helper import string_decode
 MODE = 'envelope'
 
 
-@registerCommand(MODE, 'attach', help='attach files to the mail', arguments=[
+@registerCommand(MODE, 'attach', arguments=[
     (['path'], {'help':'file(s) to attach (accepts wildcads)'})])
 class AttachCommand(Command):
+    """attach files to the mail"""
     def __init__(self, path=None, **kwargs):
+        """
+        :param path: files to attach (globable string)
+        :type path: str
+        """
         Command.__init__(self, **kwargs)
         self.path = path
 
@@ -42,11 +47,15 @@ class AttachCommand(Command):
         ui.current_buffer.rebuild()
 
 
-@registerCommand(MODE, 'refine', help='prompt to change the value of a header',
-                 arguments=[
+@registerCommand(MODE, 'refine', arguments=[
     (['key'], {'help':'header to refine'})])
 class RefineCommand(Command):
+    """prompt to change the value of a header"""
     def __init__(self, key='', **kwargs):
+        """
+        :param key: key of the header to change
+        :type key: str
+        """
         Command.__init__(self, **kwargs)
         self.key = key
 
@@ -56,8 +65,9 @@ class RefineCommand(Command):
         ui.apply_command(globals.PromptCommand(cmdstring))
 
 
-@registerCommand(MODE, 'send', help='sends mail')
+@registerCommand(MODE, 'send')
 class SendCommand(Command):
+    """send mail"""
     @inlineCallbacks
     def apply(self, ui):
         currentbuffer = ui.current_buffer  # needed to close later
@@ -113,9 +123,14 @@ class SendCommand(Command):
         thread.start()
 
 
-@registerCommand(MODE, 'edit', help='edit currently open mail')
+@registerCommand(MODE, 'edit')
 class EditCommand(Command):
+    """edit mail"""
     def __init__(self, envelope=None, **kwargs):
+        """
+        :param envelope: email to edit
+        :type envelope: :class:`~alot.message.Envelope`
+        """
         self.envelope = envelope
         self.openNew = (envelope != None)
         Command.__init__(self, **kwargs)
@@ -191,12 +206,20 @@ class EditCommand(Command):
         ui.apply_command(cmd)
 
 
-@registerCommand(MODE, 'set', help='set header value', arguments=[
+@registerCommand(MODE, 'set', arguments=[
+    # TODO
     #(['--append'], {'action': 'store_true', 'help':'keep previous value'}),
     (['key'], {'help':'header to refine'}),
     (['value'], {'nargs':'+', 'help':'value'})])
 class SetCommand(Command):
+    """set header value"""
     def __init__(self, key, value, append=False, **kwargs):
+        """
+        :param key: key of the header to change
+        :type key: str
+        :param value: new value
+        :type value: str
+        """
         self.key = key
         self.value = ' '.join(value)
         self.append = append
@@ -207,10 +230,15 @@ class SetCommand(Command):
         ui.current_buffer.rebuild()
 
 
-@registerCommand(MODE, 'unset', help='remove header field', arguments=[
+@registerCommand(MODE, 'unset', arguments=[
     (['key'], {'help':'header to refine'})])
 class UnsetCommand(Command):
+    """remove header field"""
     def __init__(self, key, **kwargs):
+        """
+        :param key: key of the header to remove
+        :type key: str
+        """
         self.key = key
         Command.__init__(self, **kwargs)
 
@@ -219,8 +247,8 @@ class UnsetCommand(Command):
         ui.current_buffer.rebuild()
 
 
-@registerCommand(MODE, 'toggleheaders',
-                help='toggle display of all headers')
+@registerCommand(MODE, 'toggleheaders')
 class ToggleHeaderCommand(Command):
+    """toggle display of all headers"""
     def apply(self, ui):
         ui.current_buffer.toggle_all_headers()

@@ -119,7 +119,7 @@ class RefreshCommand(Command):
     (['--thread'], {'action': 'store_true', 'help':'run in separate thread'}),
     (['--refocus'], {'action': 'store_true', 'help':'refocus current buffer \
                      after command has finished'}),
-    (['cmd'], {'help':'command line to execute'})]
+    (['cmd'], {'help':'command line to execute'})],
 )
 class ExternalCommand(Command):
     """run external command"""
@@ -267,8 +267,9 @@ class BufferFocusCommand(Command):
         """
         :param buffer: the buffer to focus or None
         :type buffer: `alot.buffers.Buffer`
-        :param offset: position of the buffer to focus relative to the currently
-                       focussed one. This is used only if `buffer` is set to `None`
+        :param offset: position of the buffer to focus relative to the
+                       currently focussed one. This is used only if `buffer`
+                       is set to `None`
         :type offset: int
         """
         self.buffer = buffer
@@ -302,6 +303,7 @@ class OpenBufferlistCommand(Command):
             bl = buffers.BufferlistBuffer(ui, self.filtfun)
             ui.buffer_open(bl)
             bl.rebuild()
+
 
 @registerCommand(MODE, 'taglist')
 class TagListCommand(Command):
