@@ -160,8 +160,9 @@ class SearchBuffer(Buffer):
         Buffer.__init__(self, ui, self.body, 'search')
 
     def __str__(self):
-        formatstring = '[search] for "%s" (%d threads)'
-        return formatstring % (self.querystring, self.result_count)
+        formatstring = '[search] for "%s" (%d thread%s)'
+        return formatstring % (self.querystring, self.result_count,
+                               's' * (not (self.result_count == 1)))
 
     def cleanup(self):
         self.kill_filler_process()
@@ -233,7 +234,9 @@ class ThreadBuffer(Buffer):
         Buffer.__init__(self, ui, self.body, 'thread')
 
     def __str__(self):
-        return '[thread] %s, (%d)' % (self.thread.get_subject(), self.message_count)
+        return '[thread] %s (%d message%s)' % (self.thread.get_subject(),
+                                               self.message_count,
+                                               's' * (self.message_count > 1))
 
     def get_selected_thread(self):
         """returns the displayed :class:`~alot.db.Thread`"""
