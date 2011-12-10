@@ -15,6 +15,12 @@ class Account(object):
     """
     Datastructure that represents an email account. It manages this account's
     settings, can send and store mails to maildirs (drafts/send).
+
+    .. note::
+
+        This is an abstract class that leaves :meth:`send_mail` unspecified.
+        See :class:`SendmailAccount` for a subclass that uses a sendmail command
+        to send out mails.
     """
 
     address = None
@@ -122,8 +128,13 @@ class Account(object):
 
 
 class SendmailAccount(Account):
-    """Account that knows how to send out mails via sendmail"""
+    """:class:`Account` that pipes a message to a `sendmail` shell command for
+    sending"""
     def __init__(self, cmd, **kwargs):
+        """
+        :param cmd: sendmail command to use for this account
+        :type cmd: str
+        """
         Account.__init__(self, **kwargs)
         self.cmd = cmd
 
@@ -137,7 +148,11 @@ class SendmailAccount(Account):
 
 
 class AccountManager(object):
-    """Easy access to all known accounts"""
+    """
+    creates and organizes multiple :class:`Accounts <Account>` that were
+    defined in the "account" sections of a given
+    :class:`~alot.settings.AlotConfigParser`.
+    """
     allowed = ['realname',
                'address',
                'aliases',
@@ -156,6 +171,10 @@ class AccountManager(object):
     ordered_addresses = []
 
     def __init__(self, config):
+        """
+        :param config: the config object to read account information from
+        :type config: :class:`~alot.settings.AlotConfigParser`.
+        """
         sections = config.sections()
         accountsections = filter(lambda s: s.startswith('account '), sections)
         for s in accountsections:
@@ -235,6 +254,15 @@ class AccountManager(object):
 
 
 class AddressBook(object):
+    """can look up email addresses and realnames for contacts.
+
+    .. note::
+
+        This is an abstract class that leaves :meth:`get_contacts`
+        unspecified. See :class:`AbookAddressBook` and
+        :class:`MatchSdtoutAddressbook` for implementations.
+    """
+
     def get_contacts(self):
         """list all contacts tuples in this abook as (name, email) tuples"""
         return []
@@ -249,8 +277,13 @@ class AddressBook(object):
 
 
 class AbookAddressBook(AddressBook):
-    """adressbook that directly parses abook's config/database files"""
+    """:class:`AddressBook` that parses abook's config/database files"""
     def __init__(self, config=None):
+        """
+        :param config: path to an `abook` contacts file
+                       (defaults to '/.abook/addressbook')
+        :type config: str
+        """
         self.abook = SafeConfigParser()
         if not config:
             config = os.environ["HOME"] + "/.abook/addressbook"
@@ -267,8 +300,16 @@ class AbookAddressBook(AddressBook):
 
 
 class MatchSdtoutAddressbook(AddressBook):
-    """addressbook that parses a shell command's output for lookups"""
+    """:class:`AddressBook` that parses a shell command's output for lookups"""
     def __init__(self, command, match=None):
+        """
+        :param command: lookup command
+        :type command: str
+        :param match: regular expression used to match contacts in `commands`
+                      output to stdout. Must define subparts named "email" and
+                      "name". Defaults to "(?P<email>.+?@.+?)\s+(?P<name>.+)".
+        :type match: str
+        """
         self.command = command
         if not match:
             self.match = "(?P<email>.+?@.+?)\s+(?P<name>.+)"
