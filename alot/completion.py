@@ -154,12 +154,11 @@ class AccountCompleter(Completer):
 class CommandCompleter(Completer):
     """completes commands"""
 
-    def __init__(self, dbman, mode):
+    def __init__(self, mode):
         """
         :param mode: mode identifier
         :type mode: str
         """
-        self.dbman = dbman
         self.mode = mode
 
     def complete(self, original, pos):
@@ -188,7 +187,7 @@ class CommandLineCompleter(Completer):
         self.dbman = dbman
         self.accountman = accountman
         self.mode = mode
-        self._commandcompleter = CommandCompleter(dbman, mode)
+        self._commandcompleter = CommandCompleter(mode)
         self._querycompleter = QueryCompleter(dbman, accountman)
         self._tagscompleter = TagsCompleter(dbman)
         abooks = accountman.get_addressbooks()
