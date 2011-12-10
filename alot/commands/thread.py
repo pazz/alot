@@ -1,7 +1,6 @@
 import os
 import logging
 import tempfile
-from email.header import Header
 from twisted.internet.defer import inlineCallbacks
 import mimetypes
 
