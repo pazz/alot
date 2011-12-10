@@ -95,11 +95,6 @@ class EnvelopeBuffer(Buffer):
         to = self.envelope.get('To', fallback='unset')
         return '[%s] to: %s' % (self.typename, shorten_author_string(to, 400))
 
-    def get_email(self):
-        """returns message represented as :class:`email.Message`"""
-        #todo: obsolete?
-        return self.mail
-
     def rebuild(self):
         self.mail = self.envelope.construct_mail()
         displayed_widgets = []
