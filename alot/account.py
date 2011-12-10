@@ -19,8 +19,8 @@ class Account(object):
     .. note::
 
         This is an abstract class that leaves :meth:`send_mail` unspecified.
-        See :class:`SendmailAccount` for a subclass that uses a sendmail command
-        to send out mails.
+        See :class:`SendmailAccount` for a subclass that uses a sendmail
+        command to send out mails.
     """
 
     address = None
