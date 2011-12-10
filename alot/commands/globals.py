@@ -27,8 +27,9 @@ from alot import commands
 MODE = 'global'
 
 
-@registerCommand(MODE, 'exit', help='shut alot down cleanly')
+@registerCommand(MODE, 'exit')
 class ExitCommand(Command):
+    """shut down cleanly"""
     @inlineCallbacks
     def apply(self, ui):
         if settings.config.getboolean('general', 'bug_on_exit'):
@@ -41,10 +42,14 @@ class ExitCommand(Command):
 
 
 @registerCommand(MODE, 'search', usage='search query', arguments=[
-    (['query'], {'nargs':argparse.REMAINDER, 'help':'search string'})],
-    help='open a new search buffer')
+    (['query'], {'nargs':argparse.REMAINDER, 'help':'search string'})])
 class SearchCommand(Command):
+    """open a new search buffer"""
     def __init__(self, query, **kwargs):
+        """
+        :param query: notmuch querystring
+        :type query: str
+        """
         self.query = ' '.join(query)
         Command.__init__(self, **kwargs)
 
@@ -63,12 +68,15 @@ class SearchCommand(Command):
             ui.notify('empty query string')
 
 
-@registerCommand(MODE, 'prompt',
-                 help='prompts for commandline and interprets it upon select',
-                 arguments=[
+@registerCommand(MODE, 'prompt', arguments=[
     (['startwith'], {'nargs':'?', 'default':'', 'help':'initial content'})])
 class PromptCommand(Command):
+    """prompts for commandline and interprets it upon select"""
     def __init__(self, startwith='', **kwargs):
+        """
+        :param startwith: initial content of the prompt widget
+        :type startwith: str
+        """
         self.startwith = startwith
         Command.__init__(self, **kwargs)
 
@@ -98,8 +106,9 @@ class PromptCommand(Command):
                 ui.notify(e.message, priority='error')
 
 
-@registerCommand(MODE, 'refresh', help='refreshes the current buffer')
+@registerCommand(MODE, 'refresh')
 class RefreshCommand(Command):
+    """refresh the current buffer"""
     def apply(self, ui):
         ui.current_buffer.rebuild()
         ui.update()
@@ -110,9 +119,10 @@ class RefreshCommand(Command):
     (['--thread'], {'action': 'store_true', 'help':'run in separate thread'}),
     (['--refocus'], {'action': 'store_true', 'help':'refocus current buffer \
                      after command has finished'}),
-    (['cmd'], {'help':'command line to execute'})],
-                 help='calls external command')
+    (['cmd'], {'help':'command line to execute'})]
+)
 class ExternalCommand(Command):
+    """run external command"""
     def __init__(self, cmd, path=None, spawn=False, refocus=True,
                  thread=False, on_success=None, **kwargs):
         """
@@ -190,8 +200,16 @@ class ExternalCommand(Command):
 #]
 #)
 class EditCommand(ExternalCommand):
-    """opens editor"""
+    """edit a file"""
     def __init__(self, path, spawn=None, thread=None, **kwargs):
+        """
+        :param path: path to the file to be edited
+        :type path: str
+        :param spawn: run command in a new terminal
+        :type spawn: bool
+        :param thread: run asynchronously, don't block alot
+        :type thread: bool
+        """
         self.path = path
         if spawn != None:
             self.spawn = spawn
@@ -222,18 +240,18 @@ class EditCommand(ExternalCommand):
             return ExternalCommand.apply(self, ui)
 
 
-@registerCommand(MODE, 'pyshell',
-                 help="opens an interactive python shell for introspection")
+@registerCommand(MODE, 'pyshell')
 class PythonShellCommand(Command):
+    """open an interactive python shell for introspection"""
     def apply(self, ui):
         ui.mainloop.screen.stop()
         code.interact(local=locals())
         ui.mainloop.screen.start()
 
 
-@registerCommand(MODE, 'bclose',
-                 help="close current buffer or exit if it is the last")
+@registerCommand(MODE, 'bclose')
 class BufferCloseCommand(Command):
+    """close current buffer or exit if it is the last"""
     def apply(self, ui):
         selected = ui.current_buffer
         ui.buffer_close(selected)
@@ -244,10 +262,14 @@ class BufferCloseCommand(Command):
 @registerCommand(MODE, 'bnext', forced={'offset': +1},
                  help='focus next buffer')
 class BufferFocusCommand(Command):
+    """focus a :class:`~alot.buffers.Buffer`"""
     def __init__(self, buffer=None, offset=0, **kwargs):
         """
-        :param buffer: the buffer to focus
+        :param buffer: the buffer to focus or None
         :type buffer: `alot.buffers.Buffer`
+        :param offset: position of the buffer to focus relative to the currently
+                       focussed one. This is used only if `buffer` is set to `None`
+        :type offset: int
         """
         self.buffer = buffer
         self.offset = offset
@@ -261,9 +283,14 @@ class BufferFocusCommand(Command):
         ui.buffer_focus(self.buffer)
 
 
-@registerCommand(MODE, 'bufferlist', help='opens buffer list')
+@registerCommand(MODE, 'bufferlist')
 class OpenBufferlistCommand(Command):
+    """open a list of active buffers"""
     def __init__(self, filtfun=None, **kwargs):
+        """
+        :param filtfun: filter to apply to displayed list
+        :type filtfun: callable (str->bool)
+        """
         self.filtfun = filtfun
         Command.__init__(self, **kwargs)
 
@@ -276,10 +303,14 @@ class OpenBufferlistCommand(Command):
             ui.buffer_open(bl)
             bl.rebuild()
 
-
-@registerCommand(MODE, 'taglist', help='opens taglist buffer')
+@registerCommand(MODE, 'taglist')
 class TagListCommand(Command):
+    """opens taglist buffer"""
     def __init__(self, filtfun=None, **kwargs):
+        """
+        :param filtfun: filter to apply to displayed list
+        :type filtfun: callable (str->bool)
+        """
         self.filtfun = filtfun
         Command.__init__(self, **kwargs)
 
@@ -291,9 +322,9 @@ class TagListCommand(Command):
         ui.buffer_focus(buf)
 
 
-@registerCommand(MODE, 'flush',
-                 help='Flushes write operations or retries until committed')
+@registerCommand(MODE, 'flush')
 class FlushCommand(Command):
+    """flush write operations or retry until committed"""
     def apply(self, ui):
         try:
             ui.dbman.flush()
@@ -308,14 +339,19 @@ class FlushCommand(Command):
             return
 
 
-#todo choices
+#TODO: choices
 @registerCommand(MODE, 'help', arguments=[
-    (['commandname'], {'help':'command or \'bindings\''})],
-                 help='display help for a command. Use \'bindings\' to\
-                 display all keybings interpreted in current mode.',
-)
+    (['commandname'], {'help':'command or \'bindings\''})])
 class HelpCommand(Command):
+    """
+    display help for a command. Use \'bindings\' to
+    display all keybings interpreted in current mode.'
+    """
     def __init__(self, commandname='', **kwargs):
+        """
+        :param commandname: command to document
+        :type commandname: str
+        """
         Command.__init__(self, **kwargs)
         self.commandname = commandname
 
@@ -373,8 +409,7 @@ class HelpCommand(Command):
                           priority='error')
 
 
-@registerCommand(MODE, 'compose', help='compose a new email',
-                 arguments=[
+@registerCommand(MODE, 'compose', arguments=[
     (['--sender'], {'nargs': '?', 'help':'sender'}),
     (['--template'], {'nargs':'?',
                       'help':'path to a template message file'}),
@@ -384,9 +419,31 @@ class HelpCommand(Command):
     (['--bcc'], {'nargs':'+', 'help':'blind copy to'}),
 ])
 class ComposeCommand(Command):
+    """compose a new email"""
     def __init__(self, envelope=None, headers={}, template=None,
                  sender=u'', subject=u'', to=[], cc=[], bcc=[],
                  **kwargs):
+        """
+        :param envelope: use existing envelope
+        :type envelope: :class:`~alot.message.Envelope`
+        :param headers: forced header values
+        :type header: doct (str->str)
+        :param template: name of template to parse into the envelope after
+                         creation. This should be the name of a file in your
+                         template_dir
+        :type template: str
+        :param sender: From-header value
+        :type sender: str
+        :param subject: Subject-header value
+        :type subject: str
+        :param to: To-header value
+        :type to: str
+        :param cc: Cc-header value
+        :type cc: str
+        :param bcc: Bcc-header value
+        :type bcc: str
+        """
+#TODO
         Command.__init__(self, **kwargs)
 
         self.envelope = envelope
@@ -503,6 +560,7 @@ class ComposeCommand(Command):
 @registerCommand(MODE, 'select', help='send select event',
                  forced={'key': 'select'})
 class SendKeypressCommand(Command):
+    """send a keypress to the main widget to be processed by urwid"""
     def __init__(self, key, **kwargs):
         Command.__init__(self, **kwargs)
         if isinstance(key, list):
