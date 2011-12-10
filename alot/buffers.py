@@ -28,11 +28,6 @@ class Buffer(object):
         """tells the buffer to (re)construct its visible content."""
         pass
 
-    def apply_command(self, cmd):
-        # call and store it directly for a local cmd history
-        # TODO: not needed for now
-        self.ui.apply_command(cmd)
-
     def keypress(self, size, key):
             return self.body.keypress(size, key)
 
