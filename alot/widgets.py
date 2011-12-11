@@ -377,7 +377,6 @@ class MessageWidget(urwid.WidgetWrap):
     def get_focus(self):
         return self.pile.get_focus()
 
-    #TODO re-read tags
     def rebuild(self):
         if not self.folded:  # only if not already unfolded
             hw = self._get_header_widget()

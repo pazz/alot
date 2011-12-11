@@ -384,7 +384,7 @@ class Thread(object):
         :rtype: dict mapping :class:`~alot.message.Message` to a list of
                 :class:`~alot.message.Message`.
         """
-        if not self._messages:
+        if not self._messages:  # if not already cached
             query = self._dbman.query('thread:' + self._id)
             thread = query.search_threads().next()
 
@@ -397,7 +397,6 @@ class Thread(object):
                         acc[M].append(accumulate(acc, m))
                 return M
 
-            # TODO: only do this once
             self._messages = {}
             for m in thread.get_toplevel_messages():
                 self._toplevel_messages.append(accumulate(self._messages, m))

@@ -169,7 +169,6 @@ class HookManager(object):
 
     def get(self, key):
         """return hook (`callable`) identified by `key`"""
-        #TODO: return None if undefined instead of raising a keyError
         if self.module:
             if key in self.module.__dict__:
                 return self.module.__dict__[key]
