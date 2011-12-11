@@ -166,7 +166,7 @@ class EditCommand(Command):
             f.close()
 
             # call post-edit translate hook
-            translate = settings.hooks.get('post_edit_translate')
+            translate = settings.config.get_hook('post_edit_translate')
             if translate:
                 template = translate(template, ui=ui, dbm=ui.dbman,
                                      aman=ui.accountman, log=ui.logger,
@@ -187,7 +187,7 @@ class EditCommand(Command):
         bodytext = self.envelope.body
 
         # call pre-edit translate hook
-        translate = settings.hooks.get('pre_edit_translate')
+        translate = settings.config.get_hook('pre_edit_translate')
         if translate:
             bodytext = translate(bodytext, ui=ui, dbm=ui.dbman,
                                  aman=ui.accountman, log=ui.logger,

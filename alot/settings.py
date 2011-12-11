@@ -40,6 +40,13 @@ class AlotConfigParser(FallbackConfigParser):
         FallbackConfigParser.__init__(self)
         self.hooks = None
 
+    def get_hook(self, key):
+        """return hook (`callable`) identified by `key`"""
+        if self.hooks:
+            if key in self.hooks.__dict__:
+                return self.hooks.__dict__[key]
+        return None
+
     def read(self, file):
         if not os.path.isfile(file):
             return
@@ -49,9 +56,9 @@ class AlotConfigParser(FallbackConfigParser):
             hf = os.path.expanduser(self.get('general', 'hooksfile'))
             if hf is not None:
                 try:
-                    config.hooks = imp.load_source('hooks', hf)
+                    self.hooks = imp.load_source('hooks', hf)
                 except:
-                    pass
+                    logging.debug('unable to load hooks file:%s' % hf)
 
         # fix quoted keys / values
         for section in self.sections():

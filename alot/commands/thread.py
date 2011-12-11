@@ -42,7 +42,7 @@ class ReplyCommand(Command):
         # set body text
         name, address = self.message.get_author()
         timestamp = self.message.get_date()
-        qf = settings.hooks.get('reply_prefix')
+        qf = settings.config.get_hook('reply_prefix')
         if qf:
             quotestring = qf(name, address, timestamp,
                              ui=ui, dbm=ui.dbman, aman=ui.accountman,
@@ -146,7 +146,7 @@ class ForwardCommand(Command):
             # set body text
             name, address = self.message.get_author()
             timestamp = self.message.get_date()
-            qf = settings.hooks.get('forward_prefix')
+            qf = settings.config.get_hook('forward_prefix')
             if qf:
                 quote = qf(name, address, timestamp,
                              ui=ui, dbm=ui.dbman, aman=ui.accountman,
