@@ -7,9 +7,10 @@ There are four types of user settings: notmuchs and alot's config
 files, the hooks-file for user provided python code and the mailcap,
 defining shellcomands as handlers for files of certain mime types.
 
-Mime handler can be looked up using :func:`alot.settings.get_mime_handler`.
 Alot sets up :class:`FallbackConfigParser` objects to access the configs
-of alot and notmuch` and a :class:`HookManager` object to access hooks.
+of alot and notmuch`.
+Hooks can be accessed via :meth:`AlotConfigParser.get_hook`
+and MIME handlers can be looked up using :func:`alot.settings.get_mime_handler`.
 
 +----------------+-----------------------------------+------------------------------+
 |     What       |            accessible via         |             Type             |
@@ -17,8 +18,6 @@ of alot and notmuch` and a :class:`HookManager` object to access hooks.
 | alot config    | :obj:`alot.settings.config`       | :class:`AlotConfigParser`    |
 +----------------+-----------------------------------+------------------------------+
 | notmuch config | :obj:`alot.settings.notmuchconfig`| :class:`FallbackConfigParser`|
-+----------------+-----------------------------------+------------------------------+
-| hooks          | :obj:`alot.settings.hooks`        | :class:`HookManager`         |
 +----------------+-----------------------------------+------------------------------+
 
 Through these objects you can access user settings (or their default values
@@ -40,7 +39,7 @@ if unset) in the following manner::
     >>> notmuchconfig.getboolean('maildir', 'synchronize_flags')
     True
 
-Hooks can be looked up using :meth:`~HookManager.get` of :obj:`alot.settings.hooks`.
+Hooks can be looked up using :meth:`AlotConfigParser.get_hook`.
 They are user defined callables that expect to be called with the following parameters:
 
   :ui: :class:`~alot.ui.UI` -- the initialized main component
@@ -52,7 +51,5 @@ They are user defined callables that expect to be called with the following para
 .. autoclass:: FallbackConfigParser
     :members:
 .. autoclass:: AlotConfigParser
-    :members:
-.. autoclass:: HookManager
     :members:
 .. autofunction:: get_mime_handler

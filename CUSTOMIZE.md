@@ -118,6 +118,7 @@ def pre_exit(aman=None, log=None, **rest):
 ```
 
 Apart from command pre and posthooks, the following hooks will be interpreted:
+
  * `reply_prefix(realname, address, timestamp, **kwargs)`
    Is used to reformat the first indented line in a reply message.
    Should return a string and defaults to 'Quoting %s (%s)\n' % (realname, timestamp)
