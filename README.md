@@ -14,24 +14,25 @@ Current features include:
 -------------------------
  * modular and command prompt driven interface
  * tab completion and usage help for all commands
- * completion using addressbook lookups
+ * contacts completion using customizable `abook` lookups
  * user configurable keyboard maps
  * spawn terminals for asynchronous editing of mails
  * theming, optionally in 2, 16 or 256 colours
- * tag specific theming and tagstring translation
- * a hook system to inject one's own python code
+ * tag specific theming and tag string translation
+ * (python) hooks to react on events and do custom formating
  * python shell for introspection
  * forward/reply/group-reply of emails
  * printing/piping of mails and threads
  * multiple accounts for sending mails via sendmail
- * priorizable notification popups
+ * notification popups with priorities
  * database manager that manages a write queue to the notmuch index
 
 Soonish to be addressed non-features:
 -------------------------------------
  * encryption/decryption for messages (see branch `gnupg`)
- * live search results (see branch `live`)
- * search for message (see branch `messagesmode`)
+ * live search results (branch `live`)
+ * search for message (branch `messagesmode`)
+ * bind sequences of keypresses to commands (branch `multiinput`)
  * search for strings in displayed buffer
  * folding for message parts
  * undo for commands
@@ -39,11 +40,11 @@ Soonish to be addressed non-features:
 
 Usage
 =====
-In all views, arrows, page-up/down, j,k and space can be used to move the focus.
-Escape cancels prompts and Enter selects. Hit ":" at any time and type in commands
+In all views, arrows, page-up/down, `j`,`k` and `Space` can be used to move the focus.
+`Escape` cancels prompts and `Enter` selects. Hit `:` at any time and type in commands
 to the prompt.
-Usage information on any command can be listed using `help YOURCOMMAND`.
-The keybindings for the current mode are listet upon pressing '?'.
+Usage information on any command can be listed by typing `help YOURCOMMAND` to the prompt;
+The keybindings for the current mode are listet upon pressing `?`.
 
 
 [notmuch]: http://notmuchmail.org/
