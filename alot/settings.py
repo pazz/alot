@@ -188,16 +188,17 @@ mailcaps = mailcap.getcaps()
 
 def get_mime_handler(mime_type, key='view', interactive=True):
     """
-    get shellcomand defined in the users `mailcap` as handler for files of given
-    `mime_type`.
+    get shellcomand defined in the users `mailcap` as handler for files of
+    given `mime_type`.
 
-    :param mime_type: file type as extracted :meth:`email.Message.get_content_type`
+    :param mime_type: file type
     :type mime_type: str
-    :param key: identifies one of possibly many commands for this type by naming
-                the intended usage, e.g. 'edit' or 'view'. Defaults to 'view'.
+    :param key: identifies one of possibly many commands for this type by
+                naming the intended usage, e.g. 'edit' or 'view'. Defaults
+                to 'view'.
     :type key: str
-    :param interactive: choose the "interactive session" handler rather than the
-                        "print to stdout and immediately return" handler
+    :param interactive: choose the "interactive session" handler rather than
+                        the "print to stdout and immediately return" handler
     :type interactive: bool
     """
     if interactive:

@@ -15,14 +15,17 @@ class Completer(object):
         :param original: the string to complete
         :type original: str
         :param pos: starting position to complete from
-        :returns: pairs of completed string and cursor position in the new string
+        :returns: pairs of completed string and cursor position in the
+                  new string
         :rtype: list of (str, int)
         """
         return list()
 
     def relevant_part(self, original, pos, sep=' '):
-        """calculates the subword in a `sep`-splitted list of substrings of `original`
-        that `pos` is ia.n"""
+        """
+        calculates the subword in a `sep`-splitted list of substrings of
+        `original` that `pos` is ia.n
+        """
         start = original.rfind(sep, 0, pos) + 1
         end = original.find(sep, pos - 1)
         if end == -1:
@@ -214,10 +217,14 @@ class CommandLineCompleter(Completer):
                 header, params = params.split(' ', 1)
                 localpos = localpos - (len(header) + 1)
                 if header.lower() in ['to', 'cc', 'bcc']:
-                    res = self._contactscompleter.complete(params,
-                                                           localpos)
+
                     # prepend 'set ' + header and correct position
-                    res = [('%s %s' % (header, t), p + len(header) + 1) for (t, p) in res]
+                    def f((completed, pos)):
+                        return ('%s %s' % (header, completed),
+                                pos + len(header) + 1)
+                    res = map(f, self._contactscompleter.complete(params,
+                                                                  localpos))
+
                 logging.debug(res)
             elif cmd == 'retag':
                 res = self._tagscompleter.complete(params, localpos,

@@ -95,7 +95,8 @@ class ThreadlineWidget(urwid.AttrMap):
                 datestring = newest.strftime(formatstring)
             else:
                 datestring = pretty_datetime(newest).rjust(10)
-        self.date_w = urwid.AttrMap(urwid.Text(datestring), 'search_thread_date')
+        self.date_w = urwid.AttrMap(urwid.Text(datestring),
+                                    'search_thread_date')
         cols.append(('fixed', len(datestring), self.date_w))
 
         if self.thread:
@@ -160,7 +161,8 @@ class ThreadlineWidget(urwid.AttrMap):
             self.authors_w.set_attr_map({None: 'search_thread_authors_focus'})
             self.subject_w.set_attr_map({None: 'search_thread_subject_focus'})
             if self.display_content:
-                self.content_w.set_attr_map({None: 'search_thread_content_focus'})
+                self.content_w.set_attr_map(
+                    {None: 'search_thread_content_focus'})
         else:
             self.date_w.set_attr_map({None: 'search_thread_date'})
             self.mailcount_w.set_attr_map({None: 'search_thread_mailcount'})
