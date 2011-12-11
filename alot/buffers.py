@@ -188,10 +188,6 @@ class SearchBuffer(Buffer):
         #self.threadlist.set_focus(focusposition)
         self.body = self.listbox
 
-    def debug(self):
-        # TODO: ever used?
-        self.ui.logger.debug(self.threadlist.lines)
-
     def get_selected_threadline(self):
         """
         returns curently focussed :class:`alot.widgets.ThreadlineWidget`
