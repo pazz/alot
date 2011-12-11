@@ -157,38 +157,12 @@ class AlotConfigParser(FallbackConfigParser):
         return cmdline
 
 
-class HookManager(object):
-    """can look up user defined hook code"""
-    def setup(self, hooksfile):
-        """read callables from `hooksfile`.
-
-        :param hooksfile: path to a file containing python source
-        :type hooksfile: str
-        """
-        hf = os.path.expanduser(hooksfile)
-        if os.path.isfile(hf):
-            try:
-                self.module = imp.load_source('hooks', hf)
-            except:
-                self.module = None
-        else:
-            self.module = {}
-
-    def get(self, key):
-        """return hook (`callable`) identified by `key`"""
-        if self.module:
-            if key in self.module.__dict__:
-                return self.module.__dict__[key]
-        return None
-
-
 config = AlotConfigParser()
 config.read(os.path.join(os.path.dirname(__file__), 'defaults', 'alot.rc'))
 notmuchconfig = FallbackConfigParser()
 notmuchconfig.read(os.path.join(os.path.dirname(__file__),
                    'defaults',
                    'notmuch.rc'))
-hooks = HookManager()
 mailcaps = mailcap.getcaps()
 
 

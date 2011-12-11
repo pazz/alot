@@ -68,7 +68,6 @@ def main():
     # read notmuch config
     notmuchfile = os.path.expanduser(args.notmuchconfigfile)
     settings.notmuchconfig.read(notmuchfile)
-    settings.hooks.setup(settings.config.get('general', 'hooksfile'))
 
     # setup logging
     numeric_loglevel = getattr(logging, args.debug_level.upper(), None)
