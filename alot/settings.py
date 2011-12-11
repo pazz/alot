@@ -3,6 +3,7 @@ import os
 import ast
 import mailcap
 import codecs
+import logging
 
 from ConfigParser import SafeConfigParser
 
