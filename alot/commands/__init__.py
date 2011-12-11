@@ -29,11 +29,6 @@ class Command(object):
         """code that gets executed when this command is applied"""
         pass
 
-    @classmethod
-    def get_helpstring(cls):
-        # TODO make this interpret kwargs
-        return cls.__doc__
-
 
 COMMANDS = {
     'search': {},
