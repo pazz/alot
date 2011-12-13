@@ -11,6 +11,7 @@ from ui import UI
 import alot.commands as commands
 from commands import *
 from alot.commands import CommandParseError
+import alot
 
 
 def parse_args():
@@ -40,6 +41,8 @@ def parse_args():
     parser.add_argument('command', nargs='?',
                         default='',
                         help='initial command')
+    parser.add_argument('-v', '--version', action='version',
+                        version='%(prog)s ' + alot.__version__)
     return parser.parse_args()
 
 
