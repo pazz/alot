@@ -4,8 +4,9 @@
 .. module:: alot
 
 The main component is :class:`alot.ui.UI`, which provides methods for user input and notifications,
-sets up an urwid `mainloop` and widget tree and maintains the list of active buffers.
-Moreover, it integrates different "managers" responsible for core functionalities:
+sets up an :mod:`urwid` :class:`mainloop <urwid.main_loop.TwistedEventLoop>` and widget tree and
+maintains the list of active buffers. Moreover, it integrates different "managers" responsible for
+core functionalities:
 
 * a :class:`~db.DBManager` to access the email database
 * an :class:`~account.AccountManager` to deal with user accounts
