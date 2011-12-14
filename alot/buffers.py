@@ -113,8 +113,9 @@ class EnvelopeBuffer(Buffer):
         lines = []
         for a in self.envelope.attachments:
             lines.append(widgets.AttachmentWidget(a, selectable=False))
-        self.attachment_wgt = urwid.Pile(lines)
-        displayed_widgets.append(self.attachment_wgt)
+        if lines:
+            self.attachment_wgt = urwid.Pile(lines)
+            displayed_widgets.append(self.attachment_wgt)
 
         #self.body_wgt = widgets.MessageBodyWidget(self.mail)
         self.body_wgt = urwid.Text(self.envelope.body)
