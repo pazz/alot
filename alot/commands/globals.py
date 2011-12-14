@@ -20,7 +20,6 @@ from alot import helper
 from alot.db import DatabaseLockedError
 from alot.completion import ContactsCompleter
 from alot.completion import AccountCompleter
-from alot.message import decode_header
 from alot.message import Envelope
 from alot import commands
 
@@ -527,7 +526,7 @@ class ComposeCommand(Command):
 
         # get missing To header
         if 'To' not in self.envelope.headers:
-            sender = decode_header(self.envelope.headers.get('From'))
+            sender = self.envelope.headers.get('From')
             name, addr = email.Utils.parseaddr(sender)
             a = ui.accountman.get_account_by_address(addr)
 
@@ -543,6 +542,7 @@ class ComposeCommand(Command):
                 ui.notify('canceled')
                 return
             self.envelope.headers['To'] = to
+
         if settings.config.getboolean('general', 'ask_subject') and \
            not 'Subject' in self.envelope.headers:
             subject = yield ui.prompt(prefix='Subject>')
