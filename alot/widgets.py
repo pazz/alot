@@ -425,9 +425,9 @@ class MessageWidget(urwid.WidgetWrap):
             norm = not (self.displayed_headers == self.all_headers)
             #build lines
             lines = []
-            for k in self.displayed_headers:
-                v = mail.get(k)
-                lines.append((k, message.decode_header(v, normalize=norm)))
+            for k, v in mail.items():
+                if k in self.displayed_headers:
+                    lines.append((k, message.decode_header(v, normalize=norm)))
 
             cols = [HeadersList(lines)]
             bc = list()
