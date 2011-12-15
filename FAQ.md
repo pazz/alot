@@ -45,9 +45,42 @@ your bindings are more intuitive or better suited as defaults for some reason,
 don't hesitate to tell me. The same holds for the theme settings you use.
 Tell me. Let's improve the defaults.
 
+How do I do contacts completion?
+--------------------------------
+In each `account` section you can specify a `abook_command` that
+is considered the address book of that account and will be used
+for address completion where appropriate.
+
+This shell command will be called with the search prefix as only argument.
+Its output is searched for email-name pairs using the regular expression given as `abook_regexp`,
+which must include named groups "email" and "name" to match the email address and realname parts
+respectively. See below for an example that uses [abook][abook]:
+
+```
+[account YOURACCOUNT]
+realname = ...
+address = ...
+abook_command = abook --mutt-query
+abook_regexp = (?P<email>.+?@.+?)\s+(?P<name>.+)
+```
+
+See [here][alookup] for alternative lookup commands. The only one apart from abook I have used so
+far is [goobook][gbook] for cached google contacts lookups:
+
+```
+abook_command = goobook query
+abook_regexp = (?P<email>.+?@.+?)\s\s+(?P<name>.+)\s\s+.+
+```
+
+Don't hesitate to send me your custom `abook_regexp` values to list them here.
+
+
 [issue]: https://github.com/pazz/alot/issues
 [inittag]: http://notmuchmail.org/initial_tagging/
 [notmuch]: http://notmuchmail.org
 [toolkit]: http://excess.org/urwid/
 [python]: http://www.python.org/
 [pd]: http://dactyl.sourceforge.net/pentadactyl/
+[abook]: http://abook.sourceforge.net/
+[gbook]: http://code.google.com/p/goobook/
+[alookup]: http://notmuchmail.org/emacstips/#index11h2
