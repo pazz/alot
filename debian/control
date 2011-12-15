@@ -5,8 +5,7 @@ Maintainer: Jameson Graef Rollins <jrollins@finestructure.net>
 Build-Depends:
  pkg-config,
  debhelper (>= 7.0.50~),
- python,
- libnotmuch-dev
+ python
 Standards-Version: 3.9.2
 
 Package: alot
@@ -14,7 +13,9 @@ Architecture: any
 Depends:
  ${misc:Depends},
  ${python:Depends},
- libnotmuch2
+ python-urwid,
+ python-twisted-core,
+ python-notmuch
 Recommends:
  notmuch
 Description: A terminal-based interface to the notmuch mail agent
