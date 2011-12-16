@@ -456,12 +456,27 @@ class Envelope(object):
 
     def get(self, key, fallback=None):
         """secure getter for header values that allows specifying a `fallback`
-        return string (defaults to None). This doesn't raise KeyErrors"""
+        return string (defaults to None). This returns the first matching value
+        and doesn't raise KeyErrors"""
+        if key in self.headers:
+            value = self.headers[key][0]
+        else:
+            value = fallback
+        return value
+
+    def get_all(self, key, fallback=[]):
+        """returns all header values for given key"""
         if key in self.headers:
             value = self.headers[key]
         else:
             value = fallback
         return value
+
+    def add(self, key, value):
+        """add header value"""
+        if key not in self.headers:
+            self.headers[k] = []
+        self.headers[k].append(value)
 
     def attach(self, path, filename=None, ctype=None):
         """
@@ -489,18 +504,21 @@ class Envelope(object):
             msg.attach(textpart)
         else:
             msg = textpart
-        for k, v in self.headers.items():
-            msg[k] = encode_header(k, v)
+        for k, vlist in self.headers.items():
+            for v in vlist:
+                msg.add_header(k, encode_header(k, v))
         for a in self.attachments:
             msg.attach(a)
             logging.debug(msg)
         return msg
 
-    def parse_template(self, tmp):
+    def parse_template(self, tmp, reset=True):
         """parses a template or user edited string to fills this envelope.
 
         :param tmp: the string to parse.
         :type tmp: str
+        :param reset: remove previous envelope content
+        :type reset: bool
         """
         logging.debug('GoT: """\n%s\n"""' % tmp)
         m = re.match('(?P<h>([a-zA-Z0-9_-]+:.+\n)*)(?P<b>(\s*.*)*)', tmp)
@@ -510,6 +528,10 @@ class Envelope(object):
         headertext = d['h']
         self.body = d['b']
 
+        # remove existing content
+        if reset:
+            self.headers={}
+
         # go through multiline, utf-8 encoded headers
         # we decode the edited text ourselves here as
         # email.message_from_file can't deal with raw utf8 header values
@@ -517,9 +539,9 @@ class Envelope(object):
         for line in headertext.splitlines():
             if re.match('[a-zA-Z0-9_-]+:', line):  # new k/v pair
                 if key and value:  # save old one from stack
-                    self.headers[key] = value  # save
+                    self.add(key, value)  # save
                 key, value = line.strip().split(':', 1)  # parse new pair
             elif key and value:  # append new line without key prefix
                 value += line
         if key and value:  # save last one if present
-            self.headers[key] = value
+            self.add(key, value)
