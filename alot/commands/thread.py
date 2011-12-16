@@ -171,6 +171,8 @@ class ForwardCommand(Command):
         envelope['Subject'] = subject
 
         # set From
+        # we look for own addresses in the To,Cc,Ccc headers in that order
+        # and use the first match as new From header if there is one.
         my_addresses = ui.accountman.get_addresses()
         matched_address = ''
         in_to = [a for a in my_addresses if a in mail.get('To', '')]
