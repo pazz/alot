@@ -504,13 +504,11 @@ class Envelope(object):
             msg.attach(textpart)
         else:
             msg = textpart
-        logging.debug("CONSTRUCT MAIL:")
         for k, vlist in self.headers.items():
             for v in vlist:
                 msg[k] = encode_header(k, v)
         for a in self.attachments:
             msg.attach(a)
-            logging.debug(msg)
         return msg
 
     def parse_template(self, tmp, reset=False):
