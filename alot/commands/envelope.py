@@ -207,8 +207,7 @@ class EditCommand(Command):
 
 
 @registerCommand(MODE, 'set', arguments=[
-    # TODO
-    #(['--append'], {'action': 'store_true', 'help':'keep previous value'}),
+    (['--append'], {'action': 'store_true', 'help':'keep previous values'}),
     (['key'], {'help':'header to refine'}),
     (['value'], {'nargs':'+', 'help':'value'})])
 class SetCommand(Command):
@@ -222,11 +221,13 @@ class SetCommand(Command):
         """
         self.key = key
         self.value = ' '.join(value)
-        self.append = append
+        self.reset = not append
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        ui.current_buffer.envelope[self.key] = self.value
+        if self.reset:
+            del(ui.current_buffer.envelope[self.key])
+        ui.current_buffer.envelope.add(self.key, self.value)
         ui.current_buffer.rebuild()
 
 
