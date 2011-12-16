@@ -504,15 +504,16 @@ class Envelope(object):
             msg.attach(textpart)
         else:
             msg = textpart
+        logging.debug("CONSTRUCT MAIL:")
         for k, vlist in self.headers.items():
             for v in vlist:
-                msg.add_header(k, encode_header(k, v))
+                msg[k] = encode_header(k, v)
         for a in self.attachments:
             msg.attach(a)
             logging.debug(msg)
         return msg
 
-    def parse_template(self, tmp, reset=True):
+    def parse_template(self, tmp, reset=False):
         """parses a template or user edited string to fills this envelope.
 
         :param tmp: the string to parse.
