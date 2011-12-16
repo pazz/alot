@@ -475,8 +475,8 @@ class Envelope(object):
     def add(self, key, value):
         """add header value"""
         if key not in self.headers:
-            self.headers[k] = []
-        self.headers[k].append(value)
+            self.headers[key] = []
+        self.headers[key].append(value)
 
     def attach(self, path, filename=None, ctype=None):
         """
