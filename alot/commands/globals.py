@@ -444,7 +444,7 @@ class ComposeCommand(Command):
         :param bcc: Bcc-header value
         :type bcc: str
         """
-#TODO
+
         Command.__init__(self, **kwargs)
 
         self.envelope = envelope
@@ -489,19 +489,19 @@ class ComposeCommand(Command):
 
         # set forced headers
         for key, value in self.headers.items():
-            self.envelope.headers[key] = value
+            self.envelope.add(key, value)
 
         # set forced headers for separate parameters
         if self.sender:
-            self.envelope['From'] = self.sender
+            self.envelope.add('From', self.sender)
         if self.subject:
-            self.envelope['Subject'] = self.subject
+            self.envelope.add('Subject', self.subject)
         if self.to:
-            self.envelope['To'] = ','.join(self.to)
+            self.envelope.add('To', ','.join(self.to))
         if self.cc:
-            self.envelope['Cc'] = ','.join(self.cc)
+            self.envelope.add('Cc', ','.join(self.cc))
         if self.bcc:
-            self.envelope['Bcc'] = ','.join(self.bcc)
+            self.envelope.add('Bcc', ','.join(self.bcc))
 
         # get missing From header
         if not 'From' in self.envelope.headers:
@@ -509,7 +509,7 @@ class ComposeCommand(Command):
             if len(accounts) == 1:
                 a = accounts[0]
                 fromstring = "%s <%s>" % (a.realname, a.address)
-                self.envelope['From'] = fromstring
+                self.envelope.add('From', fromstring)
             else:
                 cmpl = AccountCompleter(ui.accountman)
                 fromaddress = yield ui.prompt(prefix='From>', completer=cmpl,
@@ -520,13 +520,13 @@ class ComposeCommand(Command):
                 a = ui.accountman.get_account_by_address(fromaddress)
                 if a is not None:
                     fromstring = "%s <%s>" % (a.realname, a.address)
-                    self.envelope['From'] = fromstring
+                    self.envelope.add('From', fromstring)
                 else:
-                    self.envelope.headers['From'] = fromaddress
+                    self.envelope.add('From', fromaddress)
 
         # get missing To header
         if 'To' not in self.envelope.headers:
-            sender = self.envelope.headers.get('From')
+            sender = self.envelope.get('From')
             name, addr = email.Utils.parseaddr(sender)
             a = ui.accountman.get_account_by_address(addr)
 
@@ -541,7 +541,7 @@ class ComposeCommand(Command):
             if to == None:
                 ui.notify('canceled')
                 return
-            self.envelope.headers['To'] = to
+            self.envelope.add('To', to)
 
         if settings.config.getboolean('general', 'ask_subject') and \
            not 'Subject' in self.envelope.headers:
@@ -550,7 +550,7 @@ class ComposeCommand(Command):
             if subject == None:
                 ui.notify('canceled')
                 return
-            self.envelope['Subject'] = subject
+            self.envelope.add('Subject', subject)
         cmd = commands.envelope.EditCommand(envelope=self.envelope)
         ui.apply_command(cmd)
 
