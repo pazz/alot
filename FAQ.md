@@ -39,10 +39,11 @@ think we should implement it. We'll discuss it from there.
 
 Why are the default key bindings so counter-intuitive?
 ---------------------------------------------------
-I choose the bindings to be natural for me. I use vim and [pentadactyl][pd] a lot.
+Be aware that the bindings for all modes are fully configurable (see the CUSTOMIZE.md).
+That said, I choose the bindings to be natural for me. I use vim and [pentadactyl][pd] a lot.
 However, I'd be interested in discussing the defaults. If you think
 your bindings are more intuitive or better suited as defaults for some reason,
-don't hesitate to tell me. The same holds for the theme settings you use.
+don't hesitate to send me your config. The same holds for the theme settings you use.
 Tell me. Let's improve the defaults.
 
 How do I do contacts completion?
