@@ -59,7 +59,7 @@ class ReplyCommand(Command):
         subject = decode_header(mail.get('Subject', ''))
         if not subject.startswith('Re:'):
             subject = 'Re: ' + subject
-        envelope['Subject'] = subject
+        envelope.add('Subject', subject)
 
         # set From
         my_addresses = ui.accountman.get_addresses()
@@ -75,7 +75,7 @@ class ReplyCommand(Command):
         if matched_address:
             account = ui.accountman.get_account_by_address(matched_address)
             fromstring = '%s <%s>' % (account.realname, account.address)
-            envelope['From'] = fromstring
+            envelope.add('From', fromstring)
 
         # set To
         if self.groupreply:
@@ -83,21 +83,22 @@ class ReplyCommand(Command):
             if cleared:
                 logging.info(mail['From'] + ', ' + cleared)
                 to = mail['From'] + ', ' + cleared
-                envelope['To'] = decode_header(to)
+                envelope.add('To', decode_header(to))
+
             else:
-                envelope['To'] = decode_header(mail['From'])
+                envelope.add('To', decode_header(mail['From']))
             # copy cc and bcc for group-replies
             if 'Cc' in mail:
                 cc = self.clear_my_address(my_addresses, mail['Cc'])
-                envelope['Cc'] = decode_header(cc)
+                envelope.add('Cc', decode_header(cc))
             if 'Bcc' in mail:
                 bcc = self.clear_my_address(my_addresses, mail['Bcc'])
-                envelope['Bcc'] = decode_header(bcc)
+                envelope.add('Bcc', decode_header(bcc))
         else:
-            envelope['To'] = decode_header(mail['From'])
+            envelope.add('To', decode_header(mail['From']))
 
         # set In-Reply-To header
-        envelope['In-Reply-To'] = '<%s>' % self.message.get_message_id()
+        envelope.add('In-Reply-To', '<%s>' % self.message.get_message_id())
 
         # set References header
         old_references = mail.get('References', '')
@@ -107,9 +108,9 @@ class ReplyCommand(Command):
             if len(old_references) > 8:
                 references = old_references[:1] + references
             references.append('<%s>' % self.message.get_message_id())
-            envelope['References'] = ' '.join(references)
+            envelope.add('References', ' '.join(references))
         else:
-            envelope['References'] = '<%s>' % self.message.get_message_id()
+            envelope.add('References', '<%s>' % self.message.get_message_id())
 
         ui.apply_command(ComposeCommand(envelope=envelope))
 
@@ -168,7 +169,7 @@ class ForwardCommand(Command):
         # copy subject
         subject = decode_header(mail.get('Subject', ''))
         subject = 'Fwd: ' + subject
-        envelope['Subject'] = subject
+        envelope.add('Subject', subject)
 
         # set From
         # we look for own addresses in the To,Cc,Ccc headers in that order
@@ -186,7 +187,7 @@ class ForwardCommand(Command):
         if matched_address:
             account = ui.accountman.get_account_by_address(matched_address)
             fromstring = '%s <%s>' % (account.realname, account.address)
-            envelope['From'] = fromstring
+            envelope.add('From', fromstring)
         ui.apply_command(ComposeCommand(envelope=envelope))
 
 
