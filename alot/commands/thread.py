@@ -83,18 +83,18 @@ class ReplyCommand(Command):
             if cleared:
                 logging.info(mail['From'] + ', ' + cleared)
                 to = mail['From'] + ', ' + cleared
-                envelope['To'] = to
+                envelope['To'] = decode_header(to)
             else:
-                envelope['To'] = mail['From']
+                envelope['To'] = decode_header(mail['From'])
             # copy cc and bcc for group-replies
             if 'Cc' in mail:
                 cc = self.clear_my_address(my_addresses, mail['Cc'])
-                envelope['Cc'] = cc
+                envelope['Cc'] = decode_header(cc)
             if 'Bcc' in mail:
                 bcc = self.clear_my_address(my_addresses, mail['Bcc'])
-                envelope['Bcc'] = bcc
+                envelope['Bcc'] = decode_header(bcc)
         else:
-            envelope['To'] = mail['From']
+            envelope['To'] = decode_header(mail['From'])
 
         # set In-Reply-To header
         envelope['In-Reply-To'] = '<%s>' % self.message.get_message_id()
