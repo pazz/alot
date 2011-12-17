@@ -165,21 +165,41 @@ Apart from command pre and posthooks, the following hooks will be interpreted:
 
 Colours
 -------
-You can change the colour settings in the section `[Xc-theme]`, where X is the
-colour mode you use. This defaults to 256, but 16 and 1 are also possible.
-The colourmode can be changed in the globals section or given as a commandline
-parameter (-C).
-The keys in this section should be self explanatory. In 16c and 256c modes you can define Y_fg and
-Y_bg for the foreground and background of each keyword Y. These can define colourcodes and flags
-like `underline` or `bold`, comma separated if you want more than one. See urwids doc on Attributes:
-http://excess.org/urwid/reference.html#AttrSpec
-Urwid privides a neat script that makes choosing colours easy, which can be found here:
-http://excess.org/urwid/browser/palette_test.py
+Alot can be run in 1, 16 or 256 colour mode. 
+The requested mode is determined by the commandline parameter `-C` or read from
+option `colourmode` in section `[globals]` of your config file.
+The default is 256, which will be scaled down depending on how many colours
+your terminal supports.
 
-See the contents of `alot/defaults/alot.rc` for a complete list of widgets that can be themed.
+The interface will theme its widgets according to the palette defined in
+section `[MODEc-theme]` where `MODE` denotes the integer indicating your mode.
+
+Have a look at the default config (`alot/defaults/alot.rc`) for a complete list
+of interpreted widget settings; the keys in this section should be self-explanatory.
+
+Values can be colour names ('light red', 'dark green'..), RGB colour codes (e.g. '#868'),
+font attributes ('bold', 'underline', 'blink', 'standout') or a comma separated combination of
+colour and font attributes.
+
+In sections `[16c-theme]` and `[256c-theme]` you can define Y_fg and
+Y_bg for the foreground and background of each widget keyword Y, whereas the monochromatic
+(`[1c-theme]`) palette can only interpret font attributes for key Y without the suffix.
+As an example, check the setting below, that makes the footer line appear as
+underlined, bold red text on a bright green background:
+
+    [256c-theme]
+    global_footer_bg = #8f6
+    global_footer_fg = light red, bold, underline
+
+See [urwids doc on Attributes][urwid_colour] for more details on the interpreted values.
+Urwid provides a [neat colour picker script][urwid_colour_pick] that makes choosing colours easy.
+
+[urwid_att]: http://excess.org/urwid/reference.html#AttrSpec
+[urwid_colour_pick]: http://excess.org/urwid/browser/palette_test.py
 
 
-Custom Tagstring formating
+
+Custom Tagstring Formating
 --------------------------
 Keywords in the theme sections that start with "tag_" will be used to display specific tags.
 For instance, you can use the following to always display the "todo" tag in white on red,
