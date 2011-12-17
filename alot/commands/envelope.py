@@ -5,8 +5,10 @@ import email
 import tempfile
 from twisted.internet.defer import inlineCallbacks
 import threading
+import datetime
 
 from alot import buffers
+from alot import commands
 from alot.commands import Command, registerCommand
 from alot import settings
 from alot import helper
@@ -32,7 +34,7 @@ class AttachCommand(Command):
     def apply(self, ui):
         envelope = ui.current_buffer.envelope
 
-        if self.path:
+        if self.path:  # TODO: not possible, otherwise argparse error before
             files = filter(os.path.isfile,
                            glob.glob(os.path.expanduser(self.path)))
             if not files:
@@ -72,6 +74,13 @@ class SendCommand(Command):
     def apply(self, ui):
         currentbuffer = ui.current_buffer  # needed to close later
         envelope = currentbuffer.envelope
+        if envelope.sent_time:
+            warning = 'A modified version of ' * envelope.modified_since_sent
+            warning += 'this message has been sent at %s.' % envelope.sent_time
+            warning += ' Do you want to resend?'
+            if (yield ui.choice(warning, cancel='no',
+                                msg_position='left')) == 'no':
+                return
         frm = envelope.get('From')
         sname, saddr = email.Utils.parseaddr(frm)
         omit_signature = False
@@ -107,7 +116,8 @@ class SendCommand(Command):
         def afterwards(returnvalue):
             ui.clear_notify([clearme])
             if returnvalue == 'success':  # sucessfully send mail
-                ui.buffer_close(currentbuffer)
+                envelope.sent_time = datetime.datetime.now()
+                ui.apply_command(commands.globals.BufferCloseCommand())
                 ui.notify('mail send successful')
             else:
                 ui.notify('failed to send: %s' % returnvalue,
