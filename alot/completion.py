@@ -175,7 +175,7 @@ class ContactsCompleter(Completer):
         return returnlist
 
 
-class AccountCompleter(Completer):
+class AccountCompleter(StringlistCompleter):
     """completes users' own mailaddresses"""
 
     def __init__(self, accountman):
@@ -183,12 +183,8 @@ class AccountCompleter(Completer):
         :param accountman: used to look up the list of addresses
         :type accountman: :class:`~alot.account.AccountManager`
         """
-        self.accountman = accountman
-
-    def complete(self, original, pos):
-        valids = self.accountman.get_main_addresses()
-        prefix = original[:pos]
-        return [(a, len(a)) for a in valids if a.startswith(prefix)]
+        resultlist = accountman.get_main_addresses()
+        StringlistCompleter.__init__(self, resultlist)
 
 
 class CommandCompleter(Completer):
