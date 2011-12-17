@@ -40,6 +40,7 @@ class AttachCommand(Command):
                 return
         else:
             ui.notify('no files specified, abort')
+            return
 
         logging.info("attaching: %s" % files)
         for path in files:
