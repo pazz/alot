@@ -201,31 +201,25 @@ class UI(object):
         """
         closes given :class:`~alot.buffers.Buffer`.
 
-        This shuts down alot in case its the last
-        active buffer. Otherwise it removes it from the bufferlist
-        and calls its cleanup() method.
+        This it removes it from the bufferlist and calls its cleanup() method.
         """
 
         buffers = self.buffers
         if buf not in buffers:
             string = 'tried to close unknown buffer: %s. \n\ni have:%s'
             self.logger.error(string % (buf, self.buffers))
-        elif len(buffers) == 1:
-            self.logger.info('closing the last buffer, exiting')
-            cmd = commandfactory('exit')
-            self.apply_command(cmd)
+        elif self.current_buffer == buf:
+            self.logger.debug('UI: closing current buffer %s' % buf)
+            index = buffers.index(buf)
+            buffers.remove(buf)
+            offset = config.getint('general', 'bufferclose_focus_offset')
+            nextbuffer = buffers[(index + offset) % len(buffers)]
+            self.buffer_focus(nextbuffer)
+            buf.cleanup()
         else:
-            if self.current_buffer == buf:
-                self.logger.debug('UI: closing current buffer %s' % buf)
-                index = buffers.index(buf)
-                buffers.remove(buf)
-                offset = config.getint('general', 'bufferclose_focus_offset')
-                nextbuffer = buffers[(index + offset) % len(buffers)]
-                self.buffer_focus(nextbuffer)
-            else:
-                string = 'closing buffer %d:%s'
-                self.logger.debug(string % (buffers.index(buf), buf))
-                buffers.remove(buf)
+            string = 'closing buffer %d:%s'
+            self.logger.debug(string % (buffers.index(buf), buf))
+            buffers.remove(buf)
             buf.cleanup()
 
     def buffer_focus(self, buf):

@@ -250,10 +250,18 @@ class PythonShellCommand(Command):
 
 @registerCommand(MODE, 'bclose')
 class BufferCloseCommand(Command):
-    """close current buffer or exit if it is the last"""
+    """close current buffer"""
     def apply(self, ui):
         selected = ui.current_buffer
-        ui.buffer_close(selected)
+        if len(ui.buffers) == 1:
+            if settings.config.getboolean('general', 'quit_on_last_bclose'):
+                ui.logger.info('closing the last buffer, exiting')
+                ui.apply_command(ExitCommand())
+            else:
+                ui.logger.info('not closing last remaining buffer as '
+                               'global.quit_on_last_bclose is set to False')
+        else:
+            ui.buffer_close(selected)
 
 
 @registerCommand(MODE, 'bprevious', forced={'offset': -1},
