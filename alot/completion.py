@@ -214,16 +214,20 @@ class CommandLineCompleter(Completer):
                 if self.mode == 'search':
                     res = self._querycompleter.complete(params, localpos)
             elif cmd == 'set' and self.mode == 'envelope':
-                header, params = params.split(' ', 1)
-                localpos = localpos - (len(header) + 1)
-                if header.lower() in ['to', 'cc', 'bcc']:
+                plist = params.split(' ', 1)
+                if len(plist) == 1:  # complete from header keys
+                    pass
+                else:  # must have 2 elements
+                    header, params = plist
+                    localpos = localpos - (len(header) + 1)
+                    if header.lower() in ['to', 'cc', 'bcc']:
 
-                    # prepend 'set ' + header and correct position
-                    def f((completed, pos)):
-                        return ('%s %s' % (header, completed),
-                                pos + len(header) + 1)
-                    res = map(f, self._contactscompleter.complete(params,
-                                                                  localpos))
+                        # prepend 'set ' + header and correct position
+                        def f((completed, pos)):
+                            return ('%s %s' % (header, completed),
+                                    pos + len(header) + 1)
+                        res = map(f, self._contactscompleter.complete(params,
+                                                                      localpos))
 
                 logging.debug(res)
             elif cmd == 'retag':
