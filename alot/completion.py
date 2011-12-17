@@ -15,6 +15,7 @@ class Completer(object):
         :param original: the string to complete
         :type original: str
         :param pos: starting position to complete from
+        :type pos: int
         :returns: pairs of completed string and cursor position in the
                   new string
         :rtype: list of (str, int)
