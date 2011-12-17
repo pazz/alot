@@ -173,14 +173,12 @@ your terminal supports.
 
 The interface will theme its widgets according to the palette defined in
 section `[MODEc-theme]` where `MODE` denotes the integer indicating your mode.
-
 Have a look at the default config (`alot/defaults/alot.rc`) for a complete list
 of interpreted widget settings; the keys in this section should be self-explanatory.
 
 Values can be colour names ('light red', 'dark green'..), RGB colour codes (e.g. '#868'),
 font attributes ('bold', 'underline', 'blink', 'standout') or a comma separated combination of
 colour and font attributes.
-
 In sections `[16c-theme]` and `[256c-theme]` you can define Y_fg and
 Y_bg for the foreground and background of each widget keyword Y, whereas the monochromatic
 (`[1c-theme]`) palette can only interpret font attributes for key Y without the suffix.
@@ -191,7 +189,7 @@ underlined, bold red text on a bright green background:
     global_footer_bg = #8f6
     global_footer_fg = light red, bold, underline
 
-See [urwids doc on Attributes][urwid_colour] for more details on the interpreted values.
+See [urwids docs on Attributes][urwid_att] for more details on the interpreted values.
 Urwid provides a [neat colour picker script][urwid_colour_pick] that makes choosing colours easy.
 
 [urwid_att]: http://excess.org/urwid/reference.html#AttrSpec
