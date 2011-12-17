@@ -133,7 +133,7 @@ class QueryCompleter(Completer):
             return resultlist
 
 
-class TagsCompleter(Completer):
+class TagsCompleter(StringlistCompleter):
     """completion for a comma separated list of tagstrings"""
 
     def __init__(self, dbman):
@@ -141,26 +141,8 @@ class TagsCompleter(Completer):
         :param dbman: used to look up avaliable tagstrings
         :type dbman: :class:`~alot.db.DBManager`
         """
-        self.dbman = dbman
-
-    def complete(self, original, pos, single_tag=True):
-        tags = self.dbman.get_all_tags()
-        if single_tag:
-            prefix = original[:pos]
-            matching = [t for t in tags if t.startswith(prefix)]
-            return [(t, len(t)) for t in matching]
-        else:
-            mypart, start, end, mypos = self.relevant_part(original, pos,
-                                                           sep=',')
-            prefix = mypart[:mypos]
-            res = []
-            for tag in tags:
-                if tag.startswith(prefix):
-                    newprefix = original[:start] + tag
-                    if not original[end:].startswith(','):
-                        newprefix += ','
-                    res.append((newprefix + original[end:], len(newprefix)))
-            return res
+        resultlist = dbman.get_all_tags()
+        StringlistCompleter.__init__(self, resultlist)
 
 
 class ContactsCompleter(Completer):
@@ -287,7 +269,7 @@ class CommandLineCompleter(Completer):
                 logging.debug(res)
             elif cmd == 'retag':
                 res = self._tagscompleter.complete(params, localpos,
-                                                   single_tag=False)
+                                                   listseparator=',')
             elif cmd == 'toggletag':
                 res = self._tagscompleter.complete(params, localpos)
             elif cmd == 'help':
