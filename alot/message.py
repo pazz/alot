@@ -434,6 +434,8 @@ class Envelope(object):
         self.attachments = list(attachments)
         self.sign = sign
         self.encrypt = encrypt
+        self.sent_time = None
+        self.modified_since_sent = False
 
     def __str__(self):
         return "Envelope (%s)\n%s" % (self.headers, self.body)
@@ -445,6 +447,9 @@ class Envelope(object):
         """
         self.headers[name] = val
 
+        if self.sent_time:
+            self.modified_since_sent = True
+
     def __getitem__(self, name):
         """getter for header values.
         :raises: KeyError if undefined
@@ -453,6 +458,9 @@ class Envelope(object):
 
     def __delitem__(self, name):
         del(self.headers[name])
+
+        if self.sent_time:
+            self.modified_since_sent = True
 
     def get(self, key, fallback=None):
         """secure getter for header values that allows specifying a `fallback`
@@ -478,6 +486,9 @@ class Envelope(object):
             self.headers[key] = []
         self.headers[key].append(value)
 
+        if self.sent_time:
+            self.modified_since_sent = True
+
     def attach(self, path, filename=None, ctype=None):
         """
         attach a file
@@ -492,6 +503,9 @@ class Envelope(object):
 
         part = helper.mimewrap(path, filename, ctype)
         self.attachments.append(part)
+
+        if self.sent_time:
+            self.modified_since_sent = True
 
     def construct_mail(self):
         """
@@ -544,3 +558,6 @@ class Envelope(object):
                 value += line
         if key and value:  # save last one if present
             self.add(key, value)
+
+        if self.sent_time:
+            self.modified_since_sent = True
