@@ -4,6 +4,7 @@ import glob
 import logging
 
 import alot.commands as commands
+from alot.buffers import EnvelopeBuffer
 
 
 class Completer(object):
@@ -210,7 +211,7 @@ class CommandCompleter(Completer):
 class CommandLineCompleter(Completer):
     """completion for commandline"""
 
-    def __init__(self, dbman, accountman, mode):
+    def __init__(self, dbman, accountman, mode, currentbuffer=None):
         """
         :param dbman: used to look up avaliable tagstrings
         :type dbman: :class:`~alot.db.DBManager`
@@ -219,10 +220,15 @@ class CommandLineCompleter(Completer):
         :type accountman: :class:`~alot.account.AccountManager`
         :param mode: mode identifier
         :type mode: str
+        :param currentbuffer: currently active buffer. If defined, this will be
+                              used to dynamically extract possible completion
+                              strings
+        :type currentbuffer: :class:`~alot.buffers.Buffer`
         """
         self.dbman = dbman
         self.accountman = accountman
         self.mode = mode
+        self.currentbuffer = currentbuffer
         self._commandcompleter = CommandCompleter(mode)
         self._querycompleter = QueryCompleter(dbman, accountman)
         self._tagscompleter = TagsCompleter(dbman)

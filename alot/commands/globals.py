@@ -87,7 +87,9 @@ class PromptCommand(Command):
                               text=self.startwith,
                               completer=CommandLineCompleter(ui.dbman,
                                                              ui.accountman,
-                                                             mode),
+                                                             mode,
+                                                             ui.current_buffer,
+                                                            ),
                               history=ui.commandprompthistory,
                              )
         ui.logger.debug('CMDLINE: %s' % cmdline)
