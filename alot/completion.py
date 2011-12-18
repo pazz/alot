@@ -247,12 +247,26 @@ class CommandLineCompleter(Completer):
         else:
             cmd, params = words
             localpos = pos - (len(cmd) + 1)
+            # set 'res' - the result set of matching completionstrings
+            # depending on the current mode and command
+
+            # global
             if cmd == 'search':
                 res = self._querycompleter.complete(params, localpos)
-            elif cmd == 'refine':
-                if self.mode == 'search':
-                    res = self._querycompleter.complete(params, localpos)
-            elif cmd == 'set' and self.mode == 'envelope':
+            elif cmd == 'help':
+                res = self._commandcompleter.complete(params, localpos)
+            elif cmd in ['compose']:
+                res = self._contactscompleter.complete(params, localpos)
+            # search 
+            elif self.mode == 'search' and cmd == 'refine':
+                res = self._querycompleter.complete(params, localpos)
+            elif self.mode == 'search' and cmd == 'retag':
+                res = self._tagscompleter.complete(params, localpos,
+                                                   listseparator=',')
+            elif self.mode == 'search' and cmd == 'toggletag':
+                res = self._tagscompleter.complete(params, localpos)
+            # envelope
+            elif self.mode == 'envelope' and cmd == 'set':
                 plist = params.split(' ', 1)
                 if len(plist) == 1:  # complete from header keys
                     pass
@@ -268,18 +282,12 @@ class CommandLineCompleter(Completer):
                         res = map(f, self._contactscompleter.complete(params,
                                                                       localpos))
 
-                logging.debug(res)
-            elif cmd == 'retag':
-                res = self._tagscompleter.complete(params, localpos,
-                                                   listseparator=',')
-            elif cmd == 'toggletag':
-                res = self._tagscompleter.complete(params, localpos)
-            elif cmd == 'help':
-                res = self._commandcompleter.complete(params, localpos)
-            elif cmd in ['compose']:
-                res = self._contactscompleter.complete(params, localpos)
-            elif cmd in ['attach', 'edit', 'save']:
+            elif self.mode == 'envelope' and cmd == 'attach':
                 res = self._pathcompleter.complete(params, localpos)
+            # thread
+            elif self.mode == 'thread' and cmd == 'save':
+                res = self._pathcompleter.complete(params, localpos)
+
             # prepend cmd and correct position
             res = [('%s %s' % (cmd, t), p + len(cmd) + 1) for (t, p) in res]
         return res
