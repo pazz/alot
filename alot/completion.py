@@ -73,8 +73,8 @@ class StringlistCompleter(Completer):
         :rtype: list of (str, int)
         """
         if not listseparator:
-            prefix = original[:pos]
-            return [(a, len(a)) for a in self.resultlist if a.startswith(prefix)]
+            pref = original[:pos]
+            return [(a, len(a)) for a in self.resultlist if a.startswith(pref)]
         else:
             mypart, start, end, mypos = self.relevant_part(original, pos,
                                                            sep=listseparator)
@@ -257,7 +257,7 @@ class CommandLineCompleter(Completer):
                 res = self._commandcompleter.complete(params, localpos)
             elif cmd in ['compose']:
                 res = self._contactscompleter.complete(params, localpos)
-            # search 
+            # search
             elif self.mode == 'search' and cmd == 'refine':
                 res = self._querycompleter.complete(params, localpos)
             elif self.mode == 'search' and cmd == 'retag':
@@ -269,7 +269,11 @@ class CommandLineCompleter(Completer):
             elif self.mode == 'envelope' and cmd == 'set':
                 plist = params.split(' ', 1)
                 if len(plist) == 1:  # complete from header keys
-                    pass
+                    localprefix = params
+                    headers = ['Subject', 'To', 'Cc', 'Bcc', 'In-Reply-To']
+                    localcompleter = StringlistCompleter(headers)
+                    localres = localcompleter.complete(localprefix, localpos)
+                    res = [(c, p + 6) for (c, p) in localres]
                 else:  # must have 2 elements
                     header, params = plist
                     localpos = localpos - (len(header) + 1)
@@ -280,7 +284,19 @@ class CommandLineCompleter(Completer):
                             return ('%s %s' % (header, completed),
                                     pos + len(header) + 1)
                         res = map(f, self._contactscompleter.complete(params,
-                                                                      localpos))
+                                                                  localpos))
+            elif self.mode == 'envelope' and cmd == 'unset':
+                plist = params.split(' ', 1)
+                if len(plist) == 1:  # complete from header keys
+                    localprefix = params
+                    buf = self.currentbuffer
+                    if buf:
+                        if isinstance(buf, EnvelopeBuffer):
+                            available = buf.envelope.headers.keys()
+                            localcompleter = StringlistCompleter(available)
+                            localres = localcompleter.complete(localprefix,
+                                                               localpos)
+                            res = [(c, p + 6) for (c, p) in localres]
 
             elif self.mode == 'envelope' and cmd == 'attach':
                 res = self._pathcompleter.complete(params, localpos)
