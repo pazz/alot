@@ -190,7 +190,6 @@ class UI(object):
         Use a :class:`commands.globals.ExitCommand` for a clean shutdown.
         """
         reactor.stop()
-        raise urwid.ExitMainLoop()
 
     def buffer_open(self, buf):
         """register and focus new :class:`~alot.buffers.Buffer`."""
