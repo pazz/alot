@@ -196,7 +196,10 @@ class EditCommand(Command):
 
             # remove to be edited lines from envelope
             del self.envelope[key]
+
             for value in vlist:
+                # remove newlines in values
+                value = value.replace('\n', ' ')
                 headertext += '%s: %s\n' % (key, value)
 
         bodytext = self.envelope.body
