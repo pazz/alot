@@ -15,6 +15,8 @@ from alot.commands import CommandParseError
 import alot
 
 from twisted.python import usage
+
+
 class SearchOptions(usage.Options):
     def parseArgs(self, *args):
         self['query'] = ' '.join(args)
@@ -28,6 +30,7 @@ class ComposeOptions(usage.Options):
                 ['bcc', '', None, 'blind copy to'],
                 ['template', '', None, 'path to template file'],
             ]
+
     def parseArgs(self, *args):
         self['to'] = ' '.join(args)
 
@@ -38,10 +41,12 @@ class ComposeOptions(usage.Options):
                 optstr += '--%s \'%s\' ' % (k, v)
         return optstr
 
+
 class Options(usage.Options):
     optFlags = [
             ["read-only", "r", 'open db in read only mode'],
             ]
+
     def colourint(val):
         val = int(val)
         if val not in [1, 16, 256]:
@@ -53,25 +58,22 @@ class Options(usage.Options):
             ['notmuch-config', 'n', '~/.notmuch-config', 'notmuch config'],
             ['colour-mode', 'C', 256, 'terminal colour mode', colourint],
             ['mailindex-path', 'p', None, 'path to notmuch index'],
-            ['debug-level', 'd', 'info', 'debug level used in combination with -l'],
+            ['debug-level', 'd', 'info', 'debug level used with -l'],
             ['logfile', 'l', '/dev/null', 'logfile'],
             ]
     subCommands = [['search', None, SearchOptions, "search for threads"],
                    ['compose', None, ComposeOptions, "compose a message"]]
-
 
     def opt_version(self):
         print alot.__version__
         sys.exit(0)
 
 
-
 def main():
     # interpret cml arguments
-
     args = Options()
     try:
-        args.parseOptions() # When given no argument, parses sys.argv[1:]
+        args.parseOptions()  # When given no argument, parses sys.argv[1:]
     except usage.UsageError, errortext:
         print '%s: %s' % (sys.argv[0], errortext)
         print '%s: Try --help for usage details.' % (sys.argv[0])
