@@ -192,8 +192,15 @@ class EditCommand(Command):
         # decode header
         headertext = u''
         for key in edit_headers:
-            value = self.envelope.headers.get(key, '')
-            headertext += '%s: %s\n' % (key, value)
+            vlist = self.envelope.get_all(key)
+
+            # remove to be edited lines from envelope
+            del self.envelope[key]
+
+            for value in vlist:
+                # remove newlines in values
+                value = value.replace('\n', ' ')
+                headertext += '%s: %s\n' % (key, value)
 
         bodytext = self.envelope.body
 
