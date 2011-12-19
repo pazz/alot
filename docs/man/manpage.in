@@ -1,0 +1,35 @@
+[NAME]
+mail user agent for the notmuch mail system
+
+[SYNOPSIS]
+
+[DESCRIPTION]
+A terminal-based interface for the notmuch mail system.
+It features a modular and command prompt driven interface to provide a full MUA
+experience as an alternative to the Emacs mode shipped with notmuch.
+
+In all views, arrows, page-up/down, `j`,`k` and `Space` can be used to move the
+focus.  `Escape` cancels prompts and `Enter` selects. Hit `:` at any time and type
+in commands to the prompt. Usage information on any command can be listed by typing
+`help YOURCOMMAND` to the prompt; The keybindings for the current mode are listet
+upon pressing `?`.
+
+See the COMMANDS section of this document for a list of commands interpreted by alot.
+
+
+
+[COMMANDS]
+todo
+
+
+[BUGS]
+Alot is a fairly new project, so expect misbehaviour. Bugs can be reported via the
+issue tracker on the projecs github page (https://github.com/pazz/alot).
+
+
+[AUTHOR]
+Patrick Totzke <patricktotzke at googlemail dot com>
+
+
+[SEE ALSO]
+notmuch(1)
