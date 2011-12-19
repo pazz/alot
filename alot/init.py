@@ -5,12 +5,14 @@ import logging
 import os
 
 import settings
+import ConfigParser
 from account import AccountManager
 from db import DBManager
 from ui import UI
 import alot.commands as commands
 from commands import *
 from alot.commands import CommandParseError
+import alot
 
 
 def parse_args():
@@ -40,6 +42,8 @@ def parse_args():
     parser.add_argument('command', nargs='?',
                         default='',
                         help='initial command')
+    parser.add_argument('-v', '--version', action='version',
+                        version='%(prog)s ' + alot.__version__)
     return parser.parse_args()
 
 
@@ -47,7 +51,7 @@ def main():
     # interpret cml arguments
     args = parse_args()
 
-    # locate and read config file
+    # locate alot config files
     configfiles = [
         os.path.join(os.environ.get('XDG_CONFIG_HOME',
                                     os.path.expanduser('~/.config')),
@@ -60,14 +64,21 @@ def main():
             sys.exit('File %s does not exist' % expanded_path)
         configfiles.insert(0, expanded_path)
 
-    for configfilename in configfiles:
-        if os.path.exists(configfilename):
-            settings.config.read(configfilename)
-            break  # use only the first
-
-    # read notmuch config
+    # locate notmuch config
     notmuchfile = os.path.expanduser(args.notmuchconfigfile)
-    settings.notmuchconfig.read(notmuchfile)
+
+    try:
+        # read the first alot config file we find
+        for configfilename in configfiles:
+            if os.path.exists(configfilename):
+                settings.config.read(configfilename)
+                break  # use only the first
+
+        # read notmuch config
+        settings.notmuchconfig.read(notmuchfile)
+
+    except ConfigParser.Error, e:  # exit on parse errors
+        sys.exit(e)
 
     # setup logging
     numeric_loglevel = getattr(logging, args.debug_level.upper(), None)

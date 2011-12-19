@@ -1,5 +1,8 @@
+
+from version import get_git_version
+
 __productname__ = 'alot'
-__version__ = '0.20'
+__version__ = get_git_version()
 __copyright__ = "Copyright (C) 2011 Patrick Totzke"
 __author__ = "Patrick Totzke"
 __author_email__ = "patricktotzke@gmail.com"

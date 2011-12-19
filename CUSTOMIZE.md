@@ -1,5 +1,5 @@
-Config
-------
+Configfile Layout
+------------------
 Just like offlineimap or notmuch itself, alot reads a config file in the "INI" syntax:
 It consists of some sections whose names are given in square brackets, followed by
 key-value pairs that use "=" or ":" as separator, ';' and '#' are comment-prefixes.
@@ -33,6 +33,10 @@ Here is a key for the interpreted sections:
 
 All configs are optional, but if you want to send mails you need to
 specify at least one account section.
+
+
+Account Sections
+----------------
 A sample gmail section looks like this (provided you have configured msmtp accordingly):
 
     [account gmail]
@@ -80,6 +84,32 @@ and in message composition. The command will be called with your prefix as only 
 and its output is searched for name-email pairs. The regular expression used here
 defaults to `(?P<email>.+?@.+?)\s+(?P<name>.+)`, which makes it work nicely with `abook --mutt-query`.
 You can tune this using the `abook_regexp` option (beware Commandparsers escaping semantic!).
+
+
+Key Bindings
+------------
+If you want to bind a commandline to a key you can do so by adding the pair to the
+`[MODE-maps]` config section, where MODE is the buffer mode you want the binding to hold.
+Consider the following lines, which allow you to send mails in envelope buffers using the
+combination `control` + `s`:
+
+    [envelope-maps]
+    ctrl s = send
+
+Possible MODE strings are:
+
+ * envelope
+ * search
+ * thread
+ * taglist
+ * bufferlist
+ * global
+
+Bindings defined in section `[global-maps]` are valid in all modes.
+
+Have a look at [the urwid User Input documentation][keys] on how key strings are formated.
+
+[keys]: http://excess.org/urwid/wiki/UserInput
 
 
 Hooks
@@ -133,23 +163,45 @@ Apart from command pre and posthooks, the following hooks will be interpreted:
    Receives and returns a string.
 
 
-Theming
+Colours
 -------
-You can change the colour settings in the section `[Xc-theme]`, where X is the
-colour mode you use. This defaults to 256, but 16 and 1 are also possible.
-The colourmode can be changed in the globals section or given as a commandline
-parameter (-C).
-The keys in this section should be self explanatory. In 16c and 256c modes you can define Y_fg and
-Y_bg for the foreground and background of each keyword Y. These can define colorcodes and flags
-like `underline` or `bold`, comma separated if you want more than one. See urwids doc on Attributes:
-http://excess.org/urwid/reference.html#AttrSpec
-Urwid privides a neat script that makes choosing colours easy, which can be found here:
-http://excess.org/urwid/browser/palette_test.py
+Alot can be run in 1, 16 or 256 colour mode. 
+The requested mode is determined by the commandline parameter `-C` or read from
+option `colourmode` in section `[globals]` of your config file.
+The default is 256, which will be scaled down depending on how many colours
+your terminal supports.
 
-See the contents of `alot/defaults/alot.rc` for a complete list of widgets that can be themed.
+The interface will theme its widgets according to the palette defined in
+section `[MODEc-theme]` where `MODE` denotes the integer indicating your mode.
+Have a look at the default config (`alot/defaults/alot.rc`) for a complete list
+of interpreted widget settings; the keys in this section should be self-explanatory.
 
-Keywords that start with "tag_" will be used to display specific tags. For instance, you
-can use the following to always display the "todo" tag in white on red, when in 256c-mode.
+Values can be colour names ('light red', 'dark green'..), RGB colour codes (e.g. '#868'),
+font attributes ('bold', 'underline', 'blink', 'standout') or a comma separated combination of
+colour and font attributes.
+In sections `[16c-theme]` and `[256c-theme]` you can define Y_fg and
+Y_bg for the foreground and background of each widget keyword Y, whereas the monochromatic
+(`[1c-theme]`) palette can only interpret font attributes for key Y without the suffix.
+As an example, check the setting below, that makes the footer line appear as
+underlined, bold red text on a bright green background:
+
+    [256c-theme]
+    global_footer_bg = #8f6
+    global_footer_fg = light red, bold, underline
+
+See [urwids docs on Attributes][urwid_att] for more details on the interpreted values.
+Urwid provides a [neat colour picker script][urwid_colour_pick] that makes choosing colours easy.
+
+[urwid_att]: http://excess.org/urwid/reference.html#AttrSpec
+[urwid_colour_pick]: http://excess.org/urwid/browser/palette_test.py
+
+
+
+Custom Tagstring Formating
+--------------------------
+Keywords in the theme sections that start with "tag_" will be used to display specific tags.
+For instance, you can use the following to always display the "todo" tag in white on red,
+when in 256c-mode.
 
     [256c-theme]
     tag_todo_bg = #d66

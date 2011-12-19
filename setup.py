@@ -3,6 +3,7 @@
 from distutils.core import setup
 import alot
 
+
 setup(name='alot',
       version=alot.__version__,
       description=alot.__description__,
@@ -10,7 +11,8 @@ setup(name='alot',
       author_email=alot.__author_email__,
       url=alot.__url__,
       packages=['alot', 'alot.commands'],
-      package_data={'alot': ['defaults/alot.rc', 'defaults/notmuch.rc']},
+      package_data={'alot': ['defaults/alot.rc', 'defaults/notmuch.rc',
+          'VERSION']},
       scripts=['bin/alot'],
       license=alot.__copyright__,
       requires=[
@@ -19,6 +21,5 @@ setup(name='alot',
         'urwid (>=1.0)',
         'twisted (>=10.2.0)',
         'subprocess (>=2.7)'],
-      provides='alot'
+      provides='alot',
 )
-
