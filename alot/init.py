@@ -17,12 +17,22 @@ import alot
 from twisted.python import usage
 
 
-class SearchOptions(usage.Options):
+class SubcommandOptions(usage.Options):
     def parseArgs(self, *args):
-        self['query'] = ' '.join(args)
+        self.args = args
 
+    def as_argparse_opts(self):
+        optstr = ''
+        for k, v in self.items():
+            if v is not None:
+                optstr += '--%s \'%s\' ' % (k, v)
+        return optstr
 
-class ComposeOptions(usage.Options):
+    def opt_version(self):
+        print alot.__version__
+        sys.exit(0)
+
+class ComposeOptions(SubcommandOptions):
     optParameters = [
                 ['sender', '', None, 'From line'],
                 ['subject', '', None, 'subject line'],
@@ -33,20 +43,13 @@ class ComposeOptions(usage.Options):
             ]
 
     def parseArgs(self, *args):
+        SubcommandOptions.parseArgs(self, *args)
         self['to'] = ' '.join(args)
 
-    def as_argparse_opts(self):
-        optstr = ''
-        for k, v in self.items():
-            if v is not None:
-                optstr += '--%s \'%s\' ' % (k, v)
-        return optstr
 
 
 class Options(usage.Options):
-    optFlags = [
-            ["read-only", "r", 'open db in read only mode'],
-            ]
+    optFlags = [ ["read-only", "r", 'open db in read only mode'], ]
 
     def colourint(val):
         val = int(val)
@@ -62,7 +65,7 @@ class Options(usage.Options):
             ['debug-level', 'd', 'info', 'debug level used with -l'],
             ['logfile', 'l', '/dev/null', 'logfile'],
             ]
-    subCommands = [['search', None, SearchOptions, "search for threads"],
+    subCommands = [['search', None, SubcommandOptions, "search for threads"],
                    ['compose', None, ComposeOptions, "compose a message"]]
 
     def opt_version(self):
@@ -125,11 +128,10 @@ def main():
     # get initial searchstring
     try:
         if args.subCommand == 'search':
-            query = args.subOptions['query']
+            query = ' '.join(args.subOptions.args)
             cmd = commands.commandfactory('search ' + query, 'global')
         elif args.subCommand == 'compose':
             cmdstring = 'compose %s' % args.subOptions.as_argparse_opts()
-            print cmdstring
             cmd = commands.commandfactory(cmdstring, 'global')
         else:
             default_commandline = settings.config.get('general',
