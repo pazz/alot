@@ -29,6 +29,7 @@ class ComposeOptions(usage.Options):
                 ['cc', '', None, 'copy to'],
                 ['bcc', '', None, 'blind copy to'],
                 ['template', '', None, 'path to template file'],
+                ['attach', '', None, 'files to attach'],
             ]
 
     def parseArgs(self, *args):
