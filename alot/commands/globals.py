@@ -426,11 +426,12 @@ class HelpCommand(Command):
     (['--to'], {'nargs':'+', 'help':'recipients'}),
     (['--cc'], {'nargs':'+', 'help':'copy to'}),
     (['--bcc'], {'nargs':'+', 'help':'blind copy to'}),
+    (['--attach'], {'nargs':'+', 'help':'attach files'}),
 ])
 class ComposeCommand(Command):
     """compose a new email"""
     def __init__(self, envelope=None, headers={}, template=None,
-                 sender=u'', subject=u'', to=[], cc=[], bcc=[],
+                 sender=u'', subject=u'', to=[], cc=[], bcc=[], attach=None,
                  **kwargs):
         """
         :param envelope: use existing envelope
@@ -451,6 +452,8 @@ class ComposeCommand(Command):
         :type cc: str
         :param bcc: Bcc-header value
         :type bcc: str
+        :param attach: Path to files to be attached (globable)
+        :type attach: str
         """
 
         Command.__init__(self, **kwargs)
@@ -463,6 +466,7 @@ class ComposeCommand(Command):
         self.to = to
         self.cc = cc
         self.bcc = bcc
+        self.attach = attach
 
     @inlineCallbacks
     def apply(self, ui):
@@ -559,6 +563,11 @@ class ComposeCommand(Command):
                 ui.notify('canceled')
                 return
             self.envelope.add('Subject', subject)
+
+        if self.attach:
+            for a in self.attach:
+                self.envelope.attach(a)
+
         cmd = commands.envelope.EditCommand(envelope=self.envelope)
         ui.apply_command(cmd)
 

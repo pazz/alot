@@ -501,6 +501,7 @@ class Envelope(object):
         :type ctype: str
         """
 
+        path = os.path.expanduser(path)
         part = helper.mimewrap(path, filename, ctype)
         self.attachments.append(part)
 
