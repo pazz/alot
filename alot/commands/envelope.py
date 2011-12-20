@@ -1,4 +1,5 @@
 import os
+import re
 import glob
 import logging
 import email
@@ -198,8 +199,9 @@ class EditCommand(Command):
             del self.envelope[key]
 
             for value in vlist:
-                # remove newlines in values
-                value = value.replace('\n', ' ')
+                # newlines (with surrounding spaces) by spaces in values
+                value = value.strip()
+                value = re.sub('[ \t\r\f\v]*\n[ \t\r\f\v]*', ' ', value)
                 headertext += '%s: %s\n' % (key, value)
 
         bodytext = self.envelope.body
