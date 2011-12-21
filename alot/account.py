@@ -4,6 +4,7 @@ import time
 import re
 import email
 import os
+import shlex
 from ConfigParser import SafeConfigParser
 from urlparse import urlparse
 
@@ -320,7 +321,8 @@ class MatchSdtoutAddressbook(AddressBook):
         return self.lookup('\'\'')
 
     def lookup(self, prefix):
-        resultstring = cmd_output('%s %s' % (self.command, prefix))
+        cmdlist = shlex.split(self.command.encode('utf-8', errors='ignore'))
+        resultstring = cmd_output(cmdlist + [prefix])
         if not resultstring:
             return []
         lines = resultstring.replace('\t', ' ' * 4).splitlines()

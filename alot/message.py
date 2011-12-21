@@ -3,6 +3,7 @@ import email
 import tempfile
 import re
 import mimetypes
+import shlex
 from datetime import datetime
 from email.header import Header
 import email.charset as charset
@@ -276,7 +277,8 @@ def extract_body(mail, types=None):
                 tmpfile.close()
                 #create and call external command
                 cmd = handler % tmpfile.name
-                rendered_payload = helper.cmd_output(cmd)
+                cmdlist = shlex.split(cmd.encode('utf-8', errors='ignore'))
+                rendered_payload = helper.cmd_output(cmdlist)
                 #remove tempfile
                 os.unlink(tmpfile.name)
                 if rendered_payload:  # handler had output
