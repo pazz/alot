@@ -8,7 +8,6 @@ import shlex
 from ConfigParser import SafeConfigParser
 from urlparse import urlparse
 
-from helper import cmd_output
 import helper
 
 
@@ -322,7 +321,7 @@ class MatchSdtoutAddressbook(AddressBook):
 
     def lookup(self, prefix):
         cmdlist = shlex.split(self.command.encode('utf-8', errors='ignore'))
-        resultstring = cmd_output(cmdlist + [prefix])
+        resultstring, errmsg, retval = helper.call_cmd(cmdlist + [prefix])
         if not resultstring:
             return []
         lines = resultstring.replace('\t', ' ' * 4).splitlines()

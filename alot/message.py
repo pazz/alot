@@ -278,7 +278,7 @@ def extract_body(mail, types=None):
                 #create and call external command
                 cmd = handler % tmpfile.name
                 cmdlist = shlex.split(cmd.encode('utf-8', errors='ignore'))
-                rendered_payload = helper.cmd_output(cmdlist)
+                rendered_payload, errmsg, retval = helper.call_cmd(cmdlist)
                 #remove tempfile
                 os.unlink(tmpfile.name)
                 if rendered_payload:  # handler had output
