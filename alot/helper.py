@@ -229,7 +229,7 @@ def call_cmd(cmdlist, stdin=None):
     out, err, ret = '', '', 0
     try:
         if stdin:
-            proc = subprocess.Popen(args, stdin=subprocess.PIPE,
+            proc = subprocess.Popen(cmdlist, stdin=subprocess.PIPE,
                                     stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE)
             out, err = proc.communicate(stdin)
