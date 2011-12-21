@@ -140,7 +140,8 @@ class SendmailAccount(Account):
 
     def send_mail(self, mail):
         mail['Date'] = email.utils.formatdate(time.time(), True)
-        out, err = helper.pipe_to_command(self.cmd, mail.as_string())
+        cmdlist = shlex.split(self.cmd.encode('utf-8', errors='ignore'))
+        out, err, retval = helper.call_cmd(cmdlist, stdin=mail.as_string())
         if err:
             return err + '. sendmail_cmd set to: %s' % self.cmd
         self.store_sent_mail(mail)
