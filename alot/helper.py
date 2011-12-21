@@ -2,7 +2,6 @@ from datetime import date
 from datetime import timedelta
 from collections import deque
 from string import strip
-import shlex
 import subprocess
 import email
 import mimetypes

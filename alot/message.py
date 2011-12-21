@@ -546,7 +546,7 @@ class Envelope(object):
 
         # remove existing content
         if reset:
-            self.headers={}
+            self.headers = {}
 
         # go through multiline, utf-8 encoded headers
         # we decode the edited text ourselves here as

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import sys
-import argparse
 import logging
 import os
 
@@ -32,6 +31,7 @@ class SubcommandOptions(usage.Options):
         print alot.__version__
         sys.exit(0)
 
+
 class ComposeOptions(SubcommandOptions):
     optParameters = [
                 ['sender', '', None, 'From line'],
@@ -47,9 +47,8 @@ class ComposeOptions(SubcommandOptions):
         self['to'] = ' '.join(args)
 
 
-
 class Options(usage.Options):
-    optFlags = [ ["read-only", "r", 'open db in read only mode'], ]
+    optFlags = [["read-only", "r", 'open db in read only mode'], ]
 
     def colourint(val):
         val = int(val)
