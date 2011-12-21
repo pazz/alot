@@ -213,10 +213,17 @@ def pretty_datetime(d):
     return string
 
 
-def cmd_output(command_line):
-    args = shlex.split(command_line.encode('utf-8', errors='ignore'))
+def cmd_output(cmdlist):
+    """
+    get a shell commands output, while ignoring errors.
+    :param cmdlist: shellcommand to call, already splitted into a list accepted
+                    by :meth:`subprocess.Popen`
+    :type cmdlist: list of str
+    :return: the stdout of the command as string or `None` in case of an error
+    :rtype: str
+    """
     try:
-        output = subprocess.check_output(args)
+        output = subprocess.check_output(cmdlist)
         output = string_decode(output, urwid.util.detected_encoding)
     except subprocess.CalledProcessError:
         return None
