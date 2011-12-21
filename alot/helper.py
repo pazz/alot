@@ -213,39 +213,37 @@ def pretty_datetime(d):
     return string
 
 
-def cmd_output(command_line):
-    args = shlex.split(command_line.encode('utf-8', errors='ignore'))
+def call_cmd(cmdlist, stdin=None):
+    """
+    get a shell commands output, error message and return value
+
+    :param cmdlist: shellcommand to call, already splitted into a list accepted
+                    by :meth:`subprocess.Popen`
+    :type cmdlist: list of str
+    :param stdin: string to pipe to the process
+    :type stdin: str
+    :return: triple of stdout, error msg, return value of the shell command
+    :rtype: str, str, int
+    """
+
+    out, err, ret = '', '', 0
     try:
-        output = subprocess.check_output(args)
-        output = string_decode(output, urwid.util.detected_encoding)
-    except subprocess.CalledProcessError:
-        return None
-    except OSError:
-        return None
-    return output
-
-
-def pipe_to_command(cmd, stdin):
-        # remove quotes which have been put around the whole command
-        cmd = cmd.strip()
-        stdin = stdin + '\n'
-        if cmd[0] == '"' and cmd[-1] == '"':
-            cmd = cmd[1:-1]
-        args = shlex.split(cmd.encode('utf-8', errors='ignore'))
-        try:
-            proc = subprocess.Popen(args, stdin=subprocess.PIPE,
+        if stdin:
+            proc = subprocess.Popen(cmdlist, stdin=subprocess.PIPE,
                                     stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE)
             out, err = proc.communicate(stdin)
-        except OSError, e:
-            return '', str(e)
-        if proc.poll():  # returncode is not 0
-            e = 'return value != 0'
-            if err.strip():
-                e = e + ': %s' % err
-            return '', e
+            ret = proc.poll()
         else:
-            return out, err
+            out = subprocess.check_output(cmdlist)
+            # todo: get error msg. rval
+    except (subprocess.CalledProcessError, OSError), e:
+        err = str(e)
+        ret = -1
+
+    out = string_decode(out, urwid.util.detected_encoding)
+    err = string_decode(err, urwid.util.detected_encoding)
+    return out, err, ret
 
 
 def mimewrap(path, filename=None, ctype=None):

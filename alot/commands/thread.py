@@ -3,6 +3,7 @@ import logging
 import tempfile
 from twisted.internet.defer import inlineCallbacks
 import mimetypes
+import shlex
 
 from alot.commands import Command, registerCommand
 from alot.commands.globals import ExternalCommand
@@ -242,7 +243,7 @@ class ToggleHeaderCommand(Command):
 
 
 @registerCommand(MODE, 'pipeto', arguments=[
-    (['cmd'], {'help':'shellcommand to pipe to'}),
+    (['cmd'], {'nargs':'?', 'help':'shellcommand to pipe to'}),
     (['--all'], {'action': 'store_true', 'help':'pass all messages'}),
     (['--decode'], {'action': 'store_true',
                     'help':'use only decoded body lines'}),
@@ -253,14 +254,13 @@ class ToggleHeaderCommand(Command):
 )
 class PipeCommand(Command):
     """pipe message(s) to stdin of a shellcommand"""
-    #TODO: make cmd a list
     #TODO: use raw arg from print command here
     def __init__(self, cmd, all=False, ids=False, separately=False,
                  decode=True, noop_msg='no command specified', confirm_msg='',
                  done_msg='done', **kwargs):
         """
         :param cmd: shellcommand to open
-        :type cmd: str
+        :type cmd: list of str
         :param all: pipe all, not only selected message
         :type all: bool
         :param ids: only write message ids, not the message source
@@ -276,7 +276,7 @@ class PipeCommand(Command):
         :type done_msg: str
         """
         Command.__init__(self, **kwargs)
-        self.cmd = cmd
+        self.cmdlist = cmd
         self.whole_thread = all
         self.separately = separately
         self.ids = ids
@@ -288,7 +288,7 @@ class PipeCommand(Command):
     @inlineCallbacks
     def apply(self, ui):
         # abort if command unset
-        if not self.cmd:
+        if not self.cmdlist:
             ui.notify(self.noop_msg, priority='error')
             return
 
@@ -327,7 +327,7 @@ class PipeCommand(Command):
         # do teh monkey
         for mail in mailstrings:
             ui.logger.debug("%s" % mail)
-            out, err = helper.pipe_to_command(self.cmd, mail)
+            out, err, retval = helper.call_cmd(self.cmdlist, stdin=mail)
             if err:
                 ui.notify(err, priority='error')
                 return
@@ -356,6 +356,7 @@ class PrintCommand(PipeCommand):
         """
         # get print command
         cmd = settings.config.get('general', 'print_cmd', fallback='')
+        cmdlist = shlex.split(cmd.encode('utf-8', errors='ignore'))
 
         # set up notification strings
         if all:
@@ -368,7 +369,7 @@ class PrintCommand(PipeCommand):
         # no print cmd set
         noop_msg = 'no print command specified. Set "print_cmd" in the '\
                     'global section.'
-        PipeCommand.__init__(self, cmd, all=all,
+        PipeCommand.__init__(self, cmdlist, all=all,
                              separately=separately,
                              decode=not raw,
                              noop_msg=noop_msg, confirm_msg=confirm_msg,
@@ -377,7 +378,7 @@ class PrintCommand(PipeCommand):
 
 @registerCommand(MODE, 'save', arguments=[
     (['--all'], {'action': 'store_true', 'help':'save all attachments'}),
-    (['path'], {'nargs':'?', 'help':'path to save to'})])
+    (['path'], {'help':'path to save to'})])
 class SaveAttachmentCommand(Command):
     """save attachment(s)"""
     def __init__(self, all=False, path=None, **kwargs):
