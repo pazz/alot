@@ -1,0 +1,6 @@
+alot (0.2-1) unstable; urgency=low
+
+  * New Debian packaging (close #ITP)
+
+ -- Jameson Graef Rollins <jrollins@finestructure.net>  Sun, 11 Dec 2011 14:50:50 -0800
+
