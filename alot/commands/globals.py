@@ -250,10 +250,18 @@ class PythonShellCommand(Command):
 
 @registerCommand(MODE, 'bclose')
 class BufferCloseCommand(Command):
-    """close current buffer or exit if it is the last"""
+    """close current buffer"""
     def apply(self, ui):
         selected = ui.current_buffer
-        ui.buffer_close(selected)
+        if len(ui.buffers) == 1:
+            if settings.config.getboolean('general', 'quit_on_last_bclose'):
+                ui.logger.info('closing the last buffer, exiting')
+                ui.apply_command(ExitCommand())
+            else:
+                ui.logger.info('not closing last remaining buffer as '
+                               'global.quit_on_last_bclose is set to False')
+        else:
+            ui.buffer_close(selected)
 
 
 @registerCommand(MODE, 'bprevious', forced={'offset': -1},
@@ -418,11 +426,12 @@ class HelpCommand(Command):
     (['--to'], {'nargs':'+', 'help':'recipients'}),
     (['--cc'], {'nargs':'+', 'help':'copy to'}),
     (['--bcc'], {'nargs':'+', 'help':'blind copy to'}),
+    (['--attach'], {'nargs':'+', 'help':'attach files'}),
 ])
 class ComposeCommand(Command):
     """compose a new email"""
     def __init__(self, envelope=None, headers={}, template=None,
-                 sender=u'', subject=u'', to=[], cc=[], bcc=[],
+                 sender=u'', subject=u'', to=[], cc=[], bcc=[], attach=None,
                  **kwargs):
         """
         :param envelope: use existing envelope
@@ -443,8 +452,10 @@ class ComposeCommand(Command):
         :type cc: str
         :param bcc: Bcc-header value
         :type bcc: str
+        :param attach: Path to files to be attached (globable)
+        :type attach: str
         """
-#TODO
+
         Command.__init__(self, **kwargs)
 
         self.envelope = envelope
@@ -455,6 +466,7 @@ class ComposeCommand(Command):
         self.to = to
         self.cc = cc
         self.bcc = bcc
+        self.attach = attach
 
     @inlineCallbacks
     def apply(self, ui):
@@ -489,19 +501,19 @@ class ComposeCommand(Command):
 
         # set forced headers
         for key, value in self.headers.items():
-            self.envelope.headers[key] = value
+            self.envelope.add(key, value)
 
         # set forced headers for separate parameters
         if self.sender:
-            self.envelope['From'] = self.sender
+            self.envelope.add('From', self.sender)
         if self.subject:
-            self.envelope['Subject'] = self.subject
+            self.envelope.add('Subject', self.subject)
         if self.to:
-            self.envelope['To'] = ','.join(self.to)
+            self.envelope.add('To', ','.join(self.to))
         if self.cc:
-            self.envelope['Cc'] = ','.join(self.cc)
+            self.envelope.add('Cc', ','.join(self.cc))
         if self.bcc:
-            self.envelope['Bcc'] = ','.join(self.bcc)
+            self.envelope.add('Bcc', ','.join(self.bcc))
 
         # get missing From header
         if not 'From' in self.envelope.headers:
@@ -509,7 +521,7 @@ class ComposeCommand(Command):
             if len(accounts) == 1:
                 a = accounts[0]
                 fromstring = "%s <%s>" % (a.realname, a.address)
-                self.envelope['From'] = fromstring
+                self.envelope.add('From', fromstring)
             else:
                 cmpl = AccountCompleter(ui.accountman)
                 fromaddress = yield ui.prompt(prefix='From>', completer=cmpl,
@@ -520,13 +532,13 @@ class ComposeCommand(Command):
                 a = ui.accountman.get_account_by_address(fromaddress)
                 if a is not None:
                     fromstring = "%s <%s>" % (a.realname, a.address)
-                    self.envelope['From'] = fromstring
+                    self.envelope.add('From', fromstring)
                 else:
-                    self.envelope.headers['From'] = fromaddress
+                    self.envelope.add('From', fromaddress)
 
         # get missing To header
         if 'To' not in self.envelope.headers:
-            sender = self.envelope.headers.get('From')
+            sender = self.envelope.get('From')
             name, addr = email.Utils.parseaddr(sender)
             a = ui.accountman.get_account_by_address(addr)
 
@@ -541,7 +553,7 @@ class ComposeCommand(Command):
             if to == None:
                 ui.notify('canceled')
                 return
-            self.envelope.headers['To'] = to
+            self.envelope.add('To', to)
 
         if settings.config.getboolean('general', 'ask_subject') and \
            not 'Subject' in self.envelope.headers:
@@ -550,7 +562,12 @@ class ComposeCommand(Command):
             if subject == None:
                 ui.notify('canceled')
                 return
-            self.envelope['Subject'] = subject
+            self.envelope.add('Subject', subject)
+
+        if self.attach:
+            for a in self.attach:
+                self.envelope.attach(a)
+
         cmd = commands.envelope.EditCommand(envelope=self.envelope)
         ui.apply_command(cmd)
 

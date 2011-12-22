@@ -3,6 +3,7 @@ import logging
 import tempfile
 from twisted.internet.defer import inlineCallbacks
 import mimetypes
+import shlex
 
 from alot.commands import Command, registerCommand
 from alot.commands.globals import ExternalCommand
@@ -59,7 +60,7 @@ class ReplyCommand(Command):
         subject = decode_header(mail.get('Subject', ''))
         if not subject.startswith('Re:'):
             subject = 'Re: ' + subject
-        envelope['Subject'] = subject
+        envelope.add('Subject', subject)
 
         # set From
         my_addresses = ui.accountman.get_addresses()
@@ -75,7 +76,7 @@ class ReplyCommand(Command):
         if matched_address:
             account = ui.accountman.get_account_by_address(matched_address)
             fromstring = '%s <%s>' % (account.realname, account.address)
-            envelope['From'] = fromstring
+            envelope.add('From', fromstring)
 
         # set To
         if self.groupreply:
@@ -83,21 +84,22 @@ class ReplyCommand(Command):
             if cleared:
                 logging.info(mail['From'] + ', ' + cleared)
                 to = mail['From'] + ', ' + cleared
-                envelope['To'] = to
+                envelope.add('To', decode_header(to))
+
             else:
-                envelope['To'] = mail['From']
+                envelope.add('To', decode_header(mail['From']))
             # copy cc and bcc for group-replies
             if 'Cc' in mail:
                 cc = self.clear_my_address(my_addresses, mail['Cc'])
-                envelope['Cc'] = cc
+                envelope.add('Cc', decode_header(cc))
             if 'Bcc' in mail:
                 bcc = self.clear_my_address(my_addresses, mail['Bcc'])
-                envelope['Bcc'] = bcc
+                envelope.add('Bcc', decode_header(bcc))
         else:
-            envelope['To'] = mail['From']
+            envelope.add('To', decode_header(mail['From']))
 
         # set In-Reply-To header
-        envelope['In-Reply-To'] = '<%s>' % self.message.get_message_id()
+        envelope.add('In-Reply-To', '<%s>' % self.message.get_message_id())
 
         # set References header
         old_references = mail.get('References', '')
@@ -107,9 +109,9 @@ class ReplyCommand(Command):
             if len(old_references) > 8:
                 references = old_references[:1] + references
             references.append('<%s>' % self.message.get_message_id())
-            envelope['References'] = ' '.join(references)
+            envelope.add('References', ' '.join(references))
         else:
-            envelope['References'] = '<%s>' % self.message.get_message_id()
+            envelope.add('References', '<%s>' % self.message.get_message_id())
 
         ui.apply_command(ComposeCommand(envelope=envelope))
 
@@ -168,9 +170,11 @@ class ForwardCommand(Command):
         # copy subject
         subject = decode_header(mail.get('Subject', ''))
         subject = 'Fwd: ' + subject
-        envelope['Subject'] = subject
+        envelope.add('Subject', subject)
 
         # set From
+        # we look for own addresses in the To,Cc,Ccc headers in that order
+        # and use the first match as new From header if there is one.
         my_addresses = ui.accountman.get_addresses()
         matched_address = ''
         in_to = [a for a in my_addresses if a in mail.get('To', '')]
@@ -184,7 +188,7 @@ class ForwardCommand(Command):
         if matched_address:
             account = ui.accountman.get_account_by_address(matched_address)
             fromstring = '%s <%s>' % (account.realname, account.address)
-            envelope['From'] = fromstring
+            envelope.add('From', fromstring)
         ui.apply_command(ComposeCommand(envelope=envelope))
 
 
@@ -239,7 +243,7 @@ class ToggleHeaderCommand(Command):
 
 
 @registerCommand(MODE, 'pipeto', arguments=[
-    (['cmd'], {'help':'shellcommand to pipe to'}),
+    (['cmd'], {'nargs':'?', 'help':'shellcommand to pipe to'}),
     (['--all'], {'action': 'store_true', 'help':'pass all messages'}),
     (['--decode'], {'action': 'store_true',
                     'help':'use only decoded body lines'}),
@@ -250,14 +254,13 @@ class ToggleHeaderCommand(Command):
 )
 class PipeCommand(Command):
     """pipe message(s) to stdin of a shellcommand"""
-    #TODO: make cmd a list
     #TODO: use raw arg from print command here
     def __init__(self, cmd, all=False, ids=False, separately=False,
                  decode=True, noop_msg='no command specified', confirm_msg='',
                  done_msg='done', **kwargs):
         """
         :param cmd: shellcommand to open
-        :type cmd: str
+        :type cmd: list of str
         :param all: pipe all, not only selected message
         :type all: bool
         :param ids: only write message ids, not the message source
@@ -273,7 +276,7 @@ class PipeCommand(Command):
         :type done_msg: str
         """
         Command.__init__(self, **kwargs)
-        self.cmd = cmd
+        self.cmdlist = cmd
         self.whole_thread = all
         self.separately = separately
         self.ids = ids
@@ -285,7 +288,7 @@ class PipeCommand(Command):
     @inlineCallbacks
     def apply(self, ui):
         # abort if command unset
-        if not self.cmd:
+        if not self.cmdlist:
             ui.notify(self.noop_msg, priority='error')
             return
 
@@ -324,7 +327,7 @@ class PipeCommand(Command):
         # do teh monkey
         for mail in mailstrings:
             ui.logger.debug("%s" % mail)
-            out, err = helper.pipe_to_command(self.cmd, mail)
+            out, err, retval = helper.call_cmd(self.cmdlist, stdin=mail)
             if err:
                 ui.notify(err, priority='error')
                 return
@@ -353,6 +356,7 @@ class PrintCommand(PipeCommand):
         """
         # get print command
         cmd = settings.config.get('general', 'print_cmd', fallback='')
+        cmdlist = shlex.split(cmd.encode('utf-8', errors='ignore'))
 
         # set up notification strings
         if all:
@@ -365,7 +369,7 @@ class PrintCommand(PipeCommand):
         # no print cmd set
         noop_msg = 'no print command specified. Set "print_cmd" in the '\
                     'global section.'
-        PipeCommand.__init__(self, cmd, all=all,
+        PipeCommand.__init__(self, cmdlist, all=all,
                              separately=separately,
                              decode=not raw,
                              noop_msg=noop_msg, confirm_msg=confirm_msg,
@@ -374,7 +378,7 @@ class PrintCommand(PipeCommand):
 
 @registerCommand(MODE, 'save', arguments=[
     (['--all'], {'action': 'store_true', 'help':'save all attachments'}),
-    (['path'], {'nargs':'?', 'help':'path to save to'})])
+    (['path'], {'help':'path to save to'})])
 class SaveAttachmentCommand(Command):
     """save attachment(s)"""
     def __init__(self, all=False, path=None, **kwargs):

@@ -93,6 +93,9 @@ initial_command = search tag:inbox AND NOT tag:killed
 # look in the abook of the account matching the sender address
 complete_matching_abook_only = False
 
+# shut down when the last buffer gets closed
+quit_on_last_bclose = False
+
 [global-maps]
 j = move down
 k = move up

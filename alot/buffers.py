@@ -86,7 +86,6 @@ class EnvelopeBuffer(Buffer):
     def __init__(self, ui, envelope):
         self.ui = ui
         self.envelope = envelope
-        self.mail = envelope.construct_mail()
         self.all_headers = False
         self.rebuild()
         Buffer.__init__(self, ui, self.body, 'envelope')
@@ -96,15 +95,15 @@ class EnvelopeBuffer(Buffer):
         return '[%s] to: %s' % (self.typename, shorten_author_string(to, 400))
 
     def rebuild(self):
-        self.mail = self.envelope.construct_mail()
         displayed_widgets = []
         hidden = settings.config.getstringlist('general',
                                                'envelope_headers_blacklist')
         #build lines
         lines = []
-        for (k, v) in self.envelope.headers.items():
+        for (k, vlist) in self.envelope.headers.items():
             if (k not in hidden) or self.all_headers:
-                lines.append((k, v))
+                for value in vlist:
+                    lines.append((k, value))
 
         self.header_wgt = widgets.HeadersList(lines)
         displayed_widgets.append(self.header_wgt)
@@ -117,7 +116,6 @@ class EnvelopeBuffer(Buffer):
             self.attachment_wgt = urwid.Pile(lines)
             displayed_widgets.append(self.attachment_wgt)
 
-        #self.body_wgt = widgets.MessageBodyWidget(self.mail)
         self.body_wgt = urwid.Text(self.envelope.body)
         displayed_widgets.append(self.body_wgt)
         self.body = urwid.ListBox(displayed_widgets)
