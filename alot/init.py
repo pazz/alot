@@ -56,16 +56,26 @@ class Options(usage.Options):
             raise ValueError("Not in range")
         return val
     colourint.coerceDoc = "Must be 1, 16 or 256"
+
+    def debuglogstring(val):
+        if val not in ['error', 'debug', 'info', 'warning']:
+            raise ValueError("Not in range")
+        return val
+    debuglogstring.coerceDoc = "Must be one of debug,info,warning or error"
+
     optParameters = [
             ['config', 'c', '~/.config/alot/config', 'config file'],
             ['notmuch-config', 'n', '~/.notmuch-config', 'notmuch config'],
             ['colour-mode', 'C', 256, 'terminal colour mode', colourint],
             ['mailindex-path', 'p', None, 'path to notmuch index'],
-            ['debug-level', 'd', 'info', 'debug level used with -l'],
+            ['debug-level', 'd', 'info', 'debug log', debuglogstring],
             ['logfile', 'l', '/dev/null', 'logfile'],
-            ]
-    subCommands = [['search', None, SubcommandOptions, "search for threads"],
-                   ['compose', None, ComposeOptions, "compose a message"]]
+    ]
+    search_help = "start in a search buffer using the querystring provided "\
+                  "as parameter. See the SEARCH SYNTAX section of notmuch(1)."
+
+    subCommands = [['search', None, SubcommandOptions, search_help],
+                   ['compose', None, ComposeOptions, "compose a new message"]]
 
     def opt_version(self):
         print alot.__version__
