@@ -2,6 +2,9 @@
 mail user agent for the notmuch mail system
 
 [SYNOPSIS]
+alot [-r] [-c CONFIGFILE] [-n NOTMUCHCONFIGFILE] [-C {1,16,256}]
+     [-p DB_PATH] [-d {debug,info,warning,error}] [-l LOGFILE]
+     [--version] [--help] [command]
 
 [DESCRIPTION]
 A terminal-based interface for the notmuch mail system.
@@ -14,22 +17,12 @@ in commands to the prompt. Usage information on any command can be listed by typ
 `help YOURCOMMAND` to the prompt; The keybindings for the current mode are listet
 upon pressing `?`.
 
-See the COMMANDS section of this document for a list of commands interpreted by alot.
-
-
-
-[COMMANDS]
-todo
-
-
 [BUGS]
 Alot is a fairly new project, so expect misbehaviour. Bugs can be reported via the
 issue tracker on the projecs github page (https://github.com/pazz/alot).
 
-
 [AUTHOR]
 Patrick Totzke <patricktotzke at googlemail dot com>
-
 
 [SEE ALSO]
 notmuch(1)
