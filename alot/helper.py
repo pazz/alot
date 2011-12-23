@@ -245,14 +245,35 @@ def call_cmd(cmdlist, stdin=None):
     return out, err, ret
 
 
-def guess_mimetype(path):
+def guess_mimetype(blob):
+    """
+    uses file magic to determine the mime-type of the given data blob.
+
+    :param blob: file content as read by file.read()
+    :type blob: data
+    :returns: mime-type
+    """
     m = magic.open(magic.MAGIC_MIME_TYPE)
     m.load()
-    return m.file(path)
+    return m.buffer(blob)
+
+
+def guess_mimetype_of_path(path):
+    """
+    uses file magic to determine the mime-type of a file at given path.
+
+    :param path: path to file
+    :type path: str
+    :returns: mime-type
+    """
+    f = open(path)
+    blob = f.read()
+    f.close()
+    return guess_mimetype(blob)
 
 
 def mimewrap(path, filename=None, ctype=None):
-    ctype = ctype or guess_mimetype(path)
+    ctype = ctype or guess_mimetype_of_path(path)
     maintype, subtype = ctype.split('/', 1)
     if maintype == 'text':
         fp = open(path)
