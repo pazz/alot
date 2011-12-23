@@ -20,6 +20,7 @@ setup(name='alot',
         'argparse (>=2.7)',
         'urwid (>=1.0)',
         'twisted (>=10.2.0)',
+        'magic',
         'subprocess (>=2.7)'],
       provides='alot',
 )
