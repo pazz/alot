@@ -4,13 +4,13 @@ from collections import deque
 from string import strip
 import subprocess
 import email
-import mimetypes
 import os
 from email.mime.audio import MIMEAudio
 from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
 import urwid
+import magic
 
 from settings import config
 
@@ -245,13 +245,14 @@ def call_cmd(cmdlist, stdin=None):
     return out, err, ret
 
 
+def guess_mimetype(path):
+    m = magic.open(magic.MAGIC_MIME_TYPE)
+    m.load()
+    return m.file(path)
+
+
 def mimewrap(path, filename=None, ctype=None):
-    if ctype == None:
-        ctype, encoding = mimetypes.guess_type(path)
-        if ctype is None or encoding is not None:
-            # No guess could be made, or the file is encoded (compressed),
-            # so use a generic bag-of-bits type.
-            ctype = 'application/octet-stream'
+    ctype = ctype or guess_mimetype(path)
     maintype, subtype = ctype.split('/', 1)
     if maintype == 'text':
         fp = open(path)
