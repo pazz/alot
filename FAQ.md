@@ -65,13 +65,21 @@ abook_command = abook --mutt-query
 abook_regexp = (?P<email>.+?@.+?)\s+(?P<name>.+)
 ```
 
-See [here][alookup] for alternative lookup commands. The only one apart from abook I have used so
-far is [goobook][gbook] for cached google contacts lookups:
+See [here][alookup] for alternative lookup commands. The few others I have tested so far are:
 
-```
-abook_command = goobook query
-abook_regexp = (?P<email>.+?@.+?)\s\s+(?P<name>.+)\s\s+.+
-```
+ * [goobook][gbook] for cached google contacts lookups:
+
+   ```
+   abook_command = goobook query
+   abook_regexp = (?P<email>.+?@.+?)\s\s+(?P<name>.+)\s\s+.+
+   ```
+ 
+ * [nottoomuch-addresses][nottoomuch]:
+
+   ```
+   abook_command = nottoomuch-addresses.sh
+   abook_regexp = \"(?P<name>.+)\"\s*<(?P<email>.*.+?@.+?)>
+   ```
 
 Don't hesitate to send me your custom `abook_regexp` values to list them here.
 
@@ -84,4 +92,5 @@ Don't hesitate to send me your custom `abook_regexp` values to list them here.
 [pd]: http://dactyl.sourceforge.net/pentadactyl/
 [abook]: http://abook.sourceforge.net/
 [gbook]: http://code.google.com/p/goobook/
+[nottoomuch]: http://www.iki.fi/too/nottoomuch/nottoomuch-addresses/
 [alookup]: http://notmuchmail.org/emacstips/#index11h2
