@@ -2,7 +2,6 @@ import os
 import email
 import tempfile
 import re
-import mimetypes
 import shlex
 from datetime import datetime
 from email.header import Header
@@ -374,8 +373,9 @@ class Attachment(object):
     def get_content_type(self):
         """mime type of the attachment part"""
         ctype = self.part.get_content_type()
-        if ctype == 'octet/stream' and self.get_filename():
-            ctype, enc = mimetypes.guess_type(self.get_filename())
+        # replace underspecified mime description by a better guess
+        if ctype in ['octet/stream', 'application/octet-stream']:
+            ctype = helper.guess_mimetype(self.get_data())
         return ctype
 
     def get_size(self):
@@ -397,9 +397,13 @@ class Attachment(object):
                 FILE = tempfile.NamedTemporaryFile(delete=False, dir=path)
         else:
             FILE = open(path, "w")  # this throws IOErrors for invalid path
-        FILE.write(self.part.get_payload(decode=True))
+        FILE.write(self.get_data())
         FILE.close()
         return FILE.name
+
+    def get_data(self):
+        """return data blob from wrapped file"""
+        return self.part.get_payload(decode=True)
 
     def get_mime_representation(self):
         """returns mime part that constitutes this attachment"""
