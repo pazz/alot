@@ -193,7 +193,8 @@ class Message(object):
         if not self._attachments:
             self._attachments = []
             for part in self.get_message_parts():
-                if part.get_content_type() not in ['text/plain', 'text/html']:
+                cd = part.get('Content-Disposition', '')
+                if cd.startswith('attachment'):
                     self._attachments.append(Attachment(part))
         return self._attachments
 
