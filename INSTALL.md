@@ -30,7 +30,7 @@ install notmuch *and* python bindings from git:
     make
     sudo make install
     cd bindings/python
-    sudo python setup.py install
+    python setup.py install --user
 
 
 alot
@@ -39,14 +39,9 @@ get alot and install it from git:
 
     git clone git://github.com/pazz/alot alot
     cd alot
-    sudo python setup.py install
+    python setup.py install --user
+    make sure `~/.local/bin` is in your path.
 
-That's it, now `alot` should be in your path.
-
-Alot tries to be as unobtrusive as possible, with one exception: It forces you to use
-UTF-8 encoding whereever it can: All text parts and headers of outgoing emails are
-converted to utf-8, notmuch tagstrings, edited emails and config files are interpreted as
-Utf-8.
 
 All configs are optional, but if you want to send mails you need to specify at least one
 account section in your config:

@@ -3,6 +3,7 @@ import email
 import tempfile
 import re
 import mimetypes
+import shlex
 from datetime import datetime
 from email.header import Header
 import email.charset as charset
@@ -276,7 +277,8 @@ def extract_body(mail, types=None):
                 tmpfile.close()
                 #create and call external command
                 cmd = handler % tmpfile.name
-                rendered_payload = helper.cmd_output(cmd)
+                cmdlist = shlex.split(cmd.encode('utf-8', errors='ignore'))
+                rendered_payload, errmsg, retval = helper.call_cmd(cmdlist)
                 #remove tempfile
                 os.unlink(tmpfile.name)
                 if rendered_payload:  # handler had output
@@ -434,6 +436,8 @@ class Envelope(object):
         self.attachments = list(attachments)
         self.sign = sign
         self.encrypt = encrypt
+        self.sent_time = None
+        self.modified_since_sent = False
 
     def __str__(self):
         return "Envelope (%s)\n%s" % (self.headers, self.body)
@@ -445,6 +449,9 @@ class Envelope(object):
         """
         self.headers[name] = val
 
+        if self.sent_time:
+            self.modified_since_sent = True
+
     def __getitem__(self, name):
         """getter for header values.
         :raises: KeyError if undefined
@@ -454,14 +461,35 @@ class Envelope(object):
     def __delitem__(self, name):
         del(self.headers[name])
 
+        if self.sent_time:
+            self.modified_since_sent = True
+
     def get(self, key, fallback=None):
         """secure getter for header values that allows specifying a `fallback`
-        return string (defaults to None). This doesn't raise KeyErrors"""
+        return string (defaults to None). This returns the first matching value
+        and doesn't raise KeyErrors"""
+        if key in self.headers:
+            value = self.headers[key][0]
+        else:
+            value = fallback
+        return value
+
+    def get_all(self, key, fallback=[]):
+        """returns all header values for given key"""
         if key in self.headers:
             value = self.headers[key]
         else:
             value = fallback
         return value
+
+    def add(self, key, value):
+        """add header value"""
+        if key not in self.headers:
+            self.headers[key] = []
+        self.headers[key].append(value)
+
+        if self.sent_time:
+            self.modified_since_sent = True
 
     def attach(self, path, filename=None, ctype=None):
         """
@@ -475,8 +503,12 @@ class Envelope(object):
         :type ctype: str
         """
 
+        path = os.path.expanduser(path)
         part = helper.mimewrap(path, filename, ctype)
         self.attachments.append(part)
+
+        if self.sent_time:
+            self.modified_since_sent = True
 
     def construct_mail(self):
         """
@@ -489,18 +521,20 @@ class Envelope(object):
             msg.attach(textpart)
         else:
             msg = textpart
-        for k, v in self.headers.items():
-            msg[k] = encode_header(k, v)
+        for k, vlist in self.headers.items():
+            for v in vlist:
+                msg[k] = encode_header(k, v)
         for a in self.attachments:
             msg.attach(a)
-            logging.debug(msg)
         return msg
 
-    def parse_template(self, tmp):
+    def parse_template(self, tmp, reset=False):
         """parses a template or user edited string to fills this envelope.
 
         :param tmp: the string to parse.
         :type tmp: str
+        :param reset: remove previous envelope content
+        :type reset: bool
         """
         logging.debug('GoT: """\n%s\n"""' % tmp)
         m = re.match('(?P<h>([a-zA-Z0-9_-]+:.+\n)*)(?P<b>(\s*.*)*)', tmp)
@@ -510,6 +544,10 @@ class Envelope(object):
         headertext = d['h']
         self.body = d['b']
 
+        # remove existing content
+        if reset:
+            self.headers = {}
+
         # go through multiline, utf-8 encoded headers
         # we decode the edited text ourselves here as
         # email.message_from_file can't deal with raw utf8 header values
@@ -517,9 +555,12 @@ class Envelope(object):
         for line in headertext.splitlines():
             if re.match('[a-zA-Z0-9_-]+:', line):  # new k/v pair
                 if key and value:  # save old one from stack
-                    self.headers[key] = value  # save
+                    self.add(key, value)  # save
                 key, value = line.strip().split(':', 1)  # parse new pair
             elif key and value:  # append new line without key prefix
                 value += line
         if key and value:  # save last one if present
-            self.headers[key] = value
+            self.add(key, value)
+
+        if self.sent_time:
+            self.modified_since_sent = True

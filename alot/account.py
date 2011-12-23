@@ -4,10 +4,10 @@ import time
 import re
 import email
 import os
+import shlex
 from ConfigParser import SafeConfigParser
 from urlparse import urlparse
 
-from helper import cmd_output
 import helper
 
 
@@ -140,7 +140,8 @@ class SendmailAccount(Account):
 
     def send_mail(self, mail):
         mail['Date'] = email.utils.formatdate(time.time(), True)
-        out, err = helper.pipe_to_command(self.cmd, mail.as_string())
+        cmdlist = shlex.split(self.cmd.encode('utf-8', errors='ignore'))
+        out, err, retval = helper.call_cmd(cmdlist, stdin=mail.as_string())
         if err:
             return err + '. sendmail_cmd set to: %s' % self.cmd
         self.store_sent_mail(mail)
@@ -320,7 +321,8 @@ class MatchSdtoutAddressbook(AddressBook):
         return self.lookup('\'\'')
 
     def lookup(self, prefix):
-        resultstring = cmd_output('%s %s' % (self.command, prefix))
+        cmdlist = shlex.split(self.command.encode('utf-8', errors='ignore'))
+        resultstring, errmsg, retval = helper.call_cmd(cmdlist + [prefix])
         if not resultstring:
             return []
         lines = resultstring.replace('\t', ' ' * 4).splitlines()

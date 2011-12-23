@@ -1,5 +1,6 @@
 import urwid
 from twisted.internet import reactor, defer
+from twisted.python.failure import Failure
 
 from settings import config
 from buffers import BufferlistBuffer
@@ -200,31 +201,25 @@ class UI(object):
         """
         closes given :class:`~alot.buffers.Buffer`.
 
-        This shuts down alot in case its the last
-        active buffer. Otherwise it removes it from the bufferlist
-        and calls its cleanup() method.
+        This it removes it from the bufferlist and calls its cleanup() method.
         """
 
         buffers = self.buffers
         if buf not in buffers:
             string = 'tried to close unknown buffer: %s. \n\ni have:%s'
             self.logger.error(string % (buf, self.buffers))
-        elif len(buffers) == 1:
-            self.logger.info('closing the last buffer, exiting')
-            cmd = commandfactory('exit')
-            self.apply_command(cmd)
+        elif self.current_buffer == buf:
+            self.logger.debug('UI: closing current buffer %s' % buf)
+            index = buffers.index(buf)
+            buffers.remove(buf)
+            offset = config.getint('general', 'bufferclose_focus_offset')
+            nextbuffer = buffers[(index + offset) % len(buffers)]
+            self.buffer_focus(nextbuffer)
+            buf.cleanup()
         else:
-            if self.current_buffer == buf:
-                self.logger.debug('UI: closing current buffer %s' % buf)
-                index = buffers.index(buf)
-                buffers.remove(buf)
-                offset = config.getint('general', 'bufferclose_focus_offset')
-                nextbuffer = buffers[(index + offset) % len(buffers)]
-                self.buffer_focus(nextbuffer)
-            else:
-                string = 'closing buffer %d:%s'
-                self.logger.debug(string % (buffers.index(buf), buf))
-                buffers.remove(buf)
+            string = 'closing buffer %d:%s'
+            self.logger.debug(string % (buffers.index(buf), buf))
+            buffers.remove(buf)
             buf.cleanup()
 
     def buffer_focus(self, buf):
@@ -441,6 +436,7 @@ class UI(object):
         :type cmd: :class:`~alot.commands.Command`
         """
         if cmd:
+            # call pre- hook
             if cmd.prehook:
                 self.logger.debug('calling pre-hook')
                 try:
@@ -449,12 +445,34 @@ class UI(object):
 
                 except:
                     self.logger.exception('prehook failed')
+
+            # define (callback) function that invokes post-hook
+            def call_posthook(retval_from_apply):
+                if cmd.posthook:
+                    self.logger.debug('calling post-hook')
+                    try:
+                        cmd.posthook(ui=self, dbm=self.dbman,
+                                     aman=self.accountman, log=self.logger,
+                                     config=config)
+                    except:
+                        self.logger.exception('posthook failed')
+
+            # define error handler for Failures/Exceptions
+            # raised in cmd.apply()
+            def errorHandler(failure):
+                self.logger.debug(failure.getTraceback())
+                msg = "Error: %s,\ncheck the log for details"
+                self.notify(msg % failure.getErrorMessage(), priority='error')
+
+            # call cmd.apply
             self.logger.debug('apply command: %s' % cmd)
-            cmd.apply(self)
-            if cmd.posthook:
-                self.logger.debug('calling post-hook')
-                try:
-                    cmd.posthook(ui=self, dbm=self.dbman, aman=self.accountman,
-                                log=self.logger, config=config)
-                except:
-                    self.logger.exception('posthook failed')
+            try:
+                retval = cmd.apply(self)
+                # if we deal with a InlineCallbacks-decorated method, it
+                # instantly returns a defered. This adds call/errbacks to react
+                # to successful/erroneous termination of the defered apply()
+                if isinstance(retval, defer.Deferred):
+                    retval.addErrback(errorHandler)
+                    retval.addCallback(call_posthook)
+            except Exception, e:
+                errorHandler(Failure(e))
