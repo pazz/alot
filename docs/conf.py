@@ -23,7 +23,7 @@ class Mock(object):
         pass
 
     def __getattr__(self, name):
-        return Mock
+        return Mock if name != '__file__' else '/dev/null'
 
 MOCK_MODULES = ['notmuch', 'notmuch.globals',
                 'twisted', 'twisted.internet',
