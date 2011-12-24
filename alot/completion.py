@@ -108,7 +108,7 @@ class QueryCompleter(Completer):
         self.dbman = dbman
         abooks = accountman.get_addressbooks()
         self._abookscompleter = AbooksCompleter(abooks, addressesonly=True)
-        self._tagscompleter = TagsCompleter(dbman)
+        self._tagcompleter = TagCompleter(dbman)
         self.keywords = ['tag', 'from', 'to', 'subject', 'attachment',
                          'is', 'id', 'thread', 'folder']
 
@@ -123,7 +123,7 @@ class QueryCompleter(Completer):
                 localres = self._abookscompleter.complete(mypart[cmdlen:],
                                                           mypos - cmdlen)
             else:
-                localres = self._tagscompleter.complete(mypart[cmdlen:],
+                localres = self._tagcompleter.complete(mypart[cmdlen:],
                                                         mypos - cmdlen)
             resultlist = []
             for ltxt, lpos in localres:
@@ -140,6 +140,18 @@ class QueryCompleter(Completer):
             return resultlist
 
 
+class TagCompleter(StringlistCompleter):
+    """complete a tagstring"""
+
+    def __init__(self, dbman):
+        """
+        :param dbman: used to look up avaliable tagstrings
+        :type dbman: :class:`~alot.db.DBManager`
+        """
+        resultlist = dbman.get_all_tags()
+        StringlistCompleter.__init__(self, resultlist)
+
+
 class TagsCompleter(MultipleSelectionCompleter):
     """completion for a comma separated list of tagstrings"""
 
@@ -148,8 +160,7 @@ class TagsCompleter(MultipleSelectionCompleter):
         :param dbman: used to look up avaliable tagstrings
         :type dbman: :class:`~alot.db.DBManager`
         """
-        resultlist = dbman.get_all_tags()
-        self._completer = StringlistCompleter(resultlist)
+        self._completer = TagCompleter(dbman)
         self._separator = ','
 
 
@@ -252,7 +263,7 @@ class CommandLineCompleter(Completer):
         self.currentbuffer = currentbuffer
         self._commandcompleter = CommandCompleter(mode)
         self._querycompleter = QueryCompleter(dbman, accountman)
-        self._tagscompleter = TagsCompleter(dbman)
+        self._tagcompleter = TagCompleter(dbman)
         abooks = accountman.get_addressbooks()
         self._contactscompleter = ContactsCompleter(abooks)
         self._pathcompleter = PathCompleter()
@@ -282,9 +293,13 @@ class CommandLineCompleter(Completer):
             elif self.mode == 'search' and cmd == 'refine':
                 res = self._querycompleter.complete(params, localpos)
             elif self.mode == 'search' and cmd == 'retag':
-                res = self._tagscompleter.complete(params, localpos)
+                localcomp = MultipleSelectionCompleter(self._tagcompleter,
+                                                       separator=',')
+                res = localcomp.complete(params, localpos)
             elif self.mode == 'search' and cmd == 'toggletag':
-                res = self._tagscompleter.complete(params, localpos)
+                localcomp = MultipleSelectionCompleter(self._tagcompleter,
+                                                       separator=' ')
+                res = localcomp.complete(params, localpos)
             # envelope
             elif self.mode == 'envelope' and cmd == 'set':
                 plist = params.split(' ', 1)
