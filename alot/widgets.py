@@ -481,7 +481,11 @@ class MessageWidget(urwid.WidgetWrap):
         return ('fixed', length, spacer)
 
     def _get_arrowhead_aligner(self):
-        return ('fixed', 1, urwid.SolidFill(' '))
+        if len(self.message.get_replies()) > 0:
+            aligner = u'\u2502'
+        else:
+            aligner = ' '
+        return ('fixed', 1, urwid.SolidFill(aligner))
 
     def toggle_full_header(self):
         """toggles if message headers are shown"""
