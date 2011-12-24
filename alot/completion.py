@@ -89,6 +89,51 @@ class StringlistCompleter(Completer):
             return res
 
 
+class MultipleSelectionCompleter(Completer):
+    """
+    Meta-Completer that turns any Completer into one that deals with a list of
+    completion strings using the wrapped Completer.
+    This allows for example to easily construct a completer for comma separated
+    recipient-lists using a :class:`ContactsCompleter`.
+    """
+
+    def __init__(self, completer, separator=', '):
+        """
+        :param completer: completer to use for individual substrings
+        :type completer: Completer
+        :param separator: separator used to split the completion string into
+                          substrings to be fed to `completer`.
+        :type separator: str
+        """
+        self._completer = completer
+        self._separator = separator
+
+    def relevant_part(self, original, pos):
+        """
+        calculates the subword of `original` that `pos` is in
+        """
+        start = original.rfind(self._separator, 0, pos)
+        if start == -1:
+            start = 0
+        else:
+            start = start + len(self._separator)
+        end = original.find(self._separator, pos - 1)
+        if end == -1:
+            end = len(original)
+        return original[start:end], start, end, pos - start
+
+    def complete(self, original, pos):
+        mypart, start, end, mypos = self.relevant_part(original, pos)
+        prefix = mypart[:mypos]
+        res = []
+        for c, p in self._completer.complete(mypart, mypos):
+            newprefix = original[:start] + c
+            if not original[end:].startswith(self._separator):
+                newprefix += self._separator
+            res.append((newprefix + original[end:], len(newprefix)))
+        return res
+
+
 class QueryCompleter(Completer):
     """completion for a notmuch query string"""
     def __init__(self, dbman, accountman):
