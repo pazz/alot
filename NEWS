@@ -10,9 +10,13 @@
 * multiple fixes for the envelope buffer
 * exit on closing of last buffer is now optional
 * die gracefully when config parsing fails
-* rendom bugfixes in the ui
-* external command lins as lists of strings instead of strings
+* random bugfixes in the ui
+* determine attachments via the "Content-Disposition" header
+* nicer alignment for messages in thread buffers
+* deal with external commands as lists of strings instead of strings
+* better filetype detection in attachments via magic numbers
 * errbacks and correct calling of post-hooks for deferred commands
+* add packaging info for debian
 * envelope.headers stores lists of values for each key now
 
 0.20
