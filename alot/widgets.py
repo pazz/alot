@@ -434,6 +434,8 @@ class MessageWidget(urwid.WidgetWrap):
             if self.depth:
                 cols.insert(0, self._get_spacer(self.bars_at[1:]))
                 bc.append(0)
+                cols.insert(1, self._get_arrowhead_aligner())
+                bc.append(1)
             self.headerw = urwid.Columns(cols, box_columns=bc)
         return self.headerw
 
@@ -446,6 +448,8 @@ class MessageWidget(urwid.WidgetWrap):
                 if self.depth:
                     cols.insert(0, self._get_spacer(self.bars_at[1:]))
                     bc.append(0)
+                    cols.insert(1, self._get_arrowhead_aligner())
+                    bc.append(1)
                 lines.append(urwid.Columns(cols, box_columns=bc))
             self.attachmentw = urwid.Pile(lines)
         return self.attachmentw
@@ -458,6 +462,8 @@ class MessageWidget(urwid.WidgetWrap):
             if self.depth:
                 cols.insert(0, self._get_spacer(self.bars_at[1:]))
                 bc.append(0)
+                cols.insert(1, self._get_arrowhead_aligner())
+                bc.append(1)
             self.bodyw = urwid.Columns(cols, box_columns=bc)
         return self.bodyw
 
@@ -473,6 +479,13 @@ class MessageWidget(urwid.WidgetWrap):
 
         spacer = urwid.Columns(prefixchars, box_columns=range(length))
         return ('fixed', length, spacer)
+
+    def _get_arrowhead_aligner(self):
+        if len(self.message.get_replies()) > 0:
+            aligner = u'\u2502'
+        else:
+            aligner = ' '
+        return ('fixed', 1, urwid.SolidFill(aligner))
 
     def toggle_full_header(self):
         """toggles if message headers are shown"""
