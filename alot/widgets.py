@@ -347,9 +347,9 @@ class MessageWidget(urwid.WidgetWrap):
         :type folded: bool
         :param depth: number of characters to shift content to the right
         :type depth: int
-        :param bars_at: list of positions smaller than depth where vertical 
-                        bars are used instead of spaces.
-        :type bars_at: list(int)
+        :param bars_at: defines for each column of the indentation whether to
+                        use a vertical bar instead of a space. 
+        :type bars_at: list(bool)
         """
         self.message = message
         self.mail = self.message.get_email()
