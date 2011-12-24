@@ -31,6 +31,7 @@ MOCK_MODULES = ['notmuch', 'notmuch.globals',
                 'twisted.python',
                 'twisted.python.failure',
                 'urwid',
+                'magic',
                 'argparse']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()
