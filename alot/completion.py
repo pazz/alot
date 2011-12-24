@@ -146,7 +146,7 @@ class QueryCompleter(Completer):
         """
         self.dbman = dbman
         abooks = accountman.get_addressbooks()
-        self._contactscompleter = ContactsCompleter(abooks, addressesonly=True)
+        self._abookscompleter = AbooksCompleter(abooks, addressesonly=True)
         self._tagscompleter = TagsCompleter(dbman)
         self.keywords = ['tag', 'from', 'to', 'subject', 'attachment',
                          'is', 'id', 'thread', 'folder']
@@ -159,8 +159,8 @@ class QueryCompleter(Completer):
             cmd, params = m.groups()
             cmdlen = len(cmd) + 1  # length of the keyword part incld colon
             if cmd in ['to', 'from']:
-                localres = self._contactscompleter.complete(mypart[cmdlen:],
-                                                            mypos - cmdlen)
+                localres = self._abookscompleter.complete(mypart[cmdlen:],
+                                                          mypos - cmdlen)
             else:
                 localres = self._tagscompleter.complete(mypart[cmdlen:],
                                                         mypos - cmdlen)
