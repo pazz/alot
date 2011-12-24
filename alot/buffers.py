@@ -1,40 +1,22 @@
-"""
-This file is part of alot.
-
-Alot is free software: you can redistribute it and/or modify it
-under the terms of the GNU General Public License as published by the
-Free Software Foundation, either version 3 of the License, or (at your
-option) any later version.
-
-Notmuch is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
-
-Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
-"""
 import urwid
 from notmuch.globals import NotmuchError
-
 
 import widgets
 import settings
 import commands
-from walker import IteratorWalker
-from message import decode_header
+from walker import PipeWalker
+from helper import shorten_author_string
 
 
 class Buffer(object):
+    """Abstract base class for buffers."""
     def __init__(self, ui, widget, name):
         self.ui = ui
         self.typename = name
         self.body = widget
 
     def __str__(self):
-        return self.typename
+        return '[%s]' % self.typename
 
     def render(self, size, focus=False):
         return self.body.render(size, focus)
@@ -43,17 +25,19 @@ class Buffer(object):
         return self.body.selectable()
 
     def rebuild(self):
+        """tells the buffer to (re)construct its visible content."""
         pass
-
-    def apply_command(self, cmd):
-        # call and store it directly for a local cmd history
-        self.ui.apply_command(cmd)
 
     def keypress(self, size, key):
             return self.body.keypress(size, key)
 
+    def cleanup(self):
+        """called before buffer is dismissed"""
+        pass
+
 
 class BufferlistBuffer(Buffer):
+    """selectable list of active buffers"""
     def __init__(self, ui, filtfun=None):
         self.filtfun = filtfun
         self.ui = ui
@@ -62,6 +46,10 @@ class BufferlistBuffer(Buffer):
         Buffer.__init__(self, ui, self.body, 'bufferlist')
 
     def index_of(self, b):
+        """
+        returns the index of :class:`Buffer` `b` in the global list of active
+        buffers.
+        """
         return self.ui.buffers.index(b)
 
     def rebuild(self):
@@ -87,52 +75,62 @@ class BufferlistBuffer(Buffer):
         self.body = self.bufferlist
 
     def get_selected_buffer(self):
+        """returns currently selected :class:`Buffer` element from list"""
         (linewidget, pos) = self.bufferlist.get_focus()
         bufferlinewidget = linewidget.get_focus().original_widget
         return bufferlinewidget.get_buffer()
 
 
 class EnvelopeBuffer(Buffer):
-    def __init__(self, ui, mail):
+    """message composition mode"""
+    def __init__(self, ui, envelope):
         self.ui = ui
-        self.mail = mail
+        self.envelope = envelope
+        self.all_headers = False
         self.rebuild()
         Buffer.__init__(self, ui, self.body, 'envelope')
 
     def __str__(self):
-        return "to: %s" % decode_header(self.mail['To'])
-
-    def get_email(self):
-        return self.mail
-
-    def set_email(self, mail):
-        self.mail = mail
-        self.rebuild()
+        to = self.envelope.get('To', fallback='unset')
+        return '[%s] to: %s' % (self.typename, shorten_author_string(to, 400))
 
     def rebuild(self):
         displayed_widgets = []
         hidden = settings.config.getstringlist('general',
                                                'envelope_headers_blacklist')
-        self.header_wgt = widgets.MessageHeaderWidget(self.mail,
-                                                      hidden_headers=hidden)
+        #build lines
+        lines = []
+        for (k, vlist) in self.envelope.headers.items():
+            if (k not in hidden) or self.all_headers:
+                for value in vlist:
+                    lines.append((k, value))
+
+        self.header_wgt = widgets.HeadersList(lines)
         displayed_widgets.append(self.header_wgt)
 
         #display attachments
         lines = []
-        for part in self.mail.walk():
-            if not part.is_multipart():
-                if part.get_content_maintype() != 'text':
-                    lines.append(widgets.AttachmentWidget(part,
-                                                        selectable=False))
-        self.attachment_wgt = urwid.Pile(lines)
-        displayed_widgets.append(self.attachment_wgt)
+        for a in self.envelope.attachments:
+            lines.append(widgets.AttachmentWidget(a, selectable=False))
+        if lines:
+            self.attachment_wgt = urwid.Pile(lines)
+            displayed_widgets.append(self.attachment_wgt)
 
-        self.body_wgt = widgets.MessageBodyWidget(self.mail)
+        self.body_wgt = urwid.Text(self.envelope.body)
         displayed_widgets.append(self.body_wgt)
         self.body = urwid.ListBox(displayed_widgets)
 
+    def toggle_all_headers(self):
+        """toggles visibility of all envelope headers"""
+        self.all_headers = not self.all_headers
+        self.rebuild()
+
 
 class SearchBuffer(Buffer):
+    """
+    shows a result set for a Thread query, one line per
+    :class:`~alot.db.Thread`
+    """
     threads = []
 
     def __init__(self, ui, initialquery=''):
@@ -141,11 +139,26 @@ class SearchBuffer(Buffer):
         self.querystring = initialquery
         self.result_count = 0
         self.isinitialized = False
+        self.proc = None  # process that fills our pipe
         self.rebuild()
         Buffer.__init__(self, ui, self.body, 'search')
 
     def __str__(self):
-        return '%s (%d threads)' % (self.querystring, self.result_count)
+        formatstring = '[search] for "%s" (%d thread%s)'
+        return formatstring % (self.querystring, self.result_count,
+                               's' * (not (self.result_count == 1)))
+
+    def cleanup(self):
+        self.kill_filler_process()
+
+    def kill_filler_process(self):
+        """
+        terminates the process that fills this buffers
+        :class:`~alot.walker.PipeWalker`.
+        """
+        if self.proc:
+            if self.proc.is_alive():
+                self.proc.terminate()
 
     def rebuild(self):
         if self.isinitialized:
@@ -155,28 +168,35 @@ class SearchBuffer(Buffer):
             #focusposition = 0
             self.isinitialized = True
 
+        self.kill_filler_process()
+
         self.result_count = self.dbman.count_messages(self.querystring)
         try:
-            self.tids = self.dbman.search_thread_ids(self.querystring)
+            self.pipe, self.proc = self.dbman.get_threads(self.querystring)
         except NotmuchError:
             self.ui.notify('malformed query string: %s' % self.querystring,
                            'error')
-            self.tids = []
-        self.threadlist = IteratorWalker(iter(self.tids),
-                                         widgets.ThreadlineWidget,
-                                         dbman=self.dbman)
+            self.listbox = urwid.ListBox(self.threadlist)
+            self.body = self.listbox
+            return
+
+        self.threadlist = PipeWalker(self.pipe, widgets.ThreadlineWidget,
+                                     dbman=self.dbman)
+
         self.listbox = urwid.ListBox(self.threadlist)
         #self.threadlist.set_focus(focusposition)
         self.body = self.listbox
 
-    def debug(self):
-        self.ui.logger.debug(self.threadlist.lines)
-
     def get_selected_threadline(self):
+        """
+        returns curently focussed :class:`alot.widgets.ThreadlineWidget`
+        from the result list.
+        """
         (threadlinewidget, size) = self.threadlist.get_focus()
         return threadlinewidget
 
     def get_selected_thread(self):
+        """returns currently selected :class:`~alot.db.Thread`"""
         threadlinewidget = self.get_selected_threadline()
         thread = None
         if threadlinewidget:
@@ -185,6 +205,8 @@ class SearchBuffer(Buffer):
 
 
 class ThreadBuffer(Buffer):
+    """shows a single mailthread as a (collapsible) tree of
+    :class:`MessageWidgets <alot.widgets.MessageWidget>`."""
     def __init__(self, ui, thread):
         self.message_count = thread.get_total_messages()
         self.thread = thread
@@ -192,9 +214,12 @@ class ThreadBuffer(Buffer):
         Buffer.__init__(self, ui, self.body, 'thread')
 
     def __str__(self):
-        return '%s, (%d)' % (self.thread.get_subject(), self.message_count)
+        return '[thread] %s (%d message%s)' % (self.thread.get_subject(),
+                                               self.message_count,
+                                               's' * (self.message_count > 1))
 
     def get_selected_thread(self):
+        """returns the displayed :class:`~alot.db.Thread`"""
         return self.thread
 
     def _build_pile(self, acc, msg, parent, depth):
@@ -233,20 +258,31 @@ class ThreadBuffer(Buffer):
         self.body = urwid.ListBox(msglines)
 
     def get_selection(self):
+        """returns focussed :class:`~alot.widgets.MessageWidget`"""
         (messagewidget, size) = self.body.get_focus()
         return messagewidget
 
     def get_selected_message(self):
+        """returns focussed :class:`~alot.message.Message`"""
         messagewidget = self.get_selection()
         return messagewidget.get_message()
 
     def get_message_widgets(self):
+        """
+        returns all :class:`MessageWidgets <alot.widgets.MessageWidget>`
+        displayed in this thread-tree.
+        """
         return self.body.body.contents
 
     def get_focus(self):
         return self.body.get_focus()
 
     def unfold_matching(self, querystring):
+        """
+        unfolds those :class:`MessageWidgets <alot.widgets.MessageWidget>`
+        that represent :class:`Messages <alot.message.Message>` matching
+        `querystring`.
+        """
         for mw in self.get_message_widgets():
             msg = mw.get_message()
             if msg.matches(querystring):
@@ -257,6 +293,7 @@ class ThreadBuffer(Buffer):
 
 
 class TagListBuffer(Buffer):
+    """selectable list of tagstrings present in the database"""
     def __init__(self, ui, alltags=[], filtfun=None):
         self.filtfun = filtfun
         self.ui = ui
@@ -283,6 +320,7 @@ class TagListBuffer(Buffer):
         self.taglist.set_focus(focusposition % len(displayedtags))
 
     def get_selected_tag(self):
+        """returns selected tagstring"""
         (cols, pos) = self.taglist.get_focus()
         tagwidget = cols.get_focus()
         return tagwidget.get_tag()

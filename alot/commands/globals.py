@@ -4,13 +4,15 @@ import threading
 import subprocess
 import shlex
 import email
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 import urwid
-from twisted.internet import defer
+from twisted.internet.defer import inlineCallbacks
 import logging
+import argparse
 
 from alot.commands import Command, registerCommand
+from alot.completion import CommandLineCompleter
+from alot.commands import CommandParseError
+from alot.commands import commandfactory
 from alot import buffers
 from alot import settings
 from alot import widgets
@@ -18,39 +20,40 @@ from alot import helper
 from alot.db import DatabaseLockedError
 from alot.completion import ContactsCompleter
 from alot.completion import AccountCompleter
-from alot.message import encode_header
+from alot.message import Envelope
 from alot import commands
-import argparse
 
 MODE = 'global'
 
 
-@registerCommand(MODE, 'exit', help='shut alot down cleanly')
+@registerCommand(MODE, 'exit')
 class ExitCommand(Command):
-    @defer.inlineCallbacks
+    """shut down cleanly"""
+    @inlineCallbacks
     def apply(self, ui):
         if settings.config.getboolean('general', 'bug_on_exit'):
             if (yield ui.choice('realy quit?', select='yes', cancel='no',
                                msg_position='left')) == 'no':
                 return
+        for b in ui.buffers:
+            b.cleanup()
         ui.exit()
 
 
 @registerCommand(MODE, 'search', usage='search query', arguments=[
-    (['query'], {'nargs':argparse.REMAINDER, 'help':'search string'})],
-    help='open a new search buffer')
+    (['query'], {'nargs':argparse.REMAINDER, 'help':'search string'})])
 class SearchCommand(Command):
+    """open a new search buffer"""
     def __init__(self, query, **kwargs):
+        """
+        :param query: notmuch querystring
+        :type query: str
+        """
         self.query = ' '.join(query)
         Command.__init__(self, **kwargs)
 
-    @defer.inlineCallbacks
     def apply(self, ui):
         if self.query:
-            if self.query == '*' and ui.current_buffer:
-                s = 'really search for all threads? This takes a while..'
-                if (yield ui.choice(s, select='yes', cancel='no')) == 'no':
-                    return
             open_searches = ui.get_buffers_of_type(buffers.SearchBuffer)
             to_be_focused = None
             for sb in open_searches:
@@ -64,19 +67,47 @@ class SearchCommand(Command):
             ui.notify('empty query string')
 
 
-@registerCommand(MODE, 'prompt', help='starts commandprompt', arguments=[
+@registerCommand(MODE, 'prompt', arguments=[
     (['startwith'], {'nargs':'?', 'default':'', 'help':'initial content'})])
 class PromptCommand(Command):
+    """prompts for commandline and interprets it upon select"""
     def __init__(self, startwith='', **kwargs):
+        """
+        :param startwith: initial content of the prompt widget
+        :type startwith: str
+        """
         self.startwith = startwith
         Command.__init__(self, **kwargs)
 
+    @inlineCallbacks
     def apply(self, ui):
-        ui.commandprompt(self.startwith)
+        ui.logger.info('open command shell')
+        mode = ui.current_buffer.typename
+        cmdline = yield ui.prompt(prefix=':',
+                              text=self.startwith,
+                              completer=CommandLineCompleter(ui.dbman,
+                                                             ui.accountman,
+                                                             mode),
+                              history=ui.commandprompthistory,
+                             )
+        ui.logger.debug('CMDLINE: %s' % cmdline)
+
+        # interpret and apply commandline
+        if cmdline:
+            # save into prompt history
+            ui.commandprompthistory.append(cmdline)
+
+            mode = ui.current_buffer.typename
+            try:
+                cmd = commandfactory(cmdline, mode)
+                ui.apply_command(cmd)
+            except CommandParseError, e:
+                ui.notify(e.message, priority='error')
 
 
-@registerCommand(MODE, 'refresh', help='refreshes the current buffer')
+@registerCommand(MODE, 'refresh')
 class RefreshCommand(Command):
+    """refresh the current buffer"""
     def apply(self, ui):
         ui.current_buffer.rebuild()
         ui.update()
@@ -88,8 +119,9 @@ class RefreshCommand(Command):
     (['--refocus'], {'action': 'store_true', 'help':'refocus current buffer \
                      after command has finished'}),
     (['cmd'], {'help':'command line to execute'})],
-                 help='calls external command')
+)
 class ExternalCommand(Command):
+    """run external command"""
     def __init__(self, cmd, path=None, spawn=False, refocus=True,
                  thread=False, on_success=None, **kwargs):
         """
@@ -98,11 +130,11 @@ class ExternalCommand(Command):
         :param path: a path to a file (or None)
         :type path: str
         :param spawn: run command in a new terminal
-        :type spawn: boolean
+        :type spawn: bool
         :param thread: run asynchronously, don't block alot
-        :type thread: boolean
+        :type thread: bool
         :param refocus: refocus calling buffer after cmd termination
-        :type refocus: boolean
+        :type refocus: bool
         :param on_success: code to execute after command successfully exited
         :type on_success: callable
         """
@@ -142,7 +174,7 @@ class ExternalCommand(Command):
 
             if self.spawn:
                 cmd = '%s %s' % (settings.config.get('general',
-                                                      'terminal_cmd'),
+                                                     'terminal_cmd'),
                                  cmd)
             cmd = cmd.encode('utf-8', errors='ignore')
             ui.logger.info('calling external command: %s' % cmd)
@@ -167,8 +199,16 @@ class ExternalCommand(Command):
 #]
 #)
 class EditCommand(ExternalCommand):
-    """opens editor"""
+    """edit a file"""
     def __init__(self, path, spawn=None, thread=None, **kwargs):
+        """
+        :param path: path to the file to be edited
+        :type path: str
+        :param spawn: run command in a new terminal
+        :type spawn: bool
+        :param thread: run asynchronously, don't block alot
+        :type thread: bool
+        """
         self.path = path
         if spawn != None:
             self.spawn = spawn
@@ -199,50 +239,45 @@ class EditCommand(ExternalCommand):
             return ExternalCommand.apply(self, ui)
 
 
-@registerCommand(MODE, 'pyshell',
-                 help="opens an interactive python shell for introspection")
+@registerCommand(MODE, 'pyshell')
 class PythonShellCommand(Command):
+    """open an interactive python shell for introspection"""
     def apply(self, ui):
         ui.mainloop.screen.stop()
         code.interact(local=locals())
         ui.mainloop.screen.start()
 
 
-@registerCommand(MODE, 'bclose',
-                 help="close current buffer or exit if it is the last")
-@registerCommand('bufferlist', 'closefocussed', forced={'focussed': True},
-                 help='close focussed buffer')
+@registerCommand(MODE, 'bclose')
 class BufferCloseCommand(Command):
-    def __init__(self, buffer=None, focussed=False, **kwargs):
-        """
-        :param buffer: the selected buffer
-        :type buffer: `alot.buffers.Buffer`
-        """
-        self.buffer = buffer
-        self.focussed = focussed
-        Command.__init__(self, **kwargs)
-
+    """close current buffer"""
     def apply(self, ui):
-        if self.focussed:
-            #if in bufferlist, this is ugly.
-            self.buffer = ui.current_buffer.get_selected_buffer()
-        elif not self.buffer:
-            self.buffer = ui.current_buffer
-        ui.buffer_close(self.buffer)
-        ui.buffer_focus(ui.current_buffer)
+        selected = ui.current_buffer
+        if len(ui.buffers) == 1:
+            if settings.config.getboolean('general', 'quit_on_last_bclose'):
+                ui.logger.info('closing the last buffer, exiting')
+                ui.apply_command(ExitCommand())
+            else:
+                ui.logger.info('not closing last remaining buffer as '
+                               'global.quit_on_last_bclose is set to False')
+        else:
+            ui.buffer_close(selected)
 
 
 @registerCommand(MODE, 'bprevious', forced={'offset': -1},
                  help='focus previous buffer')
 @registerCommand(MODE, 'bnext', forced={'offset': +1},
                  help='focus next buffer')
-@registerCommand('bufferlist', 'openfocussed',  # todo separate
-                 help='focus selected buffer')
 class BufferFocusCommand(Command):
+    """focus a :class:`~alot.buffers.Buffer`"""
     def __init__(self, buffer=None, offset=0, **kwargs):
         """
-        :param buffer: the buffer to focus
+        :param buffer: the buffer to focus or None
         :type buffer: `alot.buffers.Buffer`
+        :param offset: position of the buffer to focus relative to the
+                       currently focussed one. This is used only if `buffer`
+                       is set to `None`
+        :type offset: int
         """
         self.buffer = buffer
         self.offset = offset
@@ -253,15 +288,17 @@ class BufferFocusCommand(Command):
             idx = ui.buffers.index(ui.current_buffer)
             num = len(ui.buffers)
             self.buffer = ui.buffers[(idx + self.offset) % num]
-        else:
-            if not self.buffer:
-                self.buffer = ui.current_buffer.get_selected_buffer()
         ui.buffer_focus(self.buffer)
 
 
-@registerCommand(MODE, 'bufferlist', help='opens buffer list')
+@registerCommand(MODE, 'bufferlist')
 class OpenBufferlistCommand(Command):
+    """open a list of active buffers"""
     def __init__(self, filtfun=None, **kwargs):
+        """
+        :param filtfun: filter to apply to displayed list
+        :type filtfun: callable (str->bool)
+        """
         self.filtfun = filtfun
         Command.__init__(self, **kwargs)
 
@@ -270,12 +307,19 @@ class OpenBufferlistCommand(Command):
         if blists:
             ui.buffer_focus(blists[0])
         else:
-            ui.buffer_open(buffers.BufferlistBuffer(ui, self.filtfun))
+            bl = buffers.BufferlistBuffer(ui, self.filtfun)
+            ui.buffer_open(bl)
+            bl.rebuild()
 
 
-@registerCommand(MODE, 'taglist', help='opens taglist buffer')
+@registerCommand(MODE, 'taglist')
 class TagListCommand(Command):
+    """opens taglist buffer"""
     def __init__(self, filtfun=None, **kwargs):
+        """
+        :param filtfun: filter to apply to displayed list
+        :type filtfun: callable (str->bool)
+        """
         self.filtfun = filtfun
         Command.__init__(self, **kwargs)
 
@@ -287,9 +331,9 @@ class TagListCommand(Command):
         ui.buffer_focus(buf)
 
 
-@registerCommand(MODE, 'flush',
-                 help='Flushes write operations or retries until committed')
+@registerCommand(MODE, 'flush')
 class FlushCommand(Command):
+    """flush write operations or retry until committed"""
     def apply(self, ui):
         try:
             ui.dbman.flush()
@@ -304,14 +348,19 @@ class FlushCommand(Command):
             return
 
 
-#todo choices
+#TODO: choices
 @registerCommand(MODE, 'help', arguments=[
-    (['commandname'], {'help':'command or \'bindings\''})],
-                 help='display help for a command. Use \'bindings\' to\
-                 display all keybings interpreted in current mode.',
-)
+    (['commandname'], {'help':'command or \'bindings\''})])
 class HelpCommand(Command):
+    """
+    display help for a command. Use \'bindings\' to
+    display all keybings interpreted in current mode.'
+    """
     def __init__(self, commandname='', **kwargs):
+        """
+        :param commandname: command to document
+        :type commandname: str
+        """
         Command.__init__(self, **kwargs)
         self.commandname = commandname
 
@@ -329,7 +378,7 @@ class HelpCommand(Command):
 
             linewidgets = []
             # mode specific maps
-            linewidgets.append(urwid.Text(('helptexth1',
+            linewidgets.append(urwid.Text(('help_section',
                                 '\n%s-mode specific maps' % ui.mode)))
             for (k, v) in modemaps.items():
                 line = urwid.Columns([('fixed', keycolumnwidth, urwid.Text(k)),
@@ -337,7 +386,7 @@ class HelpCommand(Command):
                 linewidgets.append(line)
 
             # global maps
-            linewidgets.append(urwid.Text(('helptexth1',
+            linewidgets.append(urwid.Text(('help_section',
                                            '\nglobal maps')))
             for (k, v) in globalmaps.items():
                 if k not in modemaps:
@@ -351,8 +400,8 @@ class HelpCommand(Command):
             titletext = 'Bindings Help (%s cancels)' % ckey
 
             box = widgets.DialogBox(body, titletext,
-                                    bodyattr='helptext',
-                                    titleattr='helptitle')
+                                    bodyattr='help_text',
+                                    titleattr='help_title')
 
             # put promptwidget as overlay on main widget
             overlay = urwid.Overlay(box, ui.mainframe, 'center',
@@ -369,8 +418,7 @@ class HelpCommand(Command):
                           priority='error')
 
 
-@registerCommand(MODE, 'compose', help='compose a new email',
-                 arguments=[
+@registerCommand(MODE, 'compose', arguments=[
     (['--sender'], {'nargs': '?', 'help':'sender'}),
     (['--template'], {'nargs':'?',
                       'help':'path to a template message file'}),
@@ -378,14 +426,39 @@ class HelpCommand(Command):
     (['--to'], {'nargs':'+', 'help':'recipients'}),
     (['--cc'], {'nargs':'+', 'help':'copy to'}),
     (['--bcc'], {'nargs':'+', 'help':'blind copy to'}),
+    (['--attach'], {'nargs':'+', 'help':'attach files'}),
 ])
 class ComposeCommand(Command):
-    def __init__(self, mail=None, headers={}, template=None,
-                 sender=u'', subject=u'', to=[], cc=[], bcc=[],
+    """compose a new email"""
+    def __init__(self, envelope=None, headers={}, template=None,
+                 sender=u'', subject=u'', to=[], cc=[], bcc=[], attach=None,
                  **kwargs):
+        """
+        :param envelope: use existing envelope
+        :type envelope: :class:`~alot.message.Envelope`
+        :param headers: forced header values
+        :type header: doct (str->str)
+        :param template: name of template to parse into the envelope after
+                         creation. This should be the name of a file in your
+                         template_dir
+        :type template: str
+        :param sender: From-header value
+        :type sender: str
+        :param subject: Subject-header value
+        :type subject: str
+        :param to: To-header value
+        :type to: str
+        :param cc: Cc-header value
+        :type cc: str
+        :param bcc: Bcc-header value
+        :type bcc: str
+        :param attach: Path to files to be attached (globable)
+        :type attach: str
+        """
+
         Command.__init__(self, **kwargs)
 
-        self.mail = mail
+        self.envelope = envelope
         self.template = template
         self.headers = headers
         self.sender = sender
@@ -393,63 +466,62 @@ class ComposeCommand(Command):
         self.to = to
         self.cc = cc
         self.bcc = bcc
+        self.attach = attach
 
-    @defer.inlineCallbacks
+    @inlineCallbacks
     def apply(self, ui):
-        # set self.mail
-        if self.mail is None:
-            if self.template is not None:
-                #get location of tempsdir, containing msg templates
-                tempdir = settings.config.get('general', 'template_dir')
-                tempdir = os.path.expanduser(tempdir)
-                if not tempdir:
-                    xdgdir = os.environ.get('XDG_CONFIG_HOME',
-                                            os.path.expanduser('~/.config'))
-                    tempdir = os.path.join(xdgdir, 'alot', 'templates')
+        if self.envelope == None:
+            self.envelope = Envelope()
+        if self.template is not None:
+            #get location of tempsdir, containing msg templates
+            tempdir = settings.config.get('general', 'template_dir')
+            tempdir = os.path.expanduser(tempdir)
+            if not tempdir:
+                xdgdir = os.environ.get('XDG_CONFIG_HOME',
+                                        os.path.expanduser('~/.config'))
+                tempdir = os.path.join(xdgdir, 'alot', 'templates')
 
-                path = os.path.expanduser(self.template)
-                if not os.path.dirname(path):  # use tempsdir
-                    if not os.path.isdir(tempdir):
-                        ui.notify('no templates directory: %s' % tempdir,
-                                  priority='error')
-                        return
-                    path = os.path.join(tempdir, path)
-
-                if not os.path.isfile(path):
-                    ui.notify('could not find template: %s' % path,
+            path = os.path.expanduser(self.template)
+            if not os.path.dirname(path):  # use tempsdir
+                if not os.path.isdir(tempdir):
+                    ui.notify('no templates directory: %s' % tempdir,
                               priority='error')
                     return
-                try:
-                    self.mail = email.message_from_file(open(path))
-                except Exception, e:
-                    ui.notify(str(e), priority='error')
-                    return
-            else:  # no mail or template given
-                self.mail = MIMEMultipart()
-                self.mail.attach(MIMEText('', 'plain', 'UTF-8'))
+                path = os.path.join(tempdir, path)
+
+            if not os.path.isfile(path):
+                ui.notify('could not find template: %s' % path,
+                          priority='error')
+                return
+            try:
+                self.envelope.parse_template(open(path).read())
+            except Exception, e:
+                ui.notify(str(e), priority='error')
+                return
 
         # set forced headers
         for key, value in self.headers.items():
-            self.mail[key] = encode_header(key, value)
+            self.envelope.add(key, value)
 
         # set forced headers for separate parameters
         if self.sender:
-            self.mail['From'] = encode_header('From', self.sender)
+            self.envelope.add('From', self.sender)
         if self.subject:
-            self.mail['Subject'] = encode_header('Subject', self.subject)
+            self.envelope.add('Subject', self.subject)
         if self.to:
-            self.mail['To'] = encode_header('To', ','.join(self.to))
+            self.envelope.add('To', ','.join(self.to))
         if self.cc:
-            self.mail['Cc'] = encode_header('Cc', ','.join(self.cc))
+            self.envelope.add('Cc', ','.join(self.cc))
         if self.bcc:
-            self.mail['Bcc'] = encode_header('Bcc', ','.join(self.bcc))
+            self.envelope.add('Bcc', ','.join(self.bcc))
 
         # get missing From header
-        if not 'From' in self.mail:
+        if not 'From' in self.envelope.headers:
             accounts = ui.accountman.get_accounts()
             if len(accounts) == 1:
                 a = accounts[0]
-                self.mail['From'] = "%s <%s>" % (a.realname, a.address)
+                fromstring = "%s <%s>" % (a.realname, a.address)
+                self.envelope.add('From', fromstring)
             else:
                 cmpl = AccountCompleter(ui.accountman)
                 fromaddress = yield ui.prompt(prefix='From>', completer=cmpl,
@@ -459,13 +531,15 @@ class ComposeCommand(Command):
                     return
                 a = ui.accountman.get_account_by_address(fromaddress)
                 if a is not None:
-                    self.mail['From'] = "%s <%s>" % (a.realname, a.address)
+                    fromstring = "%s <%s>" % (a.realname, a.address)
+                    self.envelope.add('From', fromstring)
                 else:
-                    self.mail['From'] = fromaddress
+                    self.envelope.add('From', fromaddress)
 
         # get missing To header
-        if 'To' not in self.mail:
-            name, addr = email.Utils.parseaddr(self.mail.get('From'))
+        if 'To' not in self.envelope.headers:
+            sender = self.envelope.get('From')
+            name, addr = email.Utils.parseaddr(sender)
             a = ui.accountman.get_account_by_address(addr)
 
             allbooks = not settings.config.getboolean('general',
@@ -479,16 +553,23 @@ class ComposeCommand(Command):
             if to == None:
                 ui.notify('canceled')
                 return
-            self.mail['To'] = encode_header('to', to)
+            self.envelope.add('To', to)
+
         if settings.config.getboolean('general', 'ask_subject') and \
-           not 'Subject' in self.mail:
+           not 'Subject' in self.envelope.headers:
             subject = yield ui.prompt(prefix='Subject>')
+            ui.logger.debug('SUBJECT: "%s"' % subject)
             if subject == None:
                 ui.notify('canceled')
                 return
-            self.mail['Subject'] = encode_header('subject', subject)
+            self.envelope.add('Subject', subject)
 
-        ui.apply_command(commands.envelope.EnvelopeEditCommand(mail=self.mail))
+        if self.attach:
+            for a in self.attach:
+                self.envelope.attach(a)
+
+        cmd = commands.envelope.EditCommand(envelope=self.envelope)
+        ui.apply_command(cmd)
 
 
 @registerCommand(MODE, 'move', help='move focus', arguments=[
@@ -498,6 +579,7 @@ class ComposeCommand(Command):
 @registerCommand(MODE, 'select', help='send select event',
                  forced={'key': 'select'})
 class SendKeypressCommand(Command):
+    """send a keypress to the main widget to be processed by urwid"""
     def __init__(self, key, **kwargs):
         Command.__init__(self, **kwargs)
         if isinstance(key, list):
@@ -506,13 +588,3 @@ class SendKeypressCommand(Command):
 
     def apply(self, ui):
         ui.keypress(self.key)
-
-
-class EnvelopeOpenCommand(Command):
-    """open a new envelope buffer"""
-    def __init__(self, mail=None, **kwargs):
-        self.mail = mail
-        Command.__init__(self, **kwargs)
-
-    def apply(self, ui):
-        ui.buffer_open(buffers.EnvelopeBuffer(ui, mail=self.mail))

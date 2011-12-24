@@ -1,22 +1,3 @@
-"""
-This file is part of alot.
-
-Alot is free software: you can redistribute it and/or modify it
-under the terms of the GNU General Public License as published by the
-Free Software Foundation, either version 3 of the License, or (at your
-option) any later version.
-
-Notmuch is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
-
-Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
-"""
-
 import re
 import os
 import glob
@@ -26,21 +7,25 @@ import alot.commands as commands
 
 
 class Completer(object):
+    """base class for completers"""
     def complete(self, original, pos):
         """returns a list of completions and cursor positions for the
         string original from position pos on.
 
-        :param original: the complete string to complete
+        :param original: the string to complete
         :type original: str
         :param pos: starting position to complete from
-        :returns: a list of tuples (ctext, cpos), where ctext is the completed
-                  string and cpos the cursor position in the new string
+        :returns: pairs of completed string and cursor position in the
+                  new string
+        :rtype: list of (str, int)
         """
         return list()
 
     def relevant_part(self, original, pos, sep=' '):
-        """calculates the subword in a sep-splitted list of original
-        that pos is in"""
+        """
+        calculates the subword in a `sep`-splitted list of substrings of
+        `original` that `pos` is ia.n
+        """
         start = original.rfind(sep, 0, pos) + 1
         end = original.find(sep, pos - 1)
         if end == -1:
@@ -51,6 +36,13 @@ class Completer(object):
 class QueryCompleter(Completer):
     """completion for a notmuch query string"""
     def __init__(self, dbman, accountman):
+        """
+        :param dbman: used to look up avaliable tagstrings
+        :type dbman: :class:`~alot.db.DBManager`
+        :param accountman: used to look up known addresses to complete 'from'
+                           and 'to' queries
+        :type accountman: :class:`~alot.account.AccountManager`
+        """
         self.dbman = dbman
         abooks = accountman.get_addressbooks()
         self._contactscompleter = ContactsCompleter(abooks, addressesonly=True)
@@ -90,6 +82,10 @@ class TagsCompleter(Completer):
     """completion for a comma separated list of tagstrings"""
 
     def __init__(self, dbman):
+        """
+        :param dbman: used to look up avaliable tagstrings
+        :type dbman: :class:`~alot.db.DBManager`
+        """
         self.dbman = dbman
 
     def complete(self, original, pos, single_tag=True):
@@ -115,6 +111,13 @@ class TagsCompleter(Completer):
 class ContactsCompleter(Completer):
     """completes contacts"""
     def __init__(self, abooks, addressesonly=False):
+        """
+        :param abooks: used to look up email addresses
+        :type abooks: list of :class:`~alot.account.AddresBook`
+        :param addressesonly: only insert address, not the realname of the
+                              contact
+        :type addressesonly: bool
+        """
         self.abooks = abooks
         self.addressesonly = addressesonly
 
@@ -136,9 +139,13 @@ class ContactsCompleter(Completer):
 
 
 class AccountCompleter(Completer):
-    """completes own mailaddresses"""
+    """completes users' own mailaddresses"""
 
     def __init__(self, accountman):
+        """
+        :param accountman: used to look up the list of addresses
+        :type accountman: :class:`~alot.account.AccountManager`
+        """
         self.accountman = accountman
 
     def complete(self, original, pos):
@@ -150,8 +157,11 @@ class AccountCompleter(Completer):
 class CommandCompleter(Completer):
     """completes commands"""
 
-    def __init__(self, dbman, mode):
-        self.dbman = dbman
+    def __init__(self, mode):
+        """
+        :param mode: mode identifier
+        :type mode: str
+        """
         self.mode = mode
 
     def complete(self, original, pos):
@@ -168,10 +178,19 @@ class CommandLineCompleter(Completer):
     """completion for commandline"""
 
     def __init__(self, dbman, accountman, mode):
+        """
+        :param dbman: used to look up avaliable tagstrings
+        :type dbman: :class:`~alot.db.DBManager`
+        :param accountman: used to look up known addresses to complete 'from'
+                           and 'to' queries
+        :type accountman: :class:`~alot.account.AccountManager`
+        :param mode: mode identifier
+        :type mode: str
+        """
         self.dbman = dbman
         self.accountman = accountman
         self.mode = mode
-        self._commandcompleter = CommandCompleter(dbman, mode)
+        self._commandcompleter = CommandCompleter(mode)
         self._querycompleter = QueryCompleter(dbman, accountman)
         self._tagscompleter = TagsCompleter(dbman)
         abooks = accountman.get_addressbooks()
@@ -198,10 +217,14 @@ class CommandLineCompleter(Completer):
                 header, params = params.split(' ', 1)
                 localpos = localpos - (len(header) + 1)
                 if header.lower() in ['to', 'cc', 'bcc']:
-                    res = self._contactscompleter.complete(params,
-                                                           localpos)
+
                     # prepend 'set ' + header and correct position
-                    res = [('%s %s' % (header, t), p + len(header) + 1) for (t, p) in res]
+                    def f((completed, pos)):
+                        return ('%s %s' % (header, completed),
+                                pos + len(header) + 1)
+                    res = map(f, self._contactscompleter.complete(params,
+                                                                  localpos))
+
                 logging.debug(res)
             elif cmd == 'retag':
                 res = self._tagscompleter.complete(params, localpos,

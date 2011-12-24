@@ -1,30 +1,19 @@
-"""
-This file is part of alot.
-
-Alot is free software: you can redistribute it and/or modify it
-under the terms of the GNU General Public License as published by the
-Free Software Foundation, either version 3 of the License, or (at your
-option) any later version.
-
-Alot is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
-
-Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
-"""
 import os
 import email
 import tempfile
 import re
 import mimetypes
+import shlex
 from datetime import datetime
 from email.header import Header
+import email.charset as charset
+charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 from email.iterators import typed_subpart_iterator
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from notmuch.globals import NullPointerError
 
+import logging
 import helper
 from settings import get_mime_handler
 from settings import config
@@ -33,25 +22,30 @@ from helper import string_decode
 
 
 class Message(object):
+    """
+    a persistent notmuch message object.
+    It it uses a :class:`~alot.db.DBManager` for cached manipulation
+    and lazy lookups.
+    """
     def __init__(self, dbman, msg, thread=None):
         """
         :param dbman: db manager that is used for further lookups
         :type dbman: alot.db.DBManager
         :param msg: the wrapped message
         :type msg: notmuch.database.Message
-        :param thread: this messages thread
-        :type thread: alot.db.thread
+        :param thread: this messages thread (will be looked up later if `None`)
+        :type thread: :class:`~alot.db.Thread` or `None`
         """
         self._dbman = dbman
         self._id = msg.get_message_id()
         self._thread_id = msg.get_thread_id()
         self._thread = thread
-        try:
-            self._datetime = datetime.fromtimestamp(msg.get_date())
-        except ValueError:  # year is out of range
-            self._datetime = None
+        casts_date = lambda: datetime.fromtimestamp(msg.get_date())
+        self._datetime = helper.safely_get(casts_date,
+                                          ValueError, None)
         self._filename = msg.get_filename()
-        self._from = msg.get_header('From')
+        self._from = helper.safely_get(lambda: msg.get_header('From'),
+                                       NullPointerError)
         self._email = None  # will be read upon first use
         self._attachments = None  # will be read upon first use
         self._tags = set(msg.get_tags())
@@ -64,40 +58,47 @@ class Message(object):
         return "%s (%s)" % (aname, self.get_datestring())
 
     def __hash__(self):
-        """Implement hash(), so we can use Message() sets"""
+        """needed for sets of Messages"""
         return hash(self._id)
 
     def __cmp__(self, other):
-        """Implement cmp(), so we can compare Message()s"""
+        """needed for Message comparison"""
         res = cmp(self.get_message_id(), other.get_message_id())
         return res
 
     def get_email(self):
-        """returns email.Message representing this message"""
+        """returns :class:`email.Message` for this message"""
+        path = self.get_filename()
+        warning = "Subject: Caution!\n"\
+                  "Message file is no longer accessible:\n%s" % path
         if not self._email:
-            f_mail = open(self.get_filename())
-            self._email = email.message_from_file(f_mail)
-            f_mail.close()
+            try:
+                f_mail = open(path)
+                self._email = email.message_from_file(f_mail)
+                f_mail.close()
+            except IOError:
+                self._email = email.message_from_string(warning)
         return self._email
 
     def get_date(self):
-        """returns date as datetime obj"""
+        """returns Date header value as :class:`~datetime.datetime`"""
         return self._datetime
 
     def get_filename(self):
-        """returns absolute path of messages location"""
+        """returns absolute path of message files location"""
         return self._filename
 
     def get_message_id(self):
-        """returns messages id (a string)"""
+        """returns messages id (str)"""
         return self._id
 
     def get_thread_id(self):
-        """returns id of messages thread (a string)"""
+        """returns id (str) of the thread this message belongs to"""
         return self._thread_id
 
     def get_message_parts(self):
         """returns a list of all body parts of this message"""
+        # TODO really needed? email  iterators can do this
         out = []
         for msg in self.get_email().walk():
             if not msg.is_multipart():
@@ -111,18 +112,23 @@ class Message(object):
         return l
 
     def get_thread(self):
-        """returns the thread this msg belongs to as alot.db.Thread object"""
+        """returns the :class:`~alot.db.Thread` this msg belongs to"""
         if not self._thread:
             self._thread = self._dbman.get_thread(self._thread_id)
         return self._thread
 
     def get_replies(self):
-        """returns a list of replies to this msg"""
+        """returns replies to this message as list of :class:`Message`"""
         t = self.get_thread()
         return t.get_replies_to(self)
 
     def get_datestring(self):
-        """returns formated datestring"""
+        """
+        returns reformated datestring for this messages.
+
+        It uses the format spacified by `timestamp_format` in
+        the general section of the config.
+        """
         if self._datetime == None:
             return None
         formatstring = config.get('general', 'timestamp_format')
@@ -133,47 +139,81 @@ class Message(object):
         return res
 
     def get_author(self):
-        """returns realname and address pair of this messages author"""
+        """
+        returns realname and address of this messages author
+
+        :rtype: (str,str)
+        """
         return email.Utils.parseaddr(self._from)
 
     def get_headers_string(self, headers):
+        """
+        returns subset of this messages headers as human-readable format:
+        all header values are decoded, the resulting string has
+        one line "KEY: VALUE" for each requested header present in the mail.
+
+        :param headers: headers to extract
+        :type headers: list of str
+        """
         return extract_headers(self.get_mail(), headers)
 
     def add_tags(self, tags):
-        """adds tags to message
+        """
+        adds tags (list of str) to message
 
-        :param tags: tags to add
-        :type tags: list of str
+        .. note::
+
+            This only adds the requested operation to this objects
+            :class:`DBManager's <alot.db.DBManager>` write queue.
+            You need to call :meth:`~alot.db.DBManager.flush` to write out.
         """
         self._dbman.tag('id:' + self._id, tags)
         self._tags = self._tags.union(tags)
 
     def remove_tags(self, tags):
-        """remove tags from message
+        """remove tags (list of str) from message
 
-        :param tags: tags to remove
-        :type tags: list of str
+        .. note::
+
+            This only adds the requested operation to this objects
+            :class:`DBManager's <alot.db.DBManager>` write queue.
+            You need to call :meth:`~alot.db.DBManager.flush` to actually out.
         """
+
         self._dbman.untag('id:' + self._id, tags)
         self._tags = self._tags.difference(tags)
 
     def get_attachments(self):
+        """
+        returns all attachments.
+        Presently, all mime parts of this message that don't have content-type
+        'text/plain', or 'text/html' are considered attachments.
+
+        :rtype: list of :class:`Attachment`
+        """
         if not self._attachments:
             self._attachments = []
             for part in self.get_message_parts():
-                if part.get_content_maintype() != 'text':
+                if part.get_content_type() not in ['text/plain', 'text/html']:
                     self._attachments.append(Attachment(part))
         return self._attachments
 
     def accumulate_body(self):
-        return extract_body(self.get_email())
+        """
+        returns bodystring extracted from this mail
+        """
+        #TODO: don't hardcode which part is considered body but allow toggle
+        #      commands and a config default setting
 
-    def matches(self, querystring):
-        searchfor = querystring + ' AND id:' + self._id
-        return self._dbman.count_messages(searchfor) > 0
+        return extract_body(self.get_email())
 
     def get_text_content(self):
         return extract_body(self.get_email(), types=['text/plain'])
+
+    def matches(self, querystring):
+        """tests if this messages is in the resultset for `querystring`"""
+        searchfor = querystring + ' AND id:' + self._id
+        return self._dbman.count_messages(searchfor) > 0
 
 
 def extract_headers(mail, headers=None):
@@ -189,6 +229,17 @@ def extract_headers(mail, headers=None):
 
 
 def extract_body(mail, types=None):
+    """
+    returns a body text string for given mail.
+    If types is `None`, 'text/*' is used:
+    In case mail has a 'text/html' part, it is prefered over
+    'text/plain' parts.
+
+    :param mail: the mail to use
+    :type mail: :class:`email.Message`
+    :param types: mime content types to use for body string
+    :type types: list of str
+    """
     html = list(typed_subpart_iterator(mail, 'text', 'html'))
 
     # if no specific types are given, we favor text/html over text/plain
@@ -226,7 +277,8 @@ def extract_body(mail, types=None):
                 tmpfile.close()
                 #create and call external command
                 cmd = handler % tmpfile.name
-                rendered_payload = helper.cmd_output(cmd)
+                cmdlist = shlex.split(cmd.encode('utf-8', errors='ignore'))
+                rendered_payload, errmsg, retval = helper.call_cmd(cmdlist)
                 #remove tempfile
                 os.unlink(tmpfile.name)
                 if rendered_payload:  # handler had output
@@ -237,8 +289,9 @@ def extract_body(mail, types=None):
     return '\n\n'.join(body_parts)
 
 
-def decode_header(header):
-    """decode a header value to a unicode string
+def decode_header(header, normalize=False):
+    """
+    decode a header value to a unicode string
 
     values are usually a mixture of different substrings
     encoded in quoted printable using diffetrent encodings.
@@ -246,6 +299,8 @@ def decode_header(header):
 
     :param header: the header value
     :type header: str in us-ascii
+    :param normalize: replace trailing spaces after newlines
+    :type normalize: bool
     :rtype: unicode
     """
 
@@ -254,11 +309,15 @@ def decode_header(header):
     for v, enc in valuelist:
         v = string_decode(v, enc)
         decoded_list.append(string_sanitize(v))
-    return u' '.join(decoded_list)
+    value = u' '.join(decoded_list)
+    if normalize:
+        value = re.sub(r'\n\s+', r' ', value)
+    return value
 
 
 def encode_header(key, value):
-    """encodes a unicode string as a valid header value
+    """
+    encodes a unicode string as a valid header value
 
     :param key: the header field this value will be stored in
     :type key: str
@@ -286,12 +345,12 @@ def encode_header(key, value):
 
 
 class Attachment(object):
-    """represents a single mail attachment"""
+    """represents a mail attachment"""
 
     def __init__(self, emailpart):
         """
         :param emailpart: a non-multipart email that is the attachment
-        :type emailpart: email.message.Message
+        :type emailpart: :class:`email.message.Message`
         """
         self.part = emailpart
 
@@ -302,14 +361,18 @@ class Attachment(object):
         return string_decode(desc)
 
     def get_filename(self):
-        """return the filename, extracted from content-disposition header"""
+        """
+        return name of attached file.
+        If the content-disposition header contains no file name,
+        this returns `None`
+        """
         extracted_name = self.part.get_filename()
         if extracted_name:
             return os.path.basename(extracted_name)
         return None
 
     def get_content_type(self):
-        """mime type of the attachment"""
+        """mime type of the attachment part"""
         ctype = self.part.get_content_type()
         if ctype == 'octet/stream' and self.get_filename():
             ctype, enc = mimetypes.guess_type(self.get_filename())
@@ -320,8 +383,10 @@ class Attachment(object):
         return len(self.part.get_payload())
 
     def save(self, path):
-        """save the attachment to disk. Uses self.get_filename
-        in case path is a directory"""
+        """
+        save the attachment to disk. Uses :meth:`get_filename` in case path
+        is a directory
+        """
         filename = self.get_filename()
         path = os.path.expanduser(path)
         if os.path.isdir(path):
@@ -335,3 +400,167 @@ class Attachment(object):
         FILE.write(self.part.get_payload(decode=True))
         FILE.close()
         return FILE.name
+
+    def get_mime_representation(self):
+        """returns mime part that constitutes this attachment"""
+        return self.part
+
+
+class Envelope(object):
+    """a message that is not yet sent and still editable"""
+    def __init__(self, template=None, bodytext=u'', headers={}, attachments=[],
+            sign=False, encrypt=False):
+        """
+        :param template: if not None, the envelope will be initialised by
+                         :meth:`parsing <parse_template>` this string before
+                         setting any other values given to this constructor.
+        :type template: str
+        :param bodytext: text used as body part
+        :type bodytext: str
+        :param headers: unencoded header values
+        :type headers: dict (str -> unicode)
+        :param attachments: file attachments to include
+        :type attachments: list of :class:`Attachment`
+        """
+        assert isinstance(bodytext, unicode)
+        self.headers = {}
+        self.body = None
+        logging.debug('TEMPLATE: %s' % template)
+        if template:
+            self.parse_template(template)
+            logging.debug('PARSED TEMPLATE: %s' % template)
+            logging.debug('BODY: %s' % self.body)
+        if self.body == None:
+            self.body = bodytext
+        self.headers.update(headers)
+        self.attachments = list(attachments)
+        self.sign = sign
+        self.encrypt = encrypt
+        self.sent_time = None
+        self.modified_since_sent = False
+
+    def __str__(self):
+        return "Envelope (%s)\n%s" % (self.headers, self.body)
+
+    def __setitem__(self, name, val):
+        """setter for header values. this allows adding header like so:
+
+        >>> envelope['Subject'] = u'sm\xf8rebr\xf8d'
+        """
+        self.headers[name] = val
+
+        if self.sent_time:
+            self.modified_since_sent = True
+
+    def __getitem__(self, name):
+        """getter for header values.
+        :raises: KeyError if undefined
+        """
+        return self.headers[name]
+
+    def __delitem__(self, name):
+        del(self.headers[name])
+
+        if self.sent_time:
+            self.modified_since_sent = True
+
+    def get(self, key, fallback=None):
+        """secure getter for header values that allows specifying a `fallback`
+        return string (defaults to None). This returns the first matching value
+        and doesn't raise KeyErrors"""
+        if key in self.headers:
+            value = self.headers[key][0]
+        else:
+            value = fallback
+        return value
+
+    def get_all(self, key, fallback=[]):
+        """returns all header values for given key"""
+        if key in self.headers:
+            value = self.headers[key]
+        else:
+            value = fallback
+        return value
+
+    def add(self, key, value):
+        """add header value"""
+        if key not in self.headers:
+            self.headers[key] = []
+        self.headers[key].append(value)
+
+        if self.sent_time:
+            self.modified_since_sent = True
+
+    def attach(self, path, filename=None, ctype=None):
+        """
+        attach a file
+
+        :param path: (globable) path of the file(s) to attach.
+        :type path: str
+        :param filename: filename to use in content-disposition.
+                         Will be ignored if `path` matches multiple files
+        :param ctype: force content-type to be used for this attachment
+        :type ctype: str
+        """
+
+        path = os.path.expanduser(path)
+        part = helper.mimewrap(path, filename, ctype)
+        self.attachments.append(part)
+
+        if self.sent_time:
+            self.modified_since_sent = True
+
+    def construct_mail(self):
+        """
+        compiles the information contained in this envelope into a
+        :class:`email.Message`.
+        """
+        textpart = MIMEText(self.body.encode('utf-8'), 'plain', 'utf-8')
+        if self.attachments or self.sign or self.encrypt:
+            msg = MIMEMultipart()
+            msg.attach(textpart)
+        else:
+            msg = textpart
+        for k, vlist in self.headers.items():
+            for v in vlist:
+                msg[k] = encode_header(k, v)
+        for a in self.attachments:
+            msg.attach(a)
+        return msg
+
+    def parse_template(self, tmp, reset=False):
+        """parses a template or user edited string to fills this envelope.
+
+        :param tmp: the string to parse.
+        :type tmp: str
+        :param reset: remove previous envelope content
+        :type reset: bool
+        """
+        logging.debug('GoT: """\n%s\n"""' % tmp)
+        m = re.match('(?P<h>([a-zA-Z0-9_-]+:.+\n)*)(?P<b>(\s*.*)*)', tmp)
+        assert m
+
+        d = m.groupdict()
+        headertext = d['h']
+        self.body = d['b']
+
+        # remove existing content
+        if reset:
+            self.headers = {}
+
+        # go through multiline, utf-8 encoded headers
+        # we decode the edited text ourselves here as
+        # email.message_from_file can't deal with raw utf8 header values
+        key = value = None
+        for line in headertext.splitlines():
+            if re.match('[a-zA-Z0-9_-]+:', line):  # new k/v pair
+                if key and value:  # save old one from stack
+                    self.add(key, value)  # save
+                key, value = line.strip().split(':', 1)  # parse new pair
+            elif key and value:  # append new line without key prefix
+                value += line
+        if key and value:  # save last one if present
+            self.add(key, value)
+
+        if self.sent_time:
+            self.modified_since_sent = True

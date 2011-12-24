@@ -1,40 +1,26 @@
-"""
-This file is part of alot.
-
-Alot is free software: you can redistribute it and/or modify it
-under the terms of the GNU General Public License as published by the
-Free Software Foundation, either version 3 of the License, or (at your
-option) any later version.
-
-Alot is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
-
-Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
-"""
-
 import mailbox
 import logging
 import time
 import re
 import email
 import os
+import shlex
 from ConfigParser import SafeConfigParser
 from urlparse import urlparse
 
-from helper import cmd_output
 import helper
 
 
 class Account(object):
     """
-    Datastructure that represents an email account. It manages
-    this account's settings, can send and store mails to
-    maildirs (drafts/send)
+    Datastructure that represents an email account. It manages this account's
+    settings, can send and store mails to maildirs (drafts/send).
+
+    .. note::
+
+        This is an abstract class that leaves :meth:`send_mail` unspecified.
+        See :class:`SendmailAccount` for a subclass that uses a sendmail
+        command to send out mails.
     """
 
     address = None
@@ -44,13 +30,13 @@ class Account(object):
     realname = None
     """real name used to format from-headers"""
     gpg_key = None
-    """gpg fingerprint. CURRENTLY IGNORED"""
+    """gpg fingerprint for this account's private key"""
     signature = None
     """signature to append to outgoing mails"""
     signature_filename = None
     """filename of signature file in attachment"""
     abook = None
-    """addressbook"""
+    """addressbook (:class:`AddressBook`) managing this accounts contacts"""
 
     def __init__(self, address=None, aliases=None, realname=None, gpg_key=None,
                  signature=None, signature_filename=None, sent_box=None,
@@ -95,12 +81,13 @@ class Account(object):
                 self.draft_box = mailbox.MMDF(mburl.path)
 
     def store_mail(self, mbx, mail):
-        """stores given mail in mailbox. if mailbox is maildir, set the S-flag.
+        """
+        stores given mail in mailbox. If mailbox is maildir, set the S-flag.
 
         :param mbx: mailbox to use
-        :type mbx: `mailbox.Mailbox`
+        :type mbx: :class:`mailbox.Mailbox`
         :param mail: the mail to store
-        :type mail: `email.message.Message` or string
+        :type mail: :class:`email.message.Message` or str
         """
         mbx.lock()
         if isinstance(mbx, mailbox.Maildir):
@@ -113,19 +100,17 @@ class Account(object):
         mbx.unlock()
 
     def store_sent_mail(self, mail):
-        """stores mail in send-store if sent_box is set
-
-        :param mail: the mail to store
-        :type mail: `email.message.Message` or string
+        """
+        stores mail (:class:`email.message.Message` or str) in send-store if
+        :attr:`sent_box` is set.
         """
         if self.sent_box is not None:
             self.store_mail(self.sent_box, mail)
 
     def store_draft_mail(self, mail):
-        """stores mail as draft if draft_box is set
-
-        :param mail: the mail to store
-        :type mail: `email.message.Message` or string
+        """
+        stores mail (:class:`email.message.Message` or str) as draft if
+        :attr:`draft_box` is set.
         """
         if self.draft_box is not None:
             self.store_mail(self.sent_box, mail)
@@ -135,22 +120,28 @@ class Account(object):
         sends given mail
 
         :param mail: the mail to send
-        :type mail: `email.message.Message` or string
+        :type mail: :class:`email.message.Message` or string
         :returns: None if successful and a string with the reason
-                  for failure otherwise
+                  for failure otherwise.
         """
         return 'not implemented'
 
 
 class SendmailAccount(Account):
-    """Account that knows how to send out mails via sendmail"""
+    """:class:`Account` that pipes a message to a `sendmail` shell command for
+    sending"""
     def __init__(self, cmd, **kwargs):
+        """
+        :param cmd: sendmail command to use for this account
+        :type cmd: str
+        """
         Account.__init__(self, **kwargs)
         self.cmd = cmd
 
     def send_mail(self, mail):
         mail['Date'] = email.utils.formatdate(time.time(), True)
-        out, err = helper.pipe_to_command(self.cmd, mail.as_string())
+        cmdlist = shlex.split(self.cmd.encode('utf-8', errors='ignore'))
+        out, err, retval = helper.call_cmd(cmdlist, stdin=mail.as_string())
         if err:
             return err + '. sendmail_cmd set to: %s' % self.cmd
         self.store_sent_mail(mail)
@@ -158,7 +149,11 @@ class SendmailAccount(Account):
 
 
 class AccountManager(object):
-    """Easy access to all known accounts"""
+    """
+    creates and organizes multiple :class:`Accounts <Account>` that were
+    defined in the "account" sections of a given
+    :class:`~alot.settings.AlotConfigParser`.
+    """
     allowed = ['realname',
                'address',
                'aliases',
@@ -177,6 +172,10 @@ class AccountManager(object):
     ordered_addresses = []
 
     def __init__(self, config):
+        """
+        :param config: the config object to read account information from
+        :type config: :class:`~alot.settings.AlotConfigParser`.
+        """
         sections = config.sections()
         accountsections = filter(lambda s: s.startswith('account '), sections)
         for s in accountsections:
@@ -212,18 +211,20 @@ class AccountManager(object):
                 logging.info('account section %s lacks %s' % (s, to_set))
 
     def get_accounts(self):
-        """return known accounts
+        """
+        returns known accounts
 
-        :rtype: list of `account.Account`
+        :rtype: list of :class:`Account`
         """
         return self.accounts
 
     def get_account_by_address(self, address):
-        """returns account for given email address
+        """
+        returns :class:`Account` for a given email address (str)
 
         :param address: address to look up
         :type address: string
-        :rtype:  `account.Account` or None
+        :rtype:  :class:`Account` or None
         """
 
         for myad in self.get_addresses():
@@ -240,6 +241,7 @@ class AccountManager(object):
         return self.accountmap.keys()
 
     def get_addressbooks(self, order=[], append_remaining=True):
+        """returns list of all defined :class:`AddressBook` objects"""
         abooks = []
         for a in order:
             if a:
@@ -253,10 +255,21 @@ class AccountManager(object):
 
 
 class AddressBook(object):
+    """can look up email addresses and realnames for contacts.
+
+    .. note::
+
+        This is an abstract class that leaves :meth:`get_contacts`
+        unspecified. See :class:`AbookAddressBook` and
+        :class:`MatchSdtoutAddressbook` for implementations.
+    """
+
     def get_contacts(self):
+        """list all contacts tuples in this abook as (name, email) tuples"""
         return []
 
     def lookup(self, prefix=''):
+        """looks up all contacts with given prefix (in name or address)"""
         res = []
         for name, email in self.get_contacts():
             if name.startswith(prefix) or email.startswith(prefix):
@@ -265,7 +278,13 @@ class AddressBook(object):
 
 
 class AbookAddressBook(AddressBook):
+    """:class:`AddressBook` that parses abook's config/database files"""
     def __init__(self, config=None):
+        """
+        :param config: path to an `abook` contacts file
+                       (defaults to '/.abook/addressbook')
+        :type config: str
+        """
         self.abook = SafeConfigParser()
         if not config:
             config = os.environ["HOME"] + "/.abook/addressbook"
@@ -282,7 +301,16 @@ class AbookAddressBook(AddressBook):
 
 
 class MatchSdtoutAddressbook(AddressBook):
+    """:class:`AddressBook` that parses a shell command's output for lookups"""
     def __init__(self, command, match=None):
+        """
+        :param command: lookup command
+        :type command: str
+        :param match: regular expression used to match contacts in `commands`
+                      output to stdout. Must define subparts named "email" and
+                      "name". Defaults to "(?P<email>.+?@.+?)\s+(?P<name>.+)".
+        :type match: str
+        """
         self.command = command
         if not match:
             self.match = "(?P<email>.+?@.+?)\s+(?P<name>.+)"
@@ -293,7 +321,8 @@ class MatchSdtoutAddressbook(AddressBook):
         return self.lookup('\'\'')
 
     def lookup(self, prefix):
-        resultstring = cmd_output('%s %s' % (self.command, prefix))
+        cmdlist = shlex.split(self.command.encode('utf-8', errors='ignore'))
+        resultstring, errmsg, retval = helper.call_cmd(cmdlist + [prefix])
         if not resultstring:
             return []
         lines = resultstring.replace('\t', ' ' * 4).splitlines()

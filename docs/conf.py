@@ -13,6 +13,29 @@
 
 import sys, os
 
+###############################
+# readthedocs.org hack,
+# needed to use autodocs on their build-servers:
+# http://readthedocs.org/docs/read-the-docs/en/latest/faq.html?highlight=autodocs#where-do-i-need-to-put-my-docs-for-rtd-to-find-it
+
+class Mock(object):
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def __getattr__(self, name):
+        return Mock
+
+MOCK_MODULES = ['notmuch', 'notmuch.globals',
+                'twisted', 'twisted.internet',
+                'twisted.internet.defer',
+                'urwid',
+                'argparse']
+for mod_name in MOCK_MODULES:
+    sys.modules[mod_name] = Mock()
+
+# end of readthedocs.org hack
+##############################
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -26,7 +49,7 @@ from alot import __version__,__author__
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -148,7 +171,7 @@ html_static_path = ['_static']
 #html_split_index = False
 
 # If true, links to the reST sources are added to the pages.
-#html_show_sourcelink = True
+html_show_sourcelink = False
 
 # If true, "Created using Sphinx" is shown in the HTML footer. Default is True.
 #html_show_sphinx = True
@@ -215,3 +238,11 @@ man_pages = [
     ('index', 'alot', u'alot Documentation',
      [u'Patrick Totzke'], 1)
 ]
+
+autodoc_member_order = 'bysource'
+autoclass_content = 'both'
+intersphinx_mapping = {
+        'python': ('http://docs.python.org/3.2', None),
+        'notmuch': ('http://packages.python.org/notmuch', None),
+        'urwid': ('http://urwid.readthedocs.org/en/latest', None),
+        }

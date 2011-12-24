@@ -1,23 +1,7 @@
-"""
-This file is part of alot.
-
-Alot is free software: you can redistribute it and/or modify it
-under the terms of the GNU General Public License as published by the
-Free Software Foundation, either version 3 of the License, or (at your
-option) any later version.
-
-Alot is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
-
-Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
-"""
 from notmuch import Database, NotmuchError, XapianError
 import notmuch
+import multiprocessing
+
 from datetime import datetime
 from collections import deque
 
@@ -32,33 +16,55 @@ class DatabaseError(Exception):
 
 
 class DatabaseROError(DatabaseError):
+    """cannot write to read-only database"""
     pass
 
 
 class DatabaseLockedError(DatabaseError):
+    """cannot write to locked index"""
     pass
+
+
+class FillPipeProcess(multiprocessing.Process):
+    def __init__(self, it, pipe, fun=(lambda x: x)):
+        multiprocessing.Process.__init__(self)
+        self.it = it
+        self.pipe = pipe[1]
+        self.fun = fun
+
+    def run(self):
+        for a in self.it:
+            self.pipe.send(self.fun(a))
+        self.pipe.close()
 
 
 class DBManager(object):
     """
-    keeps track of your index parameters, can create notmuch.Query
-    objects from its Database on demand and implements a bunch of
-    database specific functions.
+    Keeps track of your index parameters, maintains a write-queue and
+    lets you look up threads and messages directly to the persistent wrapper
+    classes.
     """
     def __init__(self, path=None, ro=False):
         """
         :param path: absolute path to the notmuch index
         :type path: str
         :param ro: open the index in read-only mode
-        :type ro: boolean
+        :type ro: bool
         """
         self.ro = ro
         self.path = path
         self.writequeue = deque([])
+        self.processes = []
 
     def flush(self):
         """
-        tries to flush all queued write commands to the index.
+        write out all queued write-commands in order, each one in a separate
+        :meth:`atomic <notmuch.Database.begin_atomic>` transaction.
+
+        If this fails the current action is rolled back, stays in the write
+        queue and an exception is raised.
+        You are responsible to retry flushing at a later time if you want to
+        ensure that the cached changes are applied to the database.
 
         :exception: :exc:`DatabaseROError` if db is opened in read-only mode
         :exception: :exc:`DatabaseLockedError` if db is locked
@@ -100,9 +106,19 @@ class DBManager(object):
                 if db.end_atomic() != notmuch.STATUS.SUCCESS:
                     self.writequeue.appendleft(current_item)
 
+    def kill_search_processes(self):
+        """
+        terminate all search processes that originate from
+        this managers :meth:`get_threads`.
+        """
+        for p in self.processes:
+            p.terminate()
+        self.processes = []
+
     def tag(self, querystring, tags, remove_rest=False):
         """
-        add tags to all matching messages. Raises
+        add tags to messages matching `querystring`.
+        This appends a tag operation to the write queue and raises
         :exc:`DatabaseROError` if in read only mode.
 
         :param querystring: notmuch search string
@@ -110,8 +126,11 @@ class DBManager(object):
         :param tags: a list of tags to be added
         :type tags: list of str
         :param remove_rest: remove tags from matching messages before tagging
-        :type remove_rest: boolean
-        :exception: :exc:`NotmuchError`
+        :type remove_rest: bool
+        :exception: :exc:`DatabaseROError`
+
+        .. note::
+            You need to call :meth:`DBManager.flush` to actually write out.
         """
         if self.ro:
             raise DatabaseROError()
@@ -125,14 +144,18 @@ class DBManager(object):
 
     def untag(self, querystring, tags):
         """
-        add tags to all matching messages. Raises
+        removes tags from messages that match `querystring`.
+        This appends an untag operation to the write queue and raises
         :exc:`DatabaseROError` if in read only mode.
 
         :param querystring: notmuch search string
         :type querystring: str
         :param tags: a list of tags to be added
         :type tags: list of str
-        :exception: :exc:`NotmuchError`
+        :exception: :exc:`DatabaseROError`
+
+        .. note::
+            You need to call :meth:`DBManager.flush` to actually write out.
         """
         if self.ro:
             raise DatabaseROError()
@@ -141,43 +164,86 @@ class DBManager(object):
                                 sync_maildir_flags))
 
     def count_messages(self, querystring):
-        """returns number of messages that match querystring"""
+        """returns number of messages that match `querystring`"""
         return self.query(querystring).count_messages()
 
     def search_thread_ids(self, querystring):
-        """returns the ids of all threads that match the querystring
-        This copies! all integer thread ids into an new list."""
-        threads = self.query(querystring).search_threads()
-        return [thread.get_thread_id() for thread in threads]
+        """
+        returns the ids of all threads that match the `querystring`
+        This copies! all integer thread ids into an new list.
+
+        :returns: list of str
+        """
+
+        return self.query_threaded(querystring)
 
     def get_thread(self, tid):
-        """returns the thread with given id as alot.db.Thread object"""
+        """returns :class:`Thread` with given thread id (str)"""
         query = self.query('thread:' + tid)
-        #TODO raise exceptions here in 0<case msgcount>1
         try:
             return Thread(self, query.search_threads().next())
         except:
             return None
 
     def get_message(self, mid):
-        """returns the message with given id as alot.message.Message object"""
+        """returns :class:`Message` with given message id (str)"""
         mode = Database.MODE.READ_ONLY
         db = Database(path=self.path, mode=mode)
         msg = db.find_message(mid)
         return Message(self, msg)
 
     def get_all_tags(self):
-        """returns all tags as list of strings"""
+        """
+        returns all tagsstrings used in the database
+        :rtype: list of str
+        """
         db = Database(path=self.path)
         return [t for t in db.get_all_tags()]
 
-    def query(self, querystring):
-        """creates notmuch.Query objects on demand
+    def async(self, cbl, fun):
+        """
+        return a pair (pipe, process) so that the process writes
+        `fun(a)` to the pipe for each element `a` in the iterable returned
+        by the callable `cbl`.
+
+        :param cbl: a function returning something iterable
+        :type cbl: callable
+        :param fun: an unary translation function
+        :type fun: callable
+        :rtype: (:class:`multiprocessing.Pipe`,
+                :class:`multiprocessing.Process`)
+        """
+        pipe = multiprocessing.Pipe(False)
+        receiver, sender = pipe
+        process = FillPipeProcess(cbl(), pipe, fun)
+        process.start()
+        self.processes.append(process)
+        # closing the sending end in this (receiving) process guarantees
+        # that here the apropriate EOFError is raised upon .recv in the walker
+        sender.close()
+        return receiver, process
+
+    def get_threads(self, querystring):
+        """
+        asynchronously look up thread ids matching `querystring`.
 
         :param querystring: The query string to use for the lookup
         :type query: str.
-        :returns:  notmuch.Query -- the query object.
+        :returns: a pipe together with the process that asynchronously
+                  writes to it.
+        :rtype: (:class:`multiprocessing.Pipe`,
+                :class:`multiprocessing.Process`)
+        """
+        q = self.query(querystring)
+        return self.async(q.search_threads, (lambda a: a.get_thread_id()))
 
+    def query(self, querystring):
+        """
+        creates :class:`notmuch.Query` objects on demand
+
+        :param querystring: The query string to use for the lookup
+        :type query: str.
+        :returns: :class:`notmuch.Query` -- the query object.
         """
         mode = Database.MODE.READ_ONLY
         db = Database(path=self.path, mode=mode)
@@ -185,18 +251,26 @@ class DBManager(object):
 
 
 class Thread(object):
+    """
+    A wrapper around a notmuch mailthread (:class:`notmuch.database.Thread`)
+    that ensures persistence of the thread: It can be safely read multiple
+    times, its manipulation is done via a :class:`DBManager` and it
+    can directly provide contained messages as :class:`~alot.message.Message`.
+    """
+
     def __init__(self, dbman, thread):
         """
         :param dbman: db manager that is used for further lookups
-        :type dbman: alot.db.DBManager
-        :param msg: the wrapped thread
-        :type msg: notmuch.database.Thread
+        :type dbman: :class:`DBManager`
+        :param thread: the wrapped thread
+        :type thread: :class:`notmuch.database.Thread`
         """
         self._dbman = dbman
         self._id = thread.get_thread_id()
         self.refresh(thread)
 
     def refresh(self, thread=None):
+        """refresh thread metadata from the index"""
         if not thread:
             query = self._dbman.query('thread:' + self._id)
             thread = query.search_threads().next()
@@ -227,16 +301,25 @@ class Thread(object):
         return self._id
 
     def get_tags(self):
-        """returns tags attached to this thread as list of strings"""
+        """
+        returns tagsstrings attached to this thread
+
+        :rtype: list of str
+        """
         l = list(self._tags)
         l.sort()
         return l
 
     def add_tags(self, tags):
-        """adds tags to all messages in this thread
+        """
+        add `tags` (list of str) to all messages in this thread
 
-        :param tags: tags to add
-        :type tags: list of str
+        .. note::
+
+            This only adds the requested operation to this objects
+            :class:`DBManager's <DBManager>` write queue.
+            You need to call :meth:`DBManager.flush` to actually write out.
+
         """
         newtags = set(tags).difference(self._tags)
         if newtags:
@@ -244,10 +327,14 @@ class Thread(object):
             self._tags = self._tags.union(newtags)
 
     def remove_tags(self, tags):
-        """remove tags from all messages in this thread
+        """
+        remove `tags` (list of str) from all messages in this thread
 
-        :param tags: tags to remove
-        :type tags: list of str
+        .. note::
+
+            This only adds the requested operation to this objects
+            :class:`DBManager's <DBManager>` write queue.
+            You need to call :meth:`DBManager.flush` to actually write out.
         """
         rmtags = set(tags).intersection(self._tags)
         if rmtags:
@@ -255,37 +342,49 @@ class Thread(object):
             self._tags = self._tags.difference(rmtags)
 
     def set_tags(self, tags):
-        """set tags of all messages in this thread. This removes all tags and
-        attaches the given ones in one step.
+        """
+        set tags (list of str) of all messages in this thread. This removes all
+        tags and attaches the given ones in one step.
 
-        :param tags: tags to add
-        :type tags: list of str
+        .. note::
+
+            This only adds the requested operation to this objects
+            :class:`DBManager's <DBManager>` write queue.
+            You need to call :meth:`DBManager.flush` to actually write out.
         """
         if tags != self._tags:
             self._dbman.tag('thread:' + self._id, tags, remove_rest=True)
             self._tags = set(tags)
 
     def get_authors(self):  # TODO: make this return a list of strings
-        """returns all authors in this thread"""
+        """returns authors string"""
         return self._authors
 
     def get_subject(self):
-        """returns this threads subject"""
+        """returns subject string"""
         return self._subject
 
     def get_toplevel_messages(self):
-        """returns all toplevel messages as list of :class:`Message`"""
+        """
+        returns all toplevel messages contained in this thread.
+        This are all the messages without a parent message
+        (identified by 'in-reply-to' or 'references' header.
+
+        :rtype: list of :class:`~alot.message.Message`
+        """
         if not self._messages:
             self.get_messages()
         return self._toplevel_messages
 
     def get_messages(self):
-        """returns all messages in this thread
-
-        :returns: dict mapping all contained :class:`Message`s to a list of
-        their respective children.
         """
-        if not self._messages:
+        returns all messages in this thread as dict mapping all contained
+        messages to their direct responses.
+
+        :rtype: dict mapping :class:`~alot.message.Message` to a list of
+                :class:`~alot.message.Message`.
+        """
+        if not self._messages:  # if not already cached
             query = self._dbman.query('thread:' + self._id)
             thread = query.search_threads().next()
 
@@ -304,10 +403,12 @@ class Thread(object):
         return self._messages
 
     def get_replies_to(self, msg):
-        """returns all replies to the given message
+        """
+        returns all replies to the given message contained in this thread.
 
-        :param msg: the parent message, must be contained in thread
-        :type msg: alot.sb.Message
+        :param msg: parent message to look up
+        :type msg: :class:`~alot.message.Message`
+        :returns: list of :class:`~alot.message.Message` or `None`
         """
         mid = msg.get_message_id()
         msg_hash = self.get_messages()
@@ -317,11 +418,17 @@ class Thread(object):
         return None
 
     def get_newest_date(self):
-        """returns date header of newest message in this thread as datetime"""
+        """
+        returns date header of newest message in this thread as
+        :class:`~datetime.datetime`
+        """
         return self._newest_date
 
     def get_oldest_date(self):
-        """returns date header of oldest message in this thread as datetime"""
+        """
+        returns date header of oldest message in this thread as
+        :class:`~datetime.datetime`
+        """
         return self._oldest_date
 
     def get_total_messages(self):

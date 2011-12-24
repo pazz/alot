@@ -1,26 +1,7 @@
-"""
-This file is part of alot.
-
-Alot is free software: you can redistribute it and/or modify it
-under the terms of the GNU General Public License as published by the
-Free Software Foundation, either version 3 of the License, or (at your
-option) any later version.
-
-Notmuch is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
-
-Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
-"""
 from datetime import date
 from datetime import timedelta
 from collections import deque
 from string import strip
-import shlex
 import subprocess
 import email
 import mimetypes
@@ -34,17 +15,70 @@ import urwid
 from settings import config
 
 
-def string_sanitize(string):
-    """strips, and replaces non-printable characters"""
-    tab_width = config.getint('general', 'tabwidth')
+def safely_get(clb, E, on_error=''):
+    """
+    returns result of :func:`clb` and falls back to `on_error`
+    in case `E` is raised.
+
+    :param clb: function to evaluate
+    :type clb: callable
+    :param E: exception to catch
+    :type E: Exception
+    :param on_error: default string returned when exception is caught
+    :type on_error: str
+    """
+    try:
+        return clb()
+    except E:
+        return on_error
+
+
+def string_sanitize(string, tab_width=None):
+    r"""
+    strips, and replaces non-printable characters
+
+    :param tab_width: number of spaces to replace tabs with. Read from
+                      `globals.tabwidth` setting if `None`
+    :type tab_width: int or `None`
+
+    >>> string_sanitize(' foo\rbar ', 8)
+    'foobar'
+    >>> string_sanitize('foo\tbar', 8)
+    'foo     bar'
+    >>> string_sanitize('foo\t\tbar', 8)
+    'foo             bar'
+    """
+    if tab_width == None:
+        tab_width = config.getint('general', 'tabwidth')
+
     string = string.strip()
-    string = string.replace('\t', ' ' * tab_width)
     string = string.replace('\r', '')
-    return string
+
+    lines = list()
+    for line in string.split('\n'):
+        tab_count = line.count('\t')
+
+        if tab_count > 0:
+            line_length = 0
+            new_line = list()
+            for i, chunk in enumerate(line.split('\t')):
+                line_length += len(chunk)
+                new_line.append(chunk)
+
+                if i < tab_count:
+                    next_tab_stop_in = tab_width - (line_length % tab_width)
+                    new_line.append(' ' * next_tab_stop_in)
+                    line_length += next_tab_stop_in
+            lines.append(''.join(new_line))
+        else:
+            lines.append(line)
+
+    return '\n'.join(lines)
 
 
 def string_decode(string, enc='ascii'):
-    """decodes string to unicode bytestring, respecting enc as a hint"""
+    """safely decodes string to unicode bytestring,
+    respecting `enc` as a hint"""
 
     if enc is None:
         enc = 'ascii'
@@ -150,6 +184,22 @@ def shorten_author_string(authors_string, maxlength):
 
 
 def pretty_datetime(d):
+    """
+    translates :class:`datetime` `d` to a "sup-style" human readable string.
+
+    >>> now = datetime.now()
+    >>> pretty_datetime(now)
+    '09:31am'
+    >>> one_day_ago = datetime.today() - timedelta(1)
+    >>> pretty_datetime(one_day_ago)
+    'Yest. 9am'
+    >>> thirty_days_ago = datetime.today() - timedelta(30)
+    >>> pretty_datetime(thirty_days_ago)
+    'Nov 01'
+    >>> one_year_ago = datetime.today() - timedelta(356)
+    >>> pretty_datetime(one_year_ago)
+    'Dec 2010'
+    """
     today = date.today()
     if today == d.date():
         string = d.strftime('%H:%M%P')
@@ -162,42 +212,46 @@ def pretty_datetime(d):
     return string
 
 
-def cmd_output(command_line):
-    args = shlex.split(command_line.encode('utf-8', errors='ignore'))
+def call_cmd(cmdlist, stdin=None):
+    """
+    get a shell commands output, error message and return value
+
+    :param cmdlist: shellcommand to call, already splitted into a list accepted
+                    by :meth:`subprocess.Popen`
+    :type cmdlist: list of str
+    :param stdin: string to pipe to the process
+    :type stdin: str
+    :return: triple of stdout, error msg, return value of the shell command
+    :rtype: str, str, int
+    """
+
+    out, err, ret = '', '', 0
     try:
-        output = subprocess.check_output(args)
-        output = string_decode(output, urwid.util.detected_encoding)
-    except subprocess.CalledProcessError:
-        return None
-    except OSError:
-        return None
-    return output
-
-
-def pipe_to_command(cmd, stdin):
-        args = shlex.split(cmd.encode('utf-8', errors='ignore'))
-        try:
-            proc = subprocess.Popen(args, stdin=subprocess.PIPE,
+        if stdin:
+            proc = subprocess.Popen(cmdlist, stdin=subprocess.PIPE,
                                     stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE)
             out, err = proc.communicate(stdin)
-        except OSError, e:
-            return '', str(e)
-        if proc.poll():  # returncode is not 0
-            e = 'return value != 0'
-            if err.strip():
-                e = e + ': %s' % err
-            return '', e
+            ret = proc.poll()
         else:
-            return out, err
+            out = subprocess.check_output(cmdlist)
+            # todo: get error msg. rval
+    except (subprocess.CalledProcessError, OSError), e:
+        err = str(e)
+        ret = -1
+
+    out = string_decode(out, urwid.util.detected_encoding)
+    err = string_decode(err, urwid.util.detected_encoding)
+    return out, err, ret
 
 
-def attach(path, mail, filename=None):
-    ctype, encoding = mimetypes.guess_type(path)
-    if ctype is None or encoding is not None:
-        # No guess could be made, or the file is encoded (compressed),
-        # so use a generic bag-of-bits type.
-        ctype = 'application/octet-stream'
+def mimewrap(path, filename=None, ctype=None):
+    if ctype == None:
+        ctype, encoding = mimetypes.guess_type(path)
+        if ctype is None or encoding is not None:
+            # No guess could be made, or the file is encoded (compressed),
+            # so use a generic bag-of-bits type.
+            ctype = 'application/octet-stream'
     maintype, subtype = ctype.split('/', 1)
     if maintype == 'text':
         fp = open(path)
@@ -224,7 +278,7 @@ def attach(path, mail, filename=None):
         filename = os.path.basename(path)
     part.add_header('Content-Disposition', 'attachment',
                     filename=filename)
-    mail.attach(part)
+    return part
 
 
 def shell_quote(text):

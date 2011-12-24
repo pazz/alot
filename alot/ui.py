@@ -1,23 +1,6 @@
-"""
-This file is part of alot.
-
-Alot is free software: you can redistribute it and/or modify it
-under the terms of the GNU General Public License as published by the
-Free Software Foundation, either version 3 of the License, or (at your
-option) any later version.
-
-Notmuch is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
-
-Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
-"""
 import urwid
 from twisted.internet import reactor, defer
+from twisted.python.failure import Failure
 
 from settings import config
 from buffers import BufferlistBuffer
@@ -25,10 +8,15 @@ import commands
 from commands import commandfactory
 from alot.commands import CommandParseError
 import widgets
-from completion import CommandLineCompleter
 
 
 class InputWrap(urwid.WidgetWrap):
+    """
+    This is the topmost widget used in the widget tree.
+    Its purpose is to capture and interpret keypresses
+    by instantiating and applying the relevant :class:`Command` objects
+    or relaying them to the wrapped `rootwidget`.
+    """
     def __init__(self, ui, rootwidget):
         urwid.WidgetWrap.__init__(self, rootwidget)
         self.ui = ui
@@ -42,6 +30,8 @@ class InputWrap(urwid.WidgetWrap):
         return self._w
 
     def allowed_command(self, cmd):
+        """sanity check if the given command should be applied.
+        This is used in :meth:`keypress`"""
         if not self.select_cancel_only:
             return True
         elif isinstance(cmd, commands.globals.SendKeypressCommand):
@@ -51,7 +41,7 @@ class InputWrap(urwid.WidgetWrap):
             return False
 
     def keypress(self, size, key):
-        self.ui.logger.debug('got key: \'%s\'' % key)
+        """overwrites `urwid.WidgetWrap.keypress`"""
         mode = self.ui.mode
         if self.select_cancel_only:
             mode = 'global'
@@ -64,15 +54,37 @@ class InputWrap(urwid.WidgetWrap):
                     return None
             except CommandParseError, e:
                 self.ui.notify(e.message, priority='error')
-        self.ui.logger.debug('relaying key: %s' % key)
         return self._w.keypress(size, key)
 
 
 class UI(object):
+    """
+    This class integrates all components of alot and offers
+    methods for user interaction like :meth:`prompt`, :meth:`notify` etc.
+    It handles the urwid widget tree and mainloop (we use twisted) and is
+    responsible for opening, closing and focussing buffers.
+    """
     buffers = []
+    """list of active buffers"""
     current_buffer = None
+    """points to currently active :class:`~alot.buffers.Buffer`"""
+    dbman = None
+    """Database manager (:class:`~alot.db.DBManager`)"""
+    logger = None
+    """:class:`logging.Logger` used to write to log file"""
+    accountman = None
+    """account manager (:class:`~alot.account.AccountManager`)"""
 
     def __init__(self, dbman, log, accountman, initialcmd, colourmode):
+        """
+        :param dbman: :class:`~alot.db.DBManager`
+        :param log: :class:`logging.Logger`
+        :param accountman: :class:`~alot.account.AccountManager`
+        :param initialcmd: commandline applied after setting up interface
+        :type initialcmd: str
+        :param colourmode: determines which theme to chose
+        :type colourmode: int in [1,16,256]
+        """
         self.dbman = dbman
         self.dbman.ui = self  # register ui with dbman
         self.logger = log
@@ -100,9 +112,11 @@ class UI(object):
         self.mainloop.run()
 
     def unhandeled_input(self, key):
-        self.logger.debug('unhandeled input: %s' % key)
+        """called if a keypress is not handled."""
+        self.logger.debug('unhandled input: %s' % key)
 
     def keypress(self, key):
+        """relay all keypresses to our `InputWrap`"""
         self.inputwrap.keypress((150, 20), key)
 
     def show_as_root_until_keypress(self, w, key, relay_rest=True,
@@ -127,19 +141,20 @@ class UI(object):
         :param text: initial content of the input field
         :type text: str
         :param completer: completion object to use
-        :type completer: `alot.completion.Completer`
+        :type completer: :meth:`alot.completion.Completer`
         :param tab: number of tabs to press initially
                     (to select completion results)
         :type tab: int
         :param history: history to be used for up/down keys
         :type history: list of str
-        :returns: a `twisted.defer.Deferred`
+        :returns: a :class:`twisted.defer.Deferred`
         """
         d = defer.Deferred()  # create return deferred
         oldroot = self.inputwrap.get_root()
 
         def select_or_cancel(text):
-            # restore main screen
+            # restore main screen and invoke callback
+            # (delayed return) with given text
             self.inputwrap.set_root(oldroot)
             self.inputwrap.select_cancel_only = False
             d.callback(text)
@@ -158,7 +173,7 @@ class UI(object):
                 ('fixed', len(prefix), leftpart),
                 ('weight', 1, editpart),
             ])
-        both = urwid.AttrMap(both, 'prompt', 'prompt')
+        both = urwid.AttrMap(both, 'global_prompt')
 
         # put promptwidget as overlay on main widget
         overlay = urwid.Overlay(both, oldroot,
@@ -171,76 +186,44 @@ class UI(object):
         return d  # return deferred
 
     def exit(self):
+        """
+        shuts down user interface without cleaning up.
+        Use a :class:`commands.globals.ExitCommand` for a clean shutdown.
+        """
         reactor.stop()
-        raise urwid.ExitMainLoop()
 
-    @defer.inlineCallbacks
-    def commandprompt(self, startstring):
-        """prompt for a commandline and interpret/apply it upon enter
-
-        :param startstring: initial text in edit part
-        :type startstring: str
-        """
-        self.logger.info('open command shell')
-        mode = self.current_buffer.typename
-        cmdline = yield self.prompt(prefix=':',
-                              text=startstring,
-                              completer=CommandLineCompleter(self.dbman,
-                                                             self.accountman,
-                                                             mode),
-                              history=self.commandprompthistory,
-                             )
-        self.logger.debug('CMDLINE: %s' % cmdline)
-        self.interpret_commandline(cmdline)
-
-    def interpret_commandline(self, cmdline):
-        """interpret and apply a commandstring
-
-        :param cmdline: command string to apply
-        :type cmdline: str
-        """
-        if cmdline:
-            mode = self.current_buffer.typename
-            self.commandprompthistory.append(cmdline)
-            try:
-                cmd = commandfactory(cmdline, mode)
-                self.apply_command(cmd)
-            except CommandParseError, e:
-                self.notify(e.message, priority='error')
-
-    def buffer_open(self, b):
-        """
-        register and focus new buffer
-        """
-        self.buffers.append(b)
-        self.buffer_focus(b)
+    def buffer_open(self, buf):
+        """register and focus new :class:`~alot.buffers.Buffer`."""
+        self.buffers.append(buf)
+        self.buffer_focus(buf)
 
     def buffer_close(self, buf):
+        """
+        closes given :class:`~alot.buffers.Buffer`.
+
+        This it removes it from the bufferlist and calls its cleanup() method.
+        """
+
         buffers = self.buffers
         if buf not in buffers:
             string = 'tried to close unknown buffer: %s. \n\ni have:%s'
             self.logger.error(string % (buf, self.buffers))
-        elif len(buffers) == 1:
-            self.logger.info('closing the last buffer, exiting')
-            cmd = commandfactory('exit')
-            self.apply_command(cmd)
+        elif self.current_buffer == buf:
+            self.logger.debug('UI: closing current buffer %s' % buf)
+            index = buffers.index(buf)
+            buffers.remove(buf)
+            offset = config.getint('general', 'bufferclose_focus_offset')
+            nextbuffer = buffers[(index + offset) % len(buffers)]
+            self.buffer_focus(nextbuffer)
+            buf.cleanup()
         else:
-            if self.current_buffer == buf:
-                self.logger.debug('UI: closing current buffer %s' % buf)
-                index = buffers.index(buf)
-                buffers.remove(buf)
-                offset = config.getint('general', 'bufferclose_focus_offset')
-                self.current_buffer = buffers[(index + offset) % len(buffers)]
-            else:
-                string = 'closing buffer %d:%s'
-                self.logger.debug(string % (buffers.index(buf), buf))
-                index = buffers.index(buf)
-                buffers.remove(buf)
+            string = 'closing buffer %d:%s'
+            self.logger.debug(string % (buffers.index(buf), buf))
+            buffers.remove(buf)
+            buf.cleanup()
 
     def buffer_focus(self, buf):
-        """
-        focus given buffer. must be contained in self.buffers
-        """
+        """focus given :class:`~alot.buffers.Buffer`."""
         if buf not in self.buffers:
             self.logger.error('tried to focus unknown buffer')
         else:
@@ -253,6 +236,7 @@ class UI(object):
             self.update()
 
     def get_deep_focus(self, startfrom=None):
+        """return the bottom most focussed widget of the widget tree"""
         if not startfrom:
             startfrom = self.current_buffer
         if 'get_focus' in dir(startfrom):
@@ -264,17 +248,19 @@ class UI(object):
         return startfrom
 
     def get_buffers_of_type(self, t):
-        """returns currently open buffers for a given subclass of
-        `alot.buffer.Buffer`
+        """
+        returns currently open buffers for a given subclass of
+        :class:`alot.buffer.Buffer`
         """
         return filter(lambda x: isinstance(x, t), self.buffers)
 
     def clear_notify(self, messages):
-        """clears notification popups. Usually called in order
-        to ged rid of messages that don't time out
+        """
+        clears notification popups. Call this to ged rid of messages that don't
+        time out.
 
         :param messages: The popups to remove. This should be exactly
-                         what notify() returned
+                         what :meth:`notify` returned when creating the popup
         """
         newpile = self.notificationbar.widget_list
         for l in messages:
@@ -287,19 +273,23 @@ class UI(object):
 
     def choice(self, message, choices={'y': 'yes', 'n': 'no'},
                select=None, cancel=None, msg_position='above'):
-        """prompt user to make a choice
+        """
+        prompt user to make a choice
 
         :param message: string to display before list of choices
         :type message: unicode
         :param choices: dict of possible choices
-        :type choices: keymap->choice (both str)
-        :param select: choice to return if enter/return is hit.
-                       Ignored if set to None.
+        :type choices: dict: keymap->choice (both str)
+        :param select: choice to return if enter/return is hit. Ignored if set
+                       to `None`.
         :type select: str
-        :param cancel: choice to return if escape is hit.
-                       Ignored if set to None.
+        :param cancel: choice to return if escape is hit. Ignored if set to
+                       `None`.
         :type cancel: str
-        :returns: a `twisted.defer.Deferred`
+        :param msg_position: determines if `message` is above or left of the
+                             prompt. Must be `above` or `left`.
+        :type msg_position: str
+        :returns: a :class:`twisted.defer.Deferred`
         """
         assert select in choices.values() + [None]
         assert cancel in choices.values() + [None]
@@ -340,24 +330,28 @@ class UI(object):
         return d  # return deferred
 
     def notify(self, message, priority='normal', timeout=0, block=False):
-        """notify popup
+        """
+        opens notification popup
 
         :param message: message to print
         :type message: str
         :param priority: priority string, used to format the popup: currently,
                          'normal' and 'error' are defined. If you use 'X' here,
-                         the attribute 'notify_X' is used to format the popup.
+                         the attribute 'global_notify_X' is used to format the
+                         popup.
         :type priority: str
         :param timeout: seconds until message disappears. Defaults to the value
                         of 'notify_timeout' in the general config section.
                         A negative value means never time out.
         :type timeout: int
         :param block: this notification blocks until a keypress is made
-        :type block: boolean
+        :type block: bool
+        :returns: an urwid widget (this notification) that can be handed to
+                  :meth:`clear_notify` for removal
         """
         def build_line(msg, prio):
             cols = urwid.Columns([urwid.Text(msg)])
-            return urwid.AttrMap(cols, 'notify_' + prio)
+            return urwid.AttrMap(cols, 'global_notify_' + prio)
         msgs = [build_line(message, priority)]
 
         if not self.notificationbar:
@@ -389,9 +383,7 @@ class UI(object):
         return msgs[0]
 
     def update(self):
-        """
-        redraw interface
-        """
+        """redraw interface"""
         #who needs a header?
         #head = urwid.Text('notmuch gui')
         #h=urwid.AttrMap(head, 'header')
@@ -419,9 +411,9 @@ class UI(object):
             self.mainframe.set_footer(None)
 
     def build_statusbar(self):
+        """construct and return statusbar widget"""
         idx = self.buffers.index(self.current_buffer)
-        lefttxt = '%d: [%s] %s' % (idx, self.current_buffer.typename,
-                                   self.current_buffer)
+        lefttxt = '%d: %s' % (idx, self.current_buffer)
         footerleft = urwid.Text(lefttxt, align='left')
         righttxt = 'total messages: %d' % self.dbman.count_messages('*')
         pending_writes = len(self.dbman.writequeue)
@@ -431,10 +423,20 @@ class UI(object):
         columns = urwid.Columns([
             footerleft,
             ('fixed', len(righttxt), footerright)])
-        return urwid.AttrMap(columns, 'footer')
+        return urwid.AttrMap(columns, 'global_footer')
 
     def apply_command(self, cmd):
+        """
+        applies a command
+
+        This calls the pre and post hooks attached to the command,
+        as well as :meth:`cmd.apply`.
+
+        :param cmd: an applicable command
+        :type cmd: :class:`~alot.commands.Command`
+        """
         if cmd:
+            # call pre- hook
             if cmd.prehook:
                 self.logger.debug('calling pre-hook')
                 try:
@@ -443,12 +445,34 @@ class UI(object):
 
                 except:
                     self.logger.exception('prehook failed')
+
+            # define (callback) function that invokes post-hook
+            def call_posthook(retval_from_apply):
+                if cmd.posthook:
+                    self.logger.debug('calling post-hook')
+                    try:
+                        cmd.posthook(ui=self, dbm=self.dbman,
+                                     aman=self.accountman, log=self.logger,
+                                     config=config)
+                    except:
+                        self.logger.exception('posthook failed')
+
+            # define error handler for Failures/Exceptions
+            # raised in cmd.apply()
+            def errorHandler(failure):
+                self.logger.debug(failure.getTraceback())
+                msg = "Error: %s,\ncheck the log for details"
+                self.notify(msg % failure.getErrorMessage(), priority='error')
+
+            # call cmd.apply
             self.logger.debug('apply command: %s' % cmd)
-            cmd.apply(self)
-            if cmd.posthook:
-                self.logger.debug('calling post-hook')
-                try:
-                    cmd.posthook(ui=self, dbm=self.dbman, aman=self.accountman,
-                                log=self.logger, config=config)
-                except:
-                    self.logger.exception('posthook failed')
+            try:
+                retval = cmd.apply(self)
+                # if we deal with a InlineCallbacks-decorated method, it
+                # instantly returns a defered. This adds call/errbacks to react
+                # to successful/erroneous termination of the defered apply()
+                if isinstance(retval, defer.Deferred):
+                    retval.addErrback(errorHandler)
+                    retval.addCallback(call_posthook)
+            except Exception, e:
+                errorHandler(Failure(e))

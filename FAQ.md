@@ -30,34 +30,6 @@ I like to picture the look on someone's face who reads the X-MAILER flag
 "notmuch/alot"; I like cookies; I like this comic strip:
 http://hyperboleandahalf.blogspot.com/2010/04/alot-is-better-than-you-at-everything.html
 
-Why are searches with large result sets slower than in the Emacs mode?
------------------------------------------------------
-Short answer: The Emacs mode cheats: it makes use of the editors ability to
-asynchronously handle buffers, so you can work on the initial prefix although it takes
-ages to fill the rest. Due to the nature of notmuch's python bindings,
-*alot* needs to copy enough information to reproduce the results to a more durable datastructure
-before it can display it.
-
-The technical answer:
-*alot* queries notmuch and copies the thread ids from the result set to a list,
-which is then used to dynamically load all the info once a thread gets displayed.
-This is significantly faster than instanciating alot.db.thread objects for all
-results directly, but of course, copying a large list costs.
-The problem is that the iterator that the notmuch api returns _must_
-be read at once, otherwise it may get outdated.
-One might think "so what? Then I get old results" No: if you read from an
-outdated notmuch iterator, it throws an exception and dies.
-
-If you'd like to have a look how it works currently, look at `walker.py`
-and `buffer.SearchBuffer`.
-I have played around with dynamically re-creating these iterators if they fail.
-But then you need to synchronise with all that has been read so far. Particularly popping
-already read threads from the iterator. Its ugly.
-
-One better way to implement this might be to somehow outsource
-the query into a thread (as Emacs does) and communicate a prefix of the result
-to the display using thread-voodoo.
-
 I want feature X!
 -----------------
 Me too! Feel free to file a new (or comment on an existing) [issue][issue] if you don't
@@ -65,9 +37,60 @@ want/have the time/know how to implement it yourself. Be verbose as to
 how it should look or work when it's finished and give it some thought how you
 think we should implement it. We'll discuss it from there.
 
+Why are the default key bindings so counter-intuitive?
+---------------------------------------------------
+Be aware that the bindings for all modes are fully configurable (see the CUSTOMIZE.md).
+That said, I choose the bindings to be natural for me. I use vim and [pentadactyl][pd] a lot.
+However, I'd be interested in discussing the defaults. If you think
+your bindings are more intuitive or better suited as defaults for some reason,
+don't hesitate to send me your config. The same holds for the theme settings you use.
+Tell me. Let's improve the defaults.
+
+How do I do contacts completion?
+--------------------------------
+In each `account` section you can specify a `abook_command` that
+is considered the address book of that account and will be used
+for address completion where appropriate.
+
+This shell command will be called with the search prefix as only argument.
+Its output is searched for email-name pairs using the regular expression given as `abook_regexp`,
+which must include named groups "email" and "name" to match the email address and realname parts
+respectively. See below for an example that uses [abook][abook]:
+
+```
+[account YOURACCOUNT]
+realname = ...
+address = ...
+abook_command = abook --mutt-query
+abook_regexp = (?P<email>.+?@.+?)\s+(?P<name>.+)
+```
+
+See [here][alookup] for alternative lookup commands. The few others I have tested so far are:
+
+ * [goobook][gbook] for cached google contacts lookups:
+
+   ```
+   abook_command = goobook query
+   abook_regexp = (?P<email>.+?@.+?)\s\s+(?P<name>.+)\s\s+.+
+   ```
+ 
+ * [nottoomuch-addresses][nottoomuch]:
+
+   ```
+   abook_command = nottoomuch-addresses.sh
+   abook_regexp = \"(?P<name>.+)\"\s*<(?P<email>.*.+?@.+?)>
+   ```
+
+Don't hesitate to send me your custom `abook_regexp` values to list them here.
+
 
 [issue]: https://github.com/pazz/alot/issues
 [inittag]: http://notmuchmail.org/initial_tagging/
 [notmuch]: http://notmuchmail.org
 [toolkit]: http://excess.org/urwid/
 [python]: http://www.python.org/
+[pd]: http://dactyl.sourceforge.net/pentadactyl/
+[abook]: http://abook.sourceforge.net/
+[gbook]: http://code.google.com/p/goobook/
+[nottoomuch]: http://www.iki.fi/too/nottoomuch/nottoomuch-addresses/
+[alookup]: http://notmuchmail.org/emacstips/#index11h2

@@ -1,7 +1,6 @@
 from alot.commands import Command, registerCommand
-from twisted.internet import defer
+from alot.commands.globals import PromptCommand
 import argparse
-
 
 from alot.db import DatabaseROError
 from alot import commands
@@ -10,10 +9,14 @@ from alot import buffers
 MODE = 'search'
 
 
-@registerCommand(MODE, 'select',
-                 help='open a new thread buffer')
+@registerCommand(MODE, 'select')
 class OpenThreadCommand(Command):
+    """open thread in a new buffer"""
     def __init__(self, thread=None, **kwargs):
+        """
+        :param thread: thread to open (Uses focussed thread if unset)
+        :type thread: :class:`~alot.db.Thread`
+        """
         self.thread = thread
         Command.__init__(self, **kwargs)
 
@@ -30,10 +33,16 @@ class OpenThreadCommand(Command):
 
 
 @registerCommand(MODE, 'toggletag', arguments=[
-    (['tag'], {'nargs':'+', 'default':'', 'help':'tag to flip'})],
-    help='toggles tags in selected thread')
+    (['tag'], {'nargs':'+', 'default':'', 'help':'tag to flip'})])
 class ToggleThreadTagCommand(Command):
+    """toggles given tags in all messages of a thread"""
     def __init__(self, tag, thread=None, **kwargs):
+        """
+        :param tag: list of tagstrings to flip
+        :type tag: list of str
+        :param thread: thread to edit (Uses focussed thread if unset)
+        :type thread: :class:`~alot.db.Thread` or None
+        """
         assert tag
         self.thread = thread
         self.tags = set(tag)
@@ -73,20 +82,20 @@ class ToggleThreadTagCommand(Command):
 
 
 @registerCommand(MODE, 'refine', usage='refine query', arguments=[
-    (['query'], {'nargs':argparse.REMAINDER, 'help':'search string'})],
-    help='refine the query of the currently open searchbuffer')
+    (['query'], {'nargs':argparse.REMAINDER, 'help':'search string'})])
 class RefineCommand(Command):
+    """refine the querystring of this buffer"""
     def __init__(self, query=None, **kwargs):
+        """
+        :param query: new querystring given as list of strings as returned by
+                      argparse
+        :type query: list of str
+        """
         self.querystring = ' '.join(query)
         Command.__init__(self, **kwargs)
 
-    @defer.inlineCallbacks
     def apply(self, ui):
         if self.querystring:
-            if self.querystring == '*':
-                s = 'really search for all threads? This takes a while..'
-                if (yield ui.choice(s, select='yes', cancel='no')) == 'no':
-                    return
             sbuffer = ui.current_buffer
             oldquery = sbuffer.querystring
             if self.querystring not in [None, oldquery]:
@@ -98,18 +107,18 @@ class RefineCommand(Command):
             ui.notify('empty query string')
 
 
-@registerCommand(MODE, 'refineprompt',
-                 help='prompt to change current search buffers query')
+@registerCommand(MODE, 'refineprompt')
 class RefinePromptCommand(Command):
+    """prompt to change this buffers querystring"""
     def apply(self, ui):
         sbuffer = ui.current_buffer
         oldquery = sbuffer.querystring
-        ui.commandprompt('refine ' + oldquery)
+        ui.apply_command(PromptCommand('refine ' + oldquery))
 
 
-@registerCommand(MODE, 'retagprompt',
-                 help='prompt to retag selected threads\' tags')
+@registerCommand(MODE, 'retagprompt')
 class RetagPromptCommand(Command):
+    """prompt to retag selected threads\' tags"""
     def apply(self, ui):
         thread = ui.current_buffer.get_selected_thread()
         if not thread:
@@ -121,14 +130,20 @@ class RetagPromptCommand(Command):
             else:
                 tags.append(tag)
         initial_tagstring = ','.join(tags)
-        ui.commandprompt('retag ' + initial_tagstring)
+        ui.apply_command(PromptCommand('retag ' + initial_tagstring))
 
 
 @registerCommand(MODE, 'retag', arguments=[
-    (['tags'], {'help':'comma separated list of tags'})],
-                 help='overwrite selected thread\'s tags')
+    (['tags'], {'help':'comma separated list of tags'})])
 class RetagCommand(Command):
+    """overwrite a thread\'s tags"""
     def __init__(self, tags=u'', thread=None, **kwargs):
+        """
+        :param tags: comma separated list of tagstrings to set
+        :type tags: str
+        :param thread: thread to edit (Uses focussed thread if unset)
+        :type thread: :class:`~alot.db.Thread` or None
+        """
         self.tagsstring = tags
         self.thread = thread
         Command.__init__(self, **kwargs)

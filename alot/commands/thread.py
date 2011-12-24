@@ -1,13 +1,9 @@
 import os
 import logging
 import tempfile
-from email import Charset
-from email.header import Header
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.iterators import body_line_iterator
-from email.iterators import typed_subpart_iterator
-from twisted.internet import defer
+from twisted.internet.defer import inlineCallbacks
+import mimetypes
+import shlex
 
 from alot.commands import Command, registerCommand
 from alot.commands.globals import ExternalCommand
@@ -17,24 +13,24 @@ from alot import settings
 from alot import widgets
 from alot import completion
 from alot import helper
-from alot.message import encode_header
 from alot.message import decode_header
 from alot.message import extract_headers
 from alot.message import extract_body
+from alot.message import Envelope
 
 MODE = 'thread'
 
 
 @registerCommand(MODE, 'reply', arguments=[
-    (['--all'], {'action':'store_true', 'help':'reply to all'})],
-    help='reply to currently selected message')
+    (['--all'], {'action':'store_true', 'help':'reply to all'})])
 class ReplyCommand(Command):
+    """reply to message"""
     def __init__(self, message=None, all=False, **kwargs):
         """
-        :param message: the original message to reply to
+        :param message: message to reply to (defaults to selected message)
         :type message: `alot.message.Message`
-        :param groupreply: copy other recipients from Bcc/Cc/To to the reply
-        :type groupreply: boolean
+        :param all: group reply; copies recipients from Bcc/Cc/To to the reply
+        :type all: bool
         """
         self.message = message
         self.groupreply = all
@@ -47,7 +43,7 @@ class ReplyCommand(Command):
         # set body text
         name, address = self.message.get_author()
         timestamp = self.message.get_date()
-        qf = settings.hooks.get('reply_prefix')
+        qf = settings.config.get_hook('reply_prefix')
         if qf:
             quotestring = qf(name, address, timestamp,
                              ui=ui, dbm=ui.dbman, aman=ui.accountman,
@@ -58,16 +54,13 @@ class ReplyCommand(Command):
         for line in self.message.accumulate_body().splitlines():
             mailcontent += '>' + line + '\n'
 
-        Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
-        bodypart = MIMEText(mailcontent.encode('utf-8'), 'plain', 'UTF-8')
-        reply = MIMEMultipart()
-        reply.attach(bodypart)
+        envelope = Envelope(bodytext=mailcontent)
 
         # copy subject
         subject = decode_header(mail.get('Subject', ''))
         if not subject.startswith('Re:'):
             subject = 'Re: ' + subject
-        reply['Subject'] = Header(subject.encode('utf-8'), 'UTF-8').encode()
+        envelope.add('Subject', subject)
 
         # set From
         my_addresses = ui.accountman.get_addresses()
@@ -83,32 +76,30 @@ class ReplyCommand(Command):
         if matched_address:
             account = ui.accountman.get_account_by_address(matched_address)
             fromstring = '%s <%s>' % (account.realname, account.address)
-            reply['From'] = encode_header('From', fromstring)
+            envelope.add('From', fromstring)
 
         # set To
-        del(reply['To'])
         if self.groupreply:
             cleared = self.clear_my_address(my_addresses, mail.get('To', ''))
             if cleared:
                 logging.info(mail['From'] + ', ' + cleared)
                 to = mail['From'] + ', ' + cleared
-                reply['To'] = encode_header('To', to)
-                logging.info(reply['To'])
+                envelope.add('To', decode_header(to))
+
             else:
-                reply['To'] = encode_header('To', mail['From'])
+                envelope.add('To', decode_header(mail['From']))
             # copy cc and bcc for group-replies
             if 'Cc' in mail:
                 cc = self.clear_my_address(my_addresses, mail['Cc'])
-                reply['Cc'] = encode_header('Cc', cc)
+                envelope.add('Cc', decode_header(cc))
             if 'Bcc' in mail:
                 bcc = self.clear_my_address(my_addresses, mail['Bcc'])
-                reply['Bcc'] = encode_header('Bcc', bcc)
+                envelope.add('Bcc', decode_header(bcc))
         else:
-            reply['To'] = encode_header('To', mail['From'])
+            envelope.add('To', decode_header(mail['From']))
 
         # set In-Reply-To header
-        del(reply['In-Reply-To'])
-        reply['In-Reply-To'] = '<%s>' % self.message.get_message_id()
+        envelope.add('In-Reply-To', '<%s>' % self.message.get_message_id())
 
         # set References header
         old_references = mail.get('References', '')
@@ -118,11 +109,11 @@ class ReplyCommand(Command):
             if len(old_references) > 8:
                 references = old_references[:1] + references
             references.append('<%s>' % self.message.get_message_id())
-            reply['References'] = ' '.join(references)
+            envelope.add('References', ' '.join(references))
         else:
-            reply['References'] = '<%s>' % self.message.get_message_id()
+            envelope.add('References', '<%s>' % self.message.get_message_id())
 
-        ui.apply_command(ComposeCommand(mail=reply))
+        ui.apply_command(ComposeCommand(envelope=envelope))
 
     def clear_my_address(self, my_addresses, value):
         new_value = []
@@ -133,16 +124,15 @@ class ReplyCommand(Command):
 
 
 @registerCommand(MODE, 'forward', arguments=[
-    (['--attach'], {'action':'store_true', 'help':'attach original mail'})],
-    help='forward currently selected message')
+    (['--attach'], {'action':'store_true', 'help':'attach original mail'})])
 class ForwardCommand(Command):
+    """forward message"""
     def __init__(self, message=None, attach=True, **kwargs):
         """
-        :param message: the original message to forward. If None, the currently
-                        selected one is used
+        :param message: message to forward (defaults to selected message)
         :type message: `alot.message.Message`
         :param attach: attach original mail instead of inline quoting its body
-        :type attach: boolean
+        :type attach: bool
         """
         self.message = message
         self.inline = not attach
@@ -153,13 +143,12 @@ class ForwardCommand(Command):
             self.message = ui.current_buffer.get_selected_message()
         mail = self.message.get_email()
 
-        reply = MIMEMultipart()
-        Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
+        envelope = Envelope()
         if self.inline:  # inline mode
             # set body text
             name, address = self.message.get_author()
             timestamp = self.message.get_date()
-            qf = settings.hooks.get('forward_prefix')
+            qf = settings.config.get_hook('forward_prefix')
             if qf:
                 quote = qf(name, address, timestamp,
                              ui=ui, dbm=ui.dbman, aman=ui.accountman,
@@ -170,22 +159,22 @@ class ForwardCommand(Command):
             for line in self.message.accumulate_body().splitlines():
                 mailcontent += '>' + line + '\n'
 
-            bodypart = MIMEText(mailcontent.encode('utf-8'), 'plain', 'UTF-8')
-            reply.attach(bodypart)
+            envelope.body = mailcontent
 
         else:  # attach original mode
-            # create empty text msg
-            bodypart = MIMEText('', 'plain', 'UTF-8')
-            reply.attach(bodypart)
             # attach original msg
-            reply.attach(mail)
+            mail.set_default_type('message/rfc822')
+            mail['Content-Disposition'] = 'attachment'
+            envelope.attachments.append(mail)
 
         # copy subject
         subject = decode_header(mail.get('Subject', ''))
         subject = 'Fwd: ' + subject
-        reply['Subject'] = Header(subject.encode('utf-8'), 'UTF-8').encode()
+        envelope.add('Subject', subject)
 
         # set From
+        # we look for own addresses in the To,Cc,Ccc headers in that order
+        # and use the first match as new From header if there is one.
         my_addresses = ui.accountman.get_addresses()
         matched_address = ''
         in_to = [a for a in my_addresses if a in mail.get('To', '')]
@@ -199,8 +188,8 @@ class ForwardCommand(Command):
         if matched_address:
             account = ui.accountman.get_account_by_address(matched_address)
             fromstring = '%s <%s>' % (account.realname, account.address)
-            reply['From'] = encode_header('From', fromstring)
-        ui.apply_command(ComposeCommand(mail=reply))
+            envelope.add('From', fromstring)
+        ui.apply_command(ComposeCommand(envelope=envelope))
 
 
 @registerCommand(MODE, 'fold', forced={'visible': False}, arguments=[
@@ -210,7 +199,14 @@ class ForwardCommand(Command):
     (['--all'], {'action': 'store_true', 'help':'unfold all messages'})],
     help='unfold message(s)')
 class FoldMessagesCommand(Command):
+    """fold or unfold messages"""
     def __init__(self, all=False, visible=None, **kwargs):
+        """
+        :param all: toggle all, not only selected message
+        :type all: bool
+        :param visible: unfold if `True`, fold if `False`
+        :type visible: bool
+        """
         self.all = all
         self.visible = visible
         Command.__init__(self, **kwargs)
@@ -235,39 +231,64 @@ class FoldMessagesCommand(Command):
                 widget.fold(visible=False)
 
 
-@registerCommand(MODE, 'toggleheaders',
-                help='toggle display of all headers')
+@registerCommand(MODE, 'toggleheaders')
 class ToggleHeaderCommand(Command):
+    """toggle display of all headers"""
     def apply(self, ui):
-        msgw = ui.current_buffer.get_selection()
-        msgw.toggle_full_header()
+        try:
+            msgw = ui.current_buffer.get_selection()
+            msgw.toggle_full_header()
+        except Exception, e:
+            ui.logger.exception(e)
 
 
 @registerCommand(MODE, 'pipeto', arguments=[
-    (['cmd'], {'help':'shellcommand to pipe to'}),
+    (['cmd'], {'nargs':'?', 'help':'shellcommand to pipe to'}),
     (['--all'], {'action': 'store_true', 'help':'pass all messages'}),
     (['--decode'], {'action': 'store_true',
                     'help':'use only decoded body lines'}),
+    (['--ids'], {'action': 'store_true',
+                    'help':'only pass message ids'}),
     (['--separately'], {'action': 'store_true',
                         'help':'call command once for each message'})],
-    help='pipe message(s) to stdin of a shellcommand')
+)
 class PipeCommand(Command):
-    def __init__(self, cmd, all=False, separately=False, decode=True,
-                 noop_msg='no command specified', confirm_msg='',
+    """pipe message(s) to stdin of a shellcommand"""
+    #TODO: use raw arg from print command here
+    def __init__(self, cmd, all=False, ids=False, separately=False,
+                 decode=True, noop_msg='no command specified', confirm_msg='',
                  done_msg='done', **kwargs):
+        """
+        :param cmd: shellcommand to open
+        :type cmd: list of str
+        :param all: pipe all, not only selected message
+        :type all: bool
+        :param ids: only write message ids, not the message source
+        :type ids: bool
+        :param separately: call command once per message
+        :type separately: bool
+        :param noop_msg: error notification to show if `cmd` is empty
+        :type noop_msg: str
+        :param confirm_msg: confirmation question to ask (continues directly if
+                            unset)
+        :type confirm_msg: str
+        :param done_msg: notification message to show upon success
+        :type done_msg: str
+        """
         Command.__init__(self, **kwargs)
-        self.cmd = cmd
+        self.cmdlist = cmd
         self.whole_thread = all
         self.separately = separately
+        self.ids = ids
         self.decode = decode
         self.noop_msg = noop_msg
         self.confirm_msg = confirm_msg
         self.done_msg = done_msg
 
-    @defer.inlineCallbacks
+    @inlineCallbacks
     def apply(self, ui):
         # abort if command unset
-        if not self.cmd:
+        if not self.cmdlist:
             ui.notify(self.noop_msg, priority='error')
             return
 
@@ -287,22 +308,26 @@ class PipeCommand(Command):
                 return
 
         # prepare message sources
-        mails = [m.get_email() for m in to_print]
         mailstrings = []
-        if self.decode:
-            for mail in mails:
-                headertext = extract_headers(mail)
-                bodytext = extract_body(mail)
-                msg = '%s\n\n%s' % (headertext, bodytext)
-                mailstrings.append(msg.encode('utf-8'))
+        if self.ids:
+            mailstrings = [e.get_message_id() for e in to_print]
         else:
-            mailstrings = [e.as_string() for e in mails]
+            mails = [m.get_email() for m in to_print]
+            if self.decode:
+                for mail in mails:
+                    headertext = extract_headers(mail)
+                    bodytext = extract_body(mail)
+                    msg = '%s\n\n%s' % (headertext, bodytext)
+                    mailstrings.append(msg.encode('utf-8'))
+            else:
+                mailstrings = [e.as_string() for e in mails]
         if not self.separately:
             mailstrings = ['\n\n'.join(mailstrings)]
 
         # do teh monkey
         for mail in mailstrings:
-            out, err = helper.pipe_to_command(self.cmd, mail)
+            ui.logger.debug("%s" % mail)
+            out, err, retval = helper.call_cmd(self.cmdlist, stdin=mail)
             if err:
                 ui.notify(err, priority='error')
                 return
@@ -317,11 +342,21 @@ class PipeCommand(Command):
     (['--raw'], {'action': 'store_true', 'help':'pass raw mail string'}),
     (['--separately'], {'action': 'store_true',
                         'help':'call print command once for each message'})],
-    help='print message(s)')
+)
 class PrintCommand(PipeCommand):
+    """print message(s)"""
     def __init__(self, all=False, separately=False, raw=False, **kwargs):
+        """
+        :param all: print all, not only selected messages
+        :type all: bool
+        :param separately: call print command once per message
+        :type separately: bool
+        :param separately: pipe raw message string to print command
+        :type separately: bool
+        """
         # get print command
         cmd = settings.config.get('general', 'print_cmd', fallback='')
+        cmdlist = shlex.split(cmd.encode('utf-8', errors='ignore'))
 
         # set up notification strings
         if all:
@@ -334,7 +369,7 @@ class PrintCommand(PipeCommand):
         # no print cmd set
         noop_msg = 'no print command specified. Set "print_cmd" in the '\
                     'global section.'
-        PipeCommand.__init__(self, cmd, all=all,
+        PipeCommand.__init__(self, cmdlist, all=all,
                              separately=separately,
                              decode=not raw,
                              noop_msg=noop_msg, confirm_msg=confirm_msg,
@@ -343,15 +378,22 @@ class PrintCommand(PipeCommand):
 
 @registerCommand(MODE, 'save', arguments=[
     (['--all'], {'action': 'store_true', 'help':'save all attachments'}),
-    (['path'], {'nargs':'?', 'help':'path to save to'})],
-    help='save attachment(s)')
+    (['path'], {'nargs':'?', 'help':'path to save to'})])
 class SaveAttachmentCommand(Command):
+    """save attachment(s)"""
     def __init__(self, all=False, path=None, **kwargs):
+        """
+        :param all: save all, not only selected attachment
+        :type all: bool
+        :param path: path to write to. if `all` is set, this must be a
+                     directory.
+        :type path: str
+        """
         Command.__init__(self, **kwargs)
         self.all = all
         self.path = path
 
-    @defer.inlineCallbacks
+    @inlineCallbacks
     def apply(self, ui):
         pcomplete = completion.PathCompleter()
         if self.all:
@@ -398,28 +440,46 @@ class SaveAttachmentCommand(Command):
 class OpenAttachmentCommand(Command):
     """displays an attachment according to mailcap"""
     def __init__(self, attachment, **kwargs):
+        """
+        :param attachment: attachment to open
+        :type attachment: :class:`~alot.message.Attachment`
+        """
         Command.__init__(self, **kwargs)
         self.attachment = attachment
 
     def apply(self, ui):
         logging.info('open attachment')
         mimetype = self.attachment.get_content_type()
+        filename = self.attachment.get_filename()
+        if mimetype == 'application/octet-stream' and filename:
+            mt, enc = mimetypes.guess_type(filename)
+            if mt:
+                mimetype = mt
+
         handler = settings.get_mime_handler(mimetype)
         if handler:
             path = self.attachment.save(tempfile.gettempdir())
             handler = handler.replace('%s', '{}')
 
+            # 'needsterminal' makes handler overtake the terminal
+            nt = settings.get_mime_handler(mimetype, key='needsterminal')
+            overtakes = (nt is None)
+
             def afterwards():
                 os.remove(path)
+
             ui.apply_command(ExternalCommand(handler, path=path,
                                              on_success=afterwards,
-                                             thread=True))
+                                             thread=overtakes))
         else:
             ui.notify('unknown mime type')
 
 
 @registerCommand(MODE, 'select')
 class ThreadSelectCommand(Command):
+    """select focussed element. The fired action depends on the focus:
+        - if message summary, this toggles visibility of the message,
+        - if attachment line, this opens the attachment"""
     def apply(self, ui):
         focus = ui.get_deep_focus()
         if isinstance(focus, widgets.MessageSummaryWidget):

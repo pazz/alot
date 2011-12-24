@@ -1,49 +1,52 @@
-"""
-This file is part of alot.
-
-Alot is free software: you can redistribute it and/or modify it
-under the terms of the GNU General Public License as published by the
-Free Software Foundation, either version 3 of the License, or (at your
-option) any later version.
-
-Notmuch is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
-
-Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
-"""
 import imp
 import os
 import ast
 import mailcap
 import codecs
+import logging
 
 from ConfigParser import SafeConfigParser
 
 
 class FallbackConfigParser(SafeConfigParser):
+    """:class:`~ConfigParser.SafeConfigParser` that allows fallback values"""
     def __init__(self):
         SafeConfigParser.__init__(self)
         self.optionxform = lambda x: x
 
     def get(self, section, option, fallback=None, *args, **kwargs):
+        """get a config option
+
+        :param section: section name
+        :type section: str
+        :param option: option key
+        :type option: str
+        :param fallback: the value to fall back if option undefined
+        :type fallback: str
+        """
+
         if SafeConfigParser.has_option(self, section, option):
             return SafeConfigParser.get(self, section, option, *args, **kwargs)
         return fallback
 
     def getstringlist(self, section, option, **kwargs):
+        """directly parses a config value into a list of strings"""
         value = self.get(section, option, **kwargs)
         return [s.strip() for s in value.split(',') if s.strip()]
 
 
 class AlotConfigParser(FallbackConfigParser):
+    """:class:`FallbackConfigParser` for alots config."""
     def __init__(self):
         FallbackConfigParser.__init__(self)
         self.hooks = None
+
+    def get_hook(self, key):
+        """return hook (`callable`) identified by `key`"""
+        if self.hooks:
+            if key in self.hooks.__dict__:
+                return self.hooks.__dict__[key]
+        return None
 
     def read(self, file):
         if not os.path.isfile(file):
@@ -54,9 +57,9 @@ class AlotConfigParser(FallbackConfigParser):
             hf = os.path.expanduser(self.get('general', 'hooksfile'))
             if hf is not None:
                 try:
-                    config.hooks = imp.load_source('hooks', hf)
+                    self.hooks = imp.load_source('hooks', hf)
                 except:
-                    pass
+                    logging.debug('unable to load hooks file:%s' % hf)
 
         # fix quoted keys / values
         for section in self.sections():
@@ -77,6 +80,12 @@ class AlotConfigParser(FallbackConfigParser):
                     self.set(section, key, value)
 
     def get_palette(self):
+        """parse the sections '1c-theme', '16c-theme' and '256c-theme'
+        into an urwid compatible coulour palette.
+
+        :returns: a palette
+        :rtype: list
+        """
         mode = self.getint('general', 'colourmode')
         ms = "%dc-theme" % mode
         names = self.options(ms)
@@ -91,14 +100,23 @@ class AlotConfigParser(FallbackConfigParser):
             hb = self.get('256c-theme', attr + '_bg', fallback='default')
             p.append((attr, nf, nb, m, hf, hb))
             if attr.startswith('tag_') and attr + '_focus' not in names:
-                nb = self.get('16c-theme', 'threadline_focus_bg',
+                nb = self.get('16c-theme', 'tag_focus_bg',
                               fallback='default')
-                hb = self.get('256c-theme', 'threadline_focus_bg',
+                hb = self.get('256c-theme', 'tag_focus_bg',
                               fallback='default')
                 p.append((attr + '_focus', nf, nb, m, hf, hb))
         return p
 
     def get_tagattr(self, tag, focus=False):
+        """
+        look up attribute string to use for a given tagstring
+
+        :param tag: tagstring to look up
+        :type tag: str
+        :param focus: return the 'focussed' attribute
+        :type focus: bool
+        """
+
         mode = self.getint('general', 'colourmode')
         base = 'tag_%s' % tag
         if mode == 2:
@@ -125,28 +143,19 @@ class AlotConfigParser(FallbackConfigParser):
         return 'tag'
 
     def get_mapping(self, mode, key):
+        """look up keybiding from `MODE-maps` sections
+
+        :param mode: mode identifier
+        :type mode: str
+        :param key: urwid-style key identifier
+        :type key: str
+        :returns: a command line to be applied upon keypress
+        :rtype: str
+        """
         cmdline = self.get(mode + '-maps', key)
         if not cmdline:
             cmdline = self.get('global-maps', key)
         return cmdline
-
-
-class HookManager(object):
-    def setup(self, hooksfile):
-        hf = os.path.expanduser(hooksfile)
-        if os.path.isfile(hf):
-            try:
-                self.module = imp.load_source('hooks', hf)
-            except:
-                self.module = None
-        else:
-            self.module = {}
-
-    def get(self, key):
-        if self.module:
-            if key in self.module.__dict__:
-                return self.module.__dict__[key]
-        return None
 
 
 config = AlotConfigParser()
@@ -155,11 +164,24 @@ notmuchconfig = FallbackConfigParser()
 notmuchconfig.read(os.path.join(os.path.dirname(__file__),
                    'defaults',
                    'notmuch.rc'))
-hooks = HookManager()
 mailcaps = mailcap.getcaps()
 
 
 def get_mime_handler(mime_type, key='view', interactive=True):
+    """
+    get shellcomand defined in the users `mailcap` as handler for files of
+    given `mime_type`.
+
+    :param mime_type: file type
+    :type mime_type: str
+    :param key: identifies one of possibly many commands for this type by
+                naming the intended usage, e.g. 'edit' or 'view'. Defaults
+                to 'view'.
+    :type key: str
+    :param interactive: choose the "interactive session" handler rather than
+                        the "print to stdout and immediately return" handler
+    :type interactive: bool
+    """
     if interactive:
         mc_tuple = mailcap.findmatch(mailcaps,
                                      mime_type,

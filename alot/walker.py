@@ -1,28 +1,14 @@
-"""
-This file is part of alot.
-
-Alot is free software: you can redistribute it and/or modify it
-under the terms of the GNU General Public License as published by the
-Free Software Foundation, either version 3 of the License, or (at your
-option) any later version.
-
-Notmuch is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with notmuch.  If not, see <http://www.gnu.org/licenses/>.
-
-Copyright (C) 2011 Patrick Totzke <patricktotzke@gmail.com>
-"""
 import urwid
+import logging
 
 
-class IteratorWalker(urwid.ListWalker):
-    def __init__(self, it, containerclass, **kwargs):
+class PipeWalker(urwid.ListWalker):
+    """urwid.ListWalker that reads next items from a pipe and
+    wraps them in `containerclass` widgets for displaying
+    """
+    def __init__(self, pipe, containerclass, **kwargs):
+        self.pipe = pipe
         self.kwargs = kwargs
-        self.it = it
         self.containerclass = containerclass
         self.lines = []
         self.focus = 0
@@ -65,11 +51,16 @@ class IteratorWalker(urwid.ListWalker):
                     return (None, None)
 
     def _get_next_item(self):
+        if self.empty:
+            return None
         try:
-            next_obj = self.it.next()
+            # the next line blocks until it can read from the pipe or
+            # EOFError is raised. No races here.
+            next_obj = self.pipe.recv()
             next_widget = self.containerclass(next_obj, **self.kwargs)
             self.lines.append(next_widget)
-        except StopIteration:
+        except EOFError:
+            logging.debug('EMPTY PIPE')
             next_widget = None
             self.empty = True
         return next_widget

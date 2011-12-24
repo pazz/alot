@@ -4,39 +4,38 @@ import glob
 import logging
 import email
 import tempfile
-from email import Charset
-from twisted.internet import defer
+from twisted.internet.defer import inlineCallbacks
+import threading
+import datetime
 
+from alot import buffers
+from alot import commands
 from alot.commands import Command, registerCommand
 from alot import settings
 from alot import helper
-from alot.message import decode_header
-from alot.message import encode_header
-from alot.message import extract_headers
-from alot.message import extract_body
-from alot.commands.globals import EditCommand
-from alot.commands.globals import BufferCloseCommand
-from alot.commands.globals import EnvelopeOpenCommand
+from alot.commands import globals
 from alot.helper import string_decode
 
 
 MODE = 'envelope'
 
 
-@registerCommand(MODE, 'attach', help='attach files to the mail', arguments=[
+@registerCommand(MODE, 'attach', arguments=[
     (['path'], {'help':'file(s) to attach (accepts wildcads)'})])
-class EnvelopeAttachCommand(Command):
-    def __init__(self, path=None, mail=None, **kwargs):
+class AttachCommand(Command):
+    """attach files to the mail"""
+    def __init__(self, path=None, **kwargs):
+        """
+        :param path: files to attach (globable string)
+        :type path: str
+        """
         Command.__init__(self, **kwargs)
-        self.mail = mail
         self.path = path
 
     def apply(self, ui):
-        msg = self.mail
-        if not msg:
-            msg = ui.current_buffer.get_email()
+        envelope = ui.current_buffer.envelope
 
-        if self.path:
+        if self.path:  # TODO: not possible, otherwise argparse error before
             files = filter(os.path.isfile,
                            glob.glob(os.path.expanduser(self.path)))
             if not files:
@@ -44,36 +43,47 @@ class EnvelopeAttachCommand(Command):
                 return
         else:
             ui.notify('no files specified, abort')
+            return
 
         logging.info("attaching: %s" % files)
         for path in files:
-            helper.attach(path, msg)
-
-        if not self.mail:  # set the envelope msg iff we got it from there
-            ui.current_buffer.set_email(msg)
+            envelope.attachments.append(helper.mimewrap(path))
+        ui.current_buffer.rebuild()
 
 
-@registerCommand(MODE, 'refine', help='prompt to change the value of a header',
-                 arguments=[
+@registerCommand(MODE, 'refine', arguments=[
     (['key'], {'help':'header to refine'})])
-class EnvelopeRefineCommand(Command):
+class RefineCommand(Command):
+    """prompt to change the value of a header"""
     def __init__(self, key='', **kwargs):
+        """
+        :param key: key of the header to change
+        :type key: str
+        """
         Command.__init__(self, **kwargs)
         self.key = key
 
     def apply(self, ui):
-        mail = ui.current_buffer.get_email()
-        value = decode_header(mail.get(self.key, ''))
-        ui.commandprompt('set %s %s' % (self.key, value))
+        value = ui.current_buffer.envelope.get(self.key, '')
+        cmdstring = 'set %s %s' % (self.key, value)
+        ui.apply_command(globals.PromptCommand(cmdstring))
 
 
-@registerCommand(MODE, 'send', help='sends mail')
-class EnvelopeSendCommand(Command):
-    @defer.inlineCallbacks
+@registerCommand(MODE, 'send')
+class SendCommand(Command):
+    """send mail"""
+    @inlineCallbacks
     def apply(self, ui):
-        envelope = ui.current_buffer  # needed to close later
-        mail = envelope.get_email()
-        frm = decode_header(mail.get('From'))
+        currentbuffer = ui.current_buffer  # needed to close later
+        envelope = currentbuffer.envelope
+        if envelope.sent_time:
+            warning = 'A modified version of ' * envelope.modified_since_sent
+            warning += 'this message has been sent at %s.' % envelope.sent_time
+            warning += ' Do you want to resend?'
+            if (yield ui.choice(warning, cancel='no',
+                                msg_position='left')) == 'no':
+                return
+        frm = envelope.get('From')
         sname, saddr = email.Utils.parseaddr(frm)
         omit_signature = False
 
@@ -95,49 +105,62 @@ class EnvelopeSendCommand(Command):
                     name = account.signature_filename
                 else:
                     name = None
-                helper.attach(sig, mail, filename=name)
+                envelope.attach(sig, filename=name)
             else:
                 ui.notify('could not locate signature: %s' % sig,
                           priority='error')
                 if (yield ui.choice('send without signature',
                                     select='yes', cancel='no')) == 'no':
                     return
-
         # send
         clearme = ui.notify('sending..', timeout=-1)
-        # TODO: next cmd blocks he interface!! must use defer here
-        reason = account.send_mail(mail)
-        ui.clear_notify([clearme])
-        if not reason:  # sucessfully send mail
-            cmd = BufferCloseCommand(buffer=envelope)
-            ui.apply_command(cmd)
-            ui.notify('mail send successful')
-        else:
-            ui.notify('failed to send: %s' % reason, priority='error')
+
+        def afterwards(returnvalue):
+            ui.clear_notify([clearme])
+            if returnvalue == 'success':  # sucessfully send mail
+                envelope.sent_time = datetime.datetime.now()
+                ui.apply_command(commands.globals.BufferCloseCommand())
+                ui.notify('mail send successful')
+            else:
+                ui.notify('failed to send: %s' % returnvalue,
+                          priority='error')
+
+        write_fd = ui.mainloop.watch_pipe(afterwards)
+
+        def thread_code():
+            mail = envelope.construct_mail()
+            os.write(write_fd, account.send_mail(mail) or 'success')
+
+        thread = threading.Thread(target=thread_code)
+        thread.start()
 
 
-@registerCommand(MODE, 'edit', help='edit currently open mail')
-class EnvelopeEditCommand(Command):
-    def __init__(self, mail=None, **kwargs):
-        self.mail = mail
-        self.openNew = (mail != None)
+@registerCommand(MODE, 'edit')
+class EditCommand(Command):
+    """edit mail"""
+    def __init__(self, envelope=None, **kwargs):
+        """
+        :param envelope: email to edit
+        :type envelope: :class:`~alot.message.Envelope`
+        """
+        self.envelope = envelope
+        self.openNew = (envelope != None)
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
-        if not self.mail:
-            self.mail = ui.current_buffer.get_email()
+        ebuffer = ui.current_buffer
+        if not self.envelope:
+            self.envelope = ui.current_buffer.envelope
 
         #determine editable headers
         edit_headers = set(settings.config.getstringlist('general',
                                                     'edit_headers_whitelist'))
         if '*' in edit_headers:
-            edit_headers = set(self.mail.keys())
+            edit_headers = set(self.envelope.headers.keys())
         blacklist = set(settings.config.getstringlist('general',
                                                   'edit_headers_blacklist'))
         if '*' in blacklist:
-            blacklist = set(self.mail.keys())
-        ui.logger.debug('BLACKLIST: %s' % blacklist)
+            blacklist = set(self.envelope.headers.keys())
         self.edit_headers = edit_headers - blacklist
         ui.logger.info('editable headers: %s' % blacklist)
 
@@ -149,59 +172,42 @@ class EnvelopeEditCommand(Command):
 
             # get input
             f = open(tf.name)
+            os.unlink(tf.name)
             enc = settings.config.get('general', 'editor_writes_encoding')
-            editor_input = string_decode(f.read(), enc)
-            if self.edit_headers:
-                headertext, bodytext = editor_input.split('\n\n', 1)
-            else:
-                headertext = ''
-                bodytext = editor_input
+            template = string_decode(f.read(), enc)
+            f.close()
 
             # call post-edit translate hook
-            translate = settings.hooks.get('post_edit_translate')
+            translate = settings.config.get_hook('post_edit_translate')
             if translate:
-                bodytext = translate(bodytext, ui=ui, dbm=ui.dbman,
+                template = translate(template, ui=ui, dbm=ui.dbman,
                                      aman=ui.accountman, log=ui.logger,
                                      config=settings.config)
-
-            # go through multiline, utf-8 encoded headers
-            # we decode the edited text ourselves here as
-            # email.message_from_file can't deal with raw utf8 header values
-            key = value = None
-            for line in headertext.splitlines():
-                if re.match('[a-zA-Z0-9_-]+:', line):  # new k/v pair
-                    if key and value:  # save old one from stack
-                        del self.mail[key]  # ensure unique values in mails
-                        self.mail[key] = encode_header(key, value)  # save
-                    key, value = line.strip().split(':', 1)  # parse new pair
-                elif key and value:  # append new line without key prefix
-                    value += line
-            if key and value:  # save last one if present
-                del self.mail[key]
-                self.mail[key] = encode_header(key, value)
-
-            if self.mail.is_multipart():
-                for part in self.mail.walk():
-                    if part.get_content_maintype() == 'text':
-                        if 'Content-Transfer-Encoding' in part:
-                            del(part['Content-Transfer-Encoding'])
-                        part.set_payload(bodytext, 'utf-8')
-                        break
-
-            f.close()
-            os.unlink(tf.name)
+            self.envelope.parse_template(template)
             if self.openNew:
-                ui.apply_command(EnvelopeOpenCommand(mail=self.mail))
+                ui.buffer_open(buffers.EnvelopeBuffer(ui, self.envelope))
             else:
-                ui.current_buffer.set_email(self.mail)
+                ebuffer.envelope = self.envelope
+                ebuffer.rebuild()
 
         # decode header
-        headertext = extract_headers(self.mail, self.edit_headers)
+        headertext = u''
+        for key in edit_headers:
+            vlist = self.envelope.get_all(key)
 
-        bodytext = extract_body(self.mail)
+            # remove to be edited lines from envelope
+            del self.envelope[key]
+
+            for value in vlist:
+                # newlines (with surrounding spaces) by spaces in values
+                value = value.strip()
+                value = re.sub('[ \t\r\f\v]*\n[ \t\r\f\v]*', ' ', value)
+                headertext += '%s: %s\n' % (key, value)
+
+        bodytext = self.envelope.body
 
         # call pre-edit translate hook
-        translate = settings.hooks.get('pre_edit_translate')
+        translate = settings.config.get_hook('pre_edit_translate')
         if translate:
             bodytext = translate(bodytext, ui=ui, dbm=ui.dbman,
                                  aman=ui.accountman, log=ui.logger,
@@ -211,51 +217,59 @@ class EnvelopeEditCommand(Command):
         tf = tempfile.NamedTemporaryFile(delete=False)
         content = bodytext
         if headertext:
-            content = '%s\n\n%s' % (headertext, content)
+            content = '%s%s' % (headertext, content)
         tf.write(content.encode('utf-8'))
         tf.flush()
         tf.close()
-        cmd = EditCommand(tf.name, on_success=openEnvelopeFromTmpfile,
+        cmd = globals.EditCommand(tf.name, on_success=openEnvelopeFromTmpfile,
                           refocus=False)
         ui.apply_command(cmd)
 
 
-@registerCommand(MODE, 'set', help='set header value', arguments=[
-    (['--append'], {'action': 'store_true', 'help':'keep previous value'}),
+@registerCommand(MODE, 'set', arguments=[
+    (['--append'], {'action': 'store_true', 'help':'keep previous values'}),
     (['key'], {'help':'header to refine'}),
     (['value'], {'nargs':'+', 'help':'value'})])
-class EnvelopeSetCommand(Command):
+class SetCommand(Command):
+    """set header value"""
     def __init__(self, key, value, append=False, **kwargs):
+        """
+        :param key: key of the header to change
+        :type key: str
+        :param value: new value
+        :type value: str
+        """
         self.key = key
-        self.value = encode_header(key, ' '.join(value))
-        self.append = append
+        self.value = ' '.join(value)
+        self.reset = not append
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        envelope = ui.current_buffer
-        mail = envelope.get_email()
-        if not self.append:
-            del(mail[self.key])
-        mail[self.key] = self.value
-        envelope.set_email(mail)
-        envelope.rebuild()
+        if self.reset:
+            del(ui.current_buffer.envelope[self.key])
+        ui.current_buffer.envelope.add(self.key, self.value)
+        ui.current_buffer.rebuild()
 
 
-@registerCommand(MODE, 'unset', help='remove header field', arguments=[
+@registerCommand(MODE, 'unset', arguments=[
     (['key'], {'help':'header to refine'})])
-class EnvelopeSetCommand(Command):
+class UnsetCommand(Command):
+    """remove header field"""
     def __init__(self, key, **kwargs):
+        """
+        :param key: key of the header to remove
+        :type key: str
+        """
         self.key = key
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        mail = ui.current_buffer.get_email()
-        del(mail[self.key])
-        ui.current_buffer.set_email(mail)
+        del(ui.current_buffer.envelope[self.key])
+        ui.current_buffer.rebuild()
 
 
-@registerCommand(MODE, 'toggleheaders',
-                help='toggle display of all headers')
+@registerCommand(MODE, 'toggleheaders')
 class ToggleHeaderCommand(Command):
+    """toggle display of all headers"""
     def apply(self, ui):
-        ui.current_buffer.header_wgt.toggle_all()
+        ui.current_buffer.toggle_all_headers()
