@@ -334,7 +334,7 @@ class MessageWidget(urwid.WidgetWrap):
     Respected settings:
         * `general.displayed_headers`
     """
-    #TODO: atm this is heavily bend to work nicely with ThreadBuffer to display
+    #TODO: atm this is heavily bent to work nicely with ThreadBuffer to display
     #a tree structure. A better way would be to keep this widget simple
     #(subclass urwid.Pile) and use urwids new Tree widgets
     def __init__(self, message, even=False, folded=True, depth=0, bars_at=[]):
@@ -343,13 +343,13 @@ class MessageWidget(urwid.WidgetWrap):
         :type message: alot.db.Message
         :param even: use messagesummary_even theme for summary
         :type even: bool
-        :param unfolded: unfold message initially
-        :type unfolded: bool
+        :param folded: fold message initially
+        :type folded: bool
         :param depth: number of characters to shift content to the right
         :type depth: int
-        :param bars_at: list of positions smaller than depth where horizontal
-                        ars are used instead of spaces.
-        :type bars_at: list(int)
+        :param bars_at: defines for each column of the indentation whether to
+                        use a vertical bar instead of a space. 
+        :type bars_at: list(bool)
         """
         self.message = message
         self.mail = self.message.get_email()
@@ -378,7 +378,7 @@ class MessageWidget(urwid.WidgetWrap):
         return self.pile.get_focus()
 
     def rebuild(self):
-        if not self.folded:  # only if not already unfolded
+        if not self.folded:  # only if already unfolded
             hw = self._get_header_widget()
             aw = self._get_attachment_widget()
             bw = self._get_body_widget()
