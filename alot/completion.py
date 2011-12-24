@@ -45,48 +45,9 @@ class StringlistCompleter(Completer):
         """
         self.resultlist = resultlist
 
-    def relevant_part(self, original, pos, sep=' '):
-        """
-        calculates the subword in a `sep`-splitted list of substrings of
-        `original` that `pos` is in
-        """
-        start = original.rfind(sep, 0, pos) + 1
-        end = original.find(sep, pos - 1)
-        if end == -1:
-            end = len(original)
-        return original[start:end], start, end, pos - start
-
-    def complete(self, original, pos, listseparator=None):
-        """returns a list of completions and cursor positions for the
-        string original from position pos on.
-
-        :param original: the string to complete
-        :type original: str
-        :param pos: starting position to complete from
-        :type pos: int
-        :param listseparator: separator used to complete lists of resultstring.
-                              If defined this will be appended to the completed
-                              string.
-        :type listseparator: str
-        :returns: pairs of completed string and cursor position in the
-                  new string
-        :rtype: list of (str, int)
-        """
-        if not listseparator:
-            pref = original[:pos]
-            return [(a, len(a)) for a in self.resultlist if a.startswith(pref)]
-        else:
-            mypart, start, end, mypos = self.relevant_part(original, pos,
-                                                           sep=listseparator)
-            prefix = mypart[:mypos]
-            res = []
-            for s in self.resultlist:
-                if s.startswith(prefix):
-                    newprefix = original[:start] + s
-                    if not original[end:].startswith(listseparator):
-                        newprefix += listseparator
-                    res.append((newprefix + original[end:], len(newprefix)))
-            return res
+    def complete(self, original, pos):
+        pref = original[:pos]
+        return [(a, len(a)) for a in self.resultlist if a.startswith(pref)]
 
 
 class MultipleSelectionCompleter(Completer):
