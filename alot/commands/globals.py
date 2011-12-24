@@ -564,6 +564,10 @@ class ComposeCommand(Command):
                 return
             self.envelope.add('Subject', subject)
 
+        # get missing Message-ID header
+        if 'Message-ID' not in self.envelope.headers:
+            self.envelope.add('Message-ID', email.Utils.make_msgid())
+
         if self.attach:
             for a in self.attach:
                 self.envelope.attach(a)
