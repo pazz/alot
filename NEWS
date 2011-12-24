@@ -6,6 +6,8 @@
 * command line subcommands: compose and search
 * properly display multiple headers with the same key
 * envelope.set option "--append"
+* completion for multiple recipients via AbooksCompleter
+* generate and set a Message-ID header
 * more detailed CUSTOMIZE docs
 * multiple fixes for the envelope buffer
 * exit on closing of last buffer is now optional
