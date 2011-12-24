@@ -2,7 +2,6 @@ import os
 import logging
 import tempfile
 from twisted.internet.defer import inlineCallbacks
-import mimetypes
 import shlex
 
 from alot.commands import Command, registerCommand
@@ -451,10 +450,6 @@ class OpenAttachmentCommand(Command):
         logging.info('open attachment')
         mimetype = self.attachment.get_content_type()
         filename = self.attachment.get_filename()
-        if mimetype == 'application/octet-stream' and filename:
-            mt, enc = mimetypes.guess_type(filename)
-            if mt:
-                mimetype = mt
 
         handler = settings.get_mime_handler(mimetype)
         if handler:

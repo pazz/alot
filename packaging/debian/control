@@ -16,6 +16,7 @@ Depends:
  python-urwid,
  python-twisted-core,
  python-notmuch
+ python-magic
 Recommends:
  notmuch
 Description: A terminal-based interface to the notmuch mail agent
