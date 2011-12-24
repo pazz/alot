@@ -179,7 +179,7 @@ class QueryCompleter(Completer):
             return resultlist
 
 
-class TagsCompleter(StringlistCompleter):
+class TagsCompleter(MultipleSelectionCompleter):
     """completion for a comma separated list of tagstrings"""
 
     def __init__(self, dbman):
@@ -188,7 +188,8 @@ class TagsCompleter(StringlistCompleter):
         :type dbman: :class:`~alot.db.DBManager`
         """
         resultlist = dbman.get_all_tags()
-        StringlistCompleter.__init__(self, resultlist)
+        self._completer = StringlistCompleter(resultlist)
+        self._separator = ','
 
 
 class ContactsCompleter(MultipleSelectionCompleter):
@@ -320,8 +321,7 @@ class CommandLineCompleter(Completer):
             elif self.mode == 'search' and cmd == 'refine':
                 res = self._querycompleter.complete(params, localpos)
             elif self.mode == 'search' and cmd == 'retag':
-                res = self._tagscompleter.complete(params, localpos,
-                                                   listseparator=',')
+                res = self._tagscompleter.complete(params, localpos)
             elif self.mode == 'search' and cmd == 'toggletag':
                 res = self._tagscompleter.complete(params, localpos)
             # envelope
