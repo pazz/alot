@@ -139,7 +139,7 @@ class Account(object):
         :attr:`draft_box` is set.
         """
         if self.draft_box is not None:
-            self.store_mail(self.sent_box, mail, self.draft_tags)
+            self.store_mail(self.draft_box, mail, self.draft_tags)
 
     def send_mail(self, mail):
         """
