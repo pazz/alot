@@ -258,41 +258,35 @@ def guess_mimetype(blob):
     return m.buffer(blob)
 
 
-def guess_mimetype_of_path(path):
+def guess_encoding(blob):
     """
-    uses file magic to determine the mime-type of a file at given path.
+    uses file magic to determine the encoding of the given data blob.
 
-    :param path: path to file
-    :type path: str
-    :returns: mime-type
+    :param blob: file content as read by file.read()
+    :type blob: data
+    :returns: encoding
+    :rtype: str
     """
-    f = open(path)
-    blob = f.read()
-    f.close()
-    return guess_mimetype(blob)
+    m = magic.open(magic.MAGIC_MIME_ENCODING)
+    m.load()
+    return m.buffer(blob)
 
 
 def mimewrap(path, filename=None, ctype=None):
-    ctype = ctype or guess_mimetype_of_path(path)
+    content = open(path, 'rb').read()
+    ctype = ctype or guess_mimetype(content)
     maintype, subtype = ctype.split('/', 1)
     if maintype == 'text':
-        fp = open(path)
-        # Note: we should handle calculating the charset
-        part = MIMEText(fp.read(), _subtype=subtype)
-        fp.close()
+        part = MIMEText(content.decode(guess_encoding(content), 'replace'),
+                        _subtype=subtype,
+                        _charset='utf-8')
     elif maintype == 'image':
-        fp = open(path, 'rb')
-        part = MIMEImage(fp.read(), _subtype=subtype)
-        fp.close()
+        part = MIMEImage(content, _subtype=subtype)
     elif maintype == 'audio':
-        fp = open(path, 'rb')
-        part = MIMEAudio(fp.read(), _subtype=subtype)
-        fp.close()
+        part = MIMEAudio(content, _subtype=subtype)
     else:
-        fp = open(path, 'rb')
         part = MIMEBase(maintype, subtype)
-        part.set_payload(fp.read())
-        fp.close()
+        part.set_payload(content)
         # Encode the payload using Base64
         email.encoders.encode_base64(part)
     # Set the filename parameter
