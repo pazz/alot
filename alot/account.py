@@ -4,6 +4,7 @@ import time
 import re
 import email
 import os
+import glob
 import shlex
 from ConfigParser import SafeConfigParser
 from urlparse import urlparse
@@ -81,7 +82,7 @@ class Account(object):
             elif mburl.scheme == 'mmdf':
                 self.draft_box = mailbox.MMDF(mburl.path)
 
-    def store_mail(self, mbx, mail):
+    def store_mail(self, mbx, mail, tags = None):
         """
         stores given mail in mailbox. If mailbox is maildir, set the S-flag.
 
@@ -89,6 +90,8 @@ class Account(object):
         :type mbx: :class:`mailbox.Mailbox`
         :param mail: the mail to store
         :type mail: :class:`email.message.Message` or str
+        :param tags: if given, add the mail to the notmuch index and tag it
+        :type tags: list of str
         """
         mbx.lock()
         if isinstance(mbx, mailbox.Maildir):
@@ -96,9 +99,18 @@ class Account(object):
             msg.set_flags('S')
         else:
             msg = mailbox.Message(mail)
-        mbx.add(mail)
+        message_id = mbx.add(mail)
         mbx.flush()
         mbx.unlock()
+
+        if isinstance(mbx, mailbox.Maildir) and tags != None:
+            # this is a dirty hack to get the path to the newly added file
+            # I wish the mailbox module were more helpful...
+            path = glob.glob(os.path.join(mbx._path, '*', message_id + '*'))[0]
+
+            message = self.dbman.add_message(path)
+            message.add_tags(tags)
+            self.dbman.flush()
 
     def store_sent_mail(self, mail):
         """
