@@ -36,7 +36,7 @@ terminal_cmd = x-terminal-emulator -e
 # EDITOR settings  #
 ####################
 # editor command
-# if unset, alot will first the EDITOR env variable, then /usr/bin/editor
+# if unset, alot will first try the EDITOR env variable, then /usr/bin/editor
 #editor_cmd = /usr/bin/vim -f -c 'set filetype=mail' +
 
 # file encoding used by your editor
