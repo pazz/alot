@@ -95,16 +95,22 @@ class Account(object):
         :type mail: :class:`email.message.Message` or str
         :param tags: if given, add the mail to the notmuch index and tag it
         :type tags: list of str
+        :returns: True iff mail was successfully stored
+        :rtype: bool
         """
-        mbx.lock()
-        if isinstance(mbx, mailbox.Maildir):
-            msg = mailbox.MaildirMessage(mail)
-            msg.set_flags('S')
+        if not isinstance(mbx, mailbox.Mailbox):
+            return False
         else:
-            msg = mailbox.Message(mail)
-        message_id = mbx.add(mail)
-        mbx.flush()
-        mbx.unlock()
+            mbx.lock()
+            if isinstance(mbx, mailbox.Maildir):
+                msg = mailbox.MaildirMessage(mail)
+                msg.set_flags('S')
+            else:
+                msg = mailbox.Message(mail)
+            mbx.add(msg)
+            mbx.flush()
+            mbx.unlock()
+            return True
 
         if isinstance(mbx, mailbox.Maildir) and tags != None:
             # this is a dirty hack to get the path to the newly added file
