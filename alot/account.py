@@ -39,10 +39,10 @@ class Account(object):
     abook = None
     """addressbook (:class:`AddressBook`) managing this accounts contacts"""
 
-    def __init__(self, address=None, aliases=None, realname=None, gpg_key=None,
-                 signature=None, signature_filename=None, sent_box=None,
-                 draft_box=None, abook=None):
-
+    def __init__(self, dbman, address=None, aliases=None, realname=None,
+                 gpg_key=None, signature=None, signature_filename=None,
+                 sent_box=None, draft_box=None, abook=None):
+        self.dbman = dbman
         self.address = address
         self.abook = abook
         self.aliases = []
@@ -130,12 +130,14 @@ class Account(object):
 class SendmailAccount(Account):
     """:class:`Account` that pipes a message to a `sendmail` shell command for
     sending"""
-    def __init__(self, cmd, **kwargs):
+    def __init__(self, dbman, cmd, **kwargs):
         """
+        :param dbman: the database manager instance
+        :type dbman: :class:`~alot.db.DBManager`
         :param cmd: sendmail command to use for this account
         :type cmd: str
         """
-        Account.__init__(self, **kwargs)
+        super(SendmailAccount, self).__init__(dbman, **kwargs)
         self.cmd = cmd
 
     def send_mail(self, mail):
@@ -170,8 +172,10 @@ class AccountManager(object):
     accounts = []
     ordered_addresses = []
 
-    def __init__(self, config):
+    def __init__(self, dbman, config):
         """
+        :param dbman: the database manager instance
+        :type dbman: :class:`~alot.db.DBManager`
         :param config: the config object to read account information from
         :type config: :class:`~alot.settings.AlotConfigParser`.
         """
@@ -201,7 +205,7 @@ class AccountManager(object):
                 sender_type = args.pop('type', 'sendmail')
                 if sender_type == 'sendmail':
                     cmd = args.pop('sendmail_command', 'sendmail')
-                    newacc = (SendmailAccount(cmd, **args))
+                    newacc = (SendmailAccount(dbman, cmd, **args))
                     self.accountmap[newacc.address] = newacc
                     self.accounts.append(newacc)
                     for alias in newacc.aliases:
