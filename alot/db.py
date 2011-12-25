@@ -300,6 +300,17 @@ class Thread(object):
         """returns id of this thread"""
         return self._id
 
+    def has_tag(self, tag):
+        """
+        Checks whether this thread is tagged with the given tag.
+
+        :param tag: tag to check
+        :type tag: string
+        :returns: True if this thread is tagged with the given tag, False otherwise.
+        :rtype: bool
+        """
+        return (tag in self._tags)
+
     def get_tags(self):
         """
         returns tagsstrings attached to this thread
