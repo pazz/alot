@@ -249,6 +249,23 @@ class DBManager(object):
         db = Database(path=self.path, mode=mode)
         return db.create_query(querystring)
 
+    def add_message(self, path):
+        """
+        Adds a file to the notmuch index.
+
+        :param path: path to the file
+        :type path: str
+        :returns: the message object corresponding the added message
+        :rtype: :class:`alot.message.Message`
+        """
+        db = Database(path=self.path, mode=Database.MODE.READ_WRITE)
+        try:
+            message, status = db.add_message(path,
+                                             sync_maildir_flags=True)
+        except NotmuchError as e:
+            raise DatabaseError(unicode(e))
+
+        return Message(self, message)
 
 class Thread(object):
     """
