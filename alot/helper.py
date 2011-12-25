@@ -277,8 +277,9 @@ def mimewrap(path, filename=None, ctype=None):
     ctype = ctype or guess_mimetype(content)
     maintype, subtype = ctype.split('/', 1)
     if maintype == 'text':
-        # Note: we should handle calculating the charset
-        part = MIMEText(content, _subtype=subtype)
+        part = MIMEText(content.decode(guess_encoding(content), 'replace'),
+                        _subtype=subtype,
+                        _charset='utf-8')
     elif maintype == 'image':
         part = MIMEImage(content, _subtype=subtype)
     elif maintype == 'audio':
