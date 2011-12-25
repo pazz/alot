@@ -18,6 +18,7 @@
 * errbacks and correct calling of post-hooks for deferred commands
 * add packaging info for debian
 * envelope.headers stores lists of values for each key now
+* default binding: 's' to 'toggletag unread' in search buffers
 
 0.20
 
