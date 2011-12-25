@@ -42,7 +42,8 @@ class Account(object):
 
     def __init__(self, dbman, address=None, aliases=None, realname=None,
                  gpg_key=None, signature=None, signature_filename=None,
-                 sent_box=None, draft_box=None, abook=None):
+                 sent_box=None, sent_tags=None, draft_box=None,
+                 draft_tags=None, abook=None):
         self.dbman = dbman
         self.address = address
         self.abook = abook
@@ -67,6 +68,7 @@ class Account(object):
                 self.sent_box = mailbox.Babyl(mburl.path)
             elif mburl.scheme == 'mmdf':
                 self.sent_box = mailbox.MMDF(mburl.path)
+        self.sent_tags = sent_tags
 
         self.draft_box = None
         if draft_box:
@@ -81,6 +83,7 @@ class Account(object):
                 self.draft_box = mailbox.Babyl(mburl.path)
             elif mburl.scheme == 'mmdf':
                 self.draft_box = mailbox.MMDF(mburl.path)
+        self.draft_tags = draft_tags
 
     def store_mail(self, mbx, mail, tags = None):
         """
@@ -118,7 +121,7 @@ class Account(object):
         :attr:`sent_box` is set.
         """
         if self.sent_box is not None:
-            self.store_mail(self.sent_box, mail)
+            self.store_mail(self.sent_box, mail, self.sent_tags)
 
     def store_draft_mail(self, mail):
         """
@@ -126,7 +129,7 @@ class Account(object):
         :attr:`draft_box` is set.
         """
         if self.draft_box is not None:
-            self.store_mail(self.sent_box, mail)
+            self.store_mail(self.sent_box, mail, self.draft_tags)
 
     def send_mail(self, mail):
         """
@@ -178,8 +181,11 @@ class AccountManager(object):
                'abook_command',
                'abook_regexp',
                'sent_box',
-               'draft_box']
+               'sent_tags',
+               'draft_box',
+               'draft_tags']
     manditory = ['realname', 'address']
+    parse_lists = ['sent_tags', 'draft_tags']
     accountmap = {}
     accounts = []
     ordered_addresses = []
@@ -210,7 +216,10 @@ class AccountManager(object):
 
             to_set = self.manditory
             for o in options:
-                args[o] = config.get(s, o)
+                if o not in self.parse_lists:
+                    args[o] = config.get(s, o)
+                else:
+                    args[o] = config.getstringlist(s, o)
                 if o in to_set:
                     to_set.remove(o)  # removes obligation
             if not to_set:  # all manditory fields were present
