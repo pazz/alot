@@ -81,7 +81,7 @@ class AlotConfigParser(FallbackConfigParser):
 
     def get_palette(self):
         """parse the sections '1c-theme', '16c-theme' and '256c-theme'
-        into an urwid compatible coulour palette.
+        into an urwid compatible colour palette.
 
         :returns: a palette
         :rtype: list
