@@ -191,6 +191,45 @@ class ForwardCommand(Command):
         ui.apply_command(ComposeCommand(envelope=envelope))
 
 
+@registerCommand(MODE, 'editnew')
+class EditNewCommand(Command):
+    """edit message in as new"""
+    def __init__(self, message=None, **kwargs):
+        """
+        :param message: message to reply to (defaults to selected message)
+        :type message: `alot.message.Message`
+        """
+        self.message = message
+        Command.__init__(self, **kwargs)
+
+    def apply(self, ui):
+        if not self.message:
+            self.message = ui.current_buffer.get_selected_message()
+        mail = self.message.get_email()
+        # set body text
+        name, address = self.message.get_author()
+        timestamp = self.message.get_date()
+        mailcontent = self.message.accumulate_body()
+        envelope = Envelope(bodytext=mailcontent)
+
+        # copy selected headers
+        to_copy = ['Subject', 'From', 'To', 'Cc', 'Bcc', 'In-Reply-To',
+                   'References']
+        for key in to_copy:
+            value = decode_header(mail.get(key, ''))
+            if value:
+                envelope.add(key, value)
+
+        # store sent_time from Date header if already sent
+        envelope.sent_time = self.message.get_date()
+
+        # copy attachments
+        for b in self.message.get_attachments():
+            envelope.attach(b)
+
+        ui.apply_command(ComposeCommand(envelope=envelope))
+
+
 @registerCommand(MODE, 'fold', forced={'visible': False}, arguments=[
     (['--all'], {'action': 'store_true', 'help':'fold all messages'})],
     help='fold message(s)')
