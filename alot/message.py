@@ -500,21 +500,27 @@ class Envelope(object):
         if self.sent_time:
             self.modified_since_sent = True
 
-    def attach(self, path, filename=None, ctype=None):
+    def attach(self, attachment, filename=None, ctype=None):
         """
         attach a file
 
-        :param path: (globable) path of the file(s) to attach.
-        :type path: str
+        :param attachment: File to attach, given as :class:`Attachment` object
+                           or (globable) path to the file(s).
+        :type attachment: :class:`Attachment` or str
         :param filename: filename to use in content-disposition.
                          Will be ignored if `path` matches multiple files
         :param ctype: force content-type to be used for this attachment
         :type ctype: str
         """
 
-        path = os.path.expanduser(path)
-        part = helper.mimewrap(path, filename, ctype)
-        self.attachments.append(part)
+        if isinstance(attachment, Attachment):
+            self.attachments.append(attachment)
+        elif isinstance(attachment, str):
+            path = os.path.expanduser(attachment)
+            part = helper.mimewrap(path, filename, ctype)
+            self.attachments.append(Attachment(part))
+        else:
+            raise TypeError('attach accepts an Attachment or str')
 
         if self.sent_time:
             self.modified_since_sent = True
@@ -534,7 +540,7 @@ class Envelope(object):
             for v in vlist:
                 msg[k] = encode_header(k, v)
         for a in self.attachments:
-            msg.attach(a)
+            msg.attach(a.get_mime_representation())
         return msg
 
     def parse_template(self, tmp, reset=False):
