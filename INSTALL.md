@@ -1,7 +1,7 @@
 INSTALL
 =======
 
-Alot depends on development versions of notmuch and urwid. Note that due to restrictions
+Alot depends on recent versions of notmuch (>=0.10) and urwid (>=1.0). Note that due to restrictions
 on argparse and subprocess, you need to run *python v>=2.7*, which only recently made it
 into debian testing.
 
@@ -41,6 +41,12 @@ get alot and install it from git:
     cd alot
     python setup.py install --user
     make sure `~/.local/bin` is in your path.
+
+
+other dependencies
+------------------
+ * python-magic (python bindings to the file(1) utility)
+ * a mailcap file (I recommend installing 'mime-support' on debian/ubuntu).
 
 
 All configs are optional, but if you want to send mails you need to specify at least one
