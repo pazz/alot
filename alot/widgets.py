@@ -187,7 +187,8 @@ class ThreadlineWidget(urwid.AttrMap):
         theme = 'search_thread_subject'
         if focus:
             theme += '_focus'
-        if self.thread.has_tag('unread'):
+        if self.thread.has_tag('unread') and \
+           config.getboolean('general', 'highlight_unread_mails'):
             theme += '_unread'
         return theme
 
