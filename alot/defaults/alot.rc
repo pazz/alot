@@ -26,6 +26,9 @@ display_content_in_threadline = False
 # headers that get displayed by default
 displayed_headers = From,To,Cc,Bcc,Subject
 
+# highlight unread mails in search buffer by theming their subjects differently
+highlight_unread_mails = False
+
 # headers that are hidden in envelope buffers by default
 envelope_headers_blacklist = In-Reply-To,References
 
@@ -225,8 +228,12 @@ search_thread_mailcount_focus_bg = #68a
 search_thread_mailcount_focus_fg = g89
 search_thread_subject_bg = default
 search_thread_subject_fg = g58
+search_thread_subject_unread_bg = default 
+search_thread_subject_unread_fg = g58,bold
 search_thread_subject_focus_bg = #68a
 search_thread_subject_focus_fg = g89
+search_thread_subject_focus_unread_bg = #68a
+search_thread_subject_focus_unread_fg = g89,bold
 search_thread_tags_bg = default
 search_thread_tags_fg = #a86
 search_thread_tags_focus_bg = #68a
@@ -316,8 +323,12 @@ search_thread_mailcount_focus_bg = dark gray
 search_thread_mailcount_focus_fg = light gray
 search_thread_subject_bg = default
 search_thread_subject_fg = light gray
+search_thread_subject_unread_bg = default
+search_thread_subject_unread_fg = light gray,bold
 search_thread_subject_focus_bg = dark gray
 search_thread_subject_focus_fg = light gray
+search_thread_subject_focus_unread_bg = dark gray
+search_thread_subject_focus_unread_fg = light gray,bold
 search_thread_tags_bg = default
 search_thread_tags_fg = brown
 search_thread_tags_focus_bg = dark gray
@@ -348,7 +359,9 @@ search_thread_focus = standout
 search_thread_mailcount = default
 search_thread_mailcount_focus = standout
 search_thread_subject = default
+search_thread_subject_unread = bold
 search_thread_subject_focus = standout
+search_thread_subject_focus_unread = standout,bold
 search_thread_tags = bold
 search_thread_tags_focus = standout
 thread_attachment = default
