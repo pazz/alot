@@ -87,6 +87,7 @@ and in message composition. The command will be called with your prefix as only 
 and its output is searched for name-email pairs. The regular expression used here
 defaults to `(?P<email>.+?@.+?)\s+(?P<name>.+)`, which makes it work nicely with `abook --mutt-query`.
 You can tune this using the `abook_regexp` option (beware Commandparsers escaping semantic!).
+Have a look at the FAQ for other examples.
 
 
 Key Bindings
