@@ -481,7 +481,7 @@ class MessageWidget(urwid.WidgetWrap):
         return ('fixed', length, spacer)
 
     def _get_arrowhead_aligner(self):
-        if len(self.message.get_replies()) > 0:
+        if self.message.has_replies():
             aligner = u'\u2502'
         else:
             aligner = ' '
