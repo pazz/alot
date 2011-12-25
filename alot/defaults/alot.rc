@@ -127,6 +127,7 @@ select = openfocussed
 a = toggletag inbox
 & = toggletag killed
 ! = toggletag flagged
+s = toggletag unread
 l = retagprompt
 O = refineprompt
 | = refineprompt
