@@ -310,7 +310,7 @@ class TagListBuffer(Buffer):
             self.isinitialized = True
 
         lines = list()
-        displayedtags = filter(self.filtfun, self.tags)
+        displayedtags = sorted(filter(self.filtfun, self.tags), key=unicode.lower)
         for (num, b) in enumerate(displayedtags):
             tw = widgets.TagWidget(b)
             lines.append(urwid.Columns([('fixed', tw.width(), tw)]))
