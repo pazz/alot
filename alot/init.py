@@ -128,11 +128,11 @@ def main():
     logger = logging.getLogger()
 
     #logger.debug(commands.COMMANDS)
-    #accountman
-    aman = AccountManager(settings.config)
-
     # get ourselves a database manager
     dbman = DBManager(path=args['mailindex-path'], ro=args['read-only'])
+
+    #accountman
+    aman = AccountManager(dbman, settings.config)
 
     # get initial searchstring
     try:

@@ -60,6 +60,9 @@ Here's a full list of the interpreted keywords in account sections:
     # where to store outgoing mail
     sent_box = maildir:///home/you/mail//Sent
 
+    # how to tag sent mails [default: sent]. seperate multiple tags with ','.
+    sent_tags = sent
+
     # file to append before sending
     signature = ~/your_vcard_for_this_account.vcs
     # signature file's name as it appears in outgoing mails
