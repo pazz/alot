@@ -143,7 +143,7 @@ class AlotConfigParser(FallbackConfigParser):
         return 'tag'
 
     def get_mapping(self, mode, key):
-        """look up keybiding from `MODE-maps` sections
+        """look up keybinding from `MODE-maps` sections
 
         :param mode: mode identifier
         :type mode: str
