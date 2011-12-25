@@ -99,17 +99,21 @@ class Account(object):
         :rtype: bool
         """
         if not isinstance(mbx, mailbox.Mailbox):
+            logging.debug('Not a mailbox')
             return False
         else:
             mbx.lock()
             if isinstance(mbx, mailbox.Maildir):
+                logging.debug('Maildir')
                 msg = mailbox.MaildirMessage(mail)
                 msg.set_flags('S')
             else:
+                logging.debug('no Maildir')
                 msg = mailbox.Message(mail)
-            mbx.add(msg)
+            id = mbx.add(msg)
             mbx.flush()
             mbx.unlock()
+            logging.debug('got id : %s' % id)
             return True
 
         if isinstance(mbx, mailbox.Maildir) and tags != None:
