@@ -42,8 +42,8 @@ class Account(object):
 
     def __init__(self, dbman, address=None, aliases=None, realname=None,
                  gpg_key=None, signature=None, signature_filename=None,
-                 sent_box=None, sent_tags=None, draft_box=None,
-                 draft_tags=None, abook=None):
+                 sent_box=None, sent_tags=['sent'], draft_box=None,
+                 draft_tags=['draft'], abook=None):
         self.dbman = dbman
         self.address = address
         self.abook = abook
