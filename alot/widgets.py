@@ -123,7 +123,7 @@ class ThreadlineWidget(urwid.AttrMap):
         maxlength = config.getint('general', 'authors_maxlength')
         authorsstring = shorten_author_string(authors, maxlength)
         self.authors_w = urwid.AttrMap(urwid.Text(authorsstring),
-                                       'search_thread_authors')
+                                       self.__get_authors_theme())
         cols.append(('fixed', len(authorsstring), self.authors_w))
 
         if self.thread:
@@ -158,7 +158,7 @@ class ThreadlineWidget(urwid.AttrMap):
                                            'search_thread_mailcount_focus'})
             for tw in self.tag_widgets:
                 tw.set_focussed()
-            self.authors_w.set_attr_map({None: 'search_thread_authors_focus'})
+            self.authors_w.set_attr_map({None: self.__get_authors_theme(focus)})
             self.subject_w.set_attr_map({None: self.__get_subject_theme(focus)})
             if self.display_content:
                 self.content_w.set_attr_map(
@@ -168,7 +168,7 @@ class ThreadlineWidget(urwid.AttrMap):
             self.mailcount_w.set_attr_map({None: 'search_thread_mailcount'})
             for tw in self.tag_widgets:
                 tw.set_unfocussed()
-            self.authors_w.set_attr_map({None: 'search_thread_authors'})
+            self.authors_w.set_attr_map({None: self.__get_authors_theme()})
             self.subject_w.set_attr_map({None: self.__get_subject_theme()})
             if self.display_content:
                 self.content_w.set_attr_map({None: 'search_thread_content'})
@@ -188,7 +188,16 @@ class ThreadlineWidget(urwid.AttrMap):
         if focus:
             theme += '_focus'
         if self.thread.has_tag('unread') and \
-           config.getboolean('general', 'highlight_unread_mails'):
+           (config.getint('general', 'highlight_unread_mails') >= 1):
+            theme += '_unread'
+        return theme
+
+    def __get_authors_theme(self, focus=False):
+        theme = 'search_thread_authors'
+        if focus:
+            theme += '_focus'
+        if self.thread.has_tag('unread') and \
+           (config.getint('general', 'highlight_unread_mails') >= 2):
             theme += '_unread'
         return theme
 
