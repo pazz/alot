@@ -160,6 +160,7 @@ S = save --all
 g = reply --all
 f = forward
 p = print
+n = editnew
 s = save
 r = reply
 | = prompt 'pipeto '
