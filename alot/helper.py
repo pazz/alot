@@ -258,6 +258,20 @@ def guess_mimetype(blob):
     return m.buffer(blob)
 
 
+def guess_encoding(blob):
+    """
+    uses file magic to determine the encoding of the given data blob.
+
+    :param blob: file content as read by file.read()
+    :type blob: data
+    :returns: encoding
+    :rtype: str
+    """
+    m = magic.open(magic.MAGIC_MIME_ENCODING)
+    m.load()
+    return m.buffer(blob)
+
+
 def guess_mimetype_of_path(path):
     """
     uses file magic to determine the mime-type of a file at given path.
