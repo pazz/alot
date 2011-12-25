@@ -131,7 +131,7 @@ class ThreadlineWidget(urwid.AttrMap):
         else:
             subjectstring = ''
         self.subject_w = urwid.AttrMap(urwid.Text(subjectstring, wrap='clip'),
-                                 'search_thread_subject')
+                                       self.__get_subject_theme())
         if subjectstring:
             cols.append(('weight', 2, self.subject_w))
 
@@ -159,7 +159,7 @@ class ThreadlineWidget(urwid.AttrMap):
             for tw in self.tag_widgets:
                 tw.set_focussed()
             self.authors_w.set_attr_map({None: 'search_thread_authors_focus'})
-            self.subject_w.set_attr_map({None: 'search_thread_subject_focus'})
+            self.subject_w.set_attr_map({None: self.__get_subject_theme(focus)})
             if self.display_content:
                 self.content_w.set_attr_map(
                     {None: 'search_thread_content_focus'})
@@ -169,7 +169,7 @@ class ThreadlineWidget(urwid.AttrMap):
             for tw in self.tag_widgets:
                 tw.set_unfocussed()
             self.authors_w.set_attr_map({None: 'search_thread_authors'})
-            self.subject_w.set_attr_map({None: 'search_thread_subject'})
+            self.subject_w.set_attr_map({None: self.__get_subject_theme()})
             if self.display_content:
                 self.content_w.set_attr_map({None: 'search_thread_content'})
         return urwid.AttrMap.render(self, size, focus)
@@ -183,6 +183,14 @@ class ThreadlineWidget(urwid.AttrMap):
     def get_thread(self):
         return self.thread
 
+    def __get_subject_theme(self, focus=False):
+        theme = 'search_thread_subject'
+        if focus:
+            theme += '_focus'
+        if self.thread.has_tag('unread') and \
+           config.getboolean('general', 'highlight_unread_mails'):
+            theme += '_unread'
+        return theme
 
 class BufferlineWidget(urwid.Text):
     """
