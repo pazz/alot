@@ -321,7 +321,7 @@ def tag_cmp(a, b):
     if min(len(a), len(b)) == 1:
         return cmp(len(a), len(b))
     else:
-        return cmp(a, b)
+        return cmp(a.lower(), b.lower())
 
 
 def humanize_size(size):
