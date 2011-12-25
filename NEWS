@@ -1,3 +1,14 @@
+current:
+
+* completion for multiple recipients via AbooksCompleter
+* header key completion for set/unset in envelope buffer
+* generate and set a Message-ID header
+* add sent and saved draft mails to the notmuch index and add custom tags
+* optional highlighting of unread-tagged threads in search buffer
+* case insensitive sorting of tagstrings in search buffer
+* guess file encodings with libmagic
+
+
 0.21
 
 * avoid traceback infos from getting written on top of the ui
@@ -6,8 +17,6 @@
 * command line subcommands: compose and search
 * properly display multiple headers with the same key
 * envelope.set option "--append"
-* completion for multiple recipients via AbooksCompleter
-* generate and set a Message-ID header
 * more detailed CUSTOMIZE docs
 * multiple fixes for the envelope buffer
 * exit on closing of last buffer is now optional
@@ -21,6 +30,7 @@
 * add packaging info for debian
 * envelope.headers stores lists of values for each key now
 * default binding: 's' to 'toggletag unread' in search buffers
+
 
 0.20
 
