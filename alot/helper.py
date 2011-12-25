@@ -273,26 +273,19 @@ def guess_mimetype_of_path(path):
 
 
 def mimewrap(path, filename=None, ctype=None):
-    ctype = ctype or guess_mimetype_of_path(path)
+    content = open(path, 'rb').read()
+    ctype = ctype or guess_mimetype(content)
     maintype, subtype = ctype.split('/', 1)
     if maintype == 'text':
-        fp = open(path)
         # Note: we should handle calculating the charset
-        part = MIMEText(fp.read(), _subtype=subtype)
-        fp.close()
+        part = MIMEText(content, _subtype=subtype)
     elif maintype == 'image':
-        fp = open(path, 'rb')
-        part = MIMEImage(fp.read(), _subtype=subtype)
-        fp.close()
+        part = MIMEImage(content, _subtype=subtype)
     elif maintype == 'audio':
-        fp = open(path, 'rb')
-        part = MIMEAudio(fp.read(), _subtype=subtype)
-        fp.close()
+        part = MIMEAudio(content, _subtype=subtype)
     else:
-        fp = open(path, 'rb')
         part = MIMEBase(maintype, subtype)
-        part.set_payload(fp.read())
-        fp.close()
+        part.set_payload(content)
         # Encode the payload using Base64
         email.encoders.encode_base64(part)
     # Set the filename parameter
