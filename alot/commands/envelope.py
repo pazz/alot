@@ -8,6 +8,7 @@ from twisted.internet.defer import inlineCallbacks
 import threading
 import datetime
 
+from alot.account import SendingMailFailed
 from alot import buffers
 from alot import commands
 from alot.commands import Command, registerCommand
@@ -129,7 +130,12 @@ class SendCommand(Command):
 
         def thread_code():
             mail = envelope.construct_mail()
-            os.write(write_fd, account.send_mail(mail) or 'success')
+            try:
+                account.send_mail(mail)
+            except SendingMailFailed as e:
+                os.write(write_fd, unicode(e))
+            else:
+                os.write(write_fd, 'success')
 
         thread = threading.Thread(target=thread_code)
         thread.start()

@@ -10,6 +10,7 @@ from urlparse import urlparse
 
 import helper
 
+class SendingMailFailed(RuntimeError): pass
 
 class Account(object):
     """
@@ -121,8 +122,7 @@ class Account(object):
 
         :param mail: the mail to send
         :type mail: :class:`email.message.Message` or string
-        :returns: None if successful and a string with the reason
-                  for failure otherwise.
+        :raises: :class:`alot.account.SendingMailFailed` if an error occured
         """
         return 'not implemented'
 
@@ -143,9 +143,8 @@ class SendmailAccount(Account):
         cmdlist = shlex.split(self.cmd.encode('utf-8', errors='ignore'))
         out, err, retval = helper.call_cmd(cmdlist, stdin=mail.as_string())
         if err:
-            return err + '. sendmail_cmd set to: %s' % self.cmd
+            raise SendingMailFailed('%s. sendmail_cmd set to: %s' % (err, self.cmd))
         self.store_sent_mail(mail)
-        return None
 
 
 class AccountManager(object):
