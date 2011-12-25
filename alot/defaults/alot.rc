@@ -26,8 +26,10 @@ display_content_in_threadline = False
 # headers that get displayed by default
 displayed_headers = From,To,Cc,Bcc,Subject
 
-# highlight unread mails in search buffer by theming their subjects differently
-highlight_unread_mails = True
+# highlight unread mails in search buffer according to the specified level:
+#  1: by theming their subjects
+#  2: by additionally theming their authors
+highlight_unread_mails = 1
 
 # headers that are hidden in envelope buffers by default
 envelope_headers_blacklist = In-Reply-To,References
@@ -209,8 +211,12 @@ bufferlist_results_odd_bg = default
 bufferlist_results_odd_fg = default
 search_thread_authors_bg = default
 search_thread_authors_fg = #6d6
+search_thread_authors_unread_bg = default
+search_thread_authors_unread_fg = #6d6,bold
 search_thread_authors_focus_bg = #68a
 search_thread_authors_focus_fg = #8f6
+search_thread_authors_focus_unread_bg = #68a
+search_thread_authors_focus_unread_fg = #8f6,bold
 search_thread_bg = default
 search_thread_content_bg = default
 search_thread_content_fg = #866
