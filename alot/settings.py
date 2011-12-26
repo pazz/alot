@@ -121,7 +121,7 @@ class AlotConfigParser(FallbackConfigParser):
         base = 'tag_%s' % tag
         if mode == 2:
             if self.get('1c-theme', base):
-                return 'tag_%s' % tag
+                return base
         elif mode == 16:
             has_fg = self.get('16c-theme', base + '_fg')
             has_bg = self.get('16c-theme', base + '_bg')
