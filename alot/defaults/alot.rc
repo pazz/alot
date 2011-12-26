@@ -44,7 +44,8 @@ terminal_cmd = x-terminal-emulator -e
 thread_highlight_tags = unread,flagged
 
 # comma separated list of the components of a thread line you want highlighted
-# if a configured tag is found.  Possible components are [authors|subject].
+# if a configured tag is found.
+# Possible components are [date|mailcount|authors|subject].
 thread_highlight_components = subject
 
 ####################
@@ -230,13 +231,13 @@ search_thread_authors_fg = #6d6
 search_thread_authors_unread_bg = default
 search_thread_authors_unread_fg = #6d6,bold
 search_thread_authors_flagged_bg = default
-search_thread_authors_flagged_fg = #6d6
+search_thread_authors_flagged_fg = light red,bold
 search_thread_authors_focus_bg = #68a
 search_thread_authors_focus_fg = #8f6
 search_thread_authors_focus_unread_bg = #68a
 search_thread_authors_focus_unread_fg = #8f6,bold
 search_thread_authors_focus_flagged_bg = #68a
-search_thread_authors_focus_flagged_fg = #8f6,bold
+search_thread_authors_focus_flagged_fg = light red
 search_thread_bg = default
 search_thread_content_bg = default
 search_thread_content_fg = #866
@@ -244,15 +245,23 @@ search_thread_content_focus_bg = #68a
 search_thread_content_focus_fg = #866
 search_thread_date_bg = default
 search_thread_date_fg = g58
+search_thread_date_flagged_bg = default
+search_thread_date_flagged_fg = light red
 search_thread_date_focus_bg = #68a
 search_thread_date_focus_fg = g89
+search_thread_date_focus_flagged_bg = #68a
+search_thread_date_focus_flagged_fg = light red,bold
 search_thread_fg = default
 search_thread_focus_bg = #68a
 search_thread_focus_fg = white
 search_thread_mailcount_bg = default
 search_thread_mailcount_fg = light gray
+search_thread_mailcount_flagged_bg = default
+search_thread_mailcount_flagged_fg = light red,bold
 search_thread_mailcount_focus_bg = #68a
 search_thread_mailcount_focus_fg = g89
+search_thread_mailcount_focus_flagged_bg = #68a
+search_thread_mailcount_focus_flagged_fg = light red
 search_thread_subject_bg = default
 search_thread_subject_fg = g58
 search_thread_subject_unread_bg = default
