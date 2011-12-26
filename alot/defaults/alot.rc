@@ -184,6 +184,10 @@ tag_fg = brown
 tag_focus_bg = #68a
 tag_focus_fg = #ffa
 
+#draft tag in red
+tag_draft_bg = #d66
+tag_draft_fg = white
+
 # formating of the `help bindings` overlay
 help_text_bg = g35
 help_text_fg = default
@@ -280,6 +284,8 @@ tag_bg = black
 tag_fg = brown
 tag_focus_bg = dark gray
 tag_focus_fg = white
+tag_draft_bg = light red
+tag_draft_fg = white
 bufferlist_focus_bg = dark gray
 bufferlist_focus_fg = white
 bufferlist_results_even_bg = black
@@ -347,7 +353,8 @@ help_text = default
 help_section = underline
 help_title = standout
 tag = default
-tag_focus = standout
+tag_focus = standout, bold
+tag_draft = standout
 bufferlist_focus = standout
 bufferlist_results_even = default
 bufferlist_results_odd = default
