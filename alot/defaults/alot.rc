@@ -18,7 +18,7 @@ tabwidth = 8
 # templates directory that contains your message templates.
 # It will be used if you give `compose --template` a filename without a path prefix.
 # This defaults to `$XDG_CONFIG_HOME/alot/templates` if unset.
-template_dir = 
+template_dir =
 
 # fill threadline with message content
 display_content_in_threadline = False
@@ -174,7 +174,7 @@ bp = bprevious
 ls = bufferlist
 
 
-[256c-theme] 
+[256c-theme]
 
 # default formating for tagstrings
 # add 'tag_X_fg' and 'tag_X_bg' to your config to specify
@@ -235,7 +235,7 @@ search_thread_mailcount_focus_bg = #68a
 search_thread_mailcount_focus_fg = g89
 search_thread_subject_bg = default
 search_thread_subject_fg = g58
-search_thread_subject_unread_bg = default 
+search_thread_subject_unread_bg = default
 search_thread_subject_unread_fg = g58,bold
 search_thread_subject_focus_bg = #68a
 search_thread_subject_focus_fg = g89
@@ -310,8 +310,16 @@ thread_summary_odd_bg = dark blue
 thread_summary_odd_fg = white
 search_thread_authors_bg = default
 search_thread_authors_fg = dark green
+search_thread_authors_unread_bg = default
+search_thread_authors_unread_fg = dark green,bold
+search_thread_authors_flagged_bg = default
+search_thread_authors_flagged_fg = dark green
 search_thread_authors_focus_bg = dark gray
 search_thread_authors_focus_fg = dark green,bold
+search_thread_authors_focus_unread_bg = dark gray
+search_thread_authors_focus_unread_fg = dark green,bold
+search_thread_authors_focus_flagged_bg = dark gray
+search_thread_authors_focus_flagged_fg = dark green,bold
 search_thread_bg = default
 search_thread_content_bg = default
 search_thread_content_fg = dark gray
