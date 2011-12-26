@@ -26,16 +26,26 @@ display_content_in_threadline = False
 # headers that get displayed by default
 displayed_headers = From,To,Cc,Bcc,Subject
 
-# highlight unread mails in search buffer according to the specified level:
-#  1: by theming their subjects
-#  2: by additionally theming their authors
-highlight_unread_mails = 1
-
 # headers that are hidden in envelope buffers by default
 envelope_headers_blacklist = In-Reply-To,References
 
 # set terminal command used for spawning shell commands
 terminal_cmd = x-terminal-emulator -e
+
+######################
+# HIGHLIGHT settings #
+######################
+# Thread lines in the search buffer can be highlighted upon occurrence of a tag
+# by theming their components.
+
+# comma separated list of tags you want highlighting for. Note that the sequence
+# of the list defines the search order. The first specified tag that is found
+# defines the theming.
+thread_highlight_tags = unread,flagged
+
+# comma separated list of the components of a thread line you want highlighted
+# if a configured tag is found.  Possible components are [authors|subject].
+thread_highlight_components = subject
 
 ####################
 # EDITOR settings  #
@@ -213,10 +223,14 @@ search_thread_authors_bg = default
 search_thread_authors_fg = #6d6
 search_thread_authors_unread_bg = default
 search_thread_authors_unread_fg = #6d6,bold
+search_thread_authors_flagged_bg = default
+search_thread_authors_flagged_fg = #6d6
 search_thread_authors_focus_bg = #68a
 search_thread_authors_focus_fg = #8f6
 search_thread_authors_focus_unread_bg = #68a
 search_thread_authors_focus_unread_fg = #8f6,bold
+search_thread_authors_focus_flagged_bg = #68a
+search_thread_authors_focus_flagged_fg = #8f6,bold
 search_thread_bg = default
 search_thread_content_bg = default
 search_thread_content_fg = #866
@@ -237,10 +251,14 @@ search_thread_subject_bg = default
 search_thread_subject_fg = g58
 search_thread_subject_unread_bg = default
 search_thread_subject_unread_fg = g58,bold
+search_thread_subject_flagged_bg = default
+search_thread_subject_flagged_fg = light red
 search_thread_subject_focus_bg = #68a
 search_thread_subject_focus_fg = g89
 search_thread_subject_focus_unread_bg = #68a
 search_thread_subject_focus_unread_fg = g89,bold
+search_thread_subject_focus_flagged_bg = #68a
+search_thread_subject_focus_flagged_fg = light red,bold
 search_thread_tags_bg = default
 search_thread_tags_fg = #a86
 search_thread_tags_focus_bg = #68a
@@ -340,10 +358,14 @@ search_thread_subject_bg = default
 search_thread_subject_fg = light gray
 search_thread_subject_unread_bg = default
 search_thread_subject_unread_fg = light gray,bold
+search_thread_subject_flagged_bg = default
+search_thread_subject_flagged_fg = light red
 search_thread_subject_focus_bg = dark gray
 search_thread_subject_focus_fg = light gray
 search_thread_subject_focus_unread_bg = dark gray
 search_thread_subject_focus_unread_fg = light gray,bold
+search_thread_subject_focus_flagged_bg = dark gray
+search_thread_subject_focus_flagged_fg = light red,bold
 search_thread_tags_bg = default
 search_thread_tags_fg = brown
 search_thread_tags_focus_bg = dark gray
@@ -375,8 +397,10 @@ search_thread_mailcount = default
 search_thread_mailcount_focus = standout
 search_thread_subject = default
 search_thread_subject_unread = bold
+search_thread_subject_flagged = underline
 search_thread_subject_focus = standout
 search_thread_subject_focus_unread = standout,bold
+search_thread_subject_focus_flagged = standout,underline
 search_thread_tags = bold
 search_thread_tags_focus = standout
 thread_attachment = default
