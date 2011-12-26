@@ -44,7 +44,8 @@ terminal_cmd = x-terminal-emulator -e
 thread_highlight_tags = unread,flagged
 
 # comma separated list of the components of a thread line you want highlighted
-# if a configured tag is found.  Possible components are [authors|subject].
+# if a configured tag is found.
+# Possible components are [date|mailcount|authors|subject].
 thread_highlight_components = subject
 
 ####################

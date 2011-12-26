@@ -155,9 +155,9 @@ class ThreadlineWidget(urwid.AttrMap):
 
     def render(self, size, focus=False):
         if focus:
-            self.date_w.set_attr_map({None: 'search_thread_date_focus'})
+            self.date_w.set_attr_map({None: self.__get_theme('date', focus)})
             self.mailcount_w.set_attr_map({None:
-                                           'search_thread_mailcount_focus'})
+                                          self.__get_theme('mailcount', focus)})
             for tw in self.tag_widgets:
                 tw.set_focussed()
             self.authors_w.set_attr_map({None: self.__get_theme('authors', focus)})
@@ -166,8 +166,8 @@ class ThreadlineWidget(urwid.AttrMap):
                 self.content_w.set_attr_map(
                     {None: 'search_thread_content_focus'})
         else:
-            self.date_w.set_attr_map({None: 'search_thread_date'})
-            self.mailcount_w.set_attr_map({None: 'search_thread_mailcount'})
+            self.date_w.set_attr_map({None: self.__get_theme('date')})
+            self.mailcount_w.set_attr_map({None: self.__get_theme('mailcount')})
             for tw in self.tag_widgets:
                 tw.set_unfocussed()
             self.authors_w.set_attr_map({None: self.__get_theme('authors')})
