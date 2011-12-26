@@ -192,8 +192,10 @@ class ThreadlineWidget(urwid.AttrMap):
         if component in self.highlight_components:
             for tag in self.highlight_tags:
                 if self.thread.has_tag(tag):
-                    theme = theme + '_{tag}'.format(tag=tag)
-                    break
+                    tag_theme = theme + '_{tag}'.format(tag=tag)
+                    if config.has_theming(tag_theme):
+                        theme = tag_theme 
+                        break
         return theme
 
 
