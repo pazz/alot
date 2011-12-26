@@ -101,21 +101,22 @@ class Account(object):
         if not isinstance(mbx, mailbox.Mailbox):
             logging.debug('Not a mailbox')
             return False
-        else:
-            mbx.lock()
-            if isinstance(mbx, mailbox.Maildir):
-                logging.debug('Maildir')
-                msg = mailbox.MaildirMessage(mail)
-                msg.set_flags('S')
-            else:
-                logging.debug('no Maildir')
-                msg = mailbox.Message(mail)
-            id = mbx.add(msg)
-            mbx.flush()
-            mbx.unlock()
-            logging.debug('got id : %s' % id)
-            return True
 
+        mbx.lock()
+        if isinstance(mbx, mailbox.Maildir):
+            logging.debug('Maildir')
+            msg = mailbox.MaildirMessage(mail)
+            msg.set_flags('S')
+        else:
+            logging.debug('no Maildir')
+            msg = mailbox.Message(mail)
+
+        message_id = mbx.add(msg)
+        mbx.flush()
+        mbx.unlock()
+        logging.debug('got id : %s' % id)
+
+        # add new Maildir message to index and add tags
         if isinstance(mbx, mailbox.Maildir) and tags != None:
             # this is a dirty hack to get the path to the newly added file
             # I wish the mailbox module were more helpful...
@@ -124,6 +125,7 @@ class Account(object):
             message = self.dbman.add_message(path)
             message.add_tags(tags)
             self.dbman.flush()
+        return True
 
     def store_sent_mail(self, mail):
         """
