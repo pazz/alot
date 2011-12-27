@@ -220,9 +220,6 @@ class EditNewCommand(Command):
             if value:
                 envelope.add(key, value)
 
-        # store sent_time from Date header if already sent
-        envelope.sent_time = self.message.get_date()
-
         # copy attachments
         for b in self.message.get_attachments():
             envelope.attach(b)
