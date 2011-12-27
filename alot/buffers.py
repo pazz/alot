@@ -6,6 +6,7 @@ import settings
 import commands
 from walker import PipeWalker
 from helper import shorten_author_string
+from db import NonexistantObjectError
 
 
 class Buffer(object):
@@ -228,7 +229,12 @@ class ThreadBuffer(Buffer):
             self._build_pile(acc, reply, msg, depth + 1)
 
     def rebuild(self):
-        self.thread.refresh()
+        try:
+            self.thread.refresh()
+        except NonexistantObjectError:
+            self.body = urwid.SolidFill()
+            self.message_count = 0
+            return
         # depth-first traversing the thread-tree, thereby
         # 1) build a list of tuples (parentmsg, depth, message) in DF order
         # 2) create a dict that counts no. of direct replies per message
@@ -255,7 +261,9 @@ class ThreadBuffer(Buffer):
                                             depth=depth,
                                             bars_at=bars)
             msglines.append(mwidget)
+
         self.body = urwid.ListBox(msglines)
+        self.message_count = self.thread.get_total_messages()
 
     def get_selection(self):
         """returns focussed :class:`~alot.widgets.MessageWidget`"""

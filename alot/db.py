@@ -25,6 +25,11 @@ class DatabaseLockedError(DatabaseError):
     pass
 
 
+class NonexistantObjectError(DatabaseError):
+    """requested thread or message does not exist in the index"""
+    pass
+
+
 class FillPipeProcess(multiprocessing.Process):
     def __init__(self, it, pipe, fun=(lambda x: x)):
         multiprocessing.Process.__init__(self)
@@ -177,20 +182,32 @@ class DBManager(object):
 
         return self.query_threaded(querystring)
 
-    def get_thread(self, tid):
-        """returns :class:`Thread` with given thread id (str)"""
+    def _get_notmuch_thread(self, tid):
+        """returns :class:`notmuch.database.Thread` with given id"""
         query = self.query('thread:' + tid)
         try:
-            return Thread(self, query.search_threads().next())
+            return query.search_threads().next()
+        except StopIteration:
+            errmsg = 'no thread with id %s exists!' % tid
+            raise NonexistantObjectError(errmsg)
+
+    def get_thread(self, tid):
+        """returns :class:`Thread` with given thread id (str)"""
+        return Thread(self, self._get_notmuch_thread(tid))
+
+    def _get_notmuch_message(self, mid):
+        """returns :class:`notmuch.database.Message` with given id"""
+        mode = Database.MODE.READ_ONLY
+        db = Database(path=self.path, mode=mode)
+        try:
+            return db.find_message(mid)
         except:
-            return None
+            errmsg = 'no message with id %s exists!' % mid
+            raise NonexistantObjectError(errmsg)
 
     def get_message(self, mid):
         """returns :class:`Message` with given message id (str)"""
-        mode = Database.MODE.READ_ONLY
-        db = Database(path=self.path, mode=mode)
-        msg = db.find_message(mid)
-        return Message(self, msg)
+        return Message(self, self._get_notmuch_message(mid))
 
     def get_all_tags(self):
         """
@@ -304,8 +321,8 @@ class Thread(object):
     def refresh(self, thread=None):
         """refresh thread metadata from the index"""
         if not thread:
-            query = self._dbman.query('thread:' + self._id)
-            thread = query.search_threads().next()
+            thread = self._dbman._get_notmuch_thread(self._id)
+
         self._total_messages = thread.get_total_messages()
         self._authors = thread.get_authors()
         self._subject = thread.get_subject()
@@ -338,7 +355,7 @@ class Thread(object):
 
         :param tag: tag to check
         :type tag: string
-        :returns: True if this thread is tagged with the given tag, False otherwise.
+        :returns: True iff this thread is tagged with the given tag
         :rtype: bool
         """
         return (tag in self._tags)
