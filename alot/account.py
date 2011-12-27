@@ -11,7 +11,10 @@ from urlparse import urlparse
 
 import helper
 
-class SendingMailFailed(RuntimeError): pass
+
+class SendingMailFailed(RuntimeError):
+    pass
+
 
 class Account(object):
     """
@@ -85,7 +88,7 @@ class Account(object):
                 self.draft_box = mailbox.MMDF(mburl.path)
         self.draft_tags = draft_tags
 
-    def store_mail(self, mbx, mail, tags = None):
+    def store_mail(self, mbx, mail, tags=None):
         """
         stores given mail in mailbox. If mailbox is maildir, set the S-flag.
 
@@ -172,7 +175,8 @@ class SendmailAccount(Account):
         cmdlist = shlex.split(self.cmd.encode('utf-8', errors='ignore'))
         out, err, retval = helper.call_cmd(cmdlist, stdin=mail.as_string())
         if err:
-            raise SendingMailFailed('%s. sendmail_cmd set to: %s' % (err, self.cmd))
+            errmsg = '%s. sendmail_cmd set to: %s' % (err, self.cmd)
+            raise SendingMailFailed(errmsg)
         self.store_sent_mail(mail)
 
 
