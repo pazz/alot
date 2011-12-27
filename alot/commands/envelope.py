@@ -70,6 +70,33 @@ class RefineCommand(Command):
         ui.apply_command(globals.PromptCommand(cmdstring))
 
 
+@registerCommand(MODE, 'save')
+class SendCommand(Command):
+    """save draft"""
+    def apply(self, ui):
+        envelope = ui.current_buffer.envelope
+
+        # determine account to use
+        sname, saddr = email.Utils.parseaddr(envelope.get('From'))
+        account = ui.accountman.get_account_by_address(saddr)
+        if account == None:
+            if not ui.accountman.get_accounts():
+                ui.notify('no accounts set.', priority='error')
+                return
+            else:
+                account = ui.accountman.get_accounts()[0]
+
+        if account.draft_box == None:
+            ui.notify('abort: account <%s> has no draft_box set.' % saddr,
+                      priority='error')
+            return
+
+        mail = envelope.construct_mail()
+        account.store_draft_mail(mail)
+        ui.apply_command(commands.globals.BufferCloseCommand())
+        ui.notify('draft saved successfully')
+
+
 @registerCommand(MODE, 'send')
 class SendCommand(Command):
     """send mail"""

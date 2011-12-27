@@ -191,6 +191,45 @@ class ForwardCommand(Command):
         ui.apply_command(ComposeCommand(envelope=envelope))
 
 
+@registerCommand(MODE, 'editnew')
+class EditNewCommand(Command):
+    """edit message in as new"""
+    def __init__(self, message=None, **kwargs):
+        """
+        :param message: message to reply to (defaults to selected message)
+        :type message: `alot.message.Message`
+        """
+        self.message = message
+        Command.__init__(self, **kwargs)
+
+    def apply(self, ui):
+        if not self.message:
+            self.message = ui.current_buffer.get_selected_message()
+        mail = self.message.get_email()
+        # set body text
+        name, address = self.message.get_author()
+        timestamp = self.message.get_date()
+        mailcontent = self.message.accumulate_body()
+        envelope = Envelope(bodytext=mailcontent)
+
+        # copy selected headers
+        to_copy = ['Subject', 'From', 'To', 'Cc', 'Bcc', 'In-Reply-To',
+                   'References']
+        for key in to_copy:
+            value = decode_header(mail.get(key, ''))
+            if value:
+                envelope.add(key, value)
+
+        # store sent_time from Date header if already sent
+        envelope.sent_time = self.message.get_date()
+
+        # copy attachments
+        for b in self.message.get_attachments():
+            envelope.attach(b)
+
+        ui.apply_command(ComposeCommand(envelope=envelope))
+
+
 @registerCommand(MODE, 'fold', forced={'visible': False}, arguments=[
     (['--all'], {'action': 'store_true', 'help':'fold all messages'})],
     help='fold message(s)')
@@ -334,6 +373,54 @@ class PipeCommand(Command):
         # display 'done' message
         if self.done_msg:
             ui.notify(self.done_msg)
+
+
+@registerCommand(MODE, 'remove', arguments=[
+    (['--all'], {'action': 'store_true', 'help':'remove whole thread'})])
+class RemoveCommand(Command):
+    """remove message(s) from the index"""
+    def __init__(self, all=False, **kwargs):
+        """
+        :param all: remove all messages from thread, not just selected one
+        :type all: bool
+        """
+        Command.__init__(self, **kwargs)
+        self.all = all
+
+    @inlineCallbacks
+    def apply(self, ui):
+        # get messages and notification strings
+        if self.all:
+            thread = ui.current_buffer.get_selected_thread()
+            tid = thread.get_thread_id()
+            messages = thread.get_messages().keys()
+            confirm_msg = 'remove all messages in thread?'
+            ok_msg = 'removed all messages in thread: %s' % tid
+        else:
+            msg = ui.current_buffer.get_selected_message()
+            messages = [msg]
+            confirm_msg = 'remove selected message?'
+            ok_msg = 'removed message: %s' % msg.get_message_id()
+
+        # ask for confirmation
+        if (yield ui.choice(confirm_msg, select='yes', cancel='no')) == 'no':
+            return
+
+        # remove messages
+        try:
+            for m in messages:
+                ui.dbman.remove_message(m)
+        except DatabaseError, e:
+            err_msg = str(e)
+            ui.notify(err_msg, priority='error')
+            ui.logger.debug(err_msg)
+            return
+
+        # notify
+        ui.notify(ok_msg)
+
+        # refresh buffer
+        ui.current_buffer.rebuild()
 
 
 @registerCommand(MODE, 'print', arguments=[

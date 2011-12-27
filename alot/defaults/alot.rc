@@ -138,6 +138,7 @@ O = refineprompt
 [envelope-maps]
 a = prompt 'attach ~/'
 y = send
+d = save
 s = 'refine Subject'
 t = 'refine To'
 b = 'refine Bcc'
@@ -160,6 +161,7 @@ S = save --all
 g = reply --all
 f = forward
 p = print
+n = editnew
 s = save
 r = reply
 | = prompt 'pipeto '
@@ -181,6 +183,10 @@ tag_bg = default
 tag_fg = brown
 tag_focus_bg = #68a
 tag_focus_fg = #ffa
+
+#draft tag in red
+tag_draft_bg = #d66
+tag_draft_fg = white
 
 # formating of the `help bindings` overlay
 help_text_bg = g35
@@ -278,6 +284,8 @@ tag_bg = black
 tag_fg = brown
 tag_focus_bg = dark gray
 tag_focus_fg = white
+tag_draft_bg = light red
+tag_draft_fg = white
 bufferlist_focus_bg = dark gray
 bufferlist_focus_fg = white
 bufferlist_results_even_bg = black
@@ -345,7 +353,8 @@ help_text = default
 help_section = underline
 help_title = standout
 tag = default
-tag_focus = standout
+tag_focus = standout, bold
+tag_draft = standout
 bufferlist_focus = standout
 bufferlist_results_even = default
 bufferlist_results_odd = default

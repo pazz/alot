@@ -11,7 +11,10 @@ from urlparse import urlparse
 
 import helper
 
-class SendingMailFailed(RuntimeError): pass
+
+class SendingMailFailed(RuntimeError):
+    pass
+
 
 class Account(object):
     """
@@ -85,7 +88,7 @@ class Account(object):
                 self.draft_box = mailbox.MMDF(mburl.path)
         self.draft_tags = draft_tags
 
-    def store_mail(self, mbx, mail, tags = None):
+    def store_mail(self, mbx, mail, tags=None):
         """
         stores given mail in mailbox. If mailbox is maildir, set the S-flag.
 
@@ -95,17 +98,28 @@ class Account(object):
         :type mail: :class:`email.message.Message` or str
         :param tags: if given, add the mail to the notmuch index and tag it
         :type tags: list of str
+        :returns: True iff mail was successfully stored
+        :rtype: bool
         """
+        if not isinstance(mbx, mailbox.Mailbox):
+            logging.debug('Not a mailbox')
+            return False
+
         mbx.lock()
         if isinstance(mbx, mailbox.Maildir):
+            logging.debug('Maildir')
             msg = mailbox.MaildirMessage(mail)
             msg.set_flags('S')
         else:
+            logging.debug('no Maildir')
             msg = mailbox.Message(mail)
-        message_id = mbx.add(mail)
+
+        message_id = mbx.add(msg)
         mbx.flush()
         mbx.unlock()
+        logging.debug('got id : %s' % id)
 
+        # add new Maildir message to index and add tags
         if isinstance(mbx, mailbox.Maildir) and tags != None:
             # this is a dirty hack to get the path to the newly added file
             # I wish the mailbox module were more helpful...
@@ -114,6 +128,7 @@ class Account(object):
             message = self.dbman.add_message(path)
             message.add_tags(tags)
             self.dbman.flush()
+        return True
 
     def store_sent_mail(self, mail):
         """
@@ -129,7 +144,7 @@ class Account(object):
         :attr:`draft_box` is set.
         """
         if self.draft_box is not None:
-            self.store_mail(self.sent_box, mail, self.draft_tags)
+            self.store_mail(self.draft_box, mail, self.draft_tags)
 
     def send_mail(self, mail):
         """
@@ -160,7 +175,8 @@ class SendmailAccount(Account):
         cmdlist = shlex.split(self.cmd.encode('utf-8', errors='ignore'))
         out, err, retval = helper.call_cmd(cmdlist, stdin=mail.as_string())
         if err:
-            raise SendingMailFailed('%s. sendmail_cmd set to: %s' % (err, self.cmd))
+            errmsg = '%s. sendmail_cmd set to: %s' % (err, self.cmd)
+            raise SendingMailFailed(errmsg)
         self.store_sent_mail(mail)
 
 
