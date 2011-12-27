@@ -169,6 +169,7 @@ e = unfold
 < = fold
 > = unfold
 H = toggleheaders
+h = togglesource
 P = print --all
 S = save --all
 g = reply --all

@@ -11,6 +11,7 @@ current:
 * new thread mode command: "remove" to delete messages from the index
 * new thread mode command: "editnew" e.g. to continue drafts (bound to 'n')
 * new envelope command: "save" to save as draft (bound to 'd')
+* new thread mode command: "togglesource" to display raw messages (bound to 'h')
 
 
 
