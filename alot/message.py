@@ -536,6 +536,7 @@ class Envelope(object):
             msg.attach(textpart)
         else:
             msg = textpart
+        msg['Date'] = email.Utils.formatdate()
         for k, vlist in self.headers.items():
             for v in vlist:
                 msg[k] = encode_header(k, v)
