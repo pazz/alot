@@ -267,6 +267,21 @@ class DBManager(object):
 
         return Message(self, message)
 
+    def remove_message(self, message):
+        """
+        Remove a message from the notmuch index
+
+        :param message: message to remove
+        :type message: :class:`Message`
+        """
+        path = message.get_filename()
+        db = Database(path=self.path, mode=Database.MODE.READ_WRITE)
+        try:
+            status = db.remove_message(path)
+        except NotmuchError as e:
+            raise DatabaseError(unicode(e))
+
+
 class Thread(object):
     """
     A wrapper around a notmuch mailthread (:class:`notmuch.database.Thread`)
