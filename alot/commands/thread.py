@@ -234,17 +234,31 @@ class EditNewCommand(Command):
 @registerCommand(MODE, 'unfold', forced={'visible': True}, arguments=[
     (['--all'], {'action': 'store_true', 'help':'unfold all messages'})],
     help='unfold message(s)')
-class FoldMessagesCommand(Command):
+@registerCommand(MODE, 'togglesource', forced={'raw': 'toggle'}, arguments=[
+    (['--all'], {'action': 'store_true', 'help':'affect all messages'})],
+    help='display message source')
+@registerCommand(MODE, 'toggleheaders', forced={'all_headers': 'toggle'},
+    arguments=[
+        (['--all'], {'action': 'store_true', 'help':'affect all messages'})],
+    help='display all headers')
+class ChangeDisplaymodeCommand(Command):
     """fold or unfold messages"""
-    def __init__(self, all=False, visible=None, **kwargs):
+    def __init__(self, all=False, visible=None, raw=None, all_headers=None,
+                 **kwargs):
         """
         :param all: toggle all, not only selected message
         :type all: bool
-        :param visible: unfold if `True`, fold if `False`
-        :type visible: bool
+        :param visible: unfold if `True`, fold if `False`, ignore if `None`
+        :type visible: True, False, 'toggle' or None
+        :param raw: display raw message text.
+        :type raw: True, False, 'toggle' or None
+        :param all_headers: show all headers (only visible if not in raw mode)
+        :type all_headers: True, False, 'toggle' or None
         """
         self.all = all
         self.visible = visible
+        self.raw = raw
+        self.all_headers = all_headers
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
@@ -255,35 +269,29 @@ class FoldMessagesCommand(Command):
             lines = ui.current_buffer.get_message_widgets()
 
         for widget in lines:
-            # in case the thread is yet unread, remove this tag
             msg = widget.get_message()
-            if self.visible or (self.visible == None and widget.folded):
+
+            # in case the thread is yet unread, remove this tag
+            if self.visible or (self.visible == 'toggle' and widget.folded):
                 if 'unread' in msg.get_tags():
                     msg.remove_tags(['unread'])
                     ui.apply_command(FlushCommand())
-                    widget.rebuild()
-                widget.fold(visible=True)
-            else:
-                widget.fold(visible=False)
 
+            if self.visible == 'toggle':
+                self.visible = widget.folded
+            if self.raw == 'toggle':
+                self.raw = not widget.show_raw
+            if self.all_headers == 'toggle':
+                self.all_headers = not widget.show_all_headers
 
-@registerCommand(MODE, 'togglesource')
-class ToggleSourceCommand(Command):
-    """toggle display of message source"""
-    def apply(self, ui):
-            msgw = ui.current_buffer.get_selection()
-            msgw.display_source(not(msgw.raw))
-
-
-@registerCommand(MODE, 'toggleheaders')
-class ToggleHeaderCommand(Command):
-    """toggle display of all headers"""
-    def apply(self, ui):
-        try:
-            msgw = ui.current_buffer.get_selection()
-            msgw.toggle_full_header()
-        except Exception, e:
-            ui.logger.exception(e)
+            ui.logger.debug((self.visible, self.raw, self.all_headers))
+            if self.visible is not None:
+                widget.folded = not self.visible
+            if self.raw is not None:
+                widget.show_raw = self.raw
+            if self.all_headers is not None:
+                widget.show_all_headers = self.all_headers
+            widget.rebuild()
 
 
 @registerCommand(MODE, 'pipeto', arguments=[
@@ -571,7 +579,7 @@ class ThreadSelectCommand(Command):
     def apply(self, ui):
         focus = ui.get_deep_focus()
         if isinstance(focus, widgets.MessageSummaryWidget):
-            ui.apply_command(FoldMessagesCommand())
+            ui.apply_command(ChangeDisplaymodeCommand(visible='toggle'))
         elif isinstance(focus, widgets.AttachmentWidget):
             logging.info('open attachment')
             ui.apply_command(OpenAttachmentCommand(focus.get_attachment()))
