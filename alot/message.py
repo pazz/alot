@@ -515,7 +515,7 @@ class Envelope(object):
 
         if isinstance(attachment, Attachment):
             self.attachments.append(attachment)
-        elif isinstance(attachment, str):
+        elif isinstance(attachment, basestring):
             path = os.path.expanduser(attachment)
             part = helper.mimewrap(path, filename, ctype)
             self.attachments.append(Attachment(part))
