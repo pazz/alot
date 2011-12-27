@@ -267,6 +267,14 @@ class FoldMessagesCommand(Command):
                 widget.fold(visible=False)
 
 
+@registerCommand(MODE, 'togglesource')
+class ToggleSourceCommand(Command):
+    """toggle display of message source"""
+    def apply(self, ui):
+            msgw = ui.current_buffer.get_selection()
+            msgw.display_source(not(msgw.raw))
+
+
 @registerCommand(MODE, 'toggleheaders')
 class ToggleHeaderCommand(Command):
     """toggle display of all headers"""
