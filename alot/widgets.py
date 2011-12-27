@@ -352,7 +352,7 @@ class MessageWidget(urwid.WidgetWrap):
     #TODO: atm this is heavily bent to work nicely with ThreadBuffer to display
     #a tree structure. A better way would be to keep this widget simple
     #(subclass urwid.Pile) and use urwids new Tree widgets
-    def __init__(self, message, even=False, folded=True, depth=0, bars_at=[]):
+    def __init__(self, message, even=False, folded=True, raw=False, depth=0, bars_at=[]):
         """
         :param message: the message to display
         :type message: alot.db.Message
@@ -360,10 +360,12 @@ class MessageWidget(urwid.WidgetWrap):
         :type even: bool
         :param folded: fold message initially
         :type folded: bool
+        :param raw: show message source initially
+        :type raw: bool
         :param depth: number of characters to shift content to the right
         :type depth: int
         :param bars_at: defines for each column of the indentation whether to
-                        use a vertical bar instead of a space. 
+                        use a vertical bar instead of a space.
         :type bars_at: list(bool)
         """
         self.message = message
@@ -373,12 +375,14 @@ class MessageWidget(urwid.WidgetWrap):
         self.bars_at = bars_at
         self.even = even
         self.folded = folded
+        self.raw = raw
 
         # build the summary line, header and body will be created on demand
         self.sumline = self._build_sum_line()
         self.headerw = None
         self.attachmentw = None
         self.bodyw = None
+        self.sourcew = None
 
         # set available and to be displayed headers
         self.all_headers = self.mail.keys()
@@ -394,15 +398,19 @@ class MessageWidget(urwid.WidgetWrap):
 
     def rebuild(self):
         if not self.folded:  # only if already unfolded
-            hw = self._get_header_widget()
-            aw = self._get_attachment_widget()
-            bw = self._get_body_widget()
             self.displayed_list = [self.sumline]
-            if hw:
-                self.displayed_list.append(hw)
-            if aw:
-                self.displayed_list.append(aw)
-            self.displayed_list.append(bw)
+            if self.raw:
+                srcw = self._get_source_widget()
+                self.displayed_list.append(srcw)
+            else:
+                hw = self._get_header_widget()
+                aw = self._get_attachment_widget()
+                bw = self._get_body_widget()
+                if hw:
+                    self.displayed_list.append(hw)
+                if aw:
+                    self.displayed_list.append(aw)
+                self.displayed_list.append(bw)
         else:
             self.displayed_list = [self.sumline]
         self.pile = urwid.Pile(self.displayed_list)
@@ -410,6 +418,10 @@ class MessageWidget(urwid.WidgetWrap):
 
     def fold(self, visible=False):
         self.folded = not visible
+        self.rebuild()
+
+    def display_source(self, show_source_only):
+        self.raw = show_source_only
         self.rebuild()
 
     def _build_sum_line(self):
@@ -481,6 +493,19 @@ class MessageWidget(urwid.WidgetWrap):
                 bc.append(1)
             self.bodyw = urwid.Columns(cols, box_columns=bc)
         return self.bodyw
+
+    def _get_source_widget(self):
+        """creates/returns the widget that displays the mail body"""
+        if not self.sourcew:
+            cols = [urwid.Text(self.message.get_email().as_string())]
+            bc = list()
+            if self.depth:
+                cols.insert(0, self._get_spacer(self.bars_at[1:]))
+                bc.append(0)
+                cols.insert(1, self._get_arrowhead_aligner())
+                bc.append(1)
+            self.sourcew = urwid.Columns(cols, box_columns=bc)
+        return self.sourcew
 
     def _get_spacer(self, bars_at):
         prefixchars = []
