@@ -8,6 +8,7 @@ from alot.commands import Command, registerCommand
 from alot.commands.globals import ExternalCommand
 from alot.commands.globals import FlushCommand
 from alot.commands.globals import ComposeCommand
+from alot.commands.globals import RefreshCommand
 from alot import settings
 from alot import widgets
 from alot import completion
@@ -417,7 +418,7 @@ class RemoveCommand(Command):
         ui.notify(ok_msg)
 
         # refresh buffer
-        ui.current_buffer.rebuild()
+        ui.apply_command(RefreshCommand())
 
 
 @registerCommand(MODE, 'print', arguments=[
