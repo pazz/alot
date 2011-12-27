@@ -352,7 +352,8 @@ class MessageWidget(urwid.WidgetWrap):
     #TODO: atm this is heavily bent to work nicely with ThreadBuffer to display
     #a tree structure. A better way would be to keep this widget simple
     #(subclass urwid.Pile) and use urwids new Tree widgets
-    def __init__(self, message, even=False, folded=True, raw=False, depth=0, bars_at=[]):
+    def __init__(self, message, even=False, folded=True, raw=False,
+                 all_headers=False, depth=0, bars_at=[]):
         """
         :param message: the message to display
         :type message: alot.db.Message
@@ -362,6 +363,8 @@ class MessageWidget(urwid.WidgetWrap):
         :type folded: bool
         :param raw: show message source initially
         :type raw: bool
+        :param all_headers: show all headers initially
+        :type all_headers: bool
         :param depth: number of characters to shift content to the right
         :type depth: int
         :param bars_at: defines for each column of the indentation whether to
@@ -375,7 +378,8 @@ class MessageWidget(urwid.WidgetWrap):
         self.bars_at = bars_at
         self.even = even
         self.folded = folded
-        self.raw = raw
+        self.show_raw = raw
+        self.show_all_headers = all_headers
 
         # build the summary line, header and body will be created on demand
         self.sumline = self._build_sum_line()
@@ -385,10 +389,10 @@ class MessageWidget(urwid.WidgetWrap):
         self.sourcew = None
 
         # set available and to be displayed headers
-        self.all_headers = self.mail.keys()
+        self._all_headers = self.mail.keys()
         displayed = config.getstringlist('general', 'displayed_headers')
-        self.filtered_headers = [k for k in displayed if k in self.mail]
-        self.displayed_headers = self.filtered_headers
+        self._filtered_headers = [k for k in displayed if k in self.mail]
+        self._displayed_headers = None
 
         self.rebuild()  # this will build self.pile
         urwid.WidgetWrap.__init__(self, self.pile)
@@ -399,7 +403,7 @@ class MessageWidget(urwid.WidgetWrap):
     def rebuild(self):
         if not self.folded:  # only if already unfolded
             self.displayed_list = [self.sumline]
-            if self.raw:
+            if self.show_raw:
                 srcw = self._get_source_widget()
                 self.displayed_list.append(srcw)
             else:
@@ -416,13 +420,6 @@ class MessageWidget(urwid.WidgetWrap):
         self.pile = urwid.Pile(self.displayed_list)
         self._w = self.pile
 
-    def fold(self, visible=False):
-        self.folded = not visible
-        self.rebuild()
-
-    def display_source(self, show_source_only):
-        self.raw = show_source_only
-        self.rebuild()
 
     def _build_sum_line(self):
         """creates/returns the widget that displays the summary line."""
@@ -442,28 +439,35 @@ class MessageWidget(urwid.WidgetWrap):
         line = urwid.Columns(cols, box_columns=bc)
         return line
 
-    def _get_header_widget(self, force_update=False):
+    def _get_header_widget(self):
         """creates/returns the widget that displays the mail header"""
-        if not self.displayed_headers:
-            return None
-        if not self.headerw or force_update:
-            mail = self.message.get_email()
-            # normalize values if only filtered list is shown
-            norm = not (self.displayed_headers == self.all_headers)
-            #build lines
-            lines = []
-            for k, v in mail.items():
-                if k in self.displayed_headers:
-                    lines.append((k, message.decode_header(v, normalize=norm)))
+        all_shown = (self._all_headers == self._displayed_headers)
 
-            cols = [HeadersList(lines)]
-            bc = list()
-            if self.depth:
-                cols.insert(0, self._get_spacer(self.bars_at[1:]))
-                bc.append(0)
-                cols.insert(1, self._get_arrowhead_aligner())
-                bc.append(1)
-            self.headerw = urwid.Columns(cols, box_columns=bc)
+        if self.headerw and (self.show_all_headers == all_shown):
+            return self.headerw
+
+        if self.show_all_headers:
+            self._displayed_headers = self._all_headers
+        else:
+            self._displayed_headers = self._filtered_headers
+
+        mail = self.message.get_email()
+        # normalize values if only filtered list is shown
+        norm = not (self._displayed_headers == self._all_headers)
+        #build lines
+        lines = []
+        for k, v in mail.items():
+            if k in self._displayed_headers:
+                lines.append((k, message.decode_header(v, normalize=norm)))
+
+        cols = [HeadersList(lines)]
+        bc = list()
+        if self.depth:
+            cols.insert(0, self._get_spacer(self.bars_at[1:]))
+            bc.append(0)
+            cols.insert(1, self._get_arrowhead_aligner())
+            bc.append(1)
+        self.headerw = urwid.Columns(cols, box_columns=bc)
         return self.headerw
 
     def _get_attachment_widget(self):
@@ -526,17 +530,6 @@ class MessageWidget(urwid.WidgetWrap):
         else:
             aligner = ' '
         return ('fixed', 1, urwid.SolidFill(aligner))
-
-    def toggle_full_header(self):
-        """toggles if message headers are shown"""
-        # todo: normalize if not all show..
-        if self.displayed_headers == self.all_headers:
-            self.displayed_headers = self.filtered_headers
-        else:
-            self.displayed_headers = self.all_headers
-        hw = self._get_header_widget(force_update=True)
-        logging.debug(hw.widget_list[0])
-        self.rebuild()
 
     def selectable(self):
         return True
