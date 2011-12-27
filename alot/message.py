@@ -540,11 +540,15 @@ class Envelope(object):
         else:
             msg = textpart
 
-        # add Date header
-        msg['Date'] = email.Utils.formatdate()
+        headers = self.headers.copy()
+        # add Date and Message-ID headers
+        if 'Date' not in headers:
+            headers['Date'] = [email.Utils.formatdate()]
+        if 'Message-ID' not in headers:
+            headers['Message-ID'] = [email.Utils.make_msgid()]
 
         # copy headers from envelope to mail
-        for k, vlist in self.headers.items():
+        for k, vlist in headers.items():
             for v in vlist:
                 msg[k] = encode_header(k, v)
 
