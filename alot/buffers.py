@@ -294,10 +294,11 @@ class ThreadBuffer(Buffer):
         for mw in self.get_message_widgets():
             msg = mw.get_message()
             if msg.matches(querystring):
-                mw.fold(visible=True)
+                mw.folded = False
                 if 'unread' in msg.get_tags():
                     msg.remove_tags(['unread'])
                     self.ui.apply_command(commands.globals.FlushCommand())
+                mw.rebuild()
 
 
 class TagListBuffer(Buffer):
