@@ -151,7 +151,7 @@ O = refineprompt
 [envelope-maps]
 a = prompt 'attach ~/'
 y = send
-d = save
+P = save
 s = 'refine Subject'
 t = 'refine To'
 b = 'refine Bcc'
