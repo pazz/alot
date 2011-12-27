@@ -530,18 +530,28 @@ class Envelope(object):
         compiles the information contained in this envelope into a
         :class:`email.Message`.
         """
+        # build body text part
         textpart = MIMEText(self.body.encode('utf-8'), 'plain', 'utf-8')
+
+        # wrap it in a multipart container if necessary
         if self.attachments or self.sign or self.encrypt:
             msg = MIMEMultipart()
             msg.attach(textpart)
         else:
             msg = textpart
+
+        # add Date header
         msg['Date'] = email.Utils.formatdate()
+
+        # copy headers from envelope to mail
         for k, vlist in self.headers.items():
             for v in vlist:
                 msg[k] = encode_header(k, v)
+
+        # add attachments
         for a in self.attachments:
             msg.attach(a.get_mime_representation())
+
         return msg
 
     def parse_template(self, tmp, reset=False):
