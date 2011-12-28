@@ -107,6 +107,25 @@ class AlotConfigParser(FallbackConfigParser):
                 p.append((attr + '_focus', nf, nb, m, hf, hb))
         return p
 
+    def has_themeing(self, themeing):
+        """
+        Return true if the given themeing option exists in the current colour
+        theme.
+
+        :param themeing: The themeing option to check for
+        :type theming: string
+        :return: True if themeing exist, False otherwise
+        :rtype: bool
+        """
+        mode = self.getint('general', 'colourmode')
+        if mode == 2:
+            theme = '1c-theme'
+        else:
+            theme = '{colours}c-theme'.format(colours=mode)
+        has_fg = self.has_option(theme, themeing + '_fg')
+        has_bg = self.has_option(theme, themeing + '_bg')
+        return (has_fg or has_bg)
+
     def get_tagattr(self, tag, focus=False):
         """
         look up attribute string to use for a given tagstring
