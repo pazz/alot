@@ -1,5 +1,6 @@
 import imp
 import os
+import re
 import ast
 import mailcap
 import codecs
@@ -93,11 +94,11 @@ class AlotConfigParser(FallbackConfigParser):
             names = set([s[:-3] for s in names])
         p = list()
         for attr in names:
-            nf = self.get('16c-theme', attr + '_fg', fallback='default')
-            nb = self.get('16c-theme', attr + '_bg', fallback='default')
-            m = self.get('1c-theme', attr, fallback='default')
-            hf = self.get('256c-theme', attr + '_fg', fallback='default')
-            hb = self.get('256c-theme', attr + '_bg', fallback='default')
+            nf = self.__get_themeing_option('16c-theme', attr + '_fg')
+            nb = self.__get_themeing_option('16c-theme', attr + '_bg')
+            m = self.__get_themeing_option('1c-theme', attr)
+            hf = self.__get_themeing_option('256c-theme', attr + '_fg')
+            hb = self.__get_themeing_option('256c-theme', attr + '_bg')
             p.append((attr, nf, nb, m, hf, hb))
             if attr.startswith('tag_') and attr + '_focus' not in names:
                 nb = self.get('16c-theme', 'tag_focus_bg',
@@ -106,6 +107,41 @@ class AlotConfigParser(FallbackConfigParser):
                               fallback='default')
                 p.append((attr + '_focus', nf, nb, m, hf, hb))
         return p
+
+    def __get_themeing_option(self, section, option, default='default'):
+        """
+        Retrieve the value of the given option from the given section of the config
+        file.
+        
+        If the option does not exist, try its parent options before falling back to
+        the specified default. The parent of an option is the name of the option
+        itself minus the last section enclosed in underscores; so the parent of the
+        option `aaa_bbb_ccc_fg` is of the form `aaa_bbb_fg`.
+        
+        :param section: the section of the config file to search for the given
+                        option
+        :type section: string
+        :param option: the option to lookup
+        :type option: string
+        :param default: the value that is to be returned if neither the requested
+                        option nor a parent exists
+        :type default: string
+        :return: the value of the given option, or the specified default
+        :rtype: string
+        """
+        result = ''
+        parent_option_re = '(.+)_[^_]+_(fg|bg)'
+        if self.has_option(section, option):
+            result = self.get(section, option)
+        else:
+            has_parent_option = re.search(parent_option_re, option)
+            if has_parent_option:
+                parent_option = '{0}_{1}'.format(has_parent_option.group(1),
+                                                 has_parent_option.group(2))
+                result = self.__get_themeing_option(section, parent_option)
+            else:
+                result = default
+        return result
 
     def has_themeing(self, themeing):
         """
