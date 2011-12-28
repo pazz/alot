@@ -78,7 +78,7 @@ class ThreadlineWidget(urwid.AttrMap):
         self.display_content = config.getboolean('general',
                                     'display_content_in_threadline')
         self.highlight_components = config.getstringlist('general', 'thread_highlight_components')
-        self.highlight_tags = config.getstringlist('general', 'thread_highlight_tags')
+        self.highlight_tags = config.get_highlight_tags()
         self.rebuild()
         urwid.AttrMap.__init__(self, self.columns,
                                'search_thread', 'search_thread_focus')
@@ -190,12 +190,12 @@ class ThreadlineWidget(urwid.AttrMap):
         if focus:
             theme = theme + '_focus'
         if component in self.highlight_components:
-            for tag in self.highlight_tags:
-                if self.thread.has_tag(tag):
-                    tag_theme = theme + '_{tag}'.format(tag=tag)
-                    if config.has_themeing(tag_theme):
-                        theme = tag_theme 
-                    break
+            for tags in self.highlight_tags:
+                    if self.thread.has_tags(*tags):
+                        tag_theme = theme + '_{tags}'.format(tags='+'.join(tags))
+                        if config.has_themeing(tag_theme):
+                            theme = tag_theme 
+                        break
         return theme
 
 

@@ -162,6 +162,18 @@ class AlotConfigParser(FallbackConfigParser):
         has_bg = self.has_option(theme, themeing + '_bg')
         return (has_fg or has_bg)
 
+    def get_highlight_tags(self):
+        if self.has_option('general', 'thread_highlight_tags'):
+            highlight_tags = list()
+            raw_lists = self.getstringlist('general', 'thread_highlight_tags')
+            for raw_list in raw_lists:
+                raw_combo = raw_list.split('+')
+                tag_combo = [tag.strip() for tag in raw_combo]
+                highlight_tags.append(tag_combo)
+            return highlight_tags
+        else:
+            raise NameError("No config option 'thread_highlight_tags'.")
+
     def get_tagattr(self, tag, focus=False):
         """
         look up attribute string to use for a given tagstring
