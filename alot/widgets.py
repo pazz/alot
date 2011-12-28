@@ -195,7 +195,7 @@ class ThreadlineWidget(urwid.AttrMap):
                     tag_theme = theme + '_{tag}'.format(tag=tag)
                     if config.has_theming(tag_theme):
                         theme = tag_theme 
-                        break
+                    break
         return theme
 
 
