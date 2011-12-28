@@ -38,10 +38,11 @@ terminal_cmd = x-terminal-emulator -e
 # Thread lines in the search buffer can be highlighted upon occurrence of a tag
 # by theming their components.
 
-# comma separated list of tags you want highlighting for. Note that the sequence
-# of the list defines the search order. The first specified tag that is found
-# defines the theming.
-thread_highlight_tags = unread,flagged
+# comma separated list of tag combinations you want highlighting for. Note that
+# the sequence of the list defines the search order. The first specified tag
+# combination that is found defines the themeing. Tag combinations are joined by
+# the '+' character.
+thread_highlight_tags = unread+flagged,unread,flagged
 
 # comma separated list of the components of a thread line you want highlighted
 # if a configured tag is found.
@@ -230,11 +231,11 @@ bufferlist_results_odd_fg = default
 search_thread_authors_bg = default
 search_thread_authors_fg = #6d6
 search_thread_authors_unread_fg = #6d6,bold
-search_thread_authors_flagged_fg = light red,bold
+search_thread_authors_unread+flagged_fg = #6d6,bold
 search_thread_authors_focus_bg = #68a
 search_thread_authors_focus_fg = #8f6
 search_thread_authors_focus_unread_fg = #8f6,bold
-search_thread_authors_focus_flagged_fg = light red
+search_thread_authors_focus_unread+flagged_fg = #8f6,bold
 search_thread_bg = default
 search_thread_content_bg = default
 search_thread_content_fg = #866
@@ -242,31 +243,37 @@ search_thread_content_focus_bg = #68a
 search_thread_content_focus_fg = #866
 search_thread_date_bg = default
 search_thread_date_fg = g58
-search_thread_date_flagged_bg = default
+search_thread_date_unread_fg = g58,bold
 search_thread_date_flagged_fg = light red
+search_thread_date_unread+flagged_fg = light red,bold
 search_thread_date_focus_bg = #68a
 search_thread_date_focus_fg = g89
-search_thread_date_focus_flagged_bg = #68a
-search_thread_date_focus_flagged_fg = light red,bold
+search_thread_date_focus_unread_fg = g89,bold
+search_thread_date_focus_flagged_fg = light red
+search_thread_date_focus_unread+flagged_fg = light red,bold
 search_thread_fg = default
 search_thread_focus_bg = #68a
 search_thread_focus_fg = white
 search_thread_mailcount_bg = default
 search_thread_mailcount_fg = light gray
-search_thread_mailcount_flagged_bg = default
-search_thread_mailcount_flagged_fg = light red,bold
+search_thread_mailcount_unread_fg = light gray,bold
+search_thread_mailcount_flagged_fg = light red
+search_thread_mailcount_unread+flagged_fg = light red,bold
 search_thread_mailcount_focus_bg = #68a
 search_thread_mailcount_focus_fg = g89
-search_thread_mailcount_focus_flagged_bg = #68a
+search_thread_mailcount_focus_unread_fg = g89,bold
 search_thread_mailcount_focus_flagged_fg = light red
+search_thread_mailcount_focus_unread+flagged_fg = light red,bold
 search_thread_subject_bg = default
 search_thread_subject_fg = g58
 search_thread_subject_unread_fg = g58,bold
 search_thread_subject_flagged_fg = light red
+search_thread_subject_unread+flagged_fg = light red,bold
 search_thread_subject_focus_bg = #68a
 search_thread_subject_focus_fg = g89
 search_thread_subject_focus_unread_fg = g89,bold
-search_thread_subject_focus_flagged_fg = light red,bold
+search_thread_subject_focus_flagged_fg = light red
+search_thread_subject_focus_unread+flagged_fg = light red,bold
 search_thread_tags_bg = default
 search_thread_tags_fg = #a86
 search_thread_tags_focus_bg = #68a
