@@ -16,12 +16,13 @@ Depends:
  python-urwid,
  python-twisted-core,
  python-notmuch
- python-magic
+ python-magic (>= 5.04)
 Recommends:
  notmuch
+ mime-support
 Description: A terminal-based interface to the notmuch mail agent
  Alot is an ncurses-based terminal interface to the notmuch mail
- program.  It is writen in python, using the urwid toolkit.
+ program. It is writen in python, using the urwid toolkit.
  .
  Current features:
   * modular and command prompt driven interface
