@@ -63,9 +63,15 @@ Here's a full list of the interpreted keywords in account sections:
     # how to tag sent mails [default: sent]. seperate multiple tags with ','.
     sent_tags = sent
 
-    # file to append before sending
+    # path to signature file
     signature = ~/your_vcard_for_this_account.vcs
-    # signature file's name as it appears in outgoing mails
+
+    # attach signature file if set to True, append its content (mimetype text)
+    # to the body text if set to False. Defaults to False.
+    signature_as_attachment = False
+
+    # signature file's name as it appears in outgoing mails if
+    # signature_as_attachment is set to True
     signature_filename = you.vcs
 
     # command to lookup contacts
