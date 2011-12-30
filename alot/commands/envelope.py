@@ -125,21 +125,6 @@ class SendCommand(Command):
                 account = ui.accountman.get_accounts()[0]
                 omit_signature = True
 
-        # attach signature file if present
-        if account.signature and not omit_signature:
-            sig = os.path.expanduser(account.signature)
-            if os.path.isfile(sig):
-                if account.signature_filename:
-                    name = account.signature_filename
-                else:
-                    name = None
-                envelope.attach(sig, filename=name)
-            else:
-                ui.notify('could not locate signature: %s' % sig,
-                          priority='error')
-                if (yield ui.choice('send without signature',
-                                    select='yes', cancel='no')) == 'no':
-                    return
         # send
         clearme = ui.notify('sending..', timeout=-1)
 
