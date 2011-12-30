@@ -538,6 +538,32 @@ class ComposeCommand(Command):
                 else:
                     self.envelope.add('From', fromaddress)
 
+        # add signature
+        name, addr = email.Utils.parseaddr(self.envelope['From'])
+        a = ui.accountman.get_account_by_address(addr)
+        if a.signature:
+            ui.logger.debug('has signature')
+            sig = os.path.expanduser(a.signature)
+            if os.path.isfile(sig):
+                ui.logger.debug('is file')
+                if a.signature_as_attachment:
+                    name = a.signature_filename or None
+                    self.envelope.attach(sig, filename=name)
+                    ui.logger.debug('attached')
+                else:
+                    sigcontent = open(sig).read()
+                    enc = helper.guess_encoding(sigcontent)
+                    mimetype = helper.guess_mimetype(sigcontent)
+                    if mimetype.startswith('text'):
+                        sigcontent = helper.string_decode(sigcontent, enc)
+                        self.envelope.body += '\n' + sigcontent
+            else:
+                ui.notify('could not locate signature: %s' % sig,
+                          priority='error')
+                if (yield ui.choice('send without signature',
+                                    select='yes', cancel='no')) == 'no':
+                    return
+
         # get missing To header
         if 'To' not in self.envelope.headers:
             sender = self.envelope.get('From')
