@@ -40,13 +40,16 @@ class Account(object):
     """signature to append to outgoing mails"""
     signature_filename = None
     """filename of signature file in attachment"""
+    signature_as_attachment = None
+    """attach signature file instead of appending its content to body text"""
     abook = None
     """addressbook (:class:`AddressBook`) managing this accounts contacts"""
 
     def __init__(self, dbman, address=None, aliases=None, realname=None,
                  gpg_key=None, signature=None, signature_filename=None,
-                 sent_box=None, sent_tags=['sent'], draft_box=None,
-                 draft_tags=['draft'], abook=None):
+                 signature_as_attachment=False, sent_box=None,
+                 sent_tags=['sent'], draft_box=None, draft_tags=['draft'],
+                 abook=None):
         self.dbman = dbman
         self.address = address
         self.abook = abook
@@ -57,6 +60,7 @@ class Account(object):
         self.gpg_key = gpg_key
         self.signature = signature
         self.signature_filename = signature_filename
+        self.signature_as_attachment = signature_as_attachment
 
         self.sent_box = None
         if sent_box:
@@ -192,6 +196,7 @@ class AccountManager(object):
                'gpg_key',
                'signature',
                'signature_filename',
+               'signature_as_attachment',
                'type',
                'sendmail_command',
                'abook_command',
@@ -229,6 +234,11 @@ class AccountManager(object):
                 else:
                     regexp = None  # will use default in constructor
                 args['abook'] = MatchSdtoutAddressbook(cmd, match=regexp)
+
+            if 'signature_as_attachment' in options:
+                value = config.getboolean(s, 'signature_as_attachment')
+                args['signature_as_attachment'] = value
+                options.remove('signature_as_attachment')
 
             to_set = self.manditory
             for o in options:
