@@ -258,6 +258,9 @@ def extract_body(mail, types=None):
         if types is not None:
             if ctype not in types:
                 continue
+        cd = part.get('Content-Disposition', '')
+        if cd.startswith('attachment'):
+            continue
 
         enc = part.get_content_charset() or 'ascii'
         raw_payload = part.get_payload(decode=True)
