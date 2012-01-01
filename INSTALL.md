@@ -45,7 +45,10 @@ get alot and install it from git:
 
 other dependencies
 ------------------
- * python-magic (python bindings to the file(1) utility)
+ * python bindings to libmagic, greater or equal than v5.04:
+   http://darwinsys.com/file/ 
+   This is packaged as 'python-magic' in debian/ubuntu.
+
  * a mailcap file (I recommend installing 'mime-support' on debian/ubuntu).
    This is used to determine the commands to call when opening attachments
    or text-rendering parts that are not plaintext, e.g. text/html.
