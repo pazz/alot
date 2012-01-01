@@ -3,6 +3,7 @@ import logging
 import tempfile
 from twisted.internet.defer import inlineCallbacks
 import shlex
+import re
 
 from alot.commands import Command, registerCommand
 from alot.commands.globals import ExternalCommand
@@ -557,7 +558,7 @@ class OpenAttachmentCommand(Command):
         handler = settings.get_mime_handler(mimetype)
         if handler:
             path = self.attachment.save(tempfile.gettempdir())
-            handler = handler.replace('%s', '{}')
+            handler = re.sub('\'?%s\'?', '{}', handler)
 
             # 'needsterminal' makes handler overtake the terminal
             nt = settings.get_mime_handler(mimetype, key='needsterminal')
