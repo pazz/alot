@@ -295,7 +295,7 @@ class ChangeDisplaymodeCommand(Command):
 
 
 @registerCommand(MODE, 'pipeto', arguments=[
-    (['cmd'], {'nargs':'?', 'help':'shellcommand to pipe to'}),
+    (['cmd'], {'help':'shellcommand to pipe to'}),
     (['--all'], {'action': 'store_true', 'help':'pass all messages'}),
     (['--decode'], {'action': 'store_true',
                     'help':'use only decoded body lines'}),
@@ -312,7 +312,7 @@ class PipeCommand(Command):
                  done_msg='done', **kwargs):
         """
         :param cmd: shellcommand to open
-        :type cmd: list of str
+        :type cmd: str or list of str
         :param all: pipe all, not only selected message
         :type all: bool
         :param ids: only write message ids, not the message source
@@ -328,6 +328,8 @@ class PipeCommand(Command):
         :type done_msg: str
         """
         Command.__init__(self, **kwargs)
+        if isinstance(cmd, unicode):
+            cmd = shlex.split(cmd.encode('UTF-8'))
         self.cmdlist = cmd
         self.whole_thread = all
         self.separately = separately
