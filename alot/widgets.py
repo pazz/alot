@@ -97,6 +97,7 @@ class ThreadlineWidget(urwid.AttrMap):
                 datestring = newest.strftime(formatstring)
             else:
                 datestring = pretty_datetime(newest).rjust(10)
+        self.highlight_theme_suffix = self._get_highlight_theme_suffix()
         self.date_w = urwid.AttrMap(urwid.Text(datestring),
                                     self._get_theme('date'))
         cols.append(('fixed', len(datestring), self.date_w))
@@ -154,6 +155,7 @@ class ThreadlineWidget(urwid.AttrMap):
         self.original_widget = self.columns
 
     def render(self, size, focus=False):
+        self.highlight_theme_suffix = self._get_highlight_theme_suffix()
         if focus:
             self.date_w.set_attr_map({None: self._get_theme('date', focus)})
             self.mailcount_w.set_attr_map({None:
@@ -185,17 +187,22 @@ class ThreadlineWidget(urwid.AttrMap):
     def get_thread(self):
         return self.thread
 
+    def _get_highlight_theme_suffix(self):
+        suffix = None
+        for tags in self.highlight_tags:
+            if self.thread.has_tags(*tags):
+                suffix = '+'.join(tags)
+                break
+        return suffix
+
     def _get_theme(self, component, focus=False):
         theme = 'search_thread_{0}'.format(component)
         if focus:
             theme = theme + '_focus'
-        if component in self.highlight_components:
-            for tags in self.highlight_tags:
-                    if self.thread.has_tags(*tags):
-                        tag_theme = theme + '_{tags}'.format(tags='+'.join(tags))
-                        if config.has_themeing(tag_theme):
-                            theme = tag_theme 
-                        break
+        if self.highlight_theme_suffix and component in self.highlight_components:
+            tag_theme = theme + '_{tags}'.format(tags=self.highlight_theme_suffix)
+            if config.has_themeing(tag_theme):
+                theme = tag_theme 
         return theme
 
 
