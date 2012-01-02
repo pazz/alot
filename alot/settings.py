@@ -94,11 +94,11 @@ class AlotConfigParser(FallbackConfigParser):
             names = set([s[:-3] for s in names])
         p = list()
         for attr in names:
-            nf = self.__get_themeing_option('16c-theme', attr + '_fg')
-            nb = self.__get_themeing_option('16c-theme', attr + '_bg')
-            m = self.__get_themeing_option('1c-theme', attr)
-            hf = self.__get_themeing_option('256c-theme', attr + '_fg')
-            hb = self.__get_themeing_option('256c-theme', attr + '_bg')
+            nf = self._get_themeing_option('16c-theme', attr + '_fg')
+            nb = self._get_themeing_option('16c-theme', attr + '_bg')
+            m = self._get_themeing_option('1c-theme', attr)
+            hf = self._get_themeing_option('256c-theme', attr + '_fg')
+            hb = self._get_themeing_option('256c-theme', attr + '_bg')
             p.append((attr, nf, nb, m, hf, hb))
             if attr.startswith('tag_') and attr + '_focus' not in names:
                 nb = self.get('16c-theme', 'tag_focus_bg',
@@ -108,7 +108,7 @@ class AlotConfigParser(FallbackConfigParser):
                 p.append((attr + '_focus', nf, nb, m, hf, hb))
         return p
 
-    def __get_themeing_option(self, section, option, default='default'):
+    def _get_themeing_option(self, section, option, default='default'):
         """
         Retrieve the value of the given option from the given section of the config
         file.
@@ -138,7 +138,7 @@ class AlotConfigParser(FallbackConfigParser):
             if has_parent_option:
                 parent_option = '{0}_{1}'.format(has_parent_option.group(1),
                                                  has_parent_option.group(2))
-                result = self.__get_themeing_option(section, parent_option)
+                result = self._get_themeing_option(section, parent_option)
             else:
                 result = default
         return result
