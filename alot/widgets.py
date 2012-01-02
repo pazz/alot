@@ -193,7 +193,8 @@ class ThreadlineWidget(urwid.AttrMap):
     def _get_highlight_theme_suffix(self):
         suffix = None
         for tags in self.highlight_tags:
-            if self.thread.has_tags(*tags):
+            query = 'thread:{} AND tag:{}'.format(self.thread.get_thread_id(), ' AND tag:'.join(tags))
+            if self.dbman.count_messages(query):
                 suffix = '+'.join(tags)
                 break
         return suffix
