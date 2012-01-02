@@ -78,7 +78,7 @@ class ThreadlineWidget(urwid.AttrMap):
         self.display_content = config.getboolean('general',
                                     'display_content_in_threadline')
         self.highlight_components = config.getstringlist('general', 'thread_highlight_components')
-        self.highlight_tags = config.getstringlist('general', 'thread_highlight_tags')
+        self.highlight_tags = config.get_highlight_tags()
         self.rebuild()
         urwid.AttrMap.__init__(self, self.columns,
                                'search_thread', 'search_thread_focus')
@@ -97,8 +97,9 @@ class ThreadlineWidget(urwid.AttrMap):
                 datestring = newest.strftime(formatstring)
             else:
                 datestring = pretty_datetime(newest).rjust(10)
+        self.highlight_theme_suffix = self._get_highlight_theme_suffix()
         self.date_w = urwid.AttrMap(urwid.Text(datestring),
-                                    'search_thread_date')
+                                    self._get_theme('date'))
         cols.append(('fixed', len(datestring), self.date_w))
 
         if self.thread:
@@ -106,7 +107,7 @@ class ThreadlineWidget(urwid.AttrMap):
         else:
             mailcountstring = "(?)"
         self.mailcount_w = urwid.AttrMap(urwid.Text(mailcountstring),
-                                   'search_thread_mailcount')
+                                         self._get_theme('mailcount'))
         cols.append(('fixed', len(mailcountstring), self.mailcount_w))
 
         if self.thread:
@@ -125,7 +126,7 @@ class ThreadlineWidget(urwid.AttrMap):
         maxlength = config.getint('general', 'authors_maxlength')
         authorsstring = shorten_author_string(authors, maxlength)
         self.authors_w = urwid.AttrMap(urwid.Text(authorsstring),
-                                       self.__get_theme('authors'))
+                                       self._get_theme('authors'))
         cols.append(('fixed', len(authorsstring), self.authors_w))
 
         if self.thread:
@@ -133,7 +134,7 @@ class ThreadlineWidget(urwid.AttrMap):
         else:
             subjectstring = ''
         self.subject_w = urwid.AttrMap(urwid.Text(subjectstring, wrap='clip'),
-                                       self.__get_theme('subject'))
+                                       self._get_theme('subject'))
         if subjectstring:
             cols.append(('weight', 2, self.subject_w))
 
@@ -154,24 +155,25 @@ class ThreadlineWidget(urwid.AttrMap):
         self.original_widget = self.columns
 
     def render(self, size, focus=False):
+        self.highlight_theme_suffix = self._get_highlight_theme_suffix()
         if focus:
-            self.date_w.set_attr_map({None: self.__get_theme('date', focus)})
+            self.date_w.set_attr_map({None: self._get_theme('date', focus)})
             self.mailcount_w.set_attr_map({None:
-                                          self.__get_theme('mailcount', focus)})
+                                          self._get_theme('mailcount', focus)})
             for tw in self.tag_widgets:
                 tw.set_focussed()
-            self.authors_w.set_attr_map({None: self.__get_theme('authors', focus)})
-            self.subject_w.set_attr_map({None: self.__get_theme('subject', focus)})
+            self.authors_w.set_attr_map({None: self._get_theme('authors', focus)})
+            self.subject_w.set_attr_map({None: self._get_theme('subject', focus)})
             if self.display_content:
                 self.content_w.set_attr_map(
                     {None: 'search_thread_content_focus'})
         else:
-            self.date_w.set_attr_map({None: self.__get_theme('date')})
-            self.mailcount_w.set_attr_map({None: self.__get_theme('mailcount')})
+            self.date_w.set_attr_map({None: self._get_theme('date')})
+            self.mailcount_w.set_attr_map({None: self._get_theme('mailcount')})
             for tw in self.tag_widgets:
                 tw.set_unfocussed()
-            self.authors_w.set_attr_map({None: self.__get_theme('authors')})
-            self.subject_w.set_attr_map({None: self.__get_theme('subject')})
+            self.authors_w.set_attr_map({None: self._get_theme('authors')})
+            self.subject_w.set_attr_map({None: self._get_theme('subject')})
             if self.display_content:
                 self.content_w.set_attr_map({None: 'search_thread_content'})
         return urwid.AttrMap.render(self, size, focus)
@@ -185,17 +187,22 @@ class ThreadlineWidget(urwid.AttrMap):
     def get_thread(self):
         return self.thread
 
-    def __get_theme(self, component, focus=False):
+    def _get_highlight_theme_suffix(self):
+        suffix = None
+        for tags in self.highlight_tags:
+            if self.thread.has_tags(*tags):
+                suffix = '+'.join(tags)
+                break
+        return suffix
+
+    def _get_theme(self, component, focus=False):
         theme = 'search_thread_{0}'.format(component)
         if focus:
             theme = theme + '_focus'
-        if component in self.highlight_components:
-            for tag in self.highlight_tags:
-                if self.thread.has_tag(tag):
-                    tag_theme = theme + '_{tag}'.format(tag=tag)
-                    if config.has_theming(tag_theme):
-                        theme = tag_theme 
-                        break
+        if self.highlight_theme_suffix and component in self.highlight_components:
+            tag_theme = theme + '_{tags}'.format(tags=self.highlight_theme_suffix)
+            if config.has_themeing(tag_theme):
+                theme = tag_theme 
         return theme
 
 
