@@ -98,7 +98,7 @@ class ThreadlineWidget(urwid.AttrMap):
             else:
                 datestring = pretty_datetime(newest).rjust(10)
         self.date_w = urwid.AttrMap(urwid.Text(datestring),
-                                    'search_thread_date')
+                                    self._get_theme('date'))
         cols.append(('fixed', len(datestring), self.date_w))
 
         if self.thread:
@@ -106,7 +106,7 @@ class ThreadlineWidget(urwid.AttrMap):
         else:
             mailcountstring = "(?)"
         self.mailcount_w = urwid.AttrMap(urwid.Text(mailcountstring),
-                                   'search_thread_mailcount')
+                                         self._get_theme('mailcount'))
         cols.append(('fixed', len(mailcountstring), self.mailcount_w))
 
         if self.thread:
