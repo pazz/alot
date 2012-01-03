@@ -8,7 +8,7 @@ import codecs
 import logging
 
 from collections import OrderedDict
-from ConfigParser import SafeConfigParser
+from ConfigParser import SafeConfigParser, ParsingError, NoOptionError
 
 
 class FallbackConfigParser(SafeConfigParser):
@@ -177,11 +177,11 @@ class AlotConfigParser(FallbackConfigParser):
             try:
                 return json.loads(config_string, object_pairs_hook=OrderedDict)
             except ValueError as err:
-                raise ValueError("Could not parse config option" \
-                                 " 'thread_highlight_rules':" \
-                                 " {reason}".format(reason=err))
+                raise ParsingError("Could not parse config option" \
+                                   " 'thread_highlight_rules':" \
+                                   " {reason}".format(reason=err))
         else:
-            raise NameError("No config option 'thread_highlight_rules'.")
+            raise NoOptionError('thread_highlight_rules', 'general')
 
     def get_tagattr(self, tag, focus=False):
         """
