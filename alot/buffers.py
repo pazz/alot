@@ -134,10 +134,13 @@ class SearchBuffer(Buffer):
     """
     threads = []
 
-    def __init__(self, ui, initialquery=''):
+    def __init__(self, ui, initialquery='', sort_order=None):
         self.dbman = ui.dbman
         self.ui = ui
         self.querystring = initialquery
+        default_order = settings.config.get('general',
+                                            'search_threads_sort_order')
+        self.sort_order = sort_order or default_order
         self.result_count = 0
         self.isinitialized = False
         self.proc = None  # process that fills our pipe
@@ -173,7 +176,8 @@ class SearchBuffer(Buffer):
 
         self.result_count = self.dbman.count_messages(self.querystring)
         try:
-            self.pipe, self.proc = self.dbman.get_threads(self.querystring)
+            self.pipe, self.proc = self.dbman.get_threads(self.querystring,
+                                                          self.sort_order)
         except NotmuchError:
             self.ui.notify('malformed query string: %s' % self.querystring,
                            'error')
