@@ -49,6 +49,7 @@ class ComposeOptions(SubcommandOptions):
 
 class SearchOptions(SubcommandOptions):
     accepted = ['oldest_first', 'newest_first', 'message_id', 'unsorted']
+
     def colourint(val):
         if val not in accepted:
             raise ValueError("Unknown sort order")

@@ -272,6 +272,7 @@ def guess_encoding(blob):
     return m.buffer(blob)
 
 
+# TODO: make this work on blobs, not paths
 def mimewrap(path, filename=None, ctype=None):
     content = open(path, 'rb').read()
     ctype = ctype or guess_mimetype(content)

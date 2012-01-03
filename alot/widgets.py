@@ -77,7 +77,8 @@ class ThreadlineWidget(urwid.AttrMap):
         self.tag_widgets = []
         self.display_content = config.getboolean('general',
                                     'display_content_in_threadline')
-        self.highlight_components = config.getstringlist('general', 'thread_highlight_components')
+        self.highlight_components = config.getstringlist('general',
+                                            'thread_highlight_components')
         self.highlight_tags = config.get_highlight_tags()
         self.rebuild()
         urwid.AttrMap.__init__(self, self.columns,
@@ -162,8 +163,10 @@ class ThreadlineWidget(urwid.AttrMap):
                                           self._get_theme('mailcount', focus)})
             for tw in self.tag_widgets:
                 tw.set_focussed()
-            self.authors_w.set_attr_map({None: self._get_theme('authors', focus)})
-            self.subject_w.set_attr_map({None: self._get_theme('subject', focus)})
+            self.authors_w.set_attr_map({None: self._get_theme('authors',
+                                                               focus)})
+            self.subject_w.set_attr_map({None: self._get_theme('subject',
+                                                               focus)})
             if self.display_content:
                 self.content_w.set_attr_map(
                     {None: 'search_thread_content_focus'})
@@ -202,7 +205,7 @@ class ThreadlineWidget(urwid.AttrMap):
         if self.highlight_theme_suffix and component in self.highlight_components:
             tag_theme = theme + '_{tags}'.format(tags=self.highlight_theme_suffix)
             if config.has_themeing(tag_theme):
-                theme = tag_theme 
+                theme = tag_theme
         return theme
 
 
@@ -426,7 +429,6 @@ class MessageWidget(urwid.WidgetWrap):
             self.displayed_list = [self.sumline]
         self.pile = urwid.Pile(self.displayed_list)
         self._w = self.pile
-
 
     def _build_sum_line(self):
         """creates/returns the widget that displays the summary line."""

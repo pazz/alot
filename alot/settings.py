@@ -110,21 +110,22 @@ class AlotConfigParser(FallbackConfigParser):
 
     def _get_themeing_option(self, section, option, default='default'):
         """
-        Retrieve the value of the given option from the given section of the config
-        file.
-        
-        If the option does not exist, try its parent options before falling back to
-        the specified default. The parent of an option is the name of the option
-        itself minus the last section enclosed in underscores; so the parent of the
-        option `aaa_bbb_ccc_fg` is of the form `aaa_bbb_fg`.
-        
+        Retrieve the value of the given option from the given section of the
+        config file.
+
+        If the option does not exist, try its parent options before falling
+        back to the specified default. The parent of an option is the name of
+        the option itself minus the last section enclosed in underscores;
+        so the parent of the option `aaa_bbb_ccc_fg` is of the form
+        `aaa_bbb_fg`.
+
         :param section: the section of the config file to search for the given
                         option
         :type section: string
         :param option: the option to lookup
         :type option: string
-        :param default: the value that is to be returned if neither the requested
-                        option nor a parent exists
+        :param default: the value that is to be returned if neither the
+                        requested option nor a parent exists
         :type default: string
         :return: the value of the given option, or the specified default
         :rtype: string
