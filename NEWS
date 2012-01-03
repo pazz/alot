@@ -12,7 +12,9 @@ current:
 * new thread mode command: "editnew" e.g. to continue drafts (bound to 'n')
 * new envelope command: "save" to save as draft (bound to 'P')
 * new thread mode command: "togglesource" to display raw messages (bound to 'h')
-
+* fix: pipeto shell commands containing spaces
+* make "signature as attachment" configurable
+* new search mode command and search argument: "sort"
 
 
 0.21
