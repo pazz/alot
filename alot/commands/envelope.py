@@ -71,7 +71,7 @@ class RefineCommand(Command):
 
 
 @registerCommand(MODE, 'save')
-class SendCommand(Command):
+class SaveCommand(Command):
     """save draft"""
     def apply(self, ui):
         envelope = ui.current_buffer.envelope
