@@ -362,22 +362,6 @@ class Thread(object):
         """returns id of this thread"""
         return self._id
 
-    def has_tags(self, *tags):
-        """
-        Checks whether this thread is tagged with the given tags.
-
-        :param tags: tags to check
-        :type tag: list[string]
-        :returns: True if this thread is tagged with all the given tags, False
-                  otherwise.
-        :rtype: bool
-        """
-        result = True
-        for tag in tags:
-            if not tag in self._tags:
-                result = False
-        return result
-
     def get_tags(self):
         """
         returns tagsstrings attached to this thread
@@ -512,3 +496,16 @@ class Thread(object):
     def get_total_messages(self):
         """returns number of contained messages"""
         return self._total_messages
+
+    def matches(self, query):
+        """
+        Check if this thread matches the given notmuch query.
+
+        :param query: The query to check against
+        :type query: string
+        :returns: True if this thread matches the given query, False otherwise
+        :rtype: bool
+        """
+        num_matches = self._dbman.count_messages('thread:{tid} AND {subquery}'.format(tid=self._id, subquery=query))
+        return num_matches > 0
+        
