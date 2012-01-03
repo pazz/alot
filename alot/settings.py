@@ -2,7 +2,7 @@ import imp
 import os
 import re
 import ast
-import json 
+import json
 import mailcap
 import codecs
 import logging
@@ -175,14 +175,13 @@ class AlotConfigParser(FallbackConfigParser):
         if self.has_option('general', 'thread_highlight_rules'):
             config_string = self.get('general', 'thread_highlight_rules')
             try:
-               return json.loads(config_string, object_pairs_hook=OrderedDict)
+                return json.loads(config_string, object_pairs_hook=OrderedDict)
             except ValueError as err:
                 raise ValueError("Could not parse config option" \
                                  " 'thread_highlight_rules':" \
                                  " {reason}".format(reason=err))
         else:
             raise NameError("No config option 'thread_highlight_rules'.")
-        
 
     def get_tagattr(self, tag, focus=False):
         """
