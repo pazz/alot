@@ -49,6 +49,14 @@ class DBManager(object):
     lets you look up threads and messages directly to the persistent wrapper
     classes.
     """
+    _sort_orders = {
+        'oldest_first': notmuch.database.Query.SORT.OLDEST_FIRST,
+        'newest_first': notmuch.database.Query.SORT.NEWEST_FIRST,
+        'unsorted': notmuch.database.Query.SORT.UNSORTED,
+        'message_id': notmuch.database.Query.SORT.MESSAGE_ID,
+    }
+    """constants representing sort orders"""
+
     def __init__(self, path=None, ro=False):
         """
         :param path: absolute path to the notmuch index
@@ -240,18 +248,23 @@ class DBManager(object):
         sender.close()
         return receiver, process
 
-    def get_threads(self, querystring):
+    def get_threads(self, querystring, sort='newest_first'):
         """
         asynchronously look up thread ids matching `querystring`.
 
         :param querystring: The query string to use for the lookup
-        :type query: str.
+        :type querystring: str.
+        :param sort: Sort order. one of ['oldest_first', 'newest_first',
+                     'message_id', 'unsorted']
+        :type query: str
         :returns: a pipe together with the process that asynchronously
                   writes to it.
         :rtype: (:class:`multiprocessing.Pipe`,
                 :class:`multiprocessing.Process`)
         """
+        assert sort in self._sort_orders.keys()
         q = self.query(querystring)
+        q.set_sort(self._sort_orders[sort])
         return self.async(q.search_threads, (lambda a: a.get_thread_id()))
 
     def query(self, querystring):
