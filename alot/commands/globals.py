@@ -41,15 +41,18 @@ class ExitCommand(Command):
 
 
 @registerCommand(MODE, 'search', usage='search query', arguments=[
+    (['--sort'], {'help':'sort order', 'choices':[
+                   'oldest_first', 'newest_first', 'message_id', 'unsorted']}),
     (['query'], {'nargs':argparse.REMAINDER, 'help':'search string'})])
 class SearchCommand(Command):
     """open a new search buffer"""
-    def __init__(self, query, **kwargs):
+    def __init__(self, query, sort=None, **kwargs):
         """
         :param query: notmuch querystring
         :type query: str
         """
         self.query = ' '.join(query)
+        self.order = sort
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
@@ -62,7 +65,8 @@ class SearchCommand(Command):
             if to_be_focused:
                 ui.buffer_focus(to_be_focused)
             else:
-                ui.buffer_open(buffers.SearchBuffer(ui, self.query))
+                ui.buffer_open(buffers.SearchBuffer(ui, self.query,
+                                                    sort_order=self.order))
         else:
             ui.notify('empty query string')
 

@@ -105,6 +105,10 @@ print_cmd = ''
 # initial command when none is given as argument:
 initial_command = search tag:inbox AND NOT tag:killed
 
+# default sort order of results in a search
+# must be one of one of 'oldest_first', 'newest_first', 'message_id' or 'unsorted'
+search_threads_sort_order = newest_first
+
 # in case more than one account has an addressbook:
 # Set this to True to make tabcompletion for recipients during compose only
 # look in the abook of the account matching the sender address
