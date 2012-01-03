@@ -47,6 +47,18 @@ class ComposeOptions(SubcommandOptions):
         self['to'] = ' '.join(args)
 
 
+class SearchOptions(SubcommandOptions):
+    accepted = ['oldest_first', 'newest_first', 'message_id', 'unsorted']
+    def colourint(val):
+        if val not in accepted:
+            raise ValueError("Unknown sort order")
+        return val
+    colourint.coerceDoc = "Must be one of " + str(accepted)
+    optParameters = [
+                ['sort', 'newest_first', None, 'Sort order'],
+            ]
+
+
 class Options(usage.Options):
     optFlags = [["read-only", "r", 'open db in read only mode'], ]
 
@@ -74,7 +86,7 @@ class Options(usage.Options):
     search_help = "start in a search buffer using the querystring provided "\
                   "as parameter. See the SEARCH SYNTAX section of notmuch(1)."
 
-    subCommands = [['search', None, SubcommandOptions, search_help],
+    subCommands = [['search', None, SearchOptions, search_help],
                    ['compose', None, ComposeOptions, "compose a new message"]]
 
     def opt_version(self):
@@ -138,7 +150,9 @@ def main():
     try:
         if args.subCommand == 'search':
             query = ' '.join(args.subOptions.args)
-            cmd = commands.commandfactory('search ' + query, 'global')
+            cmdstring = 'search %s %s' % (args.subOptions.as_argparse_opts(),
+                                          query)
+            cmd = commands.commandfactory(cmdstring, 'global')
         elif args.subCommand == 'compose':
             cmdstring = 'compose %s' % args.subOptions.as_argparse_opts()
             cmd = commands.commandfactory(cmdstring, 'global')
