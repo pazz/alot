@@ -2,10 +2,12 @@ import imp
 import os
 import re
 import ast
+import json 
 import mailcap
 import codecs
 import logging
 
+from collections import OrderedDict
 from ConfigParser import SafeConfigParser
 
 
@@ -163,17 +165,24 @@ class AlotConfigParser(FallbackConfigParser):
         has_bg = self.has_option(theme, themeing + '_bg')
         return (has_fg or has_bg)
 
-    def get_highlight_tags(self):
-        if self.has_option('general', 'thread_highlight_tags'):
-            highlight_tags = list()
-            raw_lists = self.getstringlist('general', 'thread_highlight_tags')
-            for raw_list in raw_lists:
-                raw_combo = raw_list.split('+')
-                tag_combo = [tag.strip() for tag in raw_combo]
-                highlight_tags.append(tag_combo)
-            return highlight_tags
+    def get_highlight_rules(self):
+        """
+        Parse the highlighting rules from the config file.
+
+        :returns: The highlighting rules
+        :rtype: :py:class:`collections.OrderedDict`
+        """
+        if self.has_option('general', 'thread_highlight_rules'):
+            config_string = self.get('general', 'thread_highlight_rules')
+            try:
+               return json.loads(config_string, object_pairs_hook=OrderedDict)
+            except ValueError as err:
+                raise ValueError("Could not parse config option" \
+                                 " 'thread_highlight_rules':" \
+                                 " {reason}".format(reason=err))
         else:
-            raise NameError("No config option 'thread_highlight_tags'.")
+            raise NameError("No config option 'thread_highlight_rules'.")
+        
 
     def get_tagattr(self, tag, focus=False):
         """

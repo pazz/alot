@@ -79,7 +79,7 @@ class ThreadlineWidget(urwid.AttrMap):
                                     'display_content_in_threadline')
         self.highlight_components = config.getstringlist('general',
                                             'thread_highlight_components')
-        self.highlight_tags = config.get_highlight_tags()
+        self.highlight_rules = config.get_highlight_rules()
         self.rebuild()
         urwid.AttrMap.__init__(self, self.columns,
                                'search_thread', 'search_thread_focus')
@@ -192,10 +192,9 @@ class ThreadlineWidget(urwid.AttrMap):
 
     def _get_highlight_theme_suffix(self):
         suffix = None
-        for tags in self.highlight_tags:
-            query = 'tag:{}'.format(' AND tag:'.join(tags))
+        for query in self.highlight_rules.keys():
             if self.thread.matches(query):
-                suffix = '+'.join(tags)
+                suffix = self.highlight_rules[query]
                 break
         return suffix
 
