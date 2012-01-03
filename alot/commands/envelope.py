@@ -48,7 +48,7 @@ class AttachCommand(Command):
 
         logging.info("attaching: %s" % files)
         for path in files:
-            envelope.attachments.append(helper.mimewrap(path))
+            envelope.attach(path)
         ui.current_buffer.rebuild()
 
 
