@@ -27,10 +27,12 @@ class FallbackConfigParser(SafeConfigParser):
         :param fallback: the value to fall back if option undefined
         :type fallback: str
         """
-
         if SafeConfigParser.has_option(self, section, option):
             return SafeConfigParser.get(self, section, option, *args, **kwargs)
-        return fallback
+        elif fallback != None:
+            return fallback
+        else:
+            raise NoOptionError(option, section)
 
     def getstringlist(self, section, option, **kwargs):
         """directly parses a config value into a list of strings"""
@@ -172,16 +174,13 @@ class AlotConfigParser(FallbackConfigParser):
         :returns: The highlighting rules
         :rtype: :py:class:`collections.OrderedDict`
         """
-        if self.has_option('general', 'thread_highlight_rules'):
-            config_string = self.get('general', 'thread_highlight_rules')
-            try:
-                return json.loads(config_string, object_pairs_hook=OrderedDict)
-            except ValueError as err:
-                raise ParsingError("Could not parse config option" \
-                                   " 'thread_highlight_rules':" \
-                                   " {reason}".format(reason=err))
-        else:
-            raise NoOptionError('thread_highlight_rules', 'general')
+        config_string = self.get('general', 'thread_highlight_rules')
+        try:
+            return json.loads(config_string, object_pairs_hook=OrderedDict)
+        except ValueError as err:
+            raise ParsingError("Could not parse config option" \
+                               " 'thread_highlight_rules':" \
+                               " {reason}".format(reason=err))
 
     def get_tagattr(self, tag, focus=False):
         """
