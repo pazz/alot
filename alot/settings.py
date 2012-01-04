@@ -177,13 +177,19 @@ class AlotConfigParser(FallbackConfigParser):
         :returns: The highlighting rules
         :rtype: :py:class:`collections.OrderedDict`
         """
-        config_string = self.get('general', 'thread_highlight_rules')
+        rules = OrderedDict()
         try:
-            return json.loads(config_string, object_pairs_hook=OrderedDict)
+            config_string = self.get('general', 'thread_highlight_rules')
+            rules = json.loads(config_string, object_pairs_hook=OrderedDict)
+        except NoOptionError as err:
+            logging.exception(err)
         except ValueError as err:
-            raise ParsingError("Could not parse config option" \
-                               " 'thread_highlight_rules':" \
-                               " {reason}".format(reason=err))
+            report = ParsingError("Could not parse config option" \
+                                  " 'thread_highlight_rules' in section" \
+                                  " 'general': {reason}".format(reason=err))
+            logging.exception(report)
+        finally:
+            return rules
 
     def get_tagattr(self, tag, focus=False):
         """
