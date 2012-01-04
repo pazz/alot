@@ -79,7 +79,7 @@ class ThreadlineWidget(urwid.AttrMap):
                                     'display_content_in_threadline')
         self.highlight_components = config.getstringlist('general',
                                             'thread_highlight_components')
-        self.highlight_tags = config.get_highlight_tags()
+        self.highlight_rules = config.get_highlight_rules()
         self.rebuild()
         urwid.AttrMap.__init__(self, self.columns,
                                'search_thread', 'search_thread_focus')
@@ -93,8 +93,8 @@ class ThreadlineWidget(urwid.AttrMap):
         if newest == None:
             datestring = u' ' * 10
         else:
-            formatstring = config.get('general', 'timestamp_format')
-            if formatstring:
+            if config.has_option('general', 'timestamp_format'):
+                formatstring = config.get('general', 'timestamp_format')
                 datestring = newest.strftime(formatstring)
             else:
                 datestring = pretty_datetime(newest).rjust(10)
@@ -192,9 +192,9 @@ class ThreadlineWidget(urwid.AttrMap):
 
     def _get_highlight_theme_suffix(self):
         suffix = None
-        for tags in self.highlight_tags:
-            if self.thread.has_tags(*tags):
-                suffix = '+'.join(tags)
+        for query in self.highlight_rules.keys():
+            if self.thread.matches(query):
+                suffix = self.highlight_rules[query]
                 break
         return suffix
 
@@ -202,10 +202,12 @@ class ThreadlineWidget(urwid.AttrMap):
         theme = 'search_thread_{0}'.format(component)
         if focus:
             theme = theme + '_focus'
-        if self.highlight_theme_suffix and component in self.highlight_components:
-            tag_theme = theme + '_{tags}'.format(tags=self.highlight_theme_suffix)
-            if config.has_themeing(tag_theme):
-                theme = tag_theme
+        if (self.highlight_theme_suffix and
+            component in self.highlight_components):
+            highlight_theme = (theme +
+                               '_{id}'.format(id=self.highlight_theme_suffix))
+            if config.has_themeing(highlight_theme):
+                theme = highlight_theme
         return theme
 
 

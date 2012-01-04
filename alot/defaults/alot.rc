@@ -35,17 +35,20 @@ terminal_cmd = x-terminal-emulator -e
 ######################
 # HIGHLIGHT settings #
 ######################
-# Thread lines in the search buffer can be highlighted upon occurrence of a tag
+# Thread lines in the search buffer can be highlighted if they match a query
 # by theming their components.
 
-# comma separated list of tag combinations you want highlighting for. Note that
-# the sequence of the list defines the search order. The first specified tag
-# combination that is found defines the themeing. Tag combinations are joined by
-# the '+' character.
-thread_highlight_tags = unread+flagged,unread,flagged
+# dictionary of highlighting rules. The keys are queries you want highlighting
+# for; values are chosen designators that identify themeing options in the
+# colour scheme:
+#    search_thread_<component>_[focus_]<id>_[fg|bg]
+# Note that the sequence of the list defines the search order. The first
+# specified query that matches selects the themeing.
+thread_highlight_rules = { "tag:unread AND tag:flagged":"unread+flagged",
+                           "tag:unread":"unread", "tag:flagged":"flagged" }
 
 # comma separated list of the components of a thread line you want highlighted
-# if a configured tag is found.
+# if a query matches.
 # Possible components are [date|mailcount|authors|subject].
 thread_highlight_components = subject
 
