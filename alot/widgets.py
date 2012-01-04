@@ -93,8 +93,8 @@ class ThreadlineWidget(urwid.AttrMap):
         if newest == None:
             datestring = u' ' * 10
         else:
-            formatstring = config.get('general', 'timestamp_format')
-            if formatstring:
+            if config.has_option('general', 'timestamp_format'):
+                formatstring = config.get('general', 'timestamp_format')
                 datestring = newest.strftime(formatstring)
             else:
                 datestring = pretty_datetime(newest).rjust(10)

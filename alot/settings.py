@@ -36,8 +36,11 @@ class FallbackConfigParser(SafeConfigParser):
 
     def getstringlist(self, section, option, **kwargs):
         """directly parses a config value into a list of strings"""
-        value = self.get(section, option, **kwargs)
-        return [s.strip() for s in value.split(',') if s.strip()]
+        stringlist = list()
+        if self.has_option(section, option):
+            value = self.get(section, option, **kwargs)
+            stringlist = [s.strip() for s in value.split(',') if s.strip()]
+        return stringlist
 
 
 class AlotConfigParser(FallbackConfigParser):
@@ -195,19 +198,19 @@ class AlotConfigParser(FallbackConfigParser):
         mode = self.getint('general', 'colourmode')
         base = 'tag_%s' % tag
         if mode == 2:
-            if self.get('1c-theme', base):
+            if self.has_option('1c-theme', base):
                 return base
         elif mode == 16:
-            has_fg = self.get('16c-theme', base + '_fg')
-            has_bg = self.get('16c-theme', base + '_bg')
+            has_fg = self.has_option('16c-theme', base + '_fg')
+            has_bg = self.has_option('16c-theme', base + '_bg')
             if has_fg or has_bg:
                 if focus:
                     return base + '_focus'
                 else:
                     return base
         else:  # highcolour
-            has_fg = self.get('256c-theme', base + '_fg')
-            has_bg = self.get('256c-theme', base + '_bg')
+            has_fg = self.has_option('256c-theme', base + '_fg')
+            has_bg = self.has_option('256c-theme', base + '_bg')
             if has_fg or has_bg:
                 if focus:
                     return base + '_focus'
@@ -246,8 +249,10 @@ class AlotConfigParser(FallbackConfigParser):
         :returns: a command line to be applied upon keypress
         :rtype: str
         """
-        cmdline = self.get(mode + '-maps', key)
-        if not cmdline:
+        cmdline = None
+        if self.has_option(mode + '-maps', key):
+            cmdline = self.get(mode + '-maps', key)
+        elif self.has_option('global-maps', key):
             cmdline = self.get('global-maps', key)
         return cmdline
 
