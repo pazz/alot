@@ -134,8 +134,8 @@ class Message(object):
         """
         if self._datetime == None:
             return None
-        formatstring = config.get('general', 'timestamp_format')
-        if formatstring:
+        if config.has_option('general', 'timestamp_format'):
+            formatstring = config.get('general', 'timestamp_format')
             res = self._datetime.strftime(formatstring)
         else:
             res = helper.pretty_datetime(self._datetime)
