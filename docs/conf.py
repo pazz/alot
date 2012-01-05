@@ -22,8 +22,12 @@ class Mock(object):
     def __init__(self, *args, **kwargs):
         pass
 
+    def __call__(self, *args, **kwargs):
+        return Mock()
+
+    @classmethod
     def __getattr__(self, name):
-        return Mock if name != '__file__' else '/dev/null'
+        return Mock() if name not in ('__file__', '__path__') else '/dev/null'
 
 MOCK_MODULES = ['notmuch', 'notmuch.globals',
                 'twisted', 'twisted.internet',
