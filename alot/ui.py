@@ -86,7 +86,6 @@ class UI(object):
         :type colourmode: int in [1,16,256]
         """
         self.dbman = dbman
-        self.dbman.ui = self  # register ui with dbman
         self.logger = log
         self.accountman = accountman
 
