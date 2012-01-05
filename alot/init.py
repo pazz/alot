@@ -134,18 +134,20 @@ def main():
     except ConfigParser.Error, e:  # exit on parse errors
         sys.exit(e)
 
-    # setup logging
+    # logging
+    ## reset
+    root_logger = logging.getLogger()
+    for log_handler in root_logger.handlers:
+        root_logger.removeHandler(log_handler)
+    root_logger = None
+    ## setup
     numeric_loglevel = getattr(logging, args['debug-level'].upper(), None)
     logfilename = os.path.expanduser(args['logfile'])
-    logging.basicConfig(level=numeric_loglevel, filename=logfilename)
-    log_formatter = logging.Formatter('%(levelname)s:%(message)s')
-    log_handler = logging.FileHandler(logfilename, encoding='utf-8')
-    log_handler.setFormatter(log_formatter)
-    logger = logging.getLogger()
-    logger.setLevel(numeric_loglevel)
-    logger.addHandler(log_handler)
+    logformat = '%(levelname)s:%(module)s:%(message)s'
+    logging.basicConfig(level=numeric_loglevel, filename=logfilename,
+                        format=logformat)
 
-    #logger.debug(commands.COMMANDS)
+    #logging.debug(commands.COMMANDS)
     # get ourselves a database manager
     dbman = DBManager(path=args['mailindex-path'], ro=args['read-only'])
 
@@ -171,7 +173,6 @@ def main():
 
     # set up and start interface
     UI(dbman,
-       logger,
        aman,
        cmd,
        args['colour-mode'],
