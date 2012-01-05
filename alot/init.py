@@ -138,7 +138,12 @@ def main():
     numeric_loglevel = getattr(logging, args['debug-level'].upper(), None)
     logfilename = os.path.expanduser(args['logfile'])
     logging.basicConfig(level=numeric_loglevel, filename=logfilename)
+    log_formatter = logging.Formatter('%(levelname)s:%(message)s')
+    log_handler = logging.FileHandler(logfilename, encoding='utf-8')
+    log_handler.setFormatter(log_formatter)
     logger = logging.getLogger()
+    logger.setLevel(numeric_loglevel)
+    logger.addHandler(log_handler)
 
     #logger.debug(commands.COMMANDS)
     # get ourselves a database manager
