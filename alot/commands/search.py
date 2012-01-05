@@ -1,6 +1,8 @@
+import argparse
+import logging
+
 from alot.commands import Command, registerCommand
 from alot.commands.globals import PromptCommand
-import argparse
 
 from alot.db import DatabaseROError
 from alot import commands
@@ -25,7 +27,7 @@ class OpenThreadCommand(Command):
             self.thread = ui.current_buffer.get_selected_thread()
         if self.thread:
             query = ui.current_buffer.querystring
-            ui.logger.info('open thread view for %s' % self.thread)
+            logging.info('open thread view for %s' % self.thread)
 
             sb = buffers.ThreadBuffer(ui, self.thread)
             ui.buffer_open(sb)
@@ -73,7 +75,7 @@ class ToggleThreadTagCommand(Command):
             qs = "(%s) AND thread:%s" % (cb.querystring,
                                          self.thread.get_thread_id())
             if ui.dbman.count_messages(qs) == 0:
-                ui.logger.debug('remove: %s' % self.thread)
+                logging.debug('remove: %s' % self.thread)
                 cb.threadlist.remove(threadwidget)
                 cb.result_count -= self.thread.get_total_messages()
                 ui.update()
@@ -166,7 +168,7 @@ class RetagCommand(Command):
         if not self.thread:
             return
         tags = filter(lambda x: x, self.tagsstring.split(','))
-        ui.logger.info("got %s:%s" % (self.tagsstring, tags))
+        logging.info("got %s:%s" % (self.tagsstring, tags))
         try:
             self.thread.set_tags(tags)
         except DatabaseROError:

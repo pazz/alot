@@ -180,7 +180,7 @@ class EditCommand(Command):
         if '*' in blacklist:
             blacklist = set(self.envelope.headers.keys())
         self.edit_headers = edit_headers - blacklist
-        ui.logger.info('editable headers: %s' % blacklist)
+        logging.info('editable headers: %s' % blacklist)
 
         def openEnvelopeFromTmpfile():
             # This parses the input from the tempfile.
@@ -199,8 +199,7 @@ class EditCommand(Command):
             translate = settings.config.get_hook('post_edit_translate')
             if translate:
                 template = translate(template, ui=ui, dbm=ui.dbman,
-                                     aman=ui.accountman, log=ui.logger,
-                                     config=settings.config)
+                                     aman=ui.accountman, config=settings.config)
             self.envelope.parse_template(template)
             if self.openNew:
                 ui.buffer_open(buffers.EnvelopeBuffer(ui, self.envelope))
@@ -228,8 +227,7 @@ class EditCommand(Command):
         translate = settings.config.get_hook('pre_edit_translate')
         if translate:
             bodytext = translate(bodytext, ui=ui, dbm=ui.dbman,
-                                 aman=ui.accountman, log=ui.logger,
-                                 config=settings.config)
+                                 aman=ui.accountman, config=settings.config)
 
         #write stuff to tempfile
         tf = tempfile.NamedTemporaryFile(delete=False)
