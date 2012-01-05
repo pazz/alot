@@ -1,4 +1,5 @@
 import urwid
+import logging
 from twisted.internet import reactor, defer
 from twisted.python.failure import Failure
 
@@ -70,15 +71,12 @@ class UI(object):
     """points to currently active :class:`~alot.buffers.Buffer`"""
     dbman = None
     """Database manager (:class:`~alot.db.DBManager`)"""
-    logger = None
-    """:class:`logging.Logger` used to write to log file"""
     accountman = None
     """account manager (:class:`~alot.account.AccountManager`)"""
 
-    def __init__(self, dbman, log, accountman, initialcmd, colourmode):
+    def __init__(self, dbman, accountman, initialcmd, colourmode):
         """
         :param dbman: :class:`~alot.db.DBManager`
-        :param log: :class:`logging.Logger`
         :param accountman: :class:`~alot.account.AccountManager`
         :param initialcmd: commandline applied after setting up interface
         :type initialcmd: str
@@ -86,12 +84,11 @@ class UI(object):
         :type colourmode: int in [1,16,256]
         """
         self.dbman = dbman
-        self.logger = log
         self.accountman = accountman
 
         if not colourmode:
             colourmode = config.getint('general', 'colourmode')
-        self.logger.info('setup gui in %d colours' % colourmode)
+        logging.info('setup gui in %d colours' % colourmode)
         self.mainframe = urwid.Frame(urwid.SolidFill())
         self.inputwrap = InputWrap(self, self.mainframe)
         self.mainloop = urwid.MainLoop(self.inputwrap,
@@ -106,13 +103,13 @@ class UI(object):
         self.mode = 'global'
         self.commandprompthistory = []
 
-        self.logger.debug('fire first command')
+        logging.debug('fire first command')
         self.apply_command(initialcmd)
         self.mainloop.run()
 
     def unhandeled_input(self, key):
         """called if a keypress is not handled."""
-        self.logger.debug('unhandled input: %s' % key)
+        logging.debug('unhandled input: %s' % key)
 
     def keypress(self, key):
         """relay all keypresses to our `InputWrap`"""
@@ -124,9 +121,9 @@ class UI(object):
             self.inputwrap.set_root(self.mainframe)
             self.inputwrap.select_cancel_only = False
             if callable(afterwards):
-                self.logger.debug('called')
+                logging.debug('called')
                 afterwards()
-        self.logger.debug('relay: %s' % relay_rest)
+        logging.debug('relay: %s' % relay_rest)
         helpwrap = widgets.CatchKeyWidgetWrap(w, key, on_catch=oe,
                                               relay_rest=relay_rest)
         self.inputwrap.set_root(helpwrap)
@@ -206,9 +203,9 @@ class UI(object):
         buffers = self.buffers
         if buf not in buffers:
             string = 'tried to close unknown buffer: %s. \n\ni have:%s'
-            self.logger.error(string % (buf, self.buffers))
+            logging.error(string % (buf, self.buffers))
         elif self.current_buffer == buf:
-            self.logger.debug('UI: closing current buffer %s' % buf)
+            logging.debug('UI: closing current buffer %s' % buf)
             index = buffers.index(buf)
             buffers.remove(buf)
             offset = config.getint('general', 'bufferclose_focus_offset')
@@ -217,14 +214,14 @@ class UI(object):
             buf.cleanup()
         else:
             string = 'closing buffer %d:%s'
-            self.logger.debug(string % (buffers.index(buf), buf))
+            logging.debug(string % (buffers.index(buf), buf))
             buffers.remove(buf)
             buf.cleanup()
 
     def buffer_focus(self, buf):
         """focus given :class:`~alot.buffers.Buffer`."""
         if buf not in self.buffers:
-            self.logger.error('tried to focus unknown buffer')
+            logging.error('tried to focus unknown buffer')
         else:
             if self.current_buffer != buf:
                 self.current_buffer = buf
@@ -437,34 +434,33 @@ class UI(object):
         if cmd:
             # call pre- hook
             if cmd.prehook:
-                self.logger.debug('calling pre-hook')
+                logging.debug('calling pre-hook')
                 try:
                     cmd.prehook(ui=self, dbm=self.dbman, aman=self.accountman,
-                                log=self.logger, config=config)
+                                config=config)
 
                 except:
-                    self.logger.exception('prehook failed')
+                    logging.exception('prehook failed')
 
             # define (callback) function that invokes post-hook
             def call_posthook(retval_from_apply):
                 if cmd.posthook:
-                    self.logger.debug('calling post-hook')
+                    logging.debug('calling post-hook')
                     try:
                         cmd.posthook(ui=self, dbm=self.dbman,
-                                     aman=self.accountman, log=self.logger,
-                                     config=config)
+                                     aman=self.accountman, config=config)
                     except:
-                        self.logger.exception('posthook failed')
+                        logging.exception('posthook failed')
 
             # define error handler for Failures/Exceptions
             # raised in cmd.apply()
             def errorHandler(failure):
-                self.logger.debug(failure.getTraceback())
+                logging.debug(failure.getTraceback())
                 msg = "Error: %s,\ncheck the log for details"
                 self.notify(msg % failure.getErrorMessage(), priority='error')
 
             # call cmd.apply
-            self.logger.debug('apply command: %s' % cmd)
+            logging.debug('apply command: %s' % cmd)
             try:
                 retval = cmd.apply(self)
                 # if we deal with a InlineCallbacks-decorated method, it

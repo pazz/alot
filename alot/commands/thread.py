@@ -48,7 +48,7 @@ class ReplyCommand(Command):
         if qf:
             quotestring = qf(name, address, timestamp,
                              ui=ui, dbm=ui.dbman, aman=ui.accountman,
-                             log=ui.logger, config=settings.config)
+                             config=settings.config)
         else:
             quotestring = 'Quoting %s (%s)\n' % (name, timestamp)
         mailcontent = quotestring
@@ -153,7 +153,7 @@ class ForwardCommand(Command):
             if qf:
                 quote = qf(name, address, timestamp,
                              ui=ui, dbm=ui.dbman, aman=ui.accountman,
-                             log=ui.logger, config=settings.config)
+                             config=settings.config)
             else:
                 quote = 'Forwarded message from %s (%s):\n' % (name, timestamp)
             mailcontent = quote
@@ -285,7 +285,7 @@ class ChangeDisplaymodeCommand(Command):
             if self.all_headers == 'toggle':
                 self.all_headers = not widget.show_all_headers
 
-            ui.logger.debug((self.visible, self.raw, self.all_headers))
+            logging.debug((self.visible, self.raw, self.all_headers))
             if self.visible is not None:
                 widget.folded = not self.visible
             if self.raw is not None:
@@ -381,7 +381,7 @@ class PipeCommand(Command):
 
         # do teh monkey
         for mail in mailstrings:
-            ui.logger.debug("%s" % mail)
+            logging.debug("%s" % mail)
             out, err, retval = helper.call_cmd(self.cmdlist, stdin=mail)
             if err:
                 ui.notify(err, priority='error')
@@ -430,7 +430,7 @@ class RemoveCommand(Command):
         except DatabaseError, e:
             err_msg = str(e)
             ui.notify(err_msg, priority='error')
-            ui.logger.debug(err_msg)
+            logging.debug(err_msg)
             return
 
         # notify
