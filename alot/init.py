@@ -134,7 +134,13 @@ def main():
     except ConfigParser.Error, e:  # exit on parse errors
         sys.exit(e)
 
-    # setup logging
+    # logging
+    ## reset
+    root_logger = logging.getLogger()
+    for log_handler in root_logger.handlers:
+        root_logger.removeHandler(log_handler)
+    root_logger = None
+    ## setup
     numeric_loglevel = getattr(logging, args['debug-level'].upper(), None)
     logfilename = os.path.expanduser(args['logfile'])
     logformat = '%(levelname)s:%(module)s:%(message)s'
