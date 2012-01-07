@@ -299,10 +299,8 @@ class ChangeDisplaymodeCommand(Command):
 @registerCommand(MODE, 'pipeto', arguments=[
     (['cmd'], {'help':'shellcommand to pipe to'}),
     (['--all'], {'action': 'store_true', 'help':'pass all messages'}),
-    (['--decode'], {'action': 'store_true',
-                    'help':'use only decoded body lines'}),
-    (['--ids'], {'action': 'store_true',
-                    'help':'only pass message ids'}),
+    (['--format'], {'help':'output format', 'default':'raw',
+                    'choices':[ 'raw','decoded', 'id', 'filepath']}),
     (['--separately'], {'action': 'store_true',
                         'help':'call command once for each message'}),
     (['--background'], {'action': 'store_true',
@@ -312,8 +310,8 @@ class ChangeDisplaymodeCommand(Command):
 class PipeCommand(Command):
     """pipe message(s) to stdin of a shellcommand"""
     #TODO: use raw arg from print command here
-    def __init__(self, cmd, all=False, ids=False, separately=False,
-                 background=False, decode=True,
+    def __init__(self, cmd, all=False, separately=False,
+                 background=False, format='raw',
                  noop_msg='no command specified', confirm_msg='',
                  done_msg='done', **kwargs):
         """
@@ -321,12 +319,16 @@ class PipeCommand(Command):
         :type cmd: str or list of str
         :param all: pipe all, not only selected message
         :type all: bool
-        :param ids: only write message ids, not the message source
-        :type ids: bool
         :param separately: call command once per message
         :type separately: bool
         :param background: disable stdin and ignore sdtout of command
         :type background: bool
+        :param output: what to pipe to the processes stdin. one of:
+                       'raw': message content as is,
+                       'decoded': message content, decoded quoted printable,
+                       'id': message ids, separated by newlines,
+                       'filepath': paths to message files on disk
+        :type format: str
         :param noop_msg: error notification to show if `cmd` is empty
         :type noop_msg: str
         :param confirm_msg: confirmation question to ask (continues directly if
@@ -340,10 +342,9 @@ class PipeCommand(Command):
             cmd = shlex.split(cmd.encode('UTF-8'))
         self.cmdlist = cmd
         self.whole_thread = all
-        self.ids = ids
         self.separately = separately
         self.background = background
-        self.decode = decode
+        self.output_format = format
         self.noop_msg = noop_msg
         self.confirm_msg = confirm_msg
         self.done_msg = done_msg
@@ -371,24 +372,31 @@ class PipeCommand(Command):
                 return
 
         # prepare message sources
-        mailstrings = []
-        if self.ids:
-            mailstrings = [e.get_message_id() for e in to_print]
-        else:
+        pipestrings = []
+        separator = '\n\n'
+        logging.debug('PIPETO format')
+        logging.debug(self.output_format)
+        if self.output_format == 'raw':
+            pipestrings = [m.get_email().as_string() for m in to_print]
+        elif self.output_format == 'decoded':
             mails = [m.get_email() for m in to_print]
-            if self.decode:
-                for mail in mails:
-                    headertext = extract_headers(mail)
-                    bodytext = extract_body(mail)
-                    msg = '%s\n\n%s' % (headertext, bodytext)
-                    mailstrings.append(msg.encode('utf-8'))
-            else:
-                mailstrings = [e.as_string() for e in mails]
+            for mail in mails:
+                headertext = extract_headers(mail)
+                bodytext = extract_body(mail)
+                msg = '%s\n\n%s' % (headertext, bodytext)
+                pipestrings.append(msg.encode('utf-8'))
+        elif self.output_format == 'id':
+            pipestrings = [e.get_message_id() for e in to_print]
+            separator = '\n'
+        elif self.output_format == 'filepath':
+            pipestrings = [e.get_filename() for e in to_print]
+            separator = '\n'
+
         if not self.separately:
-            mailstrings = ['\n\n'.join(mailstrings)]
+            pipestrings = [separator.join(pipestrings)]
 
         # do teh monkey
-        for mail in mailstrings:
+        for mail in pipestrings:
             if self.background:
                 logging.debug('call in background: %s' % str(self.cmdlist))
                 out, err, retval = helper.call_cmd(self.cmdlist, stdin=mail)
