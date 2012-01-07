@@ -6,7 +6,7 @@ import alot
 
 
 setup(name='alot',
-      version=alot.version.read_version(),
+      version=alot.version.generate_version(),
       description=alot.__description__,
       author=alot.__author__,
       author_email=alot.__author_email__,
