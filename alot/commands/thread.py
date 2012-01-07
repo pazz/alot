@@ -304,9 +304,9 @@ class ChangeDisplaymodeCommand(Command):
     (['--ids'], {'action': 'store_true',
                     'help':'only pass message ids'}),
     (['--separately'], {'action': 'store_true',
-                        'help':'call command once for each message'})
+                        'help':'call command once for each message'}),
     (['--background'], {'action': 'store_true',
-                        'help':'disable stdin and ignore stdout'})
+                        'help':'disable stdin and ignore stdout'}),
 ],
 )
 class PipeCommand(Command):
