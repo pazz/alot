@@ -4,6 +4,7 @@ import tempfile
 from twisted.internet.defer import inlineCallbacks
 import shlex
 import re
+import subprocess
 
 from alot.commands import Command, registerCommand
 from alot.commands.globals import ExternalCommand
@@ -303,13 +304,17 @@ class ChangeDisplaymodeCommand(Command):
     (['--ids'], {'action': 'store_true',
                     'help':'only pass message ids'}),
     (['--separately'], {'action': 'store_true',
-                        'help':'call command once for each message'})],
+                        'help':'call command once for each message'})
+    (['--background'], {'action': 'store_true',
+                        'help':'disable stdin and ignore stdout'})
+],
 )
 class PipeCommand(Command):
     """pipe message(s) to stdin of a shellcommand"""
     #TODO: use raw arg from print command here
     def __init__(self, cmd, all=False, ids=False, separately=False,
-                 decode=True, noop_msg='no command specified', confirm_msg='',
+                 background=False, decode=True,
+                 noop_msg='no command specified', confirm_msg='',
                  done_msg='done', **kwargs):
         """
         :param cmd: shellcommand to open
@@ -320,6 +325,8 @@ class PipeCommand(Command):
         :type ids: bool
         :param separately: call command once per message
         :type separately: bool
+        :param background: disable stdin and ignore sdtout of command
+        :type background: bool
         :param noop_msg: error notification to show if `cmd` is empty
         :type noop_msg: str
         :param confirm_msg: confirmation question to ask (continues directly if
@@ -333,8 +340,9 @@ class PipeCommand(Command):
             cmd = shlex.split(cmd.encode('UTF-8'))
         self.cmdlist = cmd
         self.whole_thread = all
-        self.separately = separately
         self.ids = ids
+        self.separately = separately
+        self.background = background
         self.decode = decode
         self.noop_msg = noop_msg
         self.confirm_msg = confirm_msg
@@ -381,8 +389,18 @@ class PipeCommand(Command):
 
         # do teh monkey
         for mail in mailstrings:
-            logging.debug("%s" % mail)
-            out, err, retval = helper.call_cmd(self.cmdlist, stdin=mail)
+            if self.background:
+                logging.debug('call in background: %s' % str(self.cmdlist))
+                out, err, retval = helper.call_cmd(self.cmdlist, stdin=mail)
+            else:
+                logging.debug('stop urwid screen')
+                ui.mainloop.screen.stop()
+                logging.debug('call: %s' % str(self.cmdlist))
+                proc = subprocess.Popen(self.cmdlist, stdin=subprocess.PIPE,
+                                        stderr=subprocess.PIPE)
+                out, err = proc.communicate(mail)
+                logging.debug('start urwid screen')
+                ui.mainloop.screen.start()
             if err:
                 ui.notify(err, priority='error')
                 return
