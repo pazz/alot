@@ -488,7 +488,6 @@ class PrintCommand(PipeCommand):
         """
         # get print command
         cmd = settings.config.get('general', 'print_cmd', fallback='')
-        cmdlist = shlex.split(cmd.encode('utf-8', errors='ignore'))
 
         # set up notification strings
         if all:
@@ -502,7 +501,8 @@ class PrintCommand(PipeCommand):
         noop_msg = 'no print command specified. Set "print_cmd" in the '\
                     'global section.'
 
-        PipeCommand.__init__(self, cmdlist, all=all, separately=separately,
+        PipeCommand.__init__(self, cmd, all=all, separately=separately,
+                             background=True,
                              format='raw' if raw else 'decoded',
                              noop_msg=noop_msg, confirm_msg=confirm_msg,
                              done_msg=ok_msg, **kwargs)
