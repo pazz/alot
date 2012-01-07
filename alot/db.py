@@ -362,15 +362,20 @@ class Thread(object):
         """returns id of this thread"""
         return self._id
 
-    def get_tags(self):
+    def get_tags(self, intersection=False):
         """
         returns tagsstrings attached to this thread
 
-        :rtype: list of str
+        :param intersection: return tags present in all contained messages
+                             instead of in at least one (union)
+        :type intersection: bool
+        :rtype: set of str
         """
-        l = list(self._tags)
-        l.sort()
-        return l
+        tags = set(list(self._tags))
+        if intersection:
+            for m in self.get_messages().keys():
+                tags = tags.intersection(set(m.get_tags()))
+        return tags
 
     def add_tags(self, tags):
         """
