@@ -580,9 +580,20 @@ class MessageSummaryWidget(urwid.WidgetWrap):
             attr = 'thread_summary_even'
         else:
             attr = 'thread_summary_odd'
+        cols = []
+
         sumstr = self.__str__()
-        txt = urwid.AttrMap(urwid.Text(sumstr), attr, 'thread_summary_focus')
-        urwid.WidgetWrap.__init__(self, txt)
+        txt = urwid.Text(sumstr)
+        cols.append(txt)
+
+        thread_tags = message.get_thread().get_tags(intersection=True)
+        outstanding_tags = set(message.get_tags()).difference(thread_tags)
+        tag_widgets = [TagWidget(t) for t in outstanding_tags]
+        tag_widgets.sort(tag_cmp, lambda tag_widget: tag_widget.translated)
+        for tag_widget in tag_widgets:
+            cols.append(('fixed', tag_widget.width(), tag_widget))
+        line = urwid.AttrMap(urwid.Columns(cols, dividechars=1), attr, 'thread_summary_focus')
+        urwid.WidgetWrap.__init__(self, line)
 
     def __str__(self):
         author, address = self.message.get_author()
