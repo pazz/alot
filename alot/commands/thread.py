@@ -300,7 +300,7 @@ class ChangeDisplaymodeCommand(Command):
     (['cmd'], {'help':'shellcommand to pipe to'}),
     (['--all'], {'action': 'store_true', 'help':'pass all messages'}),
     (['--format'], {'help':'output format', 'default':'raw',
-                    'choices':[ 'raw','decoded', 'id', 'filepath']}),
+                    'choices':['raw', 'decoded', 'id', 'filepath']}),
     (['--separately'], {'action': 'store_true',
                         'help':'call command once for each message'}),
     (['--background'], {'action': 'store_true',
@@ -480,8 +480,8 @@ class PrintCommand(PipeCommand):
         :type all: bool
         :param separately: call print command once per message
         :type separately: bool
-        :param separately: pipe raw message string to print command
-        :type separately: bool
+        :param raw: pipe raw message string to print command
+        :type raw: bool
         """
         # get print command
         cmd = settings.config.get('general', 'print_cmd', fallback='')
@@ -498,11 +498,11 @@ class PrintCommand(PipeCommand):
         # no print cmd set
         noop_msg = 'no print command specified. Set "print_cmd" in the '\
                     'global section.'
-        PipeCommand.__init__(self, cmdlist, all=all,
-                             separately=separately,
-                             decode=not raw,
-                             noop_msg=noop_msg, confirm_msg=confirm_msg,
-                             done_msg=ok_msg, **kwargs)
+
+        PipeCommand.__init__(self, cmdlist, all=all, separately=separately,
+                             format='raw' if raw else 'decoded', noop_msg=noop_msg,
+                             confirm_msg=confirm_msg, done_msg=ok_msg,
+                             **kwargs)
 
 
 @registerCommand(MODE, 'save', arguments=[
