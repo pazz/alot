@@ -19,6 +19,7 @@ from alot.message import decode_header
 from alot.message import extract_headers
 from alot.message import extract_body
 from alot.message import Envelope
+from alot.db import DatabaseROError
 
 MODE = 'thread'
 
@@ -617,3 +618,66 @@ class ThreadSelectCommand(Command):
             ui.apply_command(OpenAttachmentCommand(focus.get_attachment()))
         else:
             logging.info('unknown widget %s' % focus)
+
+
+@registerCommand(MODE, 'tag', forced={'action': 'add'}, arguments=[
+    (['--all'], {'action': 'store_true', 'help':'tag all messages in thread'}),
+    (['tags'], {'help':'comma separated list of tags'})])
+@registerCommand(MODE, 'untag', forced={'action': 'remove'}, arguments=[
+    (['--all'], {'action': 'store_true', 'help':'tag all messages in thread'}),
+    (['tags'], {'help':'comma separated list of tags'})])
+@registerCommand(MODE, 'toggletags', forced={'action': 'toggle'}, arguments=[
+    (['--all'], {'action': 'store_true', 'help':'tag all messages in thread'}),
+    (['tags'], {'help':'comma separated list of tags'})])
+class TagCommand(Command):
+    """manipulate message tags"""
+    def __init__(self, tags=u'', action='add', all=False, **kwargs):
+        """
+        :param tags: comma separated list of tagstrings to set
+        :type tags: str
+        :param all: tag all messages in thread
+        :type all: bool
+        :param action: adds tags if 'add', removes them if 'remove' or toggle
+                       individually if 'toggle'
+        :type action: str
+        """
+        self.tagsstring = tags
+        self.all = all
+        self.action = action
+        Command.__init__(self, **kwargs)
+
+    def apply(self, ui):
+        if self.all:
+            mwidgets = ui.current_buffer.get_messagewidgets()
+        else:
+            mwidgets = [ui.current_buffer.get_selection()]
+        messages = [mw.get_message() for mw in mwidgets]
+        logging.debug('TAG %s' % str(messages))
+
+        tags = filter(lambda x: x, self.tagsstring.split(','))
+        try:
+            for m in messages:
+                if self.action == 'add':
+                    m.add_tags(tags)
+                elif self.action == 'remove':
+                    m.remove_tags(tags)
+                elif self.action == 'toggle':
+                    to_remove = []
+                    to_add = []
+                    for t in tags:
+                        if t in m.get_tags():
+                            to_remove.append(t)
+                        else:
+                            to_add.append(t)
+                    m.remove_tags(to_remove)
+                    m.add_tags(to_add)
+        except DatabaseROError:
+            ui.notify('index in read-only mode', priority='error')
+            return
+
+        # flush index
+        ui.apply_command(FlushCommand())
+
+        # TODO: refresh widgets
+        for mw in mwidgets:
+            mw.rebuild()
