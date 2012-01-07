@@ -309,7 +309,6 @@ class ChangeDisplaymodeCommand(Command):
 )
 class PipeCommand(Command):
     """pipe message(s) to stdin of a shellcommand"""
-    #TODO: use raw arg from print command here
     def __init__(self, cmd, all=False, separately=False,
                  background=False, format='raw',
                  noop_msg='no command specified', confirm_msg='',
@@ -323,7 +322,7 @@ class PipeCommand(Command):
         :type separately: bool
         :param background: disable stdin and ignore sdtout of command
         :type background: bool
-        :param output: what to pipe to the processes stdin. one of:
+        :param format: what to pipe to the processes stdin. one of:
                        'raw': message content as is,
                        'decoded': message content, decoded quoted printable,
                        'id': message ids, separated by newlines,
@@ -340,7 +339,7 @@ class PipeCommand(Command):
         Command.__init__(self, **kwargs)
         if isinstance(cmd, unicode):
             cmd = shlex.split(cmd.encode('UTF-8'))
-        self.cmdlist = cmd
+        self.cmd = cmd
         self.whole_thread = all
         self.separately = separately
         self.background = background
@@ -352,7 +351,7 @@ class PipeCommand(Command):
     @inlineCallbacks
     def apply(self, ui):
         # abort if command unset
-        if not self.cmdlist:
+        if not self.cmd:
             ui.notify(self.noop_msg, priority='error')
             return
 
@@ -398,13 +397,17 @@ class PipeCommand(Command):
         # do teh monkey
         for mail in pipestrings:
             if self.background:
-                logging.debug('call in background: %s' % str(self.cmdlist))
-                out, err, retval = helper.call_cmd(self.cmdlist, stdin=mail)
+                logging.debug('call in background: %s' % str(self.cmd))
+                proc = subprocess.Popen(self.cmd,
+                                        shell=True, stdin=subprocess.PIPE,
+                                        stderr=subprocess.PIPE)
+                out, err = proc.communicate(mail)
             else:
                 logging.debug('stop urwid screen')
                 ui.mainloop.screen.stop()
-                logging.debug('call: %s' % str(self.cmdlist))
-                proc = subprocess.Popen(self.cmdlist, stdin=subprocess.PIPE,
+                logging.debug('call: %s' % str(self.cmd))
+                proc = subprocess.Popen(self.cmd, shell=True,
+                                        stdin=subprocess.PIPE,
                                         stderr=subprocess.PIPE)
                 out, err = proc.communicate(mail)
                 logging.debug('start urwid screen')
@@ -500,9 +503,9 @@ class PrintCommand(PipeCommand):
                     'global section.'
 
         PipeCommand.__init__(self, cmdlist, all=all, separately=separately,
-                             format='raw' if raw else 'decoded', noop_msg=noop_msg,
-                             confirm_msg=confirm_msg, done_msg=ok_msg,
-                             **kwargs)
+                             format='raw' if raw else 'decoded',
+                             noop_msg=noop_msg, confirm_msg=confirm_msg,
+                             done_msg=ok_msg, **kwargs)
 
 
 @registerCommand(MODE, 'save', arguments=[
