@@ -1,6 +1,8 @@
+import argparse
+import logging
+
 from alot.commands import Command, registerCommand
 from alot.commands.globals import PromptCommand
-import argparse
 
 from alot.db import DatabaseROError
 from alot import commands
@@ -25,7 +27,7 @@ class OpenThreadCommand(Command):
             self.thread = ui.current_buffer.get_selected_thread()
         if self.thread:
             query = ui.current_buffer.querystring
-            ui.logger.info('open thread view for %s' % self.thread)
+            logging.info('open thread view for %s' % self.thread)
 
             sb = buffers.ThreadBuffer(ui, self.thread)
             ui.buffer_open(sb)
@@ -73,7 +75,7 @@ class ToggleThreadTagCommand(Command):
             qs = "(%s) AND thread:%s" % (cb.querystring,
                                          self.thread.get_thread_id())
             if ui.dbman.count_messages(qs) == 0:
-                ui.logger.debug('remove: %s' % self.thread)
+                logging.debug('remove: %s' % self.thread)
                 cb.threadlist.remove(threadwidget)
                 cb.result_count -= self.thread.get_total_messages()
                 ui.update()
@@ -82,27 +84,39 @@ class ToggleThreadTagCommand(Command):
 
 
 @registerCommand(MODE, 'refine', usage='refine query', arguments=[
+    (['--sort'], {'help':'sort order', 'choices':[
+                   'oldest_first', 'newest_first', 'message_id', 'unsorted']}),
     (['query'], {'nargs':argparse.REMAINDER, 'help':'search string'})])
+@registerCommand(MODE, 'sort', usage='set sort order', arguments=[
+    (['sort'], {'help':'sort order', 'choices':[
+                 'oldest_first', 'newest_first', 'message_id', 'unsorted']}),
+])
 class RefineCommand(Command):
     """refine the querystring of this buffer"""
-    def __init__(self, query=None, **kwargs):
+    def __init__(self, query=None, sort=None, **kwargs):
         """
         :param query: new querystring given as list of strings as returned by
                       argparse
         :type query: list of str
         """
-        self.querystring = ' '.join(query)
+        if query is None:
+            self.querystring = None
+        else:
+            self.querystring = ' '.join(query)
+        self.sort_order = sort
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        if self.querystring:
+        if self.querystring or self.sort_order:
             sbuffer = ui.current_buffer
             oldquery = sbuffer.querystring
             if self.querystring not in [None, oldquery]:
                 sbuffer.querystring = self.querystring
                 sbuffer = ui.current_buffer
-                sbuffer.rebuild()
-                ui.update()
+            if self.sort_order:
+                sbuffer.sort_order = self.sort_order
+            sbuffer.rebuild()
+            ui.update()
         else:
             ui.notify('empty query string')
 
@@ -154,7 +168,7 @@ class RetagCommand(Command):
         if not self.thread:
             return
         tags = filter(lambda x: x, self.tagsstring.split(','))
-        ui.logger.info("got %s:%s" % (self.tagsstring, tags))
+        logging.info("got %s:%s" % (self.tagsstring, tags))
         try:
             self.thread.set_tags(tags)
         except DatabaseROError:

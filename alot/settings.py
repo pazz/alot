@@ -1,11 +1,14 @@
 import imp
 import os
+import re
 import ast
+import json
 import mailcap
 import codecs
 import logging
 
-from ConfigParser import SafeConfigParser
+from collections import OrderedDict
+from ConfigParser import SafeConfigParser, ParsingError, NoOptionError
 
 
 class FallbackConfigParser(SafeConfigParser):
@@ -24,15 +27,20 @@ class FallbackConfigParser(SafeConfigParser):
         :param fallback: the value to fall back if option undefined
         :type fallback: str
         """
-
         if SafeConfigParser.has_option(self, section, option):
             return SafeConfigParser.get(self, section, option, *args, **kwargs)
-        return fallback
+        elif fallback != None:
+            return fallback
+        else:
+            raise NoOptionError(option, section)
 
     def getstringlist(self, section, option, **kwargs):
         """directly parses a config value into a list of strings"""
-        value = self.get(section, option, **kwargs)
-        return [s.strip() for s in value.split(',') if s.strip()]
+        stringlist = list()
+        if self.has_option(section, option):
+            value = self.get(section, option, **kwargs)
+            stringlist = [s.strip() for s in value.split(',') if s.strip()]
+        return stringlist
 
 
 class AlotConfigParser(FallbackConfigParser):
@@ -93,11 +101,11 @@ class AlotConfigParser(FallbackConfigParser):
             names = set([s[:-3] for s in names])
         p = list()
         for attr in names:
-            nf = self.get('16c-theme', attr + '_fg', fallback='default')
-            nb = self.get('16c-theme', attr + '_bg', fallback='default')
-            m = self.get('1c-theme', attr, fallback='default')
-            hf = self.get('256c-theme', attr + '_fg', fallback='default')
-            hb = self.get('256c-theme', attr + '_bg', fallback='default')
+            nf = self._get_themeing_option('16c-theme', attr + '_fg')
+            nb = self._get_themeing_option('16c-theme', attr + '_bg')
+            m = self._get_themeing_option('1c-theme', attr)
+            hf = self._get_themeing_option('256c-theme', attr + '_fg')
+            hb = self._get_themeing_option('256c-theme', attr + '_bg')
             p.append((attr, nf, nb, m, hf, hb))
             if attr.startswith('tag_') and attr + '_focus' not in names:
                 nb = self.get('16c-theme', 'tag_focus_bg',
@@ -106,6 +114,82 @@ class AlotConfigParser(FallbackConfigParser):
                               fallback='default')
                 p.append((attr + '_focus', nf, nb, m, hf, hb))
         return p
+
+    def _get_themeing_option(self, section, option, default='default'):
+        """
+        Retrieve the value of the given option from the given section of the
+        config file.
+
+        If the option does not exist, try its parent options before falling
+        back to the specified default. The parent of an option is the name of
+        the option itself minus the last section enclosed in underscores;
+        so the parent of the option `aaa_bbb_ccc_fg` is of the form
+        `aaa_bbb_fg`.
+
+        :param section: the section of the config file to search for the given
+                        option
+        :type section: string
+        :param option: the option to lookup
+        :type option: string
+        :param default: the value that is to be returned if neither the
+                        requested option nor a parent exists
+        :type default: string
+        :return: the value of the given option, or the specified default
+        :rtype: string
+        """
+        result = ''
+        parent_option_re = '(.+)_[^_]+_(fg|bg)'
+        if self.has_option(section, option):
+            result = self.get(section, option)
+        else:
+            has_parent_option = re.search(parent_option_re, option)
+            if has_parent_option:
+                parent_option = '{0}_{1}'.format(has_parent_option.group(1),
+                                                 has_parent_option.group(2))
+                result = self._get_themeing_option(section, parent_option)
+            else:
+                result = default
+        return result
+
+    def has_themeing(self, themeing):
+        """
+        Return true if the given themeing option exists in the current colour
+        theme.
+
+        :param themeing: The themeing option to check for
+        :type theming: string
+        :return: True if themeing exist, False otherwise
+        :rtype: bool
+        """
+        mode = self.getint('general', 'colourmode')
+        if mode == 2:
+            theme = '1c-theme'
+        else:
+            theme = '{colours}c-theme'.format(colours=mode)
+        has_fg = self.has_option(theme, themeing + '_fg')
+        has_bg = self.has_option(theme, themeing + '_bg')
+        return (has_fg or has_bg)
+
+    def get_highlight_rules(self):
+        """
+        Parse the highlighting rules from the config file.
+
+        :returns: The highlighting rules
+        :rtype: :py:class:`collections.OrderedDict`
+        """
+        rules = OrderedDict()
+        try:
+            config_string = self.get('general', 'thread_highlight_rules')
+            rules = json.loads(config_string, object_pairs_hook=OrderedDict)
+        except NoOptionError as err:
+            logging.exception(err)
+        except ValueError as err:
+            report = ParsingError("Could not parse config option" \
+                                  " 'thread_highlight_rules' in section" \
+                                  " 'general': {reason}".format(reason=err))
+            logging.exception(report)
+        finally:
+            return rules
 
     def get_tagattr(self, tag, focus=False):
         """
@@ -120,19 +204,19 @@ class AlotConfigParser(FallbackConfigParser):
         mode = self.getint('general', 'colourmode')
         base = 'tag_%s' % tag
         if mode == 2:
-            if self.get('1c-theme', base):
-                return 'tag_%s' % tag
+            if self.has_option('1c-theme', base):
+                return base
         elif mode == 16:
-            has_fg = self.get('16c-theme', base + '_fg')
-            has_bg = self.get('16c-theme', base + '_bg')
+            has_fg = self.has_option('16c-theme', base + '_fg')
+            has_bg = self.has_option('16c-theme', base + '_bg')
             if has_fg or has_bg:
                 if focus:
                     return base + '_focus'
                 else:
                     return base
         else:  # highcolour
-            has_fg = self.get('256c-theme', base + '_fg')
-            has_bg = self.get('256c-theme', base + '_bg')
+            has_fg = self.has_option('256c-theme', base + '_fg')
+            has_bg = self.has_option('256c-theme', base + '_bg')
             if has_fg or has_bg:
                 if focus:
                     return base + '_focus'
@@ -142,8 +226,27 @@ class AlotConfigParser(FallbackConfigParser):
             return 'tag_focus'
         return 'tag'
 
+    def has_theming(self, themeing):
+        """
+        Return true if the given themeing option exists in the current colour
+        theme.
+
+        :param themeing: The themeing option to check for
+        :type theming: string
+        :return: True if themeing exist, False otherwise
+        :rtype: bool
+        """
+        mode = self.getint('general', 'colourmode')
+        if mode == 2:
+            theme = '1c-theme'
+        else:
+            theme = '{colours}c-theme'.format(colours=mode)
+        has_fg = self.has_option(theme, themeing + '_fg')
+        has_bg = self.has_option(theme, themeing + '_bg')
+        return (has_fg or has_bg)
+
     def get_mapping(self, mode, key):
-        """look up keybiding from `MODE-maps` sections
+        """look up keybinding from `MODE-maps` sections
 
         :param mode: mode identifier
         :type mode: str
@@ -152,8 +255,10 @@ class AlotConfigParser(FallbackConfigParser):
         :returns: a command line to be applied upon keypress
         :rtype: str
         """
-        cmdline = self.get(mode + '-maps', key)
-        if not cmdline:
+        cmdline = None
+        if self.has_option(mode + '-maps', key):
+            cmdline = self.get(mode + '-maps', key)
+        elif self.has_option('global-maps', key):
             cmdline = self.get('global-maps', key)
         return cmdline
 

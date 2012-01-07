@@ -4,11 +4,16 @@ import time
 import re
 import email
 import os
+import glob
 import shlex
 from ConfigParser import SafeConfigParser
 from urlparse import urlparse
 
 import helper
+
+
+class SendingMailFailed(RuntimeError):
+    pass
 
 
 class Account(object):
@@ -35,13 +40,17 @@ class Account(object):
     """signature to append to outgoing mails"""
     signature_filename = None
     """filename of signature file in attachment"""
+    signature_as_attachment = None
+    """attach signature file instead of appending its content to body text"""
     abook = None
     """addressbook (:class:`AddressBook`) managing this accounts contacts"""
 
-    def __init__(self, address=None, aliases=None, realname=None, gpg_key=None,
-                 signature=None, signature_filename=None, sent_box=None,
-                 draft_box=None, abook=None):
-
+    def __init__(self, dbman, address=None, aliases=None, realname=None,
+                 gpg_key=None, signature=None, signature_filename=None,
+                 signature_as_attachment=False, sent_box=None,
+                 sent_tags=['sent'], draft_box=None, draft_tags=['draft'],
+                 abook=None):
+        self.dbman = dbman
         self.address = address
         self.abook = abook
         self.aliases = []
@@ -51,6 +60,7 @@ class Account(object):
         self.gpg_key = gpg_key
         self.signature = signature
         self.signature_filename = signature_filename
+        self.signature_as_attachment = signature_as_attachment
 
         self.sent_box = None
         if sent_box:
@@ -65,6 +75,7 @@ class Account(object):
                 self.sent_box = mailbox.Babyl(mburl.path)
             elif mburl.scheme == 'mmdf':
                 self.sent_box = mailbox.MMDF(mburl.path)
+        self.sent_tags = sent_tags
 
         self.draft_box = None
         if draft_box:
@@ -79,8 +90,9 @@ class Account(object):
                 self.draft_box = mailbox.Babyl(mburl.path)
             elif mburl.scheme == 'mmdf':
                 self.draft_box = mailbox.MMDF(mburl.path)
+        self.draft_tags = draft_tags
 
-    def store_mail(self, mbx, mail):
+    def store_mail(self, mbx, mail, tags=None):
         """
         stores given mail in mailbox. If mailbox is maildir, set the S-flag.
 
@@ -88,16 +100,39 @@ class Account(object):
         :type mbx: :class:`mailbox.Mailbox`
         :param mail: the mail to store
         :type mail: :class:`email.message.Message` or str
+        :param tags: if given, add the mail to the notmuch index and tag it
+        :type tags: list of str
+        :returns: True iff mail was successfully stored
+        :rtype: bool
         """
+        if not isinstance(mbx, mailbox.Mailbox):
+            logging.debug('Not a mailbox')
+            return False
+
         mbx.lock()
         if isinstance(mbx, mailbox.Maildir):
+            logging.debug('Maildir')
             msg = mailbox.MaildirMessage(mail)
             msg.set_flags('S')
         else:
+            logging.debug('no Maildir')
             msg = mailbox.Message(mail)
-        mbx.add(mail)
+
+        message_id = mbx.add(msg)
         mbx.flush()
         mbx.unlock()
+        logging.debug('got id : %s' % id)
+
+        # add new Maildir message to index and add tags
+        if isinstance(mbx, mailbox.Maildir) and tags != None:
+            # this is a dirty hack to get the path to the newly added file
+            # I wish the mailbox module were more helpful...
+            path = glob.glob(os.path.join(mbx._path, '*', message_id + '*'))[0]
+
+            message = self.dbman.add_message(path)
+            message.add_tags(tags)
+            self.dbman.flush()
+        return True
 
     def store_sent_mail(self, mail):
         """
@@ -105,7 +140,7 @@ class Account(object):
         :attr:`sent_box` is set.
         """
         if self.sent_box is not None:
-            self.store_mail(self.sent_box, mail)
+            self.store_mail(self.sent_box, mail, self.sent_tags)
 
     def store_draft_mail(self, mail):
         """
@@ -113,7 +148,7 @@ class Account(object):
         :attr:`draft_box` is set.
         """
         if self.draft_box is not None:
-            self.store_mail(self.sent_box, mail)
+            self.store_mail(self.draft_box, mail, self.draft_tags)
 
     def send_mail(self, mail):
         """
@@ -121,8 +156,7 @@ class Account(object):
 
         :param mail: the mail to send
         :type mail: :class:`email.message.Message` or string
-        :returns: None if successful and a string with the reason
-                  for failure otherwise.
+        :raises: :class:`alot.account.SendingMailFailed` if an error occured
         """
         return 'not implemented'
 
@@ -130,12 +164,14 @@ class Account(object):
 class SendmailAccount(Account):
     """:class:`Account` that pipes a message to a `sendmail` shell command for
     sending"""
-    def __init__(self, cmd, **kwargs):
+    def __init__(self, dbman, cmd, **kwargs):
         """
+        :param dbman: the database manager instance
+        :type dbman: :class:`~alot.db.DBManager`
         :param cmd: sendmail command to use for this account
         :type cmd: str
         """
-        Account.__init__(self, **kwargs)
+        super(SendmailAccount, self).__init__(dbman, **kwargs)
         self.cmd = cmd
 
     def send_mail(self, mail):
@@ -143,9 +179,9 @@ class SendmailAccount(Account):
         cmdlist = shlex.split(self.cmd.encode('utf-8', errors='ignore'))
         out, err, retval = helper.call_cmd(cmdlist, stdin=mail.as_string())
         if err:
-            return err + '. sendmail_cmd set to: %s' % self.cmd
+            errmsg = '%s. sendmail_cmd set to: %s' % (err, self.cmd)
+            raise SendingMailFailed(errmsg)
         self.store_sent_mail(mail)
-        return None
 
 
 class AccountManager(object):
@@ -160,19 +196,25 @@ class AccountManager(object):
                'gpg_key',
                'signature',
                'signature_filename',
+               'signature_as_attachment',
                'type',
                'sendmail_command',
                'abook_command',
                'abook_regexp',
                'sent_box',
-               'draft_box']
+               'sent_tags',
+               'draft_box',
+               'draft_tags']
     manditory = ['realname', 'address']
+    parse_lists = ['sent_tags', 'draft_tags']
     accountmap = {}
     accounts = []
     ordered_addresses = []
 
-    def __init__(self, config):
+    def __init__(self, dbman, config):
         """
+        :param dbman: the database manager instance
+        :type dbman: :class:`~alot.db.DBManager`
         :param config: the config object to read account information from
         :type config: :class:`~alot.settings.AlotConfigParser`.
         """
@@ -193,16 +235,24 @@ class AccountManager(object):
                     regexp = None  # will use default in constructor
                 args['abook'] = MatchSdtoutAddressbook(cmd, match=regexp)
 
+            if 'signature_as_attachment' in options:
+                value = config.getboolean(s, 'signature_as_attachment')
+                args['signature_as_attachment'] = value
+                options.remove('signature_as_attachment')
+
             to_set = self.manditory
             for o in options:
-                args[o] = config.get(s, o)
+                if o not in self.parse_lists:
+                    args[o] = config.get(s, o)
+                else:
+                    args[o] = config.getstringlist(s, o)
                 if o in to_set:
                     to_set.remove(o)  # removes obligation
             if not to_set:  # all manditory fields were present
                 sender_type = args.pop('type', 'sendmail')
                 if sender_type == 'sendmail':
                     cmd = args.pop('sendmail_command', 'sendmail')
-                    newacc = (SendmailAccount(cmd, **args))
+                    newacc = (SendmailAccount(dbman, cmd, **args))
                     self.accountmap[newacc.address] = newacc
                     self.accounts.append(newacc)
                     for alias in newacc.aliases:

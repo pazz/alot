@@ -6,6 +6,7 @@ import settings
 import commands
 from walker import PipeWalker
 from helper import shorten_author_string
+from db import NonexistantObjectError
 
 
 class Buffer(object):
@@ -133,10 +134,13 @@ class SearchBuffer(Buffer):
     """
     threads = []
 
-    def __init__(self, ui, initialquery=''):
+    def __init__(self, ui, initialquery='', sort_order=None):
         self.dbman = ui.dbman
         self.ui = ui
         self.querystring = initialquery
+        default_order = settings.config.get('general',
+                                            'search_threads_sort_order')
+        self.sort_order = sort_order or default_order
         self.result_count = 0
         self.isinitialized = False
         self.proc = None  # process that fills our pipe
@@ -172,7 +176,8 @@ class SearchBuffer(Buffer):
 
         self.result_count = self.dbman.count_messages(self.querystring)
         try:
-            self.pipe, self.proc = self.dbman.get_threads(self.querystring)
+            self.pipe, self.proc = self.dbman.get_threads(self.querystring,
+                                                          self.sort_order)
         except NotmuchError:
             self.ui.notify('malformed query string: %s' % self.querystring,
                            'error')
@@ -228,7 +233,12 @@ class ThreadBuffer(Buffer):
             self._build_pile(acc, reply, msg, depth + 1)
 
     def rebuild(self):
-        self.thread.refresh()
+        try:
+            self.thread.refresh()
+        except NonexistantObjectError:
+            self.body = urwid.SolidFill()
+            self.message_count = 0
+            return
         # depth-first traversing the thread-tree, thereby
         # 1) build a list of tuples (parentmsg, depth, message) in DF order
         # 2) create a dict that counts no. of direct replies per message
@@ -255,7 +265,9 @@ class ThreadBuffer(Buffer):
                                             depth=depth,
                                             bars_at=bars)
             msglines.append(mwidget)
+
         self.body = urwid.ListBox(msglines)
+        self.message_count = self.thread.get_total_messages()
 
     def get_selection(self):
         """returns focussed :class:`~alot.widgets.MessageWidget`"""
@@ -286,10 +298,11 @@ class ThreadBuffer(Buffer):
         for mw in self.get_message_widgets():
             msg = mw.get_message()
             if msg.matches(querystring):
-                mw.fold(visible=True)
+                mw.folded = False
                 if 'unread' in msg.get_tags():
                     msg.remove_tags(['unread'])
                     self.ui.apply_command(commands.globals.FlushCommand())
+                mw.rebuild()
 
 
 class TagListBuffer(Buffer):
@@ -310,7 +323,8 @@ class TagListBuffer(Buffer):
             self.isinitialized = True
 
         lines = list()
-        displayedtags = filter(self.filtfun, self.tags)
+        displayedtags = sorted(filter(self.filtfun, self.tags),
+                               key=unicode.lower)
         for (num, b) in enumerate(displayedtags):
             tw = widgets.TagWidget(b)
             lines.append(urwid.Columns([('fixed', tw.width(), tw)]))

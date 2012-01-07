@@ -41,15 +41,18 @@ class ExitCommand(Command):
 
 
 @registerCommand(MODE, 'search', usage='search query', arguments=[
+    (['--sort'], {'help':'sort order', 'choices':[
+                   'oldest_first', 'newest_first', 'message_id', 'unsorted']}),
     (['query'], {'nargs':argparse.REMAINDER, 'help':'search string'})])
 class SearchCommand(Command):
     """open a new search buffer"""
-    def __init__(self, query, **kwargs):
+    def __init__(self, query, sort=None, **kwargs):
         """
         :param query: notmuch querystring
         :type query: str
         """
         self.query = ' '.join(query)
+        self.order = sort
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
@@ -62,7 +65,8 @@ class SearchCommand(Command):
             if to_be_focused:
                 ui.buffer_focus(to_be_focused)
             else:
-                ui.buffer_open(buffers.SearchBuffer(ui, self.query))
+                ui.buffer_open(buffers.SearchBuffer(ui, self.query,
+                                                    sort_order=self.order))
         else:
             ui.notify('empty query string')
 
@@ -81,16 +85,18 @@ class PromptCommand(Command):
 
     @inlineCallbacks
     def apply(self, ui):
-        ui.logger.info('open command shell')
+        logging.info('open command shell')
         mode = ui.current_buffer.typename
         cmdline = yield ui.prompt(prefix=':',
                               text=self.startwith,
                               completer=CommandLineCompleter(ui.dbman,
                                                              ui.accountman,
-                                                             mode),
+                                                             mode,
+                                                             ui.current_buffer,
+                                                            ),
                               history=ui.commandprompthistory,
                              )
-        ui.logger.debug('CMDLINE: %s' % cmdline)
+        logging.debug('CMDLINE: %s' % cmdline)
 
         # interpret and apply commandline
         if cmdline:
@@ -148,6 +154,29 @@ class ExternalCommand(Command):
 
     def apply(self, ui):
         callerbuffer = ui.current_buffer
+        env = dict(os.environ)
+
+        if ui.mode == 'thread':
+            msg = ui.current_buffer.get_selected_message()
+            # reload message because it's now read and the filename changed
+            msg = ui.dbman.get_message( msg.get_message_id() )
+
+            env.update(
+                MSG_PATH = msg.get_filename(),
+                MSG_ID = msg.get_message_id(),
+                MSG_TAGS = ' '.join(msg.get_tags()),
+                )
+
+        if ui.mode in ('thread', 'search'):
+            thread = ui.current_buffer.get_selected_thread()
+
+            env.update(
+                THREAD_ID = thread.get_thread_id(),
+                THREAD_TAGS = ' '.join(thread.get_tags()),
+                THREAD_FILES = '\n'.join([
+                    msg.get_filename() for msg in thread.get_messages().keys()
+                    ]),
+                )
 
         def afterwards(data):
             if data == 'success':
@@ -156,7 +185,7 @@ class ExternalCommand(Command):
             else:
                 ui.notify(data, priority='error')
             if self.refocus and callerbuffer in ui.buffers:
-                ui.logger.info('refocussing')
+                logging.info('refocussing')
                 ui.buffer_focus(callerbuffer)
 
         write_fd = ui.mainloop.watch_pipe(afterwards)
@@ -177,9 +206,9 @@ class ExternalCommand(Command):
                                                      'terminal_cmd'),
                                  cmd)
             cmd = cmd.encode('utf-8', errors='ignore')
-            ui.logger.info('calling external command: %s' % cmd)
+            logging.info('calling external command: %s' % cmd)
             try:
-                if 0 == subprocess.call(shlex.split(cmd)):
+                if 0 == subprocess.call(cmd, shell=True, env=env):
                     os.write(write_fd, 'success')
             except OSError, e:
                 os.write(write_fd, str(e))
@@ -255,10 +284,10 @@ class BufferCloseCommand(Command):
         selected = ui.current_buffer
         if len(ui.buffers) == 1:
             if settings.config.getboolean('general', 'quit_on_last_bclose'):
-                ui.logger.info('closing the last buffer, exiting')
+                logging.info('closing the last buffer, exiting')
                 ui.apply_command(ExitCommand())
             else:
-                ui.logger.info('not closing last remaining buffer as '
+                logging.info('not closing last remaining buffer as '
                                'global.quit_on_last_bclose is set to False')
         else:
             ui.buffer_close(selected)
@@ -365,7 +394,7 @@ class HelpCommand(Command):
         self.commandname = commandname
 
     def apply(self, ui):
-        ui.logger.debug('HELP')
+        logging.debug('HELP')
         if self.commandname == 'bindings':
             # get mappings
             modemaps = dict(settings.config.items('%s-maps' % ui.mode))
@@ -409,7 +438,7 @@ class HelpCommand(Command):
                                     ('relative', 70))
             ui.show_as_root_until_keypress(overlay, 'cancel')
         else:
-            ui.logger.debug('HELP %s' % self.commandname)
+            logging.debug('HELP %s' % self.commandname)
             parser = commands.lookup_parser(self.commandname, ui.mode)
             if parser:
                 ui.notify(parser.format_help(), block=True)
@@ -536,6 +565,32 @@ class ComposeCommand(Command):
                 else:
                     self.envelope.add('From', fromaddress)
 
+        # add signature
+        name, addr = email.Utils.parseaddr(self.envelope['From'])
+        a = ui.accountman.get_account_by_address(addr)
+        if a.signature:
+            logging.debug('has signature')
+            sig = os.path.expanduser(a.signature)
+            if os.path.isfile(sig):
+                logging.debug('is file')
+                if a.signature_as_attachment:
+                    name = a.signature_filename or None
+                    self.envelope.attach(sig, filename=name)
+                    logging.debug('attached')
+                else:
+                    sigcontent = open(sig).read()
+                    enc = helper.guess_encoding(sigcontent)
+                    mimetype = helper.guess_mimetype(sigcontent)
+                    if mimetype.startswith('text'):
+                        sigcontent = helper.string_decode(sigcontent, enc)
+                        self.envelope.body += '\n' + sigcontent
+            else:
+                ui.notify('could not locate signature: %s' % sig,
+                          priority='error')
+                if (yield ui.choice('send without signature',
+                                    select='yes', cancel='no')) == 'no':
+                    return
+
         # get missing To header
         if 'To' not in self.envelope.headers:
             sender = self.envelope.get('From')
@@ -544,10 +599,10 @@ class ComposeCommand(Command):
 
             allbooks = not settings.config.getboolean('general',
                                 'complete_matching_abook_only')
-            ui.logger.debug(allbooks)
+            logging.debug(allbooks)
             abooks = ui.accountman.get_addressbooks(order=[a],
                                                     append_remaining=allbooks)
-            ui.logger.debug(abooks)
+            logging.debug(abooks)
             to = yield ui.prompt(prefix='To>',
                                  completer=ContactsCompleter(abooks))
             if to == None:
@@ -558,7 +613,7 @@ class ComposeCommand(Command):
         if settings.config.getboolean('general', 'ask_subject') and \
            not 'Subject' in self.envelope.headers:
             subject = yield ui.prompt(prefix='Subject>')
-            ui.logger.debug('SUBJECT: "%s"' % subject)
+            logging.debug('SUBJECT: "%s"' % subject)
             if subject == None:
                 ui.notify('canceled')
                 return

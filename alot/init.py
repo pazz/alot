@@ -47,6 +47,19 @@ class ComposeOptions(SubcommandOptions):
         self['to'] = ' '.join(args)
 
 
+class SearchOptions(SubcommandOptions):
+    accepted = ['oldest_first', 'newest_first', 'message_id', 'unsorted']
+
+    def colourint(val):
+        if val not in accepted:
+            raise ValueError("Unknown sort order")
+        return val
+    colourint.coerceDoc = "Must be one of " + str(accepted)
+    optParameters = [
+                ['sort', 'newest_first', None, 'Sort order'],
+            ]
+
+
 class Options(usage.Options):
     optFlags = [["read-only", "r", 'open db in read only mode'], ]
 
@@ -74,7 +87,7 @@ class Options(usage.Options):
     search_help = "start in a search buffer using the querystring provided "\
                   "as parameter. See the SEARCH SYNTAX section of notmuch(1)."
 
-    subCommands = [['search', None, SubcommandOptions, search_help],
+    subCommands = [['search', None, SearchOptions, search_help],
                    ['compose', None, ComposeOptions, "compose a new message"]]
 
     def opt_version(self):
@@ -121,24 +134,33 @@ def main():
     except ConfigParser.Error, e:  # exit on parse errors
         sys.exit(e)
 
-    # setup logging
+    # logging
+    ## reset
+    root_logger = logging.getLogger()
+    for log_handler in root_logger.handlers:
+        root_logger.removeHandler(log_handler)
+    root_logger = None
+    ## setup
     numeric_loglevel = getattr(logging, args['debug-level'].upper(), None)
     logfilename = os.path.expanduser(args['logfile'])
-    logging.basicConfig(level=numeric_loglevel, filename=logfilename)
-    logger = logging.getLogger()
+    logformat = '%(levelname)s:%(module)s:%(message)s'
+    logging.basicConfig(level=numeric_loglevel, filename=logfilename,
+                        format=logformat)
 
-    #logger.debug(commands.COMMANDS)
-    #accountman
-    aman = AccountManager(settings.config)
-
+    #logging.debug(commands.COMMANDS)
     # get ourselves a database manager
     dbman = DBManager(path=args['mailindex-path'], ro=args['read-only'])
+
+    #accountman
+    aman = AccountManager(dbman, settings.config)
 
     # get initial searchstring
     try:
         if args.subCommand == 'search':
             query = ' '.join(args.subOptions.args)
-            cmd = commands.commandfactory('search ' + query, 'global')
+            cmdstring = 'search %s %s' % (args.subOptions.as_argparse_opts(),
+                                          query)
+            cmd = commands.commandfactory(cmdstring, 'global')
         elif args.subCommand == 'compose':
             cmdstring = 'compose %s' % args.subOptions.as_argparse_opts()
             cmd = commands.commandfactory(cmdstring, 'global')
@@ -151,7 +173,6 @@ def main():
 
     # set up and start interface
     UI(dbman,
-       logger,
        aman,
        cmd,
        args['colour-mode'],

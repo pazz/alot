@@ -272,6 +272,7 @@ def guess_encoding(blob):
     return m.buffer(blob)
 
 
+# TODO: make this work on blobs, not paths
 def mimewrap(path, filename=None, ctype=None):
     content = open(path, 'rb').read()
     ctype = ctype or guess_mimetype(content)
@@ -315,7 +316,7 @@ def tag_cmp(a, b):
     if min(len(a), len(b)) == 1:
         return cmp(len(a), len(b))
     else:
-        return cmp(a, b)
+        return cmp(a.lower(), b.lower())
 
 
 def humanize_size(size):

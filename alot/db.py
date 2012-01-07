@@ -25,6 +25,11 @@ class DatabaseLockedError(DatabaseError):
     pass
 
 
+class NonexistantObjectError(DatabaseError):
+    """requested thread or message does not exist in the index"""
+    pass
+
+
 class FillPipeProcess(multiprocessing.Process):
     def __init__(self, it, pipe, fun=(lambda x: x)):
         multiprocessing.Process.__init__(self)
@@ -44,6 +49,14 @@ class DBManager(object):
     lets you look up threads and messages directly to the persistent wrapper
     classes.
     """
+    _sort_orders = {
+        'oldest_first': notmuch.database.Query.SORT.OLDEST_FIRST,
+        'newest_first': notmuch.database.Query.SORT.NEWEST_FIRST,
+        'unsorted': notmuch.database.Query.SORT.UNSORTED,
+        'message_id': notmuch.database.Query.SORT.MESSAGE_ID,
+    }
+    """constants representing sort orders"""
+
     def __init__(self, path=None, ro=False):
         """
         :param path: absolute path to the notmuch index
@@ -177,20 +190,32 @@ class DBManager(object):
 
         return self.query_threaded(querystring)
 
-    def get_thread(self, tid):
-        """returns :class:`Thread` with given thread id (str)"""
+    def _get_notmuch_thread(self, tid):
+        """returns :class:`notmuch.database.Thread` with given id"""
         query = self.query('thread:' + tid)
         try:
-            return Thread(self, query.search_threads().next())
+            return query.search_threads().next()
+        except StopIteration:
+            errmsg = 'no thread with id %s exists!' % tid
+            raise NonexistantObjectError(errmsg)
+
+    def get_thread(self, tid):
+        """returns :class:`Thread` with given thread id (str)"""
+        return Thread(self, self._get_notmuch_thread(tid))
+
+    def _get_notmuch_message(self, mid):
+        """returns :class:`notmuch.database.Message` with given id"""
+        mode = Database.MODE.READ_ONLY
+        db = Database(path=self.path, mode=mode)
+        try:
+            return db.find_message(mid)
         except:
-            return None
+            errmsg = 'no message with id %s exists!' % mid
+            raise NonexistantObjectError(errmsg)
 
     def get_message(self, mid):
         """returns :class:`Message` with given message id (str)"""
-        mode = Database.MODE.READ_ONLY
-        db = Database(path=self.path, mode=mode)
-        msg = db.find_message(mid)
-        return Message(self, msg)
+        return Message(self, self._get_notmuch_message(mid))
 
     def get_all_tags(self):
         """
@@ -223,18 +248,23 @@ class DBManager(object):
         sender.close()
         return receiver, process
 
-    def get_threads(self, querystring):
+    def get_threads(self, querystring, sort='newest_first'):
         """
         asynchronously look up thread ids matching `querystring`.
 
         :param querystring: The query string to use for the lookup
-        :type query: str.
+        :type querystring: str.
+        :param sort: Sort order. one of ['oldest_first', 'newest_first',
+                     'message_id', 'unsorted']
+        :type query: str
         :returns: a pipe together with the process that asynchronously
                   writes to it.
         :rtype: (:class:`multiprocessing.Pipe`,
                 :class:`multiprocessing.Process`)
         """
+        assert sort in self._sort_orders.keys()
         q = self.query(querystring)
+        q.set_sort(self._sort_orders[sort])
         return self.async(q.search_threads, (lambda a: a.get_thread_id()))
 
     def query(self, querystring):
@@ -248,6 +278,38 @@ class DBManager(object):
         mode = Database.MODE.READ_ONLY
         db = Database(path=self.path, mode=mode)
         return db.create_query(querystring)
+
+    def add_message(self, path):
+        """
+        Adds a file to the notmuch index.
+
+        :param path: path to the file
+        :type path: str
+        :returns: the message object corresponding the added message
+        :rtype: :class:`alot.message.Message`
+        """
+        db = Database(path=self.path, mode=Database.MODE.READ_WRITE)
+        try:
+            message, status = db.add_message(path,
+                                             sync_maildir_flags=True)
+        except NotmuchError as e:
+            raise DatabaseError(unicode(e))
+
+        return Message(self, message)
+
+    def remove_message(self, message):
+        """
+        Remove a message from the notmuch index
+
+        :param message: message to remove
+        :type message: :class:`Message`
+        """
+        path = message.get_filename()
+        db = Database(path=self.path, mode=Database.MODE.READ_WRITE)
+        try:
+            status = db.remove_message(path)
+        except NotmuchError as e:
+            raise DatabaseError(unicode(e))
 
 
 class Thread(object):
@@ -272,8 +334,8 @@ class Thread(object):
     def refresh(self, thread=None):
         """refresh thread metadata from the index"""
         if not thread:
-            query = self._dbman.query('thread:' + self._id)
-            thread = query.search_threads().next()
+            thread = self._dbman._get_notmuch_thread(self._id)
+
         self._total_messages = thread.get_total_messages()
         self._authors = thread.get_authors()
         self._subject = thread.get_subject()
@@ -434,3 +496,17 @@ class Thread(object):
     def get_total_messages(self):
         """returns number of contained messages"""
         return self._total_messages
+
+    def matches(self, query):
+        """
+        Check if this thread matches the given notmuch query.
+
+        :param query: The query to check against
+        :type query: string
+        :returns: True if this thread matches the given query, False otherwise
+        :rtype: bool
+        """
+        thread_query = 'thread:{tid} AND {subquery}'.format(tid=self._id,
+                                                            subquery=query)
+        num_matches = self._dbman.count_messages(thread_query)
+        return num_matches > 0
