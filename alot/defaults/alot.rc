@@ -199,7 +199,7 @@ ls = bufferlist
 [256c-theme]
 
 # default formating for tagstrings
-# add 'tag_X_fg' and 'tag_X_bg' to your config to specify
+# add 'tag_X_[focus_]fg' and 'tag_X_[focus_]bg' to your config to specify
 # formating for tagstring 'X'
 tag_bg = default
 tag_fg = brown
