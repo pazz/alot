@@ -202,29 +202,22 @@ class AlotConfigParser(FallbackConfigParser):
         """
 
         mode = self.getint('general', 'colourmode')
-        base = 'tag_%s' % tag
+        theme = 'tag'
+        tag_theme = '{}_{}'.format(theme, tag)
         if mode == 2:
-            if self.has_option('1c-theme', base):
-                return base
-        elif mode == 16:
-            has_fg = self.has_option('16c-theme', base + '_fg')
-            has_bg = self.has_option('16c-theme', base + '_bg')
+            if self.has_option('1c-theme', tag_theme):
+                theme = tag_theme
+        else:
+            colour_theme = '{colors}c-theme'.format(colors=mode)
+            fg_theme = '{prefix}_fg'.format(prefix=tag_theme)
+            bg_theme = '{prefix}_bg'.format(prefix=tag_theme)
+            has_fg = self.has_option(colour_theme, fg_theme)
+            has_bg = self.has_option(colour_theme, bg_theme)
             if has_fg or has_bg:
-                if focus:
-                    return base + '_focus'
-                else:
-                    return base
-        else:  # highcolour
-            has_fg = self.has_option('256c-theme', base + '_fg')
-            has_bg = self.has_option('256c-theme', base + '_bg')
-            if has_fg or has_bg:
-                if focus:
-                    return base + '_focus'
-                else:
-                    return base
-        if focus:
-            return 'tag_focus'
-        return 'tag'
+                theme = tag_theme
+            if focus:
+                theme += '_focus'
+        return theme
 
     def has_theming(self, themeing):
         """
