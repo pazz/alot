@@ -138,7 +138,11 @@ class AlotConfigParser(FallbackConfigParser):
         :rtype: string
         """
         result = ''
-        parent_option_re = '(.+)_[^_]+_(fg|bg)'
+        if 'focus' in option:
+            parent_option_re = '(.+)_[^_]+_(focus_(?:fg|bg))'
+        else:
+            parent_option_re = '(.+)_[^_]+_(fg|bg)'
+
         if self.has_option(section, option):
             result = self.get(section, option)
         else:

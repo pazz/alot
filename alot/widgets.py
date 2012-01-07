@@ -200,14 +200,17 @@ class ThreadlineWidget(urwid.AttrMap):
 
     def _get_theme(self, component, focus=False):
         theme = 'search_thread_{0}'.format(component)
-        if focus:
-            theme = theme + '_focus'
         if (self.highlight_theme_suffix and
             component in self.highlight_components):
             highlight_theme = (theme +
                                '_{id}'.format(id=self.highlight_theme_suffix))
+            if focus:
+                theme += '_focus'
+                highlight_theme += '_focus'
             if config.has_themeing(highlight_theme):
                 theme = highlight_theme
+        elif focus:
+            theme = theme + '_focus'
         return theme
 
 
