@@ -62,7 +62,7 @@ def call_git_describe(abbrev=4):
         return None
 
 
-def read_release_version():
+def read_version():
     try:
         f = open(VERSIONFILE, "r")
 
@@ -77,7 +77,7 @@ def read_release_version():
         return None
 
 
-def write_release_version(version):
+def write_version(version):
     f = open(VERSIONFILE, "w")
     f.write("%s\n" % version)
     f.close()
@@ -85,7 +85,7 @@ def write_release_version(version):
 
 def get_git_version(abbrev=4):
     # Read in the version that's currently in VERSION.
-    release_version = read_release_version()
+    release_version = read_version()
 
     # First try to get the current version using “git describe”.
     version = call_git_describe(abbrev)
@@ -105,7 +105,7 @@ def get_git_version(abbrev=4):
     # RELEASE-VERSION file, update the file to be current.
 
     if version != release_version:
-        write_release_version(version)
+        write_version(version)
 
     # Finally, return the current version.
     return version
