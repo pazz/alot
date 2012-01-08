@@ -274,7 +274,7 @@ class ThreadBuffer(Buffer):
         (messagewidget, size) = self.body.get_focus()
         return messagewidget
 
-    def get_messagewidgets():
+    def get_messagewidgets(self):
         """returns all message widgets contained in this list"""
         return self.body.body.contents
 

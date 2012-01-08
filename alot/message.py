@@ -179,7 +179,10 @@ class Message(object):
         :type remove_rest: bool
         """
         def myafterwards():
-            self._tags = self._tags.union(tags)
+            if remove_rest:
+                self._tags = set(tags)
+            else:
+                self._tags = self._tags.union(tags)
             if callable(afterwards):
                 afterwards()
 

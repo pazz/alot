@@ -624,7 +624,7 @@ class ThreadSelectCommand(Command):
     (['--all'], {'action': 'store_true', 'help':'tag all messages in thread'}),
     (['tags'], {'help':'comma separated list of tags'})])
 @registerCommand(MODE, 'retag', forced={'action': 'set'}, arguments=[
-    (['--all'], {'action': 'store_true', 'help':'retag all messages in thread'}),
+    (['--all'], {'action': 'store_true', 'help':'tag all messages in thread'}),
     (['tags'], {'help':'comma separated list of tags'})])
 @registerCommand(MODE, 'untag', forced={'action': 'remove'}, arguments=[
     (['--all'], {'action': 'store_true', 'help':'tag all messages in thread'}),
@@ -651,15 +651,16 @@ class TagCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
+        all_message_widgets = ui.current_buffer.get_messagewidgets()
         if self.all:
-            mwidgets = ui.current_buffer.get_messagewidgets()
+            mwidgets = all_message_widgets
         else:
             mwidgets = [ui.current_buffer.get_selection()]
         messages = [mw.get_message() for mw in mwidgets]
         logging.debug('TAG %s' % str(messages))
 
         def refresh_widgets():
-            for mw in mwidgets:
+            for mw in all_message_widgets:
                 mw.rebuild()
 
         tags = filter(lambda x: x, self.tagsstring.split(','))
