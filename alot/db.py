@@ -386,7 +386,7 @@ class Thread(object):
                 tags = tags.intersection(set(m.get_tags()))
         return tags
 
-    def add_tags(self, tags, afterwards=None):
+    def add_tags(self, tags, afterwards=None, remove_rest=False):
         """
         add `tags` to all messages in this thread
 
@@ -401,16 +401,21 @@ class Thread(object):
         :param afterwards: callback that gets called after successful
                            application of this tagging operation
         :type afterwards: callable
+        :param remove_rest: remove all other tags
+        :type remove_rest: bool
         """
-        newtags = set(tags).difference(self._tags)
-        if newtags:
-            def myafterwards():
-                self._tags = self._tags.union(tags)
-                if callable(afterwards):
-                    afterwards()
+        if remove_rest:
+            newtags = tags
+        else:
+            newtags = set(tags).difference(self._tags)
 
-            self._dbman.tag('thread:' + self._id, newtags, myafterwards)
-            self._tags = self._tags.union(newtags)
+        def myafterwards():
+            self._tags = self._tags.union(tags)
+            if callable(afterwards):
+                afterwards()
+
+        self._dbman.tag('thread:' + self._id, newtags, afterwards=myafterwards,
+                       remove_rest=remove_rest)
 
     def remove_tags(self, tags, afterwards=None):
         """
@@ -436,33 +441,6 @@ class Thread(object):
                     afterwards()
             self._dbman.untag('thread:' + self._id, tags, myafterwards)
             self._tags = self._tags.difference(rmtags)
-
-    def set_tags(self, tags, afterwards=None):
-        """
-        set tags (list of str) of all messages in this thread. This removes all
-        tags and attaches the given ones in one step.
-
-        .. note::
-
-            This only adds the requested operation to this objects
-            :class:`DBManager's <DBManager>` write queue.
-            You need to call :meth:`DBManager.flush` to actually write out.
-
-        :param tags: a list of tags to be added
-        :type tags: list of str
-        :param afterwards: callback that gets called after successful
-                           application of this tagging operation
-        :type afterwards: callable
-        """
-        if tags != self._tags:
-            def myafterwards():
-                self._tags = set(tags)
-                if callable(afterwards):
-                    afterwards()
-            self._dbman.tag('thread:' + self._id, tags,
-                            afterwards=myafterwards,
-                            remove_rest=True)
-            self._tags = set(tags)
 
     def get_authors(self):  # TODO: make this return a list of strings
         """returns authors string"""
