@@ -404,7 +404,12 @@ class Thread(object):
         """
         newtags = set(tags).difference(self._tags)
         if newtags:
-            self._dbman.tag('thread:' + self._id, newtags, afterwards)
+            def myafterwards():
+                self._tags = self._tags.union(tags)
+                if callable(afterwards):
+                    afterwards()
+
+            self._dbman.tag('thread:' + self._id, newtags, myafterwards)
             self._tags = self._tags.union(newtags)
 
     def remove_tags(self, tags, afterwards=None):
@@ -425,7 +430,11 @@ class Thread(object):
         """
         rmtags = set(tags).intersection(self._tags)
         if rmtags:
-            self._dbman.untag('thread:' + self._id, tags, afterwards)
+            def myafterwards():
+                self._tags = self._tags.difference(tags)
+                if callable(afterwards):
+                    afterwards()
+            self._dbman.untag('thread:' + self._id, tags, myafterwards)
             self._tags = self._tags.difference(rmtags)
 
     def set_tags(self, tags, afterwards=None):
@@ -446,7 +455,12 @@ class Thread(object):
         :type afterwards: callable
         """
         if tags != self._tags:
-            self._dbman.tag('thread:' + self._id, tags, afterwards=afterwards,
+            def myafterwards():
+                self._tags = set(tags)
+                if callable(afterwards):
+                    afterwards()
+            self._dbman.tag('thread:' + self._id, tags,
+                            afterwards=myafterwards,
                             remove_rest=True)
             self._tags = set(tags)
 

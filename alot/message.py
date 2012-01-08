@@ -176,7 +176,12 @@ class Message(object):
                            application of this tagging operation
         :type afterwards: callable
         """
-        self._dbman.tag('id:' + self._id, tags, afterwards)
+        def myafterwards():
+            self._tags = self._tags.union(tags)
+            if callable(afterwards):
+                afterwards()
+
+        self._dbman.tag('id:' + self._id, tags, myafterwards)
         self._tags = self._tags.union(tags)
 
     def remove_tags(self, tags, afterwards=None):
@@ -194,9 +199,12 @@ class Message(object):
                            application of this tagging operation
         :type afterwards: callable
         """
+        def myafterwards():
+            self._tags = self._tags.difference(tags)
+            if callable(afterwards):
+                afterwards()
 
-        self._dbman.untag('id:' + self._id, tags, afterwards)
-        self._tags = self._tags.difference(tags)
+        self._dbman.untag('id:' + self._id, tags, myafterwards)
 
     def get_attachments(self):
         """
