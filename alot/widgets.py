@@ -393,8 +393,8 @@ class MessageWidget(urwid.WidgetWrap):
         self.show_raw = raw
         self.show_all_headers = all_headers
 
-        # build the summary line, header and body will be created on demand
-        self.sumline = self._build_sum_line()
+        # define subwidgets that will be created on demand
+        self.sumline = None
         self.headerw = None
         self.attachmentw = None
         self.bodyw = None
@@ -413,6 +413,7 @@ class MessageWidget(urwid.WidgetWrap):
         return self.pile.get_focus()
 
     def rebuild(self):
+        self.sumline = self._build_sum_line()
         if not self.folded:  # only if already unfolded
             self.displayed_list = [self.sumline]
             if self.show_raw:
