@@ -274,6 +274,10 @@ class ThreadBuffer(Buffer):
         (messagewidget, size) = self.body.get_focus()
         return messagewidget
 
+    def get_messagewidgets(self):
+        """returns all message widgets contained in this list"""
+        return self.body.body.contents
+
     def get_selected_message(self):
         """returns focussed :class:`~alot.message.Message`"""
         messagewidget = self.get_selection()

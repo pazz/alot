@@ -292,7 +292,8 @@ class CommandLineCompleter(Completer):
             # search
             elif self.mode == 'search' and cmd == 'refine':
                 res = self._querycompleter.complete(params, localpos)
-            elif self.mode == 'search' and cmd == 'retag':
+            elif self.mode == 'search' and cmd in ['tag', 'retag', 'untag',
+                                                   'toggletags']:
                 localcomp = MultipleSelectionCompleter(self._tagcompleter,
                                                        separator=',')
                 res = localcomp.complete(params, localpos)
@@ -338,6 +339,11 @@ class CommandLineCompleter(Completer):
             # thread
             elif self.mode == 'thread' and cmd == 'save':
                 res = self._pathcompleter.complete(params, localpos)
+            elif self.mode == 'thread' and cmd in ['tag', 'retag', 'untag',
+                                                   'toggletags']:
+                localcomp = MultipleSelectionCompleter(self._tagcompleter,
+                                                       separator=',')
+                res = localcomp.complete(params, localpos)
 
             # prepend cmd and correct position
             res = [('%s %s' % (cmd, t), p + len(cmd) + 1) for (t, p) in res]

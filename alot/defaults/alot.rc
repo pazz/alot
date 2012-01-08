@@ -148,10 +148,10 @@ x = close
 select = openfocussed
 
 [search-maps]
-a = toggletag inbox
-& = toggletag killed
-! = toggletag flagged
-s = toggletag unread
+a = toggletags inbox
+& = toggletags killed
+! = toggletags flagged
+s = toggletags unread
 l = retagprompt
 O = refineprompt
 | = refineprompt
