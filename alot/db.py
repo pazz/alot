@@ -404,17 +404,15 @@ class Thread(object):
         :param remove_rest: remove all other tags
         :type remove_rest: bool
         """
-        if remove_rest:
-            newtags = tags
-        else:
-            newtags = set(tags).difference(self._tags)
-
         def myafterwards():
-            self._tags = self._tags.union(tags)
+            if remove_rest:
+                self._tags = tags
+            else:
+                self._tags = self._tags.union(tags)
             if callable(afterwards):
                 afterwards()
 
-        self._dbman.tag('thread:' + self._id, newtags, afterwards=myafterwards,
+        self._dbman.tag('thread:' + self._id, tags, afterwards=myafterwards,
                        remove_rest=remove_rest)
 
     def remove_tags(self, tags, afterwards=None):
