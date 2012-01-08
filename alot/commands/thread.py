@@ -623,6 +623,9 @@ class ThreadSelectCommand(Command):
 @registerCommand(MODE, 'tag', forced={'action': 'add'}, arguments=[
     (['--all'], {'action': 'store_true', 'help':'tag all messages in thread'}),
     (['tags'], {'help':'comma separated list of tags'})])
+@registerCommand(MODE, 'retag', forced={'action': 'set'}, arguments=[
+    (['--all'], {'action': 'store_true', 'help':'retag all messages in thread'}),
+    (['tags'], {'help':'comma separated list of tags'})])
 @registerCommand(MODE, 'untag', forced={'action': 'remove'}, arguments=[
     (['--all'], {'action': 'store_true', 'help':'tag all messages in thread'}),
     (['tags'], {'help':'comma separated list of tags'})])
@@ -637,8 +640,9 @@ class TagCommand(Command):
         :type tags: str
         :param all: tag all messages in thread
         :type all: bool
-        :param action: adds tags if 'add', removes them if 'remove' or toggle
-                       individually if 'toggle'
+        :param action: adds tags if 'add', removes them if 'remove', adds tags
+                       and removes all other if 'set' or toggle individually if
+                       'toggle'
         :type action: str
         """
         self.tagsstring = tags
@@ -663,6 +667,9 @@ class TagCommand(Command):
             for m in messages:
                 if self.action == 'add':
                     m.add_tags(tags, afterwards=refresh_widgets)
+                if self.action == 'set':
+                    m.add_tags(tags, afterwards=refresh_widgets,
+                               remove_rest=True)
                 elif self.action == 'remove':
                     m.remove_tags(tags, afterwards=refresh_widgets)
                 elif self.action == 'toggle':
