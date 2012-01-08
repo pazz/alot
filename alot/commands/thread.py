@@ -622,16 +622,24 @@ class ThreadSelectCommand(Command):
 
 @registerCommand(MODE, 'tag', forced={'action': 'add'}, arguments=[
     (['--all'], {'action': 'store_true', 'help':'tag all messages in thread'}),
-    (['tags'], {'help':'comma separated list of tags'})])
+    (['tags'], {'help':'comma separated list of tags'})],
+    help='add tags to message(s)',
+)
 @registerCommand(MODE, 'retag', forced={'action': 'set'}, arguments=[
     (['--all'], {'action': 'store_true', 'help':'tag all messages in thread'}),
-    (['tags'], {'help':'comma separated list of tags'})])
+    (['tags'], {'help':'comma separated list of tags'})],
+    help='set message(s) tags.',
+)
 @registerCommand(MODE, 'untag', forced={'action': 'remove'}, arguments=[
     (['--all'], {'action': 'store_true', 'help':'tag all messages in thread'}),
-    (['tags'], {'help':'comma separated list of tags'})])
+    (['tags'], {'help':'comma separated list of tags'})],
+    help='remove tags from message(s)',
+)
 @registerCommand(MODE, 'toggletags', forced={'action': 'toggle'}, arguments=[
     (['--all'], {'action': 'store_true', 'help':'tag all messages in thread'}),
-    (['tags'], {'help':'comma separated list of tags'})])
+    (['tags'], {'help':'comma separated list of tags'})],
+    help='flip presence of tags on message(s)',
+)
 class TagCommand(Command):
     """manipulate message tags"""
     def __init__(self, tags=u'', action='add', all=False, **kwargs):
