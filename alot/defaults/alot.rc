@@ -94,7 +94,7 @@ show_statusbar = True
 # use '%%%%' instead of '%' (and use '%%%%%%%%' to get a literal '%').
 # for the strftime format, see
 # http://docs.python.org/library/datetime.html#strftime-strptime-behavior
-timestamp_format = ''
+# timestamp_format = ''
 
 # max length of authors line in thread widgets
 authors_maxlength = 30
