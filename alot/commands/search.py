@@ -34,55 +34,6 @@ class OpenThreadCommand(Command):
             sb.unfold_matching(query)
 
 
-@registerCommand(MODE, 'toggletag', arguments=[
-    (['tag'], {'nargs':'+', 'default':'', 'help':'tag to flip'})])
-class ToggleThreadTagCommand(Command):
-    """toggles given tags in all messages of a thread"""
-    def __init__(self, tag, thread=None, **kwargs):
-        """
-        :param tag: list of tagstrings to flip
-        :type tag: list of str
-        :param thread: thread to edit (Uses focussed thread if unset)
-        :type thread: :class:`~alot.db.Thread` or None
-        """
-        assert tag
-        self.thread = thread
-        self.tags = set(tag)
-        Command.__init__(self, **kwargs)
-
-    def apply(self, ui):
-        if not self.thread:
-            self.thread = ui.current_buffer.get_selected_thread()
-        if not self.thread:
-            return
-        try:
-            self.thread.set_tags(set(self.thread.get_tags()) ^ self.tags)
-        except DatabaseROError:
-            ui.notify('index in read-only mode', priority='error')
-            return
-
-        # flush index
-        ui.apply_command(commands.globals.FlushCommand())
-
-        # update current buffer
-        # TODO: what if changes not yet flushed?
-        cb = ui.current_buffer
-        if isinstance(cb, buffers.SearchBuffer):
-            # refresh selected threadline
-            threadwidget = cb.get_selected_threadline()
-            threadwidget.rebuild()  # rebuild and redraw the line
-            #remove line from searchlist if thread doesn't match the query
-            qs = "(%s) AND thread:%s" % (cb.querystring,
-                                         self.thread.get_thread_id())
-            if ui.dbman.count_messages(qs) == 0:
-                logging.debug('remove: %s' % self.thread)
-                cb.threadlist.remove(threadwidget)
-                cb.result_count -= self.thread.get_total_messages()
-                ui.update()
-        elif isinstance(cb, buffers.ThreadBuffer):
-            pass
-
-
 @registerCommand(MODE, 'refine', usage='refine query', arguments=[
     (['--sort'], {'help':'sort order', 'choices':[
                    'oldest_first', 'newest_first', 'message_id', 'unsorted']}),
@@ -147,39 +98,73 @@ class RetagPromptCommand(Command):
         ui.apply_command(PromptCommand('retag ' + initial_tagstring))
 
 
-@registerCommand(MODE, 'retag', arguments=[
-    (['tags'], {'help':'comma separated list of tags'})])
-class RetagCommand(Command):
-    """overwrite a thread\'s tags"""
-    def __init__(self, tags=u'', thread=None, **kwargs):
+@registerCommand(MODE, 'tag', forced={'action': 'add'}, arguments=[
+    (['tags'], {'help':'comma separated list of tags'})],
+    help='add tags to all messages in the thread',
+)
+@registerCommand(MODE, 'retag', forced={'action': 'set'}, arguments=[
+    (['tags'], {'help':'comma separated list of tags'})],
+    help='set tags of all messages in the thread',
+)
+@registerCommand(MODE, 'untag', forced={'action': 'remove'}, arguments=[
+    (['tags'], {'help':'comma separated list of tags'})],
+    help='remove tags from all messages in the thread',
+)
+@registerCommand(MODE, 'toggletags', forced={'action': 'toggle'}, arguments=[
+    (['tags'], {'help':'comma separated list of tags'})],
+    help="""flip presence of tags on this thread.
+    A tag is considered present if at least one message contained in this
+    thread is tagged with it. In that case this command will remove the tag
+    from every message in the thread.
+    """
+)
+class TagCommand(Command):
+    """manipulate message tags"""
+    def __init__(self, tags=u'', action='add', all=False, **kwargs):
         """
         :param tags: comma separated list of tagstrings to set
         :type tags: str
-        :param thread: thread to edit (Uses focussed thread if unset)
-        :type thread: :class:`~alot.db.Thread` or None
+        :param all: tag all messages in thread
+        :type all: bool
+        :param action: adds tags if 'add', removes them if 'remove', adds tags
+                       and removes all other if 'set' or toggle individually if
+                       'toggle'
+        :type action: str
         """
         self.tagsstring = tags
-        self.thread = thread
+        self.all = all
+        self.action = action
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        if not self.thread:
-            self.thread = ui.current_buffer.get_selected_thread()
-        if not self.thread:
-            return
+        threadline_widget = ui.current_buffer.get_selected_threadline()
+        thread = threadline_widget.get_thread()
+
+        def refresh_widget():
+            threadline_widget.rebuild()
+
         tags = filter(lambda x: x, self.tagsstring.split(','))
-        logging.info("got %s:%s" % (self.tagsstring, tags))
         try:
-            self.thread.set_tags(tags)
+            if self.action == 'add':
+                thread.add_tags(tags, afterwards=refresh_widget)
+            if self.action == 'set':
+                thread.add_tags(tags, afterwards=refresh_widget,
+                           remove_rest=True)
+            elif self.action == 'remove':
+                thread.remove_tags(tags, afterwards=refresh_widget)
+            elif self.action == 'toggle':
+                to_remove = []
+                to_add = []
+                for t in tags:
+                    if t in thread.get_tags():
+                        to_remove.append(t)
+                    else:
+                        to_add.append(t)
+                thread.remove_tags(to_remove)
+                thread.add_tags(to_add, afterwards=refresh_widget)
         except DatabaseROError:
             ui.notify('index in read-only mode', priority='error')
             return
 
         # flush index
         ui.apply_command(commands.globals.FlushCommand())
-
-        # refresh selected threadline
-        sbuffer = ui.current_buffer
-        threadwidget = sbuffer.get_selected_threadline()
-        # rebuild and redraw the line
-        threadwidget.rebuild()
