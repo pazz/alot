@@ -654,13 +654,19 @@ class TagCommand(Command):
         messages = [mw.get_message() for mw in mwidgets]
         logging.debug('TAG %s' % str(messages))
 
+
+        def refresh_widgets():
+            for mw in mwidgets:
+                ui.notify(str(mw.get_message().get_tags()))
+                mw.rebuild()
+
         tags = filter(lambda x: x, self.tagsstring.split(','))
         try:
             for m in messages:
                 if self.action == 'add':
-                    m.add_tags(tags)
+                    m.add_tags(tags, afterwards=refresh_widgets)
                 elif self.action == 'remove':
-                    m.remove_tags(tags)
+                    m.remove_tags(tags, afterwards=refresh_widgets)
                 elif self.action == 'toggle':
                     to_remove = []
                     to_add = []
@@ -670,14 +676,10 @@ class TagCommand(Command):
                         else:
                             to_add.append(t)
                     m.remove_tags(to_remove)
-                    m.add_tags(to_add)
+                    m.add_tags(to_add, afterwards=refresh_widgets)
         except DatabaseROError:
             ui.notify('index in read-only mode', priority='error')
             return
 
         # flush index
         ui.apply_command(FlushCommand())
-
-        # TODO: refresh widgets
-        for mw in mwidgets:
-            mw.rebuild()
