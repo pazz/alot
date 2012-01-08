@@ -160,7 +160,7 @@ class Message(object):
         """
         return extract_headers(self.get_mail(), headers)
 
-    def add_tags(self, tags, afterwards=None):
+    def add_tags(self, tags, afterwards=None, remove_rest=False):
         """
         adds tags to message
 
@@ -175,13 +175,16 @@ class Message(object):
         :param afterwards: callback that gets called after successful
                            application of this tagging operation
         :type afterwards: callable
+        :param remove_rest: remove all other tags
+        :type remove_rest: bool
         """
         def myafterwards():
             self._tags = self._tags.union(tags)
             if callable(afterwards):
                 afterwards()
 
-        self._dbman.tag('id:' + self._id, tags, myafterwards)
+        self._dbman.tag('id:' + self._id, tags, afterwards=myafterwards,
+                        remove_rest=remove_rest)
         self._tags = self._tags.union(tags)
 
     def remove_tags(self, tags, afterwards=None):
