@@ -160,30 +160,42 @@ class Message(object):
         """
         return extract_headers(self.get_mail(), headers)
 
-    def add_tags(self, tags):
+    def add_tags(self, tags, afterwards=None):
         """
-        adds tags (list of str) to message
+        adds tags to message
 
         .. note::
 
             This only adds the requested operation to this objects
             :class:`DBManager's <alot.db.DBManager>` write queue.
             You need to call :meth:`~alot.db.DBManager.flush` to write out.
+
+        :param tags: a list of tags to be added
+        :type tags: list of str
+        :param afterwards: callback that gets called after successful
+                           application of this tagging operation
+        :type afterwards: callable
         """
-        self._dbman.tag('id:' + self._id, tags)
+        self._dbman.tag('id:' + self._id, tags, afterwards)
         self._tags = self._tags.union(tags)
 
-    def remove_tags(self, tags):
-        """remove tags (list of str) from message
+    def remove_tags(self, tags, afterwards=None):
+        """remove tags from message
 
         .. note::
 
             This only adds the requested operation to this objects
             :class:`DBManager's <alot.db.DBManager>` write queue.
             You need to call :meth:`~alot.db.DBManager.flush` to actually out.
+
+        :param tags: a list of tags to be added
+        :type tags: list of str
+        :param afterwards: callback that gets called after successful
+                           application of this tagging operation
+        :type afterwards: callable
         """
 
-        self._dbman.untag('id:' + self._id, tags)
+        self._dbman.untag('id:' + self._id, tags, afterwards)
         self._tags = self._tags.difference(tags)
 
     def get_attachments(self):

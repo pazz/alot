@@ -92,7 +92,7 @@ class DBManager(object):
                 raise DatabaseLockedError()
             while self.writequeue:
                 current_item = self.writequeue.popleft()
-                cmd, querystring, tags, sync = current_item
+                cmd, querystring, tags, sync, afterwards = current_item
                 try:  # make this a transaction
                     db.begin_atomic()
                 except XapianError:
@@ -118,6 +118,9 @@ class DBManager(object):
                 # end transaction and reinsert queue item on error
                 if db.end_atomic() != notmuch.STATUS.SUCCESS:
                     self.writequeue.appendleft(current_item)
+                else:
+                    if callable(afterwards):
+                        afterwards()
 
     def kill_search_processes(self):
         """
@@ -128,7 +131,7 @@ class DBManager(object):
             p.terminate()
         self.processes = []
 
-    def tag(self, querystring, tags, remove_rest=False):
+    def tag(self, querystring, tags, afterwards=None, remove_rest=False):
         """
         add tags to messages matching `querystring`.
         This appends a tag operation to the write queue and raises
@@ -138,6 +141,9 @@ class DBManager(object):
         :type querystring: str
         :param tags: a list of tags to be added
         :type tags: list of str
+        :param afterwards: callback that gets called after successful
+                           application of this tagging operation
+        :type afterwards: callable
         :param remove_rest: remove tags from matching messages before tagging
         :type remove_rest: bool
         :exception: :exc:`DatabaseROError`
@@ -150,12 +156,12 @@ class DBManager(object):
         sync_maildir_flags = config.getboolean('maildir', 'synchronize_flags')
         if remove_rest:
             self.writequeue.append(('set', querystring, tags,
-                                    sync_maildir_flags))
+                                    sync_maildir_flags, afterwards))
         else:
             self.writequeue.append(('tag', querystring, tags,
-                                    sync_maildir_flags))
+                                    sync_maildir_flags, afterwards))
 
-    def untag(self, querystring, tags):
+    def untag(self, querystring, tags, afterwards=None):
         """
         removes tags from messages that match `querystring`.
         This appends an untag operation to the write queue and raises
@@ -165,6 +171,9 @@ class DBManager(object):
         :type querystring: str
         :param tags: a list of tags to be added
         :type tags: list of str
+        :param afterwards: callback that gets called after successful
+                           application of this tagging operation
+        :type afterwards: callable
         :exception: :exc:`DatabaseROError`
 
         .. note::
@@ -174,7 +183,7 @@ class DBManager(object):
             raise DatabaseROError()
         sync_maildir_flags = config.getboolean('maildir', 'synchronize_flags')
         self.writequeue.append(('untag', querystring, tags,
-                                sync_maildir_flags))
+                                sync_maildir_flags, afterwards))
 
     def count_messages(self, querystring):
         """returns number of messages that match `querystring`"""
@@ -377,9 +386,9 @@ class Thread(object):
                 tags = tags.intersection(set(m.get_tags()))
         return tags
 
-    def add_tags(self, tags):
+    def add_tags(self, tags, afterwards=None):
         """
-        add `tags` (list of str) to all messages in this thread
+        add `tags` to all messages in this thread
 
         .. note::
 
@@ -387,13 +396,18 @@ class Thread(object):
             :class:`DBManager's <DBManager>` write queue.
             You need to call :meth:`DBManager.flush` to actually write out.
 
+        :param tags: a list of tags to be added
+        :type tags: list of str
+        :param afterwards: callback that gets called after successful
+                           application of this tagging operation
+        :type afterwards: callable
         """
         newtags = set(tags).difference(self._tags)
         if newtags:
-            self._dbman.tag('thread:' + self._id, newtags)
+            self._dbman.tag('thread:' + self._id, newtags, afterwards)
             self._tags = self._tags.union(newtags)
 
-    def remove_tags(self, tags):
+    def remove_tags(self, tags, afterwards=None):
         """
         remove `tags` (list of str) from all messages in this thread
 
@@ -402,13 +416,19 @@ class Thread(object):
             This only adds the requested operation to this objects
             :class:`DBManager's <DBManager>` write queue.
             You need to call :meth:`DBManager.flush` to actually write out.
+
+        :param tags: a list of tags to be added
+        :type tags: list of str
+        :param afterwards: callback that gets called after successful
+                           application of this tagging operation
+        :type afterwards: callable
         """
         rmtags = set(tags).intersection(self._tags)
         if rmtags:
-            self._dbman.untag('thread:' + self._id, tags)
+            self._dbman.untag('thread:' + self._id, tags, afterwards)
             self._tags = self._tags.difference(rmtags)
 
-    def set_tags(self, tags):
+    def set_tags(self, tags, afterwards=None):
         """
         set tags (list of str) of all messages in this thread. This removes all
         tags and attaches the given ones in one step.
@@ -418,9 +438,16 @@ class Thread(object):
             This only adds the requested operation to this objects
             :class:`DBManager's <DBManager>` write queue.
             You need to call :meth:`DBManager.flush` to actually write out.
+
+        :param tags: a list of tags to be added
+        :type tags: list of str
+        :param afterwards: callback that gets called after successful
+                           application of this tagging operation
+        :type afterwards: callable
         """
         if tags != self._tags:
-            self._dbman.tag('thread:' + self._id, tags, remove_rest=True)
+            self._dbman.tag('thread:' + self._id, tags, afterwards=afterwards,
+                            remove_rest=True)
             self._tags = set(tags)
 
     def get_authors(self):  # TODO: make this return a list of strings
