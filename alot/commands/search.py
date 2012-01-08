@@ -139,19 +139,31 @@ class TagCommand(Command):
     def apply(self, ui):
         threadline_widget = ui.current_buffer.get_selected_threadline()
         thread = threadline_widget.get_thread()
+        testquery = "(%s) AND thread:%s" % (ui.current_buffer.querystring,
+                                            thread.get_thread_id())
+        def remove_thread():
+            logging.debug('remove thread from result list: %s' % thread)
+            ui.current_buffer.threadlist.remove(threadline_widget)
+            ui.current_buffer.result_count -= thread.get_total_messages()
 
-        def refresh_widget():
-            threadline_widget.rebuild()
+        def refresh():
+            # remove thread from resultset if it doesn't match the search query
+            # any more and refresh selected threadline otherwise
+            if ui.dbman.count_messages(testquery) == 0:
+                remove_thread()
+                ui.update()
+            else:
+                threadline_widget.rebuild()
 
         tags = filter(lambda x: x, self.tagsstring.split(','))
         try:
             if self.action == 'add':
-                thread.add_tags(tags, afterwards=refresh_widget)
+                thread.add_tags(tags, afterwards=refresh)
             if self.action == 'set':
-                thread.add_tags(tags, afterwards=refresh_widget,
+                thread.add_tags(tags, afterwards=refresh,
                            remove_rest=True)
             elif self.action == 'remove':
-                thread.remove_tags(tags, afterwards=refresh_widget)
+                thread.remove_tags(tags, afterwards=refresh)
             elif self.action == 'toggle':
                 to_remove = []
                 to_add = []
@@ -161,10 +173,18 @@ class TagCommand(Command):
                     else:
                         to_add.append(t)
                 thread.remove_tags(to_remove)
-                thread.add_tags(to_add, afterwards=refresh_widget)
+                thread.add_tags(to_add, afterwards=refresh)
         except DatabaseROError:
             ui.notify('index in read-only mode', priority='error')
             return
 
         # flush index
         ui.apply_command(commands.globals.FlushCommand())
+
+        # refresh buffer.
+        # TODO: This shouldn't be necessary but apparently it is: without the
+        # following call, the buffer is not updated by the refresh callback
+        # (given as afterwards parm above) because
+        # ui.dbman.count_messages(testquery) doesn't return 0 as expected - and
+        # as it does here.
+        refresh()
