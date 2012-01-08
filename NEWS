@@ -16,6 +16,8 @@ current:
 * make "signature as attachment" configurable
 * new search mode command and search argument: "sort"
 * fix: logging
+* renamed search mode command 'toggletag' to "toggletags"
+* new search mode commands: "tag" and "untag"
 
 
 0.21
