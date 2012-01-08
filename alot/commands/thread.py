@@ -654,10 +654,8 @@ class TagCommand(Command):
         messages = [mw.get_message() for mw in mwidgets]
         logging.debug('TAG %s' % str(messages))
 
-
         def refresh_widgets():
             for mw in mwidgets:
-                ui.notify(str(mw.get_message().get_tags()))
                 mw.rebuild()
 
         tags = filter(lambda x: x, self.tagsstring.split(','))
