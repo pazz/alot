@@ -183,14 +183,14 @@ class AlotConfigParser(FallbackConfigParser):
         """
         rules = OrderedDict()
         try:
-            config_string = self.get('general', 'thread_highlight_rules')
+            config_string = self.get('highlighting', 'rules')
             rules = json.loads(config_string, object_pairs_hook=OrderedDict)
         except NoOptionError as err:
             logging.exception(err)
         except ValueError as err:
             report = ParsingError("Could not parse config option" \
-                                  " 'thread_highlight_rules' in section" \
-                                  " 'general': {reason}".format(reason=err))
+                                  " 'rules' in section 'highlighting':" \
+                                  " {reason}".format(reason=err))
             logging.exception(report)
         finally:
             return rules
@@ -230,8 +230,7 @@ class AlotConfigParser(FallbackConfigParser):
         base = 'tag'
         themes = [base, base + '_{}'.format(tag)]
         if (highlight and 
-            'tags' in self.getstringlist('general',
-                                         'thread_highlight_components')):
+            'tags' in self.getstringlist('highlighting', 'components')):
             themes.insert(1, base + '_{}'.format(highlight))
             themes.insert(3, base + '_{}_{}'.format(tag, highlight))
         if focus:

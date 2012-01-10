@@ -32,26 +32,6 @@ envelope_headers_blacklist = In-Reply-To,References
 # set terminal command used for spawning shell commands
 terminal_cmd = x-terminal-emulator -e
 
-######################
-# HIGHLIGHT settings #
-######################
-# Thread lines in the search buffer can be highlighted if they match a query
-# by theming their components.
-
-# dictionary of highlighting rules. The keys are queries you want highlighting
-# for; values are chosen designators that identify themeing options in the
-# colour scheme:
-#    search_thread_<component>_<id>_[focus_][fg|bg]
-# Note that the sequence of the list defines the search order. The first
-# specified query that matches selects the themeing.
-thread_highlight_rules = { "tag:unread AND tag:flagged":"isunread+flagged",
-                           "tag:unread":"isunread", "tag:flagged":"isflagged" }
-
-# comma separated list of the components of a thread line you want highlighted
-# if a query matches.
-# Possible components are [date|mailcount|tags|authors|subject].
-thread_highlight_components = subject
-
 ####################
 # EDITOR settings  #
 ####################
@@ -195,6 +175,24 @@ clo = close
 bp = bprevious
 ls = bufferlist
 
+[highlighting]
+# Thread lines in the search buffer can be highlighted if they match a query
+# by theming their components.
+
+# dictionary of highlighting rules. The keys are queries you want highlighting
+# for; values are chosen designators that identify themeing options in the
+# colour scheme:
+#    search_thread_<component>_<id>_[focus_][fg|bg]
+# Note that the sequence of the list defines the search order. The first
+# specified query that matches selects the themeing.
+rules = { "tag:unread AND tag:flagged":"isunread+flagged",
+          "tag:unread":"isunread",
+          "tag:flagged":"isflagged" }
+
+# comma separated list of the components of a thread line you want highlighted
+# if a query matches.
+# Possible components are [date|mailcount|tags|authors|subject].
+components = subject
 
 [256c-theme]
 

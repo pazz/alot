@@ -77,8 +77,8 @@ class ThreadlineWidget(urwid.AttrMap):
         self.tag_widgets = []
         self.display_content = config.getboolean('general',
                                     'display_content_in_threadline')
-        self.highlight_components = config.getstringlist('general',
-                                            'thread_highlight_components')
+        self.highlight_components = config.getstringlist('highlighting',
+                                                         'components')
         self.highlight_rules = config.get_highlight_rules()
         self.rebuild()
         urwid.AttrMap.__init__(self, self.columns,
