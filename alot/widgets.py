@@ -112,7 +112,8 @@ class ThreadlineWidget(urwid.AttrMap):
         cols.append(('fixed', len(mailcountstring), self.mailcount_w))
 
         if self.thread:
-            self.tag_widgets = [TagWidget(t) for t in self.thread.get_tags()]
+            self.tag_widgets = [TagWidget(t, self.highlight_theme_suffix) 
+                                for t in self.thread.get_tags()]
         else:
             self.tag_widgets = []
         self.tag_widgets.sort(tag_cmp,
@@ -200,14 +201,17 @@ class ThreadlineWidget(urwid.AttrMap):
 
     def _get_theme(self, component, focus=False):
         theme = 'search_thread_{0}'.format(component)
-        if focus:
-            theme = theme + '_focus'
         if (self.highlight_theme_suffix and
             component in self.highlight_components):
             highlight_theme = (theme +
                                '_{id}'.format(id=self.highlight_theme_suffix))
+            if focus:
+                theme += '_focus'
+                highlight_theme += '_focus'
             if config.has_themeing(highlight_theme):
                 theme = highlight_theme
+        elif focus:
+            theme = theme + '_focus'
         return theme
 
 
@@ -239,12 +243,13 @@ class TagWidget(urwid.AttrMap):
     It looks up the string it displays in the `tag-translate` section
     of the config as well as custom theme settings for its tag.
     """
-    def __init__(self, tag):
+    def __init__(self, tag, theme=''):
         self.tag = tag
+        self.highlight = theme
         self.translated = config.get('tag-translate', tag, fallback=tag)
         self.txt = urwid.Text(self.translated.encode('utf-8'), wrap='clip')
-        normal = config.get_tagattr(tag)
-        focus = config.get_tagattr(tag, focus=True)
+        normal = config.get_tag_theme(tag, highlight=theme)
+        focus = config.get_tag_theme(tag, focus=True, highlight=theme)
         urwid.AttrMap.__init__(self, self.txt, normal, focus)
 
     def width(self):
@@ -262,10 +267,14 @@ class TagWidget(urwid.AttrMap):
         return self.tag
 
     def set_focussed(self):
-        self.set_attr_map({None: config.get_tagattr(self.tag, focus=True)})
+        self.set_attr_map({None: config.get_tag_theme(
+                                                    self.tag, focus=True,
+                                                    highlight=self.highlight)})
 
     def set_unfocussed(self):
-        self.set_attr_map({None: config.get_tagattr(self.tag)})
+        self.set_attr_map({None: config.get_tag_theme(
+                                                    self.tag,
+                                                    highlight=self.highlight)})
 
 
 class ChoiceWidget(urwid.Text):

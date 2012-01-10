@@ -41,15 +41,15 @@ terminal_cmd = x-terminal-emulator -e
 # dictionary of highlighting rules. The keys are queries you want highlighting
 # for; values are chosen designators that identify themeing options in the
 # colour scheme:
-#    search_thread_<component>_[focus_]<id>_[fg|bg]
+#    search_thread_<component>_<id>_[focus_][fg|bg]
 # Note that the sequence of the list defines the search order. The first
 # specified query that matches selects the themeing.
-thread_highlight_rules = { "tag:unread AND tag:flagged":"unread+flagged",
-                           "tag:unread":"unread", "tag:flagged":"flagged" }
+thread_highlight_rules = { "tag:unread AND tag:flagged":"isunread+flagged",
+                           "tag:unread":"isunread", "tag:flagged":"isflagged" }
 
 # comma separated list of the components of a thread line you want highlighted
 # if a query matches.
-# Possible components are [date|mailcount|authors|subject].
+# Possible components are [date|mailcount|tags|authors|subject].
 thread_highlight_components = subject
 
 ####################
@@ -237,12 +237,12 @@ bufferlist_results_odd_bg = default
 bufferlist_results_odd_fg = default
 search_thread_authors_bg = default
 search_thread_authors_fg = #6d6
-search_thread_authors_unread_fg = #6d6,bold
-search_thread_authors_unread+flagged_fg = #6d6,bold
+search_thread_authors_isunread_fg = #6d6,bold
+search_thread_authors_isunread+flagged_fg = #6d6,bold
 search_thread_authors_focus_bg = #68a
 search_thread_authors_focus_fg = #8f6
-search_thread_authors_focus_unread_fg = #8f6,bold
-search_thread_authors_focus_unread+flagged_fg = #8f6,bold
+search_thread_authors_isunread_focus_fg = #8f6,bold
+search_thread_authors_isunread+flagged_focus_fg = #8f6,bold
 search_thread_bg = default
 search_thread_content_bg = default
 search_thread_content_fg = #866
@@ -250,37 +250,37 @@ search_thread_content_focus_bg = #68a
 search_thread_content_focus_fg = #866
 search_thread_date_bg = default
 search_thread_date_fg = g58
-search_thread_date_unread_fg = g58,bold
-search_thread_date_flagged_fg = light red
-search_thread_date_unread+flagged_fg = light red,bold
+search_thread_date_isunread_fg = g58,bold
+search_thread_date_isflagged_fg = light red
+search_thread_date_isunread+flagged_fg = light red,bold
 search_thread_date_focus_bg = #68a
 search_thread_date_focus_fg = g89
-search_thread_date_focus_unread_fg = g89,bold
-search_thread_date_focus_flagged_fg = light red
-search_thread_date_focus_unread+flagged_fg = light red,bold
+search_thread_date_isunread_focus_fg = g89,bold
+search_thread_date_isflagged_focus_fg = light red
+search_thread_date_isunread+flagged_focus_fg = light red,bold
 search_thread_fg = default
 search_thread_focus_bg = #68a
 search_thread_focus_fg = white
 search_thread_mailcount_bg = default
 search_thread_mailcount_fg = light gray
-search_thread_mailcount_unread_fg = light gray,bold
-search_thread_mailcount_flagged_fg = light red
-search_thread_mailcount_unread+flagged_fg = light red,bold
+search_thread_mailcount_isunread_fg = light gray,bold
+search_thread_mailcount_isflagged_fg = light red
+search_thread_mailcount_isunread+flagged_fg = light red,bold
 search_thread_mailcount_focus_bg = #68a
 search_thread_mailcount_focus_fg = g89
-search_thread_mailcount_focus_unread_fg = g89,bold
-search_thread_mailcount_focus_flagged_fg = light red
-search_thread_mailcount_focus_unread+flagged_fg = light red,bold
+search_thread_mailcount_isunread_focus_fg = g89,bold
+search_thread_mailcount_isflagged_focus_fg = light red
+search_thread_mailcount_isunread+flagged_focus_fg = light red,bold
 search_thread_subject_bg = default
 search_thread_subject_fg = g58
-search_thread_subject_unread_fg = g58,bold
-search_thread_subject_flagged_fg = light red
-search_thread_subject_unread+flagged_fg = light red,bold
+search_thread_subject_isunread_fg = g58,bold
+search_thread_subject_isflagged_fg = light red
+search_thread_subject_isunread+flagged_fg = light red,bold
 search_thread_subject_focus_bg = #68a
 search_thread_subject_focus_fg = g89
-search_thread_subject_focus_unread_fg = g89,bold
-search_thread_subject_focus_flagged_fg = light red
-search_thread_subject_focus_unread+flagged_fg = light red,bold
+search_thread_subject_isunread_focus_fg = g89,bold
+search_thread_subject_isflagged_focus_fg = light red
+search_thread_subject_isunread+flagged_focus_fg = light red,bold
 search_thread_tags_bg = default
 search_thread_tags_fg = #a86
 search_thread_tags_focus_bg = #68a
@@ -352,7 +352,7 @@ thread_summary_odd_bg = dark blue
 thread_summary_odd_fg = white
 search_thread_authors_bg = default
 search_thread_authors_fg = dark green
-search_thread_authors_unread_fg = dark green,bold
+search_thread_authors_isunread_fg = dark green,bold
 search_thread_authors_focus_bg = dark gray
 search_thread_authors_focus_fg = dark green,bold
 search_thread_bg = default
@@ -373,12 +373,12 @@ search_thread_mailcount_focus_bg = dark gray
 search_thread_mailcount_focus_fg = light gray
 search_thread_subject_bg = default
 search_thread_subject_fg = light gray
-search_thread_subject_unread_fg = light gray,bold
-search_thread_subject_flagged_fg = light red
+search_thread_subject_isunread_fg = light gray,bold
+search_thread_subject_isflagged_fg = light red
 search_thread_subject_focus_bg = dark gray
 search_thread_subject_focus_fg = light gray
-search_thread_subject_focus_unread_fg = light gray,bold
-search_thread_subject_focus_flagged_fg = light red,bold
+search_thread_subject_isunread_focus_fg = light gray,bold
+search_thread_subject_isflagged_focus_fg = light red,bold
 search_thread_tags_bg = default
 search_thread_tags_fg = brown
 search_thread_tags_focus_bg = dark gray
@@ -410,11 +410,11 @@ search_thread_focus = standout
 search_thread_mailcount = default
 search_thread_mailcount_focus = standout
 search_thread_subject = default
-search_thread_subject_unread = bold
-search_thread_subject_flagged = underline
+search_thread_subject_isunread = bold
+search_thread_subject_isflagged = underline
 search_thread_subject_focus = standout
-search_thread_subject_focus_unread = standout,bold
-search_thread_subject_focus_flagged = standout,underline
+search_thread_subject_isunread_focus = standout,bold
+search_thread_subject_isflagged_focus = standout,underline
 search_thread_tags = bold
 search_thread_tags_focus = standout
 thread_attachment = default

@@ -138,7 +138,11 @@ class AlotConfigParser(FallbackConfigParser):
         :rtype: string
         """
         result = ''
-        parent_option_re = '(.+)_[^_]+_(fg|bg)'
+        if 'focus' in option:
+            parent_option_re = '(.+)_[^_]+_(focus_(?:fg|bg))'
+        else:
+            parent_option_re = '(.+)_[^_]+_(fg|bg)'
+
         if self.has_option(section, option):
             result = self.get(section, option)
         else:
@@ -191,7 +195,7 @@ class AlotConfigParser(FallbackConfigParser):
         finally:
             return rules
 
-    def get_tagattr(self, tag, focus=False):
+    def get_tag_theme(self, tag, focus=False, highlight=''):
         """
         look up attribute string to use for a given tagstring
 
@@ -199,32 +203,42 @@ class AlotConfigParser(FallbackConfigParser):
         :type tag: str
         :param focus: return the 'focussed' attribute
         :type focus: bool
+        :param highlight: suffix of highlight theme
+        :type highlight: str
         """
+        themes = self._select_tag_themes(tag, focus, highlight)
+        selected_theme = themes[-1]
+        for theme in themes:
+            if self.has_themeing(theme):
+                selected_theme = theme
+                break
+        return selected_theme
 
-        mode = self.getint('general', 'colourmode')
-        base = 'tag_%s' % tag
-        if mode == 2:
-            if self.has_option('1c-theme', base):
-                return base
-        elif mode == 16:
-            has_fg = self.has_option('16c-theme', base + '_fg')
-            has_bg = self.has_option('16c-theme', base + '_bg')
-            if has_fg or has_bg:
-                if focus:
-                    return base + '_focus'
-                else:
-                    return base
-        else:  # highcolour
-            has_fg = self.has_option('256c-theme', base + '_fg')
-            has_bg = self.has_option('256c-theme', base + '_bg')
-            if has_fg or has_bg:
-                if focus:
-                    return base + '_focus'
-                else:
-                    return base
+    def _select_tag_themes(self, tag, focus=False, highlight=''):
+        """
+        Select tag themes based on tag name, focus and highlighting.
+
+        :param tag: the name of the tag to theme
+        :type tag: str
+        :param focus: True if this tag is focussed, False otherwise
+        :type focus: bool
+        :param highlight: the suffix of the highlighting theme
+        :type highlight: str
+        :return: the selected themes, highest priority first
+        :rtype: list
+        """
+        base = 'tag'
+        themes = [base, base + '_{}'.format(tag)]
+        if (highlight and 
+            'tags' in self.getstringlist('general',
+                                         'thread_highlight_components')):
+            themes.insert(1, base + '_{}'.format(highlight))
+            themes.insert(3, base + '_{}_{}'.format(tag, highlight))
         if focus:
-            return 'tag_focus'
-        return 'tag'
+            themes = [ theme + '_focus' for theme in themes]
+        themes.reverse()
+        return themes
+
 
     def has_theming(self, themeing):
         """
