@@ -148,9 +148,11 @@ class ThreadlineWidget(urwid.AttrMap):
             msgs.sort()
             lastcontent = ' '.join([m.get_text_content() for m in msgs])
             contentstring = lastcontent.replace('\n', ' ').strip()
-            self.content_w = urwid.AttrMap(urwid.Text(contentstring,
-                                                      wrap='clip'),
-                                           'search_thread_content')
+            self.content_w = urwid.AttrMap(urwid.Text(
+                                                   contentstring,
+                                                   wrap='clip'),
+                                                   self._get_theme('content')
+                                                     )
             cols.append(self.content_w)
 
         self.columns = urwid.Columns(cols, dividechars=1)
@@ -170,7 +172,7 @@ class ThreadlineWidget(urwid.AttrMap):
                                                                focus)})
             if self.display_content:
                 self.content_w.set_attr_map(
-                    {None: 'search_thread_content_focus'})
+                    {None: self._get_theme('content', focus=True)})
         else:
             self.date_w.set_attr_map({None: self._get_theme('date')})
             self.mailcount_w.set_attr_map({None: self._get_theme('mailcount')})
@@ -179,7 +181,7 @@ class ThreadlineWidget(urwid.AttrMap):
             self.authors_w.set_attr_map({None: self._get_theme('authors')})
             self.subject_w.set_attr_map({None: self._get_theme('subject')})
             if self.display_content:
-                self.content_w.set_attr_map({None: 'search_thread_content'})
+                self.content_w.set_attr_map({None: self._get_theme('content')})
         return urwid.AttrMap.render(self, size, focus)
 
     def selectable(self):
