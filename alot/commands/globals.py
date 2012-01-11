@@ -544,44 +544,49 @@ class ComposeCommand(Command):
 
         # add signature
         name, addr = email.Utils.parseaddr(self.envelope['From'])
-        a = ui.accountman.get_account_by_address(addr)
-        if a.signature:
-            logging.debug('has signature')
-            sig = os.path.expanduser(a.signature)
-            if os.path.isfile(sig):
-                logging.debug('is file')
-                if a.signature_as_attachment:
-                    name = a.signature_filename or None
-                    self.envelope.attach(sig, filename=name)
-                    logging.debug('attached')
+        account = ui.accountman.get_account_by_address(addr)
+        if account is not None:
+            if account.signature:
+                logging.debug('has signature')
+                sig = os.path.expanduser(account.signature)
+                if os.path.isfile(sig):
+                    logging.debug('is file')
+                    if account.signature_as_attachment:
+                        name = account.signature_filename or None
+                        self.envelope.attach(sig, filename=name)
+                        logging.debug('attached')
+                    else:
+                        sigcontent = open(sig).read()
+                        enc = helper.guess_encoding(sigcontent)
+                        mimetype = helper.guess_mimetype(sigcontent)
+                        if mimetype.startswith('text'):
+                            sigcontent = helper.string_decode(sigcontent, enc)
+                            self.envelope.body += '\n' + sigcontent
                 else:
-                    sigcontent = open(sig).read()
-                    enc = helper.guess_encoding(sigcontent)
-                    mimetype = helper.guess_mimetype(sigcontent)
-                    if mimetype.startswith('text'):
-                        sigcontent = helper.string_decode(sigcontent, enc)
-                        self.envelope.body += '\n' + sigcontent
-            else:
-                ui.notify('could not locate signature: %s' % sig,
-                          priority='error')
-                if (yield ui.choice('send without signature',
-                                    select='yes', cancel='no')) == 'no':
-                    return
+                    ui.notify('could not locate signature: %s' % sig,
+                              priority='error')
+                    if (yield ui.choice('send without signature',
+                                        select='yes', cancel='no')) == 'no':
+                        return
 
         # get missing To header
         if 'To' not in self.envelope.headers:
             sender = self.envelope.get('From')
             name, addr = email.Utils.parseaddr(sender)
-            a = ui.accountman.get_account_by_address(addr)
+            account = ui.accountman.get_account_by_address(addr)
 
             allbooks = not settings.config.getboolean('general',
                                 'complete_matching_abook_only')
             logging.debug(allbooks)
-            abooks = ui.accountman.get_addressbooks(order=[a],
-                                                    append_remaining=allbooks)
-            logging.debug(abooks)
+            if account is not None:
+                abooks = ui.accountman.get_addressbooks(order=[account],
+                                                        append_remaining=allbooks)
+                logging.debug(abooks)
+                completer = ContactsCompleter(abooks)
+            else:
+                completer = None
             to = yield ui.prompt(prefix='To>',
-                                 completer=ContactsCompleter(abooks))
+                                 completer=completer)
             if to == None:
                 ui.notify('canceled')
                 return
