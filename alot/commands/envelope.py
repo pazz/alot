@@ -261,9 +261,11 @@ class SetCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
+        envelope = ui.current_buffer.envelope
         if self.reset:
-            del(ui.current_buffer.envelope[self.key])
-        ui.current_buffer.envelope.add(self.key, self.value)
+            if self.key in envelope:
+                del(envelope[self.key])
+        envelope.add(self.key, self.value)
         ui.current_buffer.rebuild()
 
 
