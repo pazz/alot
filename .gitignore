@@ -6,4 +6,5 @@
 /MANIFEST
 .gdb_history
 docs/_build/
+docs/user/build
 /alot/VERSION
