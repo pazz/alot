@@ -107,7 +107,7 @@ will use a theme identified by the ID the rule is mapped to.
 
 .. note::
   Please make sure the identifier isn't the name of an actual tag, since this
-  may introduce ambiguity when highlighting tags. More on that later.
+  may introduce ambiguity when highlighting tags. More on that `later`_.
 
 If you want highlighting for other threads as well, just add more rules to the
 dict: ::
@@ -138,15 +138,19 @@ are hard to satisfy show up early in the dict: ::
 This way only threads that didn't match `isunreadimportant` before end up
 highlighted as `isunread` only.
 
+.. _later: `ambiguous theme identifiers`_
+
 Themes
 ------
 Now that you have selected components for highlighting and defined some rules,
 you need to actually decide on some colours.
 
+Generic Components
+__________________
 .. note:: 
   The following schema will allow you to define highlighting themes for all
   components *except* `tags`, which follow a different system and will be
-  explained in the next example.
+  explained in the `next section`_.
 
 To define a highlighting theme for a component, you need to add a key of the
 following format to your colour theme (please cf. `colours`_ for more information
@@ -180,8 +184,10 @@ the `subject` of threads tagged as `important` that are currently not focussed
 (by omitting the `focus_` part of the key string), for `subject`\s of threads
 matching a different query, and all other components except `tags`.
 
------
+.. _next section: `Tags Component`_
 
+`Tags` Component
+________________
 As described in `Custom Tagstring Formatting`_, tags may be themed individually.
 Highlighting expands this concept by allowing default themed tags as well as
 custom themed tags to provide highlighting variants.
@@ -214,6 +220,7 @@ where
  - ``fg`` or ``bg`` is a selection that specifies which themable part of the
    component this option refers to.
 
+.. _ambiguous theme identifiers:
 .. caution::
     As mentioned earlier, using tag names as theme identifiers may introduce
     ambiguity and lead to unexpected theming results. 
