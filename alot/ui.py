@@ -388,11 +388,6 @@ class UI(object):
         # body
         if self.current_buffer:
             self.mainframe.set_body(self.current_buffer)
-        else:
-            # this happens iff update gets called during
-            # initial command before a first buffer is displayed.
-            # in compose, a prompt is cancelled
-            self.exit()
 
         # footer
         lines = []
