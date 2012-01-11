@@ -392,3 +392,37 @@ theme for default themed tags of threads that match the query that maps to the
 Using above proper identifier would distinguish those options as
 ``tag_important_fg`` for the custom theme and ``tag_isimportant_fg`` for the
 highlighting theme.
+
+
+Contacts Completion
+===================
+In each `account` section you can specify a `abook_command` that
+is considered the address book of that account and will be used
+for address completion where appropriate.
+
+This shell command will be called with the search prefix as only argument.
+Its output is searched for email-name pairs using the regular expression given as `abook_regexp`,
+which must include named groups "email" and "name" to match the email address and realname parts
+respectively. See below for an example that uses `abook <http://abook.sourceforge.net/>`_::
+
+    [account YOURACCOUNT]
+    realname = ...
+    address = ...
+    abook_command = abook --mutt-query
+    abook_regexp = (?P<email>.+?@.+?)\s+(?P<name>.+)
+
+See `here <http://notmuchmail.org/emacstips/#index11h2>`_ for alternative lookup commands. The few others I have tested so far are:
+
+`goobook <http://code.google.com/p/goobook/>`_
+    for cached google contacts lookups::
+
+      abook_command = goobook query
+      abook_regexp = (?P<email>.+?@.+?)\s\s+(?P<name>.+)\s\s+.+
+
+`nottoomuch-addresses <http://www.iki.fi/too/nottoomuch/nottoomuch-addresses/>`_
+    completes contacts found in the notmuch index::
+
+      abook_command = nottoomuch-addresses.sh
+      abook_regexp = \"(?P<name>.+)\"\s*<(?P<email>.*.+?@.+?)>
+
+Don't hesitate to send me your custom `abook_regexp` values to list them here.
