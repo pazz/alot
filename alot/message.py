@@ -502,6 +502,9 @@ class Envelope(object):
         if self.sent_time:
             self.modified_since_sent = True
 
+    def __contains__(self, name):
+        return self.headers.__contains__(name)
+
     def get(self, key, fallback=None):
         """secure getter for header values that allows specifying a `fallback`
         return string (defaults to None). This returns the first matching value
