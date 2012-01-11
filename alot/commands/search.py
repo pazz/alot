@@ -143,7 +143,9 @@ class TagCommand(Command):
                                             thread.get_thread_id())
         def remove_thread():
             logging.debug('remove thread from result list: %s' % thread)
-            ui.current_buffer.threadlist.remove(threadline_widget)
+            threadlist = ui.current_buffer.threadlist
+            if threadline_widget in threadlist:
+                threadlist.remove(threadline_widget)
             ui.current_buffer.result_count -= thread.get_total_messages()
 
         def refresh():
