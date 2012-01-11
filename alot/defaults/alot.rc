@@ -49,7 +49,7 @@ thread_highlight_rules = { "tag:unread AND tag:flagged":"isunread+flagged",
 
 # comma separated list of the components of a thread line you want highlighted
 # if a query matches.
-# Possible components are [date|mailcount|tags|authors|subject].
+# Possible components are [date|mailcount|tags|authors|subject|content].
 thread_highlight_components = subject
 
 ####################
@@ -246,8 +246,12 @@ search_thread_authors_isunread+flagged_focus_fg = #8f6,bold
 search_thread_bg = default
 search_thread_content_bg = default
 search_thread_content_fg = #866
+search_thread_content_isunread_fg = #866,bold
+search_thread_content_isunread+flagged_fg = #866,bold
 search_thread_content_focus_bg = #68a
 search_thread_content_focus_fg = #866
+search_thread_content_isunread_focus_fg = #866,bold
+search_thread_content_isunread+flagged_focus_fg = #866,bold
 search_thread_date_bg = default
 search_thread_date_fg = g58
 search_thread_date_isunread_fg = g58,bold
