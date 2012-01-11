@@ -34,8 +34,8 @@ colours easy.
 .. _neat colour picker script: http://excess.org/urwid/browser/palette_test.py
 
 
-Custom Tagstring Formating
---------------------------
+Custom Tagstring Formatting
+---------------------------
 In theme sections you can use keys with prefix `tag_` to format specific tagstrings. For instance,
 the following will make alot display the "todo" tag in white on red when in 256c-mode. ::
 
