@@ -211,8 +211,10 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'alot', u'alot Documentation',
-     [u'Patrick Totzke'], 1)
+    ('manpage', 'alot', u'mail user agent for the notmuch mail system',
+     [u'Patrick Totzke'], 1),
+    ('configuration', 'alot.rc', u'CONF',
+     [u'Patrick Totzke'], 5)
 ]
 
 
