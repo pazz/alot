@@ -16,4 +16,6 @@ Description
 
 .. include:: description.rst
 
-#.. include:: usage.rst
+Usage
+-----
+.. include:: usage/first_steps.rst

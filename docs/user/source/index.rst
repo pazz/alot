@@ -5,11 +5,11 @@
 
 User Manual
 ===========
-
-Contents:
+.. include:: description.rst
 
 .. toctree::
    :maxdepth: 2
+   :numbered:
 
-   usage
+   usage/index
    configuration
