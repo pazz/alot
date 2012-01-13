@@ -34,11 +34,11 @@ class OpenThreadCommand(Command):
             sb.unfold_matching(query)
 
 
-@registerCommand(MODE, 'refine', usage='refine query', arguments=[
+@registerCommand(MODE, 'refine', help='refine query', arguments=[
     (['--sort'], {'help':'sort order', 'choices':[
                    'oldest_first', 'newest_first', 'message_id', 'unsorted']}),
     (['query'], {'nargs':argparse.REMAINDER, 'help':'search string'})])
-@registerCommand(MODE, 'sort', usage='set sort order', arguments=[
+@registerCommand(MODE, 'sort', help='set sort order', arguments=[
     (['sort'], {'help':'sort order', 'choices':[
                  'oldest_first', 'newest_first', 'message_id', 'unsorted']}),
 ])
