@@ -214,7 +214,12 @@ def pretty_datetime(d):
 
 def call_cmd(cmdlist, stdin=None):
     """
-    get a shell commands output, error message and return value
+    get a shell commands output, error message and return value and immediately
+    return.
+
+    .. warning::
+
+        This returns with the first screen content for interctive commands.
 
     :param cmdlist: shellcommand to call, already splitted into a list accepted
                     by :meth:`subprocess.Popen`
@@ -272,6 +277,7 @@ def guess_encoding(blob):
     return m.buffer(blob)
 
 
+# TODO: make this work on blobs, not paths
 def mimewrap(path, filename=None, ctype=None):
     content = open(path, 'rb').read()
     ctype = ctype or guess_mimetype(content)
@@ -315,7 +321,7 @@ def tag_cmp(a, b):
     if min(len(a), len(b)) == 1:
         return cmp(len(a), len(b))
     else:
-        return cmp(a, b)
+        return cmp(a.lower(), b.lower())
 
 
 def humanize_size(size):

@@ -77,6 +77,9 @@ class ThreadlineWidget(urwid.AttrMap):
         self.tag_widgets = []
         self.display_content = config.getboolean('general',
                                     'display_content_in_threadline')
+        self.highlight_components = config.getstringlist('highlighting',
+                                                         'components')
+        self.highlight_rules = config.get_highlight_rules()
         self.rebuild()
         urwid.AttrMap.__init__(self, self.columns,
                                'search_thread', 'search_thread_focus')
@@ -90,13 +93,14 @@ class ThreadlineWidget(urwid.AttrMap):
         if newest == None:
             datestring = u' ' * 10
         else:
-            formatstring = config.get('general', 'timestamp_format')
-            if formatstring:
+            if config.has_option('general', 'timestamp_format'):
+                formatstring = config.get('general', 'timestamp_format')
                 datestring = newest.strftime(formatstring)
             else:
                 datestring = pretty_datetime(newest).rjust(10)
+        self.highlight_theme_suffix = self._get_highlight_theme_suffix()
         self.date_w = urwid.AttrMap(urwid.Text(datestring),
-                                    'search_thread_date')
+                                    self._get_theme('date'))
         cols.append(('fixed', len(datestring), self.date_w))
 
         if self.thread:
@@ -104,11 +108,12 @@ class ThreadlineWidget(urwid.AttrMap):
         else:
             mailcountstring = "(?)"
         self.mailcount_w = urwid.AttrMap(urwid.Text(mailcountstring),
-                                   'search_thread_mailcount')
+                                         self._get_theme('mailcount'))
         cols.append(('fixed', len(mailcountstring), self.mailcount_w))
 
         if self.thread:
-            self.tag_widgets = [TagWidget(t) for t in self.thread.get_tags()]
+            self.tag_widgets = [TagWidget(t, self.highlight_theme_suffix) 
+                                for t in self.thread.get_tags()]
         else:
             self.tag_widgets = []
         self.tag_widgets.sort(tag_cmp,
@@ -123,7 +128,7 @@ class ThreadlineWidget(urwid.AttrMap):
         maxlength = config.getint('general', 'authors_maxlength')
         authorsstring = shorten_author_string(authors, maxlength)
         self.authors_w = urwid.AttrMap(urwid.Text(authorsstring),
-                                       'search_thread_authors')
+                                       self._get_theme('authors'))
         cols.append(('fixed', len(authorsstring), self.authors_w))
 
         if self.thread:
@@ -131,7 +136,7 @@ class ThreadlineWidget(urwid.AttrMap):
         else:
             subjectstring = ''
         self.subject_w = urwid.AttrMap(urwid.Text(subjectstring, wrap='clip'),
-                                 'search_thread_subject')
+                                       self._get_theme('subject'))
         if subjectstring:
             cols.append(('weight', 2, self.subject_w))
 
@@ -143,35 +148,40 @@ class ThreadlineWidget(urwid.AttrMap):
             msgs.sort()
             lastcontent = ' '.join([m.get_text_content() for m in msgs])
             contentstring = lastcontent.replace('\n', ' ').strip()
-            self.content_w = urwid.AttrMap(urwid.Text(contentstring,
-                                                      wrap='clip'),
-                                           'search_thread_content')
+            self.content_w = urwid.AttrMap(urwid.Text(
+                                                   contentstring,
+                                                   wrap='clip'),
+                                                   self._get_theme('content')
+                                                     )
             cols.append(self.content_w)
 
         self.columns = urwid.Columns(cols, dividechars=1)
         self.original_widget = self.columns
 
     def render(self, size, focus=False):
+        self.highlight_theme_suffix = self._get_highlight_theme_suffix()
         if focus:
-            self.date_w.set_attr_map({None: 'search_thread_date_focus'})
+            self.date_w.set_attr_map({None: self._get_theme('date', focus)})
             self.mailcount_w.set_attr_map({None:
-                                           'search_thread_mailcount_focus'})
+                                          self._get_theme('mailcount', focus)})
             for tw in self.tag_widgets:
                 tw.set_focussed()
-            self.authors_w.set_attr_map({None: 'search_thread_authors_focus'})
-            self.subject_w.set_attr_map({None: 'search_thread_subject_focus'})
+            self.authors_w.set_attr_map({None: self._get_theme('authors',
+                                                               focus)})
+            self.subject_w.set_attr_map({None: self._get_theme('subject',
+                                                               focus)})
             if self.display_content:
                 self.content_w.set_attr_map(
-                    {None: 'search_thread_content_focus'})
+                    {None: self._get_theme('content', focus=True)})
         else:
-            self.date_w.set_attr_map({None: 'search_thread_date'})
-            self.mailcount_w.set_attr_map({None: 'search_thread_mailcount'})
+            self.date_w.set_attr_map({None: self._get_theme('date')})
+            self.mailcount_w.set_attr_map({None: self._get_theme('mailcount')})
             for tw in self.tag_widgets:
                 tw.set_unfocussed()
-            self.authors_w.set_attr_map({None: 'search_thread_authors'})
-            self.subject_w.set_attr_map({None: 'search_thread_subject'})
+            self.authors_w.set_attr_map({None: self._get_theme('authors')})
+            self.subject_w.set_attr_map({None: self._get_theme('subject')})
             if self.display_content:
-                self.content_w.set_attr_map({None: 'search_thread_content'})
+                self.content_w.set_attr_map({None: self._get_theme('content')})
         return urwid.AttrMap.render(self, size, focus)
 
     def selectable(self):
@@ -182,6 +192,29 @@ class ThreadlineWidget(urwid.AttrMap):
 
     def get_thread(self):
         return self.thread
+
+    def _get_highlight_theme_suffix(self):
+        suffix = None
+        for query in self.highlight_rules.keys():
+            if self.thread.matches(query):
+                suffix = self.highlight_rules[query]
+                break
+        return suffix
+
+    def _get_theme(self, component, focus=False):
+        theme = 'search_thread_{0}'.format(component)
+        if (self.highlight_theme_suffix and
+            component in self.highlight_components):
+            highlight_theme = (theme +
+                               '_{id}'.format(id=self.highlight_theme_suffix))
+            if focus:
+                theme += '_focus'
+                highlight_theme += '_focus'
+            if config.has_themeing(highlight_theme):
+                theme = highlight_theme
+        elif focus:
+            theme = theme + '_focus'
+        return theme
 
 
 class BufferlineWidget(urwid.Text):
@@ -212,12 +245,13 @@ class TagWidget(urwid.AttrMap):
     It looks up the string it displays in the `tag-translate` section
     of the config as well as custom theme settings for its tag.
     """
-    def __init__(self, tag):
+    def __init__(self, tag, theme=''):
         self.tag = tag
+        self.highlight = theme
         self.translated = config.get('tag-translate', tag, fallback=tag)
         self.txt = urwid.Text(self.translated.encode('utf-8'), wrap='clip')
-        normal = config.get_tagattr(tag)
-        focus = config.get_tagattr(tag, focus=True)
+        normal = config.get_tag_theme(tag, highlight=theme)
+        focus = config.get_tag_theme(tag, focus=True, highlight=theme)
         urwid.AttrMap.__init__(self, self.txt, normal, focus)
 
     def width(self):
@@ -235,10 +269,14 @@ class TagWidget(urwid.AttrMap):
         return self.tag
 
     def set_focussed(self):
-        self.set_attr_map({None: config.get_tagattr(self.tag, focus=True)})
+        self.set_attr_map({None: config.get_tag_theme(
+                                                    self.tag, focus=True,
+                                                    highlight=self.highlight)})
 
     def set_unfocussed(self):
-        self.set_attr_map({None: config.get_tagattr(self.tag)})
+        self.set_attr_map({None: config.get_tag_theme(
+                                                    self.tag,
+                                                    highlight=self.highlight)})
 
 
 class ChoiceWidget(urwid.Text):
@@ -337,7 +375,8 @@ class MessageWidget(urwid.WidgetWrap):
     #TODO: atm this is heavily bent to work nicely with ThreadBuffer to display
     #a tree structure. A better way would be to keep this widget simple
     #(subclass urwid.Pile) and use urwids new Tree widgets
-    def __init__(self, message, even=False, folded=True, depth=0, bars_at=[]):
+    def __init__(self, message, even=False, folded=True, raw=False,
+                 all_headers=False, depth=0, bars_at=[]):
         """
         :param message: the message to display
         :type message: alot.db.Message
@@ -345,10 +384,14 @@ class MessageWidget(urwid.WidgetWrap):
         :type even: bool
         :param folded: fold message initially
         :type folded: bool
+        :param raw: show message source initially
+        :type raw: bool
+        :param all_headers: show all headers initially
+        :type all_headers: bool
         :param depth: number of characters to shift content to the right
         :type depth: int
         :param bars_at: defines for each column of the indentation whether to
-                        use a vertical bar instead of a space. 
+                        use a vertical bar instead of a space.
         :type bars_at: list(bool)
         """
         self.message = message
@@ -358,18 +401,21 @@ class MessageWidget(urwid.WidgetWrap):
         self.bars_at = bars_at
         self.even = even
         self.folded = folded
+        self.show_raw = raw
+        self.show_all_headers = all_headers
 
-        # build the summary line, header and body will be created on demand
-        self.sumline = self._build_sum_line()
+        # define subwidgets that will be created on demand
+        self.sumline = None
         self.headerw = None
         self.attachmentw = None
         self.bodyw = None
+        self.sourcew = None
 
         # set available and to be displayed headers
-        self.all_headers = self.mail.keys()
+        self._all_headers = self.mail.keys()
         displayed = config.getstringlist('general', 'displayed_headers')
-        self.filtered_headers = [k for k in displayed if k in self.mail]
-        self.displayed_headers = self.filtered_headers
+        self._filtered_headers = [k for k in displayed if k in self.mail]
+        self._displayed_headers = None
 
         self.rebuild()  # this will build self.pile
         urwid.WidgetWrap.__init__(self, self.pile)
@@ -378,24 +424,25 @@ class MessageWidget(urwid.WidgetWrap):
         return self.pile.get_focus()
 
     def rebuild(self):
+        self.sumline = self._build_sum_line()
         if not self.folded:  # only if already unfolded
-            hw = self._get_header_widget()
-            aw = self._get_attachment_widget()
-            bw = self._get_body_widget()
             self.displayed_list = [self.sumline]
-            if hw:
-                self.displayed_list.append(hw)
-            if aw:
-                self.displayed_list.append(aw)
-            self.displayed_list.append(bw)
+            if self.show_raw:
+                srcw = self._get_source_widget()
+                self.displayed_list.append(srcw)
+            else:
+                hw = self._get_header_widget()
+                aw = self._get_attachment_widget()
+                bw = self._get_body_widget()
+                if hw:
+                    self.displayed_list.append(hw)
+                if aw:
+                    self.displayed_list.append(aw)
+                self.displayed_list.append(bw)
         else:
             self.displayed_list = [self.sumline]
         self.pile = urwid.Pile(self.displayed_list)
         self._w = self.pile
-
-    def fold(self, visible=False):
-        self.folded = not visible
-        self.rebuild()
 
     def _build_sum_line(self):
         """creates/returns the widget that displays the summary line."""
@@ -415,28 +462,35 @@ class MessageWidget(urwid.WidgetWrap):
         line = urwid.Columns(cols, box_columns=bc)
         return line
 
-    def _get_header_widget(self, force_update=False):
+    def _get_header_widget(self):
         """creates/returns the widget that displays the mail header"""
-        if not self.displayed_headers:
-            return None
-        if not self.headerw or force_update:
-            mail = self.message.get_email()
-            # normalize values if only filtered list is shown
-            norm = not (self.displayed_headers == self.all_headers)
-            #build lines
-            lines = []
-            for k, v in mail.items():
-                if k in self.displayed_headers:
-                    lines.append((k, message.decode_header(v, normalize=norm)))
+        all_shown = (self._all_headers == self._displayed_headers)
 
-            cols = [HeadersList(lines)]
-            bc = list()
-            if self.depth:
-                cols.insert(0, self._get_spacer(self.bars_at[1:]))
-                bc.append(0)
-                cols.insert(1, self._get_arrowhead_aligner())
-                bc.append(1)
-            self.headerw = urwid.Columns(cols, box_columns=bc)
+        if self.headerw and (self.show_all_headers == all_shown):
+            return self.headerw
+
+        if self.show_all_headers:
+            self._displayed_headers = self._all_headers
+        else:
+            self._displayed_headers = self._filtered_headers
+
+        mail = self.message.get_email()
+        # normalize values if only filtered list is shown
+        norm = not (self._displayed_headers == self._all_headers)
+        #build lines
+        lines = []
+        for k, v in mail.items():
+            if k in self._displayed_headers:
+                lines.append((k, message.decode_header(v, normalize=norm)))
+
+        cols = [HeadersList(lines)]
+        bc = list()
+        if self.depth:
+            cols.insert(0, self._get_spacer(self.bars_at[1:]))
+            bc.append(0)
+            cols.insert(1, self._get_arrowhead_aligner())
+            bc.append(1)
+        self.headerw = urwid.Columns(cols, box_columns=bc)
         return self.headerw
 
     def _get_attachment_widget(self):
@@ -467,6 +521,19 @@ class MessageWidget(urwid.WidgetWrap):
             self.bodyw = urwid.Columns(cols, box_columns=bc)
         return self.bodyw
 
+    def _get_source_widget(self):
+        """creates/returns the widget that displays the mail body"""
+        if not self.sourcew:
+            cols = [urwid.Text(self.message.get_email().as_string())]
+            bc = list()
+            if self.depth:
+                cols.insert(0, self._get_spacer(self.bars_at[1:]))
+                bc.append(0)
+                cols.insert(1, self._get_arrowhead_aligner())
+                bc.append(1)
+            self.sourcew = urwid.Columns(cols, box_columns=bc)
+        return self.sourcew
+
     def _get_spacer(self, bars_at):
         prefixchars = []
         length = len(bars_at)
@@ -481,22 +548,11 @@ class MessageWidget(urwid.WidgetWrap):
         return ('fixed', length, spacer)
 
     def _get_arrowhead_aligner(self):
-        if len(self.message.get_replies()) > 0:
+        if self.message.has_replies():
             aligner = u'\u2502'
         else:
             aligner = ' '
         return ('fixed', 1, urwid.SolidFill(aligner))
-
-    def toggle_full_header(self):
-        """toggles if message headers are shown"""
-        # todo: normalize if not all show..
-        if self.displayed_headers == self.all_headers:
-            self.displayed_headers = self.filtered_headers
-        else:
-            self.displayed_headers = self.all_headers
-        hw = self._get_header_widget(force_update=True)
-        logging.debug(hw.widget_list[0])
-        self.rebuild()
 
     def selectable(self):
         return True
@@ -536,9 +592,20 @@ class MessageSummaryWidget(urwid.WidgetWrap):
             attr = 'thread_summary_even'
         else:
             attr = 'thread_summary_odd'
+        cols = []
+
         sumstr = self.__str__()
-        txt = urwid.AttrMap(urwid.Text(sumstr), attr, 'thread_summary_focus')
-        urwid.WidgetWrap.__init__(self, txt)
+        txt = urwid.Text(sumstr)
+        cols.append(txt)
+
+        thread_tags = message.get_thread().get_tags(intersection=True)
+        outstanding_tags = set(message.get_tags()).difference(thread_tags)
+        tag_widgets = [TagWidget(t) for t in outstanding_tags]
+        tag_widgets.sort(tag_cmp, lambda tag_widget: tag_widget.translated)
+        for tag_widget in tag_widgets:
+            cols.append(('fixed', tag_widget.width(), tag_widget))
+        line = urwid.AttrMap(urwid.Columns(cols, dividechars=1), attr, 'thread_summary_focus')
+        urwid.WidgetWrap.__init__(self, line)
 
     def __str__(self):
         author, address = self.message.get_author()

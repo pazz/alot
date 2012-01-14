@@ -45,11 +45,21 @@ get alot and install it from git:
 
 other dependencies
 ------------------
- * python-magic (python bindings to the file(1) utility)
+ * python bindings to libmagic, greater or equal than v5.04:
+   http://darwinsys.com/file/ 
+   This is packaged as 'python-magic' in debian/ubuntu.
+
  * a mailcap file (I recommend installing 'mime-support' on debian/ubuntu).
+   This is used to determine the commands to call when opening attachments
+   or text-rendering parts that are not plaintext, e.g. text/html.
+   Make sure you have a inline renderer for text/html set as otherwise
+   html mails will not display:
+
+    #~/.mailcap, take w3m for example:
+    text/html;  w3m -dump %s; nametemplate=%s.html; copiousoutput
 
 
-All configs are optional, but if you want to send mails you need to specify at least one
+All other configs are optional, but if you want to send mails you need to specify at least one
 account section in your config:
 
     [account uoe]

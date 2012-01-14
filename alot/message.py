@@ -116,6 +116,10 @@ class Message(object):
             self._thread = self._dbman.get_thread(self._thread_id)
         return self._thread
 
+    def has_replies(self):
+        """returns true if this message has at least one reply"""
+        return (len(self.get_replies()) > 0)
+
     def get_replies(self):
         """returns replies to this message as list of :class:`Message`"""
         t = self.get_thread()
@@ -130,8 +134,8 @@ class Message(object):
         """
         if self._datetime == None:
             return None
-        formatstring = config.get('general', 'timestamp_format')
-        if formatstring:
+        if config.has_option('general', 'timestamp_format'):
+            formatstring = config.get('general', 'timestamp_format')
             res = self._datetime.strftime(formatstring)
         else:
             res = helper.pretty_datetime(self._datetime)
@@ -156,31 +160,57 @@ class Message(object):
         """
         return extract_headers(self.get_mail(), headers)
 
-    def add_tags(self, tags):
+    def add_tags(self, tags, afterwards=None, remove_rest=False):
         """
-        adds tags (list of str) to message
+        adds tags to message
 
         .. note::
 
             This only adds the requested operation to this objects
             :class:`DBManager's <alot.db.DBManager>` write queue.
             You need to call :meth:`~alot.db.DBManager.flush` to write out.
+
+        :param tags: a list of tags to be added
+        :type tags: list of str
+        :param afterwards: callback that gets called after successful
+                           application of this tagging operation
+        :type afterwards: callable
+        :param remove_rest: remove all other tags
+        :type remove_rest: bool
         """
-        self._dbman.tag('id:' + self._id, tags)
+        def myafterwards():
+            if remove_rest:
+                self._tags = set(tags)
+            else:
+                self._tags = self._tags.union(tags)
+            if callable(afterwards):
+                afterwards()
+
+        self._dbman.tag('id:' + self._id, tags, afterwards=myafterwards,
+                        remove_rest=remove_rest)
         self._tags = self._tags.union(tags)
 
-    def remove_tags(self, tags):
-        """remove tags (list of str) from message
+    def remove_tags(self, tags, afterwards=None):
+        """remove tags from message
 
         .. note::
 
             This only adds the requested operation to this objects
             :class:`DBManager's <alot.db.DBManager>` write queue.
             You need to call :meth:`~alot.db.DBManager.flush` to actually out.
-        """
 
-        self._dbman.untag('id:' + self._id, tags)
-        self._tags = self._tags.difference(tags)
+        :param tags: a list of tags to be added
+        :type tags: list of str
+        :param afterwards: callback that gets called after successful
+                           application of this tagging operation
+        :type afterwards: callable
+        """
+        def myafterwards():
+            self._tags = self._tags.difference(tags)
+            if callable(afterwards):
+                afterwards()
+
+        self._dbman.untag('id:' + self._id, tags, myafterwards)
 
     def get_attachments(self):
         """
@@ -254,6 +284,9 @@ def extract_body(mail, types=None):
         if types is not None:
             if ctype not in types:
                 continue
+        cd = part.get('Content-Disposition', '')
+        if cd.startswith('attachment'):
+            continue
 
         enc = part.get_content_charset() or 'ascii'
         raw_payload = part.get_payload(decode=True)
@@ -469,6 +502,9 @@ class Envelope(object):
         if self.sent_time:
             self.modified_since_sent = True
 
+    def __contains__(self, name):
+        return self.headers.__contains__(name)
+
     def get(self, key, fallback=None):
         """secure getter for header values that allows specifying a `fallback`
         return string (defaults to None). This returns the first matching value
@@ -496,21 +532,27 @@ class Envelope(object):
         if self.sent_time:
             self.modified_since_sent = True
 
-    def attach(self, path, filename=None, ctype=None):
+    def attach(self, attachment, filename=None, ctype=None):
         """
         attach a file
 
-        :param path: (globable) path of the file(s) to attach.
-        :type path: str
+        :param attachment: File to attach, given as :class:`Attachment` object
+                           or (globable) path to the file(s).
+        :type attachment: :class:`Attachment` or str
         :param filename: filename to use in content-disposition.
                          Will be ignored if `path` matches multiple files
         :param ctype: force content-type to be used for this attachment
         :type ctype: str
         """
 
-        path = os.path.expanduser(path)
-        part = helper.mimewrap(path, filename, ctype)
-        self.attachments.append(part)
+        if isinstance(attachment, Attachment):
+            self.attachments.append(attachment)
+        elif isinstance(attachment, basestring):
+            path = os.path.expanduser(attachment)
+            part = helper.mimewrap(path, filename, ctype)
+            self.attachments.append(Attachment(part))
+        else:
+            raise TypeError('attach accepts an Attachment or str')
 
         if self.sent_time:
             self.modified_since_sent = True
@@ -520,17 +562,32 @@ class Envelope(object):
         compiles the information contained in this envelope into a
         :class:`email.Message`.
         """
+        # build body text part
         textpart = MIMEText(self.body.encode('utf-8'), 'plain', 'utf-8')
+
+        # wrap it in a multipart container if necessary
         if self.attachments or self.sign or self.encrypt:
             msg = MIMEMultipart()
             msg.attach(textpart)
         else:
             msg = textpart
-        for k, vlist in self.headers.items():
+
+        headers = self.headers.copy()
+        # add Date and Message-ID headers
+        if 'Date' not in headers:
+            headers['Date'] = [email.Utils.formatdate()]
+        if 'Message-ID' not in headers:
+            headers['Message-ID'] = [email.Utils.make_msgid()]
+
+        # copy headers from envelope to mail
+        for k, vlist in headers.items():
             for v in vlist:
                 msg[k] = encode_header(k, v)
+
+        # add attachments
         for a in self.attachments:
-            msg.attach(a)
+            msg.attach(a.get_mime_representation())
+
         return msg
 
     def parse_template(self, tmp, reset=False):

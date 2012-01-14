@@ -25,6 +25,11 @@ class DatabaseLockedError(DatabaseError):
     pass
 
 
+class NonexistantObjectError(DatabaseError):
+    """requested thread or message does not exist in the index"""
+    pass
+
+
 class FillPipeProcess(multiprocessing.Process):
     def __init__(self, it, pipe, fun=(lambda x: x)):
         multiprocessing.Process.__init__(self)
@@ -44,6 +49,14 @@ class DBManager(object):
     lets you look up threads and messages directly to the persistent wrapper
     classes.
     """
+    _sort_orders = {
+        'oldest_first': notmuch.database.Query.SORT.OLDEST_FIRST,
+        'newest_first': notmuch.database.Query.SORT.NEWEST_FIRST,
+        'unsorted': notmuch.database.Query.SORT.UNSORTED,
+        'message_id': notmuch.database.Query.SORT.MESSAGE_ID,
+    }
+    """constants representing sort orders"""
+
     def __init__(self, path=None, ro=False):
         """
         :param path: absolute path to the notmuch index
@@ -79,7 +92,7 @@ class DBManager(object):
                 raise DatabaseLockedError()
             while self.writequeue:
                 current_item = self.writequeue.popleft()
-                cmd, querystring, tags, sync = current_item
+                cmd, querystring, tags, sync, afterwards = current_item
                 try:  # make this a transaction
                     db.begin_atomic()
                 except XapianError:
@@ -105,6 +118,9 @@ class DBManager(object):
                 # end transaction and reinsert queue item on error
                 if db.end_atomic() != notmuch.STATUS.SUCCESS:
                     self.writequeue.appendleft(current_item)
+                else:
+                    if callable(afterwards):
+                        afterwards()
 
     def kill_search_processes(self):
         """
@@ -115,7 +131,7 @@ class DBManager(object):
             p.terminate()
         self.processes = []
 
-    def tag(self, querystring, tags, remove_rest=False):
+    def tag(self, querystring, tags, afterwards=None, remove_rest=False):
         """
         add tags to messages matching `querystring`.
         This appends a tag operation to the write queue and raises
@@ -125,6 +141,9 @@ class DBManager(object):
         :type querystring: str
         :param tags: a list of tags to be added
         :type tags: list of str
+        :param afterwards: callback that gets called after successful
+                           application of this tagging operation
+        :type afterwards: callable
         :param remove_rest: remove tags from matching messages before tagging
         :type remove_rest: bool
         :exception: :exc:`DatabaseROError`
@@ -137,12 +156,12 @@ class DBManager(object):
         sync_maildir_flags = config.getboolean('maildir', 'synchronize_flags')
         if remove_rest:
             self.writequeue.append(('set', querystring, tags,
-                                    sync_maildir_flags))
+                                    sync_maildir_flags, afterwards))
         else:
             self.writequeue.append(('tag', querystring, tags,
-                                    sync_maildir_flags))
+                                    sync_maildir_flags, afterwards))
 
-    def untag(self, querystring, tags):
+    def untag(self, querystring, tags, afterwards=None):
         """
         removes tags from messages that match `querystring`.
         This appends an untag operation to the write queue and raises
@@ -152,6 +171,9 @@ class DBManager(object):
         :type querystring: str
         :param tags: a list of tags to be added
         :type tags: list of str
+        :param afterwards: callback that gets called after successful
+                           application of this tagging operation
+        :type afterwards: callable
         :exception: :exc:`DatabaseROError`
 
         .. note::
@@ -161,7 +183,7 @@ class DBManager(object):
             raise DatabaseROError()
         sync_maildir_flags = config.getboolean('maildir', 'synchronize_flags')
         self.writequeue.append(('untag', querystring, tags,
-                                sync_maildir_flags))
+                                sync_maildir_flags, afterwards))
 
     def count_messages(self, querystring):
         """returns number of messages that match `querystring`"""
@@ -177,20 +199,32 @@ class DBManager(object):
 
         return self.query_threaded(querystring)
 
-    def get_thread(self, tid):
-        """returns :class:`Thread` with given thread id (str)"""
+    def _get_notmuch_thread(self, tid):
+        """returns :class:`notmuch.database.Thread` with given id"""
         query = self.query('thread:' + tid)
         try:
-            return Thread(self, query.search_threads().next())
+            return query.search_threads().next()
+        except StopIteration:
+            errmsg = 'no thread with id %s exists!' % tid
+            raise NonexistantObjectError(errmsg)
+
+    def get_thread(self, tid):
+        """returns :class:`Thread` with given thread id (str)"""
+        return Thread(self, self._get_notmuch_thread(tid))
+
+    def _get_notmuch_message(self, mid):
+        """returns :class:`notmuch.database.Message` with given id"""
+        mode = Database.MODE.READ_ONLY
+        db = Database(path=self.path, mode=mode)
+        try:
+            return db.find_message(mid)
         except:
-            return None
+            errmsg = 'no message with id %s exists!' % mid
+            raise NonexistantObjectError(errmsg)
 
     def get_message(self, mid):
         """returns :class:`Message` with given message id (str)"""
-        mode = Database.MODE.READ_ONLY
-        db = Database(path=self.path, mode=mode)
-        msg = db.find_message(mid)
-        return Message(self, msg)
+        return Message(self, self._get_notmuch_message(mid))
 
     def get_all_tags(self):
         """
@@ -223,18 +257,23 @@ class DBManager(object):
         sender.close()
         return receiver, process
 
-    def get_threads(self, querystring):
+    def get_threads(self, querystring, sort='newest_first'):
         """
         asynchronously look up thread ids matching `querystring`.
 
         :param querystring: The query string to use for the lookup
-        :type query: str.
+        :type querystring: str.
+        :param sort: Sort order. one of ['oldest_first', 'newest_first',
+                     'message_id', 'unsorted']
+        :type query: str
         :returns: a pipe together with the process that asynchronously
                   writes to it.
         :rtype: (:class:`multiprocessing.Pipe`,
                 :class:`multiprocessing.Process`)
         """
+        assert sort in self._sort_orders.keys()
         q = self.query(querystring)
+        q.set_sort(self._sort_orders[sort])
         return self.async(q.search_threads, (lambda a: a.get_thread_id()))
 
     def query(self, querystring):
@@ -248,6 +287,38 @@ class DBManager(object):
         mode = Database.MODE.READ_ONLY
         db = Database(path=self.path, mode=mode)
         return db.create_query(querystring)
+
+    def add_message(self, path):
+        """
+        Adds a file to the notmuch index.
+
+        :param path: path to the file
+        :type path: str
+        :returns: the message object corresponding the added message
+        :rtype: :class:`alot.message.Message`
+        """
+        db = Database(path=self.path, mode=Database.MODE.READ_WRITE)
+        try:
+            message, status = db.add_message(path,
+                                             sync_maildir_flags=True)
+        except NotmuchError as e:
+            raise DatabaseError(unicode(e))
+
+        return Message(self, message)
+
+    def remove_message(self, message):
+        """
+        Remove a message from the notmuch index
+
+        :param message: message to remove
+        :type message: :class:`Message`
+        """
+        path = message.get_filename()
+        db = Database(path=self.path, mode=Database.MODE.READ_WRITE)
+        try:
+            status = db.remove_message(path)
+        except NotmuchError as e:
+            raise DatabaseError(unicode(e))
 
 
 class Thread(object):
@@ -272,8 +343,8 @@ class Thread(object):
     def refresh(self, thread=None):
         """refresh thread metadata from the index"""
         if not thread:
-            query = self._dbman.query('thread:' + self._id)
-            thread = query.search_threads().next()
+            thread = self._dbman._get_notmuch_thread(self._id)
+
         self._total_messages = thread.get_total_messages()
         self._authors = thread.get_authors()
         self._subject = thread.get_subject()
@@ -300,19 +371,24 @@ class Thread(object):
         """returns id of this thread"""
         return self._id
 
-    def get_tags(self):
+    def get_tags(self, intersection=False):
         """
         returns tagsstrings attached to this thread
 
-        :rtype: list of str
+        :param intersection: return tags present in all contained messages
+                             instead of in at least one (union)
+        :type intersection: bool
+        :rtype: set of str
         """
-        l = list(self._tags)
-        l.sort()
-        return l
+        tags = set(list(self._tags))
+        if intersection:
+            for m in self.get_messages().keys():
+                tags = tags.intersection(set(m.get_tags()))
+        return tags
 
-    def add_tags(self, tags):
+    def add_tags(self, tags, afterwards=None, remove_rest=False):
         """
-        add `tags` (list of str) to all messages in this thread
+        add `tags` to all messages in this thread
 
         .. note::
 
@@ -320,13 +396,26 @@ class Thread(object):
             :class:`DBManager's <DBManager>` write queue.
             You need to call :meth:`DBManager.flush` to actually write out.
 
+        :param tags: a list of tags to be added
+        :type tags: list of str
+        :param afterwards: callback that gets called after successful
+                           application of this tagging operation
+        :type afterwards: callable
+        :param remove_rest: remove all other tags
+        :type remove_rest: bool
         """
-        newtags = set(tags).difference(self._tags)
-        if newtags:
-            self._dbman.tag('thread:' + self._id, newtags)
-            self._tags = self._tags.union(newtags)
+        def myafterwards():
+            if remove_rest:
+                self._tags = tags
+            else:
+                self._tags = self._tags.union(tags)
+            if callable(afterwards):
+                afterwards()
 
-    def remove_tags(self, tags):
+        self._dbman.tag('thread:' + self._id, tags, afterwards=myafterwards,
+                       remove_rest=remove_rest)
+
+    def remove_tags(self, tags, afterwards=None):
         """
         remove `tags` (list of str) from all messages in this thread
 
@@ -335,26 +424,21 @@ class Thread(object):
             This only adds the requested operation to this objects
             :class:`DBManager's <DBManager>` write queue.
             You need to call :meth:`DBManager.flush` to actually write out.
+
+        :param tags: a list of tags to be added
+        :type tags: list of str
+        :param afterwards: callback that gets called after successful
+                           application of this tagging operation
+        :type afterwards: callable
         """
         rmtags = set(tags).intersection(self._tags)
         if rmtags:
-            self._dbman.untag('thread:' + self._id, tags)
+            def myafterwards():
+                self._tags = self._tags.difference(tags)
+                if callable(afterwards):
+                    afterwards()
+            self._dbman.untag('thread:' + self._id, tags, myafterwards)
             self._tags = self._tags.difference(rmtags)
-
-    def set_tags(self, tags):
-        """
-        set tags (list of str) of all messages in this thread. This removes all
-        tags and attaches the given ones in one step.
-
-        .. note::
-
-            This only adds the requested operation to this objects
-            :class:`DBManager's <DBManager>` write queue.
-            You need to call :meth:`DBManager.flush` to actually write out.
-        """
-        if tags != self._tags:
-            self._dbman.tag('thread:' + self._id, tags, remove_rest=True)
-            self._tags = set(tags)
 
     def get_authors(self):  # TODO: make this return a list of strings
         """returns authors string"""
@@ -434,3 +518,17 @@ class Thread(object):
     def get_total_messages(self):
         """returns number of contained messages"""
         return self._total_messages
+
+    def matches(self, query):
+        """
+        Check if this thread matches the given notmuch query.
+
+        :param query: The query to check against
+        :type query: string
+        :returns: True if this thread matches the given query, False otherwise
+        :rtype: bool
+        """
+        thread_query = 'thread:{tid} AND {subquery}'.format(tid=self._id,
+                                                            subquery=query)
+        num_matches = self._dbman.count_messages(thread_query)
+        return num_matches > 0

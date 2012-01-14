@@ -8,6 +8,7 @@ from twisted.internet.defer import inlineCallbacks
 import threading
 import datetime
 
+from alot.account import SendingMailFailed
 from alot import buffers
 from alot import commands
 from alot.commands import Command, registerCommand
@@ -47,7 +48,7 @@ class AttachCommand(Command):
 
         logging.info("attaching: %s" % files)
         for path in files:
-            envelope.attachments.append(helper.mimewrap(path))
+            envelope.attach(path)
         ui.current_buffer.rebuild()
 
 
@@ -67,6 +68,33 @@ class RefineCommand(Command):
         value = ui.current_buffer.envelope.get(self.key, '')
         cmdstring = 'set %s %s' % (self.key, value)
         ui.apply_command(globals.PromptCommand(cmdstring))
+
+
+@registerCommand(MODE, 'save')
+class SaveCommand(Command):
+    """save draft"""
+    def apply(self, ui):
+        envelope = ui.current_buffer.envelope
+
+        # determine account to use
+        sname, saddr = email.Utils.parseaddr(envelope.get('From'))
+        account = ui.accountman.get_account_by_address(saddr)
+        if account == None:
+            if not ui.accountman.get_accounts():
+                ui.notify('no accounts set.', priority='error')
+                return
+            else:
+                account = ui.accountman.get_accounts()[0]
+
+        if account.draft_box == None:
+            ui.notify('abort: account <%s> has no draft_box set.' % saddr,
+                      priority='error')
+            return
+
+        mail = envelope.construct_mail()
+        account.store_draft_mail(mail)
+        ui.apply_command(commands.globals.BufferCloseCommand())
+        ui.notify('draft saved successfully')
 
 
 @registerCommand(MODE, 'send')
@@ -97,21 +125,6 @@ class SendCommand(Command):
                 account = ui.accountman.get_accounts()[0]
                 omit_signature = True
 
-        # attach signature file if present
-        if account.signature and not omit_signature:
-            sig = os.path.expanduser(account.signature)
-            if os.path.isfile(sig):
-                if account.signature_filename:
-                    name = account.signature_filename
-                else:
-                    name = None
-                envelope.attach(sig, filename=name)
-            else:
-                ui.notify('could not locate signature: %s' % sig,
-                          priority='error')
-                if (yield ui.choice('send without signature',
-                                    select='yes', cancel='no')) == 'no':
-                    return
         # send
         clearme = ui.notify('sending..', timeout=-1)
 
@@ -129,7 +142,12 @@ class SendCommand(Command):
 
         def thread_code():
             mail = envelope.construct_mail()
-            os.write(write_fd, account.send_mail(mail) or 'success')
+            try:
+                account.send_mail(mail)
+            except SendingMailFailed as e:
+                os.write(write_fd, unicode(e))
+            else:
+                os.write(write_fd, 'success')
 
         thread = threading.Thread(target=thread_code)
         thread.start()
@@ -162,7 +180,7 @@ class EditCommand(Command):
         if '*' in blacklist:
             blacklist = set(self.envelope.headers.keys())
         self.edit_headers = edit_headers - blacklist
-        ui.logger.info('editable headers: %s' % blacklist)
+        logging.info('editable headers: %s' % blacklist)
 
         def openEnvelopeFromTmpfile():
             # This parses the input from the tempfile.
@@ -181,8 +199,7 @@ class EditCommand(Command):
             translate = settings.config.get_hook('post_edit_translate')
             if translate:
                 template = translate(template, ui=ui, dbm=ui.dbman,
-                                     aman=ui.accountman, log=ui.logger,
-                                     config=settings.config)
+                                     aman=ui.accountman, config=settings.config)
             self.envelope.parse_template(template)
             if self.openNew:
                 ui.buffer_open(buffers.EnvelopeBuffer(ui, self.envelope))
@@ -210,8 +227,7 @@ class EditCommand(Command):
         translate = settings.config.get_hook('pre_edit_translate')
         if translate:
             bodytext = translate(bodytext, ui=ui, dbm=ui.dbman,
-                                 aman=ui.accountman, log=ui.logger,
-                                 config=settings.config)
+                                 aman=ui.accountman, config=settings.config)
 
         #write stuff to tempfile
         tf = tempfile.NamedTemporaryFile(delete=False)
@@ -245,9 +261,11 @@ class SetCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
+        envelope = ui.current_buffer.envelope
         if self.reset:
-            del(ui.current_buffer.envelope[self.key])
-        ui.current_buffer.envelope.add(self.key, self.value)
+            if self.key in envelope:
+                del(envelope[self.key])
+        envelope.add(self.key, self.value)
         ui.current_buffer.rebuild()
 
 

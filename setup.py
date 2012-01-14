@@ -4,8 +4,9 @@ from distutils.core import setup
 import alot
 
 
+
 setup(name='alot',
-      version=alot.__version__,
+      version=alot.version.generate_version(),
       description=alot.__description__,
       author=alot.__author__,
       author_email=alot.__author_email__,

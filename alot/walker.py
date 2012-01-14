@@ -14,6 +14,9 @@ class PipeWalker(urwid.ListWalker):
         self.focus = 0
         self.empty = False
 
+    def __contains__(self, name):
+        return self.lines.__contains__(name)
+
     def get_focus(self):
         return self._get_at_pos(self.focus)
 

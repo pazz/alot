@@ -3,11 +3,14 @@ import logging
 import tempfile
 from twisted.internet.defer import inlineCallbacks
 import shlex
+import re
+import subprocess
 
 from alot.commands import Command, registerCommand
 from alot.commands.globals import ExternalCommand
 from alot.commands.globals import FlushCommand
 from alot.commands.globals import ComposeCommand
+from alot.commands.globals import RefreshCommand
 from alot import settings
 from alot import widgets
 from alot import completion
@@ -16,6 +19,7 @@ from alot.message import decode_header
 from alot.message import extract_headers
 from alot.message import extract_body
 from alot.message import Envelope
+from alot.db import DatabaseROError
 
 MODE = 'thread'
 
@@ -46,7 +50,7 @@ class ReplyCommand(Command):
         if qf:
             quotestring = qf(name, address, timestamp,
                              ui=ui, dbm=ui.dbman, aman=ui.accountman,
-                             log=ui.logger, config=settings.config)
+                             config=settings.config)
         else:
             quotestring = 'Quoting %s (%s)\n' % (name, timestamp)
         mailcontent = quotestring
@@ -151,7 +155,7 @@ class ForwardCommand(Command):
             if qf:
                 quote = qf(name, address, timestamp,
                              ui=ui, dbm=ui.dbman, aman=ui.accountman,
-                             log=ui.logger, config=settings.config)
+                             config=settings.config)
             else:
                 quote = 'Forwarded message from %s (%s):\n' % (name, timestamp)
             mailcontent = quote
@@ -191,23 +195,73 @@ class ForwardCommand(Command):
         ui.apply_command(ComposeCommand(envelope=envelope))
 
 
+@registerCommand(MODE, 'editnew')
+class EditNewCommand(Command):
+    """edit message in as new"""
+    def __init__(self, message=None, **kwargs):
+        """
+        :param message: message to reply to (defaults to selected message)
+        :type message: `alot.message.Message`
+        """
+        self.message = message
+        Command.__init__(self, **kwargs)
+
+    def apply(self, ui):
+        if not self.message:
+            self.message = ui.current_buffer.get_selected_message()
+        mail = self.message.get_email()
+        # set body text
+        name, address = self.message.get_author()
+        timestamp = self.message.get_date()
+        mailcontent = self.message.accumulate_body()
+        envelope = Envelope(bodytext=mailcontent)
+
+        # copy selected headers
+        to_copy = ['Subject', 'From', 'To', 'Cc', 'Bcc', 'In-Reply-To',
+                   'References']
+        for key in to_copy:
+            value = decode_header(mail.get(key, ''))
+            if value:
+                envelope.add(key, value)
+
+        # copy attachments
+        for b in self.message.get_attachments():
+            envelope.attach(b)
+
+        ui.apply_command(ComposeCommand(envelope=envelope))
+
+
 @registerCommand(MODE, 'fold', forced={'visible': False}, arguments=[
     (['--all'], {'action': 'store_true', 'help':'fold all messages'})],
     help='fold message(s)')
 @registerCommand(MODE, 'unfold', forced={'visible': True}, arguments=[
     (['--all'], {'action': 'store_true', 'help':'unfold all messages'})],
     help='unfold message(s)')
-class FoldMessagesCommand(Command):
+@registerCommand(MODE, 'togglesource', forced={'raw': 'toggle'}, arguments=[
+    (['--all'], {'action': 'store_true', 'help':'affect all messages'})],
+    help='display message source')
+@registerCommand(MODE, 'toggleheaders', forced={'all_headers': 'toggle'},
+    arguments=[
+        (['--all'], {'action': 'store_true', 'help':'affect all messages'})],
+    help='display all headers')
+class ChangeDisplaymodeCommand(Command):
     """fold or unfold messages"""
-    def __init__(self, all=False, visible=None, **kwargs):
+    def __init__(self, all=False, visible=None, raw=None, all_headers=None,
+                 **kwargs):
         """
         :param all: toggle all, not only selected message
         :type all: bool
-        :param visible: unfold if `True`, fold if `False`
-        :type visible: bool
+        :param visible: unfold if `True`, fold if `False`, ignore if `None`
+        :type visible: True, False, 'toggle' or None
+        :param raw: display raw message text.
+        :type raw: True, False, 'toggle' or None
+        :param all_headers: show all headers (only visible if not in raw mode)
+        :type all_headers: True, False, 'toggle' or None
         """
         self.all = all
         self.visible = visible
+        self.raw = raw
+        self.all_headers = all_headers
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
@@ -218,54 +272,63 @@ class FoldMessagesCommand(Command):
             lines = ui.current_buffer.get_message_widgets()
 
         for widget in lines:
-            # in case the thread is yet unread, remove this tag
             msg = widget.get_message()
-            if self.visible or (self.visible == None and widget.folded):
+
+            # in case the thread is yet unread, remove this tag
+            if self.visible or (self.visible == 'toggle' and widget.folded):
                 if 'unread' in msg.get_tags():
                     msg.remove_tags(['unread'])
                     ui.apply_command(FlushCommand())
-                    widget.rebuild()
-                widget.fold(visible=True)
-            else:
-                widget.fold(visible=False)
 
+            if self.visible == 'toggle':
+                self.visible = widget.folded
+            if self.raw == 'toggle':
+                self.raw = not widget.show_raw
+            if self.all_headers == 'toggle':
+                self.all_headers = not widget.show_all_headers
 
-@registerCommand(MODE, 'toggleheaders')
-class ToggleHeaderCommand(Command):
-    """toggle display of all headers"""
-    def apply(self, ui):
-        try:
-            msgw = ui.current_buffer.get_selection()
-            msgw.toggle_full_header()
-        except Exception, e:
-            ui.logger.exception(e)
+            logging.debug((self.visible, self.raw, self.all_headers))
+            if self.visible is not None:
+                widget.folded = not self.visible
+            if self.raw is not None:
+                widget.show_raw = self.raw
+            if self.all_headers is not None:
+                widget.show_all_headers = self.all_headers
+            widget.rebuild()
 
 
 @registerCommand(MODE, 'pipeto', arguments=[
-    (['cmd'], {'nargs':'?', 'help':'shellcommand to pipe to'}),
+    (['cmd'], {'help':'shellcommand to pipe to'}),
     (['--all'], {'action': 'store_true', 'help':'pass all messages'}),
-    (['--decode'], {'action': 'store_true',
-                    'help':'use only decoded body lines'}),
-    (['--ids'], {'action': 'store_true',
-                    'help':'only pass message ids'}),
+    (['--format'], {'help':'output format', 'default':'raw',
+                    'choices':['raw', 'decoded', 'id', 'filepath']}),
     (['--separately'], {'action': 'store_true',
-                        'help':'call command once for each message'})],
+                        'help':'call command once for each message'}),
+    (['--background'], {'action': 'store_true',
+                        'help':'disable stdin and ignore stdout'}),
+],
 )
 class PipeCommand(Command):
     """pipe message(s) to stdin of a shellcommand"""
-    #TODO: use raw arg from print command here
-    def __init__(self, cmd, all=False, ids=False, separately=False,
-                 decode=True, noop_msg='no command specified', confirm_msg='',
+    def __init__(self, cmd, all=False, separately=False,
+                 background=False, format='raw',
+                 noop_msg='no command specified', confirm_msg='',
                  done_msg='done', **kwargs):
         """
         :param cmd: shellcommand to open
-        :type cmd: list of str
+        :type cmd: str or list of str
         :param all: pipe all, not only selected message
         :type all: bool
-        :param ids: only write message ids, not the message source
-        :type ids: bool
         :param separately: call command once per message
         :type separately: bool
+        :param background: disable stdin and ignore sdtout of command
+        :type background: bool
+        :param format: what to pipe to the processes stdin. one of:
+                       'raw': message content as is,
+                       'decoded': message content, decoded quoted printable,
+                       'id': message ids, separated by newlines,
+                       'filepath': paths to message files on disk
+        :type format: str
         :param noop_msg: error notification to show if `cmd` is empty
         :type noop_msg: str
         :param confirm_msg: confirmation question to ask (continues directly if
@@ -275,11 +338,13 @@ class PipeCommand(Command):
         :type done_msg: str
         """
         Command.__init__(self, **kwargs)
-        self.cmdlist = cmd
+        if isinstance(cmd, unicode):
+            cmd = shlex.split(cmd.encode('UTF-8'))
+        self.cmd = cmd
         self.whole_thread = all
         self.separately = separately
-        self.ids = ids
-        self.decode = decode
+        self.background = background
+        self.output_format = format
         self.noop_msg = noop_msg
         self.confirm_msg = confirm_msg
         self.done_msg = done_msg
@@ -287,7 +352,7 @@ class PipeCommand(Command):
     @inlineCallbacks
     def apply(self, ui):
         # abort if command unset
-        if not self.cmdlist:
+        if not self.cmd:
             ui.notify(self.noop_msg, priority='error')
             return
 
@@ -307,26 +372,47 @@ class PipeCommand(Command):
                 return
 
         # prepare message sources
-        mailstrings = []
-        if self.ids:
-            mailstrings = [e.get_message_id() for e in to_print]
-        else:
+        pipestrings = []
+        separator = '\n\n'
+        logging.debug('PIPETO format')
+        logging.debug(self.output_format)
+        if self.output_format == 'raw':
+            pipestrings = [m.get_email().as_string() for m in to_print]
+        elif self.output_format == 'decoded':
             mails = [m.get_email() for m in to_print]
-            if self.decode:
-                for mail in mails:
-                    headertext = extract_headers(mail)
-                    bodytext = extract_body(mail)
-                    msg = '%s\n\n%s' % (headertext, bodytext)
-                    mailstrings.append(msg.encode('utf-8'))
-            else:
-                mailstrings = [e.as_string() for e in mails]
+            for mail in mails:
+                headertext = extract_headers(mail)
+                bodytext = extract_body(mail)
+                msg = '%s\n\n%s' % (headertext, bodytext)
+                pipestrings.append(msg.encode('utf-8'))
+        elif self.output_format == 'id':
+            pipestrings = [e.get_message_id() for e in to_print]
+            separator = '\n'
+        elif self.output_format == 'filepath':
+            pipestrings = [e.get_filename() for e in to_print]
+            separator = '\n'
+
         if not self.separately:
-            mailstrings = ['\n\n'.join(mailstrings)]
+            pipestrings = [separator.join(pipestrings)]
 
         # do teh monkey
-        for mail in mailstrings:
-            ui.logger.debug("%s" % mail)
-            out, err, retval = helper.call_cmd(self.cmdlist, stdin=mail)
+        for mail in pipestrings:
+            if self.background:
+                logging.debug('call in background: %s' % str(self.cmd))
+                proc = subprocess.Popen(self.cmd,
+                                        shell=True, stdin=subprocess.PIPE,
+                                        stderr=subprocess.PIPE)
+                out, err = proc.communicate(mail)
+            else:
+                logging.debug('stop urwid screen')
+                ui.mainloop.screen.stop()
+                logging.debug('call: %s' % str(self.cmd))
+                proc = subprocess.Popen(self.cmd, shell=True,
+                                        stdin=subprocess.PIPE,
+                                        stderr=subprocess.PIPE)
+                out, err = proc.communicate(mail)
+                logging.debug('start urwid screen')
+                ui.mainloop.screen.start()
             if err:
                 ui.notify(err, priority='error')
                 return
@@ -334,6 +420,54 @@ class PipeCommand(Command):
         # display 'done' message
         if self.done_msg:
             ui.notify(self.done_msg)
+
+
+@registerCommand(MODE, 'remove', arguments=[
+    (['--all'], {'action': 'store_true', 'help':'remove whole thread'})])
+class RemoveCommand(Command):
+    """remove message(s) from the index"""
+    def __init__(self, all=False, **kwargs):
+        """
+        :param all: remove all messages from thread, not just selected one
+        :type all: bool
+        """
+        Command.__init__(self, **kwargs)
+        self.all = all
+
+    @inlineCallbacks
+    def apply(self, ui):
+        # get messages and notification strings
+        if self.all:
+            thread = ui.current_buffer.get_selected_thread()
+            tid = thread.get_thread_id()
+            messages = thread.get_messages().keys()
+            confirm_msg = 'remove all messages in thread?'
+            ok_msg = 'removed all messages in thread: %s' % tid
+        else:
+            msg = ui.current_buffer.get_selected_message()
+            messages = [msg]
+            confirm_msg = 'remove selected message?'
+            ok_msg = 'removed message: %s' % msg.get_message_id()
+
+        # ask for confirmation
+        if (yield ui.choice(confirm_msg, select='yes', cancel='no')) == 'no':
+            return
+
+        # remove messages
+        try:
+            for m in messages:
+                ui.dbman.remove_message(m)
+        except DatabaseError, e:
+            err_msg = str(e)
+            ui.notify(err_msg, priority='error')
+            logging.debug(err_msg)
+            return
+
+        # notify
+        ui.notify(ok_msg)
+
+        # refresh buffer
+        ui.apply_command(RefreshCommand())
 
 
 @registerCommand(MODE, 'print', arguments=[
@@ -350,12 +484,11 @@ class PrintCommand(PipeCommand):
         :type all: bool
         :param separately: call print command once per message
         :type separately: bool
-        :param separately: pipe raw message string to print command
-        :type separately: bool
+        :param raw: pipe raw message string to print command
+        :type raw: bool
         """
         # get print command
         cmd = settings.config.get('general', 'print_cmd', fallback='')
-        cmdlist = shlex.split(cmd.encode('utf-8', errors='ignore'))
 
         # set up notification strings
         if all:
@@ -368,9 +501,10 @@ class PrintCommand(PipeCommand):
         # no print cmd set
         noop_msg = 'no print command specified. Set "print_cmd" in the '\
                     'global section.'
-        PipeCommand.__init__(self, cmdlist, all=all,
-                             separately=separately,
-                             decode=not raw,
+
+        PipeCommand.__init__(self, cmd, all=all, separately=separately,
+                             background=True,
+                             format='raw' if raw else 'decoded',
                              noop_msg=noop_msg, confirm_msg=confirm_msg,
                              done_msg=ok_msg, **kwargs)
 
@@ -454,7 +588,7 @@ class OpenAttachmentCommand(Command):
         handler = settings.get_mime_handler(mimetype)
         if handler:
             path = self.attachment.save(tempfile.gettempdir())
-            handler = handler.replace('%s', '{}')
+            handler = re.sub('\'?%s\'?', '{}', handler)
 
             # 'needsterminal' makes handler overtake the terminal
             nt = settings.get_mime_handler(mimetype, key='needsterminal')
@@ -478,9 +612,88 @@ class ThreadSelectCommand(Command):
     def apply(self, ui):
         focus = ui.get_deep_focus()
         if isinstance(focus, widgets.MessageSummaryWidget):
-            ui.apply_command(FoldMessagesCommand())
+            ui.apply_command(ChangeDisplaymodeCommand(visible='toggle'))
         elif isinstance(focus, widgets.AttachmentWidget):
             logging.info('open attachment')
             ui.apply_command(OpenAttachmentCommand(focus.get_attachment()))
         else:
             logging.info('unknown widget %s' % focus)
+
+
+@registerCommand(MODE, 'tag', forced={'action': 'add'}, arguments=[
+    (['--all'], {'action': 'store_true', 'help':'tag all messages in thread'}),
+    (['tags'], {'help':'comma separated list of tags'})],
+    help='add tags to message(s)',
+)
+@registerCommand(MODE, 'retag', forced={'action': 'set'}, arguments=[
+    (['--all'], {'action': 'store_true', 'help':'tag all messages in thread'}),
+    (['tags'], {'help':'comma separated list of tags'})],
+    help='set message(s) tags.',
+)
+@registerCommand(MODE, 'untag', forced={'action': 'remove'}, arguments=[
+    (['--all'], {'action': 'store_true', 'help':'tag all messages in thread'}),
+    (['tags'], {'help':'comma separated list of tags'})],
+    help='remove tags from message(s)',
+)
+@registerCommand(MODE, 'toggletags', forced={'action': 'toggle'}, arguments=[
+    (['--all'], {'action': 'store_true', 'help':'tag all messages in thread'}),
+    (['tags'], {'help':'comma separated list of tags'})],
+    help='flip presence of tags on message(s)',
+)
+class TagCommand(Command):
+    """manipulate message tags"""
+    def __init__(self, tags=u'', action='add', all=False, **kwargs):
+        """
+        :param tags: comma separated list of tagstrings to set
+        :type tags: str
+        :param all: tag all messages in thread
+        :type all: bool
+        :param action: adds tags if 'add', removes them if 'remove', adds tags
+                       and removes all other if 'set' or toggle individually if
+                       'toggle'
+        :type action: str
+        """
+        self.tagsstring = tags
+        self.all = all
+        self.action = action
+        Command.__init__(self, **kwargs)
+
+    def apply(self, ui):
+        all_message_widgets = ui.current_buffer.get_messagewidgets()
+        if self.all:
+            mwidgets = all_message_widgets
+        else:
+            mwidgets = [ui.current_buffer.get_selection()]
+        messages = [mw.get_message() for mw in mwidgets]
+        logging.debug('TAG %s' % str(messages))
+
+        def refresh_widgets():
+            for mw in all_message_widgets:
+                mw.rebuild()
+
+        tags = filter(lambda x: x, self.tagsstring.split(','))
+        try:
+            for m in messages:
+                if self.action == 'add':
+                    m.add_tags(tags, afterwards=refresh_widgets)
+                if self.action == 'set':
+                    m.add_tags(tags, afterwards=refresh_widgets,
+                               remove_rest=True)
+                elif self.action == 'remove':
+                    m.remove_tags(tags, afterwards=refresh_widgets)
+                elif self.action == 'toggle':
+                    to_remove = []
+                    to_add = []
+                    for t in tags:
+                        if t in m.get_tags():
+                            to_remove.append(t)
+                        else:
+                            to_add.append(t)
+                    m.remove_tags(to_remove)
+                    m.add_tags(to_add, afterwards=refresh_widgets)
+        except DatabaseROError:
+            ui.notify('index in read-only mode', priority='error')
+            return
+
+        # flush index
+        ui.apply_command(FlushCommand())

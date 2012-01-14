@@ -1,3 +1,25 @@
+current:
+
+* completion for multiple recipients via AbooksCompleter
+* header key completion for set/unset in envelope buffer
+* generate and set a Message-ID header when constructing mails
+* add sent and saved draft mails to the notmuch index and add custom tags
+* optional highlighting of unread-tagged threads in search buffer
+* case insensitive sorting of tagstrings in search buffer
+* guess file encodings with libmagic
+* theming of threadline depending on the presence of fixed tags
+* new thread mode command: "remove" to delete messages from the index
+* new thread mode command: "editnew" e.g. to continue drafts (bound to 'n')
+* new envelope command: "save" to save as draft (bound to 'P')
+* new thread mode command: "togglesource" to display raw messages (bound to 'h')
+* fix: pipeto shell commands may contain spaces and run in foreground by default
+* make "signature as attachment" configurable
+* new search mode command and search argument: "sort"
+* fix: logging
+* renamed search mode command 'toggletag' to "toggletags"
+* new search mode commands: "tag" and "untag"
+
+
 0.21
 
 * avoid traceback infos from getting written on top of the ui
@@ -19,6 +41,7 @@
 * add packaging info for debian
 * envelope.headers stores lists of values for each key now
 * default binding: 's' to 'toggletag unread' in search buffers
+
 
 0.20
 

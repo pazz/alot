@@ -18,7 +18,7 @@ tabwidth = 8
 # templates directory that contains your message templates.
 # It will be used if you give `compose --template` a filename without a path prefix.
 # This defaults to `$XDG_CONFIG_HOME/alot/templates` if unset.
-template_dir = 
+template_dir =
 
 # fill threadline with message content
 display_content_in_threadline = False
@@ -74,7 +74,7 @@ show_statusbar = True
 # use '%%%%' instead of '%' (and use '%%%%%%%%' to get a literal '%').
 # for the strftime format, see
 # http://docs.python.org/library/datetime.html#strftime-strptime-behavior
-timestamp_format = ''
+# timestamp_format = ''
 
 # max length of authors line in thread widgets
 authors_maxlength = 30
@@ -87,6 +87,10 @@ print_cmd = ''
 
 # initial command when none is given as argument:
 initial_command = search tag:inbox AND NOT tag:killed
+
+# default sort order of results in a search
+# must be one of one of 'oldest_first', 'newest_first', 'message_id' or 'unsorted'
+search_threads_sort_order = newest_first
 
 # in case more than one account has an addressbook:
 # Set this to True to make tabcompletion for recipients during compose only
@@ -124,10 +128,10 @@ x = close
 select = openfocussed
 
 [search-maps]
-a = toggletag inbox
-& = toggletag killed
-! = toggletag flagged
-s = toggletag unread
+a = toggletags inbox
+& = toggletags killed
+! = toggletags flagged
+s = toggletags unread
 l = retagprompt
 O = refineprompt
 | = refineprompt
@@ -135,6 +139,7 @@ O = refineprompt
 [envelope-maps]
 a = prompt 'attach ~/'
 y = send
+P = save
 s = 'refine Subject'
 t = 'refine To'
 b = 'refine Bcc'
@@ -152,11 +157,13 @@ e = unfold
 < = fold
 > = unfold
 H = toggleheaders
-P = print --all
+h = togglesource
+P = print --all --separately
 S = save --all
 g = reply --all
 f = forward
 p = print
+n = editnew
 s = save
 r = reply
 | = prompt 'pipeto '
@@ -168,16 +175,38 @@ clo = close
 bp = bprevious
 ls = bufferlist
 
+[highlighting]
+# Thread lines in the search buffer can be highlighted if they match a query
+# by theming their components.
 
-[256c-theme] 
+# dictionary of highlighting rules. The keys are queries you want highlighting
+# for; values are chosen designators that identify themeing options in the
+# colour scheme:
+#    search_thread_<component>_<id>_[focus_][fg|bg]
+# Note that the sequence of the list defines the search order. The first
+# specified query that matches selects the themeing.
+rules = { "tag:unread AND tag:flagged":"isunread+flagged",
+          "tag:unread":"isunread",
+          "tag:flagged":"isflagged" }
+
+# comma separated list of the components of a thread line you want highlighted
+# if a query matches.
+# Possible components are [date|mailcount|tags|authors|subject|content].
+components = subject
+
+[256c-theme]
 
 # default formating for tagstrings
-# add 'tag_X_fg' and 'tag_X_bg' to your config to specify
+# add 'tag_X_[focus_]fg' and 'tag_X_[focus_]bg' to your config to specify
 # formating for tagstring 'X'
 tag_bg = default
 tag_fg = brown
 tag_focus_bg = #68a
 tag_focus_fg = #ffa
+
+#draft tag in red
+tag_draft_bg = #d66
+tag_draft_fg = white
 
 # formating of the `help bindings` overlay
 help_text_bg = g35
@@ -206,28 +235,54 @@ bufferlist_results_odd_bg = default
 bufferlist_results_odd_fg = default
 search_thread_authors_bg = default
 search_thread_authors_fg = #6d6
+search_thread_authors_isunread_fg = #6d6,bold
+search_thread_authors_isunread+flagged_fg = #6d6,bold
 search_thread_authors_focus_bg = #68a
 search_thread_authors_focus_fg = #8f6
+search_thread_authors_isunread_focus_fg = #8f6,bold
+search_thread_authors_isunread+flagged_focus_fg = #8f6,bold
 search_thread_bg = default
 search_thread_content_bg = default
 search_thread_content_fg = #866
+search_thread_content_isunread_fg = #866,bold
+search_thread_content_isunread+flagged_fg = #866,bold
 search_thread_content_focus_bg = #68a
 search_thread_content_focus_fg = #866
+search_thread_content_isunread_focus_fg = #866,bold
+search_thread_content_isunread+flagged_focus_fg = #866,bold
 search_thread_date_bg = default
 search_thread_date_fg = g58
+search_thread_date_isunread_fg = g58,bold
+search_thread_date_isflagged_fg = light red
+search_thread_date_isunread+flagged_fg = light red,bold
 search_thread_date_focus_bg = #68a
 search_thread_date_focus_fg = g89
+search_thread_date_isunread_focus_fg = g89,bold
+search_thread_date_isflagged_focus_fg = light red
+search_thread_date_isunread+flagged_focus_fg = light red,bold
 search_thread_fg = default
 search_thread_focus_bg = #68a
 search_thread_focus_fg = white
 search_thread_mailcount_bg = default
 search_thread_mailcount_fg = light gray
+search_thread_mailcount_isunread_fg = light gray,bold
+search_thread_mailcount_isflagged_fg = light red
+search_thread_mailcount_isunread+flagged_fg = light red,bold
 search_thread_mailcount_focus_bg = #68a
 search_thread_mailcount_focus_fg = g89
+search_thread_mailcount_isunread_focus_fg = g89,bold
+search_thread_mailcount_isflagged_focus_fg = light red
+search_thread_mailcount_isunread+flagged_focus_fg = light red,bold
 search_thread_subject_bg = default
 search_thread_subject_fg = g58
+search_thread_subject_isunread_fg = g58,bold
+search_thread_subject_isflagged_fg = light red
+search_thread_subject_isunread+flagged_fg = light red,bold
 search_thread_subject_focus_bg = #68a
 search_thread_subject_focus_fg = g89
+search_thread_subject_isunread_focus_fg = g89,bold
+search_thread_subject_isflagged_focus_fg = light red
+search_thread_subject_isunread+flagged_focus_fg = light red,bold
 search_thread_tags_bg = default
 search_thread_tags_fg = #a86
 search_thread_tags_focus_bg = #68a
@@ -271,6 +326,8 @@ tag_bg = black
 tag_fg = brown
 tag_focus_bg = dark gray
 tag_focus_fg = white
+tag_draft_bg = light red
+tag_draft_fg = white
 bufferlist_focus_bg = dark gray
 bufferlist_focus_fg = white
 bufferlist_results_even_bg = black
@@ -297,6 +354,7 @@ thread_summary_odd_bg = dark blue
 thread_summary_odd_fg = white
 search_thread_authors_bg = default
 search_thread_authors_fg = dark green
+search_thread_authors_isunread_fg = dark green,bold
 search_thread_authors_focus_bg = dark gray
 search_thread_authors_focus_fg = dark green,bold
 search_thread_bg = default
@@ -317,8 +375,12 @@ search_thread_mailcount_focus_bg = dark gray
 search_thread_mailcount_focus_fg = light gray
 search_thread_subject_bg = default
 search_thread_subject_fg = light gray
+search_thread_subject_isunread_fg = light gray,bold
+search_thread_subject_isflagged_fg = light red
 search_thread_subject_focus_bg = dark gray
 search_thread_subject_focus_fg = light gray
+search_thread_subject_isunread_focus_fg = light gray,bold
+search_thread_subject_isflagged_focus_fg = light red,bold
 search_thread_tags_bg = default
 search_thread_tags_fg = brown
 search_thread_tags_focus_bg = dark gray
@@ -334,7 +396,8 @@ help_text = default
 help_section = underline
 help_title = standout
 tag = default
-tag_focus = standout
+tag_focus = standout, bold
+tag_draft = standout
 bufferlist_focus = standout
 bufferlist_results_even = default
 bufferlist_results_odd = default
@@ -349,7 +412,11 @@ search_thread_focus = standout
 search_thread_mailcount = default
 search_thread_mailcount_focus = standout
 search_thread_subject = default
+search_thread_subject_isunread = bold
+search_thread_subject_isflagged = underline
 search_thread_subject_focus = standout
+search_thread_subject_isunread_focus = standout,bold
+search_thread_subject_isflagged_focus = standout,underline
 search_thread_tags = bold
 search_thread_tags_focus = standout
 thread_attachment = default
