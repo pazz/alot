@@ -262,6 +262,54 @@ class Message(object):
         searchfor = querystring + ' AND id:' + self._id
         return self._dbman.count_messages(searchfor) > 0
 
+    def extract_verifiable_pair(self):
+        """returns pair of strings: content, signature that may be used
+        to verify the signature of this message"""
+
+        def extract_pair(parts):
+            if len(parts) == 1:
+                #todo: matches apparmor regex
+                pass
+            elif len(parts) == 2:
+                if parts[1].get_content_type() == 'application/pgp-signature':
+                    return parts[0].as_string(), parts[1].as_string()
+            return None, None
+
+        eml = self.get_email()
+
+        pair = extract_pair(eml.get_payload())
+
+        if pair == (None, None) and 'List-Id' in eml and eml.is_multipart():
+            payload = eml.get_payload()
+            if len(payload) == 2:
+                inner_mail, list_signature = payload
+                pair = extract_pair(inner_mail.get_payload())
+
+        return pair
+
+    def is_signed(self):
+        """returns true iff this message is signed, that is if
+        we can extract a pair content, signature"""
+        eml = self.get_email()
+
+        def is_verifiable(parts):
+            if len(parts) == 1:
+                #todo: matches apparmor regex
+                pass
+            elif len(parts) == 2:
+                ctype = parts[1].get_content_type()
+                return ctype == 'application/pgp-signature'
+            return False
+
+        ret = is_verifiable(eml.get_payload())
+
+        if not ret and 'List-Id' in eml and eml.is_multipart():
+            payload = eml.get_payload()
+            if len(payload) == 2:
+                inner_mail, list_signature = payload
+                ret = is_verifiable(inner_mail.get_payload())
+        return ret
+
 
 def extract_headers(mail, headers=None):
     headertext = u''
