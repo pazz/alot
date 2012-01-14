@@ -16,6 +16,12 @@ Options
     --version                      Display version string and exit
     --help                         Display  help and exit
 
+%    .. option:: -m <module>, --module <module>
+%
+%       Run a module as a script.
+%
+
+
 Commands
 
     search

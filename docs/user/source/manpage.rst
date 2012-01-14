@@ -19,3 +19,8 @@ Description
 Usage
 -----
 .. include:: usage/first_steps.rst
+
+
+See Also
+-----
+:manpage:`alot.rc(5)`
