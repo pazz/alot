@@ -6,6 +6,7 @@ import argparse
 
 import alot.commands as commands
 from alot.buffers import EnvelopeBuffer
+import crypto
 
 
 class Completer(object):
@@ -412,3 +413,15 @@ class PathCompleter(Completer):
             return [('~/', 2)]
         prefix = os.path.expanduser(original[:pos])
         return [(f, len(f)) for f in glob.glob(prefix + '*')]
+
+
+class CryptoKeyCompleter(StringlistCompleter):
+    """completion for gnupg key hints"""
+
+    def __init__(self, private=False):
+        """
+        :param private: return private keys
+        :type private: bool
+        """
+        resultlist = crypto.list_keys(private=private)
+        StringlistCompleter.__init__(self, resultlist)
