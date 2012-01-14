@@ -22,6 +22,7 @@ from alot.message import extract_body
 from alot.message import Envelope
 from alot.db import DatabaseROError
 from alot.db import DatabaseError
+from alot import crypto
 
 MODE = 'thread'
 
@@ -763,3 +764,21 @@ class TagCommand(Command):
 
         # flush index
         ui.apply_command(FlushCommand())
+
+
+@registerCommand(MODE, 'verify')
+class VerifyCommand(Command):
+    """verify selected messages signature"""
+
+    def apply(self, ui):
+        msg = ui.current_buffer.get_selected_message()
+
+        if msg.is_signed():
+            mail, sig = msg.extract_verifiable_pair()
+            logging.debug('verifiable pair:')
+            logging.debug(msg.extract_verifiable_pair())
+            out, rval = crypto.verify(mail, sig)
+            prio = 'normal' if rval is 0 else 'error'
+            ui.notify(out, priority=prio)
+        else:
+            ui.notify('message not signed', priority='error')
