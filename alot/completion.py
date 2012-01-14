@@ -427,9 +427,6 @@ class CryptoKeyCompleter(StringlistCompleter):
         :param private: return private keys
         :type private: bool
         """
-        if private:
-            keys = crypto.get_private_keys()
-        else:
-            keys = crypto.get_public_keys()
+        keys = crypto.list_keys(private=private)
         resultlist = ["%s -- %s" % (k['key_id'], k['user_id']) for k in keys]
         StringlistCompleter.__init__(self, resultlist)

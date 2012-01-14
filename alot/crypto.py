@@ -20,14 +20,24 @@ def get_gpg_output(arglist):
     return keydicts
 
 
-def get_private_keys():
-    entries = get_gpg_output(['--list-secret-keys'])
-    return [e for e in entries if e['type'] == 'sec']
+def list_keys(private=False, hint=None):
+    """list keys
 
-
-def get_public_keys():
-    entries = get_gpg_output(['--list-keys'])
-    return [e for e in entries if e['type'] == 'pub']
+    :param private: list keys from private keyring instead of public keys
+    :type private: bool
+    :param hint: list keys for given hint only
+    :type hint: str
+    :rtype: list of key-dicts
+    """
+    hintarg = []
+    if hint is not None:
+        hintarg = [hint]
+    if private:
+        entries = get_gpg_output(['--list-secret-keys'] + hintarg)
+        return [e for e in entries if e['type'] == 'sec']
+    else:
+        entries = get_gpg_output(['--list-keys'] + hintarg)
+        return [e for e in entries if e['type'] == 'pub']
 
 
 def verify(blob, sig):
