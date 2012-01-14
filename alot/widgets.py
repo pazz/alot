@@ -633,10 +633,18 @@ class HeadersList(urwid.WidgetWrap):
         * `thread_header_key`
         * `thread_header_value`
     """
-    def __init__(self, headerslist):
+    def __init__(self, headerslist, style='thread_header',
+                 key_style='thread_header_key',
+                 value_style='thread_header_value',
+                ):
         self.headers = headerslist
+        self.style = {
+            'global': style,
+            'keys': key_style,
+            'values': value_style
+        }
         pile = urwid.Pile(self._build_lines(headerslist))
-        pile = urwid.AttrMap(pile, 'thread_header')
+        pile = urwid.AttrMap(pile, self.style['global'])
         urwid.WidgetWrap.__init__(self, pile)
 
     def __str__(self):
@@ -652,8 +660,8 @@ class HeadersList(urwid.WidgetWrap):
         for key, value in lines:
             ##todo : even/odd
             keyw = ('fixed', max_key_len + 1,
-                    urwid.Text(('thread_header_key', key)))
-            valuew = urwid.Text(('thread_header_value', value))
+                    urwid.Text((self.style['keys'], key)))
+            valuew = urwid.Text((self.style['values'], value))
             line = urwid.Columns([keyw, valuew])
             headerlines.append(line)
         return headerlines
