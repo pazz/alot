@@ -301,6 +301,8 @@ class CommandLineCompleter(Completer):
         abooks = accountman.get_addressbooks()
         self._contactscompleter = ContactsCompleter(abooks)
         self._pathcompleter = PathCompleter()
+        self._secretkeyscompleter = CryptoKeyCompleter(private=True)
+        self._publickeyscompleter = CryptoKeyCompleter(private=False)
 
     def complete(self, line, pos):
         words = line.split(' ', 1)
@@ -392,6 +394,8 @@ class CommandLineCompleter(Completer):
 
             elif self.mode == 'envelope' and cmd == 'attach':
                 res = self._pathcompleter.complete(params, localpos)
+            elif self.mode == 'envelope' and cmd == 'sign':
+                res = self._secretkeyscompleter.complete(params, localpos)
             # thread
             elif self.mode == 'thread' and cmd == 'save':
                 res = self._pathcompleter.complete(params, localpos)
@@ -423,5 +427,9 @@ class CryptoKeyCompleter(StringlistCompleter):
         :param private: return private keys
         :type private: bool
         """
-        resultlist = crypto.list_keys(private=private)
+        if private:
+            keys = crypto.get_private_keys()
+        else:
+            keys = crypto.get_public_keys()
+        resultlist = ["%s -- %s" % (k['key_id'], k['user_id']) for k in keys]
         StringlistCompleter.__init__(self, resultlist)

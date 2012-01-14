@@ -12,20 +12,22 @@ keys = [
 ]
 
 
-#def get_gpg_output(arglist):
-#    out, err, rval = call_cmd(['gpg', '--with-colons'] + arglist)
-#    keydicts = []
-#    for line in out.strip().split('\n'):
-#        keydicts.append(dict(zip(keys, line.split(':'))))
-#    return keydicts
-#
-#
-#def get_secret_keys():
-#    return get_gpg_output(['--list-secret-keys'])
-#
-#
-#def get_keys():
-#    return get_gpg_output(['--list--keys'])
+def get_gpg_output(arglist):
+    out, err, rval = call_cmd(['gpg', '--with-colons'] + arglist)
+    keydicts = []
+    for line in out.strip().split('\n'):
+        keydicts.append(dict(zip(keys, line.split(':'))))
+    return keydicts
+
+
+def get_private_keys():
+    entries = get_gpg_output(['--list-secret-keys'])
+    return [e for e in entries if e['type'] == 'sec']
+
+
+def get_public_keys():
+    entries = get_gpg_output(['--list-keys'])
+    return [e for e in entries if e['type'] == 'pub']
 
 
 def verify(blob, sig):
