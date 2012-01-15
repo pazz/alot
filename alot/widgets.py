@@ -511,15 +511,19 @@ class MessageWidget(urwid.WidgetWrap):
 
     def _get_body_widget(self):
         """creates/returns the widget that displays the mail body"""
-        if not self.bodyw:
-            cols = [MessageBodyWidget(self.message.get_email())]
-            bc = list()
-            if self.depth:
-                cols.insert(0, self._get_spacer(self.bars_at[1:]))
-                bc.append(0)
-                cols.insert(1, self._get_arrowhead_aligner())
-                bc.append(1)
-            self.bodyw = urwid.Columns(cols, box_columns=bc)
+
+        if self.message._decrypted_email is not None:
+            mail = self.message._decrypted_email
+        else:
+            mail = self.message.get_email()
+        cols = [MessageBodyWidget(mail)]
+        bc = list()
+        if self.depth:
+            cols.insert(0, self._get_spacer(self.bars_at[1:]))
+            bc.append(0)
+            cols.insert(1, self._get_arrowhead_aligner())
+            bc.append(1)
+        self.bodyw = urwid.Columns(cols, box_columns=bc)
         return self.bodyw
 
     def _get_source_widget(self):
