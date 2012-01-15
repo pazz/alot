@@ -224,7 +224,9 @@ class Message(object):
             self._attachments = []
             for part in self.get_message_parts():
                 cd = part.get('Content-Disposition', '')
-                if cd.startswith('attachment'):
+                ct = part.get_content_type()
+                if cd.startswith('attachment') and \
+                   ct != 'application/pgp-encrypted':
                     self._attachments.append(Attachment(part))
         return self._attachments
 
