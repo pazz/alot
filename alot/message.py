@@ -323,13 +323,13 @@ class Message(object):
         """
         returns true iff this message is encrypted following :rfc:`2015`.
 
-        That is, if it has :mailheader:`Content-Type` :mimetype:`multipart/encrypted` with
-        protocol parameter :mimetype:`application/pgp-encrypted`. Moreover, it must have
-        exactly two subparts:
+        That is, if it has :mailheader:`Content-Type` `multipart/encrypted`
+        with protocol parameter `application/pgp-encrypted`. Moreover,
+        it must have exactly two subparts:
             1. contains control information, :mailheader:`Content-Type`
-               :mimetype:`application/pgp- encrypted`
+               `application/pgp- encrypted`
             2. encrypted content, :mailheader:`Content-Type`
-               :mimetype:`application/octet- stream`
+               `application/octet- stream`
         """
         eml = self.get_email(outmost=True)
         if eml.get_content_type() == 'multipart/encrypted' and \
@@ -349,10 +349,11 @@ class Message(object):
         eml = self.get_email(outmost=True)
         return eml.get_payload()[1].get_payload()
 
+
 def extract_headers(mail, headers=None):
     headertext = u''
     if headers == None:
-        headers = []#mail.keys()
+        headers = mail.keys()
     for key in headers:
         value = u''
         if key in mail:
