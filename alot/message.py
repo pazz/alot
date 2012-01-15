@@ -214,9 +214,13 @@ class Message(object):
 
     def get_attachments(self):
         """
-        returns all attachments.
-        Presently, all mime parts of this message that don't have content-type
-        'text/plain', or 'text/html' are considered attachments.
+        returns messages attachments
+
+        Derived from the leaves of the email mime tree
+        that and are not part of :rfc:`2015` syntax for encrypted/signed mails
+        and either have :mailheader:`Content-Disposition` `attachment`
+        or have :mailheader:`Content-Disposition` `inline` but specify
+        a filename (as parameter to `Content-Disposition`).
 
         :rtype: list of :class:`Attachment`
         """
@@ -224,10 +228,20 @@ class Message(object):
             self._attachments = []
             for part in self.get_message_parts():
                 cd = part.get('Content-Disposition', '')
+                filename = part.get_filename()
                 ct = part.get_content_type()
-                if cd.startswith('attachment') and \
-                   ct != 'application/pgp-encrypted':
-                    self._attachments.append(Attachment(part))
+                # replace underspecified mime description by a better guess
+                if ct in ['octet/stream', 'application/octet-stream']:
+                    content = part.get_payload(decode=True)
+                    ct = helper.guess_mimetype(content)
+
+                if cd.startswith('attachment'):
+                    if ct not in ['application/pgp-encrypted',
+                                  'application/pgp-signature']:
+                        self._attachments.append(Attachment(part))
+                elif cd.startswith('inline'):
+                    if filename != None and ct != 'application/pgp':
+                        self._attachments.append(Attachment(part))
         return self._attachments
 
     def accumulate_body(self):
