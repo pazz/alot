@@ -684,6 +684,9 @@ class MessageBodyWidget(urwid.AttrMap):
         bodytxt = message.extract_body(msg)
         urwid.AttrMap.__init__(self, urwid.Text(bodytxt), 'thread_body')
 
+    def get_text(self):
+        return self.original_widget.text
+
 
 class AttachmentWidget(urwid.WidgetWrap):
     """
