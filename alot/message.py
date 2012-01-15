@@ -47,6 +47,7 @@ class Message(object):
         self._from = helper.safely_get(lambda: msg.get_header('From'),
                                        NullPointerError)
         self._email = None  # will be read upon first use
+        self._decrypted_email = None
         self._attachments = None  # will be read upon first use
         self._tags = set(msg.get_tags())
 
@@ -66,18 +67,26 @@ class Message(object):
         res = cmp(self.get_message_id(), other.get_message_id())
         return res
 
-    def get_email(self):
-        """returns :class:`email.Message` for this message"""
+    def get_email(self, outmost=False):
+        """returns :class:`email.Message` for this message
+
+        :param outmost: return outmost container even if an encrypted mail is
+                        contained that has been decoded already
+        :type outmost: bool
+        """
         path = self.get_filename()
         warning = "Subject: Caution!\n"\
                   "Message file is no longer accessible:\n%s" % path
-        if not self._email:
-            try:
-                f_mail = open(path)
-                self._email = email.message_from_file(f_mail)
-                f_mail.close()
-            except IOError:
-                self._email = email.message_from_string(warning)
+        if self._decrypted_email is not None and not outmost:
+            return self._decrypted_email
+        else:
+            if not self._email:
+                try:
+                    f_mail = open(path)
+                    self._email = email.message_from_file(f_mail)
+                    f_mail.close()
+                except IOError:
+                    self._email = email.message_from_string(warning)
         return self._email
 
     def get_date(self):
@@ -159,7 +168,7 @@ class Message(object):
         :param headers: headers to extract
         :type headers: list of str
         """
-        return extract_headers(self.get_mail(), headers)
+        return extract_headers(self.get_mail(outmost=True), headers)
 
     def add_tags(self, tags, afterwards=None, remove_rest=False):
         """
@@ -310,11 +319,40 @@ class Message(object):
                 ret = is_verifiable(inner_mail.get_payload())
         return ret
 
+    def is_encrypted(self):
+        """
+        returns true iff this message is encrypted following :rfc:`2015`.
+
+        That is, if it has :mailheader:`Content-Type` :mimetype:`multipart/encrypted` with
+        protocol parameter :mimetype:`application/pgp-encrypted`. Moreover, it must have
+        exactly two subparts:
+            1. contains control information, :mailheader:`Content-Type`
+               :mimetype:`application/pgp- encrypted`
+            2. encrypted content, :mailheader:`Content-Type`
+               :mimetype:`application/octet- stream`
+        """
+        eml = self.get_email(outmost=True)
+        if eml.get_content_type() == 'multipart/encrypted' and \
+           eml.get_param('protocol') == 'application/pgp-encrypted':
+            parts = eml.get_payload()
+            if len(parts) == 2:
+                firstct = parts[0].get_content_type()
+                secondct = parts[1].get_content_type()
+                if firstct == 'application/pgp-encrypted' and \
+                   secondct == 'application/octet-stream':
+                    return True
+        return False
+
+    def get_encrypted_message(self):
+        assert self.is_encrypted()
+
+        eml = self.get_email(outmost=True)
+        return eml.get_payload()[1].get_payload()
 
 def extract_headers(mail, headers=None):
     headertext = u''
     if headers == None:
-        headers = mail.keys()
+        headers = []#mail.keys()
     for key in headers:
         value = u''
         if key in mail:
@@ -354,6 +392,7 @@ def extract_body(mail, types=None):
             continue
 
         enc = part.get_content_charset() or 'ascii'
+        logging.debug('encoding: %s' % enc)
         raw_payload = part.get_payload(decode=True)
         if part.get_content_maintype() == 'text':
             raw_payload = string_decode(raw_payload, enc)
