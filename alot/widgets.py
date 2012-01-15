@@ -473,7 +473,7 @@ class MessageWidget(urwid.WidgetWrap):
         else:
             self._displayed_headers = self._filtered_headers
 
-        mail = self.message.get_email()
+        mail = self.message.get_email(outmost=True)
         # normalize values if only filtered list is shown
         norm = not (self._displayed_headers == self._all_headers)
         lowercase_keys = [k.lower() for k in self._displayed_headers]
@@ -525,7 +525,8 @@ class MessageWidget(urwid.WidgetWrap):
     def _get_source_widget(self):
         """creates/returns the widget that displays the mail body"""
         if not self.sourcew:
-            cols = [urwid.Text(self.message.get_email().as_string())]
+            mail = self.message.get_email(outmost=True)
+            cols = [urwid.Text(mail.as_string())]
             bc = list()
             if self.depth:
                 cols.insert(0, self._get_spacer(self.bars_at[1:]))
