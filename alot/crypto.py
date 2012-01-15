@@ -51,3 +51,10 @@ def verify(blob, sig):
 
     os.unlink(sigfile.name)
     return err, rval
+
+
+def decrypt(blob):
+    """call gnupg to decode given text blob"""
+
+    out, err, rval = call_cmd(['gpg', '--no-tty', '--decrypt'], stdin=blob)
+    return out, err, rval
