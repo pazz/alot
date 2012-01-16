@@ -610,10 +610,9 @@ class MessageSummaryWidget(urwid.WidgetWrap):
     def __str__(self):
         author, address = self.message.get_author()
         date = self.message.get_datestring()
-        if date == None:
-            rep = author
-        else:
-            rep = '%s (%s)' % (author, date)
+        rep = author if author != '' else address
+        if date != None:
+            rep += " (%s)" % date
         return rep
 
     def selectable(self):
