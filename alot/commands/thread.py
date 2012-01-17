@@ -82,24 +82,22 @@ class ReplyCommand(Command):
             envelope.add('From', fromstring)
 
         # set To
+        sender = mail['Reply-To'] or mail['From']
+        recipients = [sender]
         if self.groupreply:
+            if sender != mail['From']:
+                recipients.append(mail['From'])
             cleared = self.clear_my_address(my_addresses, mail.get('To', ''))
-            if cleared:
-                logging.info(mail['From'] + ', ' + cleared)
-                to = mail['From'] + ', ' + cleared
-                envelope.add('To', decode_header(to))
+            recipients.append(cleared)
 
-            else:
-                envelope.add('To', decode_header(mail['From']))
-            # copy cc and bcc for group-replies
+            # copy cc for group-replies
             if 'Cc' in mail:
                 cc = self.clear_my_address(my_addresses, mail['Cc'])
                 envelope.add('Cc', decode_header(cc))
-            if 'Bcc' in mail:
-                bcc = self.clear_my_address(my_addresses, mail['Bcc'])
-                envelope.add('Bcc', decode_header(bcc))
-        else:
-            envelope.add('To', decode_header(mail['From']))
+
+        to = ', '.join(recipients)
+        logging.debug('reply to: %s' % to)
+        envelope.add('To', decode_header(to))
 
         # set In-Reply-To header
         envelope.add('In-Reply-To', '<%s>' % self.message.get_message_id())
