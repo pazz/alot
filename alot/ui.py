@@ -1,4 +1,5 @@
 import urwid
+import sys
 import logging
 from twisted.internet import reactor, defer
 from twisted.python.failure import Failure
@@ -186,7 +187,14 @@ class UI(object):
         shuts down user interface without cleaning up.
         Use a :class:`commands.globals.ExitCommand` for a clean shutdown.
         """
-        reactor.stop()
+        try:
+            reactor.stop()
+        except Exception as e:
+            exit_msg = "Could not stop reactor: {}. Quitting anyway.".format(e)
+            logging.error(exit_msg)
+            sys.exit(exit_msg)
+        logging.debug('EXIT')
+        sys.exit(0)
 
     def buffer_open(self, buf):
         """register and focus new :class:`~alot.buffers.Buffer`."""
@@ -465,7 +473,8 @@ class UI(object):
                 # instantly returns a defered. This adds call/errbacks to react
                 # to successful/erroneous termination of the defered apply()
                 if isinstance(retval, defer.Deferred):
-                    retval.addErrback(errorHandler)
+                    if not isinstance(cmd, commands.globals.ExitCommand):
+                        retval.addErrback(errorHandler)
                     retval.addCallback(call_posthook)
             except Exception, e:
                 errorHandler(Failure(e))
