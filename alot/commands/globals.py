@@ -8,6 +8,7 @@ import urwid
 from twisted.internet.defer import inlineCallbacks
 import logging
 import argparse
+import glob
 
 from alot.commands import Command, registerCommand
 from alot.completion import CommandLineCompleter
@@ -602,8 +603,10 @@ class ComposeCommand(Command):
             self.envelope.add('Subject', subject)
 
         if self.attach:
-            for a in self.attach:
-                self.envelope.attach(a)
+            for gpath in self.attach:
+                for a in glob.glob(gpath):
+                    self.envelope.attach(a)
+                    logging.debug('attaching: ' + a)
 
         cmd = commands.envelope.EditCommand(envelope=self.envelope)
         ui.apply_command(cmd)

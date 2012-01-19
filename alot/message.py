@@ -553,7 +553,7 @@ class Envelope(object):
         attach a file
 
         :param attachment: File to attach, given as :class:`Attachment` object
-                           or (globable) path to the file(s).
+                           or path to a file.
         :type attachment: :class:`Attachment` or str
         :param filename: filename to use in content-disposition.
                          Will be ignored if `path` matches multiple files
