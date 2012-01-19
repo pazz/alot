@@ -87,6 +87,9 @@ class AlotConfigParser(FallbackConfigParser):
                 else:
                     self.set(section, key, value)
 
+        # parse highlighting rules
+        self._highlighting_rules = self._parse_highlighting_rules()
+
     def get_palette(self):
         """parse the sections '1c-theme', '16c-theme' and '256c-theme'
         into an urwid compatible colour palette.
@@ -174,7 +177,7 @@ class AlotConfigParser(FallbackConfigParser):
         has_bg = self.has_option(theme, themeing + '_bg')
         return (has_fg or has_bg)
 
-    def get_highlight_rules(self):
+    def _parse_highlighting_rules(self):
         """
         Parse the highlighting rules from the config file.
 
@@ -182,18 +185,23 @@ class AlotConfigParser(FallbackConfigParser):
         :rtype: :py:class:`collections.OrderedDict`
         """
         rules = OrderedDict()
+        config_string = self.get('highlighting', 'rules')
         try:
-            config_string = self.get('highlighting', 'rules')
             rules = json.loads(config_string, object_pairs_hook=OrderedDict)
-        except NoOptionError as err:
-            logging.exception(err)
         except ValueError as err:
-            report = ParsingError("Could not parse config option" \
-                                  " 'rules' in section 'highlighting':" \
-                                  " {reason}".format(reason=err))
-            logging.exception(report)
-        finally:
-            return rules
+            raise ParsingError("Could not parse config option" \
+                               " 'rules' in section 'highlighting':" \
+                               " {reason}".format(reason=err))
+        return rules
+
+    def get_highlight_rules(self):
+        """
+        Getter for the highlighting rules.
+
+        :returns: The highlighting rules
+        :rtype: :py:class:`collections.OrderedDict`
+        """
+        return self._highlighting_rules
 
     def get_tag_theme(self, tag, focus=False, highlight=''):
         """
