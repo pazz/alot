@@ -439,7 +439,7 @@ class ComposeCommand(Command):
     """compose a new email"""
     def __init__(self, envelope=None, headers={}, template=None,
                  sender=u'', subject=u'', to=[], cc=[], bcc=[], attach=None,
-                 **kwargs):
+                 omit_signature=False, **kwargs):
         """
         :param envelope: use existing envelope
         :type envelope: :class:`~alot.message.Envelope`
@@ -461,6 +461,8 @@ class ComposeCommand(Command):
         :type bcc: str
         :param attach: Path to files to be attached (globable)
         :type attach: str
+        :param omit_signature: do not attach/append signature
+        :type omit_signature: bool
         """
 
         Command.__init__(self, **kwargs)
@@ -474,6 +476,7 @@ class ComposeCommand(Command):
         self.cc = cc
         self.bcc = bcc
         self.attach = attach
+        self.omit_signature = omit_signature
 
     @inlineCallbacks
     def apply(self, ui):
@@ -544,31 +547,32 @@ class ComposeCommand(Command):
                     self.envelope.add('From', fromaddress)
 
         # add signature
-        name, addr = email.Utils.parseaddr(self.envelope['From'])
-        account = ui.accountman.get_account_by_address(addr)
-        if account is not None:
-            if account.signature:
-                logging.debug('has signature')
-                sig = os.path.expanduser(account.signature)
-                if os.path.isfile(sig):
-                    logging.debug('is file')
-                    if account.signature_as_attachment:
-                        name = account.signature_filename or None
-                        self.envelope.attach(sig, filename=name)
-                        logging.debug('attached')
+        if not self.omit_signature:
+            name, addr = email.Utils.parseaddr(self.envelope['From'])
+            account = ui.accountman.get_account_by_address(addr)
+            if account is not None:
+                if account.signature:
+                    logging.debug('has signature')
+                    sig = os.path.expanduser(account.signature)
+                    if os.path.isfile(sig):
+                        logging.debug('is file')
+                        if account.signature_as_attachment:
+                            name = account.signature_filename or None
+                            self.envelope.attach(sig, filename=name)
+                            logging.debug('attached')
+                        else:
+                            sigcontent = open(sig).read()
+                            enc = helper.guess_encoding(sigcontent)
+                            mimetype = helper.guess_mimetype(sigcontent)
+                            if mimetype.startswith('text'):
+                                sigcontent = helper.string_decode(sigcontent, enc)
+                                self.envelope.body += '\n' + sigcontent
                     else:
-                        sigcontent = open(sig).read()
-                        enc = helper.guess_encoding(sigcontent)
-                        mimetype = helper.guess_mimetype(sigcontent)
-                        if mimetype.startswith('text'):
-                            sigcontent = helper.string_decode(sigcontent, enc)
-                            self.envelope.body += '\n' + sigcontent
-                else:
-                    ui.notify('could not locate signature: %s' % sig,
-                              priority='error')
-                    if (yield ui.choice('send without signature',
-                                        select='yes', cancel='no')) == 'no':
-                        return
+                        ui.notify('could not locate signature: %s' % sig,
+                                  priority='error')
+                        if (yield ui.choice('send without signature',
+                                            select='yes', cancel='no')) == 'no':
+                            return
 
         # get missing To header
         if 'To' not in self.envelope.headers:

@@ -226,7 +226,7 @@ class EditNewCommand(Command):
         for b in self.message.get_attachments():
             envelope.attach(b)
 
-        ui.apply_command(ComposeCommand(envelope=envelope))
+        ui.apply_command(ComposeCommand(envelope=envelope, omit_signature=True))
 
 
 @registerCommand(MODE, 'fold', forced={'visible': False}, arguments=[
