@@ -209,7 +209,7 @@ class ThreadlineWidget(urwid.AttrMap):
             if focus:
                 theme += '_focus'
                 highlight_theme += '_focus'
-            if config.has_themeing(highlight_theme):
+            if config.has_theming(highlight_theme):
                 theme = highlight_theme
         elif focus:
             theme = theme + '_focus'
