@@ -44,7 +44,7 @@ class ComposeOptions(SubcommandOptions):
 
     def parseArgs(self, *args):
         SubcommandOptions.parseArgs(self, *args)
-        self['to'] = ' '.join(args)
+        self['to'] = ' '.join(args) or None
 
 
 class SearchOptions(SubcommandOptions):
