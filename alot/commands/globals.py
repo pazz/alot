@@ -434,6 +434,7 @@ class HelpCommand(Command):
     (['--cc'], {'nargs':'+', 'help':'copy to'}),
     (['--bcc'], {'nargs':'+', 'help':'blind copy to'}),
     (['--attach'], {'nargs':'+', 'help':'attach files'}),
+    (['--omit_signature'], {'action': 'store_true', 'help':'do not add signature'}),
 ])
 class ComposeCommand(Command):
     """compose a new email"""

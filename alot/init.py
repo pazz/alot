@@ -23,8 +23,12 @@ class SubcommandOptions(usage.Options):
     def as_argparse_opts(self):
         optstr = ''
         for k, v in self.items():
-            if v is not None:
-                optstr += '--%s \'%s\' ' % (k, v)
+            #flags get valie 0 or 1..
+            if k in [a[0] for a in self.optFlags] : # if flag
+                optstr += ('--%s ' % k) * v
+            else:
+                if v is not None:
+                    optstr += '--%s \'%s\' ' % (k, v)
         return optstr
 
     def opt_version(self):
@@ -40,6 +44,9 @@ class ComposeOptions(SubcommandOptions):
                 ['bcc', '', None, 'blind copy to'],
                 ['template', '', None, 'path to template file'],
                 ['attach', '', None, 'files to attach'],
+            ]
+    optFlags = [
+            ['omit_signature', '', 'do not add signature'],
             ]
 
     def parseArgs(self, *args):
