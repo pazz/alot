@@ -14,12 +14,12 @@ from alot.commands.globals import RefreshCommand
 from alot import settings
 from alot import widgets
 from alot import completion
-from alot import helper
 from alot.message import decode_header
 from alot.message import extract_headers
 from alot.message import extract_body
 from alot.message import Envelope
 from alot.db import DatabaseROError
+from alot.db import DatabaseError
 
 MODE = 'thread'
 
@@ -210,7 +210,6 @@ class EditNewCommand(Command):
         mail = self.message.get_email()
         # set body text
         name, address = self.message.get_author()
-        timestamp = self.message.get_date()
         mailcontent = self.message.accumulate_body()
         envelope = Envelope(bodytext=mailcontent)
 
@@ -226,7 +225,8 @@ class EditNewCommand(Command):
         for b in self.message.get_attachments():
             envelope.attach(b)
 
-        ui.apply_command(ComposeCommand(envelope=envelope, omit_signature=True))
+        ui.apply_command(ComposeCommand(envelope=envelope,
+                                        omit_signature=True))
 
 
 @registerCommand(MODE, 'fold', forced={'visible': False}, arguments=[
@@ -581,7 +581,6 @@ class OpenAttachmentCommand(Command):
     def apply(self, ui):
         logging.info('open attachment')
         mimetype = self.attachment.get_content_type()
-        filename = self.attachment.get_filename()
 
         handler = settings.get_mime_handler(mimetype)
         if handler:

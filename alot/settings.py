@@ -229,15 +229,14 @@ class AlotConfigParser(FallbackConfigParser):
         """
         base = 'tag'
         themes = [base, base + '_{}'.format(tag)]
-        if (highlight and 
+        if (highlight and
             'tags' in self.getstringlist('highlighting', 'components')):
             themes.insert(1, base + '_{}'.format(highlight))
             themes.insert(3, base + '_{}_{}'.format(tag, highlight))
         if focus:
-            themes = [ theme + '_focus' for theme in themes]
+            themes = [theme + '_focus' for theme in themes]
         themes.reverse()
         return themes
-
 
     def has_theming(self, themeing):
         """

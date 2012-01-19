@@ -112,7 +112,7 @@ class ThreadlineWidget(urwid.AttrMap):
         cols.append(('fixed', len(mailcountstring), self.mailcount_w))
 
         if self.thread:
-            self.tag_widgets = [TagWidget(t, self.highlight_theme_suffix) 
+            self.tag_widgets = [TagWidget(t, self.highlight_theme_suffix)
                                 for t in self.thread.get_tags()]
         else:
             self.tag_widgets = []
@@ -151,8 +151,7 @@ class ThreadlineWidget(urwid.AttrMap):
             self.content_w = urwid.AttrMap(urwid.Text(
                                                    contentstring,
                                                    wrap='clip'),
-                                                   self._get_theme('content')
-                                                     )
+                                                   self._get_theme('content'))
             cols.append(self.content_w)
 
         self.columns = urwid.Columns(cols, dividechars=1)
@@ -604,7 +603,8 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         tag_widgets.sort(tag_cmp, lambda tag_widget: tag_widget.translated)
         for tag_widget in tag_widgets:
             cols.append(('fixed', tag_widget.width(), tag_widget))
-        line = urwid.AttrMap(urwid.Columns(cols, dividechars=1), attr, 'thread_summary_focus')
+        line = urwid.AttrMap(urwid.Columns(cols, dividechars=1), attr,
+                             'thread_summary_focus')
         urwid.WidgetWrap.__init__(self, line)
 
     def __str__(self):

@@ -13,7 +13,6 @@ from alot import buffers
 from alot import commands
 from alot.commands import Command, registerCommand
 from alot import settings
-from alot import helper
 from alot.commands import globals
 from alot.helper import string_decode
 
@@ -123,7 +122,6 @@ class SendCommand(Command):
                 return
             else:
                 account = ui.accountman.get_accounts()[0]
-                omit_signature = True
 
         # send
         clearme = ui.notify('sending..', timeout=-1)
@@ -199,7 +197,7 @@ class EditCommand(Command):
             translate = settings.config.get_hook('post_edit_translate')
             if translate:
                 template = translate(template, ui=ui, dbm=ui.dbman,
-                                     aman=ui.accountman, config=settings.config)
+                                    aman=ui.accountman, config=settings.config)
             self.envelope.parse_template(template)
             if self.openNew:
                 ui.buffer_open(buffers.EnvelopeBuffer(ui, self.envelope))

@@ -23,8 +23,8 @@ class SubcommandOptions(usage.Options):
     def as_argparse_opts(self):
         optstr = ''
         for k, v in self.items():
-            #flags get valie 0 or 1..
-            if k in [a[0] for a in self.optFlags] : # if flag
+            # flags get valie 0 or 1..
+            if k in [a[0] for a in self.optFlags]:  # if flag
                 optstr += ('--%s ' % k) * v
             else:
                 if v is not None:

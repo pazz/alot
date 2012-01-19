@@ -434,7 +434,8 @@ class HelpCommand(Command):
     (['--cc'], {'nargs':'+', 'help':'copy to'}),
     (['--bcc'], {'nargs':'+', 'help':'blind copy to'}),
     (['--attach'], {'nargs':'+', 'help':'attach files'}),
-    (['--omit_signature'], {'action': 'store_true', 'help':'do not add signature'}),
+    (['--omit_signature'], {'action': 'store_true',
+                            'help':'do not add signature'}),
 ])
 class ComposeCommand(Command):
     """compose a new email"""
@@ -566,13 +567,14 @@ class ComposeCommand(Command):
                             enc = helper.guess_encoding(sigcontent)
                             mimetype = helper.guess_mimetype(sigcontent)
                             if mimetype.startswith('text'):
-                                sigcontent = helper.string_decode(sigcontent, enc)
+                                sigcontent = helper.string_decode(sigcontent,
+                                                                  enc)
                                 self.envelope.body += '\n' + sigcontent
                     else:
                         ui.notify('could not locate signature: %s' % sig,
                                   priority='error')
                         if (yield ui.choice('send without signature',
-                                            select='yes', cancel='no')) == 'no':
+                                        select='yes', cancel='no')) == 'no':
                             return
 
         # get missing To header
@@ -586,7 +588,7 @@ class ComposeCommand(Command):
             logging.debug(allbooks)
             if account is not None:
                 abooks = ui.accountman.get_addressbooks(order=[account],
-                                                        append_remaining=allbooks)
+                                                    append_remaining=allbooks)
                 logging.debug(abooks)
                 completer = ContactsCompleter(abooks)
             else:
