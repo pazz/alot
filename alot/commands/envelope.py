@@ -130,10 +130,10 @@ class SendCommand(Command):
 
         def afterwards(returnvalue):
             ui.clear_notify([clearme])
-            if returnvalue == 'success':  # sucessfully send mail
+            if returnvalue == 'success':  # successfully send mail
                 envelope.sent_time = datetime.datetime.now()
                 ui.apply_command(commands.globals.BufferCloseCommand())
-                ui.notify('mail send successful')
+                ui.notify('mail send successfully')
             else:
                 ui.notify('failed to send: %s' % returnvalue,
                           priority='error')
