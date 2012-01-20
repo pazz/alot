@@ -86,7 +86,6 @@ class MultipleSelectionCompleter(Completer):
 
     def complete(self, original, pos):
         mypart, start, end, mypos = self.relevant_part(original, pos)
-        prefix = mypart[:mypos]
         res = []
         for c, p in self._completer.complete(mypart, mypos):
             newprefix = original[:start] + c
