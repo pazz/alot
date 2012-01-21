@@ -226,7 +226,7 @@ class UI(object):
             if self.current_buffer != buf:
                 self.current_buffer = buf
                 self.inputwrap.set_root(self.mainframe)
-            self.mode = buf.typename
+            self.mode = buf.modename
             if isinstance(self.current_buffer, BufferlistBuffer):
                 self.current_buffer.rebuild()
             self.update()

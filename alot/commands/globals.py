@@ -87,7 +87,7 @@ class PromptCommand(Command):
     @inlineCallbacks
     def apply(self, ui):
         logging.info('open command shell')
-        mode = ui.current_buffer.typename
+        mode = ui.current_buffer.modename
         cmdline = yield ui.prompt(prefix=':',
                               text=self.startwith,
                               completer=CommandLineCompleter(ui.dbman,
@@ -104,7 +104,7 @@ class PromptCommand(Command):
             # save into prompt history
             ui.commandprompthistory.append(cmdline)
 
-            mode = ui.current_buffer.typename
+            mode = ui.current_buffer.modename
             try:
                 cmd = commandfactory(cmdline, mode)
                 ui.apply_command(cmd)

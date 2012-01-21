@@ -11,13 +11,15 @@ from db import NonexistantObjectError
 
 class Buffer(object):
     """Abstract base class for buffers."""
-    def __init__(self, ui, widget, name):
+
+    modename = None  # mode identifier for subclasses
+
+    def __init__(self, ui, widget):
         self.ui = ui
-        self.typename = name
         self.body = widget
 
     def __str__(self):
-        return '[%s]' % self.typename
+        return '[%s]' % self.modename
 
     def render(self, size, focus=False):
         return self.body.render(size, focus)
@@ -39,12 +41,15 @@ class Buffer(object):
 
 class BufferlistBuffer(Buffer):
     """selectable list of active buffers"""
+
+    modename = 'bufferlist'
+
     def __init__(self, ui, filtfun=None):
         self.filtfun = filtfun
         self.ui = ui
         self.isinitialized = False
         self.rebuild()
-        Buffer.__init__(self, ui, self.body, 'bufferlist')
+        Buffer.__init__(self, ui, self.body)
 
     def index_of(self, b):
         """
@@ -84,16 +89,19 @@ class BufferlistBuffer(Buffer):
 
 class EnvelopeBuffer(Buffer):
     """message composition mode"""
+
+    modename = 'envelope'
+
     def __init__(self, ui, envelope):
         self.ui = ui
         self.envelope = envelope
         self.all_headers = False
         self.rebuild()
-        Buffer.__init__(self, ui, self.body, 'envelope')
+        Buffer.__init__(self, ui, self.body)
 
     def __str__(self):
         to = self.envelope.get('To', fallback='unset')
-        return '[%s] to: %s' % (self.typename, shorten_author_string(to, 400))
+        return '[envelope] to: %s' % (shorten_author_string(to, 400))
 
     def rebuild(self):
         displayed_widgets = []
@@ -132,6 +140,8 @@ class SearchBuffer(Buffer):
     shows a result set for a Thread query, one line per
     :class:`~alot.db.Thread`
     """
+
+    modename = 'search'
     threads = []
 
     def __init__(self, ui, initialquery='', sort_order=None):
@@ -145,7 +155,7 @@ class SearchBuffer(Buffer):
         self.isinitialized = False
         self.proc = None  # process that fills our pipe
         self.rebuild()
-        Buffer.__init__(self, ui, self.body, 'search')
+        Buffer.__init__(self, ui, self.body)
 
     def __str__(self):
         formatstring = '[search] for "%s" (%d thread%s)'
@@ -212,11 +222,14 @@ class SearchBuffer(Buffer):
 class ThreadBuffer(Buffer):
     """shows a single mailthread as a (collapsible) tree of
     :class:`MessageWidgets <alot.widgets.MessageWidget>`."""
+
+    modename = 'thread'
+
     def __init__(self, ui, thread):
         self.message_count = thread.get_total_messages()
         self.thread = thread
         self.rebuild()
-        Buffer.__init__(self, ui, self.body, 'thread')
+        Buffer.__init__(self, ui, self.body)
 
     def __str__(self):
         return '[thread] %s (%d message%s)' % (self.thread.get_subject(),
@@ -311,13 +324,16 @@ class ThreadBuffer(Buffer):
 
 class TagListBuffer(Buffer):
     """selectable list of tagstrings present in the database"""
+
+    modename = 'taglist'
+
     def __init__(self, ui, alltags=[], filtfun=None):
         self.filtfun = filtfun
         self.ui = ui
         self.tags = alltags
         self.isinitialized = False
         self.rebuild()
-        Buffer.__init__(self, ui, self.body, 'taglist')
+        Buffer.__init__(self, ui, self.body)
 
     def rebuild(self):
         if self.isinitialized:
