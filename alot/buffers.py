@@ -40,7 +40,7 @@ class Buffer(object):
 
 
 class BufferlistBuffer(Buffer):
-    """selectable list of active buffers"""
+    """lists all active buffers"""
 
     modename = 'bufferlist'
 
@@ -136,10 +136,7 @@ class EnvelopeBuffer(Buffer):
 
 
 class SearchBuffer(Buffer):
-    """
-    shows a result set for a Thread query, one line per
-    :class:`~alot.db.Thread`
-    """
+    """shows a result list of threads for a query"""
 
     modename = 'search'
     threads = []
@@ -220,8 +217,7 @@ class SearchBuffer(Buffer):
 
 
 class ThreadBuffer(Buffer):
-    """shows a single mailthread as a (collapsible) tree of
-    :class:`MessageWidgets <alot.widgets.MessageWidget>`."""
+    """displays a thread as a tree of messages"""
 
     modename = 'thread'
 
@@ -323,7 +319,7 @@ class ThreadBuffer(Buffer):
 
 
 class TagListBuffer(Buffer):
-    """selectable list of tagstrings present in the database"""
+    """lists all tagstrings present in the notmuch database"""
 
     modename = 'taglist'
 
