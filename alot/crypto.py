@@ -1,6 +1,7 @@
 from helper import call_cmd
 import tempfile
 import os
+import re
 
 
 #field descriptors for output of `gpg --with-colons`
@@ -58,3 +59,19 @@ def decrypt(blob):
 
     out, err, rval = call_cmd(['gpg', '--no-tty', '--decrypt'], stdin=blob)
     return out, err, rval
+
+
+def canonical_form(string):
+    """normalises string to canonical form (cf rfc2015)"""
+    cf = string.replace('\\t', ' '*4)
+    cf = re.sub("\r?\n", "\r\n", cf)
+    return cf
+
+
+def sign(blob, keyhint):
+    """call gnupg to sign content string blob"""
+
+    out, err, rval = call_cmd(['gpg', '--detach-sign', '--armor', '-'],
+                              stdin=blob)
+
+    return err, rval

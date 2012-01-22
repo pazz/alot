@@ -15,6 +15,7 @@ from notmuch.globals import NullPointerError
 from alot import __version__
 import logging
 import helper
+import crypto
 from settings import get_mime_handler
 from settings import config
 from helper import string_sanitize
@@ -662,21 +663,80 @@ class Envelope(object):
         if self.sent_time:
             self.modified_since_sent = True
 
-    def construct_mail(self):
+    def construct_mail(self, skip_sign_and_encrypt=False):
         """
         compiles the information contained in this envelope into a
         :class:`email.Message`.
+
+        :param skip_sign_and_encrypt: don't sign or encrypt, even if the
+                                      envelope requests it. This is used to
+                                      ensure we can read out saved drafts.
+        :type skip_sign_and_encrypt: bool
         """
         # build body text part
+        # TODO: app-armor encode if requested
         textpart = MIMEText(self.body.encode('utf-8'), 'plain', 'utf-8')
 
         # wrap it in a multipart container if necessary
-        if self.attachments or self.sign or self.encrypt:
-            msg = MIMEMultipart()
-            msg.attach(textpart)
+        if self.attachments:
+            inner_msg = MIMEMultipart()
+            inner_msg.attach(textpart)
+            # add attachments
+            for a in self.attachments:
+                inner_msg.attach(a.get_mime_representation())
         else:
-            msg = textpart
+            inner_msg = textpart
 
+        # Crypto stuff (cf rfc2015)
+        if (self.sign or self.encrypt) and not skip_sign_and_encrypt:
+            if self.sign and not self.encrypt:
+                # create outer container
+                outer_msg = MIMEMultipart('signed', micalg='pgp-sha1',
+                                    protocol='application/pgp-signature')
+
+                # normalize inner mail
+                tosign = crypto.canonical_form(inner_msg.as_string())
+                # TODO: sign string
+                #signature = self.sign_block(tosign, keyhint)
+                signature, rval = crypto.sign(tosign, keys)
+
+                # wrap signature in MIMEcontainter
+                sig = MIMEApplication(_data=signature,
+                                      _subtype='pgp-signature; name="signature.asc"',
+                                      _encoder=encode_7or8bit)
+                sig['Content-Description'] = 'signature'
+                sig.set_charset('us-ascii')
+
+                # add signed message and signature to outer message
+                outer_msg.attach(inner_msg)
+                outer_msg.attach(sig)
+                outer_msg['Content-Disposition'] = 'inline'
+
+            elif self.encrypt:
+                toenc = crypto.canonical_form(inner_msg.as_string())
+
+                #TODO encrypt toenc
+                if self.sign:
+                    encrypted = crypto.sign_and_ecrypt(toenc, recipient_keys,
+                                                       signkeys)
+                else:
+                    encrypted = crypto.ecrypt(toenc, keys)
+
+                enc = MIMEApplication(_data=encrypted, _subtype='octet-stream',
+                                      _encoder=encode_7or8bit)
+                enc.set_charset('us-ascii')
+
+                control = MIMEApplication(_data='Version: 1\n', _subtype='pgp-encrypted',
+                                          _encoder=encode_7or8bit)
+
+                outer_msg = MIMEMultipart('encrypted', micalg='pgp-sha1',
+                                    protocol='application/pgp-encrypted')
+                outer_msg.attach(control)
+                outer_msg.attach(enc)
+        else: # just pass on inner message if no crypto needed
+            outer_msg = inner_msg
+
+        # add headers to outer message
         headers = self.headers.copy()
         # add Date and Message-ID headers
         if 'Date' not in headers:
@@ -695,13 +755,9 @@ class Envelope(object):
         # copy headers from envelope to mail
         for k, vlist in headers.items():
             for v in vlist:
-                msg[k] = encode_header(k, v)
+                outer_msg[k] = encode_header(k, v)
 
-        # add attachments
-        for a in self.attachments:
-            msg.attach(a.get_mime_representation())
-
-        return msg
+        return outer_msg
 
     def parse_template(self, tmp, reset=False):
         """parses a template or user edited string to fills this envelope.
