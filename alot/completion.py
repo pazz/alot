@@ -203,7 +203,10 @@ class AbooksCompleter(Completer):
         else:
             returnlist = []
             for name, email in res:
-                newtext = "%s <%s>" % (name, email)
+                if name:
+                    newtext = "%s <%s>" % (name, email)
+                else:
+                    newtext = email
                 returnlist.append((newtext, len(newtext)))
         return returnlist
 

@@ -382,6 +382,6 @@ class MatchSdtoutAddressbook(AddressBook):
             if m:
                 info = m.groupdict()
                 email = info['email'].strip()
-                name = info['name'].strip()
+                name = info['name']
                 res.append((name, email))
         return res
