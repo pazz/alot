@@ -17,13 +17,15 @@ from twisted.python import usage
 
 
 class SubcommandOptions(usage.Options):
+    optFlags = []
+
     def parseArgs(self, *args):
         self.args = args
 
     def as_argparse_opts(self):
         optstr = ''
         for k, v in self.items():
-            # flags get valie 0 or 1..
+            # flags translate int value 0 or 1..
             if k in [a[0] for a in self.optFlags]:  # if flag
                 optstr += ('--%s ' % k) * v
             else:
