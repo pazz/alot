@@ -51,6 +51,10 @@ def lookup_command(cmdname, mode):
     :type mode: str
     :rtype: (:class:`Command`, :class:`~argparse.ArgumentParser`,
             dict(str->dict))
+
+    >>> (cmd, parser, kwargs) = lookup_command('save', 'thread')
+    >>> cmd
+    <class 'alot.commands.thread.SaveAttachmentCommand'>
     """
     if cmdname in COMMANDS[mode]:
         return COMMANDS[mode][cmdname]
@@ -64,10 +68,6 @@ def lookup_parser(cmdname, mode):
     """
     returns the :class:`CommandArgumentParser` used to construct a
     command for `cmdname` when called in `mode`.
-
-    >>> (cmd, parser, kwargs) = lookup_command('save', 'thread')
-    >>> cmd
-    <class 'alot.commands.thread.SaveAttachmentCommand'>
     """
     return lookup_command(cmdname, mode)[1]
 
