@@ -12,6 +12,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from notmuch.globals import NullPointerError
 
+from alot import __version__
 import logging
 import helper
 from settings import get_mime_handler
@@ -594,6 +595,14 @@ class Envelope(object):
             headers['Date'] = [email.Utils.formatdate()]
         if 'Message-ID' not in headers:
             headers['Message-ID'] = [email.Utils.make_msgid()]
+
+        if 'User-Agent' in headers:
+            uastring_format = headers['User-Agent'][0]
+        else:
+            uastring_format = config.get('general', 'user_agent').strip()
+        uastring = uastring_format % {'version': __version__}
+        if uastring:
+            headers['User-Agent'] = [uastring]
 
         # copy headers from envelope to mail
         for k, vlist in headers.items():

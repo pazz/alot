@@ -92,13 +92,20 @@ initial_command = search tag:inbox AND NOT tag:killed
 # must be one of one of 'oldest_first', 'newest_first', 'message_id' or 'unsorted'
 search_threads_sort_order = newest_first
 
-# in case more than one account has an addressbook:
+# in case more than one account has an address book:
 # Set this to True to make tabcompletion for recipients during compose only
 # look in the abook of the account matching the sender address
 complete_matching_abook_only = False
 
 # shut down when the last buffer gets closed
 quit_on_last_bclose = False
+
+# value of the User-Agent header used for outgoing mails.
+# setting this to the empty string will cause alot to omit the header all together.
+# The string '%(version)s' will be replaced by the version string of the running instance.
+# Beware ne necessary 3-fold escaping for the symbol '%' though.
+user_agent = 'alot/%%%%%%%%(version)s'
+
 
 [global-maps]
 j = move down
