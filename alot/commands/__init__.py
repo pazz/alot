@@ -191,8 +191,12 @@ def commandfactory(cmdline, mode='global'):
     parms.update(forcedparms)
     logging.debug('PARMS: %s' % parms)
 
-    parms['prehook'] = alot.settings.config.get_hook('pre_' + cmdname)
-    parms['posthook'] = alot.settings.config.get_hook('post_' + cmdname)
+    # set pre and post command hooks
+    get_hook = alot.settings.config.get_hook
+    parms['prehook'] = get_hook('pre_%s_%s' % (mode, cmdname)) or \
+            get_hook('pre_global_%s' % cmdname)
+    parms['posthook'] = get_hook('post_%s_%s' % (mode, cmdname)) or \
+            get_hook('post_global_%s' % cmdname)
 
     logging.debug('cmd parms %s' % parms)
     return cmdclass(**parms)
