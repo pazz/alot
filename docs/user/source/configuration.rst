@@ -409,7 +409,7 @@ respectively. See below for an example that uses `abook <http://abook.sourceforg
     realname = ...
     address = ...
     abook_command = abook --mutt-query
-    abook_regexp = (?P<email>.+?@.+?)\s+(?P<name>.+)
+    abook_regexp = '(?P<email>.+?@.+?)\s+(?P<name>.+?)\s*$'
 
 See `here <http://notmuchmail.org/emacstips/#index11h2>`_ for alternative lookup commands. The few others I have tested so far are:
 

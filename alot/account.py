@@ -358,12 +358,13 @@ class MatchSdtoutAddressbook(AddressBook):
         :type command: str
         :param match: regular expression used to match contacts in `commands`
                       output to stdout. Must define subparts named "email" and
-                      "name". Defaults to "(?P<email>.+?@.+?)\s+(?P<name>.+)".
+                      "name".  Defaults to
+                      :regexp:`(?P<email>.+?@.+?)\s+(?P<name>.+?)\s*$`.
         :type match: str
         """
         self.command = command
         if not match:
-            self.match = "(?P<email>.+?@.+?)\s+(?P<name>.+)"
+            self.match = '(?P<email>.+?@.+?)\s+(?P<name>.+?)\s*$'
         else:
             self.match = match
 
