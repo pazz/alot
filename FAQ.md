@@ -38,7 +38,7 @@ how it should look or work when it's finished and give it some thought how you
 think we should implement it. We'll discuss it from there.
 
 Why are the default key bindings so counter-intuitive?
----------------------------------------------------
+------------------------------------------------------
 Be aware that the bindings for all modes are fully configurable (see the CUSTOMIZE.md).
 That said, I choose the bindings to be natural for me. I use vim and [pentadactyl][pd] a lot.
 However, I'd be interested in discussing the defaults. If you think
@@ -46,42 +46,25 @@ your bindings are more intuitive or better suited as defaults for some reason,
 don't hesitate to send me your config. The same holds for the theme settings you use.
 Tell me. Let's improve the defaults.
 
-How do I do contacts completion?
+Why are you $this not $that way?
 --------------------------------
-In each `account` section you can specify a `abook_command` that
-is considered the address book of that account and will be used
-for address completion where appropriate.
+Lazyness and Ignorance: In most cases I simply did not or still don't know a better solution.
+I try to outsource as much as I can to well established libraries and be it only to avoid
+having to read rfc's. But there are lots 
+of tasks I implemented myself, possibly overlooking a ready made and available solution.
+Twisted is such a feature-rich but gray area in my mind for example.
+If you think you know how to improve the current implementation let me know!
 
-This shell command will be called with the search prefix as only argument.
-Its output is searched for email-name pairs using the regular expression given as `abook_regexp`,
-which must include named groups "email" and "name" to match the email address and realname parts
-respectively. See below for an example that uses [abook][abook]:
+The few exceptions to above stated rule are the following:
+* CLI option parsing is done using twisted.usage.Options, and not (as e.g. in-app command parsing)
+  via argparse. The reason is that argparse does not yet offer optional subcommands.
+* The modules cmd and cmd2, that handle all sorts of convenience around command objects
+  hate urwid: They are painfully strongly coupled to user in/output via stdin and out.
+* `notmuch reply` is not used to format reply messages because 1. it is not offered by
+  notmuch's library but is a feature of the CLI. This means we would have to call the notmuch
+  binary, something that is avoided where possible. 2. As there is no `notmuch forward` equivalent,
+  this (very similar) functionality would have to be re-implemented anyway.
 
-```
-[account YOURACCOUNT]
-realname = ...
-address = ...
-abook_command = abook --mutt-query
-abook_regexp = (?P<email>.+?@.+?)\s+(?P<name>.+)
-```
-
-See [here][alookup] for alternative lookup commands. The few others I have tested so far are:
-
- * [goobook][gbook] for cached google contacts lookups:
-
-   ```
-   abook_command = goobook query
-   abook_regexp = (?P<email>.+?@.+?)\s\s+(?P<name>.+)\s\s+.+
-   ```
- 
- * [nottoomuch-addresses][nottoomuch]:
-
-   ```
-   abook_command = nottoomuch-addresses.sh
-   abook_regexp = \"(?P<name>.+)\"\s*<(?P<email>.*.+?@.+?)>
-   ```
-
-Don't hesitate to send me your custom `abook_regexp` values to list them here.
 
 
 [issue]: https://github.com/pazz/alot/issues
@@ -90,7 +73,3 @@ Don't hesitate to send me your custom `abook_regexp` values to list them here.
 [toolkit]: http://excess.org/urwid/
 [python]: http://www.python.org/
 [pd]: http://dactyl.sourceforge.net/pentadactyl/
-[abook]: http://abook.sourceforge.net/
-[gbook]: http://code.google.com/p/goobook/
-[nottoomuch]: http://www.iki.fi/too/nottoomuch/nottoomuch-addresses/
-[alookup]: http://notmuchmail.org/emacstips/#index11h2
