@@ -303,13 +303,15 @@ class ChangeDisplaymodeCommand(Command):
     (['--separately'], {'action': 'store_true',
                         'help':'call command once for each message'}),
     (['--background'], {'action': 'store_true',
-                        'help':'disable stdin and ignore stdout'}),
+                        'help':'don\'t stop the interface'}),
+    (['--notify_stdout'], {'action': 'store_true',
+                'help':'display command\'s stdout as notification message'}),
 ],
 )
 class PipeCommand(Command):
     """pipe message(s) to stdin of a shellcommand"""
     def __init__(self, cmd, all=False, separately=False,
-                 background=False, format='raw',
+                 background=False, notify_stdout=False, format='raw',
                  noop_msg='no command specified', confirm_msg='',
                  done_msg='done', **kwargs):
         """
@@ -319,8 +321,10 @@ class PipeCommand(Command):
         :type all: bool
         :param separately: call command once per message
         :type separately: bool
-        :param background: disable stdin and ignore sdtout of command
+        :param background: do not suspend the interface
         :type background: bool
+        :param notify_stdout: display command\'s stdout as notification message
+        :type notify_stdout: bool
         :param format: what to pipe to the processes stdin. one of:
                        'raw': message content as is,
                        'decoded': message content, decoded quoted printable,
@@ -342,6 +346,7 @@ class PipeCommand(Command):
         self.whole_thread = all
         self.separately = separately
         self.background = background
+        self.notify_stdout = notify_stdout
         self.output_format = format
         self.noop_msg = noop_msg
         self.confirm_msg = confirm_msg
@@ -399,6 +404,7 @@ class PipeCommand(Command):
                 logging.debug('call in background: %s' % str(self.cmd))
                 proc = subprocess.Popen(self.cmd,
                                         shell=True, stdin=subprocess.PIPE,
+                                        stdout=subprocess.PIPE,
                                         stderr=subprocess.PIPE)
                 out, err = proc.communicate(mail)
             else:
@@ -407,6 +413,7 @@ class PipeCommand(Command):
                 logging.debug('call: %s' % str(self.cmd))
                 proc = subprocess.Popen(self.cmd, shell=True,
                                         stdin=subprocess.PIPE,
+                                        stdout=subprocess.PIPE,
                                         stderr=subprocess.PIPE)
                 out, err = proc.communicate(mail)
                 logging.debug('start urwid screen')
@@ -414,6 +421,8 @@ class PipeCommand(Command):
             if err:
                 ui.notify(err, priority='error')
                 return
+            if self.notify_stdout:
+                ui.notify(out)
 
         # display 'done' message
         if self.done_msg:
