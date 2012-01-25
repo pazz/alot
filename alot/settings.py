@@ -100,7 +100,7 @@ class AlotConfigParser(FallbackConfigParser):
         mode = self.getint('general', 'colourmode')
         ms = "%dc-theme" % mode
         names = self.options(ms)
-        if mode > 2:
+        if mode != 1:  # truncate '_fg'/'_bg' suffixes for multi-colour themes
             names = set([s[:-3] for s in names])
         p = list()
         for attr in names:
@@ -169,10 +169,7 @@ class AlotConfigParser(FallbackConfigParser):
         :rtype: bool
         """
         mode = self.getint('general', 'colourmode')
-        if mode == 2:
-            theme = '1c-theme'
-        else:
-            theme = '{colours}c-theme'.format(colours=mode)
+        theme = '{colours}c-theme'.format(colours=mode)
         has_fg = self.has_option(theme, themeing + '_fg')
         has_bg = self.has_option(theme, themeing + '_bg')
         return (has_fg or has_bg)
@@ -257,10 +254,7 @@ class AlotConfigParser(FallbackConfigParser):
         :rtype: bool
         """
         mode = self.getint('general', 'colourmode')
-        if mode == 2:
-            theme = '1c-theme'
-        else:
-            theme = '{colours}c-theme'.format(colours=mode)
+        theme = '{colours}c-theme'.format(colours=mode)
         has_fg = self.has_option(theme, themeing + '_fg')
         has_bg = self.has_option(theme, themeing + '_bg')
         return (has_fg or has_bg)
