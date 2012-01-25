@@ -56,6 +56,7 @@ Twisted is such a feature-rich but gray area in my mind for example.
 If you think you know how to improve the current implementation let me know!
 
 The few exceptions to above stated rule are the following:
+
 * CLI option parsing is done using twisted.usage.Options, and not (as e.g. in-app command parsing)
   via argparse. The reason is that argparse does not yet offer optional subcommands.
 * The modules cmd and cmd2, that handle all sorts of convenience around command objects
