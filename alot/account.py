@@ -92,6 +92,11 @@ class Account(object):
                 self.draft_box = mailbox.MMDF(mburl.path)
         self.draft_tags = draft_tags
 
+    def get_addresses(self):
+        """return all email addresses connected to this account, in order of
+        their importance"""
+        return [self.address] + self.aliases
+
     def store_mail(self, mbx, mail, tags=None):
         """
         stores given mail in mailbox. If mailbox is maildir, set the S-flag.
