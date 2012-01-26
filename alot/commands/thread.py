@@ -16,6 +16,7 @@ from alot import settings
 from alot import widgets
 from alot import completion
 from alot.message import decode_header
+from alot.message import encode_header
 from alot.message import extract_headers
 from alot.message import extract_body
 from alot.message import Envelope
@@ -324,16 +325,20 @@ class ChangeDisplaymodeCommand(Command):
                         'help':'call command once for each message'}),
     (['--background'], {'action': 'store_true',
                         'help':'don\'t stop the interface'}),
+    (['--add_tags'], {'action': 'store_true',
+                        'help':'add \'Tags\' header to the message'}),
+    (['--shell'], {'action': 'store_true',
+                        'help':'let the shell interpret the command'}),
     (['--notify_stdout'], {'action': 'store_true',
                 'help':'display command\'s stdout as notification message'}),
 ],
 )
 class PipeCommand(Command):
     """pipe message(s) to stdin of a shellcommand"""
-    def __init__(self, cmd, all=False, separately=False,
-                 background=False, notify_stdout=False, format='raw',
-                 noop_msg='no command specified', confirm_msg='',
-                 done_msg='done', **kwargs):
+    def __init__(self, cmd, all=False, separately=False, background=False,
+                 shell=False, notify_stdout=False, format='raw',
+                 add_tags=False, noop_msg='no command specified',
+                 confirm_msg='', done_msg='done', **kwargs):
         """
         :param cmd: shellcommand to open
         :type cmd: str or list of str
@@ -345,12 +350,16 @@ class PipeCommand(Command):
         :type background: bool
         :param notify_stdout: display command\'s stdout as notification message
         :type notify_stdout: bool
+        :param shell: let the shell interpret the command
+        :type shell: bool
         :param format: what to pipe to the processes stdin. one of:
                        'raw': message content as is,
                        'decoded': message content, decoded quoted printable,
                        'id': message ids, separated by newlines,
                        'filepath': paths to message files on disk
         :type format: str
+        :param add_tags: add 'Tags' header to the message
+        :type add_tags: bool
         :param noop_msg: error notification to show if `cmd` is empty
         :type noop_msg: str
         :param confirm_msg: confirmation question to ask (continues directly if
@@ -366,8 +375,10 @@ class PipeCommand(Command):
         self.whole_thread = all
         self.separately = separately
         self.background = background
+        self.shell = shell
         self.notify_stdout = notify_stdout
         self.output_format = format
+        self.add_tags = add_tags
         self.noop_msg = noop_msg
         self.confirm_msg = confirm_msg
         self.done_msg = done_msg
@@ -399,24 +410,31 @@ class PipeCommand(Command):
         separator = '\n\n'
         logging.debug('PIPETO format')
         logging.debug(self.output_format)
-        if self.output_format == 'raw':
-            pipestrings = [m.get_email().as_string() for m in to_print]
-        elif self.output_format == 'decoded':
-            mails = [m.get_email() for m in to_print]
-            for mail in mails:
-                headertext = extract_headers(mail)
-                bodytext = extract_body(mail)
-                msg = '%s\n\n%s' % (headertext, bodytext)
-                pipestrings.append(msg.encode('utf-8'))
-        elif self.output_format == 'id':
+
+        if self.output_format == 'id':
             pipestrings = [e.get_message_id() for e in to_print]
             separator = '\n'
         elif self.output_format == 'filepath':
             pipestrings = [e.get_filename() for e in to_print]
             separator = '\n'
+        else:
+            for msg in to_print:
+                mail = msg.get_email()
+                if self.add_tags:
+                    mail['Tags'] = encode_header('Tags',
+                                                 ' '.join(msg.get_tags()))
+                if self.output_format == 'raw':
+                    pipestrings.append(mail.as_string())
+                elif self.output_format == 'decoded':
+                    headertext = extract_headers(mail)
+                    bodytext = extract_body(mail)
+                    msgtext = '%s\n\n%s' % (headertext, bodytext)
+                    pipestrings.append(msgtext.encode('utf-8'))
 
         if not self.separately:
             pipestrings = [separator.join(pipestrings)]
+        if self.shell:
+            self.cmd = [' '.join(self.cmd)]
 
         # do teh monkey
         for mail in pipestrings:
@@ -501,11 +519,15 @@ class RemoveCommand(Command):
     (['--all'], {'action': 'store_true', 'help':'print all messages'}),
     (['--raw'], {'action': 'store_true', 'help':'pass raw mail string'}),
     (['--separately'], {'action': 'store_true',
-                        'help':'call print command once for each message'})],
+                        'help':'call print command once for each message'}),
+    (['--add_tags'], {'action': 'store_true',
+                        'help':'add \'Tags\' header to the message'}),
+],
 )
 class PrintCommand(PipeCommand):
     """print message(s)"""
-    def __init__(self, all=False, separately=False, raw=False, **kwargs):
+    def __init__(self, all=False, separately=False, raw=False, add_tags=False,
+                 **kwargs):
         """
         :param all: print all, not only selected messages
         :type all: bool
@@ -513,6 +535,8 @@ class PrintCommand(PipeCommand):
         :type separately: bool
         :param raw: pipe raw message string to print command
         :type raw: bool
+        :param add_tags: add 'Tags' header to the message
+        :type add_tags: bool
         """
         # get print command
         cmd = settings.config.get('general', 'print_cmd', fallback='')
@@ -529,9 +553,11 @@ class PrintCommand(PipeCommand):
         noop_msg = 'no print command specified. Set "print_cmd" in the '\
                     'global section.'
 
-        PipeCommand.__init__(self, cmd, all=all, separately=separately,
+        PipeCommand.__init__(self, [cmd], all=all, separately=separately,
                              background=True,
+                             shell=False,
                              format='raw' if raw else 'decoded',
+                             add_tags=add_tags,
                              noop_msg=noop_msg, confirm_msg=confirm_msg,
                              done_msg=ok_msg, **kwargs)
 
