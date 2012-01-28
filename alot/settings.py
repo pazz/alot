@@ -104,11 +104,11 @@ class AlotConfigParser(FallbackConfigParser):
             names = set([s[:-3] for s in names])
         p = list()
         for attr in names:
-            nf = self._get_themeing_option('16c-theme', attr + '_fg')
-            nb = self._get_themeing_option('16c-theme', attr + '_bg')
-            m = self._get_themeing_option('1c-theme', attr)
-            hf = self._get_themeing_option('256c-theme', attr + '_fg')
-            hb = self._get_themeing_option('256c-theme', attr + '_bg')
+            nf = self._get_theming_option('16c-theme', attr + '_fg')
+            nb = self._get_theming_option('16c-theme', attr + '_bg')
+            m = self._get_theming_option('1c-theme', attr)
+            hf = self._get_theming_option('256c-theme', attr + '_fg')
+            hb = self._get_theming_option('256c-theme', attr + '_bg')
             p.append((attr, nf, nb, m, hf, hb))
             if attr.startswith('tag_') and attr + '_focus' not in names:
                 nb = self.get('16c-theme', 'tag_focus_bg',
@@ -118,7 +118,7 @@ class AlotConfigParser(FallbackConfigParser):
                 p.append((attr + '_focus', nf, nb, m, hf, hb))
         return p
 
-    def _get_themeing_option(self, section, option, default='default'):
+    def _get_theming_option(self, section, option, default='default'):
         """
         Retrieve the value of the given option from the given section of the
         config file.
@@ -153,26 +153,10 @@ class AlotConfigParser(FallbackConfigParser):
             if has_parent_option:
                 parent_option = '{0}_{1}'.format(has_parent_option.group(1),
                                                  has_parent_option.group(2))
-                result = self._get_themeing_option(section, parent_option)
+                result = self._get_theming_option(section, parent_option)
             else:
                 result = default
         return result
-
-    def has_themeing(self, themeing):
-        """
-        Return true if the given themeing option exists in the current colour
-        theme.
-
-        :param themeing: The themeing option to check for
-        :type theming: string
-        :return: True if themeing exist, False otherwise
-        :rtype: bool
-        """
-        mode = self.getint('general', 'colourmode')
-        theme = '{colours}c-theme'.format(colours=mode)
-        has_fg = self.has_option(theme, themeing + '_fg')
-        has_bg = self.has_option(theme, themeing + '_bg')
-        return (has_fg or has_bg)
 
     def _parse_highlighting_rules(self):
         """
@@ -214,7 +198,7 @@ class AlotConfigParser(FallbackConfigParser):
         themes = self._select_tag_themes(tag, focus, highlight)
         selected_theme = themes[-1]
         for theme in themes:
-            if self.has_themeing(theme):
+            if self.has_theming(theme):
                 selected_theme = theme
                 break
         return selected_theme
@@ -243,20 +227,20 @@ class AlotConfigParser(FallbackConfigParser):
         themes.reverse()
         return themes
 
-    def has_theming(self, themeing):
+    def has_theming(self, theming):
         """
-        Return true if the given themeing option exists in the current colour
+        Return true if the given theming option exists in the current colour
         theme.
 
-        :param themeing: The themeing option to check for
+        :param theming: The theming option to check for
         :type theming: string
-        :return: True if themeing exist, False otherwise
+        :return: True if theming exist, False otherwise
         :rtype: bool
         """
         mode = self.getint('general', 'colourmode')
         theme = '{colours}c-theme'.format(colours=mode)
-        has_fg = self.has_option(theme, themeing + '_fg')
-        has_bg = self.has_option(theme, themeing + '_bg')
+        has_fg = self.has_option(theme, theming + '_fg')
+        has_bg = self.has_option(theme, theming + '_bg')
         return (has_fg or has_bg)
 
     def get_mapping(self, mode, key):
