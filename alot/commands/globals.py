@@ -1,6 +1,6 @@
 import os
 import code
-import threading
+from twisted.internet import threads
 import subprocess
 import shlex
 import email
@@ -166,8 +166,6 @@ class ExternalCommand(Command):
                 logging.info('refocussing')
                 ui.buffer_focus(callerbuffer)
 
-        write_fd = ui.mainloop.watch_pipe(afterwards)
-
         def thread_code(*args):
             if self.path:
                 if '{}' in self.commandstring:
@@ -187,16 +185,17 @@ class ExternalCommand(Command):
             logging.info('calling external command: %s' % cmd)
             try:
                 if 0 == subprocess.call(shlex.split(cmd)):
-                    os.write(write_fd, 'success')
+                    return 'success'
             except OSError, e:
-                os.write(write_fd, str(e))
+                return str(e)
 
         if self.in_thread:
-            thread = threading.Thread(target=thread_code)
-            thread.start()
+            d = threads.deferToThread(thread_code)
+            d.addCallback(afterwards)
         else:
             ui.mainloop.screen.stop()
-            thread_code()
+            ret = thread_code()
+            afterwards(ret)
             ui.mainloop.screen.start()
 
 

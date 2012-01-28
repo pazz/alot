@@ -5,7 +5,7 @@ import logging
 import email
 import tempfile
 from twisted.internet.defer import inlineCallbacks
-import threading
+from twisted.internet import threads
 import datetime
 
 from alot.account import SendingMailFailed
@@ -136,19 +136,17 @@ class SendCommand(Command):
                 ui.notify('failed to send: %s' % returnvalue,
                           priority='error')
 
-        write_fd = ui.mainloop.watch_pipe(afterwards)
-
         def thread_code():
             mail = envelope.construct_mail()
             try:
                 account.send_mail(mail)
             except SendingMailFailed as e:
-                os.write(write_fd, unicode(e))
+                return unicode(e)
             else:
-                os.write(write_fd, 'success')
+                return 'success'
 
-        thread = threading.Thread(target=thread_code)
-        thread.start()
+        d = threads.deferToThread(thread_code)
+        d.addCallback(afterwards)
 
 
 @registerCommand(MODE, 'edit')
