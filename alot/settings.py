@@ -158,22 +158,6 @@ class AlotConfigParser(FallbackConfigParser):
                 result = default
         return result
 
-    def has_themeing(self, themeing):
-        """
-        Return true if the given themeing option exists in the current colour
-        theme.
-
-        :param themeing: The themeing option to check for
-        :type theming: string
-        :return: True if themeing exist, False otherwise
-        :rtype: bool
-        """
-        mode = self.getint('general', 'colourmode')
-        theme = '{colours}c-theme'.format(colours=mode)
-        has_fg = self.has_option(theme, themeing + '_fg')
-        has_bg = self.has_option(theme, themeing + '_bg')
-        return (has_fg or has_bg)
-
     def _parse_highlighting_rules(self):
         """
         Parse the highlighting rules from the config file.
@@ -214,7 +198,7 @@ class AlotConfigParser(FallbackConfigParser):
         themes = self._select_tag_themes(tag, focus, highlight)
         selected_theme = themes[-1]
         for theme in themes:
-            if self.has_themeing(theme):
+            if self.has_theming(theme):
                 selected_theme = theme
                 break
         return selected_theme
@@ -243,20 +227,20 @@ class AlotConfigParser(FallbackConfigParser):
         themes.reverse()
         return themes
 
-    def has_theming(self, themeing):
+    def has_theming(self, theming):
         """
-        Return true if the given themeing option exists in the current colour
+        Return true if the given theming option exists in the current colour
         theme.
 
-        :param themeing: The themeing option to check for
+        :param theming: The theming option to check for
         :type theming: string
-        :return: True if themeing exist, False otherwise
+        :return: True if theming exist, False otherwise
         :rtype: bool
         """
         mode = self.getint('general', 'colourmode')
         theme = '{colours}c-theme'.format(colours=mode)
-        has_fg = self.has_option(theme, themeing + '_fg')
-        has_bg = self.has_option(theme, themeing + '_bg')
+        has_fg = self.has_option(theme, theming + '_fg')
+        has_bg = self.has_option(theme, theming + '_bg')
         return (has_fg or has_bg)
 
     def get_mapping(self, mode, key):
