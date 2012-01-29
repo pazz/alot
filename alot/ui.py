@@ -459,13 +459,6 @@ class UI(object):
 
             # call cmd.apply
             logging.debug('apply command: %s' % cmd)
-            try:
-                retval = cmd.apply(self)
-                # if we deal with a InlineCallbacks-decorated method, it
-                # instantly returns a defered. This adds call/errbacks to react
-                # to successful/erroneous termination of the defered apply()
-                if isinstance(retval, defer.Deferred):
-                    retval.addErrback(errorHandler)
-                    retval.addCallback(call_posthook)
-            except Exception, e:
-                errorHandler(Failure(e))
+            d = defer.maybeDeferred(cmd.apply, self)
+            d.addErrback(errorHandler)
+            d.addCallback(call_posthook)
