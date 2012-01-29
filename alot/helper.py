@@ -250,6 +250,48 @@ def call_cmd(cmdlist, stdin=None):
     return out, err, ret
 
 
+def call_cmd_async(cmdlist, stdin=None):
+    """
+    get a shell commands output, error message and return value as a deferred.
+
+    :type cmdlist: list of str
+    :param stdin: string to pipe to the process
+    :type stdin: str
+    :return: deferred that calls back with triple of stdout, stderr and
+             return value of the shell command
+    :rtype: `twisted.internet.defer.Deferred`
+    """
+
+    from twisted.internet import process
+
+    class _EverythingGetter(protocol.ProcessProtocol):
+        def __init__(self, deferred):
+            self.deferred = deferred
+            self.outBuf = StringIO.StringIO()
+            self.errBuf = StringIO.StringIO()
+            self.outReceived = self.outBuf.write
+            self.errReceived = self.errBuf.write
+
+        def processEnded(self, reason):
+            out = self.outBuf.getvalue()
+            err = self.errBuf.getvalue()
+            out = string_decode(out, urwid.util.detected_encoding)
+            err = string_decode(err, urwid.util.detected_encoding)
+            e = reason.value
+            code = e.exitCode
+            if e.signal:
+                self.deferred.callback((out, err, e.signal))
+            else:
+                self.deferred.callback((out, err, code))
+
+    d = defer.Deferred()
+    proc = process.Process(executable=cmdlist[0], args=cmdlist[1:],
+                           _EverythingGetter(d))
+    if stdin:
+        proc.write(stdin)
+    return d
+
+
 def guess_mimetype(blob):
     """
     uses file magic to determine the mime-type of the given data blob.
