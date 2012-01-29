@@ -163,7 +163,7 @@ class Account(object):
         :type mail: :class:`email.message.Message` or string
         :raises: :class:`alot.account.SendingMailFailed` if an error occured
         """
-        return 'not implemented'
+        raise NotImplementedError
 
 
 class SendmailAccount(Account):
@@ -182,11 +182,14 @@ class SendmailAccount(Account):
     def send_mail(self, mail):
         mail['Date'] = email.utils.formatdate(time.time(), True)
         cmdlist = shlex.split(self.cmd.encode('utf-8', errors='ignore'))
-        out, err, retval = helper.call_cmd(cmdlist, stdin=mail.as_string())
-        if err:
-            errmsg = '%s. sendmail_cmd set to: %s' % (err, self.cmd)
-            raise SendingMailFailed(errmsg)
-        self.store_sent_mail(mail)
+	d = helper.call_cmd(cmdlist, stdin=mail.as_string())
+	@d.addCallback
+	def cb((out, err, retval):
+            if err:
+                errmsg = '%s. sendmail_cmd set to: %s' % (err, self.cmd)
+                raise SendingMailFailed(errmsg)
+            self.store_sent_mail(mail)
+        return d
 
 
 class AccountManager(object):
@@ -376,9 +379,10 @@ class MatchSdtoutAddressbook(AddressBook):
     def get_contacts(self):
         return self.lookup('\'\'')
 
+    @inlineCallbacks
     def lookup(self, prefix):
         cmdlist = shlex.split(self.command.encode('utf-8', errors='ignore'))
-        resultstring, errmsg, retval = helper.call_cmd(cmdlist + [prefix])
+        resultstring, errmsg, retval = yield helper.call_cmd(cmdlist + [prefix])
         if not resultstring:
             return []
         lines = resultstring.replace('\t', ' ' * 4).splitlines()
