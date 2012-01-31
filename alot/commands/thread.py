@@ -26,6 +26,45 @@ from alot.db import DatabaseError
 MODE = 'thread'
 
 
+def recipient_to_from(mail, my_accounts):
+    """
+    construct a suitable From-Header for forwards/replies to
+    a given mail.
+
+    :param mail: the email to inspect
+    :type mail: `email.message.Message`
+    :param my_accounts: list of accounts from which to chose from
+    :type my_accounts: list of `alot.account.Account`
+    """
+    realname = None
+    address = None
+
+    # extract list of recipients to check for my address
+    rec_to = filter(lambda x: x, mail.get('To', '').split(','))
+    rec_cc = filter(lambda x: x, mail.get('Cc', '').split(','))
+    delivered_to = mail.get('Delivered-To', None)
+    recipients = rec_to + rec_cc
+    if delivered_to is not None:
+        recipients.append(delivered_to)
+
+    # pick the most important account that has an address in recipients
+    # and use that accounts realname and the found recipient address
+    for acc in my_accounts:
+        acc_addresses = acc.get_addresses()
+        for rec in recipients:
+            _, raddress = parseaddr(rec)
+            raddress = raddress.decode()
+            if raddress in acc_addresses and realname is None:
+                realname = acc.realname
+                address = raddress
+
+    # revert to default account if nothing found
+    if realname is None:
+        realname = my_accounts[0].realname
+        address = my_accounts[0].address
+    return realname, address
+
+
 @registerCommand(MODE, 'reply', arguments=[
     (['--all'], {'action':'store_true', 'help':'reply to all'})])
 class ReplyCommand(Command):
@@ -68,37 +107,11 @@ class ReplyCommand(Command):
         envelope.add('Subject', subject)
 
         # set From
-        realname = None
-        address = None
         my_accounts = ui.accountman.get_accounts()
         if not my_accounts:
             ui.notify('no accounts set', priority='error')
             return
-
-        # extract list of recipients to check for my address
-        rec_to = filter(lambda x: x, mail.get('To', '').split(','))
-        rec_cc = filter(lambda x: x, mail.get('Cc', '').split(','))
-        delivered_to = mail.get('Delivered-To', None)
-        recipients = rec_to + rec_cc
-        if delivered_to is not None:
-            recipients.append(delivered_to)
-
-        # pick the most important account that has an address in recipients
-        # and use that accounts realname and the found recipient address
-        for acc in my_accounts:
-            acc_addresses = acc.get_addresses()
-            for rec in recipients:
-                _, raddress = parseaddr(rec)
-                raddress = raddress.decode()
-                if raddress in acc_addresses and realname is None:
-                    realname = acc.realname
-                    address = raddress
-
-        # revert to default account if nothing found
-        if realname is None:
-            realname = my_accounts[0].realname
-            address = my_accounts[0].address
-        # add from string
+        realname, address = recipient_to_from(mail, my_accounts)
         envelope.add('From', '%s <%s>' % (realname, address))
 
         # set To
@@ -195,22 +208,13 @@ class ForwardCommand(Command):
         envelope.add('Subject', subject)
 
         # set From
-        # we look for own addresses in the To,Cc,Ccc headers in that order
-        # and use the first match as new From header if there is one.
-        my_addresses = ui.accountman.get_addresses()
-        matched_address = ''
-        in_to = [a for a in my_addresses if a in mail.get('To', '')]
-        if in_to:
-            matched_address = in_to[0]
-        else:
-            cc = mail.get('Cc', '') + mail.get('Bcc', '')
-            in_cc = [a for a in my_addresses if a in cc]
-            if in_cc:
-                matched_address = in_cc[0]
-        if matched_address:
-            account = ui.accountman.get_account_by_address(matched_address)
-            fromstring = '%s <%s>' % (account.realname, account.address)
-            envelope.add('From', fromstring)
+        my_accounts = ui.accountman.get_accounts()
+        if not my_accounts:
+            ui.notify('no accounts set', priority='error')
+            return
+        realname, address = recipient_to_from(mail, my_accounts)
+        envelope.add('From', '%s <%s>' % (realname, address))
+
         ui.apply_command(ComposeCommand(envelope=envelope))
 
 
