@@ -81,9 +81,17 @@ class ReplyCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
+        # look if this makes sense: do we have any accounts set up?
+        my_accounts = ui.accountman.get_accounts()
+        if not my_accounts:
+            ui.notify('no accounts set', priority='error')
+            return
+
+        # get message to forward if not given in constructor
         if not self.message:
             self.message = ui.current_buffer.get_selected_message()
         mail = self.message.get_email()
+
         # set body text
         name, address = self.message.get_author()
         timestamp = self.message.get_date()
@@ -107,10 +115,6 @@ class ReplyCommand(Command):
         envelope.add('Subject', subject)
 
         # set From
-        my_accounts = ui.accountman.get_accounts()
-        if not my_accounts:
-            ui.notify('no accounts set', priority='error')
-            return
         realname, address = recipient_to_from(mail, my_accounts)
         envelope.add('From', '%s <%s>' % (realname, address))
 
@@ -148,6 +152,7 @@ class ReplyCommand(Command):
         else:
             envelope.add('References', '<%s>' % self.message.get_message_id())
 
+        # continue to compose
         ui.apply_command(ComposeCommand(envelope=envelope))
 
     def clear_my_address(self, my_addresses, value):
@@ -174,11 +179,19 @@ class ForwardCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
+        # look if this makes sense: do we have any accounts set up?
+        my_accounts = ui.accountman.get_accounts()
+        if not my_accounts:
+            ui.notify('no accounts set', priority='error')
+            return
+
+        # get message to forward if not given in constructor
         if not self.message:
             self.message = ui.current_buffer.get_selected_message()
         mail = self.message.get_email()
 
         envelope = Envelope()
+
         if self.inline:  # inline mode
             # set body text
             name, address = self.message.get_author()
@@ -208,13 +221,10 @@ class ForwardCommand(Command):
         envelope.add('Subject', subject)
 
         # set From
-        my_accounts = ui.accountman.get_accounts()
-        if not my_accounts:
-            ui.notify('no accounts set', priority='error')
-            return
         realname, address = recipient_to_from(mail, my_accounts)
         envelope.add('From', '%s <%s>' % (realname, address))
 
+        # continue to compose
         ui.apply_command(ComposeCommand(envelope=envelope))
 
 
