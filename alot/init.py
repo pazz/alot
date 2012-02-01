@@ -79,7 +79,7 @@ class Options(usage.Options):
     optParameters = [
             ['config', 'c', '~/.config/alot/config', 'config file'],
             ['notmuch-config', 'n', '~/.notmuch-config', 'notmuch config'],
-            ['colour-mode', 'C', 256, 'terminal colour mode', colourint],
+            ['colour-mode', 'C', None, 'terminal colour mode', colourint],
             ['mailindex-path', 'p', None, 'path to notmuch index'],
             ['debug-level', 'd', 'info', 'debug log', debuglogstring],
             ['logfile', 'l', '/dev/null', 'logfile'],
