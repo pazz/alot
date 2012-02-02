@@ -182,11 +182,23 @@ class SendmailAccount(Account):
     def send_mail(self, mail):
         mail['Date'] = email.utils.formatdate(time.time(), True)
         cmdlist = shlex.split(self.cmd.encode('utf-8', errors='ignore'))
-        out, err, retval = helper.call_cmd(cmdlist, stdin=mail.as_string())
-        if err:
-            errmsg = '%s. sendmail_cmd set to: %s' % (err, self.cmd)
+
+        def cb(out):
+            logging.info('sent mail successfully')
+            logging.info(out)
+
+        def errb(failure):
+            termobj = failure.value
+            errmsg = '%s\nsendmail_cmd set to: %s' % (str(termobj), self.cmd)
+            logging.error(errmsg)
+            logging.error(failure.getTraceback())
+            logging.error(failure.value.stderr)
             raise SendingMailFailed(errmsg)
-        self.store_sent_mail(mail)
+
+        d = helper.call_cmd_async(cmdlist, stdin=mail.as_string())
+        d.addCallback(cb)
+        d.addErrback(errb)
+        return d
 
 
 class AccountManager(object):

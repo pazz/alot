@@ -15,6 +15,7 @@ from twisted.internet import reactor
 from twisted.internet.protocol import ProcessProtocol
 from twisted.internet.defer import Deferred
 import StringIO
+import logging
 
 from settings import config
 
@@ -286,10 +287,15 @@ def call_cmd_async(cmdlist, stdin=None):
                 self.deferred.errback(terminated_obj)
 
     d = Deferred()
+    environment = os.environ
+    logging.debug('ENV = %s' % environment)
     proc = reactor.spawnProcess(_EverythingGetter(d), executable=cmdlist[0],
+                                env=environment,
                                 args=cmdlist[1:])
     if stdin:
+        logging.debug('writing to stdin')
         proc.write(stdin)
+        proc.closeStdin()
     return d
 
 

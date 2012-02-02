@@ -125,28 +125,28 @@ class SendCommand(Command):
 
         # send
         clearme = ui.notify('sending..', timeout=-1)
+        mail = envelope.construct_mail()
 
         def afterwards(returnvalue):
+            logging.debug('mail sent successfully')
             ui.clear_notify([clearme])
-            if returnvalue == 'success':  # successfully send mail
-                envelope.sent_time = datetime.datetime.now()
-                ui.apply_command(commands.globals.BufferCloseCommand())
-                ui.notify('mail send successfully')
-            else:
-                ui.notify('failed to send: %s' % returnvalue,
-                          priority='error')
+            envelope.sent_time = datetime.datetime.now()
+            ui.apply_command(commands.globals.BufferCloseCommand())
+            ui.notify('mail sent successfully')
+            # add mail to index
+            logging.debug('adding new mail to index')
+            account.store_sent_mail(mail)
 
-        def thread_code():
-            mail = envelope.construct_mail()
-            try:
-                account.send_mail(mail)
-            except SendingMailFailed as e:
-                return unicode(e)
-            else:
-                return 'success'
+        def errb(failure):
+            ui.clear_notify([clearme])
+            failure.trap(SendingMailFailed)
+            errmsg = 'failed to send: %s' % failure.value
+            ui.notify(errmsg, priority='error')
 
-        d = threads.deferToThread(thread_code)
+        d = account.send_mail(mail)
         d.addCallback(afterwards)
+        d.addErrback(errb)
+        logging.debug('added errbacks,callbacks')
 
 
 @registerCommand(MODE, 'edit')
