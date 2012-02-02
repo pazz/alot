@@ -11,6 +11,10 @@ from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
 import urwid
 import magic
+from twisted.internet import reactor
+from twisted.internet.protocol import ProcessProtocol
+from twisted.internet.defer import Deferred
+import StringIO
 
 from settings import config
 
@@ -262,9 +266,7 @@ def call_cmd_async(cmdlist, stdin=None):
     :rtype: `twisted.internet.defer.Deferred`
     """
 
-    from twisted.internet import process
-
-    class _EverythingGetter(protocol.ProcessProtocol):
+    class _EverythingGetter(ProcessProtocol):
         def __init__(self, deferred):
             self.deferred = deferred
             self.outBuf = StringIO.StringIO()
@@ -272,21 +274,20 @@ def call_cmd_async(cmdlist, stdin=None):
             self.outReceived = self.outBuf.write
             self.errReceived = self.errBuf.write
 
-        def processEnded(self, reason):
-            out = self.outBuf.getvalue()
-            err = self.errBuf.getvalue()
-            out = string_decode(out, urwid.util.detected_encoding)
-            err = string_decode(err, urwid.util.detected_encoding)
-            e = reason.value
-            code = e.exitCode
-            if e.signal:
-                self.deferred.callback((out, err, e.signal))
+        def processEnded(self, status):
+            termenc = urwid.util.detected_encoding
+            out = string_decode(self.outBuf.getvalue(), termenc)
+            err = string_decode(self.errBuf.getvalue(), termenc)
+            if status.value.exitCode == 0:
+                self.deferred.callback(out)
             else:
-                self.deferred.callback((out, err, code))
+                terminated_obj = status.value
+                terminated_obj.stderr = err
+                self.deferred.errback(terminated_obj)
 
-    d = defer.Deferred()
-    proc = process.Process(executable=cmdlist[0], args=cmdlist[1:],
-                           _EverythingGetter(d))
+    d = Deferred()
+    proc = reactor.spawnProcess(_EverythingGetter(d), executable=cmdlist[0],
+                                args=cmdlist[1:])
     if stdin:
         proc.write(stdin)
     return d
