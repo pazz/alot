@@ -164,7 +164,7 @@ class Account(object):
         :returns: a `Deferred` that errs back with a class:`SendingMailFailed`,
                   containing a reason string if an error occured.
         """
-        return 'not implemented'
+        raise NotImplementedError
 
 
 class SendmailAccount(Account):
