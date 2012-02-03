@@ -161,7 +161,8 @@ class Account(object):
 
         :param mail: the mail to send
         :type mail: :class:`email.message.Message` or string
-        :raises: :class:`alot.account.SendingMailFailed` if an error occured
+        :returns: a `Deferred` that errs back with a class:`SendingMailFailed`,
+                  containing a reason string if an error occured.
         """
         return 'not implemented'
 
