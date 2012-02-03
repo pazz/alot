@@ -400,6 +400,9 @@ class UI(object):
             self.mainframe.set_footer(urwid.Pile(lines))
         else:
             self.mainframe.set_footer(None)
+        # force a screen redraw
+        if self.mainloop.screen.started:
+            self.mainloop.draw_screen()
 
     def build_statusbar(self):
         """construct and return statusbar widget"""
