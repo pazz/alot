@@ -255,7 +255,7 @@ def call_cmd(cmdlist, stdin=None):
     return out, err, ret
 
 
-def call_cmd_async(cmdlist, stdin=None):
+def call_cmd_async(cmdlist, stdin=None, env=None):
     """
     get a shell commands output, error message and return value as a deferred.
 
@@ -288,6 +288,8 @@ def call_cmd_async(cmdlist, stdin=None):
 
     d = Deferred()
     environment = os.environ
+    if env != None:
+        environment.update(env)
     logging.debug('ENV = %s' % environment)
     proc = reactor.spawnProcess(_EverythingGetter(d), executable=cmdlist[0],
                                 env=environment,
