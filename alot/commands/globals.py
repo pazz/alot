@@ -256,9 +256,18 @@ class PythonShellCommand(Command):
 
 @registerCommand(MODE, 'bclose')
 class BufferCloseCommand(Command):
-    """close current buffer"""
+    """close a buffer"""
+    def __init__(self, buffer=None, **kwargs):
+        """
+        :param buffer: the buffer to close or None for current
+        :type buffer: `alot.buffers.Buffer`
+        """
+        self.buffer = buffer
+        Command.__init__(self, **kwargs)
+
     def apply(self, ui):
-        selected = ui.current_buffer
+        if self.buffer == None:
+            self.buffer = ui.current_buffer
         if len(ui.buffers) == 1:
             if settings.config.getboolean('general', 'quit_on_last_bclose'):
                 logging.info('closing the last buffer, exiting')
@@ -267,7 +276,7 @@ class BufferCloseCommand(Command):
                 logging.info('not closing last remaining buffer as '
                                'global.quit_on_last_bclose is set to False')
         else:
-            ui.buffer_close(selected)
+            ui.buffer_close(self.buffer)
 
 
 @registerCommand(MODE, 'bprevious', forced={'offset': -1},
