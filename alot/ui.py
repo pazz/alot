@@ -91,10 +91,11 @@ class UI(object):
         logging.info('setup gui in %d colours' % colourmode)
         self.mainframe = urwid.Frame(urwid.SolidFill())
         self.inputwrap = InputWrap(self, self.mainframe)
+        self.eventloop = urwid.TwistedEventLoop(manage_reactor=True)
         self.mainloop = urwid.MainLoop(self.inputwrap,
                 config.get_palette(),
                 handle_mouse=False,
-                event_loop=urwid.TwistedEventLoop(),
+                event_loop=self.eventloop,
                 unhandled_input=self.unhandeled_input)
         self.mainloop.screen.set_terminal_properties(colors=colourmode)
 
@@ -106,6 +107,16 @@ class UI(object):
         logging.debug('fire first command')
         self.apply_command(initialcmd)
         self.mainloop.run()
+        #self.eventloop.reactor.run()
+
+    def suspend(self):
+        self._inputfd = self.mainloop.screen._term_input_file
+        #self.mainloop.screen._term_input_file = None
+        self.mainloop.screen.stop()
+    def resume(self):
+        self.mainloop.screen._term_input_file = self._inputfd
+        self.mainloop.screen.start()
+
 
     def unhandeled_input(self, key):
         """called if a keypress is not handled."""

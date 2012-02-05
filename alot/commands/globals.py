@@ -9,6 +9,10 @@ from twisted.internet.defer import inlineCallbacks
 import logging
 import argparse
 import glob
+from twisted.internet import reactor
+from twisted.internet.protocol import ProcessProtocol
+from twisted.internet import utils
+import StringIO
 
 from alot.commands import Command, registerCommand
 from alot.completion import CommandLineCompleter
@@ -23,6 +27,7 @@ from alot.completion import ContactsCompleter
 from alot.completion import AccountCompleter
 from alot.message import Envelope
 from alot import commands
+from alot.helper import string_decode
 
 MODE = 'global'
 
@@ -126,10 +131,11 @@ class RefreshCommand(Command):
     (['--refocus'], {'action': 'store_true', 'help':'refocus current buffer \
                      after command has finished'}),
     (['cmd'], {'help':'command line to execute'})],
+    forced={'shell': False}
 )
 class ExternalCommand(Command):
     """run external command"""
-    def __init__(self, cmd, path=None, spawn=False, refocus=True,
+    def __init__(self, cmd, path=None, spawn=False, refocus=True, shell=False,
                  thread=False, on_success=None, **kwargs):
         """
         :param cmd: the command to call
@@ -142,6 +148,8 @@ class ExternalCommand(Command):
         :type thread: bool
         :param refocus: refocus calling buffer after cmd termination
         :type refocus: bool
+        :param shell: cmd string will be passed on to the shell
+        :type shell: bool
         :param on_success: code to execute after command successfully exited
         :type on_success: callable
         """
@@ -149,6 +157,7 @@ class ExternalCommand(Command):
         self.path = path
         self.spawn = spawn
         self.refocus = refocus
+        self.shell = shell
         self.in_thread = thread
         self.on_success = on_success
         Command.__init__(self, **kwargs)
@@ -156,47 +165,70 @@ class ExternalCommand(Command):
     def apply(self, ui):
         callerbuffer = ui.current_buffer
 
-        def afterwards(data):
-            if data == 'success':
-                if callable(self.on_success):
-                    self.on_success()
+        # add path to commandstring
+        if self.path:
+            if '{}' in self.commandstring:
+                cmd = self.commandstring.replace('{}',
+                                                 helper.shell_quote(self.path))
             else:
-                ui.notify(data, priority='error')
+                cmd = '%s %s' % (self.commandstring,
+                                 helper.shell_quote(self.path))
+        else:
+            cmd = self.commandstring
+
+        # encode as utf-8
+        cmd = cmd.encode('utf-8', errors='ignore')
+
+        # build commandlist
+        if self.shell:
+            shell = os.environ.get('SHELL', '/bin/sh')
+            cmdlist = [shell, '-c', cmd]
+        else:
+            cmdlist = shlex.split(cmd)
+
+        # prepend terminal command if we spawn
+        if self.spawn:
+            term = settings.config.get('general', 'terminal_cmd')
+            term = term.encode('utf-8', errors='ignore')
+            termlist = shlex.split(term)
+            cmdlist = termlist + cmdlist
+
+        logging.debug('CMDLIST: %s' % cmdlist)
+
+        def refocus():
             if self.refocus and callerbuffer in ui.buffers:
                 logging.info('refocussing')
                 ui.buffer_focus(callerbuffer)
 
-        def thread_code(*args):
-            if self.path:
-                if '{}' in self.commandstring:
-                    cmd = self.commandstring.replace('{}',
-                            helper.shell_quote(self.path))
+        class Proto(ProcessProtocol):
+            def __init__(self, on_success):
+                self.on_success = on_success
+                self.outBuf = StringIO.StringIO()
+                self.errBuf = StringIO.StringIO()
+                self.outReceived = self.outBuf.write
+                self.errReceived = self.errBuf.write
+
+            def processEnded(self, status):
+                ui.resume()
+                termenc = urwid.util.detected_encoding
+                out = string_decode(self.outBuf.getvalue(), termenc)
+                err = string_decode(self.errBuf.getvalue(), termenc)
+                #ui.mainloop.screen.start()
+                ui.update()
+                if status.value.exitCode == 0:
+                    if callable(self.on_success):
+                        self.on_success()
                 else:
-                    cmd = '%s %s' % (self.commandstring,
-                                     helper.shell_quote(self.path))
-            else:
-                cmd = self.commandstring
+                    ui.notify(str(status.value), priority='error')
+                refocus()
 
-            if self.spawn:
-                cmd = '%s %s' % (settings.config.get('general',
-                                                     'terminal_cmd'),
-                                 cmd)
-            cmd = cmd.encode('utf-8', errors='ignore')
-            logging.info('calling external command: %s' % cmd)
-            try:
-                if 0 == subprocess.call(shlex.split(cmd)):
-                    return 'success'
-            except OSError, e:
-                return str(e)
-
-        if self.in_thread:
-            d = threads.deferToThread(thread_code)
-            d.addCallback(afterwards)
-        else:
-            ui.mainloop.screen.stop()
-            ret = thread_code()
-            afterwards(ret)
-            ui.mainloop.screen.start()
+        environment = os.environ
+        logging.debug('CMD = %s' % cmdlist)
+        logging.debug(str(ui.mainloop.screen.get_input_descriptors()))
+        ui.suspend()
+        proc = reactor.spawnProcess(Proto(on_success=self.on_success), executable=cmdlist[0],
+                                    env=environment, childFDs={0: 4, 1: 1, 2: 2},
+                                    args=cmdlist)
 
 
 #@registerCommand(MODE, 'edit', arguments=[

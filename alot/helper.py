@@ -288,10 +288,11 @@ def call_cmd_async(cmdlist, stdin=None):
 
     d = Deferred()
     environment = os.environ
-    logging.debug('ENV = %s' % environment)
+    #logging.debug('ENV = %s' % environment)
+    logging.debug('CMD = %s' % cmdlist)
     proc = reactor.spawnProcess(_EverythingGetter(d), executable=cmdlist[0],
-                                env=environment,
-                                args=cmdlist[1:])
+                                env=environment, childFDs={0: 0, 1: 1, 2: 2},
+                                args=cmdlist)
     if stdin:
         logging.debug('writing to stdin')
         proc.write(stdin)
