@@ -226,7 +226,7 @@ class UI(object):
             if self.current_buffer != buf:
                 self.current_buffer = buf
                 self.inputwrap.set_root(self.mainframe)
-            self.mode = buf.typename
+            self.mode = buf.modename
             if isinstance(self.current_buffer, BufferlistBuffer):
                 self.current_buffer.rebuild()
             self.update()
@@ -400,6 +400,9 @@ class UI(object):
             self.mainframe.set_footer(urwid.Pile(lines))
         else:
             self.mainframe.set_footer(None)
+        # force a screen redraw
+        if self.mainloop.screen.started:
+            self.mainloop.draw_screen()
 
     def build_statusbar(self):
         """construct and return statusbar widget"""
@@ -459,13 +462,6 @@ class UI(object):
 
             # call cmd.apply
             logging.debug('apply command: %s' % cmd)
-            try:
-                retval = cmd.apply(self)
-                # if we deal with a InlineCallbacks-decorated method, it
-                # instantly returns a defered. This adds call/errbacks to react
-                # to successful/erroneous termination of the defered apply()
-                if isinstance(retval, defer.Deferred):
-                    retval.addErrback(errorHandler)
-                    retval.addCallback(call_posthook)
-            except Exception, e:
-                errorHandler(Failure(e))
+            d = defer.maybeDeferred(cmd.apply, self)
+            d.addErrback(errorHandler)
+            d.addCallback(call_posthook)

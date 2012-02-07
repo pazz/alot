@@ -316,7 +316,7 @@ class DBManager(object):
         path = message.get_filename()
         db = Database(path=self.path, mode=Database.MODE.READ_WRITE)
         try:
-            status = db.remove_message(path)
+            db.remove_message(path)
         except NotmuchError as e:
             raise DatabaseError(unicode(e))
 
@@ -433,6 +433,7 @@ class Thread(object):
         """
         rmtags = set(tags).intersection(self._tags)
         if rmtags:
+
             def myafterwards():
                 self._tags = self._tags.difference(tags)
                 if callable(afterwards):

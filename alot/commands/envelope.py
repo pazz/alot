@@ -5,7 +5,7 @@ import logging
 import email
 import tempfile
 from twisted.internet.defer import inlineCallbacks
-import threading
+from twisted.internet import threads
 import datetime
 
 from alot.account import SendingMailFailed
@@ -13,7 +13,6 @@ from alot import buffers
 from alot import commands
 from alot.commands import Command, registerCommand
 from alot import settings
-from alot import helper
 from alot.commands import globals
 from alot.helper import string_decode
 
@@ -123,34 +122,31 @@ class SendCommand(Command):
                 return
             else:
                 account = ui.accountman.get_accounts()[0]
-                omit_signature = True
 
         # send
         clearme = ui.notify('sending..', timeout=-1)
+        mail = envelope.construct_mail()
 
         def afterwards(returnvalue):
+            logging.debug('mail sent successfully')
             ui.clear_notify([clearme])
-            if returnvalue == 'success':  # sucessfully send mail
-                envelope.sent_time = datetime.datetime.now()
-                ui.apply_command(commands.globals.BufferCloseCommand())
-                ui.notify('mail send successful')
-            else:
-                ui.notify('failed to send: %s' % returnvalue,
-                          priority='error')
+            envelope.sent_time = datetime.datetime.now()
+            ui.apply_command(commands.globals.BufferCloseCommand())
+            ui.notify('mail sent successfully')
+            # add mail to index
+            logging.debug('adding new mail to index')
+            account.store_sent_mail(mail)
 
-        write_fd = ui.mainloop.watch_pipe(afterwards)
+        def errb(failure):
+            ui.clear_notify([clearme])
+            failure.trap(SendingMailFailed)
+            errmsg = 'failed to send: %s' % failure.value
+            ui.notify(errmsg, priority='error')
 
-        def thread_code():
-            mail = envelope.construct_mail()
-            try:
-                account.send_mail(mail)
-            except SendingMailFailed as e:
-                os.write(write_fd, unicode(e))
-            else:
-                os.write(write_fd, 'success')
-
-        thread = threading.Thread(target=thread_code)
-        thread.start()
+        d = account.send_mail(mail)
+        d.addCallback(afterwards)
+        d.addErrback(errb)
+        logging.debug('added errbacks,callbacks')
 
 
 @registerCommand(MODE, 'edit')
@@ -199,7 +195,7 @@ class EditCommand(Command):
             translate = settings.config.get_hook('post_edit_translate')
             if translate:
                 template = translate(template, ui=ui, dbm=ui.dbman,
-                                     aman=ui.accountman, config=settings.config)
+                                    aman=ui.accountman, config=settings.config)
             self.envelope.parse_template(template)
             if self.openNew:
                 ui.buffer_open(buffers.EnvelopeBuffer(ui, self.envelope))

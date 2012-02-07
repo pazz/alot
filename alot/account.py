@@ -92,6 +92,11 @@ class Account(object):
                 self.draft_box = mailbox.MMDF(mburl.path)
         self.draft_tags = draft_tags
 
+    def get_addresses(self):
+        """return all email addresses connected to this account, in order of
+        their importance"""
+        return [self.address] + self.aliases
+
     def store_mail(self, mbx, mail, tags=None):
         """
         stores given mail in mailbox. If mailbox is maildir, set the S-flag.
@@ -156,9 +161,10 @@ class Account(object):
 
         :param mail: the mail to send
         :type mail: :class:`email.message.Message` or string
-        :raises: :class:`alot.account.SendingMailFailed` if an error occured
+        :returns: a `Deferred` that errs back with a class:`SendingMailFailed`,
+                  containing a reason string if an error occured.
         """
-        return 'not implemented'
+        raise NotImplementedError
 
 
 class SendmailAccount(Account):
@@ -177,11 +183,23 @@ class SendmailAccount(Account):
     def send_mail(self, mail):
         mail['Date'] = email.utils.formatdate(time.time(), True)
         cmdlist = shlex.split(self.cmd.encode('utf-8', errors='ignore'))
-        out, err, retval = helper.call_cmd(cmdlist, stdin=mail.as_string())
-        if err:
-            errmsg = '%s. sendmail_cmd set to: %s' % (err, self.cmd)
+
+        def cb(out):
+            logging.info('sent mail successfully')
+            logging.info(out)
+
+        def errb(failure):
+            termobj = failure.value
+            errmsg = '%s\nsendmail_cmd set to: %s' % (str(termobj), self.cmd)
+            logging.error(errmsg)
+            logging.error(failure.getTraceback())
+            logging.error(failure.value.stderr)
             raise SendingMailFailed(errmsg)
-        self.store_sent_mail(mail)
+
+        d = helper.call_cmd_async(cmdlist, stdin=mail.as_string())
+        d.addCallback(cb)
+        d.addErrback(errb)
+        return d
 
 
 class AccountManager(object):
@@ -358,12 +376,13 @@ class MatchSdtoutAddressbook(AddressBook):
         :type command: str
         :param match: regular expression used to match contacts in `commands`
                       output to stdout. Must define subparts named "email" and
-                      "name". Defaults to "(?P<email>.+?@.+?)\s+(?P<name>.+)".
+                      "name".  Defaults to
+                      :regexp:`(?P<email>.+?@.+?)\s+(?P<name>.+?)\s*$`.
         :type match: str
         """
         self.command = command
         if not match:
-            self.match = "(?P<email>.+?@.+?)\s+(?P<name>.+)"
+            self.match = '(?P<email>.+?@.+?)\s+(?P<name>.+?)\s*$'
         else:
             self.match = match
 
@@ -382,6 +401,6 @@ class MatchSdtoutAddressbook(AddressBook):
             if m:
                 info = m.groupdict()
                 email = info['email'].strip()
-                name = info['name'].strip()
+                name = info['name']
                 res.append((name, email))
         return res

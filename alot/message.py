@@ -12,6 +12,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from notmuch.globals import NullPointerError
 
+from alot import __version__
 import logging
 import helper
 from settings import get_mime_handler
@@ -214,9 +215,13 @@ class Message(object):
 
     def get_attachments(self):
         """
-        returns all attachments.
-        Presently, all mime parts of this message that don't have content-type
-        'text/plain', or 'text/html' are considered attachments.
+        returns messages attachments
+
+        Derived from the leaves of the email mime tree
+        that and are not part of :rfc:`2015` syntax for encrypted/signed mails
+        and either have :mailheader:`Content-Disposition` `attachment`
+        or have :mailheader:`Content-Disposition` `inline` but specify
+        a filename (as parameter to `Content-Disposition`).
 
         :rtype: list of :class:`Attachment`
         """
@@ -224,8 +229,20 @@ class Message(object):
             self._attachments = []
             for part in self.get_message_parts():
                 cd = part.get('Content-Disposition', '')
+                filename = part.get_filename()
+                ct = part.get_content_type()
+                # replace underspecified mime description by a better guess
+                if ct in ['octet/stream', 'application/octet-stream']:
+                    content = part.get_payload(decode=True)
+                    ct = helper.guess_mimetype(content)
+
                 if cd.startswith('attachment'):
-                    self._attachments.append(Attachment(part))
+                    if ct not in ['application/pgp-encrypted',
+                                  'application/pgp-signature']:
+                        self._attachments.append(Attachment(part))
+                elif cd.startswith('inline'):
+                    if filename != None and ct != 'application/pgp':
+                        self._attachments.append(Attachment(part))
         return self._attachments
 
     def accumulate_body(self):
@@ -537,7 +554,7 @@ class Envelope(object):
         attach a file
 
         :param attachment: File to attach, given as :class:`Attachment` object
-                           or (globable) path to the file(s).
+                           or path to a file.
         :type attachment: :class:`Attachment` or str
         :param filename: filename to use in content-disposition.
                          Will be ignored if `path` matches multiple files
@@ -578,6 +595,14 @@ class Envelope(object):
             headers['Date'] = [email.Utils.formatdate()]
         if 'Message-ID' not in headers:
             headers['Message-ID'] = [email.Utils.make_msgid()]
+
+        if 'User-Agent' in headers:
+            uastring_format = headers['User-Agent'][0]
+        else:
+            uastring_format = config.get('general', 'user_agent').strip()
+        uastring = uastring_format % {'version': __version__}
+        if uastring:
+            headers['User-Agent'] = [uastring]
 
         # copy headers from envelope to mail
         for k, vlist in headers.items():

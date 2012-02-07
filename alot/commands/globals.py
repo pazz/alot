@@ -1,6 +1,6 @@
 import os
 import code
-import threading
+from twisted.internet import threads
 import subprocess
 import shlex
 import email
@@ -8,6 +8,7 @@ import urwid
 from twisted.internet.defer import inlineCallbacks
 import logging
 import argparse
+import glob
 
 from alot.commands import Command, registerCommand
 from alot.completion import CommandLineCompleter
@@ -86,7 +87,7 @@ class PromptCommand(Command):
     @inlineCallbacks
     def apply(self, ui):
         logging.info('open command shell')
-        mode = ui.current_buffer.typename
+        mode = ui.current_buffer.modename
         cmdline = yield ui.prompt(prefix=':',
                               text=self.startwith,
                               completer=CommandLineCompleter(ui.dbman,
@@ -103,7 +104,7 @@ class PromptCommand(Command):
             # save into prompt history
             ui.commandprompthistory.append(cmdline)
 
-            mode = ui.current_buffer.typename
+            mode = ui.current_buffer.modename
             try:
                 cmd = commandfactory(cmdline, mode)
                 ui.apply_command(cmd)
@@ -165,8 +166,6 @@ class ExternalCommand(Command):
                 logging.info('refocussing')
                 ui.buffer_focus(callerbuffer)
 
-        write_fd = ui.mainloop.watch_pipe(afterwards)
-
         def thread_code(*args):
             if self.path:
                 if '{}' in self.commandstring:
@@ -186,16 +185,17 @@ class ExternalCommand(Command):
             logging.info('calling external command: %s' % cmd)
             try:
                 if 0 == subprocess.call(shlex.split(cmd)):
-                    os.write(write_fd, 'success')
+                    return 'success'
             except OSError, e:
-                os.write(write_fd, str(e))
+                return str(e)
 
         if self.in_thread:
-            thread = threading.Thread(target=thread_code)
-            thread.start()
+            d = threads.deferToThread(thread_code)
+            d.addCallback(afterwards)
         else:
             ui.mainloop.screen.stop()
-            thread_code()
+            ret = thread_code()
+            afterwards(ret)
             ui.mainloop.screen.start()
 
 
@@ -256,9 +256,18 @@ class PythonShellCommand(Command):
 
 @registerCommand(MODE, 'bclose')
 class BufferCloseCommand(Command):
-    """close current buffer"""
+    """close a buffer"""
+    def __init__(self, buffer=None, **kwargs):
+        """
+        :param buffer: the buffer to close or None for current
+        :type buffer: `alot.buffers.Buffer`
+        """
+        self.buffer = buffer
+        Command.__init__(self, **kwargs)
+
     def apply(self, ui):
-        selected = ui.current_buffer
+        if self.buffer == None:
+            self.buffer = ui.current_buffer
         if len(ui.buffers) == 1:
             if settings.config.getboolean('general', 'quit_on_last_bclose'):
                 logging.info('closing the last buffer, exiting')
@@ -267,7 +276,7 @@ class BufferCloseCommand(Command):
                 logging.info('not closing last remaining buffer as '
                                'global.quit_on_last_bclose is set to False')
         else:
-            ui.buffer_close(selected)
+            ui.buffer_close(self.buffer)
 
 
 @registerCommand(MODE, 'bprevious', forced={'offset': -1},
@@ -433,12 +442,14 @@ class HelpCommand(Command):
     (['--cc'], {'nargs':'+', 'help':'copy to'}),
     (['--bcc'], {'nargs':'+', 'help':'blind copy to'}),
     (['--attach'], {'nargs':'+', 'help':'attach files'}),
+    (['--omit_signature'], {'action': 'store_true',
+                            'help':'do not add signature'}),
 ])
 class ComposeCommand(Command):
     """compose a new email"""
     def __init__(self, envelope=None, headers={}, template=None,
                  sender=u'', subject=u'', to=[], cc=[], bcc=[], attach=None,
-                 **kwargs):
+                 omit_signature=False, **kwargs):
         """
         :param envelope: use existing envelope
         :type envelope: :class:`~alot.message.Envelope`
@@ -460,6 +471,8 @@ class ComposeCommand(Command):
         :type bcc: str
         :param attach: Path to files to be attached (globable)
         :type attach: str
+        :param omit_signature: do not attach/append signature
+        :type omit_signature: bool
         """
 
         Command.__init__(self, **kwargs)
@@ -473,6 +486,7 @@ class ComposeCommand(Command):
         self.cc = cc
         self.bcc = bcc
         self.attach = attach
+        self.omit_signature = omit_signature
 
     @inlineCallbacks
     def apply(self, ui):
@@ -543,31 +557,33 @@ class ComposeCommand(Command):
                     self.envelope.add('From', fromaddress)
 
         # add signature
-        name, addr = email.Utils.parseaddr(self.envelope['From'])
-        account = ui.accountman.get_account_by_address(addr)
-        if account is not None:
-            if account.signature:
-                logging.debug('has signature')
-                sig = os.path.expanduser(account.signature)
-                if os.path.isfile(sig):
-                    logging.debug('is file')
-                    if account.signature_as_attachment:
-                        name = account.signature_filename or None
-                        self.envelope.attach(sig, filename=name)
-                        logging.debug('attached')
+        if not self.omit_signature:
+            name, addr = email.Utils.parseaddr(self.envelope['From'])
+            account = ui.accountman.get_account_by_address(addr)
+            if account is not None:
+                if account.signature:
+                    logging.debug('has signature')
+                    sig = os.path.expanduser(account.signature)
+                    if os.path.isfile(sig):
+                        logging.debug('is file')
+                        if account.signature_as_attachment:
+                            name = account.signature_filename or None
+                            self.envelope.attach(sig, filename=name)
+                            logging.debug('attached')
+                        else:
+                            sigcontent = open(sig).read()
+                            enc = helper.guess_encoding(sigcontent)
+                            mimetype = helper.guess_mimetype(sigcontent)
+                            if mimetype.startswith('text'):
+                                sigcontent = helper.string_decode(sigcontent,
+                                                                  enc)
+                                self.envelope.body += '\n' + sigcontent
                     else:
-                        sigcontent = open(sig).read()
-                        enc = helper.guess_encoding(sigcontent)
-                        mimetype = helper.guess_mimetype(sigcontent)
-                        if mimetype.startswith('text'):
-                            sigcontent = helper.string_decode(sigcontent, enc)
-                            self.envelope.body += '\n' + sigcontent
-                else:
-                    ui.notify('could not locate signature: %s' % sig,
-                              priority='error')
-                    if (yield ui.choice('send without signature',
+                        ui.notify('could not locate signature: %s' % sig,
+                                  priority='error')
+                        if (yield ui.choice('send without signature',
                                         select='yes', cancel='no')) == 'no':
-                        return
+                            return
 
         # get missing To header
         if 'To' not in self.envelope.headers:
@@ -580,7 +596,7 @@ class ComposeCommand(Command):
             logging.debug(allbooks)
             if account is not None:
                 abooks = ui.accountman.get_addressbooks(order=[account],
-                                                        append_remaining=allbooks)
+                                                    append_remaining=allbooks)
                 logging.debug(abooks)
                 completer = ContactsCompleter(abooks)
             else:
@@ -602,8 +618,10 @@ class ComposeCommand(Command):
             self.envelope.add('Subject', subject)
 
         if self.attach:
-            for a in self.attach:
-                self.envelope.attach(a)
+            for gpath in self.attach:
+                for a in glob.glob(gpath):
+                    self.envelope.attach(a)
+                    logging.debug('attaching: ' + a)
 
         cmd = commands.envelope.EditCommand(envelope=self.envelope)
         ui.apply_command(cmd)

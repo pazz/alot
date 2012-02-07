@@ -51,6 +51,10 @@ def lookup_command(cmdname, mode):
     :type mode: str
     :rtype: (:class:`Command`, :class:`~argparse.ArgumentParser`,
             dict(str->dict))
+
+    >>> (cmd, parser, kwargs) = lookup_command('save', 'thread')
+    >>> cmd
+    <class 'alot.commands.thread.SaveAttachmentCommand'>
     """
     if cmdname in COMMANDS[mode]:
         return COMMANDS[mode][cmdname]
@@ -64,10 +68,6 @@ def lookup_parser(cmdname, mode):
     """
     returns the :class:`CommandArgumentParser` used to construct a
     command for `cmdname` when called in `mode`.
-
-    >>> (cmd, parser, kwargs) = lookup_command('save', 'thread')
-    >>> cmd
-    <class 'alot.commands.thread.SaveAttachmentCommand'>
     """
     return lookup_command(cmdname, mode)[1]
 
@@ -191,8 +191,12 @@ def commandfactory(cmdline, mode='global'):
     parms.update(forcedparms)
     logging.debug('PARMS: %s' % parms)
 
-    parms['prehook'] = alot.settings.config.get_hook('pre_' + cmdname)
-    parms['posthook'] = alot.settings.config.get_hook('post_' + cmdname)
+    # set pre and post command hooks
+    get_hook = alot.settings.config.get_hook
+    parms['prehook'] = get_hook('pre_%s_%s' % (mode, cmdname)) or \
+            get_hook('pre_global_%s' % cmdname)
+    parms['posthook'] = get_hook('post_%s_%s' % (mode, cmdname)) or \
+            get_hook('post_global_%s' % cmdname)
 
     logging.debug('cmd parms %s' % parms)
     return cmdclass(**parms)

@@ -53,6 +53,7 @@ input and acts on it:
     .. automethod:: buffer_focus
     .. automethod:: buffer_close
     .. automethod:: get_buffers_of_type
+    .. automethod:: exit
 
 
 Buffers

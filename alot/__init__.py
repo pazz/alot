@@ -1,8 +1,6 @@
-from version import read_version
-
 __productname__ = 'alot'
-__version__ = read_version()
-__copyright__ = "Copyright (C) 2011 Patrick Totzke"
+__version__ = '0.21+'
+__copyright__ = "Copyright (C) 2012 Patrick Totzke"
 __author__ = "Patrick Totzke"
 __author_email__ = "patricktotzke@gmail.com"
 __description__ = "Terminal MUA using notmuch mail"

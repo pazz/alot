@@ -116,8 +116,7 @@ class RetagPromptCommand(Command):
     A tag is considered present if at least one message contained in this
     thread is tagged with it. In that case this command will remove the tag
     from every message in the thread.
-    """
-)
+    """)
 class TagCommand(Command):
     """manipulate message tags"""
     def __init__(self, tags=u'', action='add', all=False, **kwargs):
@@ -141,6 +140,7 @@ class TagCommand(Command):
         thread = threadline_widget.get_thread()
         testquery = "(%s) AND thread:%s" % (ui.current_buffer.querystring,
                                             thread.get_thread_id())
+
         def remove_thread():
             logging.debug('remove thread from result list: %s' % thread)
             threadlist = ui.current_buffer.threadlist

@@ -124,10 +124,10 @@ Have a look at `the urwid User Input documentation <http://excess.org/urwid/wiki
 
 Hooks
 =====
-Hooks are python callables that live in a module specified by
-`hooksfile` in the `[global]` section of your config. Per default this points
-to `~/.config/alot/hooks.py`.
-For every command X, the callable 'pre_X' will be called before X and 'post_X' afterwards.
+Hooks are python callables that live in a module specified by `hooksfile` in the `[global]`
+section of your config. Per default this points to `~/.config/alot/hooks.py`.
+For every command X in mode M, the callables 'pre_M_X' and 'post_M_X'
+-- if defined -- will be called before and after the command is applied respectively.
 
 When a hook gets called, it receives instances of
 
@@ -146,7 +146,7 @@ As an example, consider this pre-hook for the exit command,
 that logs a personalized goodby message::
 
     import logging
-    def pre_exit(aman=None, **rest):
+    def pre_global_exit(aman=None, **rest):
         accounts = aman.get_accounts()
         if accounts:
             logging.info('goodbye, %s!' % accounts[0].realname)
@@ -409,7 +409,7 @@ respectively. See below for an example that uses `abook <http://abook.sourceforg
     realname = ...
     address = ...
     abook_command = abook --mutt-query
-    abook_regexp = (?P<email>.+?@.+?)\s+(?P<name>.+)
+    abook_regexp = '(?P<email>.+?@.+?)\s+(?P<name>.+?)\s*$'
 
 See `here <http://notmuchmail.org/emacstips/#index11h2>`_ for alternative lookup commands. The few others I have tested so far are:
 
