@@ -293,7 +293,7 @@ def call_cmd_async(cmdlist, stdin=None, env=None):
     logging.debug('ENV = %s' % environment)
     proc = reactor.spawnProcess(_EverythingGetter(d), executable=cmdlist[0],
                                 env=environment,
-                                args=cmdlist[1:])
+                                args=cmdlist)
     if stdin:
         logging.debug('writing to stdin')
         proc.write(stdin)
