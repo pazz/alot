@@ -100,18 +100,18 @@ class DBManager(object):
             while self.writequeue:
                 current_item = self.writequeue.popleft()
                 logging.debug('write-out item: %s' % str(current_item))
-                # the first two coordinants are cnmdname and post-callback
-                cmd, afterwards = current_item[:2]
 
-                # make this a transaction
+                # watch out for notmuch errors to re-insert current_item
+                # to the queue on errors
                 try:
-                    db.begin_atomic()
-                except XapianError:
-                    raise DatabaseError()
+                    # the first two coordinants are cnmdname and post-callback
+                    cmd, afterwards = current_item[:2]
 
-                if cmd == 'add':
-                    path, tags = current_item[2:]
-                    try:
+                    # make this a transaction
+                    db.begin_atomic()
+
+                    if cmd == 'add':
+                        path, tags = current_item[2:]
                         msg, status = db.add_message(path,
                                                      sync_maildir_flags=sync)
                         msg.freeze()
@@ -119,43 +119,43 @@ class DBManager(object):
                             msg.add_tag(tag.encode(DB_ENC),
                                         sync_maildir_flags=sync)
                         msg.thaw()
-                    except NotmuchError as e:
-                        raise DatabaseError(unicode(e))
 
-                elif cmd == 'remove':
-                    path = current_item[2]
-                    try:
+                    elif cmd == 'remove':
+                        path = current_item[2]
                         db.remove_message(path)
-                    except NotmuchError as e:
-                        raise DatabaseError(unicode(e))
 
-                else:  # tag/set/untag
-                    querystring, tags = current_item[2:]
-                    query = db.create_query(querystring)
-                    for msg in query.search_messages():
-                        msg.freeze()
-                        if cmd == 'tag':
-                            for tag in tags:
-                                msg.add_tag(tag.encode(DB_ENC),
-                                            sync_maildir_flags=sync)
-                        if cmd == 'set':
-                            msg.remove_all_tags()
-                            for tag in tags:
-                                msg.add_tag(tag.encode(DB_ENC),
-                                            sync_maildir_flags=sync)
-                        elif cmd == 'untag':
-                            for tag in tags:
-                                msg.remove_tag(tag.encode(DB_ENC),
-                                              sync_maildir_flags=sync)
-                        msg.thaw()
+                    else:  # tag/set/untag
+                        querystring, tags = current_item[2:]
+                        query = db.create_query(querystring)
+                        for msg in query.search_messages():
+                            msg.freeze()
+                            if cmd == 'tag':
+                                for tag in tags:
+                                    msg.add_tag(tag.encode(DB_ENC),
+                                                sync_maildir_flags=sync)
+                            if cmd == 'set':
+                                msg.remove_all_tags()
+                                for tag in tags:
+                                    msg.add_tag(tag.encode(DB_ENC),
+                                                sync_maildir_flags=sync)
+                            elif cmd == 'untag':
+                                for tag in tags:
+                                    msg.remove_tag(tag.encode(DB_ENC),
+                                                  sync_maildir_flags=sync)
+                            msg.thaw()
 
-                # end transaction and reinsert queue item on error
-                if db.end_atomic() != notmuch.STATUS.SUCCESS:
-                    # TODO raise error, reappend on every error above
-                    self.writequeue.appendleft(current_item)
-                else:
+                    # end transaction and reinsert queue item on error
+                    if db.end_atomic() != notmuch.STATUS.SUCCESS:
+                        raise DatabaseError('fail-status from end_atomic')
+
+                    # call post-callback
                     if callable(afterwards):
                         afterwards()
+
+                # re-insert item to the queue upon Xapian/NotmuchErrors
+                except (XapianError, NotmuchError) as e:
+                    self.writequeue.appendleft(current_item)
+                    raise DatabaseError(unicode(e))
 
     def kill_search_processes(self):
         """
@@ -211,7 +211,7 @@ class DBManager(object):
         .. note::
             You need to call :meth:`DBManager.flush` to actually write out.
         """
-        if self.ro: # TODO:removeme
+        if self.ro:
             raise DatabaseROError()
         self.writequeue.append(('untag', afterwards, querystring, tags))
 
