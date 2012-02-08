@@ -91,9 +91,16 @@ class SaveCommand(Command):
             return
 
         mail = envelope.construct_mail()
-        account.store_draft_mail(mail)
-        ui.apply_command(commands.globals.BufferCloseCommand())
+        # store mail locally
+        path = account.store_draft_mail(mail)
         ui.notify('draft saved successfully')
+
+        # add mail to index if maildir path available
+        if path is not None:
+            logging.debug('adding new mail to index')
+            ui.dbman.add_message(path, account.draft_tags)
+            ui.apply_command(globals.FlushCommand())
+        ui.apply_command(commands.globals.BufferCloseCommand())
 
 
 @registerCommand(MODE, 'send')
@@ -133,9 +140,13 @@ class SendCommand(Command):
             envelope.sent_time = datetime.datetime.now()
             ui.apply_command(commands.globals.BufferCloseCommand())
             ui.notify('mail sent successfully')
-            # add mail to index
-            logging.debug('adding new mail to index')
-            account.store_sent_mail(mail)
+            # store mail locally
+            path = account.store_sent_mail(mail)
+            # add mail to index if maildir path available
+            if path is not None:
+                logging.debug('adding new mail to index')
+                ui.dbman.add_message(path, account.sent_tags)
+                ui.apply_command(globals.FlushCommand())
 
         def errb(failure):
             ui.clear_notify([clearme])
