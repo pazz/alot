@@ -444,12 +444,14 @@ class HelpCommand(Command):
     (['--attach'], {'nargs':'+', 'help':'attach files'}),
     (['--omit_signature'], {'action': 'store_true',
                             'help':'do not add signature'}),
+    (['--spawn'], {'action': 'store_true',
+                   'help':'spawn editor in new terminal'}),
 ])
 class ComposeCommand(Command):
     """compose a new email"""
     def __init__(self, envelope=None, headers={}, template=None,
                  sender=u'', subject=u'', to=[], cc=[], bcc=[], attach=None,
-                 omit_signature=False, **kwargs):
+                 omit_signature=False, spawn=None, **kwargs):
         """
         :param envelope: use existing envelope
         :type envelope: :class:`~alot.message.Envelope`
@@ -473,6 +475,8 @@ class ComposeCommand(Command):
         :type attach: str
         :param omit_signature: do not attach/append signature
         :type omit_signature: bool
+        :param spawn: force spawning of editor in a new terminal
+        :type spawn: bool
         """
 
         Command.__init__(self, **kwargs)
@@ -487,6 +491,7 @@ class ComposeCommand(Command):
         self.bcc = bcc
         self.attach = attach
         self.omit_signature = omit_signature
+        self.force_spawn = spawn
 
     @inlineCallbacks
     def apply(self, ui):
@@ -623,7 +628,8 @@ class ComposeCommand(Command):
                     self.envelope.attach(a)
                     logging.debug('attaching: ' + a)
 
-        cmd = commands.envelope.EditCommand(envelope=self.envelope)
+        cmd = commands.envelope.EditCommand(envelope=self.envelope,
+                spawn=self.force_spawn)
         ui.apply_command(cmd)
 
 
