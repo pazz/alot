@@ -92,7 +92,8 @@ class DBManager(object):
                 raise DatabaseLockedError()
             while self.writequeue:
                 current_item = self.writequeue.popleft()
-                cmd, querystring, tags, sync, afterwards = current_item
+                cmd, afterwards = current_item[:1]
+
                 try:  # make this a transaction
                     db.begin_atomic()
                 except XapianError:
@@ -155,11 +156,11 @@ class DBManager(object):
             raise DatabaseROError()
         sync_maildir_flags = config.getboolean('maildir', 'synchronize_flags')
         if remove_rest:
-            self.writequeue.append(('set', querystring, tags,
-                                    sync_maildir_flags, afterwards))
+            self.writequeue.append(('set', afterwards, querystring, tags,
+                                    sync_maildir_flags))
         else:
-            self.writequeue.append(('tag', querystring, tags,
-                                    sync_maildir_flags, afterwards))
+            self.writequeue.append(('tag', afterwards, querystring, tags,
+                                    sync_maildir_flags))
 
     def untag(self, querystring, tags, afterwards=None):
         """
@@ -182,8 +183,8 @@ class DBManager(object):
         if self.ro:
             raise DatabaseROError()
         sync_maildir_flags = config.getboolean('maildir', 'synchronize_flags')
-        self.writequeue.append(('untag', querystring, tags,
-                                sync_maildir_flags, afterwards))
+        self.writequeue.append(('untag', afterwards, querystring, tags,
+                                sync_maildir_flags))
 
     def count_messages(self, querystring):
         """returns number of messages that match `querystring`"""
