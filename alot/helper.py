@@ -307,11 +307,12 @@ def guess_mimetype(blob):
 
     :param blob: file content as read by file.read()
     :type blob: data
-    :returns: mime-type
+    :returns: mime-type, falls back to 'application/octet-stream'
+    :rtype: str
     """
     m = magic.open(magic.MAGIC_MIME_TYPE)
     m.load()
-    return m.buffer(blob)
+    return m.buffer(blob) or 'application/octet-stream'
 
 
 def guess_encoding(blob):
