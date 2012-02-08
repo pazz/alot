@@ -512,21 +512,16 @@ class RemoveCommand(Command):
         if (yield ui.choice(confirm_msg, select='yes', cancel='no')) == 'no':
             return
 
+        # notify callback
+        def callback():
+            ui.notify(ok_msg)
+            ui.apply_command(RefreshCommand())
+
         # remove messages
-        try:
-            for m in messages:
-                ui.dbman.remove_message(m)
-        except DatabaseError, e:
-            err_msg = str(e)
-            ui.notify(err_msg, priority='error')
-            logging.debug(err_msg)
-            return
+        for m in messages:
+            ui.dbman.remove_message(m, afterwards=callback)
 
-        # notify
-        ui.notify(ok_msg)
-
-        # refresh buffer
-        ui.apply_command(RefreshCommand())
+        ui.apply_command(FlushCommand())
 
 
 @registerCommand(MODE, 'print', arguments=[
