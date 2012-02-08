@@ -97,7 +97,7 @@ class Account(object):
         their importance"""
         return [self.address] + self.aliases
 
-    def store_mail(self, mbx, mail, tags=None):
+    def store_mail(self, mbx, mail):
         """
         stores given mail in mailbox. If mailbox is maildir, set the S-flag.
 
@@ -105,10 +105,9 @@ class Account(object):
         :type mbx: :class:`mailbox.Mailbox`
         :param mail: the mail to store
         :type mail: :class:`email.message.Message` or str
-        :param tags: if given, add the mail to the notmuch index and tag it
-        :type tags: list of str
-        :returns: True iff mail was successfully stored
-        :rtype: bool
+        :returns: absolute path of mail-file for Maildir or None if mail was
+                  successfully stored
+        :rtype: str or None
         """
         if not isinstance(mbx, mailbox.Mailbox):
             logging.debug('Not a mailbox')
@@ -128,15 +127,13 @@ class Account(object):
         mbx.unlock()
         logging.debug('got id : %s' % id)
 
+        path = None
         # add new Maildir message to index and add tags
-        if isinstance(mbx, mailbox.Maildir) and tags != None:
+        if isinstance(mbx, mailbox.Maildir):
             # this is a dirty hack to get the path to the newly added file
             # I wish the mailbox module were more helpful...
             path = glob.glob(os.path.join(mbx._path, '*', message_id + '*'))[0]
-
-            message = self.dbman.add_message(path, tags)
-            self.dbman.flush()
-        return True
+        return path
 
     def store_sent_mail(self, mail):
         """
@@ -144,7 +141,7 @@ class Account(object):
         :attr:`sent_box` is set.
         """
         if self.sent_box is not None:
-            self.store_mail(self.sent_box, mail, self.sent_tags)
+            return self.store_mail(self.sent_box, mail)
 
     def store_draft_mail(self, mail):
         """
@@ -152,7 +149,7 @@ class Account(object):
         :attr:`draft_box` is set.
         """
         if self.draft_box is not None:
-            self.store_mail(self.draft_box, mail, self.draft_tags)
+            return self.store_mail(self.draft_box, mail)
 
     def send_mail(self, mail):
         """
