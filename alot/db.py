@@ -1,6 +1,7 @@
 from notmuch import Database, NotmuchError, XapianError
 import notmuch
 import multiprocessing
+import logging
 
 from datetime import datetime
 from collections import deque
@@ -85,39 +86,71 @@ class DBManager(object):
         if self.ro:
             raise DatabaseROError()
         if self.writequeue:
+            # aquire a writeable db handler
             try:
                 mode = Database.MODE.READ_WRITE
                 db = Database(path=self.path, mode=mode)
             except NotmuchError:
                 raise DatabaseLockedError()
+
+            # go through writequeue entries
             while self.writequeue:
                 current_item = self.writequeue.popleft()
-                cmd, afterwards = current_item[:1]
+                logging.debug('write-out item: %s' % str(current_item))
+                # the first two coordinants are cnmdname and post-callback
+                cmd, afterwards = current_item[:2]
 
-                try:  # make this a transaction
+                # make this a transaction
+                try:
                     db.begin_atomic()
                 except XapianError:
                     raise DatabaseError()
-                query = db.create_query(querystring)
-                for msg in query.search_messages():
-                    msg.freeze()
-                    if cmd == 'tag':
+
+                if cmd == 'add':
+                    path, tags = current_item[2:]
+                    try:
+                        # TODO don't harcode sync flags
+                        msg, status = db.add_message(path,
+                                                     sync_maildir_flags=True)
+                        msg.freeze()
                         for tag in tags:
                             msg.add_tag(tag.encode(DB_ENC),
-                                        sync_maildir_flags=sync)
-                    if cmd == 'set':
-                        msg.remove_all_tags()
-                        for tag in tags:
-                            msg.add_tag(tag.encode(DB_ENC),
-                                        sync_maildir_flags=sync)
-                    elif cmd == 'untag':
-                        for tag in tags:
-                            msg.remove_tag(tag.encode(DB_ENC),
-                                          sync_maildir_flags=sync)
-                    msg.thaw()
+                                        sync_maildir_flags=True)
+                        msg.thaw()
+                    except NotmuchError as e:
+                        raise DatabaseError(unicode(e))
+
+                elif cmd == 'remove':
+                    path = current_item[2]
+                    try:
+                        db.remove_message(path)
+                    except NotmuchError as e:
+                        raise DatabaseError(unicode(e))
+
+                else:  # tag/set/untag
+                    # TODO get sync from config once
+                    querystring, tags, sync = current_item[2:]
+                    query = db.create_query(querystring)
+                    for msg in query.search_messages():
+                        msg.freeze()
+                        if cmd == 'tag':
+                            for tag in tags:
+                                msg.add_tag(tag.encode(DB_ENC),
+                                            sync_maildir_flags=sync)
+                        if cmd == 'set':
+                            msg.remove_all_tags()
+                            for tag in tags:
+                                msg.add_tag(tag.encode(DB_ENC),
+                                            sync_maildir_flags=sync)
+                        elif cmd == 'untag':
+                            for tag in tags:
+                                msg.remove_tag(tag.encode(DB_ENC),
+                                              sync_maildir_flags=sync)
+                        msg.thaw()
 
                 # end transaction and reinsert queue item on error
                 if db.end_atomic() != notmuch.STATUS.SUCCESS:
+                    # TODO raise error, reappend on every error above
                     self.writequeue.appendleft(current_item)
                 else:
                     if callable(afterwards):
