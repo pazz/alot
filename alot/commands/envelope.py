@@ -149,16 +149,21 @@ class SendCommand(Command):
         logging.debug('added errbacks,callbacks')
 
 
-@registerCommand(MODE, 'edit')
+@registerCommand(MODE, 'edit', arguments=[
+    (['--spawn'], {'action': 'store_true',
+                   'help':'force spawning of editor in a new terminal'})])
 class EditCommand(Command):
     """edit mail"""
-    def __init__(self, envelope=None, **kwargs):
+    def __init__(self, envelope=None, spawn=None, **kwargs):
         """
         :param envelope: email to edit
         :type envelope: :class:`~alot.message.Envelope`
+        :param spawn: force spawning of editor in a new terminal
+        :type spawn: bool
         """
         self.envelope = envelope
         self.openNew = (envelope != None)
+        self.force_spawn = spawn
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
@@ -234,7 +239,8 @@ class EditCommand(Command):
         tf.flush()
         tf.close()
         cmd = globals.EditCommand(tf.name, on_success=openEnvelopeFromTmpfile,
-                          refocus=False)
+                          spawn=self.force_spawn, thread=self.force_spawn,
+                          refocus=True)
         ui.apply_command(cmd)
 
 
