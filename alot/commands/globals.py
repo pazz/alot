@@ -629,7 +629,7 @@ class ComposeCommand(Command):
                     logging.debug('attaching: ' + a)
 
         cmd = commands.envelope.EditCommand(envelope=self.envelope,
-                spawn=self.force_spawn)
+                spawn=self.force_spawn, refocus=False)
         ui.apply_command(cmd)
 
 
