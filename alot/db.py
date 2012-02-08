@@ -93,6 +93,9 @@ class DBManager(object):
             except NotmuchError:
                 raise DatabaseLockedError()
 
+            # read notmuch's config regarding imap flag synchronization
+            sync = config.getboolean('maildir', 'synchronize_flags')
+
             # go through writequeue entries
             while self.writequeue:
                 current_item = self.writequeue.popleft()
@@ -109,13 +112,12 @@ class DBManager(object):
                 if cmd == 'add':
                     path, tags = current_item[2:]
                     try:
-                        # TODO don't harcode sync flags
                         msg, status = db.add_message(path,
-                                                     sync_maildir_flags=True)
+                                                     sync_maildir_flags=sync)
                         msg.freeze()
                         for tag in tags:
                             msg.add_tag(tag.encode(DB_ENC),
-                                        sync_maildir_flags=True)
+                                        sync_maildir_flags=sync)
                         msg.thaw()
                     except NotmuchError as e:
                         raise DatabaseError(unicode(e))
@@ -128,8 +130,7 @@ class DBManager(object):
                         raise DatabaseError(unicode(e))
 
                 else:  # tag/set/untag
-                    # TODO get sync from config once
-                    querystring, tags, sync = current_item[2:]
+                    querystring, tags = current_item[2:]
                     query = db.create_query(querystring)
                     for msg in query.search_messages():
                         msg.freeze()
@@ -187,13 +188,10 @@ class DBManager(object):
         """
         if self.ro:
             raise DatabaseROError()
-        sync_maildir_flags = config.getboolean('maildir', 'synchronize_flags')
         if remove_rest:
-            self.writequeue.append(('set', afterwards, querystring, tags,
-                                    sync_maildir_flags))
+            self.writequeue.append(('set', afterwards, querystring, tags))
         else:
-            self.writequeue.append(('tag', afterwards, querystring, tags,
-                                    sync_maildir_flags))
+            self.writequeue.append(('tag', afterwards, querystring, tags))
 
     def untag(self, querystring, tags, afterwards=None):
         """
@@ -213,11 +211,9 @@ class DBManager(object):
         .. note::
             You need to call :meth:`DBManager.flush` to actually write out.
         """
-        if self.ro:
+        if self.ro: # TODO:removeme
             raise DatabaseROError()
-        sync_maildir_flags = config.getboolean('maildir', 'synchronize_flags')
-        self.writequeue.append(('untag', afterwards, querystring, tags,
-                                sync_maildir_flags))
+        self.writequeue.append(('untag', afterwards, querystring, tags))
 
     def count_messages(self, querystring):
         """returns number of messages that match `querystring`"""
