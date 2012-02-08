@@ -134,8 +134,7 @@ class Account(object):
             # I wish the mailbox module were more helpful...
             path = glob.glob(os.path.join(mbx._path, '*', message_id + '*'))[0]
 
-            message = self.dbman.add_message(path)
-            message.add_tags(tags)
+            message = self.dbman.add_message(path, tags)
             self.dbman.flush()
         return True
 
