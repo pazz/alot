@@ -304,19 +304,19 @@ class DBManager(object):
             raise DatabaseROError()
         self.writequeue.append(('add', afterwards, path, tags))
 
-    def remove_message(self, message):
+    def remove_message(self, message, afterwards=None):
         """
         Remove a message from the notmuch index
 
         :param message: message to remove
         :type message: :class:`Message`
+        :param afterwards: callback to trigger after removing
+        :type afterwards: callable or None
         """
+        if self.ro:
+            raise DatabaseROError()
         path = message.get_filename()
-        db = Database(path=self.path, mode=Database.MODE.READ_WRITE)
-        try:
-            db.remove_message(path)
-        except NotmuchError as e:
-            raise DatabaseError(unicode(e))
+        self.writequeue.append(('remove', afterwards, path))
 
 
 class Thread(object):
