@@ -161,7 +161,7 @@ def main():
     dbman = DBManager(path=args['mailindex-path'], ro=args['read-only'])
 
     #accountman
-    aman = AccountManager(dbman, settings.config)
+    aman = AccountManager(settings.config)
 
     # get initial searchstring
     try:
