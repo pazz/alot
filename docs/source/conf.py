@@ -80,7 +80,7 @@ copyright = u'2012, Patrick Totzke'
 # built documents.
 #
 # The short X.Y version.
-version = '0.21'
+version = __version__
 # The full version, including alpha/beta/rc tags.
 release = '0.21'
 
