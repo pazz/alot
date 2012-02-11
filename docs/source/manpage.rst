@@ -22,5 +22,5 @@ Usage
 
 
 See Also
------
+--------
 :manpage:`alot.rc(5)`
