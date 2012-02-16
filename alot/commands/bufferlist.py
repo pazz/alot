@@ -1,4 +1,5 @@
 from alot.commands import Command, registerCommand
+import globals
 
 MODE = 'bufferlist'
 
@@ -17,7 +18,7 @@ class BufferCloseCommand(Command):
     def apply(self, ui):
         bufferlist = ui.current_buffer
         selected = bufferlist.get_selected_buffer()
-        ui.buffer_close(selected)
+        ui.apply_command(globals.BufferCloseCommand(buffer=selected))
         if bufferlist is not selected:
             bufferlist.rebuild()
         ui.update()

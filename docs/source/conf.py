@@ -13,10 +13,42 @@
 
 import sys, os
 
+###############################
+# readthedocs.org hack,
+# needed to use autodocs on their build-servers:
+# http://readthedocs.org/docs/read-the-docs/en/latest/faq.html?highlight=autodocs#where-do-i-need-to-put-my-docs-for-rtd-to-find-it
+
+class Mock(object):
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def __call__(self, *args, **kwargs):
+        return Mock()
+
+    @classmethod
+    def __getattr__(self, name):
+        return Mock() if name not in ('__file__', '__path__') else '/dev/null'
+
+MOCK_MODULES = ['notmuch', 'notmuch.globals',
+                'twisted', 'twisted.internet',
+                'twisted.internet.defer',
+                'twisted.python',
+                'twisted.python.failure',
+                'twisted.internet.protocol',
+                'urwid',
+                'magic',
+                'argparse']
+for mod_name in MOCK_MODULES:
+    sys.modules[mod_name] = Mock()
+
+# end of readthedocs.org hack
+##############################
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath(os.path.join('..','..')))
+from alot import __version__,__author__
 
 # -- General configuration -----------------------------------------------------
 
@@ -25,7 +57,7 @@ import sys, os
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.intersphinx']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -48,7 +80,7 @@ copyright = u'2012, Patrick Totzke'
 # built documents.
 #
 # The short X.Y version.
-version = '0.21'
+version = __version__
 # The full version, including alpha/beta/rc tags.
 release = '0.21'
 

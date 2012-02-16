@@ -13,3 +13,4 @@ User Manual
 
    usage/index
    configuration
+   api/index

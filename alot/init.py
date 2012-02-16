@@ -17,14 +17,20 @@ from twisted.python import usage
 
 
 class SubcommandOptions(usage.Options):
+    optFlags = []
+
     def parseArgs(self, *args):
         self.args = args
 
     def as_argparse_opts(self):
         optstr = ''
         for k, v in self.items():
-            if v is not None:
-                optstr += '--%s \'%s\' ' % (k, v)
+            # flags translate int value 0 or 1..
+            if k in [a[0] for a in self.optFlags]:  # if flag
+                optstr += ('--%s ' % k) * v
+            else:
+                if v is not None:
+                    optstr += '--%s \'%s\' ' % (k, v)
         return optstr
 
     def opt_version(self):
@@ -41,10 +47,13 @@ class ComposeOptions(SubcommandOptions):
                 ['template', '', None, 'path to template file'],
                 ['attach', '', None, 'files to attach'],
             ]
+    optFlags = [
+            ['omit_signature', '', 'do not add signature'],
+            ]
 
     def parseArgs(self, *args):
         SubcommandOptions.parseArgs(self, *args)
-        self['to'] = ' '.join(args)
+        self['to'] = ' '.join(args) or None
 
 
 class SearchOptions(SubcommandOptions):
@@ -152,7 +161,7 @@ def main():
     dbman = DBManager(path=args['mailindex-path'], ro=args['read-only'])
 
     #accountman
-    aman = AccountManager(dbman, settings.config)
+    aman = AccountManager(settings.config)
 
     # get initial searchstring
     try:

@@ -1,6 +1,7 @@
 from notmuch import Database, NotmuchError, XapianError
 import notmuch
 import multiprocessing
+import logging
 
 from datetime import datetime
 from collections import deque
@@ -85,42 +86,76 @@ class DBManager(object):
         if self.ro:
             raise DatabaseROError()
         if self.writequeue:
+            # aquire a writeable db handler
             try:
                 mode = Database.MODE.READ_WRITE
                 db = Database(path=self.path, mode=mode)
             except NotmuchError:
                 raise DatabaseLockedError()
+
+            # read notmuch's config regarding imap flag synchronization
+            sync = config.getboolean('maildir', 'synchronize_flags')
+
+            # go through writequeue entries
             while self.writequeue:
                 current_item = self.writequeue.popleft()
-                cmd, querystring, tags, sync, afterwards = current_item
-                try:  # make this a transaction
-                    db.begin_atomic()
-                except XapianError:
-                    raise DatabaseError()
-                query = db.create_query(querystring)
-                for msg in query.search_messages():
-                    msg.freeze()
-                    if cmd == 'tag':
-                        for tag in tags:
-                            msg.add_tag(tag.encode(DB_ENC),
-                                        sync_maildir_flags=sync)
-                    if cmd == 'set':
-                        msg.remove_all_tags()
-                        for tag in tags:
-                            msg.add_tag(tag.encode(DB_ENC),
-                                        sync_maildir_flags=sync)
-                    elif cmd == 'untag':
-                        for tag in tags:
-                            msg.remove_tag(tag.encode(DB_ENC),
-                                          sync_maildir_flags=sync)
-                    msg.thaw()
+                logging.debug('write-out item: %s' % str(current_item))
 
-                # end transaction and reinsert queue item on error
-                if db.end_atomic() != notmuch.STATUS.SUCCESS:
-                    self.writequeue.appendleft(current_item)
-                else:
+                # watch out for notmuch errors to re-insert current_item
+                # to the queue on errors
+                try:
+                    # the first two coordinants are cnmdname and post-callback
+                    cmd, afterwards = current_item[:2]
+
+                    # make this a transaction
+                    db.begin_atomic()
+
+                    if cmd == 'add':
+                        path, tags = current_item[2:]
+                        msg, status = db.add_message(path,
+                                                     sync_maildir_flags=sync)
+                        msg.freeze()
+                        for tag in tags:
+                            msg.add_tag(tag.encode(DB_ENC),
+                                        sync_maildir_flags=sync)
+                        msg.thaw()
+
+                    elif cmd == 'remove':
+                        path = current_item[2]
+                        db.remove_message(path)
+
+                    else:  # tag/set/untag
+                        querystring, tags = current_item[2:]
+                        query = db.create_query(querystring)
+                        for msg in query.search_messages():
+                            msg.freeze()
+                            if cmd == 'tag':
+                                for tag in tags:
+                                    msg.add_tag(tag.encode(DB_ENC),
+                                                sync_maildir_flags=sync)
+                            if cmd == 'set':
+                                msg.remove_all_tags()
+                                for tag in tags:
+                                    msg.add_tag(tag.encode(DB_ENC),
+                                                sync_maildir_flags=sync)
+                            elif cmd == 'untag':
+                                for tag in tags:
+                                    msg.remove_tag(tag.encode(DB_ENC),
+                                                  sync_maildir_flags=sync)
+                            msg.thaw()
+
+                    # end transaction and reinsert queue item on error
+                    if db.end_atomic() != notmuch.STATUS.SUCCESS:
+                        raise DatabaseError('fail-status from end_atomic')
+
+                    # call post-callback
                     if callable(afterwards):
                         afterwards()
+
+                # re-insert item to the queue upon Xapian/NotmuchErrors
+                except (XapianError, NotmuchError) as e:
+                    self.writequeue.appendleft(current_item)
+                    raise DatabaseError(unicode(e))
 
     def kill_search_processes(self):
         """
@@ -153,13 +188,10 @@ class DBManager(object):
         """
         if self.ro:
             raise DatabaseROError()
-        sync_maildir_flags = config.getboolean('maildir', 'synchronize_flags')
         if remove_rest:
-            self.writequeue.append(('set', querystring, tags,
-                                    sync_maildir_flags, afterwards))
+            self.writequeue.append(('set', afterwards, querystring, tags))
         else:
-            self.writequeue.append(('tag', querystring, tags,
-                                    sync_maildir_flags, afterwards))
+            self.writequeue.append(('tag', afterwards, querystring, tags))
 
     def untag(self, querystring, tags, afterwards=None):
         """
@@ -181,9 +213,7 @@ class DBManager(object):
         """
         if self.ro:
             raise DatabaseROError()
-        sync_maildir_flags = config.getboolean('maildir', 'synchronize_flags')
-        self.writequeue.append(('untag', querystring, tags,
-                                sync_maildir_flags, afterwards))
+        self.writequeue.append(('untag', afterwards, querystring, tags))
 
     def count_messages(self, querystring):
         """returns number of messages that match `querystring`"""
@@ -288,37 +318,34 @@ class DBManager(object):
         db = Database(path=self.path, mode=mode)
         return db.create_query(querystring)
 
-    def add_message(self, path):
+    def add_message(self, path, tags=[], afterwards=None):
         """
         Adds a file to the notmuch index.
 
         :param path: path to the file
         :type path: str
-        :returns: the message object corresponding the added message
-        :rtype: :class:`alot.message.Message`
+        :param tags: tagstrings to add
+        :type tags: list of str
+        :param afterwards: callback to trigger after adding
+        :type afterwards: callable or None
         """
-        db = Database(path=self.path, mode=Database.MODE.READ_WRITE)
-        try:
-            message, status = db.add_message(path,
-                                             sync_maildir_flags=True)
-        except NotmuchError as e:
-            raise DatabaseError(unicode(e))
+        if self.ro:
+            raise DatabaseROError()
+        self.writequeue.append(('add', afterwards, path, tags))
 
-        return Message(self, message)
-
-    def remove_message(self, message):
+    def remove_message(self, message, afterwards=None):
         """
         Remove a message from the notmuch index
 
         :param message: message to remove
         :type message: :class:`Message`
+        :param afterwards: callback to trigger after removing
+        :type afterwards: callable or None
         """
+        if self.ro:
+            raise DatabaseROError()
         path = message.get_filename()
-        db = Database(path=self.path, mode=Database.MODE.READ_WRITE)
-        try:
-            status = db.remove_message(path)
-        except NotmuchError as e:
-            raise DatabaseError(unicode(e))
+        self.writequeue.append(('remove', afterwards, path))
 
 
 class Thread(object):
@@ -406,7 +433,7 @@ class Thread(object):
         """
         def myafterwards():
             if remove_rest:
-                self._tags = tags
+                self._tags = set(tags)
             else:
                 self._tags = self._tags.union(tags)
             if callable(afterwards):
@@ -433,6 +460,7 @@ class Thread(object):
         """
         rmtags = set(tags).intersection(self._tags)
         if rmtags:
+
             def myafterwards():
                 self._tags = self._tags.difference(tags)
                 if callable(afterwards):

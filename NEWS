@@ -1,6 +1,7 @@
 current:
 
 * completion for multiple recipients via AbooksCompleter
+* completion for optional command parameter
 * header key completion for set/unset in envelope buffer
 * generate and set a Message-ID header when constructing mails
 * add sent and saved draft mails to the notmuch index and add custom tags

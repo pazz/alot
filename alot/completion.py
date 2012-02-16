@@ -2,6 +2,7 @@ import re
 import os
 import glob
 import logging
+import argparse
 
 import alot.commands as commands
 from alot.buffers import EnvelopeBuffer
@@ -85,7 +86,6 @@ class MultipleSelectionCompleter(Completer):
 
     def complete(self, original, pos):
         mypart, start, end, mypos = self.relevant_part(original, pos)
-        prefix = mypart[:mypos]
         res = []
         for c, p in self._completer.complete(mypart, mypos):
             newprefix = original[:start] + c
@@ -203,10 +203,43 @@ class AbooksCompleter(Completer):
         else:
             returnlist = []
             for name, email in res:
-                newtext = "%s <%s>" % (name, email)
+                if name:
+                    newtext = "%s <%s>" % (name, email)
+                else:
+                    newtext = email
                 returnlist.append((newtext, len(newtext)))
         return returnlist
 
+class ArgparseOptionCompleter(Completer):
+    """completes option parameters for a given argparse.Parser"""
+    def __init__(self, parser):
+        """
+        :param parser: the option parser we look up parameter and  choices from
+        :type parser: `argparse.ArgumentParser`
+        """
+        self.parser = parser
+        self.actions = parser._optionals._actions
+
+    def complete(self, original, pos):
+        pref = original[:pos]
+
+        res = []
+        for act in self.actions:
+            if '=' in pref:
+                optionstring = pref[:pref.rfind('=')+1]
+                # get choices
+                if 'choices' in act.__dict__:
+                    choices = act.choices or []
+                    res = res + [optionstring + a for a in choices]
+            else:
+                for optionstring in act.option_strings:
+                    if optionstring.startswith(pref):
+                        # append '=' for options that await a string value
+                        if isinstance(act, argparse._StoreAction):
+                            optionstring += '='
+                        res.append(optionstring)
+
+        return [(a, len(a)) for a in res]
 
 class AccountCompleter(StringlistCompleter):
     """completes users' own mailaddresses"""
@@ -279,11 +312,33 @@ class CommandLineCompleter(Completer):
         else:
             cmd, params = words
             localpos = pos - (len(cmd) + 1)
+            parser = commands.lookup_parser(cmd, self.mode)
             # set 'res' - the result set of matching completionstrings
             # depending on the current mode and command
 
+            # detect if we are completing optional parameter
+            arguments_until_now = params[:localpos].split(' ')
+            all_optionals = True
+            logging.debug(str(arguments_until_now))
+            for a in arguments_until_now:
+                logging.debug(a)
+                if a and not a.startswith('-'):
+                    all_optionals = False
+            # complete optional parameter if
+            # 1. all arguments prior to current position are optional parameter
+            # 2. the parameter starts with '-' or we are at its beginning
+            if all_optionals:
+                myarg = arguments_until_now[-1]
+                start_myarg = params.rindex(myarg)
+                beforeme = params[:start_myarg]
+                # set up local stringlist completer
+                # and let it complete for given list of options
+                localcompleter = ArgparseOptionCompleter(parser)
+                localres = localcompleter.complete(myarg, len(myarg))
+                res = [(beforeme + c, p + start_myarg) for (c, p) in localres]
+
             # global
-            if cmd == 'search':
+            elif cmd == 'search':
                 res = self._querycompleter.complete(params, localpos)
             elif cmd == 'help':
                 res = self._commandcompleter.complete(params, localpos)

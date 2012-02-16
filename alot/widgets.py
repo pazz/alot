@@ -112,7 +112,7 @@ class ThreadlineWidget(urwid.AttrMap):
         cols.append(('fixed', len(mailcountstring), self.mailcount_w))
 
         if self.thread:
-            self.tag_widgets = [TagWidget(t, self.highlight_theme_suffix) 
+            self.tag_widgets = [TagWidget(t, self.highlight_theme_suffix)
                                 for t in self.thread.get_tags()]
         else:
             self.tag_widgets = []
@@ -151,8 +151,7 @@ class ThreadlineWidget(urwid.AttrMap):
             self.content_w = urwid.AttrMap(urwid.Text(
                                                    contentstring,
                                                    wrap='clip'),
-                                                   self._get_theme('content')
-                                                     )
+                                                   self._get_theme('content'))
             cols.append(self.content_w)
 
         self.columns = urwid.Columns(cols, dividechars=1)
@@ -210,7 +209,7 @@ class ThreadlineWidget(urwid.AttrMap):
             if focus:
                 theme += '_focus'
                 highlight_theme += '_focus'
-            if config.has_themeing(highlight_theme):
+            if config.has_theming(highlight_theme):
                 theme = highlight_theme
         elif focus:
             theme = theme + '_focus'
@@ -479,10 +478,12 @@ class MessageWidget(urwid.WidgetWrap):
         mail = self.message.get_email()
         # normalize values if only filtered list is shown
         norm = not (self._displayed_headers == self._all_headers)
+        lowercase_keys = [k.lower() for k in self._displayed_headers]
+
         #build lines
         lines = []
         for k, v in mail.items():
-            if k in self._displayed_headers:
+            if k.lower() in lowercase_keys:
                 lines.append((k, message.decode_header(v, normalize=norm)))
 
         cols = [HeadersList(lines)]
@@ -606,16 +607,16 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         tag_widgets.sort(tag_cmp, lambda tag_widget: tag_widget.translated)
         for tag_widget in tag_widgets:
             cols.append(('fixed', tag_widget.width(), tag_widget))
-        line = urwid.AttrMap(urwid.Columns(cols, dividechars=1), attr, 'thread_summary_focus')
+        line = urwid.AttrMap(urwid.Columns(cols, dividechars=1), attr,
+                             'thread_summary_focus')
         urwid.WidgetWrap.__init__(self, line)
 
     def __str__(self):
         author, address = self.message.get_author()
         date = self.message.get_datestring()
-        if date == None:
-            rep = author
-        else:
-            rep = '%s (%s)' % (author, date)
+        rep = author if author != '' else address
+        if date != None:
+            rep += " (%s)" % date
         return rep
 
     def selectable(self):

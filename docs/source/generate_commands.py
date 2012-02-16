@@ -1,8 +1,10 @@
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+HERE = os.path.dirname(__file__)
+sys.path.append(os.path.join(HERE, '..', '..', '..'))
 from alot.commands import *
 from alot.commands import COMMANDS
+import alot.buffers
 from argparse import HelpFormatter, SUPPRESS, OPTIONAL, ZERO_OR_MORE, ONE_OR_MORE, PARSER, REMAINDER
 from gettext import gettext as _
 import collections as _collections
@@ -50,6 +52,7 @@ def rstify_parser(parser):
         usage = usage.replace('--','---')
 
         # section header
+        out += '.. index:: %s\n' % parser.prog
         out +='\n%s\n' % parser.prog
         out += '_'*len(parser.prog)
         out += '\n\n'
@@ -98,9 +101,43 @@ def rstify_parser(parser):
 
         return out
 
-for mode, modecommands in COMMANDS.items():
-    print mode + '-mode\n' + '-' * (len(mode) + 5)
-    for cmdstring,struct in modecommands.items():
-        cls, parser, forced_args = struct
-        print rstify_parser(parser)
+def get_mode_docs():
+    docs = {}
+    b = alot.buffers.Buffer
+    for entry in alot.buffers.__dict__.values():
+        if isinstance(entry, type):
+            if issubclass(entry, b) and not entry == b:
+                docs[entry.modename] = entry.__doc__.strip()
+    return docs
 
+
+if __name__ == "__main__":
+
+    modes = []
+    for mode, modecommands in COMMANDS.items():
+        modefilename = mode+'.rst'
+        modefile = open(os.path.join(HERE, 'usage', 'modes', modefilename), 'w')
+        modefile.write('%s\n%s\n' % (mode, '-' * len(mode)))
+        if mode != 'global':
+            modes.append(mode)
+            modefile.write('The following commands are available in %s mode\n\n' % mode)
+        else:
+            modefile.write('The following commands are available globally\n\n')
+        for cmdstring,struct in modecommands.items():
+            cls, parser, forced_args = struct
+            modefile.write(rstify_parser(parser))
+        modefile.close()
+    indexfile = open(os.path.join(HERE, 'usage', 'commands.rst'), 'w')
+
+    mode_docstrings = get_mode_docs()
+    tbl = ':doc:`modes/global`\n'
+    tbl += (' ' * 4) + 'globally available commands\n'
+    for m in modes:
+        tbl += ':doc:`modes/%s`\n' % m
+        tbl += (' ' * 4) + mode_docstrings[m] + '\n'
+
+    includes = '\n'.join([':doc:`modes/%s`' % m for m in modes])
+    indexfile.write('Commands\n========\n\n')
+    indexfile.write('\n\n')
+    indexfile.write(tbl)
+    indexfile.close()

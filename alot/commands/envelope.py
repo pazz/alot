@@ -5,7 +5,7 @@ import logging
 import email
 import tempfile
 from twisted.internet.defer import inlineCallbacks
-import threading
+from twisted.internet import threads
 import datetime
 
 from alot.account import SendingMailFailed
@@ -13,7 +13,6 @@ from alot import buffers
 from alot import commands
 from alot.commands import Command, registerCommand
 from alot import settings
-from alot import helper
 from alot.commands import globals
 from alot.helper import string_decode
 
@@ -92,9 +91,16 @@ class SaveCommand(Command):
             return
 
         mail = envelope.construct_mail()
-        account.store_draft_mail(mail)
-        ui.apply_command(commands.globals.BufferCloseCommand())
+        # store mail locally
+        path = account.store_draft_mail(mail)
         ui.notify('draft saved successfully')
+
+        # add mail to index if maildir path available
+        if path is not None:
+            logging.debug('adding new mail to index')
+            ui.dbman.add_message(path, account.draft_tags)
+            ui.apply_command(globals.FlushCommand())
+        ui.apply_command(commands.globals.BufferCloseCommand())
 
 
 @registerCommand(MODE, 'send')
@@ -123,46 +129,57 @@ class SendCommand(Command):
                 return
             else:
                 account = ui.accountman.get_accounts()[0]
-                omit_signature = True
 
         # send
         clearme = ui.notify('sending..', timeout=-1)
+        mail = envelope.construct_mail()
 
         def afterwards(returnvalue):
+            logging.debug('mail sent successfully')
             ui.clear_notify([clearme])
-            if returnvalue == 'success':  # sucessfully send mail
-                envelope.sent_time = datetime.datetime.now()
-                ui.apply_command(commands.globals.BufferCloseCommand())
-                ui.notify('mail send successful')
-            else:
-                ui.notify('failed to send: %s' % returnvalue,
-                          priority='error')
+            envelope.sent_time = datetime.datetime.now()
+            ui.apply_command(commands.globals.BufferCloseCommand())
+            ui.notify('mail sent successfully')
+            # store mail locally
+            path = account.store_sent_mail(mail)
+            # add mail to index if maildir path available
+            if path is not None:
+                logging.debug('adding new mail to index')
+                ui.dbman.add_message(path, account.sent_tags)
+                ui.apply_command(globals.FlushCommand())
 
-        write_fd = ui.mainloop.watch_pipe(afterwards)
+        def errb(failure):
+            ui.clear_notify([clearme])
+            failure.trap(SendingMailFailed)
+            errmsg = 'failed to send: %s' % failure.value
+            ui.notify(errmsg, priority='error')
 
-        def thread_code():
-            mail = envelope.construct_mail()
-            try:
-                account.send_mail(mail)
-            except SendingMailFailed as e:
-                os.write(write_fd, unicode(e))
-            else:
-                os.write(write_fd, 'success')
-
-        thread = threading.Thread(target=thread_code)
-        thread.start()
+        d = account.send_mail(mail)
+        d.addCallback(afterwards)
+        d.addErrback(errb)
+        logging.debug('added errbacks,callbacks')
 
 
-@registerCommand(MODE, 'edit')
+@registerCommand(MODE, 'edit', arguments=[
+    (['--spawn'], {'action': 'store_true',
+                   'help':'force spawning of editor in a new terminal'}),
+    (['--no-refocus'], {'action': 'store_false', 'dest':'refocus',
+                        'help':'don\'t refocus envelope after editing'}),
+    ])
 class EditCommand(Command):
     """edit mail"""
-    def __init__(self, envelope=None, **kwargs):
+    def __init__(self, envelope=None, spawn=None, refocus=True, **kwargs):
         """
         :param envelope: email to edit
         :type envelope: :class:`~alot.message.Envelope`
+        :param spawn: force spawning of editor in a new terminal
+        :type spawn: bool
+        :param refocus: m
         """
         self.envelope = envelope
         self.openNew = (envelope != None)
+        self.force_spawn = spawn
+        self.refocus = refocus
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
@@ -199,7 +216,7 @@ class EditCommand(Command):
             translate = settings.config.get_hook('post_edit_translate')
             if translate:
                 template = translate(template, ui=ui, dbm=ui.dbman,
-                                     aman=ui.accountman, config=settings.config)
+                                    aman=ui.accountman, config=settings.config)
             self.envelope.parse_template(template)
             if self.openNew:
                 ui.buffer_open(buffers.EnvelopeBuffer(ui, self.envelope))
@@ -238,7 +255,8 @@ class EditCommand(Command):
         tf.flush()
         tf.close()
         cmd = globals.EditCommand(tf.name, on_success=openEnvelopeFromTmpfile,
-                          refocus=False)
+                          spawn=self.force_spawn, thread=self.force_spawn,
+                          refocus=self.refocus)
         ui.apply_command(cmd)
 
 

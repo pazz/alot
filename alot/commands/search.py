@@ -99,41 +99,52 @@ class RetagPromptCommand(Command):
 
 
 @registerCommand(MODE, 'tag', forced={'action': 'add'}, arguments=[
+    (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
+                      'help': 'postpone a writeout to the index'}),
     (['tags'], {'help':'comma separated list of tags'})],
     help='add tags to all messages in the thread',
 )
 @registerCommand(MODE, 'retag', forced={'action': 'set'}, arguments=[
+    (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
+                      'help': 'postpone a writeout to the index'}),
     (['tags'], {'help':'comma separated list of tags'})],
     help='set tags of all messages in the thread',
 )
 @registerCommand(MODE, 'untag', forced={'action': 'remove'}, arguments=[
+    (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
+                      'help': 'postpone a writeout to the index'}),
     (['tags'], {'help':'comma separated list of tags'})],
     help='remove tags from all messages in the thread',
 )
 @registerCommand(MODE, 'toggletags', forced={'action': 'toggle'}, arguments=[
+    (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
+                      'help': 'postpone a writeout to the index'}),
     (['tags'], {'help':'comma separated list of tags'})],
     help="""flip presence of tags on this thread.
     A tag is considered present if at least one message contained in this
     thread is tagged with it. In that case this command will remove the tag
     from every message in the thread.
-    """
-)
+    """)
 class TagCommand(Command):
     """manipulate message tags"""
-    def __init__(self, tags=u'', action='add', all=False, **kwargs):
+    def __init__(self, tags=u'', action='add', all=False, flush=True,
+                 **kwargs):
         """
         :param tags: comma separated list of tagstrings to set
         :type tags: str
-        :param all: tag all messages in thread
-        :type all: bool
         :param action: adds tags if 'add', removes them if 'remove', adds tags
                        and removes all other if 'set' or toggle individually if
                        'toggle'
         :type action: str
+        :param all: tag all messages in thread
+        :type all: bool
+        :param flush: imediately write out to the index
+        :type flush: bool
         """
         self.tagsstring = tags
         self.all = all
         self.action = action
+        self.flush = flush
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
@@ -141,6 +152,7 @@ class TagCommand(Command):
         thread = threadline_widget.get_thread()
         testquery = "(%s) AND thread:%s" % (ui.current_buffer.querystring,
                                             thread.get_thread_id())
+
         def remove_thread():
             logging.debug('remove thread from result list: %s' % thread)
             threadlist = ui.current_buffer.threadlist
@@ -181,7 +193,8 @@ class TagCommand(Command):
             return
 
         # flush index
-        ui.apply_command(commands.globals.FlushCommand())
+        if self.flush:
+            ui.apply_command(commands.globals.FlushCommand())
 
         # refresh buffer.
         # TODO: This shouldn't be necessary but apparently it is: without the

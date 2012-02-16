@@ -11,6 +11,11 @@ from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
 import urwid
 import magic
+from twisted.internet import reactor
+from twisted.internet.protocol import ProcessProtocol
+from twisted.internet.defer import Deferred
+import StringIO
+import logging
 
 from settings import config
 
@@ -250,17 +255,65 @@ def call_cmd(cmdlist, stdin=None):
     return out, err, ret
 
 
+def call_cmd_async(cmdlist, stdin=None, env=None):
+    """
+    get a shell commands output, error message and return value as a deferred.
+
+    :type cmdlist: list of str
+    :param stdin: string to pipe to the process
+    :type stdin: str
+    :return: deferred that calls back with triple of stdout, stderr and
+             return value of the shell command
+    :rtype: `twisted.internet.defer.Deferred`
+    """
+
+    class _EverythingGetter(ProcessProtocol):
+        def __init__(self, deferred):
+            self.deferred = deferred
+            self.outBuf = StringIO.StringIO()
+            self.errBuf = StringIO.StringIO()
+            self.outReceived = self.outBuf.write
+            self.errReceived = self.errBuf.write
+
+        def processEnded(self, status):
+            termenc = urwid.util.detected_encoding
+            out = string_decode(self.outBuf.getvalue(), termenc)
+            err = string_decode(self.errBuf.getvalue(), termenc)
+            if status.value.exitCode == 0:
+                self.deferred.callback(out)
+            else:
+                terminated_obj = status.value
+                terminated_obj.stderr = err
+                self.deferred.errback(terminated_obj)
+
+    d = Deferred()
+    environment = os.environ
+    if env != None:
+        environment.update(env)
+    logging.debug('ENV = %s' % environment)
+    logging.debug('CMD = %s' % cmdlist)
+    proc = reactor.spawnProcess(_EverythingGetter(d), executable=cmdlist[0],
+                                env=environment,
+                                args=cmdlist)
+    if stdin:
+        logging.debug('writing to stdin')
+        proc.write(stdin)
+        proc.closeStdin()
+    return d
+
+
 def guess_mimetype(blob):
     """
     uses file magic to determine the mime-type of the given data blob.
 
     :param blob: file content as read by file.read()
     :type blob: data
-    :returns: mime-type
+    :returns: mime-type, falls back to 'application/octet-stream'
+    :rtype: str
     """
     m = magic.open(magic.MAGIC_MIME_TYPE)
     m.load()
-    return m.buffer(blob)
+    return m.buffer(blob) or 'application/octet-stream'
 
 
 def guess_encoding(blob):

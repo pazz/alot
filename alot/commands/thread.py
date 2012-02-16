@@ -5,6 +5,7 @@ from twisted.internet.defer import inlineCallbacks
 import shlex
 import re
 import subprocess
+from email.Utils import parseaddr
 
 from alot.commands import Command, registerCommand
 from alot.commands.globals import ExternalCommand
@@ -14,14 +15,54 @@ from alot.commands.globals import RefreshCommand
 from alot import settings
 from alot import widgets
 from alot import completion
-from alot import helper
 from alot.message import decode_header
+from alot.message import encode_header
 from alot.message import extract_headers
 from alot.message import extract_body
 from alot.message import Envelope
 from alot.db import DatabaseROError
+from alot.db import DatabaseError
 
 MODE = 'thread'
+
+
+def recipient_to_from(mail, my_accounts):
+    """
+    construct a suitable From-Header for forwards/replies to
+    a given mail.
+
+    :param mail: the email to inspect
+    :type mail: `email.message.Message`
+    :param my_accounts: list of accounts from which to chose from
+    :type my_accounts: list of `alot.account.Account`
+    """
+    realname = None
+    address = None
+
+    # extract list of recipients to check for my address
+    rec_to = filter(lambda x: x, mail.get('To', '').split(','))
+    rec_cc = filter(lambda x: x, mail.get('Cc', '').split(','))
+    delivered_to = mail.get('Delivered-To', None)
+    recipients = rec_to + rec_cc
+    if delivered_to is not None:
+        recipients.append(delivered_to)
+
+    # pick the most important account that has an address in recipients
+    # and use that accounts realname and the found recipient address
+    for acc in my_accounts:
+        acc_addresses = acc.get_addresses()
+        for rec in recipients:
+            _, raddress = parseaddr(rec)
+            raddress = raddress.decode()
+            if raddress in acc_addresses and realname is None:
+                realname = acc.realname
+                address = raddress
+
+    # revert to default account if nothing found
+    if realname is None:
+        realname = my_accounts[0].realname
+        address = my_accounts[0].address
+    return realname, address
 
 
 @registerCommand(MODE, 'reply', arguments=[
@@ -40,9 +81,17 @@ class ReplyCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
+        # look if this makes sense: do we have any accounts set up?
+        my_accounts = ui.accountman.get_accounts()
+        if not my_accounts:
+            ui.notify('no accounts set', priority='error')
+            return
+
+        # get message to forward if not given in constructor
         if not self.message:
             self.message = ui.current_buffer.get_selected_message()
         mail = self.message.get_email()
+
         # set body text
         name, address = self.message.get_author()
         timestamp = self.message.get_date()
@@ -66,40 +115,27 @@ class ReplyCommand(Command):
         envelope.add('Subject', subject)
 
         # set From
-        my_addresses = ui.accountman.get_addresses()
-        matched_address = ''
-        in_to = [a for a in my_addresses if a in mail.get('To', '')]
-        if in_to:
-            matched_address = in_to[0]
-        else:
-            cc = mail.get('Cc', '') + mail.get('Bcc', '')
-            in_cc = [a for a in my_addresses if a in cc]
-            if in_cc:
-                matched_address = in_cc[0]
-        if matched_address:
-            account = ui.accountman.get_account_by_address(matched_address)
-            fromstring = '%s <%s>' % (account.realname, account.address)
-            envelope.add('From', fromstring)
+        realname, address = recipient_to_from(mail, my_accounts)
+        envelope.add('From', '%s <%s>' % (realname, address))
 
         # set To
+        sender = mail['Reply-To'] or mail['From']
+        recipients = [sender]
+        my_addresses = ui.accountman.get_addresses()
         if self.groupreply:
+            if sender != mail['From']:
+                recipients.append(mail['From'])
             cleared = self.clear_my_address(my_addresses, mail.get('To', ''))
-            if cleared:
-                logging.info(mail['From'] + ', ' + cleared)
-                to = mail['From'] + ', ' + cleared
-                envelope.add('To', decode_header(to))
+            recipients.append(cleared)
 
-            else:
-                envelope.add('To', decode_header(mail['From']))
-            # copy cc and bcc for group-replies
+            # copy cc for group-replies
             if 'Cc' in mail:
                 cc = self.clear_my_address(my_addresses, mail['Cc'])
                 envelope.add('Cc', decode_header(cc))
-            if 'Bcc' in mail:
-                bcc = self.clear_my_address(my_addresses, mail['Bcc'])
-                envelope.add('Bcc', decode_header(bcc))
-        else:
-            envelope.add('To', decode_header(mail['From']))
+
+        to = ', '.join(recipients)
+        logging.debug('reply to: %s' % to)
+        envelope.add('To', decode_header(to))
 
         # set In-Reply-To header
         envelope.add('In-Reply-To', '<%s>' % self.message.get_message_id())
@@ -116,6 +152,7 @@ class ReplyCommand(Command):
         else:
             envelope.add('References', '<%s>' % self.message.get_message_id())
 
+        # continue to compose
         ui.apply_command(ComposeCommand(envelope=envelope))
 
     def clear_my_address(self, my_addresses, value):
@@ -142,11 +179,19 @@ class ForwardCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
+        # look if this makes sense: do we have any accounts set up?
+        my_accounts = ui.accountman.get_accounts()
+        if not my_accounts:
+            ui.notify('no accounts set', priority='error')
+            return
+
+        # get message to forward if not given in constructor
         if not self.message:
             self.message = ui.current_buffer.get_selected_message()
         mail = self.message.get_email()
 
         envelope = Envelope()
+
         if self.inline:  # inline mode
             # set body text
             name, address = self.message.get_author()
@@ -176,22 +221,10 @@ class ForwardCommand(Command):
         envelope.add('Subject', subject)
 
         # set From
-        # we look for own addresses in the To,Cc,Ccc headers in that order
-        # and use the first match as new From header if there is one.
-        my_addresses = ui.accountman.get_addresses()
-        matched_address = ''
-        in_to = [a for a in my_addresses if a in mail.get('To', '')]
-        if in_to:
-            matched_address = in_to[0]
-        else:
-            cc = mail.get('Cc', '') + mail.get('Bcc', '')
-            in_cc = [a for a in my_addresses if a in cc]
-            if in_cc:
-                matched_address = in_cc[0]
-        if matched_address:
-            account = ui.accountman.get_account_by_address(matched_address)
-            fromstring = '%s <%s>' % (account.realname, account.address)
-            envelope.add('From', fromstring)
+        realname, address = recipient_to_from(mail, my_accounts)
+        envelope.add('From', '%s <%s>' % (realname, address))
+
+        # continue to compose
         ui.apply_command(ComposeCommand(envelope=envelope))
 
 
@@ -212,7 +245,6 @@ class EditNewCommand(Command):
         mail = self.message.get_email()
         # set body text
         name, address = self.message.get_author()
-        timestamp = self.message.get_date()
         mailcontent = self.message.accumulate_body()
         envelope = Envelope(bodytext=mailcontent)
 
@@ -228,7 +260,8 @@ class EditNewCommand(Command):
         for b in self.message.get_attachments():
             envelope.attach(b)
 
-        ui.apply_command(ComposeCommand(envelope=envelope))
+        ui.apply_command(ComposeCommand(envelope=envelope,
+                                        omit_signature=True))
 
 
 @registerCommand(MODE, 'fold', forced={'visible': False}, arguments=[
@@ -305,15 +338,21 @@ class ChangeDisplaymodeCommand(Command):
     (['--separately'], {'action': 'store_true',
                         'help':'call command once for each message'}),
     (['--background'], {'action': 'store_true',
-                        'help':'disable stdin and ignore stdout'}),
+                        'help':'don\'t stop the interface'}),
+    (['--add_tags'], {'action': 'store_true',
+                        'help':'add \'Tags\' header to the message'}),
+    (['--shell'], {'action': 'store_true',
+                        'help':'let the shell interpret the command'}),
+    (['--notify_stdout'], {'action': 'store_true',
+                'help':'display command\'s stdout as notification message'}),
 ],
 )
 class PipeCommand(Command):
     """pipe message(s) to stdin of a shellcommand"""
-    def __init__(self, cmd, all=False, separately=False,
-                 background=False, format='raw',
-                 noop_msg='no command specified', confirm_msg='',
-                 done_msg='done', **kwargs):
+    def __init__(self, cmd, all=False, separately=False, background=False,
+                 shell=False, notify_stdout=False, format='raw',
+                 add_tags=False, noop_msg='no command specified',
+                 confirm_msg='', done_msg='done', **kwargs):
         """
         :param cmd: shellcommand to open
         :type cmd: str or list of str
@@ -321,14 +360,20 @@ class PipeCommand(Command):
         :type all: bool
         :param separately: call command once per message
         :type separately: bool
-        :param background: disable stdin and ignore sdtout of command
+        :param background: do not suspend the interface
         :type background: bool
+        :param notify_stdout: display command\'s stdout as notification message
+        :type notify_stdout: bool
+        :param shell: let the shell interpret the command
+        :type shell: bool
         :param format: what to pipe to the processes stdin. one of:
                        'raw': message content as is,
                        'decoded': message content, decoded quoted printable,
                        'id': message ids, separated by newlines,
                        'filepath': paths to message files on disk
         :type format: str
+        :param add_tags: add 'Tags' header to the message
+        :type add_tags: bool
         :param noop_msg: error notification to show if `cmd` is empty
         :type noop_msg: str
         :param confirm_msg: confirmation question to ask (continues directly if
@@ -344,7 +389,10 @@ class PipeCommand(Command):
         self.whole_thread = all
         self.separately = separately
         self.background = background
+        self.shell = shell
+        self.notify_stdout = notify_stdout
         self.output_format = format
+        self.add_tags = add_tags
         self.noop_msg = noop_msg
         self.confirm_msg = confirm_msg
         self.done_msg = done_msg
@@ -376,24 +424,31 @@ class PipeCommand(Command):
         separator = '\n\n'
         logging.debug('PIPETO format')
         logging.debug(self.output_format)
-        if self.output_format == 'raw':
-            pipestrings = [m.get_email().as_string() for m in to_print]
-        elif self.output_format == 'decoded':
-            mails = [m.get_email() for m in to_print]
-            for mail in mails:
-                headertext = extract_headers(mail)
-                bodytext = extract_body(mail)
-                msg = '%s\n\n%s' % (headertext, bodytext)
-                pipestrings.append(msg.encode('utf-8'))
-        elif self.output_format == 'id':
+
+        if self.output_format == 'id':
             pipestrings = [e.get_message_id() for e in to_print]
             separator = '\n'
         elif self.output_format == 'filepath':
             pipestrings = [e.get_filename() for e in to_print]
             separator = '\n'
+        else:
+            for msg in to_print:
+                mail = msg.get_email()
+                if self.add_tags:
+                    mail['Tags'] = encode_header('Tags',
+                                                 ' '.join(msg.get_tags()))
+                if self.output_format == 'raw':
+                    pipestrings.append(mail.as_string())
+                elif self.output_format == 'decoded':
+                    headertext = extract_headers(mail)
+                    bodytext = extract_body(mail)
+                    msgtext = '%s\n\n%s' % (headertext, bodytext)
+                    pipestrings.append(msgtext.encode('utf-8'))
 
         if not self.separately:
             pipestrings = [separator.join(pipestrings)]
+        if self.shell:
+            self.cmd = [' '.join(self.cmd)]
 
         # do teh monkey
         for mail in pipestrings:
@@ -401,6 +456,7 @@ class PipeCommand(Command):
                 logging.debug('call in background: %s' % str(self.cmd))
                 proc = subprocess.Popen(self.cmd,
                                         shell=True, stdin=subprocess.PIPE,
+                                        stdout=subprocess.PIPE,
                                         stderr=subprocess.PIPE)
                 out, err = proc.communicate(mail)
             else:
@@ -409,6 +465,7 @@ class PipeCommand(Command):
                 logging.debug('call: %s' % str(self.cmd))
                 proc = subprocess.Popen(self.cmd, shell=True,
                                         stdin=subprocess.PIPE,
+                                        stdout=subprocess.PIPE,
                                         stderr=subprocess.PIPE)
                 out, err = proc.communicate(mail)
                 logging.debug('start urwid screen')
@@ -416,6 +473,8 @@ class PipeCommand(Command):
             if err:
                 ui.notify(err, priority='error')
                 return
+            if self.notify_stdout:
+                ui.notify(out)
 
         # display 'done' message
         if self.done_msg:
@@ -453,32 +512,31 @@ class RemoveCommand(Command):
         if (yield ui.choice(confirm_msg, select='yes', cancel='no')) == 'no':
             return
 
+        # notify callback
+        def callback():
+            ui.notify(ok_msg)
+            ui.apply_command(RefreshCommand())
+
         # remove messages
-        try:
-            for m in messages:
-                ui.dbman.remove_message(m)
-        except DatabaseError, e:
-            err_msg = str(e)
-            ui.notify(err_msg, priority='error')
-            logging.debug(err_msg)
-            return
+        for m in messages:
+            ui.dbman.remove_message(m, afterwards=callback)
 
-        # notify
-        ui.notify(ok_msg)
-
-        # refresh buffer
-        ui.apply_command(RefreshCommand())
+        ui.apply_command(FlushCommand())
 
 
 @registerCommand(MODE, 'print', arguments=[
     (['--all'], {'action': 'store_true', 'help':'print all messages'}),
     (['--raw'], {'action': 'store_true', 'help':'pass raw mail string'}),
     (['--separately'], {'action': 'store_true',
-                        'help':'call print command once for each message'})],
+                        'help':'call print command once for each message'}),
+    (['--add_tags'], {'action': 'store_true',
+                        'help':'add \'Tags\' header to the message'}),
+],
 )
 class PrintCommand(PipeCommand):
     """print message(s)"""
-    def __init__(self, all=False, separately=False, raw=False, **kwargs):
+    def __init__(self, all=False, separately=False, raw=False, add_tags=False,
+                 **kwargs):
         """
         :param all: print all, not only selected messages
         :type all: bool
@@ -486,6 +544,8 @@ class PrintCommand(PipeCommand):
         :type separately: bool
         :param raw: pipe raw message string to print command
         :type raw: bool
+        :param add_tags: add 'Tags' header to the message
+        :type add_tags: bool
         """
         # get print command
         cmd = settings.config.get('general', 'print_cmd', fallback='')
@@ -502,9 +562,11 @@ class PrintCommand(PipeCommand):
         noop_msg = 'no print command specified. Set "print_cmd" in the '\
                     'global section.'
 
-        PipeCommand.__init__(self, cmd, all=all, separately=separately,
+        PipeCommand.__init__(self, [cmd], all=all, separately=separately,
                              background=True,
+                             shell=False,
                              format='raw' if raw else 'decoded',
+                             add_tags=add_tags,
                              noop_msg=noop_msg, confirm_msg=confirm_msg,
                              done_msg=ok_msg, **kwargs)
 
@@ -583,7 +645,6 @@ class OpenAttachmentCommand(Command):
     def apply(self, ui):
         logging.info('open attachment')
         mimetype = self.attachment.get_content_type()
-        filename = self.attachment.get_filename()
 
         handler = settings.get_mime_handler(mimetype)
         if handler:
@@ -622,40 +683,52 @@ class ThreadSelectCommand(Command):
 
 @registerCommand(MODE, 'tag', forced={'action': 'add'}, arguments=[
     (['--all'], {'action': 'store_true', 'help':'tag all messages in thread'}),
+    (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
+                      'help': 'postpone a writeout to the index'}),
     (['tags'], {'help':'comma separated list of tags'})],
     help='add tags to message(s)',
 )
 @registerCommand(MODE, 'retag', forced={'action': 'set'}, arguments=[
     (['--all'], {'action': 'store_true', 'help':'tag all messages in thread'}),
+    (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
+                      'help': 'postpone a writeout to the index'}),
     (['tags'], {'help':'comma separated list of tags'})],
     help='set message(s) tags.',
 )
 @registerCommand(MODE, 'untag', forced={'action': 'remove'}, arguments=[
     (['--all'], {'action': 'store_true', 'help':'tag all messages in thread'}),
+    (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
+                      'help': 'postpone a writeout to the index'}),
     (['tags'], {'help':'comma separated list of tags'})],
     help='remove tags from message(s)',
 )
 @registerCommand(MODE, 'toggletags', forced={'action': 'toggle'}, arguments=[
     (['--all'], {'action': 'store_true', 'help':'tag all messages in thread'}),
+    (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
+                      'help': 'postpone a writeout to the index'}),
     (['tags'], {'help':'comma separated list of tags'})],
     help='flip presence of tags on message(s)',
 )
 class TagCommand(Command):
     """manipulate message tags"""
-    def __init__(self, tags=u'', action='add', all=False, **kwargs):
+    def __init__(self, tags=u'', action='add', all=False, flush=True,
+                 **kwargs):
         """
         :param tags: comma separated list of tagstrings to set
         :type tags: str
-        :param all: tag all messages in thread
-        :type all: bool
         :param action: adds tags if 'add', removes them if 'remove', adds tags
                        and removes all other if 'set' or toggle individually if
                        'toggle'
         :type action: str
+        :param all: tag all messages in thread
+        :type all: bool
+        :param flush: imediately write out to the index
+        :type flush: bool
         """
         self.tagsstring = tags
         self.all = all
         self.action = action
+        self.flush = flush
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
@@ -696,4 +769,5 @@ class TagCommand(Command):
             return
 
         # flush index
-        ui.apply_command(FlushCommand())
+        if self.flush:
+            ui.apply_command(FlushCommand())

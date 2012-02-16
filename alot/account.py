@@ -45,12 +45,11 @@ class Account(object):
     abook = None
     """addressbook (:class:`AddressBook`) managing this accounts contacts"""
 
-    def __init__(self, dbman, address=None, aliases=None, realname=None,
+    def __init__(self, address=None, aliases=None, realname=None,
                  gpg_key=None, signature=None, signature_filename=None,
                  signature_as_attachment=False, sent_box=None,
                  sent_tags=['sent'], draft_box=None, draft_tags=['draft'],
                  abook=None):
-        self.dbman = dbman
         self.address = address
         self.abook = abook
         self.aliases = []
@@ -92,7 +91,12 @@ class Account(object):
                 self.draft_box = mailbox.MMDF(mburl.path)
         self.draft_tags = draft_tags
 
-    def store_mail(self, mbx, mail, tags=None):
+    def get_addresses(self):
+        """return all email addresses connected to this account, in order of
+        their importance"""
+        return [self.address] + self.aliases
+
+    def store_mail(self, mbx, mail):
         """
         stores given mail in mailbox. If mailbox is maildir, set the S-flag.
 
@@ -100,10 +104,9 @@ class Account(object):
         :type mbx: :class:`mailbox.Mailbox`
         :param mail: the mail to store
         :type mail: :class:`email.message.Message` or str
-        :param tags: if given, add the mail to the notmuch index and tag it
-        :type tags: list of str
-        :returns: True iff mail was successfully stored
-        :rtype: bool
+        :returns: absolute path of mail-file for Maildir or None if mail was
+                  successfully stored
+        :rtype: str or None
         """
         if not isinstance(mbx, mailbox.Mailbox):
             logging.debug('Not a mailbox')
@@ -123,16 +126,13 @@ class Account(object):
         mbx.unlock()
         logging.debug('got id : %s' % id)
 
+        path = None
         # add new Maildir message to index and add tags
-        if isinstance(mbx, mailbox.Maildir) and tags != None:
+        if isinstance(mbx, mailbox.Maildir):
             # this is a dirty hack to get the path to the newly added file
             # I wish the mailbox module were more helpful...
             path = glob.glob(os.path.join(mbx._path, '*', message_id + '*'))[0]
-
-            message = self.dbman.add_message(path)
-            message.add_tags(tags)
-            self.dbman.flush()
-        return True
+        return path
 
     def store_sent_mail(self, mail):
         """
@@ -140,7 +140,7 @@ class Account(object):
         :attr:`sent_box` is set.
         """
         if self.sent_box is not None:
-            self.store_mail(self.sent_box, mail, self.sent_tags)
+            return self.store_mail(self.sent_box, mail)
 
     def store_draft_mail(self, mail):
         """
@@ -148,7 +148,7 @@ class Account(object):
         :attr:`draft_box` is set.
         """
         if self.draft_box is not None:
-            self.store_mail(self.draft_box, mail, self.draft_tags)
+            return self.store_mail(self.draft_box, mail)
 
     def send_mail(self, mail):
         """
@@ -156,32 +156,43 @@ class Account(object):
 
         :param mail: the mail to send
         :type mail: :class:`email.message.Message` or string
-        :raises: :class:`alot.account.SendingMailFailed` if an error occured
+        :returns: a `Deferred` that errs back with a class:`SendingMailFailed`,
+                  containing a reason string if an error occured.
         """
-        return 'not implemented'
+        raise NotImplementedError
 
 
 class SendmailAccount(Account):
     """:class:`Account` that pipes a message to a `sendmail` shell command for
     sending"""
-    def __init__(self, dbman, cmd, **kwargs):
+    def __init__(self, cmd, **kwargs):
         """
-        :param dbman: the database manager instance
-        :type dbman: :class:`~alot.db.DBManager`
         :param cmd: sendmail command to use for this account
         :type cmd: str
         """
-        super(SendmailAccount, self).__init__(dbman, **kwargs)
+        super(SendmailAccount, self).__init__(**kwargs)
         self.cmd = cmd
 
     def send_mail(self, mail):
         mail['Date'] = email.utils.formatdate(time.time(), True)
         cmdlist = shlex.split(self.cmd.encode('utf-8', errors='ignore'))
-        out, err, retval = helper.call_cmd(cmdlist, stdin=mail.as_string())
-        if err:
-            errmsg = '%s. sendmail_cmd set to: %s' % (err, self.cmd)
+
+        def cb(out):
+            logging.info('sent mail successfully')
+            logging.info(out)
+
+        def errb(failure):
+            termobj = failure.value
+            errmsg = '%s\nsendmail_cmd set to: %s' % (str(termobj), self.cmd)
+            logging.error(errmsg)
+            logging.error(failure.getTraceback())
+            logging.error(failure.value.stderr)
             raise SendingMailFailed(errmsg)
-        self.store_sent_mail(mail)
+
+        d = helper.call_cmd_async(cmdlist, stdin=mail.as_string())
+        d.addCallback(cb)
+        d.addErrback(errb)
+        return d
 
 
 class AccountManager(object):
@@ -211,10 +222,8 @@ class AccountManager(object):
     accounts = []
     ordered_addresses = []
 
-    def __init__(self, dbman, config):
+    def __init__(self, config):
         """
-        :param dbman: the database manager instance
-        :type dbman: :class:`~alot.db.DBManager`
         :param config: the config object to read account information from
         :type config: :class:`~alot.settings.AlotConfigParser`.
         """
@@ -252,7 +261,7 @@ class AccountManager(object):
                 sender_type = args.pop('type', 'sendmail')
                 if sender_type == 'sendmail':
                     cmd = args.pop('sendmail_command', 'sendmail')
-                    newacc = (SendmailAccount(dbman, cmd, **args))
+                    newacc = (SendmailAccount(cmd, **args))
                     self.accountmap[newacc.address] = newacc
                     self.accounts.append(newacc)
                     for alias in newacc.aliases:
@@ -358,12 +367,13 @@ class MatchSdtoutAddressbook(AddressBook):
         :type command: str
         :param match: regular expression used to match contacts in `commands`
                       output to stdout. Must define subparts named "email" and
-                      "name". Defaults to "(?P<email>.+?@.+?)\s+(?P<name>.+)".
+                      "name".  Defaults to
+                      :regexp:`(?P<email>.+?@.+?)\s+(?P<name>.+?)\s*$`.
         :type match: str
         """
         self.command = command
         if not match:
-            self.match = "(?P<email>.+?@.+?)\s+(?P<name>.+)"
+            self.match = '(?P<email>.+?@.+?)\s+(?P<name>.+?)\s*$'
         else:
             self.match = match
 
@@ -382,6 +392,6 @@ class MatchSdtoutAddressbook(AddressBook):
             if m:
                 info = m.groupdict()
                 email = info['email'].strip()
-                name = info['name'].strip()
+                name = info['name']
                 res.append((name, email))
         return res
