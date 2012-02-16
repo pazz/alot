@@ -66,4 +66,6 @@ account section in your config:
     realname = Your Name
     address = your@address
 
-See `CUSTOMIZE.md` on how to do fancy customization.
+See the [user docs][docs] for how to do fancy customization.
+
+:x
