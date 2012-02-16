@@ -245,10 +245,12 @@ class TagWidget(urwid.AttrMap):
     It looks up the string it displays in the `tag-translate` section
     of the config as well as custom theme settings for its tag.
     """
-    def __init__(self, tag, theme=''):
+    def __init__(self, tag, theme='', both=False):
         self.tag = tag
         self.highlight = theme
         self.translated = config.get('tag-translate', tag, fallback=tag)
+        if both and (self.translated != self.tag):
+            self.translated = "%s (%s)" % (self.tag, self.translated)
         self.txt = urwid.Text(self.translated.encode('utf-8'), wrap='clip')
         normal = config.get_tag_theme(tag, highlight=theme)
         focus = config.get_tag_theme(tag, focus=True, highlight=theme)
