@@ -433,7 +433,7 @@ class Thread(object):
         """
         def myafterwards():
             if remove_rest:
-                self._tags = tags
+                self._tags = set(tags)
             else:
                 self._tags = self._tags.union(tags)
             if callable(afterwards):
