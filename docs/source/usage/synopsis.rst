@@ -9,7 +9,7 @@ Options
     -r, --read-only                open db in read only mode
     -c, --config=FILENAME          config file (default: ~/.config/alot/config)
     -n, --notmuch-config=FILENAME  notmuch config (default: ~/.notmuch-config)
-    -C, --colour-mode=COLOR        terminal colour mode (default: 256). Must be 1, 16 or 256
+    -C, --colour-mode=COLOUR        terminal colour mode (default: 256). Must be 1, 16 or 256
     -p, --mailindex-path=PATH      path to notmuch index
     -d, --debug-level=LEVEL        debug log (default: info). Must be one of debug,info,warning or error
     -l, --logfile=FILENAME         logfile (default: /dev/null)
