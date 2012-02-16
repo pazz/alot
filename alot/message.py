@@ -590,9 +590,7 @@ class Envelope(object):
             msg = textpart
 
         headers = self.headers.copy()
-        # add Date and Message-ID headers
-        if 'Date' not in headers:
-            headers['Date'] = [email.Utils.formatdate()]
+        # add Message-ID
         if 'Message-ID' not in headers:
             headers['Message-ID'] = [email.Utils.make_msgid()]
 
