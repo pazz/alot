@@ -57,6 +57,62 @@ class Theme(object):
         return urwid.AttrSpec(fg, bg, colourmode)
 
 
+class SettingsManager(object):
+    def __init__(self, alot_rc=None, notmuch_rc=None, theme=None):
+        self.hooks = None
+
+        self._config = ConfigObj()
+        self.read_config(alot_rc)
+        self.read_notmuch_config(notmuch_rc)
+
+        theme_path = theme or os.path.join(DEFAULTSPATH, 'theme.rc')
+        self.theme = Theme(theme_path)
+
+
+    def read_notmuch_config(self, path):
+        spec = os.path.join(DEFAULTSPATH, 'notmuch.rc.spec')
+        self._notmuchconfig = read_config(path, spec)
+
+    def read_config(self, path):
+        spec = os.path.join(DEFAULTSPATH, 'alot.rc.spec')
+        newconfig = read_config(path, spec)
+        self._config.merge(newconfig)
+
+        hooks_path = os.path.expanduser(self._config.get('hooksfile'))
+        try:
+            self.hooks = imp.load_source('hooks', hooks_path)
+        except:
+            logging.debug('unable to load hooks file:%s' % hooks_path)
+
+
+    def get_theming_attribute(self, mode, name):
+        colours = int(self._config.get('colourmode'))
+        return self.theme.get_attribute(mode, name,  colours)
+
+    def get_hook(self, key):
+        """return hook (`callable`) identified by `key`"""
+        if self.hooks:
+            if key in self.hooks.__dict__:
+                return self.hooks.__dict__[key]
+        return None
+
+    def get_mapping(self, mode, key):
+        """look up keybinding from `MODE-maps` sections
+
+        :param mode: mode identifier
+        :type mode: str
+        :param key: urwid-style key identifier
+        :type key: str
+        :returns: a command line to be applied upon keypress
+        :rtype: str
+        """
+        cmdline = None
+        bindings = self._config['bindings']
+        if key in bindings[mode]:
+            cmdline = bindings[mode][key]
+        elif key in bindings['global']:
+            cmdline = bindings['global'][key]
+        return cmdline
 
 class FallbackConfigParser(SafeConfigParser):
     """:class:`~ConfigParser.SafeConfigParser` that allows fallback values"""
@@ -308,12 +364,13 @@ class AlotConfigParser(FallbackConfigParser):
         return cmdline
 
 
+defaultconfig = os.path.join(DEFAULTSPATH, 'alot.rc')
+defaultnotmuchconfig = os.path.join(DEFAULTSPATH, 'notmuch.rc')
 config = AlotConfigParser()
-config.read(os.path.join(os.path.dirname(__file__), 'defaults', 'alot.rc'))
+config.read(defaultconfig)
 notmuchconfig = FallbackConfigParser()
-notmuchconfig.read(os.path.join(os.path.dirname(__file__),
-                   'defaults',
-                   'notmuch.rc'))
+notmuchconfig.read(defaultnotmuchconfig)
+settings = SettingsManager(os.path.join(DEFAULTSPATH, 'alot.rc.new'), defaultnotmuchconfig)
 mailcaps = mailcap.getcaps()
 
 
