@@ -100,7 +100,7 @@ quit_on_last_bclose = boolean(default=False)
 user_agent = string(default='alot/$VERSION')
 
 # Keybindings 
-[maps]
+[bindings]
     # one for each mode
     [[__many__]]
         # key = commandline string
