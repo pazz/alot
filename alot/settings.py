@@ -85,7 +85,7 @@ class SettingsManager(object):
             logging.debug('unable to load hooks file:%s' % hooks_path)
 
 
-    def getc_setting(self, key):
+    def get(self, key):
         """
         look up global config values from alot's config
 
@@ -124,7 +124,7 @@ class SettingsManager(object):
                 return self.hooks.__dict__[key]
         return None
 
-    def get_mapping(self, mode, key):
+    def get_keybinding(self, mode, key):
         """look up keybinding from `MODE-maps` sections
 
         :param mode: mode identifier
