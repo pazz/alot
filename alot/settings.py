@@ -133,7 +133,7 @@ class SettingsManager(object):
         else:
             normal = default_att
             focussed = default_focus_att
-            translated = None
+            translated = tag
 
         return {'normal': normal, 'focussed': focussed, 'translated': translated}
 

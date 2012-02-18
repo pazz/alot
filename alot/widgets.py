@@ -248,13 +248,12 @@ class TagWidget(urwid.AttrMap):
     def __init__(self, tag, theme=''):
         self.tag = tag
         self.highlight = theme
-        # TODO: replace 
-        self.translated = config.get('tag-translate', tag, fallback=tag)
+        representation = settings.get_tagstring_representation(tag)
+        self.translated = representation['translated']
         self.txt = urwid.Text(self.translated.encode('utf-8'), wrap='clip')
-        # TODO: replace 
-        normal = config.get_tag_theme(tag, highlight=theme)
-        focus = config.get_tag_theme(tag, focus=True, highlight=theme)
-        urwid.AttrMap.__init__(self, self.txt, normal, focus)
+        self.normal_att = representation['normal']
+        self.focus_att = representation['focussed']
+        urwid.AttrMap.__init__(self, self.txt, self.normal_att, self.focus_att)
 
     def width(self):
         # evil voodoo hotfix for double width chars that may
@@ -271,16 +270,10 @@ class TagWidget(urwid.AttrMap):
         return self.tag
 
     def set_focussed(self):
-        # TODO: replace 
-        self.set_attr_map({None: config.get_tag_theme(
-                                                    self.tag, focus=True,
-                                                    highlight=self.highlight)})
+        self.set_attr_map({None: self.focus_att})
 
     def set_unfocussed(self):
-        # TODO: replace 
-        self.set_attr_map({None: config.get_tag_theme(
-                                                    self.tag,
-                                                    highlight=self.highlight)})
+        self.set_attr_map({None: self.normal_att})
 
 
 class ChoiceWidget(urwid.Text):
