@@ -14,7 +14,6 @@
         fg = 'standout, bold'
     [[[tag_draft]]]
         fg = 'standout'
-
 [[help]]
     [[[text]]]
         fg = 'default'
@@ -112,8 +111,6 @@
     [[[tag_draft]]]
         bg = 'light red'
         fg = 'white'
-
-
 [[help]]
     [[[text]]]
         bg = 'dark gray'
@@ -134,8 +131,6 @@
     [[[results_odd]]]
         bg = 'black'
         fg = 'light gray'
-
-
 [[thread]]
     [[[attachment]]]
         bg = 'dark gray'
@@ -164,17 +159,16 @@
     [[[summary_odd]]]
         bg = 'dark blue'
         fg = 'white'
-
 [[search]]
+    [[[thread]]]
+        bg = 'default'
+        fg = 'default'
     [[[thread_authors]]]
         bg = 'default'
         fg = 'dark green'
     [[[thread_authors_focus]]]
         bg = 'dark gray'
         fg = 'dark green,bold'
-    [[[thread]]]
-        bg = 'default'
-        fg = 'default'
     [[[thread_content]]]
         bg = 'default'
         fg = 'dark gray'
@@ -257,6 +251,10 @@
         fg = 'default'
 
 [[search]]
+    [[[thread]]]
+        bg = 'default'
+        fg = '#6d6'
+        
     [[[thread_authors]]]
         bg = 'default'
         fg = '#6d6'
@@ -325,5 +323,3 @@
     [[[summary_odd]]]
         bg = '#006'
         fg = 'white'
-
-
