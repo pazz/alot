@@ -2,11 +2,12 @@ import urwid
 from notmuch.globals import NotmuchError
 
 import widgets
-import settings
+from settings import settings
 import commands
 from walker import PipeWalker
 from helper import shorten_author_string
 from db import NonexistantObjectError
+
 
 
 class Buffer(object):
@@ -105,8 +106,7 @@ class EnvelopeBuffer(Buffer):
 
     def rebuild(self):
         displayed_widgets = []
-        hidden = settings.config.getstringlist('general',
-                                               'envelope_headers_blacklist')
+        hidden = settings.get('envelope_headers_blacklist')
         #build lines
         lines = []
         for (k, vlist) in self.envelope.headers.items():
@@ -145,8 +145,7 @@ class SearchBuffer(Buffer):
         self.dbman = ui.dbman
         self.ui = ui
         self.querystring = initialquery
-        default_order = settings.config.get('general',
-                                            'search_threads_sort_order')
+        default_order = settings.get('search_threads_sort_order')
         self.sort_order = sort_order or default_order
         self.result_count = 0
         self.isinitialized = False

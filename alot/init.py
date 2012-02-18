@@ -174,8 +174,7 @@ def main():
             cmdstring = 'compose %s' % args.subOptions.as_argparse_opts()
             cmd = commands.commandfactory(cmdstring, 'global')
         else:
-            default_commandline = settings.config.get('general',
-                                                      'initial_command')
+            default_commandline = settings.settings.get('initial_command')
             cmd = commands.commandfactory(default_commandline, 'global')
     except CommandParseError, e:
         sys.exit(e)

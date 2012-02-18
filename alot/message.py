@@ -17,6 +17,7 @@ import logging
 import helper
 from settings import get_mime_handler
 from settings import config
+from settings import settings
 from helper import string_sanitize
 from helper import string_decode
 
@@ -135,11 +136,11 @@ class Message(object):
         """
         if self._datetime == None:
             return None
-        if config.has_option('general', 'timestamp_format'):
-            formatstring = config.get('general', 'timestamp_format')
-            res = self._datetime.strftime(formatstring)
-        else:
+        formatstring = settings.get('timestamp_format')
+        if formatstring == None:
             res = helper.pretty_datetime(self._datetime)
+        else:
+            res = self._datetime.strftime(formatstring)
         return res
 
     def get_author(self):
@@ -597,7 +598,7 @@ class Envelope(object):
         if 'User-Agent' in headers:
             uastring_format = headers['User-Agent'][0]
         else:
-            uastring_format = config.get('general', 'user_agent').strip()
+            uastring_format = settings.get('user_agent').strip()
         uastring = uastring_format % {'version': __version__}
         if uastring:
             headers['User-Agent'] = [uastring]

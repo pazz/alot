@@ -2,6 +2,7 @@ import urwid
 import logging
 
 from settings import config
+from settings import settings
 from helper import shorten_author_string
 from helper import pretty_datetime
 from helper import tag_cmp
@@ -75,8 +76,8 @@ class ThreadlineWidget(urwid.AttrMap):
         self.thread = dbman.get_thread(tid)
         #logging.debug('tid: %s' % self.thread)
         self.tag_widgets = []
-        self.display_content = config.getboolean('general',
-                                    'display_content_in_threadline')
+        self.display_content = settings.get('display_content_in_threadline')
+        #TODO replace
         self.highlight_components = config.getstringlist('highlighting',
                                                          'components')
         self.highlight_rules = config.get_highlight_rules()
@@ -94,7 +95,7 @@ class ThreadlineWidget(urwid.AttrMap):
             datestring = u' ' * 10
         else:
             if config.has_option('general', 'timestamp_format'):
-                formatstring = config.get('general', 'timestamp_format')
+                formatstring = settings.get('timestamp_format')
                 datestring = newest.strftime(formatstring)
             else:
                 datestring = pretty_datetime(newest).rjust(10)
@@ -125,7 +126,7 @@ class ThreadlineWidget(urwid.AttrMap):
             authors = self.thread.get_authors() or '(None)'
         else:
             authors = '(None)'
-        maxlength = config.getint('general', 'authors_maxlength')
+        maxlength = settings.get('authors_maxlength')
         authorsstring = shorten_author_string(authors, maxlength)
         self.authors_w = urwid.AttrMap(urwid.Text(authorsstring),
                                        self._get_theme('authors'))
@@ -247,8 +248,10 @@ class TagWidget(urwid.AttrMap):
     def __init__(self, tag, theme=''):
         self.tag = tag
         self.highlight = theme
+        # TODO: replace 
         self.translated = config.get('tag-translate', tag, fallback=tag)
         self.txt = urwid.Text(self.translated.encode('utf-8'), wrap='clip')
+        # TODO: replace 
         normal = config.get_tag_theme(tag, highlight=theme)
         focus = config.get_tag_theme(tag, focus=True, highlight=theme)
         urwid.AttrMap.__init__(self, self.txt, normal, focus)
@@ -268,11 +271,13 @@ class TagWidget(urwid.AttrMap):
         return self.tag
 
     def set_focussed(self):
+        # TODO: replace 
         self.set_attr_map({None: config.get_tag_theme(
                                                     self.tag, focus=True,
                                                     highlight=self.highlight)})
 
     def set_unfocussed(self):
+        # TODO: replace 
         self.set_attr_map({None: config.get_tag_theme(
                                                     self.tag,
                                                     highlight=self.highlight)})
@@ -412,7 +417,7 @@ class MessageWidget(urwid.WidgetWrap):
 
         # set available and to be displayed headers
         self._all_headers = self.mail.keys()
-        displayed = config.getstringlist('general', 'displayed_headers')
+        displayed = settings.get('displayed_headers')
         self._filtered_headers = [k for k in displayed if k in self.mail]
         self._displayed_headers = None
 

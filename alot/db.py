@@ -7,7 +7,7 @@ from datetime import datetime
 from collections import deque
 
 from message import Message
-from settings import notmuchconfig as config
+from settings import settings
 
 DB_ENC = 'utf-8'
 
@@ -94,7 +94,7 @@ class DBManager(object):
                 raise DatabaseLockedError()
 
             # read notmuch's config regarding imap flag synchronization
-            sync = config.getboolean('maildir', 'synchronize_flags')
+            sync = settings.get_notmuch_setting('maildir', 'synchronize_flags')
 
             # go through writequeue entries
             while self.writequeue:

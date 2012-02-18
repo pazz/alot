@@ -18,6 +18,7 @@ import StringIO
 import logging
 
 from settings import config
+from settings import settings
 
 
 def safely_get(clb, E, on_error=''):
@@ -54,7 +55,7 @@ def string_sanitize(string, tab_width=None):
     'foo             bar'
     """
     if tab_width == None:
-        tab_width = config.getint('general', 'tabwidth')
+        tab_width = settings.get('tabwidth')
 
     string = string.strip()
     string = string.replace('\r', '')

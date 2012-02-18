@@ -4,6 +4,7 @@ from twisted.internet import reactor, defer
 from twisted.python.failure import Failure
 
 from settings import config
+from settings import settings
 from buffers import BufferlistBuffer
 import commands
 from commands import commandfactory
@@ -46,7 +47,7 @@ class InputWrap(urwid.WidgetWrap):
         mode = self.ui.mode
         if self.select_cancel_only:
             mode = 'global'
-        cmdline = config.get_mapping(mode, key)
+        cmdline = settings.get_keybinding(mode, key)
         if cmdline:
             try:
                 cmd = commandfactory(cmdline, mode)
@@ -87,18 +88,19 @@ class UI(object):
         self.accountman = accountman
 
         if not colourmode:
-            colourmode = config.getint('general', 'colourmode')
+            # needs explicit int-constructor because we used "options" in specfile
+            colourmode = int(settings.get('colourmode'))
         logging.info('setup gui in %d colours' % colourmode)
         self.mainframe = urwid.Frame(urwid.SolidFill())
         self.inputwrap = InputWrap(self, self.mainframe)
         self.mainloop = urwid.MainLoop(self.inputwrap,
-                config.get_palette(),
+                config.get_palette(), #todo: remove
                 handle_mouse=False,
                 event_loop=urwid.TwistedEventLoop(),
                 unhandled_input=self.unhandeled_input)
         self.mainloop.screen.set_terminal_properties(colors=colourmode)
 
-        self.show_statusbar = config.getboolean('general', 'show_statusbar')
+        self.show_statusbar = settings.get('show_statusbar')
         self.notificationbar = None
         self.mode = 'global'
         self.commandprompthistory = []
@@ -208,7 +210,7 @@ class UI(object):
             logging.debug('UI: closing current buffer %s' % buf)
             index = buffers.index(buf)
             buffers.remove(buf)
-            offset = config.getint('general', 'bufferclose_focus_offset')
+            offset = settings.get('bufferclose_focus_offset')
             nextbuffer = buffers[(index + offset) % len(buffers)]
             self.buffer_focus(nextbuffer)
             buf.cleanup()
@@ -374,7 +376,7 @@ class UI(object):
         else:
             if timeout >= 0:
                 if timeout == 0:
-                    timeout = config.getint('general', 'notify_timeout')
+                    timeout = settings.get('notify_timeout')
                 self.mainloop.set_alarm_in(timeout, clear)
         return msgs[0]
 
@@ -438,7 +440,7 @@ class UI(object):
                 logging.debug('calling pre-hook')
                 try:
                     cmd.prehook(ui=self, dbm=self.dbman, aman=self.accountman,
-                                config=config)
+                                config=settings)
 
                 except:
                     logging.exception('prehook failed')
@@ -449,7 +451,8 @@ class UI(object):
                     logging.debug('calling post-hook')
                     try:
                         cmd.posthook(ui=self, dbm=self.dbman,
-                                     aman=self.accountman, config=config)
+                                     aman=self.accountman, config=settings)
+                        #TODO: ducument hooks wrt settingsmanager
                     except:
                         logging.exception('posthook failed')
 
