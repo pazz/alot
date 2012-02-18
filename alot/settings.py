@@ -20,7 +20,8 @@ class ConfigError(Exception):
 
 def read_config(configpath=None, specpath=None):
     try:
-        config = ConfigObj(infile=configpath, configspec=specpath, file_error=True)
+        config = ConfigObj(infile=configpath, configspec=specpath,
+                           file_error=True, encoding='UTF8')
     except (ConfigObjError, IOError), e:
         raise ConfigError('Could not read "%s": %s' % (configpath, e))
 

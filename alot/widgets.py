@@ -94,11 +94,11 @@ class ThreadlineWidget(urwid.AttrMap):
         if newest == None:
             datestring = u' ' * 10
         else:
-            if config.has_option('general', 'timestamp_format'):
-                formatstring = settings.get('timestamp_format')
-                datestring = newest.strftime(formatstring)
-            else:
+            formatstring = settings.get('timestamp_format')
+            if formatstring is None:
                 datestring = pretty_datetime(newest).rjust(10)
+            else:
+                datestring = newest.strftime(formatstring)
         self.highlight_theme_suffix = self._get_highlight_theme_suffix()
         self.date_w = urwid.AttrMap(urwid.Text(datestring),
                                     self._get_theme('date'))
@@ -250,7 +250,7 @@ class TagWidget(urwid.AttrMap):
         self.highlight = theme
         representation = settings.get_tagstring_representation(tag)
         self.translated = representation['translated']
-        self.txt = urwid.Text(self.translated.encode('utf-8'), wrap='clip')
+        self.txt = urwid.Text(self.translated, wrap='clip')
         self.normal_att = representation['normal']
         self.focus_att = representation['focussed']
         urwid.AttrMap.__init__(self, self.txt, self.normal_att, self.focus_att)
