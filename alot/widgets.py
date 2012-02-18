@@ -1,7 +1,6 @@
 import urwid
 import logging
 
-from settings import config
 from settings import settings
 from helper import shorten_author_string
 from helper import pretty_datetime
@@ -77,10 +76,6 @@ class ThreadlineWidget(urwid.AttrMap):
         #logging.debug('tid: %s' % self.thread)
         self.tag_widgets = []
         self.display_content = settings.get('display_content_in_threadline')
-        #TODO replace
-        self.highlight_components = config.getstringlist('highlighting',
-                                                         'components')
-        self.highlight_rules = config.get_highlight_rules()
         self.rebuild()
         urwid.AttrMap.__init__(self, self.columns,
                                'search_thread', 'search_thread_focus')
@@ -99,7 +94,6 @@ class ThreadlineWidget(urwid.AttrMap):
                 datestring = pretty_datetime(newest).rjust(10)
             else:
                 datestring = newest.strftime(formatstring)
-        self.highlight_theme_suffix = self._get_highlight_theme_suffix()
         self.date_w = urwid.AttrMap(urwid.Text(datestring),
                                     self._get_theme('date'))
         cols.append(('fixed', len(datestring), self.date_w))
@@ -113,7 +107,7 @@ class ThreadlineWidget(urwid.AttrMap):
         cols.append(('fixed', len(mailcountstring), self.mailcount_w))
 
         if self.thread:
-            self.tag_widgets = [TagWidget(t, self.highlight_theme_suffix)
+            self.tag_widgets = [TagWidget(t)
                                 for t in self.thread.get_tags()]
         else:
             self.tag_widgets = []
@@ -159,7 +153,6 @@ class ThreadlineWidget(urwid.AttrMap):
         self.original_widget = self.columns
 
     def render(self, size, focus=False):
-        self.highlight_theme_suffix = self._get_highlight_theme_suffix()
         if focus:
             self.date_w.set_attr_map({None: self._get_theme('date', focus)})
             self.mailcount_w.set_attr_map({None:
@@ -193,28 +186,11 @@ class ThreadlineWidget(urwid.AttrMap):
     def get_thread(self):
         return self.thread
 
-    def _get_highlight_theme_suffix(self):
-        suffix = None
-        for query in self.highlight_rules.keys():
-            if self.thread.matches(query):
-                suffix = self.highlight_rules[query]
-                break
-        return suffix
-
     def _get_theme(self, component, focus=False):
-        theme = 'search_thread_{0}'.format(component)
-        if (self.highlight_theme_suffix and
-            component in self.highlight_components):
-            highlight_theme = (theme +
-                               '_{id}'.format(id=self.highlight_theme_suffix))
-            if focus:
-                theme += '_focus'
-                highlight_theme += '_focus'
-            if config.has_theming(highlight_theme):
-                theme = highlight_theme
-        elif focus:
-            theme = theme + '_focus'
-        return theme
+        attr_key = 'thread_{0}'.format(component)
+        if focus:
+            attr_key += '_focus'
+        return settings.get_theming_attribute('search', attr_key)
 
 
 class BufferlineWidget(urwid.Text):
@@ -245,9 +221,8 @@ class TagWidget(urwid.AttrMap):
     It looks up the string it displays in the `tag-translate` section
     of the config as well as custom theme settings for its tag.
     """
-    def __init__(self, tag, theme=''):
+    def __init__(self, tag):
         self.tag = tag
-        self.highlight = theme
         representation = settings.get_tagstring_representation(tag)
         self.translated = representation['translated']
         self.txt = urwid.Text(self.translated, wrap='clip')
