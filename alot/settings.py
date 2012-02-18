@@ -6,6 +6,7 @@ import json
 import mailcap
 import codecs
 import logging
+import urwid
 from configobj import ConfigObj, ConfigObjError, flatten_errors, Section
 from validate import Validator
 
@@ -38,6 +39,23 @@ def read_config(configpath=None, specpath=None):
                 error_msg += msg + '\n'
             raise ConfigError(error_msg)
     return config
+
+
+class Theme(object):
+    def __init__(self, path):
+        self._spec = os.path.join(DEFAULTSPATH, 'theme.rc.spec')
+        self._config = read_config(path, self._spec)
+
+    def get_attribute(self, mode, name, colourmode):
+        fg = self._config['%dc' % colourmode][mode][name]['fg']
+        bg = self._config['%dc' % colourmode][mode][name]['bg']
+        if colourmode == 1:
+            bg = 'default'
+        elif colourmode == 256:
+            fg = fg or self._config['16c'][mode][name][fg]
+            bg = bg or self._config['16c'][mode][name][bg]
+        return urwid.AttrSpec(fg, bg, colourmode)
+
 
 
 class FallbackConfigParser(SafeConfigParser):
