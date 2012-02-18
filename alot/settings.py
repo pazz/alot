@@ -44,15 +44,17 @@ def read_config(configpath=None, specpath=None):
 
 class Theme(object):
     def __init__(self, path):
-        self._spec = os.path.join(DEFAULTSPATH, 'theme.rc.spec')
+        self._spec = os.path.join(DEFAULTSPATH, 'theme.spec')
         self._config = read_config(path, self._spec)
+        self.path = path
 
     def get_attribute(self, mode, name, colourmode):
         fg = self._config['%dc' % colourmode][mode][name]['fg']
-        bg = self._config['%dc' % colourmode][mode][name]['bg']
         if colourmode == 1:
             bg = 'default'
-        elif colourmode == 256:
+        else:
+            bg = self._config['%dc' % colourmode][mode][name]['bg']
+        if colourmode == 256:
             fg = fg or self._config['16c'][mode][name][fg]
             bg = bg or self._config['16c'][mode][name][bg]
         return urwid.AttrSpec(fg, bg, colourmode)
@@ -66,7 +68,7 @@ class SettingsManager(object):
         self.read_config(alot_rc)
         self.read_notmuch_config(notmuch_rc)
 
-        theme_path = theme or os.path.join(DEFAULTSPATH, 'theme.rc')
+        theme_path = theme or os.path.join(DEFAULTSPATH, 'default.theme')
         self.theme = Theme(theme_path)
 
 
