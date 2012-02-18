@@ -173,3 +173,11 @@ user_agent = string(default='alot/$VERSION')
         r = string(default='reply')
         | = string(default='prompt "pipeto "')
         __many__ = string(default=None)
+
+[tags]
+    [[__many__]]
+        fg = string(default=None)
+        bg = string(default=None)
+        focus_fg = string(default=None)
+        focus_bg = string(default=None)
+        translated = string(default=None)

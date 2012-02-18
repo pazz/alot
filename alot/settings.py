@@ -117,6 +117,27 @@ class SettingsManager(object):
         colours = int(self._config.get('colourmode'))
         return self.theme.get_attribute(mode, name,  colours)
 
+    def get_tagstring_representation(self, tag):
+        colours = int(self._config.get('colourmode'))
+        default_att = self.theme.get_attribute('global', 'tag', colours)
+        default_focus_att = self.theme.get_attribute('global', 'tag_focus',
+                                                     colours)
+        if tag in self._config['tags']:
+            fg = self._config['tags'][tag]['fg'] or default_att.foreground
+            bg = self._config['tags'][tag]['bg'] or default_att.background
+            normal = urwid.AttrSpec(fg, bg, colours)
+            ffg = self._config['tags'][tag]['focus_fg'] or default_focus_att.foreground
+            fbg = self._config['tags'][tag]['focus_bg'] or default_focus_att.background
+            focussed = urwid.AttrSpec(ffg, fbg, colours)
+            translated = self._config['tags'][tag]['translated'] or tag
+        else:
+            normal = default_att
+            focussed = default_focus_att
+            translated = None
+
+        return {'normal': normal, 'focussed': focussed, 'translated': translated}
+
+
     def get_hook(self, key):
         """return hook (`callable`) identified by `key`"""
         if self.hooks:
