@@ -414,9 +414,11 @@ class HelpCommand(Command):
             ckey = 'cancel'
             titletext = 'Bindings Help (%s cancels)' % ckey
 
+            text_att = settings.get_theming_attribute('help', 'text')
+            title_att = settings.get_theming_attribute('help', 'title')
             box = widgets.DialogBox(body, titletext,
-                                    bodyattr='help_text',
-                                    titleattr='help_title')
+                                    bodyattr=text_att,
+                                    titleattr=title_att)
 
             # put promptwidget as overlay on main widget
             overlay = urwid.Overlay(box, ui.mainframe, 'center',

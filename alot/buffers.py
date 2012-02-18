@@ -71,10 +71,11 @@ class BufferlistBuffer(Buffer):
         for (num, b) in enumerate(displayedbuffers):
             line = widgets.BufferlineWidget(b)
             if (num % 2) == 0:
-                attr = 'bufferlist_results_even'
+                attr = settings.get_theming_attribute('bufferlist', 'results_even')
             else:
-                attr = 'bufferlist_results_odd'
-            buf = urwid.AttrMap(line, attr, 'bufferlist_focus')
+                attr = settings.get_theming_attribute('bufferlist', 'results_odd')
+            focus_att = settings.get_theming_attribute('bufferlist', 'focus')
+            buf = urwid.AttrMap(line, attr, focus_att)
             num = urwid.Text('%3d:' % self.index_of(b))
             lines.append(urwid.Columns([('fixed', 4, num), buf]))
         self.bufferlist = urwid.ListBox(urwid.SimpleListWalker(lines))

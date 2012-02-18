@@ -14,6 +14,7 @@ setup(name='alot',
       packages=['alot', 'alot.commands'],
       package_data={'alot': [
                              'defaults/alot.rc', # only old-style default values
+                             'defaults/alot.rc.new',
                              'defaults/alot.rc.spec',
                              'defaults/notmuch.rc.spec',
                              'defaults/default.theme', # default theme

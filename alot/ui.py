@@ -94,7 +94,6 @@ class UI(object):
         self.mainframe = urwid.Frame(urwid.SolidFill())
         self.inputwrap = InputWrap(self, self.mainframe)
         self.mainloop = urwid.MainLoop(self.inputwrap,
-                config.get_palette(), #todo: remove
                 handle_mouse=False,
                 event_loop=urwid.TwistedEventLoop(),
                 unhandled_input=self.unhandeled_input)
@@ -171,7 +170,8 @@ class UI(object):
                 ('fixed', len(prefix), leftpart),
                 ('weight', 1, editpart),
             ])
-        both = urwid.AttrMap(both, 'global_prompt')
+        att = settings.get_theming_attribute('global', 'prompt')
+        both = urwid.AttrMap(both, att)
 
         # put promptwidget as overlay on main widget
         overlay = urwid.Overlay(both, oldroot,
@@ -315,7 +315,8 @@ class UI(object):
                 ], dividechars=1)
         else:  # above
             both = urwid.Pile([msgpart, choicespart])
-        both = urwid.AttrMap(both, 'prompt', 'prompt')
+        att = settings.get_theming_attribute('global', 'prompt')
+        both = urwid.AttrMap(both, att, att)
 
         # put promptwidget as overlay on main widget
         overlay = urwid.Overlay(both, oldroot,
@@ -349,7 +350,8 @@ class UI(object):
         """
         def build_line(msg, prio):
             cols = urwid.Columns([urwid.Text(msg)])
-            return urwid.AttrMap(cols, 'global_notify_' + prio)
+            att = settings.get_theming_attribute('global', 'notify_' + prio)
+            return urwid.AttrMap(cols, att)
         msgs = [build_line(message, priority)]
 
         if not self.notificationbar:
@@ -422,7 +424,8 @@ class UI(object):
         columns = urwid.Columns([
             footerleft,
             ('fixed', len(righttxt), footerright)])
-        return urwid.AttrMap(columns, 'global_footer')
+        footer_att = settings.get_theming_attribute('global', 'footer')
+        return urwid.AttrMap(columns, footer_att)
 
     def apply_command(self, cmd):
         """

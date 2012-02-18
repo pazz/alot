@@ -77,8 +77,9 @@ class ThreadlineWidget(urwid.AttrMap):
         self.tag_widgets = []
         self.display_content = settings.get('display_content_in_threadline')
         self.rebuild()
-        urwid.AttrMap.__init__(self, self.columns,
-                               'search_thread', 'search_thread_focus')
+        normal = settings.get_theming_attribute('search', 'thread')
+        focussed = settings.get_theming_attribute('search', 'thread_focus')
+        urwid.AttrMap.__init__(self, self.columns, normal, focussed)
 
     def rebuild(self):
         cols = []
@@ -563,9 +564,9 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         self.message = message
         self.even = even
         if even:
-            attr = 'thread_summary_even'
+            attr = settings.get_theming_attribute('thread', 'summary_even')
         else:
-            attr = 'thread_summary_odd'
+            attr = settings.get_theming_attribute('thread', 'summary_odd')
         cols = []
 
         sumstr = self.__str__()
@@ -578,8 +579,9 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         tag_widgets.sort(tag_cmp, lambda tag_widget: tag_widget.translated)
         for tag_widget in tag_widgets:
             cols.append(('fixed', tag_widget.width(), tag_widget))
+        focus_att = settings.get_theming_attribute('thread', 'summary_focus')
         line = urwid.AttrMap(urwid.Columns(cols, dividechars=1), attr,
-                             'thread_summary_focus')
+                             focus_att)
         urwid.WidgetWrap.__init__(self, line)
 
     def __str__(self):
@@ -609,7 +611,8 @@ class HeadersList(urwid.WidgetWrap):
     def __init__(self, headerslist):
         self.headers = headerslist
         pile = urwid.Pile(self._build_lines(headerslist))
-        pile = urwid.AttrMap(pile, 'thread_header')
+        att = settings.get_theming_attribute('thread', 'header')
+        pile = urwid.AttrMap(pile, att)
         urwid.WidgetWrap.__init__(self, pile)
 
     def __str__(self):
@@ -618,6 +621,8 @@ class HeadersList(urwid.WidgetWrap):
     def _build_lines(self, lines):
         max_key_len = 1
         headerlines = []
+        key_att = settings.get_theming_attribute('thread', 'header_key')
+        value_att = settings.get_theming_attribute('thread', 'header_value')
         #calc max length of key-string
         for key, value in lines:
             if len(key) > max_key_len:
@@ -625,8 +630,8 @@ class HeadersList(urwid.WidgetWrap):
         for key, value in lines:
             ##todo : even/odd
             keyw = ('fixed', max_key_len + 1,
-                    urwid.Text(('thread_header_key', key)))
-            valuew = urwid.Text(('thread_header_value', value))
+                    urwid.Text((key_att, key)))
+            valuew = urwid.Text((value_att, value))
             line = urwid.Columns([keyw, valuew])
             headerlines.append(line)
         return headerlines
@@ -642,7 +647,8 @@ class MessageBodyWidget(urwid.AttrMap):
 
     def __init__(self, msg):
         bodytxt = message.extract_body(msg)
-        urwid.AttrMap.__init__(self, urwid.Text(bodytxt), 'thread_body')
+        att = settings.get_theming_attribute('thread', 'body')
+        urwid.AttrMap.__init__(self, urwid.Text(bodytxt), att)
 
 
 class AttachmentWidget(urwid.WidgetWrap):
@@ -658,9 +664,10 @@ class AttachmentWidget(urwid.WidgetWrap):
         self.attachment = attachment
         if not isinstance(attachment, message.Attachment):
             self.attachment = message.Attachment(self.attachment)
+        att = settings.get_theming_attribute('thread', 'attachment')
+        focus_att = settings.get_theming_attribute('thread', 'attachment_focus')
         widget = urwid.AttrMap(urwid.Text(self.attachment.__str__()),
-                               'thread_attachment',
-                               'thread_attachment_focus')
+                               att, focus_att)
         urwid.WidgetWrap.__init__(self, widget)
 
     def get_attachment(self):
