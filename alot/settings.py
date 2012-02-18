@@ -85,6 +85,34 @@ class SettingsManager(object):
             logging.debug('unable to load hooks file:%s' % hooks_path)
 
 
+    def getc_setting(self, key):
+        """
+        look up global config values from alot's config
+
+        :param key: key to look up
+        :type key: str
+        """
+        value = None
+        if key in self._config:
+            value = self._config[key]
+            if isinstance(value, Section):
+                value = None
+        return value
+
+    def get_notmuch_setting(self, section, key):
+        """
+        look up config values from notmuch's config
+
+        :param section: key is in
+        :type section: str
+        :param key: key to look up
+        :type key: str
+        """
+        value = None
+        if key in self._notmuchconfig:
+            value = self._notmuchconfig[key]
+        return value
+
     def get_theming_attribute(self, mode, name):
         colours = int(self._config.get('colourmode'))
         return self.theme.get_attribute(mode, name,  colours)
