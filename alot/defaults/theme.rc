@@ -1,0 +1,329 @@
+[1c]
+[[global]]
+    [[[footer]]]
+        fg = 'standout'
+    [[[notify_error]]]
+        fg = 'standout'
+    [[[notify_normal]]]
+        fg = 'default'
+    [[[prompt]]]
+        fg = 'default'
+    [[[tag]]]
+        fg = 'default'
+    [[[tag_focus]]]
+        fg = 'standout, bold'
+    [[[tag_draft]]]
+        fg = 'standout'
+
+[[help]]
+    [[[text]]]
+        fg = 'default'
+    [[[section]]]
+        fg = 'underline'
+    [[[title]]]
+        fg = 'standout'
+
+[[bufferlist]]
+    [[[focus]]]
+        fg = 'standout'
+    [[[results_even]]]
+        fg = 'default'
+    [[[results_odd]]]
+        fg = 'default'
+
+[[search]]
+    [[[thread]]]
+        fg = 'default'
+    [[[thread_authors]]]
+        fg = 'default,underline'
+    [[[thread_authors_focus]]]
+        fg = 'standout'
+    [[[thread_content]]]
+        fg = 'default'
+    [[[thread_content_focus]]]
+        fg = 'standout'
+    [[[thread_date]]]
+        fg = 'default'
+    [[[thread_date_focus]]]
+        fg = 'standout'
+    [[[thread_focus]]]
+        fg = 'standout'
+    [[[thread_mailcount]]]
+        fg = 'default'
+    [[[thread_mailcount_focus]]]
+        fg = 'standout'
+    [[[thread_subject]]]
+        fg = 'default'
+    [[[thread_subject_isunread]]]
+        fg = 'bold'
+    [[[thread_subject_isflagged]]]
+        fg = 'underline'
+    [[[thread_subject_focus]]]
+        fg = 'standout'
+    [[[thread_subject_isunread_focus]]]
+        fg = 'standout,bold'
+    [[[thread_subject_isflagged_focus]]]
+        fg = 'standout,underline'
+    [[[thread_tags]]]
+        fg = 'bold'
+    [[[thread_tags_focus]]]
+        fg = 'standout'
+
+[[thread]]
+    [[[attachment]]]
+        fg = 'default'
+    [[[attachment_focus]]]
+        fg = 'underline'
+    [[[body]]]
+        fg = 'default'
+    [[[header]]]
+        fg = 'default'
+    [[[header_key]]]
+        fg = 'default'
+    [[[header_value]]]
+        fg = 'default'
+    [[[summary_even]]]
+        fg = 'default'
+    [[[summary_focus]]]
+        fg = 'standout'
+    [[[summary_odd]]]
+        fg = 'default'
+
+[16c]
+[[global]]
+    [[[footer]]]
+        bg = 'dark blue'
+        fg = 'light green'
+    [[[notify_error]]]
+        bg = 'dark red'
+        fg = 'white'
+    [[[notify_normal]]]
+        bg = 'dark gray'
+        fg = 'light gray'
+    [[[prompt]]]
+        bg = 'black'
+        fg = 'light gray'
+    [[[tag]]]
+        bg = 'black'
+        fg = 'brown'
+    [[[tag_focus]]]
+        bg = 'dark gray'
+        fg = 'white'
+    [[[tag_draft]]]
+        bg = 'light red'
+        fg = 'white'
+
+
+[[help]]
+    [[[text]]]
+        bg = 'dark gray'
+        fg = 'default'
+    [[[section]]]
+        bg = 'dark gray'
+        fg = 'bold,underline'
+    [[[title]]]
+        bg = 'dark blue'
+        fg = 'white'
+[[bufferlist]]
+    [[[focus]]]
+        bg = 'dark gray'
+        fg = 'white'
+    [[[results_even]]]
+        bg = 'black'
+        fg = 'light gray'
+    [[[results_odd]]]
+        bg = 'black'
+        fg = 'light gray'
+
+
+[[thread]]
+    [[[attachment]]]
+        bg = 'dark gray'
+        fg = 'light gray'
+    [[[attachment_focus]]]
+        bg = 'light green'
+        fg = 'light gray'
+    [[[body]]]
+        bg = 'default'
+        fg = 'light gray'
+    [[[header]]]
+        bg = 'dark gray'
+        fg = 'white'
+    [[[header_key]]]
+        bg = 'dark gray'
+        fg = 'white'
+    [[[header_value]]]
+        bg = 'dark gray'
+        fg = 'light gray'
+    [[[summary_even]]]
+        bg = 'light blue'
+        fg = 'white'
+    [[[summary_focus]]]
+        bg = 'dark cyan'
+        fg = 'white'
+    [[[summary_odd]]]
+        bg = 'dark blue'
+        fg = 'white'
+
+[[search]]
+    [[[thread_authors]]]
+        bg = 'default'
+        fg = 'dark green'
+    [[[thread_authors_focus]]]
+        bg = 'dark gray'
+        fg = 'dark green,bold'
+    [[[thread]]]
+        bg = 'default'
+        fg = 'default'
+    [[[thread_content]]]
+        bg = 'default'
+        fg = 'dark gray'
+    [[[thread_content_focus]]]
+        bg = 'dark gray'
+        fg = 'black'
+    [[[thread_date]]]
+        bg = 'default'
+        fg = 'light gray'
+    [[[thread_date_focus]]]
+        bg = 'dark gray'
+        fg = 'light gray'
+    [[[thread_focus]]]
+        bg = 'dark gray'
+        fg = 'light gray'
+    [[[thread_mailcount]]]
+        bg = 'default'
+        fg = 'light gray'
+    [[[thread_mailcount_focus]]]
+        bg = 'dark gray'
+        fg = 'light gray'
+    [[[thread_subject]]]
+        bg = 'default'
+        fg = 'light gray'
+    [[[thread_subject_focus]]]
+        bg = 'dark gray'
+        fg = 'light gray'
+    [[[thread_tags]]]
+        bg = 'default'
+        fg = 'brown'
+    [[[thread_tags_focus]]]
+        bg = 'dark gray'
+        fg = 'yellow,bold'
+[256c]
+
+[[global]]
+    # attributes used in all modi
+    [[[footer]]]
+        bg = '#006'
+        fg = 'white'
+    [[[notify_error]]]
+        bg = 'dark red'
+        fg = 'white'
+    [[[notify_normal]]]
+        bg = '#68a'
+        fg = 'light gray'
+    [[[prompt]]]
+        bg = 'g10'
+        fg = 'light gray'
+    [[[tag]]]
+        bg = 'default'
+        fg = 'brown'
+    [[[tag_focus]]]
+        bg = '#68a'
+        fg = '#ffa'
+
+
+[[help]]
+    # formating of the `help bindings` overlay
+    [[[text]]]
+        bg = 'g35'
+        fg = 'default'
+    [[[section]]]
+        bg = 'g35'
+        fg = 'bold,underline'
+    [[[title]]]
+        bg = 'g35'
+        fg = 'white,bold,underline'
+
+# mode specific attributes
+[[bufferlist]]
+    [[[focus]]]
+        bg = '#68a'
+        fg = '#ffa'
+    [[[results_even]]]
+        bg = 'g3'
+        fg = 'default'
+    [[[results_odd]]]
+        bg = 'default'
+        fg = 'default'
+
+[[search]]
+    [[[thread_authors]]]
+        bg = 'default'
+        fg = '#6d6'
+    [[[thread_authors_focus]]]
+        bg = '#68a'
+        fg = '#8f6'
+    [[[thread_content]]]
+        bg = 'default'
+        fg = '#866'
+    [[[thread_content_focus]]]
+        bg = '#68a'
+        fg = '#866'
+    [[[thread_date]]]
+        bg = 'default'
+        fg = 'g58'
+    [[[thread_date_focus]]]
+        bg = '#68a'
+        fg = 'g89'
+    [[[thread_focus]]]
+        bg = '#68a'
+        fg = 'white'
+    [[[thread_mailcount]]]
+        bg = 'default'
+        fg = 'light gray'
+    [[[thread_mailcount_focus]]]
+        bg = '#68a'
+        fg = 'g89'
+    [[[thread_subject]]]
+        bg = 'default'
+        fg = 'g58'
+    [[[thread_subject_focus]]]
+        bg = '#68a'
+        fg = 'g89'
+    [[[thread_tags]]]
+        bg = 'default'
+        fg = '#a86'
+    [[[thread_tags_focus]]]
+        bg = '#68a'
+        fg = '#ff8'
+
+[[thread]]
+    [[[attachment]]]
+        bg = 'dark gray'
+        fg = 'light gray'
+    [[[attachment_focus]]]
+        bg = 'light green'
+        fg = 'light gray'
+    [[[body]]]
+        bg = 'default'
+        fg = 'light gray'
+    [[[header]]]
+        bg = 'dark gray'
+        fg = 'white'
+    [[[header_key]]]
+        bg = 'dark gray'
+        fg = 'white'
+    [[[header_value]]]
+        bg = 'dark gray'
+        fg = 'light gray'
+    [[[summary_even]]]
+        bg = '#068'
+        fg = 'white'
+    [[[summary_focus]]]
+        bg = 'g58'
+        fg = '#ff8'
+    [[[summary_odd]]]
+        bg = '#006'
+        fg = 'white'
+
+
