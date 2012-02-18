@@ -6,9 +6,38 @@ import json
 import mailcap
 import codecs
 import logging
+from configobj import ConfigObj, ConfigObjError, flatten_errors, Section
+from validate import Validator
 
 from collections import OrderedDict
 from ConfigParser import SafeConfigParser, ParsingError, NoOptionError
+
+DEFAULTSPATH = os.path.join(os.path.dirname(__file__), 'defaults')
+
+class ConfigError(Exception):
+    pass
+
+def read_config(configpath=None, specpath=None):
+    try:
+        config = ConfigObj(infile=configpath, configspec=specpath, file_error=True)
+    except (ConfigObjError, IOError), e:
+        raise ConfigError('Could not read "%s": %s' % (configpath, e))
+
+    if specpath:
+        validator = Validator()
+        results = config.validate(validator)
+
+        if results != True:
+            error_msg = 'Validation errors occurred:\n'
+            for (section_list, key, _) in flatten_errors(config, results):
+                if key is not None:
+                    msg = 'key "%s" in section "%s" failed validation'
+                    msg = msg % (key, ', '.join(section_list))
+                else:
+                    msg = 'section "%s" was missing' % ', '.join(section_list)
+                error_msg += msg + '\n'
+            raise ConfigError(error_msg)
+    return config
 
 
 class FallbackConfigParser(SafeConfigParser):
