@@ -101,7 +101,75 @@ user_agent = string(default='alot/$VERSION')
 
 # Keybindings 
 [bindings]
-    # one for each mode
-    [[__many__]]
-        # key = commandline string
+    [[global]]
+        j = string(default='move down')
+        k = string(default='move up')
+        ' ' = string(default='move page down')
+        esc = string(default='cancel')
+        enter = string(default='select')
+        @ = string(default='refresh')
+        ? = string(default='help bindings')
+        I = string(default='search tag:inbox AND NOT tag:killed')
+        L = string(default='taglist')
+        shift tab = string(default='bprevious')
+        U = string(default='search tag:unread')
+        tab = string(default='bnext')
+        \ = string(default='prompt "search "')
+        d = string(default='bclose')
+        $ = string(default='flush')
+        m = string(default='compose')
+        o = string(default='prompt "search "')
+        q = string(default='exit')
+        ';' = string(default='bufferlist')
+        ':' = string(default='prompt')
+        __many__ = string(default=None)
+
+    [[bufferlist]]
+        x = string(default='close')
+        select = string(default='openfocussed')
+        __many__ = string(default=None)
+
+    [[search]]
+        a = string(default='toggletags inbox')
+        & = string(default='toggletags killed')
+        ! = string(default='toggletags flagged')
+        s = string(default='toggletags unread')
+        l = string(default='retagprompt')
+        O = string(default='refineprompt')
+        | = string(default='refineprompt')
+        __many__ = string(default=None)
+
+    [[envelope]]
+        a = string(default='prompt "attach ~/"')
+        y = string(default='send')
+        P = string(default='save')
+        s = string(default=''refine Subject'')
+        t = string(default=''refine To'')
+        b = string(default=''refine Bcc'')
+        c = string(default=''refine Cc'')
+        select = string(default='edit')
+        H = string(default='toggleheaders')
+        __many__ = string(default=None)
+
+    [[taglist]]
+        __many__ = string(default=None)
+
+    [[thread]]
+        C = string(default='fold --all')
+        E = string(default='unfold --all')
+        c = string(default='fold')
+        e = string(default='unfold')
+        < = string(default='fold')
+        > = string(default='unfold')
+        H = string(default='toggleheaders')
+        h = string(default='togglesource')
+        P = string(default='print --all --separately --add_tags')
+        S = string(default='save --all')
+        g = string(default='reply --all')
+        f = string(default='forward')
+        p = string(default='print --add_tags')
+        n = string(default='editnew')
+        s = string(default='save')
+        r = string(default='reply')
+        | = string(default='prompt "pipeto "')
         __many__ = string(default=None)

@@ -13,13 +13,11 @@ setup(name='alot',
       license=alot.__copyright__,
       packages=['alot', 'alot.commands'],
       package_data={'alot': [
-                             'defaults/alot.rc',
-                             'defaults/alot.rc.new',
+                             'defaults/alot.rc', # only old-style default values
                              'defaults/alot.rc.spec',
-                             'defaults/notmuch.rc',
                              'defaults/notmuch.rc.spec',
-                             'defaults/theme.rc',
-                             'defaults/theme.rc.spec',
+                             'defaults/default.theme', # default theme
+                             'defaults/theme.spec',
                             ]},
       scripts=['bin/alot'],
       requires=[
