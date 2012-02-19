@@ -16,7 +16,6 @@ from alot import __version__
 import logging
 import helper
 from settings import get_mime_handler
-from settings import config
 from settings import settings
 from helper import string_sanitize
 from helper import string_decode

@@ -5,7 +5,6 @@ import logging
 import email
 import tempfile
 from twisted.internet.defer import inlineCallbacks
-from twisted.internet import threads
 import datetime
 
 from alot.account import SendingMailFailed
@@ -121,7 +120,6 @@ class SendCommand(Command):
                 return
         frm = envelope.get('From')
         sname, saddr = email.Utils.parseaddr(frm)
-        omit_signature = False
 
         # determine account to use for sending
         account = settings.get_account_by_address(saddr)
@@ -218,7 +216,8 @@ class EditCommand(Command):
             # call post-edit translate hook
             translate = settings.get_hook('post_edit_translate')
             if translate:
-                template = translate(template, ui=ui, dbm=ui.dbman, config=settings)
+                template = translate(template, ui=ui, dbm=ui.dbman,
+                                     config=settings)
             self.envelope.parse_template(template)
             if self.openNew:
                 ui.buffer_open(buffers.EnvelopeBuffer(ui, self.envelope))

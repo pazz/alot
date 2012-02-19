@@ -12,7 +12,6 @@ from alot.commands.globals import ExternalCommand
 from alot.commands.globals import FlushCommand
 from alot.commands.globals import ComposeCommand
 from alot.commands.globals import RefreshCommand
-from alot import settings
 from alot import widgets
 from alot import completion
 from alot.message import decode_header
@@ -21,7 +20,6 @@ from alot.message import extract_headers
 from alot.message import extract_body
 from alot.message import Envelope
 from alot.db import DatabaseROError
-from alot.db import DatabaseError
 from alot.settings import settings
 
 MODE = 'thread'

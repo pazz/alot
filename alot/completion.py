@@ -8,6 +8,7 @@ import alot.commands as commands
 from alot.buffers import EnvelopeBuffer
 from alot.settings import settings
 
+
 class Completer(object):
     """base class for completers"""
     def complete(self, original, pos):
@@ -207,6 +208,7 @@ class AbooksCompleter(Completer):
                 returnlist.append((newtext, len(newtext)))
         return returnlist
 
+
 class ArgparseOptionCompleter(Completer):
     """completes option parameters for a given argparse.Parser"""
     def __init__(self, parser):
@@ -223,7 +225,7 @@ class ArgparseOptionCompleter(Completer):
         res = []
         for act in self.actions:
             if '=' in pref:
-                optionstring = pref[:pref.rfind('=')+1]
+                optionstring = pref[:pref.rfind('=') + 1]
                 # get choices
                 if 'choices' in act.__dict__:
                     choices = act.choices or []
@@ -237,6 +239,7 @@ class ArgparseOptionCompleter(Completer):
                         res.append(optionstring)
 
         return [(a, len(a)) for a in res]
+
 
 class AccountCompleter(StringlistCompleter):
     """completes users' own mailaddresses"""

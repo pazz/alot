@@ -18,8 +18,10 @@ from ConfigParser import SafeConfigParser, ParsingError, NoOptionError
 
 DEFAULTSPATH = os.path.join(os.path.dirname(__file__), 'defaults')
 
+
 class ConfigError(Exception):
     pass
+
 
 def read_config(configpath=None, specpath=None):
     try:
@@ -57,7 +59,7 @@ class Theme(object):
             try:
                 colours = int(sec)
             except ValueError:
-                err_msg='section %s is not an integer indicating a colour mode'
+                err_msg = 'section name %s is not a valid colour mode'
                 raise ConfigError(err_msg % sec)
             attributes[colours] = {}
             for mode in c[sec].sections:
@@ -79,7 +81,6 @@ class Theme(object):
                     attributes[colours][mode][themable] = att
         return attributes
 
-
     def get_attribute(self, mode, name, colourmode):
         return self.attributes[colourmode][mode][name]
 
@@ -98,7 +99,6 @@ class SettingsManager(object):
 
         self._accounts = self.parse_accounts(self._config)
         self._accountmap = self._account_table(self._accounts)
-
 
     def read_notmuch_config(self, path):
         spec = os.path.join(DEFAULTSPATH, 'notmuch.rc.spec')
@@ -183,24 +183,24 @@ class SettingsManager(object):
 
     def get_tagstring_representation(self, tag):
         colours = int(self._config.get('colourmode'))
-        default_att = self.theme.get_attribute('global', 'tag', colours)
-        default_focus_att = self.theme.get_attribute('global', 'tag_focus',
-                                                     colours)
+        # default attributes: normal and focussed
+        default = self.theme.get_attribute('global', 'tag', colours)
+        default_f = self.theme.get_attribute('global', 'tag_focus', colours)
         if tag in self._config['tags']:
-            fg = self._config['tags'][tag]['fg'] or default_att.foreground
-            bg = self._config['tags'][tag]['bg'] or default_att.background
+            fg = self._config['tags'][tag]['fg'] or default.foreground
+            bg = self._config['tags'][tag]['bg'] or default.background
             normal = urwid.AttrSpec(fg, bg, colours)
-            ffg = self._config['tags'][tag]['focus_fg'] or default_focus_att.foreground
-            fbg = self._config['tags'][tag]['focus_bg'] or default_focus_att.background
+            ffg = self._config['tags'][tag]['focus_fg'] or default_f.foreground
+            fbg = self._config['tags'][tag]['focus_bg'] or default_f.background
             focussed = urwid.AttrSpec(ffg, fbg, colours)
             translated = self._config['tags'][tag]['translated'] or tag
         else:
-            normal = default_att
-            focussed = default_focus_att
+            normal = default
+            focussed = default_f
             translated = tag
 
-        return {'normal': normal, 'focussed': focussed, 'translated': translated}
-
+        return {'normal': normal, 'focussed': focussed,
+                'translated': translated}
 
     def get_hook(self, key):
         """return hook (`callable`) identified by `key`"""
@@ -269,6 +269,7 @@ class SettingsManager(object):
                 if a.abook and a.abook not in abooks:
                     abooks.append(a.abook)
         return abooks
+
 
 class FallbackConfigParser(SafeConfigParser):
     """:class:`~ConfigParser.SafeConfigParser` that allows fallback values"""

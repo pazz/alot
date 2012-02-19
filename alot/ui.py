@@ -1,9 +1,7 @@
 import urwid
 import logging
 from twisted.internet import reactor, defer
-from twisted.python.failure import Failure
 
-from settings import config
 from settings import settings
 from buffers import BufferlistBuffer
 import commands
@@ -84,7 +82,7 @@ class UI(object):
         self.dbman = dbman
 
         if not colourmode:
-            # needs explicit int-constructor because we used "options" in specfile
+            # explicit int-constructor because we used "options" in specfile
             colourmode = int(settings.get('colourmode'))
         logging.info('setup gui in %d colours' % colourmode)
         self.mainframe = urwid.Frame(urwid.SolidFill())

@@ -15,7 +15,6 @@ from alot.completion import CommandLineCompleter
 from alot.commands import CommandParseError
 from alot.commands import commandfactory
 from alot import buffers
-from alot import settings
 from alot import widgets
 from alot import helper
 from alot.db import DatabaseLockedError

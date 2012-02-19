@@ -18,7 +18,6 @@ import StringIO
 import logging
 
 
-
 def safely_get(clb, E, on_error=''):
     """
     returns result of :func:`clb` and falls back to `on_error`
