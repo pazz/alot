@@ -1,3 +1,4 @@
+# coding=utf-8
 from datetime import date
 from datetime import timedelta
 from collections import deque
