@@ -24,6 +24,15 @@ class ConfigError(Exception):
 
 
 def read_config(configpath=None, specpath=None):
+    """
+    get a (validated) config object for given config file path.
+
+    :param configpath: path to config-file
+    :type configpath: str
+    :param specpath: path to spec-file
+    :type specpath: str
+    :rtype: `configobj.ConfigObj`
+    """
     try:
         config = ConfigObj(infile=configpath, configspec=specpath,
                            file_error=True, encoding='UTF8')
@@ -48,12 +57,26 @@ def read_config(configpath=None, specpath=None):
 
 
 class Theme(object):
+    """Colour theme"""
     def __init__(self, path):
+        """
+        :param path: path to theme file
+        :type path: str
+        """
         self._spec = os.path.join(DEFAULTSPATH, 'theme.spec')
         self._config = read_config(path, self._spec)
-        self.attributes = self.parse_attributes(self._config)
+        self.attributes = self._parse_attributes(self._config)
 
-    def parse_attributes(self, c):
+    def _parse_attributes(self, c):
+        """
+        parse a (previously validated) valid theme file
+        into urwid AttrSpec attributes for internal use.
+
+        :param c: config object for theme file
+        :type c: `configobj.ConfigObj`
+        :raises: `ConfigError`
+        """
+
         attributes = {}
         for sec in c.sections:
             try:
@@ -82,11 +105,30 @@ class Theme(object):
         return attributes
 
     def get_attribute(self, mode, name, colourmode):
+        """
+        returns requested attribute
+
+        :param mode: ui-mode (e.g. `search`,`thread`...)
+        :type mode: str
+        :param name: identifier of the atttribute
+        :type name: str
+        :param colourmode: colour mode; in [1, 16, 256]
+        :type colourmode: int
+        """
         return self.attributes[colourmode][mode][name]
 
 
 class SettingsManager(object):
+    """Organizes user settings"""
     def __init__(self, alot_rc=None, notmuch_rc=None, theme=None):
+        """
+        :param alot_rc: path to alot's config file
+        :type alot_rc: str
+        :param notmuch_rc: path to notmuch's config file
+        :type notmuch_rc: str
+        :theme: path to initially used theme file
+        :type theme: str
+        """
         self.hooks = None
 
         theme_path = theme or os.path.join(DEFAULTSPATH, 'default.theme')
@@ -101,10 +143,12 @@ class SettingsManager(object):
         self._accountmap = self._account_table(self._accounts)
 
     def read_notmuch_config(self, path):
+        """parse notmuch's config file from path"""
         spec = os.path.join(DEFAULTSPATH, 'notmuch.rc.spec')
         self._notmuchconfig = read_config(path, spec)
 
     def read_config(self, path):
+        """parse alot's config file from path"""
         spec = os.path.join(DEFAULTSPATH, 'alot.rc.spec')
         newconfig = read_config(path, spec)
         self._config.merge(newconfig)
@@ -120,6 +164,13 @@ class SettingsManager(object):
                 self._bindings.merge(newbindings)
 
     def parse_accounts(self, config):
+        """
+        read accounts information from config
+
+        :param config: valit alot config
+        :type config: `configobj.ConfigObj`
+        :returns: list of accounts
+        """
         accounts = []
         if 'accounts' in config:
             for acc in config['accounts'].sections:
@@ -140,8 +191,15 @@ class SettingsManager(object):
         return accounts
 
     def _account_table(self, accounts):
-        """returns a lookup table emailaddress -> account
-        for a given list of accounts"""
+        """
+        creates a lookup table (emailaddress -> account) for a given list of
+        accounts
+
+        :param accounts: list of accounts
+        :type accounts: list of `alot.account.Account`
+        :returns: hashtable
+        :rvalue: dict (str -> `alot.account.Account`)
+        """
         accountmap = {}
         for acc in accounts:
             accountmap[acc.address] = acc
@@ -155,6 +213,7 @@ class SettingsManager(object):
 
         :param key: key to look up
         :type key: str
+        :returns: config value with type as specified in the spec-file
         """
         value = None
         if key in self._config:
@@ -171,6 +230,7 @@ class SettingsManager(object):
         :type section: str
         :param key: key to look up
         :type key: str
+        :returns: config value with type as specified in the spec-file
         """
         value = None
         if key in self._notmuchconfig:
@@ -178,10 +238,25 @@ class SettingsManager(object):
         return value
 
     def get_theming_attribute(self, mode, name):
+        """
+        looks up theming attribute
+
+        :param mode: ui-mode (e.g. `search`,`thread`...)
+        :type mode: str
+        :param name: identifier of the atttribute
+        :type name: str
+        """
         colours = int(self._config.get('colourmode'))
         return self.theme.get_attribute(mode, name,  colours)
 
     def get_tagstring_representation(self, tag):
+        """
+        looks up user's preferred way to represent a given tagstring
+
+        This returns a dictionary mapping
+        'normal' and 'focussed' to `urwid.AttrSpec` sttributes,
+        and 'translated' to an alternative string representation
+        """
         colours = int(self._config.get('colourmode'))
         # default attributes: normal and focussed
         default = self.theme.get_attribute('global', 'tag', colours)
