@@ -64,12 +64,13 @@ class SettingsManager(object):
     def __init__(self, alot_rc=None, notmuch_rc=None, theme=None):
         self.hooks = None
 
+        theme_path = theme or os.path.join(DEFAULTSPATH, 'default.theme')
+        self.theme = Theme(theme_path)
+        self._bindings = read_config(os.path.join(DEFAULTSPATH, 'bindings'))
+
         self._config = ConfigObj()
         self.read_config(alot_rc)
         self.read_notmuch_config(notmuch_rc)
-
-        theme_path = theme or os.path.join(DEFAULTSPATH, 'default.theme')
-        self.theme = Theme(theme_path)
 
 
     def read_notmuch_config(self, path):
@@ -86,6 +87,10 @@ class SettingsManager(object):
             self.hooks = imp.load_source('hooks', hooks_path)
         except:
             logging.debug('unable to load hooks file:%s' % hooks_path)
+        if 'bindings' in newconfig:
+            newbindings = newconfig['bindings']
+            if isinstance(newbindings, Section):
+                self._bindings.merge(newbindings)
 
 
     def get(self, key):
@@ -159,7 +164,7 @@ class SettingsManager(object):
         :rtype: str
         """
         cmdline = None
-        bindings = self._config['bindings']
+        bindings = self._bindings
         if key in bindings[mode]:
             cmdline = bindings[mode][key]
         elif key in bindings['global']:

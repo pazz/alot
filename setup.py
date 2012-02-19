@@ -18,6 +18,7 @@ setup(name='alot',
                              'defaults/alot.rc.spec',
                              'defaults/notmuch.rc.spec',
                              'defaults/default.theme', # default theme
+                             'defaults/bindings',
                              'defaults/theme.spec',
                             ]},
       scripts=['bin/alot'],
