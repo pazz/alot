@@ -12,9 +12,9 @@ from alot.account import SendingMailFailed
 from alot import buffers
 from alot import commands
 from alot.commands import Command, registerCommand
-from alot import settings
 from alot.commands import globals
 from alot.helper import string_decode
+from alot.settings import settings
 
 
 MODE = 'envelope'
@@ -193,12 +193,10 @@ class EditCommand(Command):
             self.envelope = ui.current_buffer.envelope
 
         #determine editable headers
-        edit_headers = set(settings.config.getstringlist('general',
-                                                    'edit_headers_whitelist'))
+        edit_headers = set(settings.get('edit_headers_whitelist'))
         if '*' in edit_headers:
             edit_headers = set(self.envelope.headers.keys())
-        blacklist = set(settings.config.getstringlist('general',
-                                                  'edit_headers_blacklist'))
+        blacklist = set(settings.get('edit_headers_blacklist'))
         if '*' in blacklist:
             blacklist = set(self.envelope.headers.keys())
         self.edit_headers = edit_headers - blacklist
@@ -213,15 +211,15 @@ class EditCommand(Command):
             # get input
             f = open(tf.name)
             os.unlink(tf.name)
-            enc = settings.config.get('general', 'editor_writes_encoding')
+            enc = settings.get('editor_writes_encoding')
             template = string_decode(f.read(), enc)
             f.close()
 
             # call post-edit translate hook
-            translate = settings.config.get_hook('post_edit_translate')
+            translate = settings.get_hook('post_edit_translate')
             if translate:
                 template = translate(template, ui=ui, dbm=ui.dbman,
-                                    aman=ui.accountman, config=settings.config)
+                                    aman=ui.accountman, config=settings)
             self.envelope.parse_template(template)
             if self.openNew:
                 ui.buffer_open(buffers.EnvelopeBuffer(ui, self.envelope))
@@ -246,10 +244,10 @@ class EditCommand(Command):
         bodytext = self.envelope.body
 
         # call pre-edit translate hook
-        translate = settings.config.get_hook('pre_edit_translate')
+        translate = settings.get_hook('pre_edit_translate')
         if translate:
             bodytext = translate(bodytext, ui=ui, dbm=ui.dbman,
-                                 aman=ui.accountman, config=settings.config)
+                                 aman=ui.accountman, config=settings)
 
         #write stuff to tempfile
         tf = tempfile.NamedTemporaryFile(delete=False)

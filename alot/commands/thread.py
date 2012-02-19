@@ -22,6 +22,7 @@ from alot.message import extract_body
 from alot.message import Envelope
 from alot.db import DatabaseROError
 from alot.db import DatabaseError
+from alot.settings import settings
 
 MODE = 'thread'
 
@@ -95,11 +96,11 @@ class ReplyCommand(Command):
         # set body text
         name, address = self.message.get_author()
         timestamp = self.message.get_date()
-        qf = settings.config.get_hook('reply_prefix')
+        qf = settings.get_hook('reply_prefix')
         if qf:
             quotestring = qf(name, address, timestamp,
                              ui=ui, dbm=ui.dbman, aman=ui.accountman,
-                             config=settings.config)
+                             config=settings)
         else:
             quotestring = 'Quoting %s (%s)\n' % (name, timestamp)
         mailcontent = quotestring
@@ -196,11 +197,11 @@ class ForwardCommand(Command):
             # set body text
             name, address = self.message.get_author()
             timestamp = self.message.get_date()
-            qf = settings.config.get_hook('forward_prefix')
+            qf = settings.get_hook('forward_prefix')
             if qf:
                 quote = qf(name, address, timestamp,
                              ui=ui, dbm=ui.dbman, aman=ui.accountman,
-                             config=settings.config)
+                             config=settings)
             else:
                 quote = 'Forwarded message from %s (%s):\n' % (name, timestamp)
             mailcontent = quote
@@ -548,7 +549,7 @@ class PrintCommand(PipeCommand):
         :type add_tags: bool
         """
         # get print command
-        cmd = settings.config.get('general', 'print_cmd', fallback='')
+        cmd = settings.get('print_cmd', fallback='')
 
         # set up notification strings
         if all:
