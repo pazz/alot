@@ -1,4 +1,4 @@
-[1c]
+[1]
 [[global]]
     [[[footer]]]
         fg = string(default='default')
@@ -14,7 +14,6 @@
         fg = string(default='default')
     [[[tag_draft]]]
         fg = string(default='default')
-
 [[help]]
     [[[text]]]
         fg = string(default='default')
@@ -22,7 +21,6 @@
         fg = string(default='default')
     [[[title]]]
         fg = string(default='default')
-
 [[bufferlist]]
     [[[focus]]]
         fg = string(default='default')
@@ -30,7 +28,6 @@
         fg = string(default='default')
     [[[results_odd]]]
         fg = string(default='default')
-
 [[search]]
     [[[thread]]]
         fg = string(default='default')
@@ -68,7 +65,6 @@
         fg = string(default='default')
     [[[thread_tags_focus]]]
         fg = string(default='default')
-
 [[thread]]
     [[[attachment]]]
         fg = string(default='default')
@@ -89,7 +85,7 @@
     [[[summary_odd]]]
         fg = string(default='default')
 
-[16c]
+[16]
 [[global]]
     [[[footer]]]
         bg = string(default='default')
@@ -112,8 +108,6 @@
     [[[tag_draft]]]
         bg = string(default='default')
         fg = string(default='default')
-
-
 [[help]]
     [[[text]]]
         bg = string(default='default')
@@ -134,8 +128,6 @@
     [[[results_odd]]]
         bg = string(default='default')
         fg = string(default='default')
-
-
 [[thread]]
     [[[attachment]]]
         bg = string(default='default')
@@ -164,7 +156,6 @@
     [[[summary_odd]]]
         bg = string(default='default')
         fg = string(default='default')
-
 [[search]]
     [[[thread]]]
         bg = string(default='default')
@@ -209,9 +200,7 @@
         bg = string(default='default')
         fg = string(default='default')
 
-
-[256c]
-
+[256]
 [[global]]
     # attributes used in all modi
     [[[footer]]]
@@ -232,8 +221,6 @@
     [[[tag_focus]]]
         bg = string(default=None)
         fg = string(default=None)
-
-
 [[help]]
     # formating of the `help bindings` overlay
     [[[text]]]
@@ -245,7 +232,6 @@
     [[[title]]]
         bg = string(default=None)
         fg = string(default=None)
-
 # mode specific attributes
 [[bufferlist]]
     [[[focus]]]
@@ -257,7 +243,6 @@
     [[[results_odd]]]
         bg = string(default=None)
         fg = string(default=None)
-
 [[search]]
     [[[thread]]]
         fg = string(default=None)
@@ -300,7 +285,6 @@
     [[[thread_tags_focus]]]
         bg = string(default=None)
         fg = string(default=None)
-
 [[thread]]
     [[[attachment]]]
         bg = string(default=None)

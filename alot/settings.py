@@ -7,6 +7,7 @@ import mailcap
 import codecs
 import logging
 import urwid
+from urwid import AttrSpec, AttrSpecError
 from configobj import ConfigObj, ConfigObjError, flatten_errors, Section
 from validate import Validator
 
@@ -46,18 +47,39 @@ class Theme(object):
     def __init__(self, path):
         self._spec = os.path.join(DEFAULTSPATH, 'theme.spec')
         self._config = read_config(path, self._spec)
-        self.path = path
+        self.attributes = self.parse_attributes(self._config)
+
+    def parse_attributes(self, c):
+        attributes = {}
+        for sec in c.sections:
+            try:
+                colours = int(sec)
+            except ValueError:
+                err_msg='section %s is not an integer indicating a colour mode'
+                raise ConfigError(err_msg % sec)
+            attributes[colours] = {}
+            for mode in c[sec].sections:
+                attributes[colours][mode] = {}
+                for themable in c[sec][mode].sections:
+                    block = c[sec][mode][themable]
+                    fg = block['fg']
+                    if colours == 1:
+                        bg = 'default'
+                    else:
+                        bg = block['bg']
+                    if colours == 256:
+                        fg = fg or c['16'][mode][themable][fg]
+                        bg = bg or c['16'][mode][themable][bg]
+                    try:
+                        att = AttrSpec(fg, bg, colours)
+                    except AttrSpecError, e:
+                        raise ConfigError(e)
+                    attributes[colours][mode][themable] = att
+        return attributes
+
 
     def get_attribute(self, mode, name, colourmode):
-        fg = self._config['%dc' % colourmode][mode][name]['fg']
-        if colourmode == 1:
-            bg = 'default'
-        else:
-            bg = self._config['%dc' % colourmode][mode][name]['bg']
-        if colourmode == 256:
-            fg = fg or self._config['16c'][mode][name][fg]
-            bg = bg or self._config['16c'][mode][name][bg]
-        return urwid.AttrSpec(fg, bg, colourmode)
+        return self.attributes[colourmode][mode][name]
 
 
 class SettingsManager(object):

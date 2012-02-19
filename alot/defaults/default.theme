@@ -1,4 +1,4 @@
-[1c]
+[1]
 [[global]]
     [[[footer]]]
         fg = 'standout'
@@ -21,7 +21,6 @@
         fg = 'underline'
     [[[title]]]
         fg = 'standout'
-
 [[bufferlist]]
     [[[focus]]]
         fg = 'standout'
@@ -29,7 +28,6 @@
         fg = 'default'
     [[[results_odd]]]
         fg = 'default'
-
 [[search]]
     [[[thread]]]
         fg = 'default'
@@ -67,7 +65,6 @@
         fg = 'bold'
     [[[thread_tags_focus]]]
         fg = 'standout'
-
 [[thread]]
     [[[attachment]]]
         fg = 'default'
@@ -88,7 +85,7 @@
     [[[summary_odd]]]
         fg = 'default'
 
-[16c]
+[16]
 [[global]]
     [[[footer]]]
         bg = 'dark blue'
@@ -202,8 +199,8 @@
     [[[thread_tags_focus]]]
         bg = 'dark gray'
         fg = 'yellow,bold'
-[256c]
 
+[256]
 [[global]]
     # attributes used in all modi
     [[[footer]]]
@@ -224,8 +221,6 @@
     [[[tag_focus]]]
         bg = '#68a'
         fg = '#ffa'
-
-
 [[help]]
     # formating of the `help bindings` overlay
     [[[text]]]
@@ -237,7 +232,6 @@
     [[[title]]]
         bg = 'g35'
         fg = 'white,bold,underline'
-
 # mode specific attributes
 [[bufferlist]]
     [[[focus]]]
@@ -249,7 +243,6 @@
     [[[results_odd]]]
         bg = 'default'
         fg = 'default'
-
 [[search]]
     [[[thread]]]
         bg = 'default'
@@ -294,7 +287,6 @@
     [[[thread_tags_focus]]]
         bg = '#68a'
         fg = '#ff8'
-
 [[thread]]
     [[[attachment]]]
         bg = 'dark gray'
