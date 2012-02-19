@@ -53,8 +53,7 @@ class Account(object):
         self.address = address
         self.abook = abook
         self.aliases = []
-        if aliases:
-            self.aliases = aliases.split(';')
+        self.aliases = aliases
         self.realname = realname
         self.gpg_key = gpg_key
         self.signature = signature

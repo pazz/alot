@@ -11,6 +11,8 @@ from urwid import AttrSpec, AttrSpecError
 from configobj import ConfigObj, ConfigObjError, flatten_errors, Section
 from validate import Validator
 
+from account import SendmailAccount, MatchSdtoutAddressbook
+
 from collections import OrderedDict
 from ConfigParser import SafeConfigParser, ParsingError, NoOptionError
 
@@ -94,6 +96,8 @@ class SettingsManager(object):
         self.read_config(alot_rc)
         self.read_notmuch_config(notmuch_rc)
 
+        self._accounts = self.parse_accounts(self._config)
+
 
     def read_notmuch_config(self, path):
         spec = os.path.join(DEFAULTSPATH, 'notmuch.rc.spec')
@@ -113,6 +117,25 @@ class SettingsManager(object):
             newbindings = newconfig['bindings']
             if isinstance(newbindings, Section):
                 self._bindings.merge(newbindings)
+
+    def parse_accounts(self, config):
+        accounts = []
+        if 'accounts' in config:
+            for acc in config['accounts'].sections:
+                accsec = config['accounts'][acc]
+                args = dict(config['accounts'][acc])
+
+                if 'abook_command' in accsec:
+                    cmd = accsec['abook_command']
+                    regexp = accsec['abook_regexp']
+                    args['abook'] = MatchSdtoutAddressbook(cmd, match=regexp)
+                    del(args['abook_command'])
+                    del(args['abook_regexp'])
+
+                cmd = args['sendmail_command']
+                del(args['sendmail_command'])
+                accounts.append(SendmailAccount(cmd, **args))
+        return accounts
 
 
     def get(self, key):
