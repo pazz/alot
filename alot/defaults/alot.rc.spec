@@ -111,3 +111,36 @@ user_agent = string(default='alot/$VERSION')
         focus_fg = string(default=None)
         focus_bg = string(default=None)
         translated = string(default=None)
+
+[accounts]
+[[__many__]]
+        # used to format the (proposed) From-header in outgoing mails
+        realname = string
+        address = string
+
+        # used to clear your addresses/ match account when formating replies
+        aliases = string_list(default=list())
+
+        # how to send mails
+        sendmail_command = string(default='sendmail')
+
+        # where to store outgoing mail, e.g. maildir:///home/you/mail//Sent
+        sent_box = string(default=None)
+
+        # how to tag sent mails.
+        sent_tags = string_list(default=list('sent'))
+
+        # path to signature file
+        signature = string(default=None)
+
+        # attach signature file if set to True, append its content (mimetype text)
+        # to the body text if set to False. Defaults to False.
+        signature_as_attachment = boolean(default=False)
+
+        # signature file's name as it appears in outgoing mails if
+        # signature_as_attachment is set to True
+        signature_filename = string(default=None)
+
+        # command to lookup contacts
+        abook_command = string(default=None)
+        abook_regexp = string(default=None)
