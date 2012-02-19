@@ -37,7 +37,7 @@ def read_config(configpath=None, specpath=None):
                     msg = 'key "%s" in section "%s" failed validation'
                     msg = msg % (key, ', '.join(section_list))
                 else:
-                    msg = 'section "%s" was missing' % ', '.join(section_list)
+                    msg = 'section "%s" is malformed' % ', '.join(section_list)
                 error_msg += msg + '\n'
             raise ConfigError(error_msg)
     return config
