@@ -15,7 +15,6 @@ from notmuch.globals import NullPointerError
 from alot import __version__
 import logging
 import helper
-from settings import get_mime_handler
 from settings import settings
 from helper import string_sanitize
 from helper import string_decode
@@ -313,8 +312,8 @@ def extract_body(mail, types=None):
             body_parts.append(string_sanitize(raw_payload))
         else:
             #get mime handler
-            handler = get_mime_handler(ctype, key='view',
-                                       interactive=False)
+            handler = settings.get_mime_handler(ctype, key='view',
+                                                interactive=False)
             if handler:
                 #open tempfile. Not all handlers accept stuff from stdin
                 tmpfile = tempfile.NamedTemporaryFile(delete=False,

@@ -130,6 +130,7 @@ class SettingsManager(object):
         :type theme: str
         """
         self.hooks = None
+        self._mailcaps = mailcap.getcaps()
 
         theme_path = theme or os.path.join(DEFAULTSPATH, 'default.theme')
         self._theme = Theme(theme_path)
@@ -347,36 +348,32 @@ class SettingsManager(object):
                     abooks.append(a.abook)
         return abooks
 
+    def get_mime_handler(self, mime_type, key='view', interactive=True):
+        """
+        get shellcomand defined in the users `mailcap` as handler for files of
+        given `mime_type`.
+
+        :param mime_type: file type
+        :type mime_type: str
+        :param key: identifies one of possibly many commands for this type by
+                    naming the intended usage, e.g. 'edit' or 'view'. Defaults
+                    to 'view'.
+        :type key: str
+        :param interactive: choose the "interactive session" handler rather
+                            than the "print to stdout and immediately return"
+                            handler
+        :type interactive: bool
+        """
+        if interactive:
+            mc_tuple = mailcap.findmatch(self._mailcaps, mime_type, key=key)
+        else:
+            mc_tuple = mailcap.findmatch(self._mailcaps, mime_type,
+                                         key='copiousoutput')
+        if mc_tuple:
+            if mc_tuple[1]:
+                return mc_tuple[1][key]
+        else:
+            return None
+
 
 settings = SettingsManager()
-mailcaps = mailcap.getcaps()
-
-
-def get_mime_handler(mime_type, key='view', interactive=True):
-    """
-    get shellcomand defined in the users `mailcap` as handler for files of
-    given `mime_type`.
-
-    :param mime_type: file type
-    :type mime_type: str
-    :param key: identifies one of possibly many commands for this type by
-                naming the intended usage, e.g. 'edit' or 'view'. Defaults
-                to 'view'.
-    :type key: str
-    :param interactive: choose the "interactive session" handler rather than
-                        the "print to stdout and immediately return" handler
-    :type interactive: bool
-    """
-    if interactive:
-        mc_tuple = mailcap.findmatch(mailcaps,
-                                     mime_type,
-                                     key=key)
-    else:
-        mc_tuple = mailcap.findmatch(mailcaps,
-                                     mime_type,
-                                     key='copiousoutput')
-    if mc_tuple:
-        if mc_tuple[1]:
-            return mc_tuple[1][key]
-    else:
-        return None
