@@ -17,8 +17,6 @@ from twisted.internet.defer import Deferred
 import StringIO
 import logging
 
-from settings import config
-from settings import settings
 
 
 def safely_get(clb, E, on_error=''):
@@ -39,7 +37,7 @@ def safely_get(clb, E, on_error=''):
         return on_error
 
 
-def string_sanitize(string, tab_width=None):
+def string_sanitize(string, tab_width=8):
     r"""
     strips, and replaces non-printable characters
 
@@ -54,8 +52,6 @@ def string_sanitize(string, tab_width=None):
     >>> string_sanitize('foo\t\tbar', 8)
     'foo             bar'
     """
-    if tab_width == None:
-        tab_width = settings.get('tabwidth')
 
     string = string.strip()
     string = string.replace('\r', '')
