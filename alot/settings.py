@@ -97,6 +97,7 @@ class SettingsManager(object):
         self.read_notmuch_config(notmuch_rc)
 
         self._accounts = self.parse_accounts(self._config)
+        self._accountmap = self._account_table(self._accounts)
 
 
     def read_notmuch_config(self, path):
@@ -134,9 +135,19 @@ class SettingsManager(object):
 
                 cmd = args['sendmail_command']
                 del(args['sendmail_command'])
-                accounts.append(SendmailAccount(cmd, **args))
+                newacc = SendmailAccount(cmd, **args)
+                accounts.append(newacc)
         return accounts
 
+    def _account_table(self, accounts):
+        """returns a lookup table emailaddress -> account
+        for a given list of accounts"""
+        accountmap = {}
+        for acc in accounts:
+            accountmap[acc.address] = acc
+            for alias in acc.aliases:
+                accountmap[alias] = acc
+        return accountmap
 
     def get(self, key):
         """
@@ -215,6 +226,49 @@ class SettingsManager(object):
         elif key in bindings['global']:
             cmdline = bindings['global'][key]
         return cmdline
+
+    def get_accounts(self):
+        """
+        returns known accounts
+
+        :rtype: list of :class:`Account`
+        """
+        return self._accounts
+
+    def get_account_by_address(self, address):
+        """
+        returns :class:`Account` for a given email address (str)
+
+        :param address: address to look up
+        :type address: string
+        :rtype:  :class:`Account` or None
+        """
+
+        for myad in self.get_addresses():
+            if myad in address:
+                return self._accountmap[myad]
+        return None
+
+    def get_main_addresses(self):
+        """returns addresses of known accounts without its aliases"""
+        return [a.address for a in self._accounts]
+
+    def get_addresses(self):
+        """returns addresses of known accounts including all their aliases"""
+        return self._accountmap.keys()
+
+    def get_addressbooks(self, order=[], append_remaining=True):
+        """returns list of all defined :class:`AddressBook` objects"""
+        abooks = []
+        for a in order:
+            if a:
+                if a.abook:
+                    abooks.append(a.abook)
+        if append_remaining:
+            for a in self._accounts:
+                if a.abook and a.abook not in abooks:
+                    abooks.append(a.abook)
+        return abooks
 
 class FallbackConfigParser(SafeConfigParser):
     """:class:`~ConfigParser.SafeConfigParser` that allows fallback values"""
