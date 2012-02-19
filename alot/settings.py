@@ -132,15 +132,14 @@ class SettingsManager(object):
         self.hooks = None
 
         theme_path = theme or os.path.join(DEFAULTSPATH, 'default.theme')
-        self.theme = Theme(theme_path)
+        self._theme = Theme(theme_path)
         self._bindings = read_config(os.path.join(DEFAULTSPATH, 'bindings'))
 
         self._config = ConfigObj()
+        self._accounts = None
+        self._accountmap = None
         self.read_config(alot_rc)
         self.read_notmuch_config(notmuch_rc)
-
-        self._accounts = self.parse_accounts(self._config)
-        self._accountmap = self._account_table(self._accounts)
 
     def read_notmuch_config(self, path):
         """parse notmuch's config file from path"""
@@ -163,7 +162,10 @@ class SettingsManager(object):
             if isinstance(newbindings, Section):
                 self._bindings.merge(newbindings)
 
-    def parse_accounts(self, config):
+        self._accounts = self._parse_accounts(self._config)
+        self._accountmap = self._account_table(self._accounts)
+
+    def _parse_accounts(self, config):
         """
         read accounts information from config
 
@@ -247,7 +249,7 @@ class SettingsManager(object):
         :type name: str
         """
         colours = int(self._config.get('colourmode'))
-        return self.theme.get_attribute(mode, name,  colours)
+        return self._theme.get_attribute(mode, name,  colours)
 
     def get_tagstring_representation(self, tag):
         """
@@ -259,8 +261,8 @@ class SettingsManager(object):
         """
         colours = int(self._config.get('colourmode'))
         # default attributes: normal and focussed
-        default = self.theme.get_attribute('global', 'tag', colours)
-        default_f = self.theme.get_attribute('global', 'tag_focus', colours)
+        default = self._theme.get_attribute('global', 'tag', colours)
+        default_f = self._theme.get_attribute('global', 'tag_focus', colours)
         if tag in self._config['tags']:
             fg = self._config['tags'][tag]['fg'] or default.foreground
             bg = self._config['tags'][tag]['bg'] or default.background
@@ -596,13 +598,7 @@ class AlotConfigParser(FallbackConfigParser):
         return cmdline
 
 
-defaultconfig = os.path.join(DEFAULTSPATH, 'alot.rc')
-defaultnotmuchconfig = os.path.join(DEFAULTSPATH, 'notmuch.rc')
-config = AlotConfigParser()
-config.read(defaultconfig)
-notmuchconfig = FallbackConfigParser()
-notmuchconfig.read(defaultnotmuchconfig)
-settings = SettingsManager(os.path.join(DEFAULTSPATH, 'alot.rc.new'), defaultnotmuchconfig)
+settings = SettingsManager()
 mailcaps = mailcap.getcaps()
 
 

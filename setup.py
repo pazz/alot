@@ -13,11 +13,9 @@ setup(name='alot',
       license=alot.__copyright__,
       packages=['alot', 'alot.commands'],
       package_data={'alot': [
-                             'defaults/alot.rc', # only old-style default values
-                             'defaults/alot.rc.new',
                              'defaults/alot.rc.spec',
                              'defaults/notmuch.rc.spec',
-                             'defaults/default.theme', # default theme
+                             'defaults/default.theme',
                              'defaults/bindings',
                              'defaults/theme.spec',
                             ]},
