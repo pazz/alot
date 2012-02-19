@@ -72,20 +72,16 @@ class UI(object):
     """points to currently active :class:`~alot.buffers.Buffer`"""
     dbman = None
     """Database manager (:class:`~alot.db.DBManager`)"""
-    accountman = None
-    """account manager (:class:`~alot.account.AccountManager`)"""
 
-    def __init__(self, dbman, accountman, initialcmd, colourmode):
+    def __init__(self, dbman, initialcmd, colourmode):
         """
         :param dbman: :class:`~alot.db.DBManager`
-        :param accountman: :class:`~alot.account.AccountManager`
         :param initialcmd: commandline applied after setting up interface
         :type initialcmd: str
         :param colourmode: determines which theme to chose
         :type colourmode: int in [1,16,256]
         """
         self.dbman = dbman
-        self.accountman = accountman
 
         if not colourmode:
             # needs explicit int-constructor because we used "options" in specfile
@@ -442,7 +438,7 @@ class UI(object):
             if cmd.prehook:
                 logging.debug('calling pre-hook')
                 try:
-                    cmd.prehook(ui=self, dbm=self.dbman, aman=self.accountman,
+                    cmd.prehook(ui=self, dbm=self.dbman,
                                 config=settings)
 
                 except:
@@ -454,7 +450,7 @@ class UI(object):
                     logging.debug('calling post-hook')
                     try:
                         cmd.posthook(ui=self, dbm=self.dbman,
-                                     aman=self.accountman, config=settings)
+                                     config=settings)
                         #TODO: ducument hooks wrt settingsmanager
                     except:
                         logging.exception('posthook failed')

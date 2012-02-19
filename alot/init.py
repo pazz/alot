@@ -5,7 +5,6 @@ import os
 
 import settings
 import ConfigParser
-from account import AccountManager
 from db import DBManager
 from ui import UI
 import alot.commands as commands
@@ -160,9 +159,6 @@ def main():
     # get ourselves a database manager
     dbman = DBManager(path=args['mailindex-path'], ro=args['read-only'])
 
-    #accountman
-    aman = AccountManager(settings.config)
-
     # get initial searchstring
     try:
         if args.subCommand == 'search':
@@ -181,7 +177,6 @@ def main():
 
     # set up and start interface
     UI(dbman,
-       aman,
        cmd,
        args['colour-mode'],
     )
