@@ -49,7 +49,7 @@ class Account(object):
                  gpg_key=None, signature=None, signature_filename=None,
                  signature_as_attachment=False, sent_box=None,
                  sent_tags=['sent'], draft_box=None, draft_tags=['draft'],
-                 abook=None):
+                 abook=None, **rest):
         self.address = address
         self.abook = abook
         self.aliases = []
