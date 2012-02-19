@@ -436,9 +436,7 @@ class UI(object):
             if cmd.prehook:
                 logging.debug('calling pre-hook')
                 try:
-                    cmd.prehook(ui=self, dbm=self.dbman,
-                                config=settings)
-
+                    cmd.prehook(ui=self, dbm=self.dbman)
                 except:
                     logging.exception('prehook failed')
 
@@ -447,9 +445,7 @@ class UI(object):
                 if cmd.posthook:
                     logging.debug('calling post-hook')
                     try:
-                        cmd.posthook(ui=self, dbm=self.dbman,
-                                     config=settings)
-                        #TODO: ducument hooks wrt settingsmanager
+                        cmd.posthook(ui=self, dbm=self.dbman)
                     except:
                         logging.exception('posthook failed')
 

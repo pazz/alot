@@ -96,9 +96,7 @@ class ReplyCommand(Command):
         timestamp = self.message.get_date()
         qf = settings.get_hook('reply_prefix')
         if qf:
-            quotestring = qf(name, address, timestamp,
-                             ui=ui, dbm=ui.dbman,
-                             config=settings)
+            quotestring = qf(name, address, timestamp, ui=ui, dbm=ui.dbman)
         else:
             quotestring = 'Quoting %s (%s)\n' % (name, timestamp)
         mailcontent = quotestring
@@ -197,9 +195,7 @@ class ForwardCommand(Command):
             timestamp = self.message.get_date()
             qf = settings.get_hook('forward_prefix')
             if qf:
-                quote = qf(name, address, timestamp,
-                             ui=ui, dbm=ui.dbman,
-                             config=settings)
+                quote = qf(name, address, timestamp, ui=ui, dbm=ui.dbman)
             else:
                 quote = 'Forwarded message from %s (%s):\n' % (name, timestamp)
             mailcontent = quote
