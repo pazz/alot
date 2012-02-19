@@ -77,13 +77,13 @@ class SaveCommand(Command):
 
         # determine account to use
         sname, saddr = email.Utils.parseaddr(envelope.get('From'))
-        account = ui.accountman.get_account_by_address(saddr)
+        account = settings.get_account_by_address(saddr)
         if account == None:
-            if not ui.accountman.get_accounts():
+            if not settings.get_accounts():
                 ui.notify('no accounts set.', priority='error')
                 return
             else:
-                account = ui.accountman.get_accounts()[0]
+                account = settings.get_accounts()[0]
 
         if account.draft_box == None:
             ui.notify('abort: account <%s> has no draft_box set.' % saddr,
@@ -124,13 +124,13 @@ class SendCommand(Command):
         omit_signature = False
 
         # determine account to use for sending
-        account = ui.accountman.get_account_by_address(saddr)
+        account = settings.get_account_by_address(saddr)
         if account == None:
-            if not ui.accountman.get_accounts():
+            if not settings.get_accounts():
                 ui.notify('no accounts set', priority='error')
                 return
             else:
-                account = ui.accountman.get_accounts()[0]
+                account = settings.get_accounts()[0]
 
         # send
         clearme = ui.notify('sending..', timeout=-1)
@@ -218,8 +218,7 @@ class EditCommand(Command):
             # call post-edit translate hook
             translate = settings.get_hook('post_edit_translate')
             if translate:
-                template = translate(template, ui=ui, dbm=ui.dbman,
-                                    aman=ui.accountman, config=settings)
+                template = translate(template, ui=ui, dbm=ui.dbman, config=settings)
             self.envelope.parse_template(template)
             if self.openNew:
                 ui.buffer_open(buffers.EnvelopeBuffer(ui, self.envelope))
@@ -247,7 +246,7 @@ class EditCommand(Command):
         translate = settings.get_hook('pre_edit_translate')
         if translate:
             bodytext = translate(bodytext, ui=ui, dbm=ui.dbman,
-                                 aman=ui.accountman, config=settings)
+                                 config=settings)
 
         #write stuff to tempfile
         tf = tempfile.NamedTemporaryFile(delete=False)

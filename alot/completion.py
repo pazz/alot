@@ -6,7 +6,7 @@ import argparse
 
 import alot.commands as commands
 from alot.buffers import EnvelopeBuffer
-
+from alot.settings import settings
 
 class Completer(object):
     """base class for completers"""
@@ -42,7 +42,7 @@ class StringlistCompleter(Completer):
     def __init__(self, resultlist):
         """
         :param resultlist: strings used for completion
-        :type accountman: list of str
+        :type resultlist: list of str
         """
         self.resultlist = resultlist
 
@@ -97,16 +97,13 @@ class MultipleSelectionCompleter(Completer):
 
 class QueryCompleter(Completer):
     """completion for a notmuch query string"""
-    def __init__(self, dbman, accountman):
+    def __init__(self, dbman):
         """
         :param dbman: used to look up avaliable tagstrings
         :type dbman: :class:`~alot.db.DBManager`
-        :param accountman: used to look up known addresses to complete 'from'
-                           and 'to' queries
-        :type accountman: :class:`~alot.account.AccountManager`
         """
         self.dbman = dbman
-        abooks = accountman.get_addressbooks()
+        abooks = settings.get_addressbooks()
         self._abookscompleter = AbooksCompleter(abooks, addressesonly=True)
         self._tagcompleter = TagCompleter(dbman)
         self.keywords = ['tag', 'from', 'to', 'subject', 'attachment',
@@ -244,12 +241,8 @@ class ArgparseOptionCompleter(Completer):
 class AccountCompleter(StringlistCompleter):
     """completes users' own mailaddresses"""
 
-    def __init__(self, accountman):
-        """
-        :param accountman: used to look up the list of addresses
-        :type accountman: :class:`~alot.account.AccountManager`
-        """
-        resultlist = accountman.get_main_addresses()
+    def __init__(self):
+        resultlist = settings.get_main_addresses()
         StringlistCompleter.__init__(self, resultlist)
 
 
@@ -276,13 +269,10 @@ class CommandCompleter(Completer):
 class CommandLineCompleter(Completer):
     """completion for commandline"""
 
-    def __init__(self, dbman, accountman, mode, currentbuffer=None):
+    def __init__(self, dbman, mode, currentbuffer=None):
         """
         :param dbman: used to look up avaliable tagstrings
         :type dbman: :class:`~alot.db.DBManager`
-        :param accountman: used to look up known addresses to complete 'from'
-                           and 'to' queries
-        :type accountman: :class:`~alot.account.AccountManager`
         :param mode: mode identifier
         :type mode: str
         :param currentbuffer: currently active buffer. If defined, this will be
@@ -291,13 +281,12 @@ class CommandLineCompleter(Completer):
         :type currentbuffer: :class:`~alot.buffers.Buffer`
         """
         self.dbman = dbman
-        self.accountman = accountman
         self.mode = mode
         self.currentbuffer = currentbuffer
         self._commandcompleter = CommandCompleter(mode)
-        self._querycompleter = QueryCompleter(dbman, accountman)
+        self._querycompleter = QueryCompleter(dbman)
         self._tagcompleter = TagCompleter(dbman)
-        abooks = accountman.get_addressbooks()
+        abooks = settings.get_addressbooks()
         self._contactscompleter = ContactsCompleter(abooks)
         self._pathcompleter = PathCompleter()
 

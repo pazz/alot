@@ -83,7 +83,7 @@ class ReplyCommand(Command):
 
     def apply(self, ui):
         # look if this makes sense: do we have any accounts set up?
-        my_accounts = ui.accountman.get_accounts()
+        my_accounts = settings.get_accounts()
         if not my_accounts:
             ui.notify('no accounts set', priority='error')
             return
@@ -99,7 +99,7 @@ class ReplyCommand(Command):
         qf = settings.get_hook('reply_prefix')
         if qf:
             quotestring = qf(name, address, timestamp,
-                             ui=ui, dbm=ui.dbman, aman=ui.accountman,
+                             ui=ui, dbm=ui.dbman,
                              config=settings)
         else:
             quotestring = 'Quoting %s (%s)\n' % (name, timestamp)
@@ -122,7 +122,7 @@ class ReplyCommand(Command):
         # set To
         sender = mail['Reply-To'] or mail['From']
         recipients = [sender]
-        my_addresses = ui.accountman.get_addresses()
+        my_addresses = settings.get_addresses()
         if self.groupreply:
             if sender != mail['From']:
                 recipients.append(mail['From'])
@@ -181,7 +181,7 @@ class ForwardCommand(Command):
 
     def apply(self, ui):
         # look if this makes sense: do we have any accounts set up?
-        my_accounts = ui.accountman.get_accounts()
+        my_accounts = settings.get_accounts()
         if not my_accounts:
             ui.notify('no accounts set', priority='error')
             return
@@ -200,7 +200,7 @@ class ForwardCommand(Command):
             qf = settings.get_hook('forward_prefix')
             if qf:
                 quote = qf(name, address, timestamp,
-                             ui=ui, dbm=ui.dbman, aman=ui.accountman,
+                             ui=ui, dbm=ui.dbman,
                              config=settings)
             else:
                 quote = 'Forwarded message from %s (%s):\n' % (name, timestamp)
