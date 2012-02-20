@@ -138,7 +138,7 @@ def main():
 
     try:
         settings.read_config(alotconfig)
-        settings.read_config(notmuchconfig)
+        settings.read_notmuch_config(notmuchconfig)
     except ConfigError, e:  # exit on parse errors
         sys.exit(e)
 
