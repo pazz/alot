@@ -21,10 +21,10 @@ template_dir = string(default='$XDG_CONFIG_HOME/alot/templates')
 display_content_in_threadline = boolean(default=False)
 
 # headers that get displayed by default
-displayed_headers = string_list(default=list('From','To','Cc','Bcc','Subject'))
+displayed_headers = string_list(default=list(From,To,Cc,Bcc,Subject))
 
 # headers that are hidden in envelope buffers by default
-envelope_headers_blacklist = string_list(default=list('In-Reply-To','References'))
+envelope_headers_blacklist = string_list(default=list(In-Reply-To,References))
 
 # set terminal command used for spawning shell commands
 terminal_cmd = string(default='x-terminal-emulator -e')
@@ -51,8 +51,8 @@ editor_in_thread = boolean(default=False)
 # Which header fields should be editable in your editor
 # used are those that match the whitelist and don't macht the blacklist.
 # in both cases '*' may be used to indicate all fields.
-edit_headers_whitelist = string_list(default=list('*'))
-edit_headers_blacklist = string_list(default=list('Content-Type','MIME-Version','References','In-Reply-To'))
+edit_headers_whitelist = string_list(default=list(*,))
+edit_headers_blacklist = string_list(default=list(Content-Type,MIME-Version,References,In-Reply-To))
 
 
 # timeout in secs after a failed attempt to flush is repeated
