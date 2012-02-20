@@ -10,6 +10,5 @@ API and Development
     database
     interface
     settings
-    accounts
     utils
     commands

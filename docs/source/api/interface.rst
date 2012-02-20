@@ -42,7 +42,6 @@ input and acts on it:
     .. autoattribute:: buffers
     .. autoattribute:: current_buffer
     .. autoattribute:: dbman
-    .. autoattribute:: accountman
 
     .. automethod:: apply_command
     .. automethod:: prompt

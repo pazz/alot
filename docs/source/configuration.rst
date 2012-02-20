@@ -2,11 +2,7 @@
 Configuration
 *************
 
-
-All configs are optional, but if you want to send mails you need to
-specify at least one account section.
-
-Alot reads a config file in the "INI" syntax:
+Alot reads a config file in (extended) "INI" syntax:
 It consists of some sections whose names are given in square brackets, followed by
 key-value pairs that use "=" or ":" as separator, ';' and '#' are comment-prefixes.
 
