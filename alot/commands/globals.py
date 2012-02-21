@@ -64,7 +64,12 @@ class SearchCommand(Command):
                 if sb.querystring == self.query:
                     to_be_focused = sb
             if to_be_focused:
-                ui.buffer_focus(to_be_focused)
+                if ui.current_buffer != to_be_focused:
+                    ui.buffer_focus(to_be_focused)
+                else:
+                    # refresh an already displayed search
+                    ui.current_buffer.rebuild()
+                    ui.update()
             else:
                 ui.buffer_open(buffers.SearchBuffer(ui, self.query,
                                                     sort_order=self.order))
