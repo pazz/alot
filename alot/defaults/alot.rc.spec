@@ -1,5 +1,4 @@
-# ask for subject when compose
-ask_subject = boolean(default=True)
+ask_subject = boolean(default=True)  # ask for subject when compose
 
 # confirm exit
 bug_on_exit = boolean(default=False)
@@ -29,12 +28,9 @@ envelope_headers_blacklist = string_list(default=list(In-Reply-To,References))
 # set terminal command used for spawning shell commands
 terminal_cmd = string(default='x-terminal-emulator -e')
 
-####################
-# EDITOR settings  #
-####################
 # editor command
 # if unset, alot will first try the EDITOR env variable, then /usr/bin/editor
-#editor_cmd = string(default="/usr/bin/vim -f -c 'set filetype=mail' +")
+editor_cmd = string(default=None)
 
 # file encoding used by your editor
 editor_writes_encoding = string(default='UTF-8')
@@ -43,17 +39,15 @@ editor_writes_encoding = string(default='UTF-8')
 editor_spawn = boolean(default=False)
 
 # call editor in separate thread.
-# in case your editor doesn't run in the same window as alot, setting true here
+# In case your editor doesn't run in the same window as alot, setting true here
 # will make alot non-blocking during edits
 editor_in_thread = boolean(default=False)
-
 
 # Which header fields should be editable in your editor
 # used are those that match the whitelist and don't macht the blacklist.
 # in both cases '*' may be used to indicate all fields.
 edit_headers_whitelist = string_list(default=list(*,))
 edit_headers_blacklist = string_list(default=list(Content-Type,MIME-Version,References,In-Reply-To))
-
 
 # timeout in secs after a failed attempt to flush is repeated
 flush_retry_timeout = integer(default=5)
@@ -105,18 +99,26 @@ user_agent = string(default='alot/$VERSION')
         __many__ = string(default=None)
 
 [tags]
+    # for each tag
     [[__many__]]
+        # foreground
         fg = string(default=None)
+        # background
         bg = string(default=None)
+        # foreground if focussed
         focus_fg = string(default=None)
+        # background if focussed
         focus_bg = string(default=None)
+        # alternative string representation
         translated = string(default=None)
 
 [accounts]
 [[__many__]]
+        # your email address
+        address = string
+
         # used to format the (proposed) From-header in outgoing mails
         realname = string
-        address = string
 
         # used to clear your addresses/ match account when formating replies
         aliases = string_list(default=list())
@@ -124,13 +126,16 @@ user_agent = string(default='alot/$VERSION')
         # how to send mails
         sendmail_command = string(default='sendmail')
 
-        # where to store outgoing mail, e.g. maildir:///home/you/mail//Sent
+        # specifies the mailbox where you want outgoing mails to be stored after successfully sending them, e.g. 
+        # where to store outgoing mail, e.g. `maildir:///home/you/mail//Sent`
+        # You can use mbox, maildir, mh, babyl and mmdf in the protocol part of the url.
         sent_box = string(default=None)
 
         # how to tag sent mails.
         sent_tags = string_list(default=list('sent'))
 
-        # path to signature file
+        # path to signature file that gets attached to all outgoing mails from this account, optionally
+        # renamed to `signature_filename`.
         signature = string(default=None)
 
         # attach signature file if set to True, append its content (mimetype text)
@@ -141,6 +146,10 @@ user_agent = string(default='alot/$VERSION')
         # signature_as_attachment is set to True
         signature_filename = string(default=None)
 
-        # command to lookup contacts
+        # command to lookup contacts.
+        # If you specified `abook_command`, it will be used for tab completion in queries (to/from) and in message
+        # composition. The command will be called with your prefix as only argument and its output is searched for name-email pairs.
         abook_command = string(default=None)
+
+        # The regular expression used to match name/address pairs in the output of `abook_command`
         abook_regexp = string(default=None)

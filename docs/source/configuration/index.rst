@@ -2,95 +2,50 @@
 Configuration
 *************
 
-Alot reads a config file in (extended) "INI" syntax:
-It consists of some sections whose names are given in square brackets, followed by
-key-value pairs that use "=" or ":" as separator, ';' and '#' are comment-prefixes.
+Alot reads a config file in "INI" syntax:
+It consists of key-value pairs that use "=" as separator and '#' is comment-prefixes.
+Sections and subsections are defined using square brackets.
+The default location for the config file is :file:`~/.config/alot/config`.
 
-The default location for the config file is `~/.config/alot/config`.
-You can find a complete example config with the default values and their decriptions in
-`alot/defaults/alot.rc`.
+Config options
+==============
 
-Note that since ":" is a separator for key-value pairs you need to use "colon" to bind
-commands to ":".
-
-Here is a key for the interpreted sections:
-
-[general]
-    global settings: set your editor etc
-[account X]
-    defines properties of account X: (see below)
-[X-maps]
-    defines keymaps for mode X. possible modes are:
-    envelope, search, thread, taglist, bufferlist and global.
-    global-maps are valid in all modes.
-[tag-translate]
-    defines a map from tagnames to strings that is used when
-    displaying tags. utf-8 symbols welcome.
-[Xc-theme]
-    define colour palette for colour mode. X is in {1, 16, 256}.
+.. include:: alotrc_table.rst
 
 
 Accounts
 ========
-A sample gmail section looks like this (provided you have configured msmtp accordingly)::
+In order to be able to send mails, you have to define at least one account subsection in your config:
+There needs to be a section "accounts", and each subsection, indicated by double square brackets defines an account.
 
-    [account gmail]
-    realname = Patrick Totzke
-    address = patricktotzke@gmail.com
-    aliases = patricktotzke@googlemail.com
-    sendmail_command = msmtp --account=gmail -t
+Here is an example configuration::
 
-Here's a full list of the interpreted keywords in account sections::
-
-    # used to format the (proposed) From-header in outgoing mails
-    realname = your name
-    address = this accounts email address
-
-    # used to clear your addresses/ match account when formating replies
-    aliases = foobar@myuni.uk;f.bar@myuni.uk;f.b100@students.myuni.uk
-
-    # how to send mails
-    sendmail_command = command, defaults to 'sendmail'
-
-    # where to store outgoing mail
-    sent_box = maildir:///home/you/mail//Sent
-
-    # how to tag sent mails [default: sent]. seperate multiple tags with ','.
-    sent_tags = sent
-
-    # path to signature file
-    signature = ~/your_vcard_for_this_account.vcs
-
-    # attach signature file if set to True, append its content (mimetype text)
-    # to the body text if set to False. Defaults to False.
-    signature_as_attachment = False
-
-    # signature file's name as it appears in outgoing mails if
-    # signature_as_attachment is set to True
-    signature_filename = you.vcs
-
-    # command to lookup contacts
-    abook_command = abook --mutt-query
-    abook_regexp = regexp to match name & address in abook_commands output.
+    [accounts]
+        [[work]]
+            realname = Bruce Wayne
+            address = b.wayne@wayneenterprises.com
+            gpg_key = D7D6C5AA
+            sendmail_command = msmtp --account=wayne -t
+            sent_box = maildir:///home/bruce/mail/work/Sent
+            draft_box = maildir:///home/bruce/mail/work/Drafts
+    
+        [[secret]]
+            realname = Batman
+            address = batman@batcave.org
+            aliases = batman@batmobile.org
+            sendmail_command = msmtp --account=batman -t
+            signature = ~/.batman.vcf
+            signature_as_attachment = True
 
 .. warning::
 
   Sending mails is only supported via sendmail for now. If you want
   to use a sendmail command different from `sendmail`, specify it as `sendmail_command`.
 
-`send_box` specifies the mailbox where you want outgoing mails to be stored
-after successfully sending them. You can use mbox, maildir, mh, babyl and mmdf
-in the protocol part of the url.
+The following entries are interpreted at the moment:
 
-The file specified by `signature` is attached to all outgoing mails from this account, optionally
-renamed to `signature_filename`.
+.. include:: accounts_table.rst
 
-If you specified `abook_command`, it will be used for tab completion in queries (to/from)
-and in message composition. The command will be called with your prefix as only argument
-and its output is searched for name-email pairs. The regular expression used here
-defaults to `(?P<email>.+?@.+?)\s+(?P<name>.+)`, which makes it work nicely with `abook --mutt-query`.
-You can tune this using the `abook_regexp` option (beware Commandparsers escaping semantic!).
-Have a look at the FAQ for other examples.
 
 
 Key Bindings
