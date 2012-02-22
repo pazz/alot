@@ -95,7 +95,8 @@ user_agent = string(default='alot/$VERSION')
 
 # Keybindings 
 [bindings]
-    [[__many__]]
+    __many__ = string(default=None)
+    [[___many___]]
         __many__ = string(default=None)
 
 [tags]

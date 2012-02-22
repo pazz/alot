@@ -1,24 +1,23 @@
-[global]
-    j = move down
-    k = move up
-    ' ' = move page down
-    esc = cancel
-    enter = select
-    @ = refresh
-    ? = help bindings
-    I = search tag:inbox AND NOT tag:killed
-    L = taglist
-    shift tab = bprevious
-    U = search tag:unread
-    tab = bnext
-    \ = prompt 'search '
-    d = bclose
-    $ = flush
-    m = compose
-    o = prompt 'search '
-    q = exit
-    ';' = bufferlist
-    ':' = prompt
+j = move down
+k = move up
+' ' = move page down
+esc = cancel
+enter = select
+@ = refresh
+? = help bindings
+I = search tag:inbox AND NOT tag:killed
+L = taglist
+shift tab = bprevious
+U = search tag:unread
+tab = bnext
+\ = prompt 'search '
+d = bclose
+$ = flush
+m = compose
+o = prompt 'search '
+q = exit
+';' = bufferlist
+':' = prompt
 
 [bufferlist]
     x = close

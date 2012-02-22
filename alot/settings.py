@@ -299,10 +299,11 @@ class SettingsManager(object):
         """
         cmdline = None
         bindings = self._bindings
-        if key in bindings[mode]:
-            cmdline = bindings[mode][key]
-        elif key in bindings['global']:
-            cmdline = bindings['global'][key]
+        if key in bindings.scalars:
+            cmdline = bindings[key]
+        if mode in bindings.sections:
+            if key in bindings[mode].scalars:
+                cmdline = bindings[mode][key]
         return cmdline
 
     def get_accounts(self):
