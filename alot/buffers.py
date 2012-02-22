@@ -1,5 +1,5 @@
 import urwid
-from notmuch.globals import NotmuchError
+from notmuch import NotmuchError
 
 import widgets
 import settings
