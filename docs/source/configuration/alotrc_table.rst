@@ -24,6 +24,14 @@
     templates directory that contains your message templates.
     It will be used if you give `compose --template` a filename without a path prefix.
 
+.. describe:: themes_dir
+
+    directory containing theme files
+
+.. describe:: theme
+
+    name of the theme to use
+
 .. describe:: display_content_in_threadline
 
     fill threadline with message content
