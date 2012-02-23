@@ -225,6 +225,17 @@ class SettingsManager(object):
                 value = None
         return value
 
+    def set(self, key, value):
+        """
+        setter for global config values
+
+        :param key: config option identifise
+        :type key: str
+        :param value: option to set
+        :type value: depends on the specfile :file:`alot.rc.spec`
+        """
+        self._config[key] = value
+
     def get_notmuch_setting(self, section, key):
         """
         look up config values from notmuch's config
