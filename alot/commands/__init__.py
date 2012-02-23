@@ -5,7 +5,7 @@ import shlex
 import logging
 import argparse
 
-import alot.settings
+from alot.settings import settings
 import alot.helper
 
 
@@ -177,8 +177,7 @@ def commandfactory(cmdline, mode='global'):
     args = args[1:]
 
     # unfold aliases
-    if alot.settings.config.has_option('command-aliases', cmdname):
-        cmdname = alot.settings.config.get('command-aliases', cmdname)
+    # TODO: read from settingsmanager
 
     # get class, argparser and forced parameter
     (cmdclass, parser, forcedparms) = lookup_command(cmdname, mode)
@@ -192,7 +191,7 @@ def commandfactory(cmdline, mode='global'):
     logging.debug('PARMS: %s' % parms)
 
     # set pre and post command hooks
-    get_hook = alot.settings.config.get_hook
+    get_hook = settings.get_hook
     parms['prehook'] = get_hook('pre_%s_%s' % (mode, cmdname)) or \
             get_hook('pre_global_%s' % cmdname)
     parms['posthook'] = get_hook('post_%s_%s' % (mode, cmdname)) or \

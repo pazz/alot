@@ -2,7 +2,7 @@ import urwid
 from notmuch import NotmuchError
 
 import widgets
-import settings
+from settings import settings
 import commands
 from walker import PipeWalker
 from helper import shorten_author_string
@@ -70,10 +70,13 @@ class BufferlistBuffer(Buffer):
         for (num, b) in enumerate(displayedbuffers):
             line = widgets.BufferlineWidget(b)
             if (num % 2) == 0:
-                attr = 'bufferlist_results_even'
+                attr = settings.get_theming_attribute('bufferlist',
+                                                      'results_even')
             else:
-                attr = 'bufferlist_results_odd'
-            buf = urwid.AttrMap(line, attr, 'bufferlist_focus')
+                attr = settings.get_theming_attribute('bufferlist',
+                                                      'results_odd')
+            focus_att = settings.get_theming_attribute('bufferlist', 'focus')
+            buf = urwid.AttrMap(line, attr, focus_att)
             num = urwid.Text('%3d:' % self.index_of(b))
             lines.append(urwid.Columns([('fixed', 4, num), buf]))
         self.bufferlist = urwid.ListBox(urwid.SimpleListWalker(lines))
@@ -105,8 +108,7 @@ class EnvelopeBuffer(Buffer):
 
     def rebuild(self):
         displayed_widgets = []
-        hidden = settings.config.getstringlist('general',
-                                               'envelope_headers_blacklist')
+        hidden = settings.get('envelope_headers_blacklist')
         #build lines
         lines = []
         for (k, vlist) in self.envelope.headers.items():
@@ -145,8 +147,7 @@ class SearchBuffer(Buffer):
         self.dbman = ui.dbman
         self.ui = ui
         self.querystring = initialquery
-        default_order = settings.config.get('general',
-                                            'search_threads_sort_order')
+        default_order = settings.get('search_threads_sort_order')
         self.sort_order = sort_order or default_order
         self.result_count = 0
         self.isinitialized = False

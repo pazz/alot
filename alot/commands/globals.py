@@ -15,7 +15,6 @@ from alot.completion import CommandLineCompleter
 from alot.commands import CommandParseError
 from alot.commands import commandfactory
 from alot import buffers
-from alot import settings
 from alot import widgets
 from alot import helper
 from alot.db import DatabaseLockedError
@@ -23,6 +22,7 @@ from alot.completion import ContactsCompleter
 from alot.completion import AccountCompleter
 from alot.message import Envelope
 from alot import commands
+from alot.settings import settings
 
 MODE = 'global'
 
@@ -32,7 +32,7 @@ class ExitCommand(Command):
     """shut down cleanly"""
     @inlineCallbacks
     def apply(self, ui):
-        if settings.config.getboolean('general', 'bug_on_exit'):
+        if settings.get('bug_on_exit'):
             if (yield ui.choice('realy quit?', select='yes', cancel='no',
                                msg_position='left')) == 'no':
                 return
@@ -91,7 +91,6 @@ class PromptCommand(Command):
         cmdline = yield ui.prompt(prefix=':',
                               text=self.startwith,
                               completer=CommandLineCompleter(ui.dbman,
-                                                             ui.accountman,
                                                              mode,
                                                              ui.current_buffer,
                                                             ),
@@ -178,9 +177,7 @@ class ExternalCommand(Command):
                 cmd = self.commandstring
 
             if self.spawn:
-                cmd = '%s %s' % (settings.config.get('general',
-                                                     'terminal_cmd'),
-                                 cmd)
+                cmd = '%s %s' % (settings.get('terminal_cmd'), cmd)
             cmd = cmd.encode('utf-8', errors='ignore')
             logging.info('calling external command: %s' % cmd)
             try:
@@ -219,19 +216,17 @@ class EditCommand(ExternalCommand):
         if spawn != None:
             self.spawn = spawn
         else:
-            self.spawn = settings.config.getboolean('general', 'editor_spawn')
+            self.spawn = settings.get('editor_spawn')
         if thread != None:
             self.thread = thread
         else:
-            self.thread = settings.config.getboolean('general',
-                                                     'editor_in_thread')
+            self.thread = settings.get('editor_in_thread')
 
         self.editor_cmd = None
         if os.path.isfile('/usr/bin/editor'):
             self.editor_cmd = '/usr/bin/editor'
         self.editor_cmd = os.environ.get('EDITOR', self.editor_cmd)
-        self.editor_cmd = settings.config.get('general', 'editor_cmd',
-                                         fallback=self.editor_cmd)
+        self.editor_cmd = settings.get('editor_cmd') or self.editor_cmd
         logging.debug('using editor_cmd: %s' % self.editor_cmd)
 
         ExternalCommand.__init__(self, self.editor_cmd, path=self.path,
@@ -269,7 +264,7 @@ class BufferCloseCommand(Command):
         if self.buffer == None:
             self.buffer = ui.current_buffer
         if len(ui.buffers) == 1:
-            if settings.config.getboolean('general', 'quit_on_last_bclose'):
+            if settings.get('quit_on_last_bclose'):
                 logging.info('closing the last buffer, exiting')
                 ui.apply_command(ExitCommand())
             else:
@@ -353,7 +348,7 @@ class FlushCommand(Command):
         try:
             ui.dbman.flush()
         except DatabaseLockedError:
-            timeout = settings.config.getint('general', 'flush_retry_timeout')
+            timeout = settings.get('flush_retry_timeout')
 
             def f(*args):
                 self.apply(ui)
@@ -383,8 +378,8 @@ class HelpCommand(Command):
         logging.debug('HELP')
         if self.commandname == 'bindings':
             # get mappings
-            modemaps = dict(settings.config.items('%s-maps' % ui.mode))
-            globalmaps = dict(settings.config.items('global-maps'))
+            modemaps = dict(settings._bindings[ui.mode].items())
+            globalmaps = dict(settings._bindings['global'].items())
 
             # build table
             maxkeylength = len(max((modemaps).keys() + globalmaps.keys(),
@@ -414,9 +409,11 @@ class HelpCommand(Command):
             ckey = 'cancel'
             titletext = 'Bindings Help (%s cancels)' % ckey
 
+            text_att = settings.get_theming_attribute('help', 'text')
+            title_att = settings.get_theming_attribute('help', 'title')
             box = widgets.DialogBox(body, titletext,
-                                    bodyattr='help_text',
-                                    titleattr='help_title')
+                                    bodyattr=text_att,
+                                    titleattr=title_att)
 
             # put promptwidget as overlay on main widget
             overlay = urwid.Overlay(box, ui.mainframe, 'center',
@@ -499,7 +496,7 @@ class ComposeCommand(Command):
             self.envelope = Envelope()
         if self.template is not None:
             #get location of tempsdir, containing msg templates
-            tempdir = settings.config.get('general', 'template_dir')
+            tempdir = settings.get('template_dir')
             tempdir = os.path.expanduser(tempdir)
             if not tempdir:
                 xdgdir = os.environ.get('XDG_CONFIG_HOME',
@@ -542,19 +539,19 @@ class ComposeCommand(Command):
 
         # get missing From header
         if not 'From' in self.envelope.headers:
-            accounts = ui.accountman.get_accounts()
+            accounts = settings.get_accounts()
             if len(accounts) == 1:
                 a = accounts[0]
                 fromstring = "%s <%s>" % (a.realname, a.address)
                 self.envelope.add('From', fromstring)
             else:
-                cmpl = AccountCompleter(ui.accountman)
+                cmpl = AccountCompleter()
                 fromaddress = yield ui.prompt(prefix='From>', completer=cmpl,
                                               tab=1)
                 if fromaddress is None:
                     ui.notify('canceled')
                     return
-                a = ui.accountman.get_account_by_address(fromaddress)
+                a = settings.get_account_by_address(fromaddress)
                 if a is not None:
                     fromstring = "%s <%s>" % (a.realname, a.address)
                     self.envelope.add('From', fromstring)
@@ -564,7 +561,7 @@ class ComposeCommand(Command):
         # add signature
         if not self.omit_signature:
             name, addr = email.Utils.parseaddr(self.envelope['From'])
-            account = ui.accountman.get_account_by_address(addr)
+            account = settings.get_account_by_address(addr)
             if account is not None:
                 if account.signature:
                     logging.debug('has signature')
@@ -594,13 +591,12 @@ class ComposeCommand(Command):
         if 'To' not in self.envelope.headers:
             sender = self.envelope.get('From')
             name, addr = email.Utils.parseaddr(sender)
-            account = ui.accountman.get_account_by_address(addr)
+            account = settings.get_account_by_address(addr)
 
-            allbooks = not settings.config.getboolean('general',
-                                'complete_matching_abook_only')
+            allbooks = not settings.get('complete_matching_abook_only')
             logging.debug(allbooks)
             if account is not None:
-                abooks = ui.accountman.get_addressbooks(order=[account],
+                abooks = settings.get_addressbooks(order=[account],
                                                     append_remaining=allbooks)
                 logging.debug(abooks)
                 completer = ContactsCompleter(abooks)
@@ -613,7 +609,7 @@ class ComposeCommand(Command):
                 return
             self.envelope.add('To', to)
 
-        if settings.config.getboolean('general', 'ask_subject') and \
+        if settings.get('ask_subject') and \
            not 'Subject' in self.envelope.headers:
             subject = yield ui.prompt(prefix='Subject>')
             logging.debug('SUBJECT: "%s"' % subject)

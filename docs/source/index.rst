@@ -12,5 +12,5 @@ User Manual
    :numbered:
 
    usage/index
-   configuration
+   configuration/index
    api/index

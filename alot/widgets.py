@@ -1,7 +1,7 @@
 import urwid
 import logging
 
-from settings import config
+from settings import settings
 from helper import shorten_author_string
 from helper import pretty_datetime
 from helper import tag_cmp
@@ -75,14 +75,11 @@ class ThreadlineWidget(urwid.AttrMap):
         self.thread = dbman.get_thread(tid)
         #logging.debug('tid: %s' % self.thread)
         self.tag_widgets = []
-        self.display_content = config.getboolean('general',
-                                    'display_content_in_threadline')
-        self.highlight_components = config.getstringlist('highlighting',
-                                                         'components')
-        self.highlight_rules = config.get_highlight_rules()
+        self.display_content = settings.get('display_content_in_threadline')
         self.rebuild()
-        urwid.AttrMap.__init__(self, self.columns,
-                               'search_thread', 'search_thread_focus')
+        normal = settings.get_theming_attribute('search', 'thread')
+        focussed = settings.get_theming_attribute('search', 'thread_focus')
+        urwid.AttrMap.__init__(self, self.columns, normal, focussed)
 
     def rebuild(self):
         cols = []
@@ -93,12 +90,11 @@ class ThreadlineWidget(urwid.AttrMap):
         if newest == None:
             datestring = u' ' * 10
         else:
-            if config.has_option('general', 'timestamp_format'):
-                formatstring = config.get('general', 'timestamp_format')
-                datestring = newest.strftime(formatstring)
-            else:
+            formatstring = settings.get('timestamp_format')
+            if formatstring is None:
                 datestring = pretty_datetime(newest).rjust(10)
-        self.highlight_theme_suffix = self._get_highlight_theme_suffix()
+            else:
+                datestring = newest.strftime(formatstring)
         self.date_w = urwid.AttrMap(urwid.Text(datestring),
                                     self._get_theme('date'))
         cols.append(('fixed', len(datestring), self.date_w))
@@ -112,7 +108,7 @@ class ThreadlineWidget(urwid.AttrMap):
         cols.append(('fixed', len(mailcountstring), self.mailcount_w))
 
         if self.thread:
-            self.tag_widgets = [TagWidget(t, self.highlight_theme_suffix)
+            self.tag_widgets = [TagWidget(t)
                                 for t in self.thread.get_tags()]
         else:
             self.tag_widgets = []
@@ -125,7 +121,7 @@ class ThreadlineWidget(urwid.AttrMap):
             authors = self.thread.get_authors() or '(None)'
         else:
             authors = '(None)'
-        maxlength = config.getint('general', 'authors_maxlength')
+        maxlength = settings.get('authors_maxlength')
         authorsstring = shorten_author_string(authors, maxlength)
         self.authors_w = urwid.AttrMap(urwid.Text(authorsstring),
                                        self._get_theme('authors'))
@@ -158,7 +154,6 @@ class ThreadlineWidget(urwid.AttrMap):
         self.original_widget = self.columns
 
     def render(self, size, focus=False):
-        self.highlight_theme_suffix = self._get_highlight_theme_suffix()
         if focus:
             self.date_w.set_attr_map({None: self._get_theme('date', focus)})
             self.mailcount_w.set_attr_map({None:
@@ -192,28 +187,11 @@ class ThreadlineWidget(urwid.AttrMap):
     def get_thread(self):
         return self.thread
 
-    def _get_highlight_theme_suffix(self):
-        suffix = None
-        for query in self.highlight_rules.keys():
-            if self.thread.matches(query):
-                suffix = self.highlight_rules[query]
-                break
-        return suffix
-
     def _get_theme(self, component, focus=False):
-        theme = 'search_thread_{0}'.format(component)
-        if (self.highlight_theme_suffix and
-            component in self.highlight_components):
-            highlight_theme = (theme +
-                               '_{id}'.format(id=self.highlight_theme_suffix))
-            if focus:
-                theme += '_focus'
-                highlight_theme += '_focus'
-            if config.has_theming(highlight_theme):
-                theme = highlight_theme
-        elif focus:
-            theme = theme + '_focus'
-        return theme
+        attr_key = 'thread_{0}'.format(component)
+        if focus:
+            attr_key += '_focus'
+        return settings.get_theming_attribute('search', attr_key)
 
 
 class BufferlineWidget(urwid.Text):
@@ -244,14 +222,14 @@ class TagWidget(urwid.AttrMap):
     It looks up the string it displays in the `tag-translate` section
     of the config as well as custom theme settings for its tag.
     """
-    def __init__(self, tag, theme=''):
+    def __init__(self, tag):
         self.tag = tag
-        self.highlight = theme
-        self.translated = config.get('tag-translate', tag, fallback=tag)
-        self.txt = urwid.Text(self.translated.encode('utf-8'), wrap='clip')
-        normal = config.get_tag_theme(tag, highlight=theme)
-        focus = config.get_tag_theme(tag, focus=True, highlight=theme)
-        urwid.AttrMap.__init__(self, self.txt, normal, focus)
+        representation = settings.get_tagstring_representation(tag)
+        self.translated = representation['translated']
+        self.txt = urwid.Text(self.translated, wrap='clip')
+        self.normal_att = representation['normal']
+        self.focus_att = representation['focussed']
+        urwid.AttrMap.__init__(self, self.txt, self.normal_att, self.focus_att)
 
     def width(self):
         # evil voodoo hotfix for double width chars that may
@@ -268,14 +246,10 @@ class TagWidget(urwid.AttrMap):
         return self.tag
 
     def set_focussed(self):
-        self.set_attr_map({None: config.get_tag_theme(
-                                                    self.tag, focus=True,
-                                                    highlight=self.highlight)})
+        self.set_attr_map({None: self.focus_att})
 
     def set_unfocussed(self):
-        self.set_attr_map({None: config.get_tag_theme(
-                                                    self.tag,
-                                                    highlight=self.highlight)})
+        self.set_attr_map({None: self.normal_att})
 
 
 class ChoiceWidget(urwid.Text):
@@ -412,7 +386,7 @@ class MessageWidget(urwid.WidgetWrap):
 
         # set available and to be displayed headers
         self._all_headers = self.mail.keys()
-        displayed = config.getstringlist('general', 'displayed_headers')
+        displayed = settings.get('displayed_headers')
         self._filtered_headers = [k for k in displayed if k in self.mail]
         self._displayed_headers = None
 
@@ -590,9 +564,9 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         self.message = message
         self.even = even
         if even:
-            attr = 'thread_summary_even'
+            attr = settings.get_theming_attribute('thread', 'summary_even')
         else:
-            attr = 'thread_summary_odd'
+            attr = settings.get_theming_attribute('thread', 'summary_odd')
         cols = []
 
         sumstr = self.__str__()
@@ -605,8 +579,9 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         tag_widgets.sort(tag_cmp, lambda tag_widget: tag_widget.translated)
         for tag_widget in tag_widgets:
             cols.append(('fixed', tag_widget.width(), tag_widget))
+        focus_att = settings.get_theming_attribute('thread', 'summary_focus')
         line = urwid.AttrMap(urwid.Columns(cols, dividechars=1), attr,
-                             'thread_summary_focus')
+                             focus_att)
         urwid.WidgetWrap.__init__(self, line)
 
     def __str__(self):
@@ -636,7 +611,8 @@ class HeadersList(urwid.WidgetWrap):
     def __init__(self, headerslist):
         self.headers = headerslist
         pile = urwid.Pile(self._build_lines(headerslist))
-        pile = urwid.AttrMap(pile, 'thread_header')
+        att = settings.get_theming_attribute('thread', 'header')
+        pile = urwid.AttrMap(pile, att)
         urwid.WidgetWrap.__init__(self, pile)
 
     def __str__(self):
@@ -645,6 +621,8 @@ class HeadersList(urwid.WidgetWrap):
     def _build_lines(self, lines):
         max_key_len = 1
         headerlines = []
+        key_att = settings.get_theming_attribute('thread', 'header_key')
+        value_att = settings.get_theming_attribute('thread', 'header_value')
         #calc max length of key-string
         for key, value in lines:
             if len(key) > max_key_len:
@@ -652,8 +630,8 @@ class HeadersList(urwid.WidgetWrap):
         for key, value in lines:
             ##todo : even/odd
             keyw = ('fixed', max_key_len + 1,
-                    urwid.Text(('thread_header_key', key)))
-            valuew = urwid.Text(('thread_header_value', value))
+                    urwid.Text((key_att, key)))
+            valuew = urwid.Text((value_att, value))
             line = urwid.Columns([keyw, valuew])
             headerlines.append(line)
         return headerlines
@@ -669,7 +647,8 @@ class MessageBodyWidget(urwid.AttrMap):
 
     def __init__(self, msg):
         bodytxt = message.extract_body(msg)
-        urwid.AttrMap.__init__(self, urwid.Text(bodytxt), 'thread_body')
+        att = settings.get_theming_attribute('thread', 'body')
+        urwid.AttrMap.__init__(self, urwid.Text(bodytxt), att)
 
 
 class AttachmentWidget(urwid.WidgetWrap):
@@ -685,9 +664,10 @@ class AttachmentWidget(urwid.WidgetWrap):
         self.attachment = attachment
         if not isinstance(attachment, message.Attachment):
             self.attachment = message.Attachment(self.attachment)
+        att = settings.get_theming_attribute('thread', 'attachment')
+        focus_att = settings.get_theming_attribute('thread', 'attachment_focus')
         widget = urwid.AttrMap(urwid.Text(self.attachment.__str__()),
-                               'thread_attachment',
-                               'thread_attachment_focus')
+                               att, focus_att)
         urwid.WidgetWrap.__init__(self, widget)
 
     def get_attachment(self):

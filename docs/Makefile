@@ -33,8 +33,9 @@ help:
 	@echo "  linkcheck  to check all external links for integrity"
 	@echo "  doctest    to run all doctests embedded in the documentation (if enabled)"
 
-generate_commands:
-	python source/generate_commands.py > source/usage/commands.rst
+generate_meta:
+	python source/generate_commands.py
+	python source/generate_configs.py
 
 clean:
 	-rm -rf $(BUILDDIR)/*

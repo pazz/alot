@@ -1,9 +1,8 @@
 import urwid
 import logging
 from twisted.internet import reactor, defer
-from twisted.python.failure import Failure
 
-from settings import config
+from settings import settings
 from buffers import BufferlistBuffer
 import commands
 from commands import commandfactory
@@ -46,7 +45,7 @@ class InputWrap(urwid.WidgetWrap):
         mode = self.ui.mode
         if self.select_cancel_only:
             mode = 'global'
-        cmdline = config.get_mapping(mode, key)
+        cmdline = settings.get_keybinding(mode, key)
         if cmdline:
             try:
                 cmd = commandfactory(cmdline, mode)
@@ -71,34 +70,28 @@ class UI(object):
     """points to currently active :class:`~alot.buffers.Buffer`"""
     dbman = None
     """Database manager (:class:`~alot.db.DBManager`)"""
-    accountman = None
-    """account manager (:class:`~alot.account.AccountManager`)"""
 
-    def __init__(self, dbman, accountman, initialcmd, colourmode):
+    def __init__(self, dbman, initialcmd):
         """
         :param dbman: :class:`~alot.db.DBManager`
-        :param accountman: :class:`~alot.account.AccountManager`
         :param initialcmd: commandline applied after setting up interface
         :type initialcmd: str
         :param colourmode: determines which theme to chose
         :type colourmode: int in [1,16,256]
         """
         self.dbman = dbman
-        self.accountman = accountman
 
-        if not colourmode:
-            colourmode = config.getint('general', 'colourmode')
+        colourmode = int(settings.get('colourmode'))
         logging.info('setup gui in %d colours' % colourmode)
         self.mainframe = urwid.Frame(urwid.SolidFill())
         self.inputwrap = InputWrap(self, self.mainframe)
         self.mainloop = urwid.MainLoop(self.inputwrap,
-                config.get_palette(),
                 handle_mouse=False,
                 event_loop=urwid.TwistedEventLoop(),
                 unhandled_input=self.unhandeled_input)
         self.mainloop.screen.set_terminal_properties(colors=colourmode)
 
-        self.show_statusbar = config.getboolean('general', 'show_statusbar')
+        self.show_statusbar = settings.get('show_statusbar')
         self.notificationbar = None
         self.mode = 'global'
         self.commandprompthistory = []
@@ -169,7 +162,8 @@ class UI(object):
                 ('fixed', len(prefix), leftpart),
                 ('weight', 1, editpart),
             ])
-        both = urwid.AttrMap(both, 'global_prompt')
+        att = settings.get_theming_attribute('global', 'prompt')
+        both = urwid.AttrMap(both, att)
 
         # put promptwidget as overlay on main widget
         overlay = urwid.Overlay(both, oldroot,
@@ -208,7 +202,7 @@ class UI(object):
             logging.debug('UI: closing current buffer %s' % buf)
             index = buffers.index(buf)
             buffers.remove(buf)
-            offset = config.getint('general', 'bufferclose_focus_offset')
+            offset = settings.get('bufferclose_focus_offset')
             nextbuffer = buffers[(index + offset) % len(buffers)]
             self.buffer_focus(nextbuffer)
             buf.cleanup()
@@ -313,7 +307,8 @@ class UI(object):
                 ], dividechars=1)
         else:  # above
             both = urwid.Pile([msgpart, choicespart])
-        both = urwid.AttrMap(both, 'prompt', 'prompt')
+        att = settings.get_theming_attribute('global', 'prompt')
+        both = urwid.AttrMap(both, att, att)
 
         # put promptwidget as overlay on main widget
         overlay = urwid.Overlay(both, oldroot,
@@ -347,7 +342,8 @@ class UI(object):
         """
         def build_line(msg, prio):
             cols = urwid.Columns([urwid.Text(msg)])
-            return urwid.AttrMap(cols, 'global_notify_' + prio)
+            att = settings.get_theming_attribute('global', 'notify_' + prio)
+            return urwid.AttrMap(cols, att)
         msgs = [build_line(message, priority)]
 
         if not self.notificationbar:
@@ -374,7 +370,7 @@ class UI(object):
         else:
             if timeout >= 0:
                 if timeout == 0:
-                    timeout = config.getint('general', 'notify_timeout')
+                    timeout = settings.get('notify_timeout')
                 self.mainloop.set_alarm_in(timeout, clear)
         return msgs[0]
 
@@ -420,7 +416,8 @@ class UI(object):
         columns = urwid.Columns([
             footerleft,
             ('fixed', len(righttxt), footerright)])
-        return urwid.AttrMap(columns, 'global_footer')
+        footer_att = settings.get_theming_attribute('global', 'footer')
+        return urwid.AttrMap(columns, footer_att)
 
     def apply_command(self, cmd):
         """
@@ -437,9 +434,7 @@ class UI(object):
             if cmd.prehook:
                 logging.debug('calling pre-hook')
                 try:
-                    cmd.prehook(ui=self, dbm=self.dbman, aman=self.accountman,
-                                config=config)
-
+                    cmd.prehook(ui=self, dbm=self.dbman)
                 except:
                     logging.exception('prehook failed')
 
@@ -448,8 +443,7 @@ class UI(object):
                 if cmd.posthook:
                     logging.debug('calling post-hook')
                     try:
-                        cmd.posthook(ui=self, dbm=self.dbman,
-                                     aman=self.accountman, config=config)
+                        cmd.posthook(ui=self, dbm=self.dbman)
                     except:
                         logging.exception('posthook failed')
 

@@ -1,3 +1,4 @@
+# coding=utf-8
 from datetime import date
 from datetime import timedelta
 from collections import deque
@@ -16,8 +17,6 @@ from twisted.internet.protocol import ProcessProtocol
 from twisted.internet.defer import Deferred
 import StringIO
 import logging
-
-from settings import config
 
 
 def safely_get(clb, E, on_error=''):
@@ -38,7 +37,7 @@ def safely_get(clb, E, on_error=''):
         return on_error
 
 
-def string_sanitize(string, tab_width=None):
+def string_sanitize(string, tab_width=8):
     r"""
     strips, and replaces non-printable characters
 
@@ -53,8 +52,6 @@ def string_sanitize(string, tab_width=None):
     >>> string_sanitize('foo\t\tbar', 8)
     'foo             bar'
     """
-    if tab_width == None:
-        tab_width = config.getint('general', 'tabwidth')
 
     string = string.strip()
     string = string.replace('\r', '')

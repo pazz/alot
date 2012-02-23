@@ -1,0 +1,10 @@
+[tags]
+[[flagged]]
+  fg = light red
+  translated = ⚑
+[[unread]]
+  translated = ✉
+[[replied]]
+  translated = ⏎
+[[inbox]]
+ translated = ⊡

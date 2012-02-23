@@ -12,7 +12,6 @@ from alot.commands.globals import ExternalCommand
 from alot.commands.globals import FlushCommand
 from alot.commands.globals import ComposeCommand
 from alot.commands.globals import RefreshCommand
-from alot import settings
 from alot import widgets
 from alot import completion
 from alot.message import decode_header
@@ -21,7 +20,7 @@ from alot.message import extract_headers
 from alot.message import extract_body
 from alot.message import Envelope
 from alot.db import DatabaseROError
-from alot.db import DatabaseError
+from alot.settings import settings
 
 MODE = 'thread'
 
@@ -82,7 +81,7 @@ class ReplyCommand(Command):
 
     def apply(self, ui):
         # look if this makes sense: do we have any accounts set up?
-        my_accounts = ui.accountman.get_accounts()
+        my_accounts = settings.get_accounts()
         if not my_accounts:
             ui.notify('no accounts set', priority='error')
             return
@@ -95,11 +94,9 @@ class ReplyCommand(Command):
         # set body text
         name, address = self.message.get_author()
         timestamp = self.message.get_date()
-        qf = settings.config.get_hook('reply_prefix')
+        qf = settings.get_hook('reply_prefix')
         if qf:
-            quotestring = qf(name, address, timestamp,
-                             ui=ui, dbm=ui.dbman, aman=ui.accountman,
-                             config=settings.config)
+            quotestring = qf(name, address, timestamp, ui=ui, dbm=ui.dbman)
         else:
             quotestring = 'Quoting %s (%s)\n' % (name, timestamp)
         mailcontent = quotestring
@@ -121,7 +118,7 @@ class ReplyCommand(Command):
         # set To
         sender = mail['Reply-To'] or mail['From']
         recipients = [sender]
-        my_addresses = ui.accountman.get_addresses()
+        my_addresses = settings.get_addresses()
         if self.groupreply:
             if sender != mail['From']:
                 recipients.append(mail['From'])
@@ -180,7 +177,7 @@ class ForwardCommand(Command):
 
     def apply(self, ui):
         # look if this makes sense: do we have any accounts set up?
-        my_accounts = ui.accountman.get_accounts()
+        my_accounts = settings.get_accounts()
         if not my_accounts:
             ui.notify('no accounts set', priority='error')
             return
@@ -196,11 +193,9 @@ class ForwardCommand(Command):
             # set body text
             name, address = self.message.get_author()
             timestamp = self.message.get_date()
-            qf = settings.config.get_hook('forward_prefix')
+            qf = settings.get_hook('forward_prefix')
             if qf:
-                quote = qf(name, address, timestamp,
-                             ui=ui, dbm=ui.dbman, aman=ui.accountman,
-                             config=settings.config)
+                quote = qf(name, address, timestamp, ui=ui, dbm=ui.dbman)
             else:
                 quote = 'Forwarded message from %s (%s):\n' % (name, timestamp)
             mailcontent = quote
@@ -548,7 +543,7 @@ class PrintCommand(PipeCommand):
         :type add_tags: bool
         """
         # get print command
-        cmd = settings.config.get('general', 'print_cmd', fallback='')
+        cmd = settings.get('print_cmd', fallback='')
 
         # set up notification strings
         if all:
