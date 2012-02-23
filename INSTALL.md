@@ -52,11 +52,10 @@ other dependencies
  * a mailcap file (I recommend installing 'mime-support' on debian/ubuntu).
    This is used to determine the commands to call when opening attachments
    or text-rendering parts that are not plaintext, e.g. text/html.
-   Make sure you have a inline renderer for text/html set as otherwise
+   Make sure you have a inline renderer for text/html set in your mailcap as otherwise
    html mails will not display:
-
-    #~/.mailcap, take w3m for example:
-    text/html;  w3m -dump %s; nametemplate=%s.html; copiousoutput
+   
+       text/html;  w3m -dump %s; nametemplate=%s.html; copiousoutput
 
 
 All other configs are optional, but if you want to send mails you need to specify at least one
@@ -67,5 +66,3 @@ account section in your config:
     address = your@address
 
 See the [user docs][docs] for how to do fancy customization.
-
-:x

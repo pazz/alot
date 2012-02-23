@@ -126,17 +126,20 @@ def shorten_author_string(authors_string, maxlength):
         between first and next authors is added.
 
 
-    EXAMPLE (authors string with different length constrains):
-         'King Kong, Mucho Muchacho, Jaime Huerta, Flash Gordon'
-         'King, Mucho, Jaime, Flash'
-         'King, ., Jaime, Flash'
-         'King, ., J., Flash'
-         'King, ., Flash'
-         'King, ., Fl.'
-         'King, .'
-         'K., .'
-         'K.'
-         """
+    >>> authors = u'King Kong, Mucho Muchacho, Jaime Huerta, Flash Gordon'
+    >>> print shorten_author_string(authors, 60)
+    King Kong, Mucho Muchacho, Jaime Huerta, Flash Gordon
+    >>> print shorten_author_string(authors, 40)
+    King, Mucho, Jaime, Flash
+    >>> print shorten_author_string(authors, 20)
+    King, …, Jai…, Flash
+    >>> print shorten_author_string(authors, 10)
+    King, …
+    >>> print shorten_author_string(authors, 2)
+    K…
+    >>> print shorten_author_string(authors, 1)
+    K
+    """
 
     # I will create a list of authors by parsing author_string. I use
     # deque to do popleft without performance penalties

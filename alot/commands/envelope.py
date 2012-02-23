@@ -92,6 +92,8 @@ class SaveCommand(Command):
 
         mail = envelope.construct_mail()
         # store mail locally
+        # add Date header
+        mail['Date'] = email.Utils.formatdate(localtime=True)
         path = account.store_draft_mail(mail)
         ui.notify('draft saved successfully')
 
@@ -141,6 +143,9 @@ class SendCommand(Command):
             ui.apply_command(commands.globals.BufferCloseCommand())
             ui.notify('mail sent successfully')
             # store mail locally
+            # add Date header
+            if 'Date' not in mail:
+                mail['Date'] = email.Utils.formatdate(localtime=True)
             path = account.store_sent_mail(mail)
             # add mail to index if maildir path available
             if path is not None:

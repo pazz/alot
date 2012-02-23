@@ -10,7 +10,7 @@ charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 from email.iterators import typed_subpart_iterator
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from notmuch.globals import NullPointerError
+from notmuch import NullPointerError
 
 from alot import __version__
 import logging
@@ -590,9 +590,7 @@ class Envelope(object):
             msg = textpart
 
         headers = self.headers.copy()
-        # add Date and Message-ID headers
-        if 'Date' not in headers:
-            headers['Date'] = [email.Utils.formatdate()]
+        # add Message-ID
         if 'Message-ID' not in headers:
             headers['Message-ID'] = [email.Utils.make_msgid()]
 
