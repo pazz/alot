@@ -142,18 +142,21 @@ def main():
     except ConfigError, e:  # exit on parse errors
         sys.exit(e)
 
+    # store options given by config swiches to the settingsManager:
+    if args['colour-mode']:
+        settings.set('colourmode', args['colour-mode'])
+
     # logging
-    ## reset
     root_logger = logging.getLogger()
     for log_handler in root_logger.handlers:
         root_logger.removeHandler(log_handler)
     root_logger = None
-    ## setup
     numeric_loglevel = getattr(logging, args['debug-level'].upper(), None)
     logfilename = os.path.expanduser(args['logfile'])
     logformat = '%(levelname)s:%(module)s:%(message)s'
     logging.basicConfig(level=numeric_loglevel, filename=logfilename,
                         format=logformat)
+
 
     # get ourselves a database manager
     dbman = DBManager(path=args['mailindex-path'], ro=args['read-only'])
@@ -175,10 +178,7 @@ def main():
         sys.exit(e)
 
     # set up and start interface
-    UI(dbman,
-       cmd,
-       args['colour-mode'],
-    )
+    UI(dbman, cmd)
 
 if __name__ == "__main__":
     main()

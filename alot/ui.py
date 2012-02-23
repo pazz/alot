@@ -71,7 +71,7 @@ class UI(object):
     dbman = None
     """Database manager (:class:`~alot.db.DBManager`)"""
 
-    def __init__(self, dbman, initialcmd, colourmode):
+    def __init__(self, dbman, initialcmd):
         """
         :param dbman: :class:`~alot.db.DBManager`
         :param initialcmd: commandline applied after setting up interface
@@ -81,9 +81,7 @@ class UI(object):
         """
         self.dbman = dbman
 
-        if not colourmode:
-            # explicit int-constructor because we used "options" in specfile
-            colourmode = int(settings.get('colourmode'))
+        colourmode = int(settings.get('colourmode'))
         logging.info('setup gui in %d colours' % colourmode)
         self.mainframe = urwid.Frame(urwid.SolidFill())
         self.inputwrap = InputWrap(self, self.mainframe)
