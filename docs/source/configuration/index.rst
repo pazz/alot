@@ -191,21 +191,34 @@ Alot can be run in 1, 16 or 256 colour mode. The requested mode is determined by
 from option `colourmode` config value. The default is 256, which scales down depending on how many colours your
 terminal supports.
 
-Have a look at the default config (`alot/defaults/alot.rc`) for a complete list
-of interpreted widget settings; the keys in this section should be self-explanatory.
+To specify the theme to use, set the `theme` config option to the name of a theme-file.
+A file by that name will be looked up in the path given by the `themes_dir` config setting
+which defaults to :file:`~/.config`.
+
+Theme-files can contain sections `[1], [16]` and `[256]` for different colour modes,
+each of which has subsections named after the :ref:`MODE <modes>` they are used in
+plus "help" for the bindings-help overlay and "global" for globally used themables
+like footer, prompt etc.
+The themables live in sub-sub-sections and define the attributes `fg` and `bg` for foreground
+and backround colours and attributes, the names of the themables should be self-explanatory.
+Have a look at the default theme file at :file:`alot/defaults/default.theme`
+and the config spec :file:`alot/defaults/default.theme` for the format.
+
+As an example, check the setting below that makes the footer line appear as
+underlined bold red text on a bright green background::
+
+    [256]
+      [[global]]
+        [[[footer]]]
+            fg = light red, bold, underline
+            bg = #8f6
 
 Values can be colour names (`light red`, `dark green`..), RGB colour codes (e.g. `#868`),
 font attributes (`bold`, `underline`, `blink`, `standout`) or a comma separated combination of
 colour and font attributes.
-In sections `[16c-theme]` and `[256c-theme]` you can define Y_fg and
-Y_bg for the foreground and background of each widget keyword Y, whereas the monochromatic
-(`[1c-theme]`) palette can only interpret font attributes for key Y without the suffix.
-As an example, check the setting below that makes the footer line appear as
-underlined bold red text on a bright green background::
 
-    [256c-theme]
-    global_footer_bg = #8f6
-    global_footer_fg = light red, bold, underline
+.. note:: In monochromatic mode only the entry `fg` is interpreted. It may only contain
+          (a comma-separated list of) font attributes: 'bold', 'underline', 'blink', 'standout'.
 
 See `urwids docs on Attributes <http://excess.org/urwid/reference.html#AttrSpec>`_ for more details
 on the interpreted values. Urwid provides a `neat colour picker script`_ that makes choosing
