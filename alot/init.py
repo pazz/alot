@@ -113,6 +113,17 @@ def main():
         print '%s: Try --help for usage details.' % (sys.argv[0])
         sys.exit(1)
 
+    # logging
+    root_logger = logging.getLogger()
+    for log_handler in root_logger.handlers:
+        root_logger.removeHandler(log_handler)
+    root_logger = None
+    numeric_loglevel = getattr(logging, args['debug-level'].upper(), None)
+    logfilename = os.path.expanduser(args['logfile'])
+    logformat = '%(levelname)s:%(module)s:%(message)s'
+    logging.basicConfig(level=numeric_loglevel, filename=logfilename,
+                        format=logformat)
+
     # locate alot config files
     configfiles = [
         os.path.join(os.environ.get('XDG_CONFIG_HOME',
@@ -145,18 +156,6 @@ def main():
     # store options given by config swiches to the settingsManager:
     if args['colour-mode']:
         settings.set('colourmode', args['colour-mode'])
-
-    # logging
-    root_logger = logging.getLogger()
-    for log_handler in root_logger.handlers:
-        root_logger.removeHandler(log_handler)
-    root_logger = None
-    numeric_loglevel = getattr(logging, args['debug-level'].upper(), None)
-    logfilename = os.path.expanduser(args['logfile'])
-    logformat = '%(levelname)s:%(module)s:%(message)s'
-    logging.basicConfig(level=numeric_loglevel, filename=logfilename,
-                        format=logformat)
-
 
     # get ourselves a database manager
     dbman = DBManager(path=args['mailindex-path'], ro=args['read-only'])
