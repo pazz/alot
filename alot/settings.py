@@ -162,6 +162,23 @@ class SettingsManager(object):
             newbindings = newconfig['bindings']
             if isinstance(newbindings, Section):
                 self._bindings.merge(newbindings)
+        # themes
+        themestring = newconfig['theme']
+        themes_dir = self._config.get('themes_dir')
+        if themes_dir:
+            themes_dir = os.path.expanduser(themes_dir)
+        else:
+            themes_dir = os.path.join(os.environ.get('XDG_CONFIG_HOME',
+                            os.path.expanduser('~/.config')), 'alot', 'themes')
+        logging.debug(themes_dir)
+
+        if themestring:
+            if not os.path.isdir(themes_dir):
+                err_msg = 'cannot find theme %s: themes_dir %s is missing'
+                raise ConfigError(err_msg % (themestring, themes_dir))
+            else:
+                theme_path = os.path.join(themes_dir, themestring)
+                self._theme = Theme(theme_path)
 
         self._accounts = self._parse_accounts(self._config)
         self._accountmap = self._account_table(self._accounts)
