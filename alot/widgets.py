@@ -128,9 +128,14 @@ class ThreadlineWidget(urwid.AttrMap):
         cols.append(('fixed', len(authorsstring), self.authors_w))
 
         if self.thread:
-            subjectstring = self.thread.get_subject().strip()
+            subjectstring = self.thread.get_subject()
         else:
             subjectstring = ''
+        # sanitize subject string:
+        subjectstring = subjectstring.replace('\n', ' ')
+        subjectstring = subjectstring.replace('\r', '')
+        subjectstring = subjectstring.strip()
+
         self.subject_w = urwid.AttrMap(urwid.Text(subjectstring, wrap='clip'),
                                        self._get_theme('subject'))
         if subjectstring:
