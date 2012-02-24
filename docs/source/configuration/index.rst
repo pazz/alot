@@ -33,7 +33,7 @@ Here is an example configuration::
         [[secret]]
             realname = Batman
             address = batman@batcave.org
-            aliases = batman@batmobile.org
+            aliases = batman@batmobile.org,
             sendmail_command = msmtp --account=batman -t
             signature = ~/.batman.vcf
             signature_as_attachment = True
@@ -107,7 +107,6 @@ Known modes are:
 * thread
 * taglist
 * bufferlist
-* global
 
 Have a look at `the urwid User Input documentation <http://excess.org/urwid/wiki/UserInput>`_ on how key strings are formated.
 
