@@ -294,7 +294,6 @@ class SettingsManager(object):
         default_f = self._theme.get_attribute('global', 'tag_focus', colours)
         for sec in self._config['tags'].sections:
             if re.match(sec, tag):
-                logging.debug('sec: %s matches %s' %(sec,tag))
                 fg = self._config['tags'][sec]['fg'] or default.foreground
                 bg = self._config['tags'][sec]['bg'] or default.background
                 normal = urwid.AttrSpec(fg, bg, colours)
