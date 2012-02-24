@@ -118,6 +118,8 @@ user_agent = string(default='alot/$VERSION')
         focus_bg = string(default=None)
         # alternative string representation
         translated = string(default=None)
+        # substitution to generate translated from section name
+        translation = mixed_list(string, string, default=None)
 
 [accounts]
 [[__many__]]

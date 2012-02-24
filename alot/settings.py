@@ -292,14 +292,21 @@ class SettingsManager(object):
         # default attributes: normal and focussed
         default = self._theme.get_attribute('global', 'tag', colours)
         default_f = self._theme.get_attribute('global', 'tag_focus', colours)
-        if tag in self._config['tags']:
-            fg = self._config['tags'][tag]['fg'] or default.foreground
-            bg = self._config['tags'][tag]['bg'] or default.background
-            normal = urwid.AttrSpec(fg, bg, colours)
-            ffg = self._config['tags'][tag]['focus_fg'] or default_f.foreground
-            fbg = self._config['tags'][tag]['focus_bg'] or default_f.background
-            focussed = urwid.AttrSpec(ffg, fbg, colours)
-            translated = self._config['tags'][tag]['translated'] or tag
+        for sec in self._config['tags'].sections:
+            if re.match(sec, tag):
+                logging.debug('sec: %s matches %s' %(sec,tag))
+                fg = self._config['tags'][sec]['fg'] or default.foreground
+                bg = self._config['tags'][sec]['bg'] or default.background
+                normal = urwid.AttrSpec(fg, bg, colours)
+                ffg = self._config['tags'][sec]['focus_fg'] or default_f.foreground
+                fbg = self._config['tags'][sec]['focus_bg'] or default_f.background
+                focussed = urwid.AttrSpec(ffg, fbg, colours)
+
+                translated = self._config['tags'][sec]['translated'] or tag
+                translation = self._config['tags'][sec]['translation']
+                if translation:
+                    translated = re.sub(translation[0], translation[1], tag)
+                break
         else:
             normal = default
             focussed = default_f
