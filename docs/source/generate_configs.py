@@ -6,8 +6,10 @@ from alot.commands import COMMANDS
 from configobj import ConfigObj
 import re
 
-def rewrite_scalarcomments(config, path):
+def rewrite_scalarcomments(config, path, sort=False):
     file = open(path, 'w')
+    if sort:
+        config.scalars.sort()
     for entry in config.scalars:
         description = '\n.. describe:: %s\n\n' % entry
         comments = [config.inline_comments[entry]] + config.comments[entry]
@@ -22,7 +24,7 @@ if __name__ == "__main__":
     config = ConfigObj(specpath)
 
     alotrc_table_file = os.path.join(HERE, 'configuration', 'alotrc_table.rst')
-    rewrite_scalarcomments(config, alotrc_table_file)
+    rewrite_scalarcomments(config, alotrc_table_file, sort=True)
 
     rewrite_scalarcomments(config['accounts']['__many__'],
                            os.path.join(HERE, 'configuration',
