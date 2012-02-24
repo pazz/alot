@@ -249,12 +249,12 @@ class MatchSdtoutAddressbook(AddressBook):
         :param match: regular expression used to match contacts in `commands`
                       output to stdout. Must define subparts named "email" and
                       "name".  Defaults to
-                      :regexp:`(?P<email>.+?@.+?)\s+(?P<name>.+?)\s*$`.
+                      :regexp:`^(?P<email>[^@]+@[^\t]+)\t+(?P<name>[^\t]+)`.
         :type match: str
         """
         self.command = command
         if not match:
-            self.match = '(?P<email>.+?@.+?)\s+(?P<name>.+?)\s*$'
+            self.match = '^(?P<email>[^@]+@[^\t]+)\t+(?P<name>[^\t]+)'
         else:
             self.match = match
 
@@ -266,7 +266,7 @@ class MatchSdtoutAddressbook(AddressBook):
         resultstring, errmsg, retval = helper.call_cmd(cmdlist + [prefix])
         if not resultstring:
             return []
-        lines = resultstring.replace('\t', ' ' * 4).splitlines()
+        lines = resultstring.splitlines()
         res = []
         for l in lines:
             m = re.match(self.match, l)

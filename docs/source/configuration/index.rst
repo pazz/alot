@@ -63,15 +63,15 @@ respectively. See below for an example that uses `abook <http://abook.sourceforg
     [[youraccount]]
         ...
         abook_command = abook --mutt-query
-        abook_regexp = '(?P<email>.+?@.+?)\s+(?P<name>.+?)\s*$'
+        abook_regexp = '^(?P<email>[^@]+@[^\t]+)\t+(?P<name>[^\t]+)'
 
-See `here <http://notmuchmail.org/emacstips/#index11h2>`_ for alternative lookup commands. The few others I have tested so far are:
+See `here <http://notmuchmail.org/emacstips/#index12h2>`_ for alternative lookup commands. The few others I have tested so far are:
 
 `goobook <http://code.google.com/p/goobook/>`_
-    for cached google contacts lookups::
+    for cached google contacts lookups. Works with the above default regexp::
 
       abook_command = goobook query
-      abook_regexp = (?P<email>.+?@.+?)\s\s+(?P<name>.+)\s\s+.+
+      abook_regexp = '^(?P<email>[^@]+@[^\t]+)\t+(?P<name>[^\t]+)'
 
 `nottoomuch-addresses <http://www.iki.fi/too/nottoomuch/nottoomuch-addresses/>`_
     completes contacts found in the notmuch index::
