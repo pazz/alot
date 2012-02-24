@@ -33,7 +33,7 @@ q = exit
     | = refineprompt
 
 [envelope]
-    a = prompt "attach ~/"
+    a = prompt 'attach ~/'
     y = send
     P = save
     s = 'refine Subject'
