@@ -8,7 +8,7 @@ files, the hooks-file for user provided python code and the mailcap,
 defining shellcomands as handlers for files of certain mime types.
 Alot sets up :class:`SettingsManager` objects to access these user settings uniformly.
 
-MIME handlers can be looked up via :meth:`SettingsManager.settings.get_mime_handler`,
+MIME handlers can be looked up via :meth:`SettingsManager.get_mime_handler`,
 config values of alot and notmuch's config are accessible using
 :meth:`SettingsManager.get` and :meth:`SettingsManager.get_notmuch_setting`.
 These methods return either None or the requested value typed as indicated in

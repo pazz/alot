@@ -278,6 +278,6 @@ do the following::
   [[notmuch::.*]]
       fg = '#fff'
       bg = '#88d'
-      translation = 'notmuch::(\*)','nm:\1'
+      translation = 'notmuch::(.*)','nm:\1'
 
 .. _nmbug: http://notmuchmail.org/nmbug/
