@@ -265,14 +265,19 @@ like this::
       [[encrypted]]
         translated= ⚷
 
-You may use regular expressions in the tagstring subsections to theme multiple tagstrings at once.
+You may use regular expressions in the tagstring subsections to theme multiple tagstrings at once (first match wins).
 If you do so, you can use the `translation` option to specify a string substitution that will
 rename a matching tagstring. `translation` takes a comma separated *pair* of strings that will be fed to
-:func:`re.sub`. For instance, to theme all your `nmbug`_ tagstrings you can use the following::
+:func:`re.sub`. For instance, to theme all your `nmbug`_ tagstrings and espacially colour tag `notmuch::bug` red,
+do the following::
 
+  [[notmuch::bug]]
+      fg = 'light red, bold'
+      bg = '#88d'
+      translated = 'nm:bug'
   [[notmuch::.*]]
       fg = '#fff'
       bg = '#88d'
-      translation = 'notmuch::(\*)','nm\1'
+      translation = 'notmuch::(\*)','nm:\1'
 
 .. _nmbug: http://notmuchmail.org/nmbug/
