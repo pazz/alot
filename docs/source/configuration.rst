@@ -92,7 +92,9 @@ renamed to `signature_filename`.
 If you specified `abook_command`, it will be used for tab completion in queries (to/from)
 and in message composition. The command will be called with your prefix as only argument
 and its output is searched for name-email pairs. The regular expression used here
-defaults to `(?P<email>.+?@.+?)\s+(?P<name>.+)`, which makes it work nicely with `abook --mutt-query`.
+defaults to `^(?P<email>[^@]+@[^\t]+)\t+(?P<name>[^\t]+)` (email and name separated by
+a tab character), which makes it work nicely with `abook --mutt-query`, and `goobook query`.
+
 You can tune this using the `abook_regexp` option (beware Commandparsers escaping semantic!).
 Have a look at the FAQ for other examples.
 
@@ -409,15 +411,14 @@ respectively. See below for an example that uses `abook <http://abook.sourceforg
     realname = ...
     address = ...
     abook_command = abook --mutt-query
-    abook_regexp = '(?P<email>.+?@.+?)\s+(?P<name>.+?)\s*$'
+    abook_regexp = '^(?P<email>[^@]+@[^\t]+)\t+(?P<name>[^\t]+)'
 
-See `here <http://notmuchmail.org/emacstips/#index11h2>`_ for alternative lookup commands. The few others I have tested so far are:
+See `here <http://notmuchmail.org/emacstips/#index12h2>`_ for alternative lookup commands. The few others I have tested so far are:
 
 `goobook <http://code.google.com/p/goobook/>`_
-    for cached google contacts lookups::
+    for cached google contacts lookups. Works with the default regexp::
 
       abook_command = goobook query
-      abook_regexp = (?P<email>.+?@.+?)\s\s+(?P<name>.+)\s\s+.+
 
 `nottoomuch-addresses <http://www.iki.fi/too/nottoomuch/nottoomuch-addresses/>`_
     completes contacts found in the notmuch index::
