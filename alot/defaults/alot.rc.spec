@@ -159,10 +159,14 @@ user_agent = string(default='alot/$VERSION')
         # address book for this account
         [[[abook]]]
             # type identifier for addressbook
-            type = option('shellcommand', default=None)
-            # command to lookup contacts.
+            type = option('shellcommand', 'abook', default=None)
+            # command to lookup contacts in shellcommand abooks
             # it will be called with the lookup prefix as only argument
             command = string(default=None)
 
             # regular expression used to match name/address pairs in the output of `command`
+            # for shellcommand abooks
             regexp = string(default=None)
+
+            # contacts file used for type 'abook' addressbook
+            abook_contacts_file = string(default='~/.abook/addressbook')

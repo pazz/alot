@@ -11,7 +11,7 @@ from urwid import AttrSpec, AttrSpecError
 from configobj import ConfigObj, ConfigObjError, flatten_errors, Section
 from validate import Validator
 
-from account import SendmailAccount, MatchSdtoutAddressbook
+from account import SendmailAccount, MatchSdtoutAddressbook, AbookAddressBook
 
 from collections import OrderedDict
 from ConfigParser import SafeConfigParser, ParsingError, NoOptionError
@@ -168,7 +168,6 @@ class SettingsManager(object):
                 if abook['type'] == 'shellcommand':
                     cmd = abook['command']
                     regexp = abook['regexp']
-                    logging.debug('abook: %s: %s' % (cmd, regexp))
                     if cmd is not None and regexp is not None:
                         args['abook'] = MatchSdtoutAddressbook(cmd,
                                                                match=regexp)
@@ -176,6 +175,9 @@ class SettingsManager(object):
                         msg = 'underspecified abook of type \'shellcommand\':'
                         msg += '\ncommand: %s\nregexp:%s' % (cmd, regexp)
                         raise ConfigError(msg)
+                elif abook['type'] == 'abook':
+                    contacts_path = abook['abook_contacts_file']
+                    args['abook'] = AbookAddressBook(contacts_path)
                 else:
                     del(args['abook'])
 

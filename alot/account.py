@@ -6,7 +6,6 @@ import email
 import os
 import glob
 import shlex
-from ConfigParser import SafeConfigParser
 from urlparse import urlparse
 
 import helper
@@ -213,31 +212,26 @@ class AddressBook(object):
         res = []
         for name, email in self.get_contacts():
             if name.startswith(prefix) or email.startswith(prefix):
-                res.append("%s <%s>" % (name, email))
+                res.append((name, email))
         return res
 
 
 class AbookAddressBook(AddressBook):
     """:class:`AddressBook` that parses abook's config/database files"""
-    def __init__(self, config=None):
+    def __init__(self, path='~/.abook/addressbook'):
         """
-        :param config: path to an `abook` contacts file
-                       (defaults to '/.abook/addressbook')
-        :type config: str
+        :param path: path to theme file
+        :type path: str
         """
-        self.abook = SafeConfigParser()
-        if not config:
-            config = os.environ["HOME"] + "/.abook/addressbook"
-        self.abook.read(config)
+        DEFAULTSPATH = os.path.join(os.path.dirname(__file__), 'defaults')
+        self._spec = os.path.join(DEFAULTSPATH, 'abook_contacts.spec')
+        path = os.path.expanduser(path)
+        self._config = helper.read_config(path, self._spec)
+        del(self._config['format'])
 
     def get_contacts(self):
-        res = []
-        for s in self.abook.sections():
-            if s.isdigit():
-                name = self.abook.get(s, 'name')
-                email = self.abook.get(s, 'email')
-                res.append((name, email))
-        return res
+        c = self._config
+        return [(c[id]['name'], c[id]['email']) for id in c.sections]
 
 
 class MatchSdtoutAddressbook(AddressBook):
