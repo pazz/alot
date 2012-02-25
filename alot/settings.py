@@ -267,10 +267,18 @@ class SettingsManager(object):
             if re.match(sec, tag):
                 fg = self._config['tags'][sec]['fg'] or default.foreground
                 bg = self._config['tags'][sec]['bg'] or default.background
-                normal = urwid.AttrSpec(fg, bg, colours)
-                ffg = self._config['tags'][sec]['focus_fg'] or default_f.foreground
-                fbg = self._config['tags'][sec]['focus_bg'] or default_f.background
-                focussed = urwid.AttrSpec(ffg, fbg, colours)
+                try:
+                    normal = urwid.AttrSpec(fg, bg, colours)
+                except AttrSpecError:
+                    normal = default
+                focus_fg = self._config['tags'][sec]['focus_fg']
+                focus_fg = focus_fg or default_f.foreground
+                focus_bg = self._config['tags'][sec]['focus_bg']
+                focus_bg = focus_bg or default_f.background
+                try:
+                    focussed = urwid.AttrSpec(focus_fg, focus_bg, colours)
+                except AttrSpecError:
+                    focussed = default_f
 
                 translated = self._config['tags'][sec]['translated'] or tag
                 translation = self._config['tags'][sec]['translation']
