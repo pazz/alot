@@ -50,37 +50,39 @@ The following entries are interpreted at the moment:
 
 Contacts Completion
 ===================
-In each :ref:`account` section you can specify a `abook_command` that
-is considered the address book of that account and will be used
-for address completion where appropriate.
+For each :ref:`account <account>` you can define an addressbook by providing a subsection named `abook`.
+Crucially, this section needs an option `type` that specifies the type of the addressbook.
+Supported at the moment is only the type "shellcommand", which can be used in combination
+with the options "command" and "regexp":
 
-This shell command will be called with the search prefix as only argument.
-Its output is searched for email-name pairs using the regular expression given as `abook_regexp`,
+The value of `command` will be called with the search prefix as only argument for lookups.
+Its output is searched for email-name pairs using the regular expression given as `regexp`,
 which must include named groups "email" and "name" to match the email address and realname parts
 respectively. See below for an example that uses `abook <http://abook.sourceforge.net/>`_::
 
     [accounts]
     [[youraccount]]
         ...
-        abook_command = abook --mutt-query
-        abook_regexp = '^(?P<email>[^@]+@[^\t]+)\t+(?P<name>[^\t]+)'
+        [[[abook]]]
+            type = shellcommand
+            command = abook --mutt-query
+            regexp = '^(?P<email>[^@]+@[^\t]+)\t+(?P<name>[^\t]+)'
 
 See `here <http://notmuchmail.org/emacstips/#index12h2>`_ for alternative lookup commands. The few others I have tested so far are:
 
 `goobook <http://code.google.com/p/goobook/>`_
     for cached google contacts lookups. Works with the above default regexp::
 
-      abook_command = goobook query
-      abook_regexp = '^(?P<email>[^@]+@[^\t]+)\t+(?P<name>[^\t]+)'
+      command = goobook query
+      regexp = '^(?P<email>[^@]+@[^\t]+)\t+(?P<name>[^\t]+)'
 
 `nottoomuch-addresses <http://www.iki.fi/too/nottoomuch/nottoomuch-addresses/>`_
     completes contacts found in the notmuch index::
 
-      abook_command = nottoomuch-addresses.sh
-      abook_regexp = \"(?P<name>.+)\"\s*<(?P<email>.*.+?@.+?)>
+      command = nottoomuch-addresses.sh
+      regexp = \"(?P<name>.+)\"\s*<(?P<email>.*.+?@.+?)>
 
-Don't hesitate to send me your custom `abook_regexp` values to list them here.
-
+Don't hesitate to send me your custom `regexp` values to list them here.
 
 
 Key Bindings
