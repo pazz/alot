@@ -7,6 +7,7 @@ from helper import pretty_datetime
 from helper import tag_cmp
 from helper import string_decode
 import message
+import time
 
 
 class DialogBox(urwid.WidgetWrap):
@@ -69,6 +70,10 @@ class ThreadlineWidget(urwid.AttrMap):
         * `search_thread_subject, search_thread_subject_focus`
         * `search_thread_content, search_thread_content_focus`
     """
+    # The pretty_datetime needs 9 characters, but only 8 if locale
+    # doesn't use am/pm (in which case "jan 2012" is the longest)
+    pretty_datetime_len = 8 if len(time.strftime("%P")) == 0 else 9
+
     def __init__(self, tid, dbman):
         self.dbman = dbman
         #logging.debug('tid: %s' % tid)
@@ -92,7 +97,7 @@ class ThreadlineWidget(urwid.AttrMap):
         else:
             formatstring = settings.get('timestamp_format')
             if formatstring is None:
-                datestring = pretty_datetime(newest).rjust(10)
+                datestring = pretty_datetime(newest).rjust(ThreadlineWidget.pretty_datetime_len)
             else:
                 datestring = newest.strftime(formatstring)
         self.date_w = urwid.AttrMap(urwid.Text(datestring),
