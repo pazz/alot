@@ -52,37 +52,54 @@ Contacts Completion
 ===================
 For each :ref:`account <account>` you can define an addressbook by providing a subsection named `abook`.
 Crucially, this section needs an option `type` that specifies the type of the addressbook.
-Supported at the moment is only the type "shellcommand", which can be used in combination
-with the options "command" and "regexp":
+The only types supported at the moment are "shellcommand" and "abook":
 
-The value of `command` will be called with the search prefix as only argument for lookups.
-Its output is searched for email-name pairs using the regular expression given as `regexp`,
-which must include named groups "email" and "name" to match the email address and realname parts
-respectively. See below for an example that uses `abook <http://abook.sourceforge.net/>`_::
+.. describe:: shellcommand
 
-    [accounts]
-    [[youraccount]]
-        ...
-        [[[abook]]]
-            type = shellcommand
-            command = abook --mutt-query
-            regexp = '^(?P<email>[^@]+@[^\t]+)\t+(?P<name>[^\t]+)'
+    Addressbooks of this type use a shell command in combination with a regular
+    expression to look up contacts.
 
-See `here <http://notmuchmail.org/emacstips/#index12h2>`_ for alternative lookup commands. The few others I have tested so far are:
+    The value of `command` will be called with the search prefix as only argument for lookups.
+    Its output is searched for email-name pairs using the regular expression given as `regexp`,
+    which must include named groups "email" and "name" to match the email address and realname parts
+    respectively. See below for an example that uses `abook <http://abook.sourceforge.net/>`_::
 
-`goobook <http://code.google.com/p/goobook/>`_
-    for cached google contacts lookups. Works with the above default regexp::
+        [accounts]
+        [[youraccount]]
+            ...
+            [[[abook]]]
+                type = shellcommand
+                command = abook --mutt-query
+                regexp = '^(?P<email>[^@]+@[^\t]+)\t+(?P<name>[^\t]+)'
 
-      command = goobook query
-      regexp = '^(?P<email>[^@]+@[^\t]+)\t+(?P<name>[^\t]+)'
+    See `here <http://notmuchmail.org/emacstips/#index12h2>`_ for alternative lookup commands.
+    The few others I have tested so far are:
 
-`nottoomuch-addresses <http://www.iki.fi/too/nottoomuch/nottoomuch-addresses/>`_
-    completes contacts found in the notmuch index::
+    `goobook <http://code.google.com/p/goobook/>`_
+        for cached google contacts lookups. Works with the above default regexp::
 
-      command = nottoomuch-addresses.sh
-      regexp = \"(?P<name>.+)\"\s*<(?P<email>.*.+?@.+?)>
+          command = goobook query
+          regexp = '^(?P<email>[^@]+@[^\t]+)\t+(?P<name>[^\t]+)'
 
-Don't hesitate to send me your custom `regexp` values to list them here.
+    `nottoomuch-addresses <http://www.iki.fi/too/nottoomuch/nottoomuch-addresses/>`_
+        completes contacts found in the notmuch index::
+
+          command = nottoomuch-addresses.sh
+          regexp = \"(?P<name>.+)\"\s*<(?P<email>.*.+?@.+?)>
+
+    Don't hesitate to send me your custom `regexp` values to list them here.
+
+.. describe:: abook
+
+    Addressbooks of this type directly parse `abooks <http://abook.sourceforge.net/>`_ contact files.
+    You may specify a path using the "abook_contacts_file" option, which
+    defaults to :file:`~/.abook/addressbook`. To use the default path, simply do this::
+
+        [accounts]
+        [[youraccount]]
+            ...
+            [[[abook]]]
+                type = abook
 
 
 Key Bindings
