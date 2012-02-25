@@ -155,10 +155,14 @@ user_agent = string(default='alot/$VERSION')
         # signature_as_attachment is set to True
         signature_filename = string(default=None)
 
-        # command to lookup contacts.
-        # If you specified `abook_command`, it will be used for tab completion in queries (to/from) and in message
-        # composition. The command will be called with your prefix as only argument and its output is searched for name-email pairs.
-        abook_command = string(default=None)
 
-        # The regular expression used to match name/address pairs in the output of `abook_command`
-        abook_regexp = string(default=None)
+        # address book for this account
+        [[[abook]]]
+            # type identifier for addressbook
+            type = option('shellcommand', default=None)
+            # command to lookup contacts.
+            # it will be called with the lookup prefix as only argument
+            command = string(default=None)
+
+            # regular expression used to match name/address pairs in the output of `command`
+            regexp = string(default=None)

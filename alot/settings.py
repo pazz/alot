@@ -197,12 +197,22 @@ class SettingsManager(object):
                 accsec = config['accounts'][acc]
                 args = dict(config['accounts'][acc])
 
-                if 'abook_command' in accsec:
-                    cmd = accsec['abook_command']
-                    regexp = accsec['abook_regexp']
-                    args['abook'] = MatchSdtoutAddressbook(cmd, match=regexp)
-                    del(args['abook_command'])
-                    del(args['abook_regexp'])
+                # create abook for this account
+                abook = accsec['abook']
+                logging.debug('abook defined: %s' % abook)
+                if abook['type'] == 'shellcommand':
+                    cmd = abook['command']
+                    regexp = abook['regexp']
+                    logging.debug('abook: %s: %s' % (cmd, regexp))
+                    if cmd is not None and regexp is not None:
+                        args['abook'] = MatchSdtoutAddressbook(cmd,
+                                                               match=regexp)
+                    else:
+                        msg = 'underspecified abook of type \'shellcommand\':'
+                        msg += '\ncommand: %s\nregexp:%s' % (cmd, regexp)
+                        raise ConfigError(msg)
+                else:
+                    del(args['abook'])
 
                 cmd = args['sendmail_command']
                 del(args['sendmail_command'])
