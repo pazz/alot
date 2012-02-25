@@ -319,7 +319,6 @@ class OpenBufferlistCommand(Command):
         else:
             bl = buffers.BufferlistBuffer(ui, self.filtfun)
             ui.buffer_open(bl)
-            bl.rebuild()
 
 
 @registerCommand(MODE, 'taglist')
