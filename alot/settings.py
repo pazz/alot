@@ -1,20 +1,14 @@
 import imp
 import os
 import re
-import ast
-import json
 import mailcap
-import codecs
 import logging
 import urwid
 from urwid import AttrSpec, AttrSpecError
-from configobj import ConfigObj, ConfigObjError, flatten_errors, Section
-from validate import Validator
+from configobj import ConfigObj, Section
 
 from account import SendmailAccount, MatchSdtoutAddressbook, AbookAddressBook
 
-from collections import OrderedDict
-from ConfigParser import SafeConfigParser, ParsingError, NoOptionError
 from alot.errors import ConfigError
 from alot.helper import read_config
 

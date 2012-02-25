@@ -4,7 +4,6 @@ import logging
 import os
 
 from settings import settings, ConfigError
-import ConfigParser
 from db import DBManager
 from ui import UI
 import alot.commands as commands
