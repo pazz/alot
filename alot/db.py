@@ -86,6 +86,12 @@ class DBManager(object):
         if self.ro:
             raise DatabaseROError()
         if self.writequeue:
+            # aquire a writeable db handler
+            try:
+                mode = Database.MODE.READ_WRITE
+                db = Database(path=self.path, mode=mode)
+            except NotmuchError:
+                raise DatabaseLockedError()
 
             # read notmuch's config regarding imap flag synchronization
             sync = settings.get_notmuch_setting('maildir', 'synchronize_flags')
@@ -98,13 +104,6 @@ class DBManager(object):
                 # watch out for notmuch errors to re-insert current_item
                 # to the queue on errors
                 try:
-                    # aquire a writeable db handler
-                    try:
-                        mode = Database.MODE.READ_WRITE
-                        db = Database(path=self.path, mode=mode)
-                    except NotmuchError:
-                        raise DatabaseLockedError()
-
                     # the first two coordinants are cnmdname and post-callback
                     cmd, afterwards = current_item[:2]
 
@@ -149,8 +148,6 @@ class DBManager(object):
                     if db.end_atomic() != notmuch.STATUS.SUCCESS:
                         raise DatabaseError('fail-status from end_atomic')
 
-                    # close db
-                    db.close()
                     # call post-callback
                     if callable(afterwards):
                         afterwards()
