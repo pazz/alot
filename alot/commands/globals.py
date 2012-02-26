@@ -378,7 +378,8 @@ class HelpCommand(Command):
         if self.commandname == 'bindings':
             # get mappings
             modemaps = dict(settings._bindings[ui.mode].items())
-            globalmaps = dict(settings._bindings['global'].items())
+            is_scalar = lambda (k, v): k in settings._bindings.scalars
+            globalmaps = dict(filter(is_scalar, settings._bindings.items()))
 
             # build table
             maxkeylength = len(max((modemaps).keys() + globalmaps.keys(),
