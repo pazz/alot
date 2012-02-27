@@ -116,6 +116,8 @@ user_agent = string(default='alot/$VERSION')
         focus_fg = string(default=None)
         # background if focussed
         focus_bg = string(default=None)
+        # don't display at all?
+        hidden = boolean(default=False)
         # alternative string representation
         translated = string(default=None)
         # substitution to generate translated from section name
