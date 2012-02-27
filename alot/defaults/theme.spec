@@ -222,7 +222,7 @@
         bg = string(default=None)
         fg = string(default=None)
 [[help]]
-    # formating of the `help bindings` overlay
+    # formatting of the `help bindings` overlay
     [[[text]]]
         bg = string(default=None)
         fg = string(default=None)

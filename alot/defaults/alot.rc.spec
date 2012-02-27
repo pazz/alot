@@ -3,7 +3,7 @@ ask_subject = boolean(default=True)  # ask for subject when compose
 # confirm exit
 bug_on_exit = boolean(default=False)
 
-# offset of next focussed buffer if the current one gets closed
+# offset of next focused buffer if the current one gets closed
 bufferclose_focus_offset = integer(default=-1)
 
 # number of colours your terminal supports
@@ -50,7 +50,7 @@ editor_spawn = boolean(default=False)
 editor_in_thread = boolean(default=False)
 
 # Which header fields should be editable in your editor
-# used are those that match the whitelist and don't macht the blacklist.
+# used are those that match the whitelist and don't match the blacklist.
 # in both cases '*' may be used to indicate all fields.
 edit_headers_whitelist = string_list(default=list(*,))
 edit_headers_blacklist = string_list(default=list(Content-Type,MIME-Version,References,In-Reply-To))
@@ -64,7 +64,7 @@ hooksfile = string(default='~/.config/alot/hooks.py')
 # time in secs to display status messages
 notify_timeout = integer(default=2)
 
-# display statusline?
+# display status-line?
 show_statusbar = boolean(default=True)
 
 # timestamp format in strftime format syntax:
@@ -75,8 +75,8 @@ timestamp_format = string(default=None)
 authors_maxlength = integer(default=30)
 
 # how to print messages:
-# this specifies a shellcommand used pro printing.
-# threads/messages are piped to this as plaintext.
+# this specifies a shell command used pro printing.
+# threads/messages are piped to this command as plain text.
 # muttprint/a2ps works nicely
 print_cmd = string(default=None)
 
@@ -87,7 +87,7 @@ initial_command = string(default='search tag:inbox AND NOT tag:killed')
 search_threads_sort_order = option('oldest_first', 'newest_first', 'message_id', 'unsorted', default='newest_first')
 
 # in case more than one account has an address book:
-# Set this to True to make tabcompletion for recipients during compose only
+# Set this to True to make tab completion for recipients during compose only
 # look in the abook of the account matching the sender address
 complete_matching_abook_only = boolean(default=False)
 
@@ -99,7 +99,7 @@ quit_on_last_bclose = boolean(default=False)
 # The string '$VERSION' will be replaced by the version string of the running instance.
 user_agent = string(default='alot/$VERSION')
 
-# Keybindings 
+# Key bindings 
 [bindings]
     __many__ = string(default=None)
     [[___many___]]
@@ -112,9 +112,9 @@ user_agent = string(default='alot/$VERSION')
         fg = string(default=None)
         # background
         bg = string(default=None)
-        # foreground if focussed
+        # foreground if focused
         focus_fg = string(default=None)
-        # background if focussed
+        # background if focused
         focus_bg = string(default=None)
         # don't display at all?
         hidden = boolean(default=False)
@@ -131,7 +131,7 @@ user_agent = string(default='alot/$VERSION')
         # used to format the (proposed) From-header in outgoing mails
         realname = string
 
-        # used to clear your addresses/ match account when formating replies
+        # used to clear your addresses/ match account when formatting replies
         aliases = string_list(default=list())
 
         # how to send mails
@@ -139,7 +139,7 @@ user_agent = string(default='alot/$VERSION')
 
         # specifies the mailbox where you want outgoing mails to be stored after successfully sending them, e.g. 
         # where to store outgoing mail, e.g. `maildir:///home/you/mail//Sent`
-        # You can use mbox, maildir, mh, babyl and mmdf in the protocol part of the url.
+        # You can use mbox, maildir, mh, babyl and mmdf in the protocol part of the URL.
         sent_box = string(default=None)
 
         # how to tag sent mails.
@@ -160,7 +160,7 @@ user_agent = string(default='alot/$VERSION')
 
         # address book for this account
         [[[abook]]]
-            # type identifier for addressbook
+            # type identifier for address book
             type = option('shellcommand', 'abook', default=None)
             # command to lookup contacts in shellcommand abooks
             # it will be called with the lookup prefix as only argument
@@ -170,5 +170,5 @@ user_agent = string(default='alot/$VERSION')
             # for shellcommand abooks
             regexp = string(default=None)
 
-            # contacts file used for type 'abook' addressbook
+            # contacts file used for type 'abook' address book
             abook_contacts_file = string(default='~/.abook/addressbook')
