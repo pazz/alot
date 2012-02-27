@@ -133,7 +133,7 @@ class ThreadlineWidget(urwid.AttrMap):
         cols.append(('fixed', len(authorsstring), self.authors_w))
 
         if self.thread:
-            subjectstring = self.thread.get_subject()
+            subjectstring = self.thread.get_subject() or ''
         else:
             subjectstring = ''
         # sanitize subject string:
