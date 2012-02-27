@@ -257,6 +257,9 @@ as described in the :ref:`Themes` section above:
 An alternative string representation is read from the option `translated` or can be given
 as pair of strings in `translation`.
 
+The tag can also be hidden from view, if the key `hidden` is present and set to
+True. The tag can still be seen in the taglist buffer.
+
 The following will make alot display the "todo" tag as "TODO" in white on red. ::
 
     [tags]

@@ -280,6 +280,8 @@ class SettingsManager(object):
                 except AttrSpecError:
                     focussed = default_f
 
+                hidden = self._config['tags'][sec]['hidden'] or False
+
                 translated = self._config['tags'][sec]['translated'] or tag
                 translation = self._config['tags'][sec]['translation']
                 if translation:
@@ -288,10 +290,11 @@ class SettingsManager(object):
         else:
             normal = default
             focussed = default_f
+            hidden = False
             translated = tag
 
         return {'normal': normal, 'focussed': focussed,
-                'translated': translated}
+                'hidden': hidden, 'translated': translated}
 
     def get_hook(self, key):
         """return hook (`callable`) identified by `key`"""
