@@ -120,7 +120,8 @@ class ThreadlineWidget(urwid.AttrMap):
         self.tag_widgets.sort(tag_cmp,
                               lambda tag_widget: tag_widget.translated)
         for tag_widget in self.tag_widgets:
-            cols.append(('fixed', tag_widget.width(), tag_widget))
+            if not tag_widget.hidden:
+                cols.append(('fixed', tag_widget.width(), tag_widget))
 
         if self.thread:
             authors = self.thread.get_authors() or '(None)'
@@ -230,11 +231,14 @@ class TagWidget(urwid.AttrMap):
     text widget that renders a tagstring.
 
     It looks up the string it displays in the `tag-translate` section
-    of the config as well as custom theme settings for its tag.
+    of the config as well as custom theme settings for its tag. The
+    tag may also be configured as hidden, which users of this widget
+    should honour.
     """
     def __init__(self, tag):
         self.tag = tag
         representation = settings.get_tagstring_representation(tag)
+        self.hidden = representation['hidden']
         self.translated = representation['translated']
         self.txt = urwid.Text(self.translated, wrap='clip')
         self.normal_att = representation['normal']
@@ -588,7 +592,8 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         tag_widgets = [TagWidget(t) for t in outstanding_tags]
         tag_widgets.sort(tag_cmp, lambda tag_widget: tag_widget.translated)
         for tag_widget in tag_widgets:
-            cols.append(('fixed', tag_widget.width(), tag_widget))
+            if not tag_widget.hidden:
+                cols.append(('fixed', tag_widget.width(), tag_widget))
         focus_att = settings.get_theming_attribute('thread', 'summary_focus')
         line = urwid.AttrMap(urwid.Columns(cols, dividechars=1), attr,
                              focus_att)
