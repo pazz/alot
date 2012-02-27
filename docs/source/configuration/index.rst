@@ -50,13 +50,13 @@ The following entries are interpreted at the moment:
 
 Contacts Completion
 ===================
-For each :ref:`account <account>` you can define an addressbook by providing a subsection named `abook`.
-Crucially, this section needs an option `type` that specifies the type of the addressbook.
+For each :ref:`account <account>` you can define an address book by providing a subsection named `abook`.
+Crucially, this section needs an option `type` that specifies the type of the address book.
 The only types supported at the moment are "shellcommand" and "abook":
 
 .. describe:: shellcommand
 
-    Addressbooks of this type use a shell command in combination with a regular
+    Address books of this type use a shell command in combination with a regular
     expression to look up contacts.
 
     The value of `command` will be called with the search prefix as only argument for lookups.
@@ -91,7 +91,7 @@ The only types supported at the moment are "shellcommand" and "abook":
 
 .. describe:: abook
 
-    Addressbooks of this type directly parse `abooks <http://abook.sourceforge.net/>`_ contact files.
+    Address books of this type directly parse `abooks <http://abook.sourceforge.net/>`_ contact files.
     You may specify a path using the "abook_contacts_file" option, which
     defaults to :file:`~/.abook/addressbook`. To use the default path, simply do this::
 
@@ -104,7 +104,7 @@ The only types supported at the moment are "shellcommand" and "abook":
 
 Key Bindings
 ============
-If you want to bind a commandline to a key you can do so by adding the pair to the
+If you want to bind a command to a key you can do so by adding the pair to the
 `[bindings]` section. This will introduce a *global* binding, that works in
 all modes. To make a binding specific to a mode you have to add the pair
 under the subsection named like the mode. For instance,
@@ -127,7 +127,7 @@ Known modes are:
 * taglist
 * bufferlist
 
-Have a look at `the urwid User Input documentation <http://excess.org/urwid/wiki/UserInput>`_ on how key strings are formated.
+Have a look at `the urwid User Input documentation <http://excess.org/urwid/wiki/UserInput>`_ on how key strings are formatted.
 
 
 Hooks
@@ -147,7 +147,7 @@ pre-`send` hook in envelope mode for example looks like this:
     :param dbm: a database manager
     :type dbm: :class:`alot.db.DBManager`
 
-Consider this pre-hook for the exit command, that logs a personalized goodby message::
+Consider this pre-hook for the exit command, that logs a personalized goodbye message::
 
     import logging
     from alot.settings import settings
@@ -158,7 +158,7 @@ Consider this pre-hook for the exit command, that logs a personalized goodby mes
         else:
             logging.info('goodbye!')
 
-Apart from command pre and posthooks, the following hooks will be interpreted:
+Apart from command pre- and posthooks, the following hooks will be interpreted:
 
 .. py:function:: reply_prefix(realname, address, timestamp[, ui= None, dbm=None])
 
@@ -190,7 +190,7 @@ Apart from command pre and posthooks, the following hooks will be interpreted:
 
     used to manipulate a messages bodytext *before* the editor is called.
 
-    :param bodytext: text representation of the mail body as displayed in the ui and as send to the editor
+    :param bodytext: text representation of mail body as displayed in the interface and as sent to the editor
     :type bodytext: str
     :rtype: str
 
@@ -198,14 +198,14 @@ Apart from command pre and posthooks, the following hooks will be interpreted:
 
     used to manipulate a messages bodytext *after* the editor is called
 
-    :param bodytext: text representation of the mail body as displayed in the ui and as send to the editor
+    :param bodytext: text representation of mail body as displayed in the interface and as sent to the editor
     :type bodytext: str
     :rtype: str
     
 
 Themes
 ======
-Alot can be run in 1, 16 or 256 colour mode. The requested mode is determined by the commandline parameter `-C` or read
+Alot can be run in 1, 16 or 256 colour mode. The requested mode is determined by the command-line parameter `-C` or read
 from option `colourmode` config value. The default is 256, which scales down depending on how many colours your
 terminal supports.
 
@@ -248,12 +248,12 @@ colours easy.
 Custom Tagstring Formatting
 ===========================
 
-To specify how a particular tgstring is displayes throughout the interface you can
+To specify how a particular tagstring is displayed throughout the interface you can
 add a subsection named after the tag to the `[tags]` config section.
 The following attribute keys will interpreted and may contain urwid attribute strings
 as described in the :ref:`Themes` section above:
         
-`fg` (foreground), `bg` (background), `focus_fg` (foreground if focussed) and `focus_bg` (background if focussed).
+`fg` (foreground), `bg` (background), `focus_fg` (foreground if focused) and `focus_bg` (background if focused).
 An alternative string representation is read from the option `translated` or can be given
 as pair of strings in `translation`.
 
@@ -290,7 +290,7 @@ like this::
 You may use regular expressions in the tagstring subsections to theme multiple tagstrings at once (first match wins).
 If you do so, you can use the `translation` option to specify a string substitution that will
 rename a matching tagstring. `translation` takes a comma separated *pair* of strings that will be fed to
-:func:`re.sub`. For instance, to theme all your `nmbug`_ tagstrings and espacially colour tag `notmuch::bug` red,
+:func:`re.sub`. For instance, to theme all your `nmbug`_ tagstrings and especially colour tag `notmuch::bug` red,
 do the following::
 
   [[notmuch::bug]]

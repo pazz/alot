@@ -9,7 +9,7 @@
 
 .. describe:: aliases
 
-    used to clear your addresses/ match account when formating replies
+    used to clear your addresses/ match account when formatting replies
 
 .. describe:: sendmail_command
 
