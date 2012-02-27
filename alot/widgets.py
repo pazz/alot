@@ -120,7 +120,8 @@ class ThreadlineWidget(urwid.AttrMap):
         self.tag_widgets.sort(tag_cmp,
                               lambda tag_widget: tag_widget.translated)
         for tag_widget in self.tag_widgets:
-            cols.append(('fixed', tag_widget.width(), tag_widget))
+            if not tag_widget.hidden:
+                cols.append(('fixed', tag_widget.width(), tag_widget))
 
         if self.thread:
             authors = self.thread.get_authors() or '(None)'
@@ -230,7 +231,9 @@ class TagWidget(urwid.AttrMap):
     text widget that renders a tagstring.
 
     It looks up the string it displays in the `tag-translate` section
-    of the config as well as custom theme settings for its tag.
+    of the config as well as custom theme settings for its tag. The
+    tag may also be configured as hidden, which users of this widget
+    should honour.
     """
     def __init__(self, tag):
         self.tag = tag
@@ -243,12 +246,9 @@ class TagWidget(urwid.AttrMap):
         urwid.AttrMap.__init__(self, self.txt, self.normal_att, self.focus_att)
 
     def width(self):
-        if self.hidden:
-            return 0
-        else:
-            # evil voodoo hotfix for double width chars that may
-            # lead e.g. to strings with length 1 that need width 2
-            return self.txt.pack()[0]
+        # evil voodoo hotfix for double width chars that may
+        # lead e.g. to strings with length 1 that need width 2
+        return self.txt.pack()[0]
 
     def selectable(self):
         return True
@@ -592,7 +592,8 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         tag_widgets = [TagWidget(t) for t in outstanding_tags]
         tag_widgets.sort(tag_cmp, lambda tag_widget: tag_widget.translated)
         for tag_widget in tag_widgets:
-            cols.append(('fixed', tag_widget.width(), tag_widget))
+            if not tag_widget.hidden:
+                cols.append(('fixed', tag_widget.width(), tag_widget))
         focus_att = settings.get_theming_attribute('thread', 'summary_focus')
         line = urwid.AttrMap(urwid.Columns(cols, dividechars=1), attr,
                              focus_att)
