@@ -52,7 +52,7 @@ ______
 attach files to the mail
 
 argument
-	file(s) to attach (accepts wildcads)
+	file(s) to attach (accepts wildcards)
 
 
 .. index:: refine

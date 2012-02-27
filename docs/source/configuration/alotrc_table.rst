@@ -9,7 +9,7 @@
 
 .. describe:: bufferclose_focus_offset
 
-    offset of next focussed buffer if the current one gets closed
+    offset of next focused buffer if the current one gets closed
 
 .. describe:: bug_on_exit
 
@@ -22,7 +22,7 @@
 .. describe:: complete_matching_abook_only
 
     in case more than one account has an address book:
-    Set this to True to make tabcompletion for recipients during compose only
+    Set this to True to make tab-completion for recipients during compose only
     look in the abook of the account matching the sender address
 
 .. describe:: display_content_in_threadline
@@ -39,7 +39,7 @@
 .. describe:: edit_headers_whitelist
 
     Which header fields should be editable in your editor
-    used are those that match the whitelist and don't macht the blacklist.
+    used are those that match the whitelist and don't match the blacklist.
     in both cases '*' may be used to indicate all fields.
 
 .. describe:: editor_cmd
@@ -84,8 +84,8 @@
 .. describe:: print_cmd
 
     how to print messages:
-    this specifies a shellcommand used pro printing.
-    threads/messages are piped to this as plaintext.
+    this specifies a shell command used pro printing.
+    threads/messages are piped to command as plain text.
     muttprint/a2ps works nicely
 
 .. describe:: quit_on_last_bclose
@@ -98,7 +98,7 @@
 
 .. describe:: show_statusbar
 
-    display statusline?
+    display status-line?
 
 .. describe:: tabwidth
 

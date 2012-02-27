@@ -5,7 +5,7 @@ User Settings
 
 There are four types of user settings: notmuchs and alot's config
 files, the hooks-file for user provided python code and the mailcap,
-defining shellcomands as handlers for files of certain mime types.
+defining shell comands as handlers for files of certain mime types.
 Alot sets up :class:`SettingsManager` objects to access these user settings uniformly.
 
 MIME handlers can be looked up via :meth:`SettingsManager.get_mime_handler`,
