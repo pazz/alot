@@ -345,7 +345,9 @@ class TagListBuffer(Buffer):
         for (num, b) in enumerate(displayedtags):
             tw = widgets.TagWidget(b)
             rows = [('fixed', tw.width(), tw)]
-            if tw.translated is not b:
+            if tw.hidden:
+                rows.append(urwid.Text('[hidden: %s]' % b))
+            elif tw.translated is not b:
                 rows.append(urwid.Text('(%s)' % b))
             lines.append(urwid.Columns(rows, dividechars=1))
         self.taglist = urwid.ListBox(urwid.SimpleListWalker(lines))
