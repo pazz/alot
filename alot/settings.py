@@ -57,9 +57,6 @@ class AlotConfigParser(FallbackConfigParser):
         return None
 
     def read(self, file):
-        if not os.path.isfile(file):
-            return
-
         SafeConfigParser.readfp(self, codecs.open(file, "r", "utf8"))
         if self.has_option('general', 'hooksfile'):
             hf = os.path.expanduser(self.get('general', 'hooksfile'))
