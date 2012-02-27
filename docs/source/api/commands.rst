@@ -5,7 +5,7 @@ Commands
 
 User actions are represented by :class:`Command` objects that can then be triggered by
 :meth:`alot.ui.UI.apply_command`.
-Commandline strings given by the user via the prompt or keybindings can be translated to
+Command-line strings given by the user via the prompt or key bindings can be translated to
 :class:`Command` objects using :func:`alot.commands.commandfactory`.
 Specific actions are defined as subclasses of :class:`Command` and can be registered
 to a global command pool using the :class:`registerCommand` decorator.
@@ -14,7 +14,7 @@ to a global command pool using the :class:`registerCommand` decorator.
 
     that the return value
     of :func:`commandfactory` depends on the current *mode* the user interface is in.
-    The mode identifier is a string that is uniquely defined by the currently focussed
+    The mode identifier is a string that is uniquely defined by the currently focuses
     :class:`~alot.buffers.Buffer`.
 
 .. note::
