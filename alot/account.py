@@ -231,7 +231,8 @@ class AbookAddressBook(AddressBook):
 
     def get_contacts(self):
         c = self._config
-        return [(c[id]['name'], c[id]['email']) for id in c.sections]
+        return [(c[id]['name'], c[id]['email']) for id in c.sections if \
+                c[id]['email'] is not None]
 
 
 class MatchSdtoutAddressbook(AddressBook):

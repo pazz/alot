@@ -3,5 +3,5 @@
    version = string
 
 [__many__]
-    name = string
-    email = string
+    name = string(default=None)
+    email = string(default=None)
