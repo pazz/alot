@@ -235,6 +235,7 @@ class TagWidget(urwid.AttrMap):
     def __init__(self, tag):
         self.tag = tag
         representation = settings.get_tagstring_representation(tag)
+        self.hidden = representation['hidden']
         self.translated = representation['translated']
         self.txt = urwid.Text(self.translated, wrap='clip')
         self.normal_att = representation['normal']
@@ -242,9 +243,12 @@ class TagWidget(urwid.AttrMap):
         urwid.AttrMap.__init__(self, self.txt, self.normal_att, self.focus_att)
 
     def width(self):
-        # evil voodoo hotfix for double width chars that may
-        # lead e.g. to strings with length 1 that need width 2
-        return self.txt.pack()[0]
+        if self.hidden:
+            return 0
+        else:
+            # evil voodoo hotfix for double width chars that may
+            # lead e.g. to strings with length 1 that need width 2
+            return self.txt.pack()[0]
 
     def selectable(self):
         return True
