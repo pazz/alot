@@ -49,6 +49,11 @@ other dependencies
    http://darwinsys.com/file/ 
    This is packaged as 'python-magic' in debian/ubuntu.
 
+ * python configobj module:
+   http://www.voidspace.org.uk/python/configobj.html
+   http://pypi.python.org/pypi/configobj
+   This is packaged as 'python-configobj' in debian/ubuntu.
+
  * a mailcap file (I recommend installing 'mime-support' on debian/ubuntu).
    This is used to determine the commands to call when opening attachments
    or text-rendering parts that are not plaintext, e.g. text/html.
@@ -61,8 +66,12 @@ other dependencies
 All other configs are optional, but if you want to send mails you need to specify at least one
 account section in your config:
 
-    [account uoe]
-    realname = Your Name
-    address = your@address
+    [accounts]
+        [[your account name]]
+            realname = Your Name
+            address = your@address
 
 See the [user docs][docs] for how to do fancy customization.
+
+
+[docs]: http://alot.rtfd.org
