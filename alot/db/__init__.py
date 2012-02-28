@@ -69,13 +69,6 @@ class DBManager(object):
         if self.ro:
             raise errors.DatabaseROError()
         if self.writequeue:
-            # aquire a writeable db handler
-            try:
-                mode = Database.MODE.READ_WRITE
-                db = Database(path=self.path, mode=mode)
-            except NotmuchError:
-                raise errors.DatabaseLockedError()
-
             # read notmuch's config regarding imap flag synchronization
             sync = settings.get_notmuch_setting('maildir', 'synchronize_flags')
 
@@ -89,6 +82,13 @@ class DBManager(object):
                 try:
                     # the first two coordinants are cnmdname and post-callback
                     cmd, afterwards = current_item[:2]
+
+                    # aquire a writeable db handler
+                    try:
+                        mode = Database.MODE.READ_WRITE
+                        db = Database(path=self.path, mode=mode)
+                    except NotmuchError:
+                        raise DatabaseLockedError()
 
                     # make this a transaction
                     db.begin_atomic()
@@ -131,14 +131,22 @@ class DBManager(object):
                     if db.end_atomic() != notmuch.STATUS.SUCCESS:
                         raise errors.DatabaseError('end_atomic failed')
 
+                    # close db
+                    db.close()
+
                     # call post-callback
                     if callable(afterwards):
                         afterwards()
 
                 # re-insert item to the queue upon Xapian/NotmuchErrors
                 except (XapianError, NotmuchError) as e:
+                    logging.exception(e)
                     self.writequeue.appendleft(current_item)
-                    raise errors.DatabaseError(unicode(e))
+                    raise DatabaseError(unicode(e))
+                except DatabaseLockedError as e:
+                    logging.exception(e)
+                    self.writequeue.appendleft(current_item)
+                    raise e
 
     def kill_search_processes(self):
         """
