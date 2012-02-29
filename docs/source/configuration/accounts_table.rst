@@ -19,7 +19,7 @@
 
     specifies the mailbox where you want outgoing mails to be stored after successfully sending them, e.g. 
     where to store outgoing mail, e.g. `maildir:///home/you/mail//Sent`
-    You can use mbox, maildir, mh, babyl and mmdf in the protocol part of the url.
+    You can use mbox, maildir, mh, babyl and mmdf in the protocol part of the URL.
 
 .. describe:: sent_tags
 
@@ -39,13 +39,3 @@
 
     signature file's name as it appears in outgoing mails if
     signature_as_attachment is set to True
-
-.. describe:: abook_command
-
-    command to lookup contacts.
-    If you specified `abook_command`, it will be used for tab completion in queries (to/from) and in message
-    composition. The command will be called with your prefix as only argument and its output is searched for name-email pairs.
-
-.. describe:: abook_regexp
-
-    The regular expression used to match name/address pairs in the output of `abook_command`

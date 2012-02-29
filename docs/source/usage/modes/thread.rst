@@ -7,10 +7,10 @@ The following commands are available in thread mode
 pipeto
 ______
 
-pipe message(s) to stdin of a shell command
+pipe message(s) to stdin of a shellcommand
 
 argument
-	shell command to pipe to
+	shellcommand to pipe to
 
 optional arguments
 	:---all: pass all messages.
@@ -186,7 +186,7 @@ optional arguments
 select
 ______
 
-select focused element. The fired action depends on the focus:
+select focussed element. The fired action depends on the focus:
         - if message summary, this toggles visibility of the message,
         - if attachment line, this opens the attachment
 
