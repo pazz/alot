@@ -22,7 +22,7 @@
 .. describe:: complete_matching_abook_only
 
     in case more than one account has an address book:
-    Set this to True to make tab-completion for recipients during compose only
+    Set this to True to make tab completion for recipients during compose only
     look in the abook of the account matching the sender address
 
 .. describe:: display_content_in_threadline
@@ -85,7 +85,7 @@
 
     how to print messages:
     this specifies a shell command used pro printing.
-    threads/messages are piped to command as plain text.
+    threads/messages are piped to this command as plain text.
     muttprint/a2ps works nicely
 
 .. describe:: quit_on_last_bclose
@@ -130,4 +130,4 @@
 
     value of the User-Agent header used for outgoing mails.
     setting this to the empty string will cause alot to omit the header all together.
-    The string '$VERSION' will be replaced by the version string of the running instance.
+    The string '{version}' will be replaced by the version string of the running instance.

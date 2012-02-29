@@ -7,7 +7,7 @@ The following commands are available in bufferlist mode
 close
 _____
 
-close focused buffer
+close focussed buffer
 
 
 .. index:: select
