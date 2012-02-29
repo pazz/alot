@@ -597,7 +597,7 @@ class Envelope(object):
             uastring_format = headers['User-Agent'][0]
         else:
             uastring_format = settings.get('user_agent').strip()
-        uastring = uastring_format % {'version': __version__}
+        uastring = uastring_format.format(version=__version__)
         if uastring:
             headers['User-Agent'] = [uastring]
 

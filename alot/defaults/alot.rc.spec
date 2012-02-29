@@ -96,8 +96,8 @@ quit_on_last_bclose = boolean(default=False)
 
 # value of the User-Agent header used for outgoing mails.
 # setting this to the empty string will cause alot to omit the header all together.
-# The string '$VERSION' will be replaced by the version string of the running instance.
-user_agent = string(default='alot/$VERSION')
+# The string '{version}' will be replaced by the version string of the running instance.
+user_agent = string(default='alot/{version}')
 
 # Key bindings 
 [bindings]
