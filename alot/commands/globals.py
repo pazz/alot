@@ -546,7 +546,7 @@ class ComposeCommand(Command):
                 self.envelope.add('From', fromstring)
             else:
                 cmpl = AccountCompleter()
-                fromaddress = yield ui.prompt(prefix='From>', completer=cmpl,
+                fromaddress = yield ui.prompt(prefix='From: ', completer=cmpl,
                                               tab=1)
                 if fromaddress is None:
                     ui.notify('canceled')
@@ -602,7 +602,7 @@ class ComposeCommand(Command):
                 completer = ContactsCompleter(abooks)
             else:
                 completer = None
-            to = yield ui.prompt(prefix='To>',
+            to = yield ui.prompt(prefix='To: ',
                                  completer=completer)
             if to == None:
                 ui.notify('canceled')
@@ -611,7 +611,7 @@ class ComposeCommand(Command):
 
         if settings.get('ask_subject') and \
            not 'Subject' in self.envelope.headers:
-            subject = yield ui.prompt(prefix='Subject>')
+            subject = yield ui.prompt(prefix='Subject: ')
             logging.debug('SUBJECT: "%s"' % subject)
             if subject == None:
                 ui.notify('canceled')
