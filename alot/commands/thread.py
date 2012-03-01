@@ -589,7 +589,7 @@ class SaveAttachmentCommand(Command):
         if self.all:
             msg = ui.current_buffer.get_selected_message()
             if not self.path:
-                self.path = yield ui.prompt(prefix='save attachments to:',
+                self.path = yield ui.prompt(prefix='save attachments in: ',
                                       text=os.path.join('~', ''),
                                       completer=pcomplete)
             if self.path:
@@ -612,7 +612,7 @@ class SaveAttachmentCommand(Command):
                 attachment = focus.get_attachment()
                 filename = attachment.get_filename()
                 if not self.path:
-                    msg = 'save attachment (%s) to:' % filename
+                    msg = 'save attachment (%s) as: ' % filename
                     initialtext = os.path.join('~', filename)
                     self.path = yield ui.prompt(prefix=msg,
                                                 completer=pcomplete,
