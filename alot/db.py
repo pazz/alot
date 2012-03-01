@@ -373,7 +373,6 @@ class Thread(object):
             thread = self._dbman._get_notmuch_thread(self._id)
 
         self._total_messages = thread.get_total_messages()
-        self._authors = thread.get_authors()
         self._subject = thread.get_subject()
         ts = thread.get_oldest_date()
 
@@ -468,9 +467,35 @@ class Thread(object):
             self._dbman.untag('thread:' + self._id, tags, myafterwards)
             self._tags = self._tags.difference(rmtags)
 
-    def get_authors(self):  # TODO: make this return a list of strings
-        """returns authors string"""
-        return self._authors
+    def get_authors_string(self, own_addrs=None, replace_own=None):
+        """
+        returns authors list
+
+        :param own_addrs: list of own email addresses to replace
+        :type own_addrs: list of str
+        :param replace_own: whether or not to actually do replacement
+        :type replace_own: bool
+        :rtype: str
+        """
+        own_addrs = settings.get_addresses() if own_addrs==None else own_addrs
+        replace_own = settings.get('replace_own') if replace_own==None else replace_own
+
+        msgs = self.get_messages().keys()
+        msgs.sort(lambda a, b: cmp(a,b), lambda m: m.get_date())
+        authorslist = []
+
+        for m in msgs:
+            aname, aaddress = m.get_author()
+            if replace_own and aaddress in own_addrs:
+                aname = "me"
+            if not aname:
+                aname = aaddress
+            try:
+                authorslist.index(aname)
+            except ValueError:
+                authorslist.append(aname)
+
+        return ', '.join(authorslist)
 
     def get_subject(self):
         """returns subject string"""

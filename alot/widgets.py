@@ -124,7 +124,9 @@ class ThreadlineWidget(urwid.AttrMap):
                 cols.append(('fixed', tag_widget.width(), tag_widget))
 
         if self.thread:
-            authors = self.thread.get_authors() or '(None)'
+            authors = self.thread.get_authors_string()
+            if not authors:
+                authors = '(None)'
         else:
             authors = '(None)'
         maxlength = settings.get('authors_maxlength')
