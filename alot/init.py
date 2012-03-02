@@ -121,7 +121,7 @@ def main():
     logfilename = os.path.expanduser(args['logfile'])
     logformat = '%(levelname)s:%(module)s:%(message)s'
     logging.basicConfig(level=numeric_loglevel, filename=logfilename,
-                        format=logformat)
+                        filemode='w', format=logformat)
 
     # locate alot config files
     configfiles = [
