@@ -509,7 +509,10 @@ class Thread(object):
                     aname = "me"
                 if not aname:
                     aname = aaddress
-                authorslist.append(aname)
+                try:
+                    authorslist.index(aname)
+                except ValueError:
+                    authorslist.append(aname)
             return ', '.join(authorslist)
         else:
             return self._nm_authors_string
