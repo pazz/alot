@@ -33,7 +33,7 @@ envelope_headers_blacklist = string_list(default=list(In-Reply-To,References))
 
 # Replace own email addresses with "me" in author lists
 # Uses own addresses and aliases in all configured accounts.
-replace_own = boolean(default=True)
+thread_authors_replace_me = boolean(default=True)
 
 # set terminal command used for spawning shell commands
 terminal_cmd = string(default='x-terminal-emulator -e')

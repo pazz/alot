@@ -480,7 +480,7 @@ class Thread(object):
             self._authors = []
             seen = {}
             msgs = self.get_messages().keys()
-            msgs.sort(lambda a, b: cmp(a,b), lambda m: m.get_date())
+            msgs.sort(lambda a, b: cmp(a, b), lambda m: m.get_date())
             for m in msgs:
                 pair = m.get_author()
                 if not pair[1] in seen:
@@ -500,9 +500,11 @@ class Thread(object):
         :type replace_own: bool
         :rtype: str
         """
-        replace_own = settings.get('replace_own') if replace_own==None else replace_own
+        if replace_own == None:
+            replace_own = settings.get('thread_authors_replace_me')
         if replace_own:
-            own_addrs = settings.get_addresses() if own_addrs==None else own_addrs
+            if own_addrs == None:
+                own_addrs = settings.get_addresses()
             authorslist = []
             for aname, aaddress in self.get_authors():
                 if replace_own and aaddress in own_addrs:
