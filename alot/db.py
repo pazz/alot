@@ -373,7 +373,7 @@ class Thread(object):
             thread = self._dbman._get_notmuch_thread(self._id)
 
         self._total_messages = thread.get_total_messages()
-        self._nm_authors_string = thread.get_authors()
+        self._notmuch_authors_string = thread.get_authors()
         self._subject = thread.get_subject()
         self._authors = None
         ts = thread.get_oldest_date()
@@ -515,7 +515,7 @@ class Thread(object):
                     authorslist.append(aname)
             return ', '.join(authorslist)
         else:
-            return self._nm_authors_string
+            return self._notmuch_authors_string
 
     def get_subject(self):
         """returns subject string"""
