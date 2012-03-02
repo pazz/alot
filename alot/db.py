@@ -511,9 +511,7 @@ class Thread(object):
                     aname = settings.get('thread_authors_me')
                 if not aname:
                     aname = aaddress
-                try:
-                    authorslist.index(aname)
-                except ValueError:
+                if not aname in authorslist:
                     authorslist.append(aname)
             return ', '.join(authorslist)
         else:
