@@ -373,7 +373,9 @@ class Thread(object):
             thread = self._dbman._get_notmuch_thread(self._id)
 
         self._total_messages = thread.get_total_messages()
+        self._nm_authors_string = thread.get_authors()
         self._subject = thread.get_subject()
+        self._authors = None
         ts = thread.get_oldest_date()
 
         try:
@@ -467,9 +469,30 @@ class Thread(object):
             self._dbman.untag('thread:' + self._id, tags, myafterwards)
             self._tags = self._tags.difference(rmtags)
 
+    def get_authors(self):
+        """
+        returns a list of authors (name, addr) of the messages.
+        The authors are ordered by msg date and unique (by addr).
+
+        :rtype: list of (str, str)
+        """
+        if self._authors == None:
+            self._authors = []
+            seen = {}
+            msgs = self.get_messages().keys()
+            msgs.sort(lambda a, b: cmp(a,b), lambda m: m.get_date())
+            for m in msgs:
+                pair = m.get_author()
+                if not pair[1] in seen:
+                    seen[pair[1]] = True
+                    self._authors.append(pair)
+        return self._authors
+
     def get_authors_string(self, own_addrs=None, replace_own=None):
         """
-        returns authors list
+        returns a string of comma-separated authors
+        Depending on settings, it will substitute "me" for author name if
+        address is user's own.
 
         :param own_addrs: list of own email addresses to replace
         :type own_addrs: list of str
@@ -477,25 +500,19 @@ class Thread(object):
         :type replace_own: bool
         :rtype: str
         """
-        own_addrs = settings.get_addresses() if own_addrs==None else own_addrs
         replace_own = settings.get('replace_own') if replace_own==None else replace_own
-
-        msgs = self.get_messages().keys()
-        msgs.sort(lambda a, b: cmp(a,b), lambda m: m.get_date())
-        authorslist = []
-
-        for m in msgs:
-            aname, aaddress = m.get_author()
-            if replace_own and aaddress in own_addrs:
-                aname = "me"
-            if not aname:
-                aname = aaddress
-            try:
-                authorslist.index(aname)
-            except ValueError:
+        if replace_own:
+            own_addrs = settings.get_addresses() if own_addrs==None else own_addrs
+            authorslist = []
+            for aname, aaddress in self.get_authors():
+                if replace_own and aaddress in own_addrs:
+                    aname = "me"
+                if not aname:
+                    aname = aaddress
                 authorslist.append(aname)
-
-        return ', '.join(authorslist)
+            return ', '.join(authorslist)
+        else:
+            return self._nm_authors_string
 
     def get_subject(self):
         """returns subject string"""
