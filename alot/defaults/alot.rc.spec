@@ -35,6 +35,9 @@ envelope_headers_blacklist = string_list(default=list(In-Reply-To,References))
 # Uses own addresses and aliases in all configured accounts.
 thread_authors_replace_me = boolean(default=True)
 
+# Word to replace own addresses with.
+thread_authors_me = string(default='me')
+
 # set terminal command used for spawning shell commands
 terminal_cmd = string(default='x-terminal-emulator -e')
 

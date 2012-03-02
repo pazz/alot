@@ -508,7 +508,7 @@ class Thread(object):
             authorslist = []
             for aname, aaddress in self.get_authors():
                 if aaddress in own_addrs:
-                    aname = "me"
+                    aname = settings.get('thread_authors_me')
                 if not aname:
                     aname = aaddress
                 try:
