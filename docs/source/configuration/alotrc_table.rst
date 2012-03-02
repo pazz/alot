@@ -121,6 +121,15 @@
 
     directory containing theme files
 
+.. describe:: thread_authors_me
+
+    Word to replace own addresses with.
+
+.. describe:: thread_authors_replace_me
+
+    Replace own email addresses with "me" in author lists
+    Uses own addresses and aliases in all configured accounts.
+
 .. describe:: timestamp_format
 
     timestamp format in strftime format syntax:
