@@ -2,7 +2,7 @@
 Installation
 *****
 
-INSTALL
+Dependencies
 =======
 
 Alot depends on recent versions of notmuch (>=0.10) and urwid (>=1.0). Note that due to restrictions
@@ -11,7 +11,7 @@ into debian testing.
 
 urwid
 -----
-make sure you have urwid v >=1.0. It is available on debian (wheezy)
+Make sure you have urwid v >=1.0. It is available on debian (wheezy)
 and in *buntu 12.04. To install from git use::
 
     git clone http://github.com/wardi/urwid
@@ -22,9 +22,9 @@ It seems you need the python headers for this. On debian/ubuntu::
 
     aptitude install python2.7-dev
 
- notmuch
+notmuch
 -------
-install notmuch *and* python bindings from git::
+Install notmuch *and* python bindings from git::
 
     git clone git://notmuchmail.org/git/notmuch
 
@@ -38,7 +38,7 @@ install notmuch *and* python bindings from git::
 
 alot
 ----
-get alot and install it from git::
+Get alot and install it from git::
 
     git clone git://github.com/pazz/alot alot
     cd alot
@@ -62,7 +62,7 @@ other dependencies
    This is used to determine the commands to call when opening attachments
    or text-rendering parts that are not plaintext, e.g. text/html.
    Make sure you have a inline renderer for text/html set in your mailcap as otherwise
-   html mails will not display:
+   html mails will not display::
    
        text/html;  w3m -dump %s; nametemplate=%s.html; copiousoutput
 
