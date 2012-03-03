@@ -123,7 +123,8 @@
 
 .. describe:: thread_authors_me
 
-    Word to replace own addresses with.
+    Word to replace own addresses with. Works in combination with
+    :ref:`thread_authors_replace_me`
 
 .. describe:: thread_authors_replace_me
 

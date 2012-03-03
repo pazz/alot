@@ -211,7 +211,7 @@ terminal supports.
 
 To specify the theme to use, set the `theme` config option to the name of a theme-file.
 A file by that name will be looked up in the path given by the `themes_dir` config setting
-which defaults to :file:`~/.config`.
+which defaults to :file:`~/.config/alot/themes/`.
 
 Theme-files can contain sections `[1], [16]` and `[256]` for different colour modes,
 each of which has subsections named after the :ref:`MODE <modes>` they are used in
@@ -228,8 +228,8 @@ underlined bold red text on a bright green background::
     [256]
       [[global]]
         [[[footer]]]
-            fg = light red, bold, underline
-            bg = #8f6
+            fg = 'light red, bold, underline'
+            bg = '#8f6'
 
 Values can be colour names (`light red`, `dark green`..), RGB colour codes (e.g. `#868`),
 font attributes (`bold`, `underline`, `blink`, `standout`) or a comma separated combination of
@@ -264,9 +264,9 @@ The following will make alot display the "todo" tag as "TODO" in white on red. :
 
     [tags]
       [[todo]]
-        bg = #d66
+        bg = '#d66'
         fg = white
-        translated TODO
+        translated = TODO
 
 Utf-8 symbols are welcome here, see e.g.
 http://panmental.de/symbols/info.htm for some fancy symbols. I personally display my maildir flags
@@ -278,14 +278,14 @@ like this::
         fg = light red
 
       [[unread]]
-        translated= ✉
+        translated = ✉
         fg = white
 
       [[replied]]
-        translated= ⏎
+        translated = ⏎
 
       [[encrypted]]
-        translated= ⚷
+        translated = ⚷
 
 You may use regular expressions in the tagstring subsections to theme multiple tagstrings at once (first match wins).
 If you do so, you can use the `translation` option to specify a string substitution that will
