@@ -11,7 +11,8 @@ def rewrite_scalarcomments(config, path, sort=False):
     if sort:
         config.scalars.sort()
     for entry in config.scalars:
-        description = '\n.. describe:: %s\n\n' % entry
+        description = '\n.. _%s:\n' % entry.replace('_', '-')
+        description += '\n.. describe:: %s\n\n' % entry
         comments = [config.inline_comments[entry]] + config.comments[entry]
         for c in comments:
             if c:

@@ -35,8 +35,8 @@ envelope_headers_blacklist = string_list(default=list(In-Reply-To,References))
 # Uses own addresses and aliases in all configured accounts.
 thread_authors_replace_me = boolean(default=True)
 
-# Word to replace own addresses with. Works in combination with
-# :ref:`thread_authors_replace_me`
+#Word to replace own addresses with. Works in combination with
+#:ref:`thread_authors_replace_me <thread-authors-replace-me>`
 thread_authors_me = string(default='Me')
 
 # set terminal command used for spawning shell commands
@@ -61,6 +61,8 @@ editor_in_thread = boolean(default=False)
 # used are those that match the whitelist and don't match the blacklist.
 # in both cases '*' may be used to indicate all fields.
 edit_headers_whitelist = string_list(default=list(*,))
+
+# see :ref:`edit_headers_whitelist <edit-headers-whitelist>`
 edit_headers_blacklist = string_list(default=list(Content-Type,MIME-Version,References,In-Reply-To))
 
 # timeout in secs after a failed attempt to flush is repeated
