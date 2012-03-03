@@ -28,6 +28,8 @@ _______
 
 edit message in as new
 
+optional arguments
+	:---spawn: open editor in new window.
 
 .. index:: toggleheaders
 
@@ -143,6 +145,7 @@ forward message
 
 optional arguments
 	:---attach: attach original mail.
+	:---spawn: open editor in new window.
 
 .. index:: reply
 
@@ -153,6 +156,7 @@ reply to message
 
 optional arguments
 	:---all: reply to all.
+	:---spawn: open editor in new window.
 
 .. index:: save
 

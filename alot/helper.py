@@ -17,7 +17,7 @@ from twisted.internet.protocol import ProcessProtocol
 from twisted.internet.defer import Deferred
 import StringIO
 import logging
-from configobj import ConfigObj, ConfigObjError, flatten_errors, Section
+from configobj import ConfigObj, ConfigObjError, flatten_errors
 from validate import Validator
 from alot.errors import ConfigError
 

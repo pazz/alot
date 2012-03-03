@@ -93,13 +93,14 @@ class ThreadlineWidget(urwid.AttrMap):
         else:
             newest = None
         if newest == None:
-            datestring = u' ' * 10
+            datestring = ''
         else:
             formatstring = settings.get('timestamp_format')
             if formatstring is None:
-                datestring = pretty_datetime(newest).rjust(ThreadlineWidget.pretty_datetime_len)
+                datestring = pretty_datetime(newest)
             else:
                 datestring = newest.strftime(formatstring)
+        datestring = datestring.rjust(self.pretty_datetime_len)
         self.date_w = urwid.AttrMap(urwid.Text(datestring),
                                     self._get_theme('date'))
         cols.append(('fixed', len(datestring), self.date_w))
@@ -680,7 +681,8 @@ class AttachmentWidget(urwid.WidgetWrap):
         if not isinstance(attachment, message.Attachment):
             self.attachment = message.Attachment(self.attachment)
         att = settings.get_theming_attribute('thread', 'attachment')
-        focus_att = settings.get_theming_attribute('thread', 'attachment_focus')
+        focus_att = settings.get_theming_attribute('thread',
+                                                   'attachment_focus')
         widget = urwid.AttrMap(urwid.Text(self.attachment.__str__()),
                                att, focus_att)
         urwid.WidgetWrap.__init__(self, widget)
