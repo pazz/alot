@@ -235,8 +235,9 @@ class SettingsManager(object):
         :returns: config value with type as specified in the spec-file
         """
         value = None
-        if key in self._notmuchconfig:
-            value = self._notmuchconfig[key]
+        if section in self._notmuchconfig:
+            if key in self._notmuchconfig[section]:
+                value = self._notmuchconfig[section][key]
         return value
 
     def get_theming_attribute(self, mode, name):
