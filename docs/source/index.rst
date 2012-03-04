@@ -11,7 +11,7 @@ User Manual
    :maxdepth: 2
    :numbered:
    
-   installation/index
+   installation
    usage/index
    configuration/index
    api/index

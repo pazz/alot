@@ -77,8 +77,7 @@ notify_timeout = integer(default=2)
 # display status-line?
 show_statusbar = boolean(default=True)
 
-# timestamp format in strftime format syntax:
-# http://docs.python.org/library/datetime.html#strftime-strptime-behavior
+# timestamp format in `strftime format syntax <http://docs.python.org/library/datetime.html#strftime-strptime-behavior>`_
 timestamp_format = string(default=None)
 
 # max length of authors line in thread widgets
