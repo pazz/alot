@@ -10,7 +10,8 @@ User Manual
 .. toctree::
    :maxdepth: 2
    :numbered:
-
+   
+   installation/index
    usage/index
    configuration/index
    api/index
