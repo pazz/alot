@@ -12,6 +12,17 @@ The default location for the config file is :file:`~/.config/alot/config`.
 Config options
 ==============
 
+The following lists all available config options with their type and default values.
+The type of an option is used to validate a given value. For instance,
+if the type says "boolean" you may only provide "True" or "False" as values in your config file,
+otherwise alot will complain on startup. Strings *may* be quoted but do not need to be.
+
+.. warning::
+
+    values for options with type `string_list` *must* be comma-separated lists of strings
+    and must end in a comma if they only provide a single element:
+    "From," is a valid `string_list`, "From" is not.
+
 .. include:: alotrc_table.rst
 
 .. _account:
