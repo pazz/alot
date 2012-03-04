@@ -44,7 +44,7 @@
 
     number of colours your terminal supports
 
-    :type: option
+    :type: option, one of ['1', '16', '256']
     :default: 256
 
 
@@ -224,7 +224,7 @@
 
     default sort order of results in a search
 
-    :type: option
+    :type: option, one of ['oldest_first', 'newest_first', 'message_id', 'unsorted']
     :default: newest_first
 
 

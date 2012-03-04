@@ -31,7 +31,10 @@ def rewrite_entries(config, path, sec=None, sort=False):
         for c in comments:
             if c:
                 description += ' '*4 + re.sub('^\s*#\s*', '', c) + '\n'
-        description += '\n    :type: %s\n' % etype
+        if etype == 'option':
+            description += '\n    :type: option, one of %s\n' % eargs
+        else:
+            description += '\n    :type: %s\n' % etype
 
         if default != None:
             if etype in ['string', 'string_list'] and default != 'None':
