@@ -68,11 +68,6 @@ other dependencies
 
 
 All other configs are optional, but if you want to send mails you need to specify at least one
-account section in your config::
+:ref:`account <account>` in your config.
 
-    [accounts]
-        [[your account name]]
-            realname = Your Name
-            address = your@address
-
-See the :file:`/docs/user` for how to do fancy customization.
+See the :ref:`configuration <configuration>` for how to do fancy customization.
