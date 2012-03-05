@@ -607,7 +607,7 @@ class ComposeCommand(Command):
             if to == None:
                 ui.notify('canceled')
                 return
-            self.envelope.add('To', to)
+            self.envelope.add('To', to.strip(' \t\n,'))
 
         if settings.get('ask_subject') and \
            not 'Subject' in self.envelope.headers:
