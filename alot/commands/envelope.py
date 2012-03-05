@@ -246,7 +246,7 @@ class EditCommand(Command):
             bodytext = translate(bodytext, ui=ui, dbm=ui.dbman)
 
         #write stuff to tempfile
-        tf = tempfile.NamedTemporaryFile(delete=False)
+        tf = tempfile.NamedTemporaryFile(delete=False, prefix='alot.')
         content = bodytext
         if headertext:
             content = '%s%s' % (headertext, content)
