@@ -197,8 +197,8 @@ class EditCommand(Command):
         blacklist = set(settings.get('edit_headers_blacklist'))
         if '*' in blacklist:
             blacklist = set(self.envelope.headers.keys())
-        self.edit_headers = edit_headers - blacklist
-        logging.info('editable headers: %s' % self.edit_headers)
+        edit_headers = edit_headers - blacklist
+        logging.info('editable headers: %s' % edit_headers)
 
         def openEnvelopeFromTmpfile():
             # This parses the input from the tempfile.
