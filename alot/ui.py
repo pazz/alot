@@ -122,7 +122,7 @@ class UI(object):
         self.inputwrap.set_root(helpwrap)
         self.inputwrap.select_cancel_only = not relay_rest
 
-    def prompt(self, prefix=': ', text=u'', completer=None, tab=0, history=[]):
+    def prompt(self, prefix, text=u'', completer=None, tab=0, history=[]):
         """prompt for text input
 
         :param prefix: text to print before the input field
@@ -147,6 +147,8 @@ class UI(object):
             self.inputwrap.set_root(oldroot)
             self.inputwrap.select_cancel_only = False
             d.callback(text)
+
+        prefix = prefix + settings.get('prompt_suffix')
 
         #set up widgets
         leftpart = urwid.Text(prefix, align='left')
