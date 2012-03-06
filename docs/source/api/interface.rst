@@ -29,7 +29,7 @@ input and acts on it:
     
     @defer.inlineCallbacks
     def greet(ui):  # ui is instance of alot.ui.UI
-        name = yield ui.prompt(prefix='pls enter your name>')
+        name = yield ui.prompt('pls enter your name')
         ui.notify('your name is: ' + name)
 
 
