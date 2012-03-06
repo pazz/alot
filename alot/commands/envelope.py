@@ -183,6 +183,7 @@ class EditCommand(Command):
         self.openNew = (envelope != None)
         self.force_spawn = spawn
         self.refocus = refocus
+        self.edit_only_body = False
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
@@ -197,8 +198,8 @@ class EditCommand(Command):
         blacklist = set(settings.get('edit_headers_blacklist'))
         if '*' in blacklist:
             blacklist = set(self.envelope.headers.keys())
-        self.edit_headers = edit_headers - blacklist
-        logging.info('editable headers: %s' % self.edit_headers)
+        edit_headers = edit_headers - blacklist
+        logging.info('editable headers: %s' % edit_headers)
 
         def openEnvelopeFromTmpfile():
             # This parses the input from the tempfile.
@@ -217,7 +218,7 @@ class EditCommand(Command):
             translate = settings.get_hook('post_edit_translate')
             if translate:
                 template = translate(template, ui=ui, dbm=ui.dbman)
-            self.envelope.parse_template(template)
+            self.envelope.parse_template(template, only_body=self.edit_only_body)
             if self.openNew:
                 ui.buffer_open(buffers.EnvelopeBuffer(ui, self.envelope))
             else:
@@ -249,7 +250,9 @@ class EditCommand(Command):
         tf = tempfile.NamedTemporaryFile(delete=False, prefix='alot.')
         content = bodytext
         if headertext:
-            content = '%s%s' % (headertext, content)
+            content = '%s\n%s' % (headertext, content)
+        else:
+            self.edit_only_body = True
         tf.write(content.encode('utf-8'))
         tf.flush()
         tf.close()
