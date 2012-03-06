@@ -239,7 +239,14 @@ class EditCommand(Command):
                 value = re.sub('[ \t\r\f\v]*\n[ \t\r\f\v]*', ' ', value)
                 headertext += '%s: %s\n' % (key, value)
 
+        # determine editable content
         bodytext = self.envelope.body
+        if headertext:
+            content = '%s\n%s' % (headertext, bodytext)
+            self.edit_only_body = False
+        else:
+            content = bodytext
+            self.edit_only_body = True
 
         # call pre-edit translate hook
         translate = settings.get_hook('pre_edit_translate')
@@ -248,11 +255,6 @@ class EditCommand(Command):
 
         #write stuff to tempfile
         tf = tempfile.NamedTemporaryFile(delete=False, prefix='alot.')
-        content = bodytext
-        if headertext:
-            content = '%s\n%s' % (headertext, content)
-        else:
-            self.edit_only_body = True
         tf.write(content.encode('utf-8'))
         tf.flush()
         tf.close()
