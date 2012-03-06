@@ -612,7 +612,7 @@ class Envelope(object):
 
         return msg
 
-    def parse_template(self, tmp, reset=False):
+    def parse_template(self, tmp, reset=False, only_body=False):
         """parses a template or user edited string to fills this envelope.
 
         :param tmp: the string to parse.
@@ -621,30 +621,34 @@ class Envelope(object):
         :type reset: bool
         """
         logging.debug('GoT: """\n%s\n"""' % tmp)
-        m = re.match('(?P<h>([a-zA-Z0-9_-]+:.+\n)*)(?P<b>(\s*.*)*)', tmp)
-        assert m
-
-        d = m.groupdict()
-        headertext = d['h']
-        self.body = d['b']
-
-        # remove existing content
-        if reset:
-            self.headers = {}
-
-        # go through multiline, utf-8 encoded headers
-        # we decode the edited text ourselves here as
-        # email.message_from_file can't deal with raw utf8 header values
-        key = value = None
-        for line in headertext.splitlines():
-            if re.match('[a-zA-Z0-9_-]+:', line):  # new k/v pair
-                if key and value:  # save old one from stack
-                    self.add(key, value)  # save
-                key, value = line.strip().split(':', 1)  # parse new pair
-            elif key and value:  # append new line without key prefix
-                value += line
-        if key and value:  # save last one if present
-            self.add(key, value)
 
         if self.sent_time:
             self.modified_since_sent = True
+
+        if only_body:
+            self.body = tmp
+        else:
+            m = re.match('(?P<h>([a-zA-Z0-9_-]+:.+\n)*)\n?(?P<b>(\s*.*)*)', tmp)
+            assert m
+
+            d = m.groupdict()
+            headertext = d['h']
+            self.body = d['b']
+
+            # remove existing content
+            if reset:
+                self.headers = {}
+
+            # go through multiline, utf-8 encoded headers
+            # we decode the edited text ourselves here as
+            # email.message_from_file can't deal with raw utf8 header values
+            key = value = None
+            for line in headertext.splitlines():
+                if re.match('[a-zA-Z0-9_-]+:', line):  # new k/v pair
+                    if key and value:  # save old one from stack
+                        self.add(key, value)  # save
+                    key, value = line.strip().split(':', 1)  # parse new pair
+                elif key and value:  # append new line without key prefix
+                    value += line
+            if key and value:  # save last one if present
+                self.add(key, value)

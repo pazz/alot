@@ -116,8 +116,10 @@ class EnvelopeBuffer(Buffer):
                 for value in vlist:
                     lines.append((k, value))
 
-        self.header_wgt = widgets.HeadersList(lines)
-        displayed_widgets.append(self.header_wgt)
+        # add header list widget iff header values exists
+        if lines:
+            self.header_wgt = widgets.HeadersList(lines)
+            displayed_widgets.append(self.header_wgt)
 
         #display attachments
         lines = []

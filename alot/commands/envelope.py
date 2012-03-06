@@ -183,6 +183,7 @@ class EditCommand(Command):
         self.openNew = (envelope != None)
         self.force_spawn = spawn
         self.refocus = refocus
+        self.edit_only_body = False
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
@@ -197,8 +198,8 @@ class EditCommand(Command):
         blacklist = set(settings.get('edit_headers_blacklist'))
         if '*' in blacklist:
             blacklist = set(self.envelope.headers.keys())
-        self.edit_headers = edit_headers - blacklist
-        logging.info('editable headers: %s' % self.edit_headers)
+        edit_headers = edit_headers - blacklist
+        logging.info('editable headers: %s' % edit_headers)
 
         def openEnvelopeFromTmpfile():
             # This parses the input from the tempfile.
@@ -217,7 +218,7 @@ class EditCommand(Command):
             translate = settings.get_hook('post_edit_translate')
             if translate:
                 template = translate(template, ui=ui, dbm=ui.dbman)
-            self.envelope.parse_template(template)
+            self.envelope.parse_template(template, only_body=self.edit_only_body)
             if self.openNew:
                 ui.buffer_open(buffers.EnvelopeBuffer(ui, self.envelope))
             else:
@@ -228,9 +229,12 @@ class EditCommand(Command):
         headertext = u''
         for key in edit_headers:
             vlist = self.envelope.get_all(key)
-
-            # remove to be edited lines from envelope
-            del self.envelope[key]
+            if not vlist:
+                # ensure editable headers are present in template
+                vlist = ['']
+            else:
+                # remove to be edited lines from envelope
+                del self.envelope[key]
 
             for value in vlist:
                 # newlines (with surrounding spaces) by spaces in values
@@ -238,7 +242,14 @@ class EditCommand(Command):
                 value = re.sub('[ \t\r\f\v]*\n[ \t\r\f\v]*', ' ', value)
                 headertext += '%s: %s\n' % (key, value)
 
+        # determine editable content
         bodytext = self.envelope.body
+        if headertext:
+            content = '%s\n%s' % (headertext, bodytext)
+            self.edit_only_body = False
+        else:
+            content = bodytext
+            self.edit_only_body = True
 
         # call pre-edit translate hook
         translate = settings.get_hook('pre_edit_translate')
@@ -247,9 +258,6 @@ class EditCommand(Command):
 
         #write stuff to tempfile
         tf = tempfile.NamedTemporaryFile(delete=False, prefix='alot.')
-        content = bodytext
-        if headertext:
-            content = '%s%s' % (headertext, content)
         tf.write(content.encode('utf-8'))
         tf.flush()
         tf.close()
