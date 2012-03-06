@@ -49,7 +49,7 @@ other dependencies
    http://darwinsys.com/file/ 
    This is packaged as 'python-magic' in debian/ubuntu.
 
- * python configobj module:
+ * python configobj module, >= v4.6.0
    http://www.voidspace.org.uk/python/configobj.html
    http://pypi.python.org/pypi/configobj
    This is packaged as 'python-configobj' in debian/ubuntu.

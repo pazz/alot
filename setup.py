@@ -27,7 +27,7 @@ setup(name='alot',
         'urwid (>=1.0)',
         'twisted (>=10.2.0)',
         'magic',
-        'configobj',
+        'configobj (>=4.6.0)',
         'subprocess (>=2.7)'],
       provides='alot',
 )
