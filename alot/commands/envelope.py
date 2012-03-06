@@ -229,9 +229,12 @@ class EditCommand(Command):
         headertext = u''
         for key in edit_headers:
             vlist = self.envelope.get_all(key)
-
-            # remove to be edited lines from envelope
-            del self.envelope[key]
+            if not vlist:
+                # ensure editable headers are present in template
+                vlist = ['']
+            else:
+                # remove to be edited lines from envelope
+                del self.envelope[key]
 
             for value in vlist:
                 # newlines (with surrounding spaces) by spaces in values
