@@ -108,6 +108,9 @@ quit_on_last_bclose = boolean(default=False)
 # The string '{version}' will be replaced by the version string of the running instance.
 user_agent = string(default='alot/{version}')
 
+# Suffix of the prompt used when waiting for user input
+prompt_suffix = string(default=':')
+
 # Key bindings 
 [bindings]
     __many__ = string(default=None)
