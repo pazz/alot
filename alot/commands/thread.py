@@ -12,7 +12,6 @@ from alot.commands.globals import ExternalCommand
 from alot.commands.globals import FlushCommand
 from alot.commands.globals import ComposeCommand
 from alot.commands.globals import RefreshCommand
-from alot import settings
 from alot import widgets
 from alot import completion
 from alot.message import decode_header
@@ -21,7 +20,7 @@ from alot.message import extract_headers
 from alot.message import extract_body
 from alot.message import Envelope
 from alot.db import DatabaseROError
-from alot.db import DatabaseError
+from alot.settings import settings
 
 MODE = 'thread'
 
@@ -66,23 +65,28 @@ def recipient_to_from(mail, my_accounts):
 
 
 @registerCommand(MODE, 'reply', arguments=[
-    (['--all'], {'action':'store_true', 'help':'reply to all'})])
+    (['--all'], {'action':'store_true', 'help':'reply to all'}),
+    (['--spawn'], {'action': 'store_true',
+                   'help':'open editor in new window'})])
 class ReplyCommand(Command):
     """reply to message"""
-    def __init__(self, message=None, all=False, **kwargs):
+    def __init__(self, message=None, all=False, spawn=None, **kwargs):
         """
         :param message: message to reply to (defaults to selected message)
         :type message: `alot.message.Message`
         :param all: group reply; copies recipients from Bcc/Cc/To to the reply
         :type all: bool
+        :param spawn: force spawning of editor in a new terminal
+        :type spawn: bool
         """
         self.message = message
         self.groupreply = all
+        self.force_spawn = spawn
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
         # look if this makes sense: do we have any accounts set up?
-        my_accounts = ui.accountman.get_accounts()
+        my_accounts = settings.get_accounts()
         if not my_accounts:
             ui.notify('no accounts set', priority='error')
             return
@@ -95,11 +99,9 @@ class ReplyCommand(Command):
         # set body text
         name, address = self.message.get_author()
         timestamp = self.message.get_date()
-        qf = settings.config.get_hook('reply_prefix')
+        qf = settings.get_hook('reply_prefix')
         if qf:
-            quotestring = qf(name, address, timestamp,
-                             ui=ui, dbm=ui.dbman, aman=ui.accountman,
-                             config=settings.config)
+            quotestring = qf(name, address, timestamp, ui=ui, dbm=ui.dbman)
         else:
             quotestring = 'Quoting %s (%s)\n' % (name, timestamp)
         mailcontent = quotestring
@@ -121,7 +123,7 @@ class ReplyCommand(Command):
         # set To
         sender = mail['Reply-To'] or mail['From']
         recipients = [sender]
-        my_addresses = ui.accountman.get_addresses()
+        my_addresses = settings.get_addresses()
         if self.groupreply:
             if sender != mail['From']:
                 recipients.append(mail['From'])
@@ -153,7 +155,8 @@ class ReplyCommand(Command):
             envelope.add('References', '<%s>' % self.message.get_message_id())
 
         # continue to compose
-        ui.apply_command(ComposeCommand(envelope=envelope))
+        ui.apply_command(ComposeCommand(envelope=envelope,
+                                        spawn=self.force_spawn))
 
     def clear_my_address(self, my_addresses, value):
         new_value = []
@@ -164,23 +167,28 @@ class ReplyCommand(Command):
 
 
 @registerCommand(MODE, 'forward', arguments=[
-    (['--attach'], {'action':'store_true', 'help':'attach original mail'})])
+    (['--attach'], {'action':'store_true', 'help':'attach original mail'}),
+    (['--spawn'], {'action': 'store_true',
+                   'help':'open editor in new window'})])
 class ForwardCommand(Command):
     """forward message"""
-    def __init__(self, message=None, attach=True, **kwargs):
+    def __init__(self, message=None, attach=True, spawn=None, **kwargs):
         """
         :param message: message to forward (defaults to selected message)
         :type message: `alot.message.Message`
         :param attach: attach original mail instead of inline quoting its body
         :type attach: bool
+        :param spawn: force spawning of editor in a new terminal
+        :type spawn: bool
         """
         self.message = message
         self.inline = not attach
+        self.force_spawn = spawn
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
         # look if this makes sense: do we have any accounts set up?
-        my_accounts = ui.accountman.get_accounts()
+        my_accounts = settings.get_accounts()
         if not my_accounts:
             ui.notify('no accounts set', priority='error')
             return
@@ -196,11 +204,9 @@ class ForwardCommand(Command):
             # set body text
             name, address = self.message.get_author()
             timestamp = self.message.get_date()
-            qf = settings.config.get_hook('forward_prefix')
+            qf = settings.get_hook('forward_prefix')
             if qf:
-                quote = qf(name, address, timestamp,
-                             ui=ui, dbm=ui.dbman, aman=ui.accountman,
-                             config=settings.config)
+                quote = qf(name, address, timestamp, ui=ui, dbm=ui.dbman)
             else:
                 quote = 'Forwarded message from %s (%s):\n' % (name, timestamp)
             mailcontent = quote
@@ -225,18 +231,24 @@ class ForwardCommand(Command):
         envelope.add('From', '%s <%s>' % (realname, address))
 
         # continue to compose
-        ui.apply_command(ComposeCommand(envelope=envelope))
+        ui.apply_command(ComposeCommand(envelope=envelope,
+                                        spawn=self.force_spawn))
 
 
-@registerCommand(MODE, 'editnew')
+@registerCommand(MODE, 'editnew', arguments=[
+    (['--spawn'], {'action': 'store_true',
+                   'help':'open editor in new window'})])
 class EditNewCommand(Command):
     """edit message in as new"""
-    def __init__(self, message=None, **kwargs):
+    def __init__(self, message=None, spawn=None, **kwargs):
         """
         :param message: message to reply to (defaults to selected message)
         :type message: `alot.message.Message`
+        :param spawn: force spawning of editor in a new terminal
+        :type spawn: bool
         """
         self.message = message
+        self.force_spawn = spawn
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
@@ -261,6 +273,7 @@ class EditNewCommand(Command):
             envelope.attach(b)
 
         ui.apply_command(ComposeCommand(envelope=envelope,
+                                        spawn=self.force_spawn,
                                         omit_signature=True))
 
 
@@ -548,7 +561,7 @@ class PrintCommand(PipeCommand):
         :type add_tags: bool
         """
         # get print command
-        cmd = settings.config.get('general', 'print_cmd', fallback='')
+        cmd = settings.get('print_cmd', fallback='')
 
         # set up notification strings
         if all:
@@ -594,9 +607,9 @@ class SaveAttachmentCommand(Command):
         if self.all:
             msg = ui.current_buffer.get_selected_message()
             if not self.path:
-                self.path = yield ui.prompt(prefix='save attachments to:',
-                                      text=os.path.join('~', ''),
-                                      completer=pcomplete)
+                self.path = yield ui.prompt('save attachments to',
+                                            text=os.path.join('~', ''),
+                                            completer=pcomplete)
             if self.path:
                 if os.path.isdir(os.path.expanduser(self.path)):
                     for a in msg.get_attachments():
@@ -617,9 +630,9 @@ class SaveAttachmentCommand(Command):
                 attachment = focus.get_attachment()
                 filename = attachment.get_filename()
                 if not self.path:
-                    msg = 'save attachment (%s) to:' % filename
+                    msg = 'save attachment (%s) to ' % filename
                     initialtext = os.path.join('~', filename)
-                    self.path = yield ui.prompt(prefix=msg,
+                    self.path = yield ui.prompt(msg,
                                                 completer=pcomplete,
                                                 text=initialtext)
                 if self.path:

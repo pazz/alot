@@ -15,8 +15,7 @@ from notmuch import NullPointerError
 from alot import __version__
 import logging
 import helper
-from settings import get_mime_handler
-from settings import config
+from settings import settings
 from helper import string_sanitize
 from helper import string_decode
 
@@ -135,11 +134,11 @@ class Message(object):
         """
         if self._datetime == None:
             return None
-        if config.has_option('general', 'timestamp_format'):
-            formatstring = config.get('general', 'timestamp_format')
-            res = self._datetime.strftime(formatstring)
-        else:
+        formatstring = settings.get('timestamp_format')
+        if formatstring == None:
             res = helper.pretty_datetime(self._datetime)
+        else:
+            res = self._datetime.strftime(formatstring)
         return res
 
     def get_author(self):
@@ -313,8 +312,8 @@ def extract_body(mail, types=None):
             body_parts.append(string_sanitize(raw_payload))
         else:
             #get mime handler
-            handler = get_mime_handler(ctype, key='view',
-                                       interactive=False)
+            handler = settings.get_mime_handler(ctype, key='view',
+                                                interactive=False)
             if handler:
                 #open tempfile. Not all handlers accept stuff from stdin
                 tmpfile = tempfile.NamedTemporaryFile(delete=False,
@@ -597,8 +596,8 @@ class Envelope(object):
         if 'User-Agent' in headers:
             uastring_format = headers['User-Agent'][0]
         else:
-            uastring_format = config.get('general', 'user_agent').strip()
-        uastring = uastring_format % {'version': __version__}
+            uastring_format = settings.get('user_agent').strip()
+        uastring = uastring_format.format(version=__version__)
         if uastring:
             headers['User-Agent'] = [uastring]
 
@@ -613,7 +612,7 @@ class Envelope(object):
 
         return msg
 
-    def parse_template(self, tmp, reset=False):
+    def parse_template(self, tmp, reset=False, only_body=False):
         """parses a template or user edited string to fills this envelope.
 
         :param tmp: the string to parse.
@@ -622,30 +621,34 @@ class Envelope(object):
         :type reset: bool
         """
         logging.debug('GoT: """\n%s\n"""' % tmp)
-        m = re.match('(?P<h>([a-zA-Z0-9_-]+:.+\n)*)(?P<b>(\s*.*)*)', tmp)
-        assert m
-
-        d = m.groupdict()
-        headertext = d['h']
-        self.body = d['b']
-
-        # remove existing content
-        if reset:
-            self.headers = {}
-
-        # go through multiline, utf-8 encoded headers
-        # we decode the edited text ourselves here as
-        # email.message_from_file can't deal with raw utf8 header values
-        key = value = None
-        for line in headertext.splitlines():
-            if re.match('[a-zA-Z0-9_-]+:', line):  # new k/v pair
-                if key and value:  # save old one from stack
-                    self.add(key, value)  # save
-                key, value = line.strip().split(':', 1)  # parse new pair
-            elif key and value:  # append new line without key prefix
-                value += line
-        if key and value:  # save last one if present
-            self.add(key, value)
 
         if self.sent_time:
             self.modified_since_sent = True
+
+        if only_body:
+            self.body = tmp
+        else:
+            m = re.match('(?P<h>([a-zA-Z0-9_-]+:.+\n)*)\n?(?P<b>(\s*.*)*)', tmp)
+            assert m
+
+            d = m.groupdict()
+            headertext = d['h']
+            self.body = d['b']
+
+            # remove existing content
+            if reset:
+                self.headers = {}
+
+            # go through multiline, utf-8 encoded headers
+            # we decode the edited text ourselves here as
+            # email.message_from_file can't deal with raw utf8 header values
+            key = value = None
+            for line in headertext.splitlines():
+                if re.match('[a-zA-Z0-9_-]+:', line):  # new k/v pair
+                    if key and value:  # save old one from stack
+                        self.add(key, value)  # save
+                    key, value = line.strip().split(':', 1)  # parse new pair
+                elif key and value:  # append new line without key prefix
+                    value += line
+            if key and value:  # save last one if present
+                self.add(key, value)

@@ -2,7 +2,7 @@ import urwid
 from notmuch import NotmuchError
 
 import widgets
-import settings
+from settings import settings
 import commands
 from walker import PipeWalker
 from helper import shorten_author_string
@@ -70,10 +70,13 @@ class BufferlistBuffer(Buffer):
         for (num, b) in enumerate(displayedbuffers):
             line = widgets.BufferlineWidget(b)
             if (num % 2) == 0:
-                attr = 'bufferlist_results_even'
+                attr = settings.get_theming_attribute('bufferlist',
+                                                      'results_even')
             else:
-                attr = 'bufferlist_results_odd'
-            buf = urwid.AttrMap(line, attr, 'bufferlist_focus')
+                attr = settings.get_theming_attribute('bufferlist',
+                                                      'results_odd')
+            focus_att = settings.get_theming_attribute('bufferlist', 'focus')
+            buf = urwid.AttrMap(line, attr, focus_att)
             num = urwid.Text('%3d:' % self.index_of(b))
             lines.append(urwid.Columns([('fixed', 4, num), buf]))
         self.bufferlist = urwid.ListBox(urwid.SimpleListWalker(lines))
@@ -105,8 +108,7 @@ class EnvelopeBuffer(Buffer):
 
     def rebuild(self):
         displayed_widgets = []
-        hidden = settings.config.getstringlist('general',
-                                               'envelope_headers_blacklist')
+        hidden = settings.get('envelope_headers_blacklist')
         #build lines
         lines = []
         for (k, vlist) in self.envelope.headers.items():
@@ -114,8 +116,10 @@ class EnvelopeBuffer(Buffer):
                 for value in vlist:
                     lines.append((k, value))
 
-        self.header_wgt = widgets.HeadersList(lines)
-        displayed_widgets.append(self.header_wgt)
+        # add header list widget iff header values exists
+        if lines:
+            self.header_wgt = widgets.HeadersList(lines)
+            displayed_widgets.append(self.header_wgt)
 
         #display attachments
         lines = []
@@ -145,8 +149,7 @@ class SearchBuffer(Buffer):
         self.dbman = ui.dbman
         self.ui = ui
         self.querystring = initialquery
-        default_order = settings.config.get('general',
-                                            'search_threads_sort_order')
+        default_order = settings.get('search_threads_sort_order')
         self.sort_order = sort_order or default_order
         self.result_count = 0
         self.isinitialized = False
@@ -342,8 +345,13 @@ class TagListBuffer(Buffer):
         displayedtags = sorted(filter(self.filtfun, self.tags),
                                key=unicode.lower)
         for (num, b) in enumerate(displayedtags):
-            tw = widgets.TagWidget(b, both=True)
-            lines.append(urwid.Columns([('fixed', tw.width(), tw)]))
+            tw = widgets.TagWidget(b)
+            rows = [('fixed', tw.width(), tw)]
+            if tw.hidden:
+                rows.append(urwid.Text('[hidden]'))
+            elif tw.translated is not b:
+                rows.append(urwid.Text('(%s)' % b))
+            lines.append(urwid.Columns(rows, dividechars=1))
         self.taglist = urwid.ListBox(urwid.SimpleListWalker(lines))
         self.body = self.taglist
 

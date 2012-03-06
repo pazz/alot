@@ -49,10 +49,14 @@ other dependencies
    http://darwinsys.com/file/ 
    This is packaged as 'python-magic' in debian/ubuntu.
 
- * python configobj module:
+ * python configobj module, >= v4.6.0
    http://www.voidspace.org.uk/python/configobj.html
    http://pypi.python.org/pypi/configobj
    This is packaged as 'python-configobj' in debian/ubuntu.
+
+ * python twisted module:
+   http://twistedmatrix.com/trac/
+   This is packaged as 'python-twisted' in debian/ubuntu.
 
  * a mailcap file (I recommend installing 'mime-support' on debian/ubuntu).
    This is used to determine the commands to call when opening attachments

@@ -3,9 +3,7 @@ import sys
 import logging
 import os
 
-import settings
-import ConfigParser
-from account import AccountManager
+from settings import settings, ConfigError
 from db import DBManager
 from ui import UI
 import alot.commands as commands
@@ -114,6 +112,17 @@ def main():
         print '%s: Try --help for usage details.' % (sys.argv[0])
         sys.exit(1)
 
+    # logging
+    root_logger = logging.getLogger()
+    for log_handler in root_logger.handlers:
+        root_logger.removeHandler(log_handler)
+    root_logger = None
+    numeric_loglevel = getattr(logging, args['debug-level'].upper(), None)
+    logfilename = os.path.expanduser(args['logfile'])
+    logformat = '%(levelname)s:%(module)s:%(message)s'
+    logging.basicConfig(level=numeric_loglevel, filename=logfilename,
+                        filemode='w', format=logformat)
+
     # locate alot config files
     configfiles = [
         os.path.join(os.environ.get('XDG_CONFIG_HOME',
@@ -128,42 +137,29 @@ def main():
         configfiles.insert(0, expanded_path)
 
     # locate notmuch config
-    notmuchfile = os.path.expanduser(args['notmuch-config'])
+    notmuchconfig = os.path.expanduser(args['notmuch-config'])
+
+    alotconfig = None
+    # read the first alot config file we find
+    for configfilename in configfiles:
+        if os.path.exists(configfilename):
+            alotconfig = configfilename
+            break  # use only the first
 
     try:
-        # read the first alot config file we find
-        for configfilename in configfiles:
-            if os.path.exists(configfilename):
-                settings.config.read(configfilename)
-                break  # use only the first
-
-        # read notmuch config
-        settings.notmuchconfig.read(notmuchfile)
-
-    except ConfigParser.Error, e:  # exit on parse errors
+        settings.read_config(alotconfig)
+        settings.read_notmuch_config(notmuchconfig)
+    except ConfigError, e:  # exit on parse errors
         sys.exit(e)
 
-    # logging
-    ## reset
-    root_logger = logging.getLogger()
-    for log_handler in root_logger.handlers:
-        root_logger.removeHandler(log_handler)
-    root_logger = None
-    ## setup
-    numeric_loglevel = getattr(logging, args['debug-level'].upper(), None)
-    logfilename = os.path.expanduser(args['logfile'])
-    logformat = '%(levelname)s:%(module)s:%(message)s'
-    logging.basicConfig(level=numeric_loglevel, filename=logfilename,
-                        format=logformat)
+    # store options given by config swiches to the settingsManager:
+    if args['colour-mode']:
+        settings.set('colourmode', args['colour-mode'])
 
-    #logging.debug(commands.COMMANDS)
     # get ourselves a database manager
     dbman = DBManager(path=args['mailindex-path'], ro=args['read-only'])
 
-    #accountman
-    aman = AccountManager(settings.config)
-
-    # get initial searchstring
+    # determine what to do
     try:
         if args.subCommand == 'search':
             query = ' '.join(args.subOptions.args)
@@ -174,18 +170,13 @@ def main():
             cmdstring = 'compose %s' % args.subOptions.as_argparse_opts()
             cmd = commands.commandfactory(cmdstring, 'global')
         else:
-            default_commandline = settings.config.get('general',
-                                                      'initial_command')
+            default_commandline = settings.get('initial_command')
             cmd = commands.commandfactory(default_commandline, 'global')
     except CommandParseError, e:
         sys.exit(e)
 
     # set up and start interface
-    UI(dbman,
-       aman,
-       cmd,
-       args['colour-mode'],
-    )
+    UI(dbman, cmd)
 
 if __name__ == "__main__":
     main()

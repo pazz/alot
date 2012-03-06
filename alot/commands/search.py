@@ -149,6 +149,10 @@ class TagCommand(Command):
 
     def apply(self, ui):
         threadline_widget = ui.current_buffer.get_selected_threadline()
+        # pass if the current buffer has no selected threadline
+        # (displays an empty search result)
+        if threadline_widget is None:
+            return
         thread = threadline_widget.get_thread()
         testquery = "(%s) AND thread:%s" % (ui.current_buffer.querystring,
                                             thread.get_thread_id())

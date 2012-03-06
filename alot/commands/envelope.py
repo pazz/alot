@@ -5,16 +5,15 @@ import logging
 import email
 import tempfile
 from twisted.internet.defer import inlineCallbacks
-from twisted.internet import threads
 import datetime
 
 from alot.account import SendingMailFailed
 from alot import buffers
 from alot import commands
 from alot.commands import Command, registerCommand
-from alot import settings
 from alot.commands import globals
 from alot.helper import string_decode
+from alot.settings import settings
 
 
 MODE = 'envelope'
@@ -77,13 +76,13 @@ class SaveCommand(Command):
 
         # determine account to use
         sname, saddr = email.Utils.parseaddr(envelope.get('From'))
-        account = ui.accountman.get_account_by_address(saddr)
+        account = settings.get_account_by_address(saddr)
         if account == None:
-            if not ui.accountman.get_accounts():
+            if not settings.get_accounts():
                 ui.notify('no accounts set.', priority='error')
                 return
             else:
-                account = ui.accountman.get_accounts()[0]
+                account = settings.get_accounts()[0]
 
         if account.draft_box == None:
             ui.notify('abort: account <%s> has no draft_box set.' % saddr,
@@ -121,16 +120,15 @@ class SendCommand(Command):
                 return
         frm = envelope.get('From')
         sname, saddr = email.Utils.parseaddr(frm)
-        omit_signature = False
 
         # determine account to use for sending
-        account = ui.accountman.get_account_by_address(saddr)
+        account = settings.get_account_by_address(saddr)
         if account == None:
-            if not ui.accountman.get_accounts():
+            if not settings.get_accounts():
                 ui.notify('no accounts set', priority='error')
                 return
             else:
-                account = ui.accountman.get_accounts()[0]
+                account = settings.get_accounts()[0]
 
         # send
         clearme = ui.notify('sending..', timeout=-1)
@@ -185,6 +183,7 @@ class EditCommand(Command):
         self.openNew = (envelope != None)
         self.force_spawn = spawn
         self.refocus = refocus
+        self.edit_only_body = False
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
@@ -193,16 +192,14 @@ class EditCommand(Command):
             self.envelope = ui.current_buffer.envelope
 
         #determine editable headers
-        edit_headers = set(settings.config.getstringlist('general',
-                                                    'edit_headers_whitelist'))
+        edit_headers = set(settings.get('edit_headers_whitelist'))
         if '*' in edit_headers:
             edit_headers = set(self.envelope.headers.keys())
-        blacklist = set(settings.config.getstringlist('general',
-                                                  'edit_headers_blacklist'))
+        blacklist = set(settings.get('edit_headers_blacklist'))
         if '*' in blacklist:
             blacklist = set(self.envelope.headers.keys())
-        self.edit_headers = edit_headers - blacklist
-        logging.info('editable headers: %s' % blacklist)
+        edit_headers = edit_headers - blacklist
+        logging.info('editable headers: %s' % edit_headers)
 
         def openEnvelopeFromTmpfile():
             # This parses the input from the tempfile.
@@ -213,16 +210,15 @@ class EditCommand(Command):
             # get input
             f = open(tf.name)
             os.unlink(tf.name)
-            enc = settings.config.get('general', 'editor_writes_encoding')
+            enc = settings.get('editor_writes_encoding')
             template = string_decode(f.read(), enc)
             f.close()
 
             # call post-edit translate hook
-            translate = settings.config.get_hook('post_edit_translate')
+            translate = settings.get_hook('post_edit_translate')
             if translate:
-                template = translate(template, ui=ui, dbm=ui.dbman,
-                                    aman=ui.accountman, config=settings.config)
-            self.envelope.parse_template(template)
+                template = translate(template, ui=ui, dbm=ui.dbman)
+            self.envelope.parse_template(template, only_body=self.edit_only_body)
             if self.openNew:
                 ui.buffer_open(buffers.EnvelopeBuffer(ui, self.envelope))
             else:
@@ -233,9 +229,12 @@ class EditCommand(Command):
         headertext = u''
         for key in edit_headers:
             vlist = self.envelope.get_all(key)
-
-            # remove to be edited lines from envelope
-            del self.envelope[key]
+            if not vlist:
+                # ensure editable headers are present in template
+                vlist = ['']
+            else:
+                # remove to be edited lines from envelope
+                del self.envelope[key]
 
             for value in vlist:
                 # newlines (with surrounding spaces) by spaces in values
@@ -243,19 +242,22 @@ class EditCommand(Command):
                 value = re.sub('[ \t\r\f\v]*\n[ \t\r\f\v]*', ' ', value)
                 headertext += '%s: %s\n' % (key, value)
 
+        # determine editable content
         bodytext = self.envelope.body
+        if headertext:
+            content = '%s\n%s' % (headertext, bodytext)
+            self.edit_only_body = False
+        else:
+            content = bodytext
+            self.edit_only_body = True
 
         # call pre-edit translate hook
-        translate = settings.config.get_hook('pre_edit_translate')
+        translate = settings.get_hook('pre_edit_translate')
         if translate:
-            bodytext = translate(bodytext, ui=ui, dbm=ui.dbman,
-                                 aman=ui.accountman, config=settings.config)
+            bodytext = translate(bodytext, ui=ui, dbm=ui.dbman)
 
         #write stuff to tempfile
-        tf = tempfile.NamedTemporaryFile(delete=False)
-        content = bodytext
-        if headertext:
-            content = '%s%s' % (headertext, content)
+        tf = tempfile.NamedTemporaryFile(delete=False, prefix='alot.')
         tf.write(content.encode('utf-8'))
         tf.flush()
         tf.close()

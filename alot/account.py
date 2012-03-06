@@ -6,7 +6,6 @@ import email
 import os
 import glob
 import shlex
-from ConfigParser import SafeConfigParser
 from urlparse import urlparse
 
 import helper
@@ -49,12 +48,11 @@ class Account(object):
                  gpg_key=None, signature=None, signature_filename=None,
                  signature_as_attachment=False, sent_box=None,
                  sent_tags=['sent'], draft_box=None, draft_tags=['draft'],
-                 abook=None):
+                 abook=None, **rest):
         self.address = address
         self.abook = abook
         self.aliases = []
-        if aliases:
-            self.aliases = aliases.split(';')
+        self.aliases = aliases
         self.realname = realname
         self.gpg_key = gpg_key
         self.signature = signature
@@ -195,124 +193,6 @@ class SendmailAccount(Account):
         return d
 
 
-class AccountManager(object):
-    """
-    creates and organizes multiple :class:`Accounts <Account>` that were
-    defined in the "account" sections of a given
-    :class:`~alot.settings.AlotConfigParser`.
-    """
-    allowed = ['realname',
-               'address',
-               'aliases',
-               'gpg_key',
-               'signature',
-               'signature_filename',
-               'signature_as_attachment',
-               'type',
-               'sendmail_command',
-               'abook_command',
-               'abook_regexp',
-               'sent_box',
-               'sent_tags',
-               'draft_box',
-               'draft_tags']
-    manditory = ['realname', 'address']
-    parse_lists = ['sent_tags', 'draft_tags']
-    accountmap = {}
-    accounts = []
-    ordered_addresses = []
-
-    def __init__(self, config):
-        """
-        :param config: the config object to read account information from
-        :type config: :class:`~alot.settings.AlotConfigParser`.
-        """
-        sections = config.sections()
-        accountsections = filter(lambda s: s.startswith('account '), sections)
-        for s in accountsections:
-            options = filter(lambda x: x in self.allowed, config.options(s))
-
-            args = {}
-            if 'abook_command' in options:
-                cmd = config.get(s, 'abook_command').encode('ascii',
-                                                            errors='ignore')
-                options.remove('abook_command')
-                if 'abook_regexp' in options:
-                    regexp = config.get(s, 'abook_regexp')
-                    options.remove('abook_regexp')
-                else:
-                    regexp = None  # will use default in constructor
-                args['abook'] = MatchSdtoutAddressbook(cmd, match=regexp)
-
-            if 'signature_as_attachment' in options:
-                value = config.getboolean(s, 'signature_as_attachment')
-                args['signature_as_attachment'] = value
-                options.remove('signature_as_attachment')
-
-            to_set = self.manditory
-            for o in options:
-                if o not in self.parse_lists:
-                    args[o] = config.get(s, o)
-                else:
-                    args[o] = config.getstringlist(s, o)
-                if o in to_set:
-                    to_set.remove(o)  # removes obligation
-            if not to_set:  # all manditory fields were present
-                sender_type = args.pop('type', 'sendmail')
-                if sender_type == 'sendmail':
-                    cmd = args.pop('sendmail_command', 'sendmail')
-                    newacc = (SendmailAccount(cmd, **args))
-                    self.accountmap[newacc.address] = newacc
-                    self.accounts.append(newacc)
-                    for alias in newacc.aliases:
-                        self.accountmap[alias] = newacc
-            else:
-                logging.info('account section %s lacks %s' % (s, to_set))
-
-    def get_accounts(self):
-        """
-        returns known accounts
-
-        :rtype: list of :class:`Account`
-        """
-        return self.accounts
-
-    def get_account_by_address(self, address):
-        """
-        returns :class:`Account` for a given email address (str)
-
-        :param address: address to look up
-        :type address: string
-        :rtype:  :class:`Account` or None
-        """
-
-        for myad in self.get_addresses():
-            if myad in address:
-                return self.accountmap[myad]
-        return None
-
-    def get_main_addresses(self):
-        """returns addresses of known accounts without its aliases"""
-        return [a.address for a in self.accounts]
-
-    def get_addresses(self):
-        """returns addresses of known accounts including all their aliases"""
-        return self.accountmap.keys()
-
-    def get_addressbooks(self, order=[], append_remaining=True):
-        """returns list of all defined :class:`AddressBook` objects"""
-        abooks = []
-        for a in order:
-            if a:
-                if a.abook:
-                    abooks.append(a.abook)
-        if append_remaining:
-            for a in self.accounts:
-                if a.abook and a.abook not in abooks:
-                    abooks.append(a.abook)
-        return abooks
-
-
 class AddressBook(object):
     """can look up email addresses and realnames for contacts.
 
@@ -332,31 +212,27 @@ class AddressBook(object):
         res = []
         for name, email in self.get_contacts():
             if name.startswith(prefix) or email.startswith(prefix):
-                res.append("%s <%s>" % (name, email))
+                res.append((name, email))
         return res
 
 
 class AbookAddressBook(AddressBook):
     """:class:`AddressBook` that parses abook's config/database files"""
-    def __init__(self, config=None):
+    def __init__(self, path='~/.abook/addressbook'):
         """
-        :param config: path to an `abook` contacts file
-                       (defaults to '/.abook/addressbook')
-        :type config: str
+        :param path: path to theme file
+        :type path: str
         """
-        self.abook = SafeConfigParser()
-        if not config:
-            config = os.environ["HOME"] + "/.abook/addressbook"
-        self.abook.read(config)
+        DEFAULTSPATH = os.path.join(os.path.dirname(__file__), 'defaults')
+        self._spec = os.path.join(DEFAULTSPATH, 'abook_contacts.spec')
+        path = os.path.expanduser(path)
+        self._config = helper.read_config(path, self._spec)
+        del(self._config['format'])
 
     def get_contacts(self):
-        res = []
-        for s in self.abook.sections():
-            if s.isdigit():
-                name = self.abook.get(s, 'name')
-                email = self.abook.get(s, 'email')
-                res.append((name, email))
-        return res
+        c = self._config
+        return [(c[id]['name'], c[id]['email']) for id in c.sections if \
+                c[id]['email'] is not None]
 
 
 class MatchSdtoutAddressbook(AddressBook):
@@ -368,12 +244,12 @@ class MatchSdtoutAddressbook(AddressBook):
         :param match: regular expression used to match contacts in `commands`
                       output to stdout. Must define subparts named "email" and
                       "name".  Defaults to
-                      :regexp:`(?P<email>.+?@.+?)\s+(?P<name>.+?)\s*$`.
+                      :regexp:`^(?P<email>[^@]+@[^\t]+)\t+(?P<name>[^\t]+)`.
         :type match: str
         """
         self.command = command
         if not match:
-            self.match = '(?P<email>.+?@.+?)\s+(?P<name>.+?)\s*$'
+            self.match = '^(?P<email>[^@]+@[^\t]+)\t+(?P<name>[^\t]+)'
         else:
             self.match = match
 
@@ -385,7 +261,7 @@ class MatchSdtoutAddressbook(AddressBook):
         resultstring, errmsg, retval = helper.call_cmd(cmdlist + [prefix])
         if not resultstring:
             return []
-        lines = resultstring.replace('\t', ' ' * 4).splitlines()
+        lines = resultstring.splitlines()
         res = []
         for l in lines:
             m = re.match(self.match, l)
