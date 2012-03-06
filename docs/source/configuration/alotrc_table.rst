@@ -12,7 +12,7 @@
 
 .. describe:: authors_maxlength
 
-    max length of authors line in thread widgets
+    maximal length of authors string in search mode before it gets truncated
 
     :type: integer
     :default: 30
@@ -42,7 +42,7 @@
 
 .. describe:: colourmode
 
-    number of colours your terminal supports
+    number of colours to use
 
     :type: option, one of ['1', '16', '256']
     :default: 256
@@ -107,7 +107,7 @@
 .. describe:: editor_cmd
 
     editor command
-    if unset, alot will first try the EDITOR env variable, then /usr/bin/editor
+    if unset, alot will first try the :env:`EDITOR` env variable, then :file:`/usr/bin/editor`
 
     :type: string
     :default: None
@@ -159,7 +159,7 @@
 
 .. describe:: flush_retry_timeout
 
-    timeout in secs after a failed attempt to flush is repeated
+    timeout in seconds after a failed attempt to writeout the database is repeated
 
     :type: integer
     :default: 5
@@ -200,7 +200,7 @@
 .. describe:: print_cmd
 
     how to print messages:
-    this specifies a shell command used pro printing.
+    this specifies a shell command used for printing.
     threads/messages are piped to this command as plain text.
     muttprint/a2ps works nicely
 
@@ -232,7 +232,7 @@
 
 .. describe:: show_statusbar
 
-    display status-line?
+    display status-bar at the bottom of the screen?
 
     :type: boolean
     :default: True

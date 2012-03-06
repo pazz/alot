@@ -53,7 +53,7 @@ Here is an example configuration::
 
 .. warning::
 
-  Sending mails is only supported via sendmail for now. If you want
+  Sending mails is only supported via a sendmail shell command for now. If you want
   to use a sendmail command different from `sendmail`, specify it as `sendmail_command`.
 
 The following entries are interpreted at the moment:

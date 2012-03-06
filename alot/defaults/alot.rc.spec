@@ -1,4 +1,5 @@
-ask_subject = boolean(default=True)  # ask for subject when compose
+
+ask_subject = boolean(default=True) # ask for subject when compose
 
 # confirm exit
 bug_on_exit = boolean(default=False)
@@ -6,7 +7,7 @@ bug_on_exit = boolean(default=False)
 # offset of next focused buffer if the current one gets closed
 bufferclose_focus_offset = integer(default=-1)
 
-# number of colours your terminal supports
+# number of colours to use
 colourmode = option(1, 16, 256, default=256)
 
 # number of spaces used to replace tab characters
@@ -35,15 +36,15 @@ envelope_headers_blacklist = string_list(default=list(In-Reply-To,References))
 # Uses own addresses and aliases in all configured accounts.
 thread_authors_replace_me = boolean(default=True)
 
-#Word to replace own addresses with. Works in combination with
-#:ref:`thread_authors_replace_me <thread-authors-replace-me>`
+# Word to replace own addresses with. Works in combination with
+# :ref:`thread_authors_replace_me <thread-authors-replace-me>`
 thread_authors_me = string(default='Me')
 
 # set terminal command used for spawning shell commands
 terminal_cmd = string(default='x-terminal-emulator -e')
 
 # editor command
-# if unset, alot will first try the EDITOR env variable, then /usr/bin/editor
+# if unset, alot will first try the :env:`EDITOR` env variable, then :file:`/usr/bin/editor`
 editor_cmd = string(default=None)
 
 # file encoding used by your editor
@@ -65,7 +66,7 @@ edit_headers_whitelist = string_list(default=list(*,))
 # see :ref:`edit_headers_whitelist <edit-headers-whitelist>`
 edit_headers_blacklist = string_list(default=list(Content-Type,MIME-Version,References,In-Reply-To))
 
-# timeout in secs after a failed attempt to flush is repeated
+# timeout in seconds after a failed attempt to writeout the database is repeated
 flush_retry_timeout = integer(default=5)
 
 # where to look up hooks
@@ -74,17 +75,17 @@ hooksfile = string(default='~/.config/alot/hooks.py')
 # time in secs to display status messages
 notify_timeout = integer(default=2)
 
-# display status-line?
+# display status-bar at the bottom of the screen?
 show_statusbar = boolean(default=True)
 
 # timestamp format in `strftime format syntax <http://docs.python.org/library/datetime.html#strftime-strptime-behavior>`_
 timestamp_format = string(default=None)
 
-# max length of authors line in thread widgets
+# maximal length of authors string in search mode before it gets truncated
 authors_maxlength = integer(default=30)
 
 # how to print messages:
-# this specifies a shell command used pro printing.
+# this specifies a shell command used for printing.
 # threads/messages are piped to this command as plain text.
 # muttprint/a2ps works nicely
 print_cmd = string(default=None)
@@ -134,7 +135,7 @@ user_agent = string(default='alot/{version}')
 
 [accounts]
 [[__many__]]
-        # your email address
+        # your main email address
         address = string
 
         # used to format the (proposed) From-header in outgoing mails
@@ -143,7 +144,7 @@ user_agent = string(default='alot/{version}')
         # used to clear your addresses/ match account when formatting replies
         aliases = string_list(default=list())
 
-        # how to send mails
+        # sendmail command. This is the shell command used to send out mails via the sendmail protocol
         sendmail_command = string(default='sendmail')
 
         # specifies the mailbox where you want outgoing mails to be stored after successfully sending them, e.g. 
@@ -151,19 +152,19 @@ user_agent = string(default='alot/{version}')
         # You can use mbox, maildir, mh, babyl and mmdf in the protocol part of the URL.
         sent_box = string(default=None)
 
-        # how to tag sent mails.
+        # list of tags to automatically add to outgoing messages
         sent_tags = string_list(default=list('sent'))
 
         # path to signature file that gets attached to all outgoing mails from this account, optionally
-        # renamed to `signature_filename`.
+        # renamed to ref:`signature_filename <signature-filename>`.
         signature = string(default=None)
 
         # attach signature file if set to True, append its content (mimetype text)
-        # to the body text if set to False. Defaults to False.
+        # to the body text if set to False.
         signature_as_attachment = boolean(default=False)
 
         # signature file's name as it appears in outgoing mails if
-        # signature_as_attachment is set to True
+        # :ref:`signature_as_attachment <signature-as-attachment>` is set to True
         signature_filename = string(default=None)
 
 

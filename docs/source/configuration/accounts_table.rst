@@ -3,7 +3,7 @@
 
 .. describe:: address
 
-    your email address
+    your main email address
 
     :type: string
 
@@ -29,7 +29,7 @@
 
 .. describe:: sendmail_command
 
-    how to send mails
+    sendmail command. This is the shell command used to send out mails via the sendmail protocol
 
     :type: string
     :default: "sendmail"
@@ -51,7 +51,7 @@
 
 .. describe:: sent_tags
 
-    how to tag sent mails.
+    list of tags to automatically add to outgoing messages
 
     :type: string_list
     :default: "sent,"
@@ -62,7 +62,7 @@
 .. describe:: signature
 
     path to signature file that gets attached to all outgoing mails from this account, optionally
-    renamed to `signature_filename`.
+    renamed to ref:`signature_filename <signature-filename>`.
 
     :type: string
     :default: None
@@ -73,7 +73,7 @@
 .. describe:: signature_as_attachment
 
     attach signature file if set to True, append its content (mimetype text)
-    to the body text if set to False. Defaults to False.
+    to the body text if set to False.
 
     :type: boolean
     :default: False
@@ -84,7 +84,7 @@
 .. describe:: signature_filename
 
     signature file's name as it appears in outgoing mails if
-    signature_as_attachment is set to True
+    :ref:`signature_as_attachment <signature-as-attachment>` is set to True
 
     :type: string
     :default: None
