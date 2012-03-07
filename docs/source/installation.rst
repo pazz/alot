@@ -1,71 +1,37 @@
 Installation
 ************
 
-Dependencies
-=======
+Alot depends on recent versions of notmuch and urwid. Note that due to restrictions
+on argparse and subprocess, you need to run *python ≥ `2.7`*.
+A full list of dependencies is below:
 
-Alot depends on recent versions of notmuch (≥ `0.10`) and urwid (≥ `1.0`). Note that due to restrictions
-on argparse and subprocess, you need to run *python ≥ `2.7`*, which only recently made it
-into debian testing.
+* `libmagic and python bindings <http://darwinsys.com/file/>`_, ≥ `5.04`:
+* `configobj <http://www.voidspace.org.uk/python/configobj.html>`_, ≥ `4.6.0`:
+* `twisted <http://twistedmatrix.com/trac/>`_, ≥ `10.2.0`:
+* `libnotmuch <http://notmuchmail.org/>`_ and it's python bindings, ≥ `0.11`.
+* `urwid <http://excess.org/urwid/>`_ toolkit, ≥ `1.0`
 
-urwid
------
-Make sure you have urwid v ≥ `1.0`. It is available on debian (wheezy)
-and in *buntu 12.04. To install from git use::
 
-    git clone http://github.com/wardi/urwid
-    cd urwid
-    sudo python setup.py install
+On debian/ubuntu these are packaged as::
 
-It seems you need the python headers for this. On debian/ubuntu::
+  python-magic python-configobj python-twisted python-notmuch python-urwid
 
-    aptitude install python2.7-dev
+Grab a copy of `alot` `here <https://github.com/pazz/alot/tags>`_ or
+directly check out a more recent version from `github <https://github.com/pazz/alot>`_.
+Run the :file:`setup.py` like this to install locally::
 
-notmuch
--------
-Install notmuch *and* python bindings from git::
-
-    git clone git://notmuchmail.org/git/notmuch
-
-    cd notmuch
-    ./configure
-    make
-    sudo make install
-    cd bindings/python
     python setup.py install --user
 
-
-alot
-----
-Get alot and install it from git::
-
-    git clone git://github.com/pazz/alot alot
-    cd alot
-    python setup.py install --user
-    make sure `~/.local/bin` is in your path.
+and make sure :file:`~/.local/bin` is in your :envvar:`PATH`.
 
 
-other dependencies
-------------------
-* `python bindings to libmagic <http://darwinsys.com/file/>`_, ≥ `5.04`:
-  This is packaged as `python-magic` in debian/ubuntu.
+All configs are optional, but if you want to send mails you need to specify at least one
+:ref:`account <account>` in your config. See the :ref:`configuration <configuration>` for how to do
+fancy customization.
 
-* python `configobj module <http://www.voidspace.org.uk/python/configobj.html>`_, ≥ `4.6.0`:
-  This is packaged as `python-configobj` in debian/ubuntu.
-
-* python `twisted module <http://twistedmatrix.com/trac/>`_, ≥ `10.2.0`:
-  This is packaged as `python-twisted` in debian/ubuntu.
-
-* a mailcap file (I recommend installing 'mime-support' on debian/ubuntu).
-  This is used to determine the commands to call when opening attachments
-  or text-rendering parts that are not plaintext, e.g. text/html.
-  Make sure you have a inline renderer for text/html set in your mailcap as otherwise
-  html mails will not display::
+You do need to set an inline renderer for text/html in your :file:`~/.mailcap` to display
+html mails::
    
        text/html;  w3m -dump %s; nametemplate=%s.html; copiousoutput
 
 
-All other configs are optional, but if you want to send mails you need to specify at least one
-:ref:`account <account>` in your config.
-
-See the :ref:`configuration <configuration>` for how to do fancy customization.
