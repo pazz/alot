@@ -1,8 +1,8 @@
 Alot is an experimental terminal MUA based on [notmuch mail][notmuch].
 It is written in python using the [urwid][urwid] toolkit.
 
-See `INSTALL.md` for instructions on how to set it up and have a look
-at the [user manual][docs] for advanced usage, customization and hacking guides.
+Have a look at the [user manual][docs] for installation notes, advanced usage,
+customization and hacking guides.
 
 Do comment on the code or file issues! I'm curious what you think of it.
 You can talk to me in `#notmuch@Freenode`.
@@ -27,6 +27,7 @@ Current features include:
 Soonish to be addressed non-features:
 -------------------------------------
 See [here][features], most notably:
+
  * encryption/decryption for messages (see branch `gnupg`)
  * live search results (branch `live`)
  * search for message (branch `messagesmode`)
