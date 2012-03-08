@@ -400,7 +400,7 @@ class MessageWidget(urwid.WidgetWrap):
         self.sourcew = None
 
         # set available and to be displayed headers
-        self._all_headers = self.mail.keys()
+        self._all_headers = list(set(self.mail.keys()))
         displayed = settings.get('displayed_headers')
         self._filtered_headers = [k for k in displayed if k in self.mail]
         self._displayed_headers = None
@@ -465,13 +465,14 @@ class MessageWidget(urwid.WidgetWrap):
         mail = self.message.get_email()
         # normalize values if only filtered list is shown
         norm = not (self._displayed_headers == self._all_headers)
-        lowercase_keys = [k.lower() for k in self._displayed_headers]
 
         #build lines
         lines = []
-        for k, v in mail.items():
-            if k.lower() in lowercase_keys:
-                lines.append((k, message.decode_header(v, normalize=norm)))
+        for key in self._displayed_headers:
+            if key in mail:
+                for value in mail.get_all(key):
+                    dvalue = message.decode_header(value, normalize=norm)
+                    lines.append((key, dvalue))
 
         cols = [HeadersList(lines)]
         bc = list()
