@@ -1,6 +1,7 @@
 import urwid
 import logging
 from twisted.internet import reactor, defer
+import sys
 
 from settings import settings
 from buffers import BufferlistBuffer
@@ -182,7 +183,12 @@ class UI(object):
         shuts down user interface without cleaning up.
         Use a :class:`commands.globals.ExitCommand` for a clean shutdown.
         """
-        reactor.stop()
+        exit_msg = None
+        try:
+            reactor.stop()
+        except Exception as e:
+            exit_msg = 'Could not stop reactor: {}.'.format(e)
+            logging.error(exit_msg + '\nShutting down anyway..')
 
     def buffer_open(self, buf):
         """register and focus new :class:`~alot.buffers.Buffer`."""
