@@ -256,7 +256,8 @@ class UI(object):
         """
         newpile = self.notificationbar.widget_list
         for l in messages:
-            newpile.remove(l)
+            if l in newpile:
+                newpile.remove(l)
         if newpile:
             self.notificationbar = urwid.Pile(newpile)
         else:
