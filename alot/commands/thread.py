@@ -19,6 +19,8 @@ from alot.message import encode_header
 from alot.message import extract_headers
 from alot.message import extract_body
 from alot.message import Envelope
+from alot.message import Attachment
+
 from alot.db import DatabaseROError
 from alot.settings import settings
 
@@ -219,7 +221,7 @@ class ForwardCommand(Command):
             # attach original msg
             mail.set_default_type('message/rfc822')
             mail['Content-Disposition'] = 'attachment'
-            envelope.attachments.append(mail)
+            envelope.attach(Attachment(mail))
 
         # copy subject
         subject = decode_header(mail.get('Subject', ''))
