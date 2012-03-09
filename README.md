@@ -28,13 +28,14 @@ Soonish to be addressed non-features:
 -------------------------------------
 See [here][features], most notably:
 
- * encryption/decryption for messages (see branch `gnupg`)
- * live search results (branch `live`)
- * search for message (branch `messagesmode`)
- * bind sequences of key presses to commands (branch `multiinput`)
- * search for strings in displayed buffer
- * folding for message parts
- * undo for commands
+ * async. calls to mimeparts renderer, parsing of VT colour escape sequences.
+   see #272. Milestone `0.4`
+ * encryption/decryption for messages via gnupg CLI (see branch `feature-gnupg`). Milestone `0.4`
+ * bind sequences of key presses to commands (POC in `postponed-multiinput`). Milestone `0.5`
+ * live search results while you're typing (POC in `postponed-livesearch`). Milestone `0.6`
+ * search for message (POC in `postponed-messagesmode`). Milestone `0.6`
+ * search for strings in displayed buffer. MS `0.7`
+ * undo for commands. Milestone `0.7`
 
 
 Usage
@@ -42,6 +43,9 @@ Usage
 In all views, arrows, page-up/down, `j`,`k` and `Space` can be used to move the focus.
 `Escape` cancels prompts and `Enter` selects. Hit `:` at any time and type in commands
 to the prompt.
+The current *mode* is displayed at the bottom left, after the buffer number;
+This can be 'search', 'thread', 'envelope' etc. In different modes different commands are
+available.
 Usage information on any command can be listed by typing `help YOURCOMMAND` to the prompt;
 The key bindings for the current mode are listed upon pressing `?`.
 
