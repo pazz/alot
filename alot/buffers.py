@@ -158,7 +158,7 @@ class SearchBuffer(Buffer):
         Buffer.__init__(self, ui, self.body)
 
     def __str__(self):
-        formatstring = '[search] for "%s" (%d thread%s)'
+        formatstring = '[search] for "%s" (%d message%s)'
         return formatstring % (self.querystring, self.result_count,
                                's' * (not (self.result_count == 1)))
 
