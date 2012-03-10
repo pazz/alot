@@ -22,7 +22,7 @@ setup(name='alot',
                             ]},
       scripts=['bin/alot'],
       requires=[
-        'notmuch (>=0.9)',
+        'notmuch (>=0.12)',
         'argparse (>=2.7)',
         'urwid (>=1.0)',
         'twisted (>=10.2.0)',

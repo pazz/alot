@@ -202,6 +202,10 @@ class DBManager(object):
         """returns number of messages that match `querystring`"""
         return self.query(querystring).count_messages()
 
+    def count_threads(self, querystring):
+        """returns number of threads that match `querystring`"""
+        return self.query(querystring).count_threads()
+
     def search_thread_ids(self, querystring):
         """
         returns the ids of all threads that match the `querystring`

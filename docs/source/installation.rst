@@ -10,7 +10,7 @@ A full list of dependencies is below:
 * `libmagic and python bindings <http://darwinsys.com/file/>`_, ≥ `5.04`:
 * `configobj <http://www.voidspace.org.uk/python/configobj.html>`_, ≥ `4.6.0`:
 * `twisted <http://twistedmatrix.com/trac/>`_, ≥ `10.2.0`:
-* `libnotmuch <http://notmuchmail.org/>`_ and it's python bindings, ≥ `0.11`.
+* `libnotmuch <http://notmuchmail.org/>`_ and it's python bindings, ≥ `0.12`.
 * `urwid <http://excess.org/urwid/>`_ toolkit, ≥ `1.0`
 
 On debian/ubuntu these are packaged as::
