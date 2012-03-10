@@ -347,12 +347,21 @@ def decode_header(header, normalize=False):
     This turns it into a single unicode string
 
     :param header: the header value
-    :type header: str in us-ascii
+    :type header: str
     :param normalize: replace trailing spaces after newlines
     :type normalize: bool
     :rtype: unicode
     """
 
+    # If the value isn't ascii as RFC2822 prescribes,
+    # we just return the unicode bytestring as is
+    value = string_decode(header)  # convert to unicode
+    try:
+        value = value.encode('ascii')
+    except UnicodeEncodeError:
+        return value
+
+    # otherwise we interpret RFC2822 encoding escape sequences
     valuelist = email.header.decode_header(header)
     decoded_list = []
     for v, enc in valuelist:
