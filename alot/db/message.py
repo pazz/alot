@@ -14,10 +14,10 @@ from notmuch import NullPointerError
 
 from alot import __version__
 import logging
-import helper
-from settings import settings
-from helper import string_sanitize
-from helper import string_decode
+import alot.helper as helper
+from alot.settings import settings
+from alot.helper import string_sanitize
+from alot.helper import string_decode
 
 
 class Message(object):

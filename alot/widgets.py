@@ -2,11 +2,11 @@ import urwid
 import logging
 
 from settings import settings
-from helper import shorten_author_string
-from helper import pretty_datetime
-from helper import tag_cmp
-from helper import string_decode
-import message
+from alot.helper import shorten_author_string
+from alot.helper import pretty_datetime
+from alot.helper import tag_cmp
+from alot.helper import string_decode
+import alot.db.message as message
 import time
 
 

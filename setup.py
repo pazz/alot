@@ -11,7 +11,7 @@ setup(name='alot',
       author_email=alot.__author_email__,
       url=alot.__url__,
       license=alot.__copyright__,
-      packages=['alot', 'alot.commands', 'alot.settings'],
+      packages=['alot', 'alot.commands', 'alot.settings', 'alot.db'],
       package_data={'alot': [
                              'defaults/alot.rc.spec',
                              'defaults/notmuch.rc.spec',

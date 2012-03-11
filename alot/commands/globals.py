@@ -20,7 +20,7 @@ from alot import helper
 from alot.db import DatabaseLockedError
 from alot.completion import ContactsCompleter
 from alot.completion import AccountCompleter
-from alot.message import Envelope
+from alot.db.message import Envelope
 from alot import commands
 from alot.settings import settings
 
