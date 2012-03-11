@@ -16,6 +16,16 @@ from alot.helper import string_decode
 
 
 def extract_headers(mail, headers=None):
+    """
+    returns subset of this messages headers as human-readable format:
+    all header values are decoded, the resulting string has
+    one line "KEY: VALUE" for each requested header present in the mail.
+
+    :param mail: the mail to use
+    :type mail: :class:`email.Message`
+    :param headers: headers to extract
+    :type headers: list of str
+    """
     headertext = u''
     if headers == None:
         headers = mail.keys()

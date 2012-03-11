@@ -50,10 +50,17 @@ Wrapper
 
 
 Other Structures
----------------------------
+----------------
 
 .. autoclass:: alot.db.attachment.Attachment
    :members:
 
 .. autoclass:: alot.db.envelope.Envelope
+   :members:
+
+
+Utilities
+---------
+
+.. automodule:: alot.db.utils
    :members:
