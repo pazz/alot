@@ -6,7 +6,7 @@ from settings import settings
 import commands
 from walker import PipeWalker
 from helper import shorten_author_string
-from db import NonexistantObjectError
+from db.errors import NonexistantObjectError
 
 
 class Buffer(object):

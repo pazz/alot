@@ -21,7 +21,7 @@ from alot.db.message import extract_body
 from alot.db.message import Envelope
 from alot.db.message import Attachment
 
-from alot.db import DatabaseROError
+from alot.db.errors import DatabaseROError
 from alot.settings import settings
 
 MODE = 'thread'

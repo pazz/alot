@@ -17,7 +17,7 @@ from alot.commands import commandfactory
 from alot import buffers
 from alot import widgets
 from alot import helper
-from alot.db import DatabaseLockedError
+from alot.db.errors import DatabaseLockedError
 from alot.completion import ContactsCompleter
 from alot.completion import AccountCompleter
 from alot.db.message import Envelope
