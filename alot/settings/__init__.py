@@ -4,7 +4,7 @@ import re
 import mailcap
 import logging
 import urwid
-from urwid import AttrSpec, AttrSpecError
+from urwid import AttrSpecError
 from configobj import ConfigObj, Section
 
 from alot.account import SendmailAccount

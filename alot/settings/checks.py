@@ -1,6 +1,7 @@
 import mailbox
 import re
 from urlparse import urlparse
+from validate import VdtTypeError
 
 def mail_container(value):
     if not re.match(r'.*://.*', value):
