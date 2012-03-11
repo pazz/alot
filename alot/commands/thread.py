@@ -18,7 +18,7 @@ from alot.db.message import decode_header
 from alot.db.message import encode_header
 from alot.db.message import extract_headers
 from alot.db.message import extract_body
-from alot.db.message import Envelope
+from alot.db.envelope import Envelope
 from alot.db.message import Attachment
 
 from alot.db.errors import DatabaseROError

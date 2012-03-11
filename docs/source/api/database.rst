@@ -55,5 +55,5 @@ Other Structures
 .. autoclass:: Attachment
    :members:
 
-.. autoclass:: Envelope
+.. autoclass:: alot.db.envelope.Envelope
    :members:

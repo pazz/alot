@@ -20,7 +20,7 @@ from alot import helper
 from alot.db.errors import DatabaseLockedError
 from alot.completion import ContactsCompleter
 from alot.completion import AccountCompleter
-from alot.db.message import Envelope
+from alot.db.envelope import Envelope
 from alot import commands
 from alot.settings import settings
 
@@ -458,7 +458,7 @@ class ComposeCommand(Command):
                  omit_signature=False, spawn=None, **kwargs):
         """
         :param envelope: use existing envelope
-        :type envelope: :class:`~alot.message.Envelope`
+        :type envelope: :class:`~alot.db.envelope.Envelope`
         :param headers: forced header values
         :type header: doct (str->str)
         :param template: name of template to parse into the envelope after

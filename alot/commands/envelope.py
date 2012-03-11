@@ -174,7 +174,7 @@ class EditCommand(Command):
     def __init__(self, envelope=None, spawn=None, refocus=True, **kwargs):
         """
         :param envelope: email to edit
-        :type envelope: :class:`~alot.message.Envelope`
+        :type envelope: :class:`~alot.db.envelope.Envelope`
         :param spawn: force spawning of editor in a new terminal
         :type spawn: bool
         :param refocus: m
