@@ -401,7 +401,7 @@ def humanize_size(size):
     return format_string % (size / factor)
 
 
-def read_config(configpath=None, specpath=None):
+def read_config(configpath=None, specpath=None, checks={}):
     """
     get a (validated) config object for given config file path.
 
@@ -409,6 +409,9 @@ def read_config(configpath=None, specpath=None):
     :type configpath: str
     :param specpath: path to spec-file
     :type specpath: str
+    :param checks: custom checks to use for validator.
+        see `validate docs <http://www.voidspace.org.uk/python/validate.html>`_
+    :type checks: dict str->callable,
     :rtype: `configobj.ConfigObj`
     """
     try:
@@ -419,6 +422,7 @@ def read_config(configpath=None, specpath=None):
 
     if specpath:
         validator = Validator()
+        validator.functions.update(checks)
         results = config.validate(validator)
 
         if results != True:
