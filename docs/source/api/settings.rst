@@ -25,7 +25,7 @@ They are user defined callables that expect to be called with the following para
 
 Themes
 ------
-.. autoclass:: Theme
+.. autoclass:: alot.settings.theme.Theme
     :members:
 
 Accounts
