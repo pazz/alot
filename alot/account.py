@@ -1,14 +1,12 @@
 import mailbox
 import logging
 import time
-import re
 import email
 import os
 import glob
 import shlex
 
-from alot.settings.utils import read_config
-
+from alot.helper import call_cmd_async
 
 class SendingMailFailed(RuntimeError):
     pass
@@ -162,7 +160,7 @@ class SendmailAccount(Account):
             logging.error(failure.value.stderr)
             raise SendingMailFailed(errmsg)
 
-        d = helper.call_cmd_async(cmdlist, stdin=mail.as_string())
+        d = call_cmd_async(cmdlist, stdin=mail.as_string())
         d.addCallback(cb)
         d.addErrback(errb)
         return d
