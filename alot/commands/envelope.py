@@ -218,7 +218,8 @@ class EditCommand(Command):
             translate = settings.get_hook('post_edit_translate')
             if translate:
                 template = translate(template, ui=ui, dbm=ui.dbman)
-            self.envelope.parse_template(template, only_body=self.edit_only_body)
+            self.envelope.parse_template(template,
+                                         only_body=self.edit_only_body)
             if self.openNew:
                 ui.buffer_open(buffers.EnvelopeBuffer(ui, self.envelope))
             else:

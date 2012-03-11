@@ -8,6 +8,7 @@ import shlex
 
 from alot.helper import call_cmd_async
 
+
 class SendingMailFailed(RuntimeError):
     pass
 
@@ -39,7 +40,8 @@ class Account(object):
     signature_as_attachment = None
     """attach signature file instead of appending its content to body text"""
     abook = None
-    """addressbook (:class:`addressbooks.AddressBook`) managing this accounts contacts"""
+    """addressbook (:class:`addressbooks.AddressBook`)
+       managing this accounts contacts"""
 
     def __init__(self, address=None, aliases=None, realname=None,
                  gpg_key=None, signature=None, signature_filename=None,
@@ -99,7 +101,8 @@ class Account(object):
         if isinstance(mbx, mailbox.Maildir):
             # this is a dirty hack to get the path to the newly added file
             # I wish the mailbox module were more helpful...
-            plist = glob.glob1(os.path.join(mbx._path, 'new'), message_id + '*')
+            plist = glob.glob1(os.path.join(mbx._path, 'new'),
+                               message_id + '*')
             if plist:
                 path = os.path.join(mbx._path, 'new', plist[0])
                 logging.debug('path of saved msg: %s' % path)
@@ -164,5 +167,3 @@ class SendmailAccount(Account):
         d.addCallback(cb)
         d.addErrback(errb)
         return d
-
-

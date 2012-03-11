@@ -68,5 +68,3 @@ class Theme(object):
         :type colourmode: int
         """
         return self.attributes[colourmode][mode][name]
-
-

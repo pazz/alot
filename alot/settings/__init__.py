@@ -50,7 +50,8 @@ class SettingsManager(object):
     def read_config(self, path):
         """parse alot's config file from path"""
         spec = os.path.join(DEFAULTSPATH, 'alot.rc.spec')
-        newconfig = read_config(path, spec, checks={'mail_container': mail_container})
+        newconfig = read_config(path, spec,
+                                checks={'mail_container': mail_container})
         self._config.merge(newconfig)
 
         hooks_path = os.path.expanduser(self._config.get('hooksfile'))

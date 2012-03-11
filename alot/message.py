@@ -637,7 +637,8 @@ class Envelope(object):
         if only_body:
             self.body = tmp
         else:
-            m = re.match('(?P<h>([a-zA-Z0-9_-]+:.+\n)*)\n?(?P<b>(\s*.*)*)', tmp)
+            m = re.match('(?P<h>([a-zA-Z0-9_-]+:.+\n)*)\n?(?P<b>(\s*.*)*)',
+                         tmp)
             assert m
 
             d = m.groupdict()
