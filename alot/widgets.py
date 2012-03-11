@@ -355,7 +355,7 @@ class CompleteEdit(urwid.Edit):
 
 class MessageWidget(urwid.WidgetWrap):
     """
-    Flow widget that renders a :class:`~alot.message.Message`.
+    Flow widget that renders a :class:`~alot.db.message.Message`.
 
     Respected settings:
         * `general.displayed_headers`
@@ -552,7 +552,7 @@ class MessageWidget(urwid.WidgetWrap):
         return self.pile.keypress(size, key)
 
     def get_message(self):
-        """get contained :class`~alot.message.Message`"""
+        """get contained :class`~alot.db.message.Message`"""
         return self.message
 
     def get_email(self):
@@ -562,7 +562,7 @@ class MessageWidget(urwid.WidgetWrap):
 
 class MessageSummaryWidget(urwid.WidgetWrap):
     """
-    one line summary of a :class:`~alot.message.Message`.
+    one line summary of a :class:`~alot.db.message.Message`.
 
     Theme settings:
         * `thread_summary_even`

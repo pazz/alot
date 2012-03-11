@@ -9,7 +9,7 @@ class Thread(object):
     A wrapper around a notmuch mailthread (:class:`notmuch.database.Thread`)
     that ensures persistence of the thread: It can be safely read multiple
     times, its manipulation is done via a :class:`alot.db.DBManager` and it
-    can directly provide contained messages as :class:`~alot.message.Message`.
+    can directly provide contained messages as :class:`~alot.db.message.Message`.
     """
 
     def __init__(self, dbman, thread):
@@ -185,7 +185,7 @@ class Thread(object):
         This are all the messages without a parent message
         (identified by 'in-reply-to' or 'references' header.
 
-        :rtype: list of :class:`~alot.message.Message`
+        :rtype: list of :class:`~alot.db.message.Message`
         """
         if not self._messages:
             self.get_messages()
@@ -196,8 +196,8 @@ class Thread(object):
         returns all messages in this thread as dict mapping all contained
         messages to their direct responses.
 
-        :rtype: dict mapping :class:`~alot.message.Message` to a list of
-                :class:`~alot.message.Message`.
+        :rtype: dict mapping :class:`~alot.db.message.Message` to a list of
+                :class:`~alot.db.message.Message`.
         """
         if not self._messages:  # if not already cached
             query = self._dbman.query('thread:' + self._id)
@@ -222,8 +222,8 @@ class Thread(object):
         returns all replies to the given message contained in this thread.
 
         :param msg: parent message to look up
-        :type msg: :class:`~alot.message.Message`
-        :returns: list of :class:`~alot.message.Message` or `None`
+        :type msg: :class:`~alot.db.message.Message`
+        :returns: list of :class:`~alot.db.message.Message` or `None`
         """
         mid = msg.get_message_id()
         msg_hash = self.get_messages()

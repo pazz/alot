@@ -75,7 +75,7 @@ class ReplyCommand(Command):
     def __init__(self, message=None, all=False, spawn=None, **kwargs):
         """
         :param message: message to reply to (defaults to selected message)
-        :type message: `alot.message.Message`
+        :type message: `alot.db.message.Message`
         :param all: group reply; copies recipients from Bcc/Cc/To to the reply
         :type all: bool
         :param spawn: force spawning of editor in a new terminal
@@ -177,7 +177,7 @@ class ForwardCommand(Command):
     def __init__(self, message=None, attach=True, spawn=None, **kwargs):
         """
         :param message: message to forward (defaults to selected message)
-        :type message: `alot.message.Message`
+        :type message: `alot.db.message.Message`
         :param attach: attach original mail instead of inline quoting its body
         :type attach: bool
         :param spawn: force spawning of editor in a new terminal
@@ -245,7 +245,7 @@ class EditNewCommand(Command):
     def __init__(self, message=None, spawn=None, **kwargs):
         """
         :param message: message to reply to (defaults to selected message)
-        :type message: `alot.message.Message`
+        :type message: `alot.db.message.Message`
         :param spawn: force spawning of editor in a new terminal
         :type spawn: bool
         """
