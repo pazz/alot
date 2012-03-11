@@ -10,6 +10,7 @@ from alot.settings import settings
 from utils import extract_headers, extract_body
 from attachment import Attachment
 
+
 class Message(object):
     """
     a persistent notmuch message object.

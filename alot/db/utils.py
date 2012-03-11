@@ -14,7 +14,6 @@ from alot.helper import string_sanitize
 from alot.helper import string_decode
 
 
-
 def extract_headers(mail, headers=None):
     """
     returns subset of this messages headers as human-readable format:

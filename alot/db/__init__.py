@@ -63,7 +63,7 @@ class DBManager(object):
         You are responsible to retry flushing at a later time if you want to
         ensure that the cached changes are applied to the database.
 
-        :exception: :exc:`errors.DatabaseROError` if db is opened in read-only mode
+        :exception: :exc:`errors.DatabaseROError` if db is opened read-only
         :exception: :exc:`errors.DatabaseLockedError` if db is locked
         """
         if self.ro:
@@ -129,7 +129,7 @@ class DBManager(object):
 
                     # end transaction and reinsert queue item on error
                     if db.end_atomic() != notmuch.STATUS.SUCCESS:
-                        raise errors.DatabaseError('fail-status from end_atomic')
+                        raise errors.DatabaseError('end_atomic failed')
 
                     # call post-callback
                     if callable(afterwards):
