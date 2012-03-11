@@ -7,6 +7,7 @@ from alot.helper import pretty_datetime
 from alot.helper import tag_cmp
 from alot.helper import string_decode
 import alot.db.message as message
+from alot.db.attachment import Attachment
 import time
 
 
@@ -670,7 +671,7 @@ class MessageBodyWidget(urwid.AttrMap):
 
 class AttachmentWidget(urwid.WidgetWrap):
     """
-    one-line summary of an :class:`~alot.message.Attachment`.
+    one-line summary of an :class:`~alot.db.attachment.Attachment`.
 
     Theme settings:
         * `thread_attachment`
@@ -679,8 +680,8 @@ class AttachmentWidget(urwid.WidgetWrap):
     def __init__(self, attachment, selectable=True):
         self._selectable = selectable
         self.attachment = attachment
-        if not isinstance(attachment, message.Attachment):
-            self.attachment = message.Attachment(self.attachment)
+        if not isinstance(attachment, Attachment):
+            self.attachment = Attachment(self.attachment)
         att = settings.get_theming_attribute('thread', 'attachment')
         focus_att = settings.get_theming_attribute('thread',
                                                    'attachment_focus')

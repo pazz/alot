@@ -19,7 +19,7 @@ from alot.db.message import encode_header
 from alot.db.message import extract_headers
 from alot.db.message import extract_body
 from alot.db.envelope import Envelope
-from alot.db.message import Attachment
+from alot.db.attachment import Attachment
 
 from alot.db.errors import DatabaseROError
 from alot.settings import settings
@@ -652,7 +652,7 @@ class OpenAttachmentCommand(Command):
     def __init__(self, attachment, **kwargs):
         """
         :param attachment: attachment to open
-        :type attachment: :class:`~alot.message.Attachment`
+        :type attachment: :class:`~alot.db.attachment.Attachment`
         """
         Command.__init__(self, **kwargs)
         self.attachment = attachment

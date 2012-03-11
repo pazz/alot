@@ -11,7 +11,7 @@ import logging
 import alot.helper as helper
 from alot.settings import settings
 
-from message import Attachment
+from attachment import Attachment
 from message import encode_header
 
 
@@ -29,7 +29,7 @@ class Envelope(object):
         :param headers: unencoded header values
         :type headers: dict (str -> unicode)
         :param attachments: file attachments to include
-        :type attachments: list of :class:`Attachment`
+        :type attachments: list of :class:`~alot.db.attachment.Attachment`
         """
         assert isinstance(bodytext, unicode)
         self.headers = {}
@@ -107,11 +107,11 @@ class Envelope(object):
         """
         attach a file
 
-        :param attachment: File to attach, given as :class:`Attachment` object
-                           or path to a file.
-        :type attachment: :class:`Attachment` or str
+        :param attachment: File to attach, given as
+            :class:`~alot.db.attachment.Attachment` object or path to a file.
+        :type attachment: :class:`~alot.db.attachment.Attachment` or str
         :param filename: filename to use in content-disposition.
-                         Will be ignored if `path` matches multiple files
+            Will be ignored if `path` matches multiple files
         :param ctype: force content-type to be used for this attachment
         :type ctype: str
         """

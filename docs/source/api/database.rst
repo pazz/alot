@@ -10,7 +10,7 @@ use an :class:`DBManager` instance to transparently provide persistent objects.
 
 :class:`~alot.db.message.Message` moreover contains convenience methods
 to extract information about the message like reformated header values, a summary,
-decoded and interpreted body text and a list of :class:`Attachments <alot.message.Attachment>`.
+decoded and interpreted body text and a list of :class:`Attachments <alot.db.attachment.Attachment>`.
 
 The central :class:`~alot.ui.UI` instance carries around a :class:`DBManager` object that
 is used for any lookups or modifications of the email base. :class:`DBManager` can
@@ -52,7 +52,7 @@ Wrapper
 Other Structures
 ---------------------------
 
-.. autoclass:: Attachment
+.. autoclass:: alot.db.attachment.Attachment
    :members:
 
 .. autoclass:: alot.db.envelope.Envelope
