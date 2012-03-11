@@ -6,7 +6,6 @@ import email
 import os
 import glob
 import shlex
-from urlparse import urlparse
 
 import helper
 
@@ -50,44 +49,17 @@ class Account(object):
                  sent_tags=['sent'], draft_box=None, draft_tags=['draft'],
                  abook=None, **rest):
         self.address = address
-        self.abook = abook
-        self.aliases = []
         self.aliases = aliases
         self.realname = realname
         self.gpg_key = gpg_key
         self.signature = signature
         self.signature_filename = signature_filename
         self.signature_as_attachment = signature_as_attachment
-
-        self.sent_box = None
-        if sent_box:
-            mburl = urlparse(sent_box)
-            if mburl.scheme == 'mbox':
-                self.sent_box = mailbox.mbox(mburl.path)
-            elif mburl.scheme == 'maildir':
-                self.sent_box = mailbox.Maildir(mburl.path)
-            elif mburl.scheme == 'mh':
-                self.sent_box = mailbox.MH(mburl.path)
-            elif mburl.scheme == 'babyl':
-                self.sent_box = mailbox.Babyl(mburl.path)
-            elif mburl.scheme == 'mmdf':
-                self.sent_box = mailbox.MMDF(mburl.path)
+        self.sent_box = sent_box
         self.sent_tags = sent_tags
-
-        self.draft_box = None
-        if draft_box:
-            mburl = urlparse(draft_box)
-            if mburl.scheme == 'mbox':
-                self.draft_box = mailbox.mbox(mburl.path)
-            elif mburl.scheme == 'maildir':
-                self.draft_box = mailbox.Maildir(mburl.path)
-            elif mburl.scheme == 'mh':
-                self.draft_box = mailbox.MH(mburl.path)
-            elif mburl.scheme == 'babyl':
-                self.draft_box = mailbox.Babyl(mburl.path)
-            elif mburl.scheme == 'mmdf':
-                self.draft_box = mailbox.MMDF(mburl.path)
+        self.draft_box = draft_box
         self.draft_tags = draft_tags
+        self.abook = abook
 
     def get_addresses(self):
         """return all email addresses connected to this account, in order of
