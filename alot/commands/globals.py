@@ -93,7 +93,7 @@ class PromptCommand(Command):
     def apply(self, ui):
         logging.info('open command shell')
         mode = ui.current_buffer.modename
-        cmpl = CommandLineCompleter(ui.dbman, mode, ui.current_buffer,),
+        cmpl = CommandLineCompleter(ui.dbman, mode, ui.current_buffer)
         cmdline = yield ui.prompt('',
                                   text=self.startwith,
                                   completer=cmpl,
