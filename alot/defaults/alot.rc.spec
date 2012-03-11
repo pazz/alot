@@ -150,10 +150,12 @@ prompt_suffix = string(default=':')
         # sendmail command. This is the shell command used to send out mails via the sendmail protocol
         sendmail_command = string(default='sendmail')
 
-        # specifies the mailbox where you want outgoing mails to be stored after successfully sending them, e.g. 
-        # where to store outgoing mail, e.g. `maildir:///home/you/mail//Sent`
+        # where to store outgoing mails, e.g. `maildir:///home/you/mail//Sent`
         # You can use mbox, maildir, mh, babyl and mmdf in the protocol part of the URL.
-        sent_box = string(default=None)
+        sent_box = mail_container(default=None)
+
+        # where to store draft mails, see :ref:`sent_box <sent-box>` for the format
+        draft_box = mail_container(default=None)
 
         # list of tags to automatically add to outgoing messages
         sent_tags = string_list(default=list('sent'))
