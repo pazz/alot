@@ -7,7 +7,7 @@ import os
 import glob
 import shlex
 
-import helper
+from alot.settings.utils import read_config
 
 
 class SendingMailFailed(RuntimeError):
@@ -201,7 +201,7 @@ class AbookAddressBook(AddressBook):
         DEFAULTSPATH = os.path.join(os.path.dirname(__file__), 'defaults')
         self._spec = os.path.join(DEFAULTSPATH, 'abook_contacts.spec')
         path = os.path.expanduser(path)
-        self._config = helper.read_config(path, self._spec)
+        self._config = read_config(path, self._spec)
         del(self._config['format'])
 
     def get_contacts(self):

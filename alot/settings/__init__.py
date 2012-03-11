@@ -7,13 +7,13 @@ import urwid
 from urwid import AttrSpec, AttrSpecError
 from configobj import ConfigObj, Section
 
-from account import SendmailAccount, MatchSdtoutAddressbook, AbookAddressBook
+from alot.account import SendmailAccount, MatchSdtoutAddressbook, AbookAddressBook
 
-from alot.errors import ConfigError
-from alot.helper import read_config
+from errors import ConfigError
+from utils import read_config
 from checks import mail_container
 
-DEFAULTSPATH = os.path.join(os.path.dirname(__file__), 'defaults')
+DEFAULTSPATH = os.path.join(os.path.dirname(__file__), '..', 'defaults')
 
 
 class Theme(object):

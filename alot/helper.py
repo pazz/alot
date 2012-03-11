@@ -19,7 +19,7 @@ import StringIO
 import logging
 from configobj import ConfigObj, ConfigObjError, flatten_errors
 from validate import Validator
-from alot.errors import ConfigError
+from alot.settings.errors import ConfigError
 
 
 def safely_get(clb, E, on_error=''):
@@ -399,40 +399,3 @@ def humanize_size(size):
         if size / factor < 1024:
             return format_string % (float(size) / factor)
     return format_string % (size / factor)
-
-
-def read_config(configpath=None, specpath=None, checks={}):
-    """
-    get a (validated) config object for given config file path.
-
-    :param configpath: path to config-file
-    :type configpath: str
-    :param specpath: path to spec-file
-    :type specpath: str
-    :param checks: custom checks to use for validator.
-        see `validate docs <http://www.voidspace.org.uk/python/validate.html>`_
-    :type checks: dict str->callable,
-    :rtype: `configobj.ConfigObj`
-    """
-    try:
-        config = ConfigObj(infile=configpath, configspec=specpath,
-                           file_error=True, encoding='UTF8')
-    except (ConfigObjError, IOError), e:
-        raise ConfigError('Could not read "%s": %s' % (configpath, e))
-
-    if specpath:
-        validator = Validator()
-        validator.functions.update(checks)
-        results = config.validate(validator)
-
-        if results != True:
-            error_msg = 'Validation errors occurred:\n'
-            for (section_list, key, _) in flatten_errors(config, results):
-                if key is not None:
-                    msg = 'key "%s" in section "%s" failed validation'
-                    msg = msg % (key, ', '.join(section_list))
-                else:
-                    msg = 'section "%s" is malformed' % ', '.join(section_list)
-                error_msg += msg + '\n'
-            raise ConfigError(error_msg)
-    return config
