@@ -17,9 +17,6 @@ from twisted.internet.protocol import ProcessProtocol
 from twisted.internet.defer import Deferred
 import StringIO
 import logging
-from configobj import ConfigObj, ConfigObjError, flatten_errors
-from validate import Validator
-from alot.settings.errors import ConfigError
 
 
 def safely_get(clb, E, on_error=''):
