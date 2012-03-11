@@ -23,6 +23,11 @@ They are user defined callables that expect to be called with the following para
 .. autoclass:: SettingsManager
     :members:
 
+Themes
+------
+.. autoclass:: Theme
+    :members:
+
 Accounts
 --------
 
