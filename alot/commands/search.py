@@ -4,7 +4,7 @@ import logging
 from alot.commands import Command, registerCommand
 from alot.commands.globals import PromptCommand
 
-from alot.db import DatabaseROError
+from alot.db.errors import DatabaseROError
 from alot import commands
 from alot import buffers
 

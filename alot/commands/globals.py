@@ -17,10 +17,10 @@ from alot.commands import commandfactory
 from alot import buffers
 from alot import widgets
 from alot import helper
-from alot.db import DatabaseLockedError
+from alot.db.errors import DatabaseLockedError
 from alot.completion import ContactsCompleter
 from alot.completion import AccountCompleter
-from alot.message import Envelope
+from alot.db.envelope import Envelope
 from alot import commands
 from alot.settings import settings
 
@@ -93,12 +93,10 @@ class PromptCommand(Command):
     def apply(self, ui):
         logging.info('open command shell')
         mode = ui.current_buffer.modename
+        cmpl = CommandLineCompleter(ui.dbman, mode, ui.current_buffer)
         cmdline = yield ui.prompt('',
                                   text=self.startwith,
-                                  completer=CommandLineCompleter(ui.dbman,
-                                                                 mode,
-                                                                 ui.current_buffer,
-                                                                 ),
+                                  completer=cmpl,
                                   history=ui.commandprompthistory,
                                   )
         logging.debug('CMDLINE: %s' % cmdline)
@@ -460,7 +458,7 @@ class ComposeCommand(Command):
                  omit_signature=False, spawn=None, **kwargs):
         """
         :param envelope: use existing envelope
-        :type envelope: :class:`~alot.message.Envelope`
+        :type envelope: :class:`~alot.db.envelope.Envelope`
         :param headers: forced header values
         :type header: doct (str->str)
         :param template: name of template to parse into the envelope after

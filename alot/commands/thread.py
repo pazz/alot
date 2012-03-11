@@ -14,14 +14,14 @@ from alot.commands.globals import ComposeCommand
 from alot.commands.globals import RefreshCommand
 from alot import widgets
 from alot import completion
-from alot.message import decode_header
-from alot.message import encode_header
-from alot.message import extract_headers
-from alot.message import extract_body
-from alot.message import Envelope
-from alot.message import Attachment
+from alot.db.utils import decode_header
+from alot.db.utils import encode_header
+from alot.db.utils import extract_headers
+from alot.db.utils import extract_body
+from alot.db.envelope import Envelope
+from alot.db.attachment import Attachment
 
-from alot.db import DatabaseROError
+from alot.db.errors import DatabaseROError
 from alot.settings import settings
 
 MODE = 'thread'
@@ -75,7 +75,7 @@ class ReplyCommand(Command):
     def __init__(self, message=None, all=False, spawn=None, **kwargs):
         """
         :param message: message to reply to (defaults to selected message)
-        :type message: `alot.message.Message`
+        :type message: `alot.db.message.Message`
         :param all: group reply; copies recipients from Bcc/Cc/To to the reply
         :type all: bool
         :param spawn: force spawning of editor in a new terminal
@@ -177,7 +177,7 @@ class ForwardCommand(Command):
     def __init__(self, message=None, attach=True, spawn=None, **kwargs):
         """
         :param message: message to forward (defaults to selected message)
-        :type message: `alot.message.Message`
+        :type message: `alot.db.message.Message`
         :param attach: attach original mail instead of inline quoting its body
         :type attach: bool
         :param spawn: force spawning of editor in a new terminal
@@ -245,7 +245,7 @@ class EditNewCommand(Command):
     def __init__(self, message=None, spawn=None, **kwargs):
         """
         :param message: message to reply to (defaults to selected message)
-        :type message: `alot.message.Message`
+        :type message: `alot.db.message.Message`
         :param spawn: force spawning of editor in a new terminal
         :type spawn: bool
         """
@@ -652,7 +652,7 @@ class OpenAttachmentCommand(Command):
     def __init__(self, attachment, **kwargs):
         """
         :param attachment: attachment to open
-        :type attachment: :class:`~alot.message.Attachment`
+        :type attachment: :class:`~alot.db.attachment.Attachment`
         """
         Command.__init__(self, **kwargs)
         self.attachment = attachment

@@ -4,78 +4,18 @@ import re
 import mailcap
 import logging
 import urwid
-from urwid import AttrSpec, AttrSpecError
+from urwid import AttrSpecError
 from configobj import ConfigObj, Section
 
-from account import SendmailAccount, MatchSdtoutAddressbook, AbookAddressBook
+from alot.account import SendmailAccount
+from alot.addressbooks import MatchSdtoutAddressbook, AbookAddressBook
 
-from alot.errors import ConfigError
-from alot.helper import read_config
+from errors import ConfigError
+from utils import read_config
 from checks import mail_container
+from theme import Theme
 
-DEFAULTSPATH = os.path.join(os.path.dirname(__file__), 'defaults')
-
-
-class Theme(object):
-    """Colour theme"""
-    def __init__(self, path):
-        """
-        :param path: path to theme file
-        :type path: str
-        """
-        self._spec = os.path.join(DEFAULTSPATH, 'theme.spec')
-        self._config = read_config(path, self._spec)
-        self.attributes = self._parse_attributes(self._config)
-
-    def _parse_attributes(self, c):
-        """
-        parse a (previously validated) valid theme file
-        into urwid AttrSpec attributes for internal use.
-
-        :param c: config object for theme file
-        :type c: `configobj.ConfigObj`
-        :raises: `ConfigError`
-        """
-
-        attributes = {}
-        for sec in c.sections:
-            try:
-                colours = int(sec)
-            except ValueError:
-                err_msg = 'section name %s is not a valid colour mode'
-                raise ConfigError(err_msg % sec)
-            attributes[colours] = {}
-            for mode in c[sec].sections:
-                attributes[colours][mode] = {}
-                for themable in c[sec][mode].sections:
-                    block = c[sec][mode][themable]
-                    fg = block['fg']
-                    if colours == 1:
-                        bg = 'default'
-                    else:
-                        bg = block['bg']
-                    if colours == 256:
-                        fg = fg or c['16'][mode][themable][fg]
-                        bg = bg or c['16'][mode][themable][bg]
-                    try:
-                        att = AttrSpec(fg, bg, colours)
-                    except AttrSpecError, e:
-                        raise ConfigError(e)
-                    attributes[colours][mode][themable] = att
-        return attributes
-
-    def get_attribute(self, mode, name, colourmode):
-        """
-        returns requested attribute
-
-        :param mode: ui-mode (e.g. `search`,`thread`...)
-        :type mode: str
-        :param name: identifier of the atttribute
-        :type name: str
-        :param colourmode: colour mode; in [1, 16, 256]
-        :type colourmode: int
-        """
-        return self.attributes[colourmode][mode][name]
+DEFAULTSPATH = os.path.join(os.path.dirname(__file__), '..', 'defaults')
 
 
 class SettingsManager(object):
@@ -110,7 +50,8 @@ class SettingsManager(object):
     def read_config(self, path):
         """parse alot's config file from path"""
         spec = os.path.join(DEFAULTSPATH, 'alot.rc.spec')
-        newconfig = read_config(path, spec, checks={'mail_container': mail_container})
+        newconfig = read_config(path, spec,
+                                checks={'mail_container': mail_container})
         self._config.merge(newconfig)
 
         hooks_path = os.path.expanduser(self._config.get('hooksfile'))

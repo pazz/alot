@@ -2,12 +2,14 @@ import urwid
 import logging
 
 from settings import settings
-from helper import shorten_author_string
-from helper import pretty_datetime
-from helper import tag_cmp
-from helper import string_decode
-import message
+from alot.helper import shorten_author_string
+from alot.helper import pretty_datetime
+from alot.helper import tag_cmp
+from alot.helper import string_decode
+import alot.db.message as message
+from alot.db.attachment import Attachment
 import time
+from alot.db.utils import decode_header
 
 
 class DialogBox(urwid.WidgetWrap):
@@ -355,7 +357,7 @@ class CompleteEdit(urwid.Edit):
 
 class MessageWidget(urwid.WidgetWrap):
     """
-    Flow widget that renders a :class:`~alot.message.Message`.
+    Flow widget that renders a :class:`~alot.db.message.Message`.
 
     Respected settings:
         * `general.displayed_headers`
@@ -471,7 +473,7 @@ class MessageWidget(urwid.WidgetWrap):
         for key in self._displayed_headers:
             if key in mail:
                 for value in mail.get_all(key):
-                    dvalue = message.decode_header(value, normalize=norm)
+                    dvalue = decode_header(value, normalize=norm)
                     lines.append((key, dvalue))
 
         cols = [HeadersList(lines)]
@@ -552,7 +554,7 @@ class MessageWidget(urwid.WidgetWrap):
         return self.pile.keypress(size, key)
 
     def get_message(self):
-        """get contained :class`~alot.message.Message`"""
+        """get contained :class`~alot.db.message.Message`"""
         return self.message
 
     def get_email(self):
@@ -562,7 +564,7 @@ class MessageWidget(urwid.WidgetWrap):
 
 class MessageSummaryWidget(urwid.WidgetWrap):
     """
-    one line summary of a :class:`~alot.message.Message`.
+    one line summary of a :class:`~alot.db.message.Message`.
 
     Theme settings:
         * `thread_summary_even`
@@ -670,7 +672,7 @@ class MessageBodyWidget(urwid.AttrMap):
 
 class AttachmentWidget(urwid.WidgetWrap):
     """
-    one-line summary of an :class:`~alot.message.Attachment`.
+    one-line summary of an :class:`~alot.db.attachment.Attachment`.
 
     Theme settings:
         * `thread_attachment`
@@ -679,8 +681,8 @@ class AttachmentWidget(urwid.WidgetWrap):
     def __init__(self, attachment, selectable=True):
         self._selectable = selectable
         self.attachment = attachment
-        if not isinstance(attachment, message.Attachment):
-            self.attachment = message.Attachment(self.attachment)
+        if not isinstance(attachment, Attachment):
+            self.attachment = Attachment(self.attachment)
         att = settings.get_theming_attribute('thread', 'attachment')
         focus_att = settings.get_theming_attribute('thread',
                                                    'attachment_focus')

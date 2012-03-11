@@ -20,18 +20,34 @@ They are user defined callables that expect to be called with the following para
   :ui: :class:`~alot.ui.UI` -- the initialized main component
   :dbm: :class:`~alot.db.DBManager` -- :obj:`ui.dbman`
 
+Settings Manager
+----------------
 .. autoclass:: SettingsManager
+    :members:
+
+
+Errors
+------
+
+.. automodule:: alot.settings.errors
+    :members:
+
+Utils
+-----
+
+.. automodule:: alot.settings.utils
     :members:
 
 Themes
 ------
-.. autoclass:: Theme
+.. autoclass:: alot.settings.theme.Theme
     :members:
 
 Accounts
 --------
 
 .. module:: alot.account
+
 .. autoclass:: Account
     :members:
 .. autoclass:: SendmailAccount
@@ -39,6 +55,8 @@ Accounts
 
 Addressbooks
 ------------
+
+.. module:: alot.addressbooks
 
 .. autoclass:: AddressBook
     :members:

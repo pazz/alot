@@ -6,7 +6,7 @@ from settings import settings
 import commands
 from walker import PipeWalker
 from helper import shorten_author_string
-from db import NonexistantObjectError
+from db.errors import NonexistantObjectError
 
 
 class Buffer(object):
@@ -291,7 +291,7 @@ class ThreadBuffer(Buffer):
         return self.body.body.contents
 
     def get_selected_message(self):
-        """returns focussed :class:`~alot.message.Message`"""
+        """returns focussed :class:`~alot.db.message.Message`"""
         messagewidget = self.get_selection()
         return messagewidget.get_message()
 
@@ -308,7 +308,7 @@ class ThreadBuffer(Buffer):
     def unfold_matching(self, querystring):
         """
         unfolds those :class:`MessageWidgets <alot.widgets.MessageWidget>`
-        that represent :class:`Messages <alot.message.Message>` matching
+        that represent :class:`Messages <alot.db.message.Message>` matching
         `querystring`.
         """
         for mw in self.get_message_widgets():

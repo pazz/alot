@@ -1,13 +1,12 @@
 import mailbox
 import logging
 import time
-import re
 import email
 import os
 import glob
 import shlex
 
-import helper
+from alot.helper import call_cmd_async
 
 
 class SendingMailFailed(RuntimeError):
@@ -41,7 +40,8 @@ class Account(object):
     signature_as_attachment = None
     """attach signature file instead of appending its content to body text"""
     abook = None
-    """addressbook (:class:`AddressBook`) managing this accounts contacts"""
+    """addressbook (:class:`addressbooks.AddressBook`)
+       managing this accounts contacts"""
 
     def __init__(self, address=None, aliases=None, realname=None,
                  gpg_key=None, signature=None, signature_filename=None,
@@ -101,7 +101,8 @@ class Account(object):
         if isinstance(mbx, mailbox.Maildir):
             # this is a dirty hack to get the path to the newly added file
             # I wish the mailbox module were more helpful...
-            plist = glob.glob1(os.path.join(mbx._path, 'new'), message_id + '*')
+            plist = glob.glob1(os.path.join(mbx._path, 'new'),
+                               message_id + '*')
             if plist:
                 path = os.path.join(mbx._path, 'new', plist[0])
                 logging.debug('path of saved msg: %s' % path)
@@ -162,87 +163,7 @@ class SendmailAccount(Account):
             logging.error(failure.value.stderr)
             raise SendingMailFailed(errmsg)
 
-        d = helper.call_cmd_async(cmdlist, stdin=mail.as_string())
+        d = call_cmd_async(cmdlist, stdin=mail.as_string())
         d.addCallback(cb)
         d.addErrback(errb)
         return d
-
-
-class AddressBook(object):
-    """can look up email addresses and realnames for contacts.
-
-    .. note::
-
-        This is an abstract class that leaves :meth:`get_contacts`
-        unspecified. See :class:`AbookAddressBook` and
-        :class:`MatchSdtoutAddressbook` for implementations.
-    """
-
-    def get_contacts(self):
-        """list all contacts tuples in this abook as (name, email) tuples"""
-        return []
-
-    def lookup(self, prefix=''):
-        """looks up all contacts with given prefix (in name or address)"""
-        res = []
-        for name, email in self.get_contacts():
-            if name.startswith(prefix) or email.startswith(prefix):
-                res.append((name, email))
-        return res
-
-
-class AbookAddressBook(AddressBook):
-    """:class:`AddressBook` that parses abook's config/database files"""
-    def __init__(self, path='~/.abook/addressbook'):
-        """
-        :param path: path to theme file
-        :type path: str
-        """
-        DEFAULTSPATH = os.path.join(os.path.dirname(__file__), 'defaults')
-        self._spec = os.path.join(DEFAULTSPATH, 'abook_contacts.spec')
-        path = os.path.expanduser(path)
-        self._config = helper.read_config(path, self._spec)
-        del(self._config['format'])
-
-    def get_contacts(self):
-        c = self._config
-        return [(c[id]['name'], c[id]['email']) for id in c.sections if \
-                c[id]['email'] is not None]
-
-
-class MatchSdtoutAddressbook(AddressBook):
-    """:class:`AddressBook` that parses a shell command's output for lookups"""
-    def __init__(self, command, match=None):
-        """
-        :param command: lookup command
-        :type command: str
-        :param match: regular expression used to match contacts in `commands`
-                      output to stdout. Must define subparts named "email" and
-                      "name".  Defaults to
-                      :regexp:`^(?P<email>[^@]+@[^\t]+)\t+(?P<name>[^\t]+)`.
-        :type match: str
-        """
-        self.command = command
-        if not match:
-            self.match = '^(?P<email>[^@]+@[^\t]+)\t+(?P<name>[^\t]+)'
-        else:
-            self.match = match
-
-    def get_contacts(self):
-        return self.lookup('\'\'')
-
-    def lookup(self, prefix):
-        cmdlist = shlex.split(self.command.encode('utf-8', errors='ignore'))
-        resultstring, errmsg, retval = helper.call_cmd(cmdlist + [prefix])
-        if not resultstring:
-            return []
-        lines = resultstring.splitlines()
-        res = []
-        for l in lines:
-            m = re.match(self.match, l)
-            if m:
-                info = m.groupdict()
-                email = info['email'].strip()
-                name = info['name']
-                res.append((name, email))
-        return res
