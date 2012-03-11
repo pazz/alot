@@ -12,7 +12,7 @@ import alot.helper as helper
 from alot.settings import settings
 
 from attachment import Attachment
-from message import encode_header
+from utils import encode_header
 
 
 class Envelope(object):

@@ -9,6 +9,7 @@ from alot.helper import string_decode
 import alot.db.message as message
 from alot.db.attachment import Attachment
 import time
+from alot.db.utils import decode_header
 
 
 class DialogBox(urwid.WidgetWrap):
@@ -472,7 +473,7 @@ class MessageWidget(urwid.WidgetWrap):
         for key in self._displayed_headers:
             if key in mail:
                 for value in mail.get_all(key):
-                    dvalue = message.decode_header(value, normalize=norm)
+                    dvalue = decode_header(value, normalize=norm)
                     lines.append((key, dvalue))
 
         cols = [HeadersList(lines)]

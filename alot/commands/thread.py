@@ -14,10 +14,10 @@ from alot.commands.globals import ComposeCommand
 from alot.commands.globals import RefreshCommand
 from alot import widgets
 from alot import completion
-from alot.db.message import decode_header
-from alot.db.message import encode_header
-from alot.db.message import extract_headers
-from alot.db.message import extract_body
+from alot.db.utils import decode_header
+from alot.db.utils import encode_header
+from alot.db.utils import extract_headers
+from alot.db.utils import extract_body
 from alot.db.envelope import Envelope
 from alot.db.attachment import Attachment
 
