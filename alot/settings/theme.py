@@ -13,6 +13,7 @@ class Theme(object):
         """
         :param path: path to theme file
         :type path: str
+        :raises: :class:`~alot.settings.errors.ConfigError`
         """
         self._spec = os.path.join(DEFAULTSPATH, 'theme.spec')
         self._config = read_config(path, self._spec)

@@ -20,7 +20,22 @@ They are user defined callables that expect to be called with the following para
   :ui: :class:`~alot.ui.UI` -- the initialized main component
   :dbm: :class:`~alot.db.DBManager` -- :obj:`ui.dbman`
 
+Settings Manager
+----------------
 .. autoclass:: SettingsManager
+    :members:
+
+
+Errors
+------
+
+.. automodule:: alot.settings.errors
+    :members:
+
+Utils
+-----
+
+.. automodule:: alot.settings.utils
     :members:
 
 Themes
