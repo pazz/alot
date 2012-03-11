@@ -7,7 +7,8 @@ import urwid
 from urwid import AttrSpec, AttrSpecError
 from configobj import ConfigObj, Section
 
-from alot.account import SendmailAccount, MatchSdtoutAddressbook, AbookAddressBook
+from alot.account import SendmailAccount
+from alot.addressbooks import MatchSdtoutAddressbook, AbookAddressBook
 
 from errors import ConfigError
 from utils import read_config

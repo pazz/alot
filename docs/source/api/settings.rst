@@ -32,6 +32,7 @@ Accounts
 --------
 
 .. module:: alot.account
+
 .. autoclass:: Account
     :members:
 .. autoclass:: SendmailAccount
@@ -39,6 +40,8 @@ Accounts
 
 Addressbooks
 ------------
+
+.. module:: alot.addressbooks
 
 .. autoclass:: AddressBook
     :members:
