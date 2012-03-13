@@ -563,7 +563,7 @@ class PrintCommand(PipeCommand):
         :type add_tags: bool
         """
         # get print command
-        cmd = settings.get('print_cmd', fallback='')
+        cmd = settings.get('print_cmd') or ''
 
         # set up notification strings
         if all:
