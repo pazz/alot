@@ -14,6 +14,7 @@ import alot.helper as helper
 from alot.settings import settings
 from alot.helper import string_sanitize
 from alot.helper import string_decode
+from alot.helper import call_cmd_async
 
 
 def extract_headers(mail, headers=None):
@@ -113,6 +114,54 @@ def extract_body(mail, types=None):
                 if rendered_payload:  # handler had output
                     body_parts.append(string_sanitize(rendered_payload))
     return '\n\n'.join(body_parts)
+
+def decode_plaintext_part(part):
+    enc = part.get_content_charset() or 'ascii'
+    return string_decode(raw_payload, enc)
+
+def call_handler(part, interactive):
+    ctype = part.get_content_type()
+    cd = part.get('Content-Disposition', '')
+    raw_payload = part.get_payload(decode=True)
+
+    #get mime handler
+    key = 'copiousoutput'
+    if interactive:
+        key = 'view'
+    cmd, entry = settings.get_mime_handler(ctype, key=key)
+
+    # open tempfile, respect mailcaps nametemplate
+    nametemplate = entry.get('nametemplate','%s')
+    nt_list = nametemplate.split('%s')
+    template_prefix = ''
+    template_suffix = ''
+    if len(nt_list) == 2:
+        template_suffix = nt_list[1]
+        template_prefix = nt_list[0]
+    else:
+        template_suffix = nametemplate
+    tmpfile = tempfile.NamedTemporaryFile(delete=False,
+                                          prefix=template_prefix,
+                                          suffix=template_suffix)
+    # write payload to tmpfile
+    tmpfile.write(raw_payload)
+    tmpfile.close()
+
+    parms = tuple(map('='.join, part.get_params()))
+
+    # create and call external command
+    cmd = mailcap.subst(entry['view'], ctype, filename=tmpfile.name, plist=parms)
+    logging.debug(cmd)
+    cmdlist = shlex.split(cmd.encode('utf-8', errors='ignore'))
+
+    # define callback
+    def cleanup(returndata):
+        os.unlink(tmpfile.name) # remove tempfile
+        return returndata  # make sure successive callbacks are called
+
+    d = call_cmd_async(cmdlist)
+    d.addCallback(cleanup)
+    return d
 
 
 def decode_header(header, normalize=False):
