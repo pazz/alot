@@ -37,9 +37,162 @@ class Message(object):
         self._from = helper.safely_get(lambda: msg.get_header('From'),
                                        NullPointerError)
         self._email = None  # will be read upon first use
-        self._attachments = None  # will be read upon first use
+        self._attachments = []  # will be read upon first use
+        self._inlines = []  # stores inline parts
         self._tags = set(msg.get_tags())
 
+    def read_mail(self):
+        self._attachments = []
+        self._inlines = []
+        self._read_part(self.get_email())
+
+    def _add_attachment(self, a):
+        logging.debug('add attachment: %s' % a.get_content_type())
+        self._attachments.append(Attachment(a))
+
+    def _read_part(self, part):
+        ctype = part.get_content_type()
+        maintype = part.get_content_maintype()
+        subtype = part.get_content_subtype()
+        cdisp = part.get('Content-Disposition', '')
+        logging.debug('read part: %s' % ctype)
+
+        if maintype == 'text':
+            logging.debug('text')
+            if cdisp.startswith('attachment'):
+                self._add_attachment(part)
+            else:
+                content = helper.read_text_part(part)
+                if subtype == 'html':
+                    content = helper.tidy_html(content)
+                logging.debug('add inline')
+                self._inlines.append((ctype, content, None))
+
+        elif ctype == 'message/rfc822':
+            logging.debug('rfc822')
+            # A message/rfc822 part contains an email message, including any
+            # headers. This is used for digests as well as for email
+            # forwarding. Defined in RFC 2046.
+
+            # TODO: use extract_headers to get text representation of the
+            # headers (filter interesting to ones via config setting) add this
+            # string to self._inlines and continue recursively with
+            self._add_attachment(part)
+
+        elif ctype == 'multipart/mixed':
+            logging.debug('multipart/mixed. rucurring')
+            # Multipart/mixed is used for sending files with different
+            # "Content-Type" headers inline (or as attachments). Defined in RFC
+            # 2046, Section 5.1.3
+            for subpart in part.get_payload():
+                self._read_part(subpart)
+        elif ctype == 'multipart/digest':
+            # Multipart/digest is a simple way to send multiple text messages.
+            # The default content-type for each part is "message/rfc822".
+            # Defined in RFC 2046, Section 5.1.5
+            # TODO
+            pass
+        elif ctype == 'multipart/alternative':
+            # The multipart/alternative subtype indicates that each part is an
+            # "alternative" version of the same (or similar) content, each in a
+            # different format denoted by its "Content-Type" header. The formats
+            # are ordered by how faithful they are to the original, with the
+            # least faithful first and the most faithful last.
+
+            # This structure places the plain text version (if present) first.
+
+            # Most commonly, multipart/alternative is used for email with two
+            # parts, one plain text (text/plain) and one HTML (text/html).
+
+            # Defined in RFC 2046, Section 5.1.4
+
+            alternative = None
+            for subpart in part.get_payload():
+                if subpart.get_content_type() == 'text/plain':
+                    alternative = helper.read_text_part(subpart)
+                elif subpart.get_content_type() == 'text/html':
+                    content = helper.tidy_html(helper.read_text_part(subpart))
+                else:
+                    content = part.get_payload(decode=True)
+            self._inlines.append((ctype, content, None))
+
+        elif ctype == 'multipart/related':
+            # A multipart/related is used to indicate that each message part is
+            # a component of an aggregate whole. It is for compound objects
+            # consisting of several inter-related components - proper display
+            # cannot be achieved by individually displaying the constituent
+            # parts. The message consists of a root part (by default, the first)
+            # which reference other parts inline, which may in turn reference
+            # other parts. Message parts are commonly referenced by the
+            # "Content-ID" part header. The syntax of a reference is unspecified
+            # and is instead dictated by the encoding or protocol used in the
+            # part.
+            #
+            # One common usage of this subtype is to send a web page complete
+            # with images in a single message. The root part would contain the
+            # HTML document, and use image tags to reference images stored in
+            # the latter parts.
+            #
+            # Defined in RFC 2387
+            # TODO
+            pass
+
+        elif ctype == 'multipart/report':
+            # Multipart/report is a message type that contains data formatted
+            # for a mail server to read. It is split between a text/plain (or
+            # some other content/type easily readable) and a
+            # message/delivery-status, which contains the data formatted for the
+            # mail server to read.  Defined in RFC 6522
+            # TODO
+            pass
+        elif ctype == 'multipart/signed':
+            # A multipart/signed message is used to attach a digital signature
+            # to a message.  It has two parts, a body part and a signature part.
+            # The whole of the body part, including mime headers, is used to
+            # create the signature part. Many signature types are possible, like
+            # application/pgp-signature (RFC 3156) and
+            # application/pkcs7-signature (S/MIME).  Defined in RFC 1847,
+            # Section 2.1
+            # TODO
+            pass
+        elif ctype == 'multipart/encrypted':
+            # A multipart/encrypted message has two parts. The first part has
+            # control information that is needed to decrypt the
+            # application/octet-stream second part. Similar to signed messages,
+            # there are different implementations which are identified by their
+            # separate content types for the control part. The most common types
+            # are "application/pgp-encrypted" (RFC 3156) and
+            # "application/pkcs7-mime" (S/MIME).  Defined in RFC 1847, Section
+            # 2.2
+            # TODO
+            pass
+        elif ctype == 'multipart/form-data':
+            # As its name implies, multipart/form-data is used to express values
+            # submitted through a form. Originally defined as part of HTML 4.0,
+            # it is most commonly used for submitting files via HTTP.  Defined
+            # in RFC 2388
+            # TODO
+            pass
+        elif ctype == 'multipart/x-mixed-replace':
+            # The content type multipart/x-mixed-replace was developed as part
+            # of a technology to emulate server push and streaming over HTTP.
+            # TODO
+            pass
+        elif ctype == 'multipart/byteranges':
+            # The multipart/byteranges is used to represent noncontiguous byte
+            # ranges of a single message. It is used by HTTP when a server
+            # returns multiple byte ranges and is defined in RFC 2616.
+            # TODO
+            pass
+        else:  # catchall: try to handle inline if requested, otherwise attach
+            logging.debug('catchall: %s' % cdisp)
+            if cdisp == 'inline':
+                content = part.get_payload(decode=True)
+                alt_text = '[%s part]' % ctype
+                logging.debug('add inline')
+                self._inlines.append((ctype, content, alt_text))
+            else:
+                self._add_attachment(part)
     def __str__(self):
         """prettyprint the message"""
         aname, aaddress = self.get_author()
