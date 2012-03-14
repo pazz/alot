@@ -34,7 +34,7 @@ class SettingsManager(object):
 
         theme_path = theme or os.path.join(DEFAULTSPATH, 'default.theme')
         self._theme = Theme(theme_path)
-        self._bindings = read_config(os.path.join(DEFAULTSPATH, 'bindings'))
+        self._bindings = ConfigObj()
 
         self._config = ConfigObj()
         self._accounts = None
