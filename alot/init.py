@@ -84,7 +84,7 @@ class Options(usage.Options):
     debuglogstring.coerceDoc = "Must be one of debug,info,warning or error"
 
     optParameters = [
-            ['config', 'c', '~/.config/alot/config', 'config file'],
+            ['config', 'c', None, 'config file'],
             ['notmuch-config', 'n', '~/.notmuch-config', 'notmuch config'],
             ['colour-mode', 'C', None, 'terminal colour mode', colourint],
             ['mailindex-path', 'p', None, 'path to notmuch index'],
@@ -133,7 +133,7 @@ def main():
     if args['config']:
         expanded_path = os.path.expanduser(args['config'])
         if not os.path.exists(expanded_path):
-            sys.exit('File %s does not exist' % expanded_path)
+            sys.exit('Explicitly given config file "%s" does not exist. Goodbye for now.' % expanded_path)
         configfiles.insert(0, expanded_path)
 
     # locate notmuch config
