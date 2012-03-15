@@ -1,6 +1,7 @@
 import imp
 import os
 import re
+import errno
 import mailcap
 import logging
 import urwid

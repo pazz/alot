@@ -146,14 +146,14 @@ def main():
             alotconfig = configfilename
             break  # use only the first
 
-    if not alotconfig:
-        alotconfig = configfiles[0]
-        settings.write_default_config(alotconfig)
-
     try:
+        if not alotconfig:
+            alotconfig = configfiles[0]
+            settings.write_default_config(alotconfig)
+
         settings.read_config(alotconfig)
         settings.read_notmuch_config(notmuchconfig)
-    except ConfigError, e:  # exit on parse errors
+    except (ConfigError, OSError, IOError), e:
         sys.exit(e)
 
     # store options given by config swiches to the settingsManager:
