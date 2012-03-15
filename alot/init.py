@@ -146,6 +146,10 @@ def main():
             alotconfig = configfilename
             break  # use only the first
 
+    if not alotconfig:
+        alotconfig = configfiles[0]
+        settings.write_default_config(alotconfig)
+
     try:
         settings.read_config(alotconfig)
         settings.read_notmuch_config(notmuchconfig)
