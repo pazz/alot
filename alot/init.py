@@ -132,7 +132,8 @@ def main():
     if args['config']:
         expanded_path = os.path.expanduser(args['config'])
         if not os.path.exists(expanded_path):
-            sys.exit('Explicitly given config file "%s" does not exist. Goodbye for now.' % expanded_path)
+            msg = 'Config file "%s" does not exist. Goodbye for now.'
+            sys.exit(msg % expanded_path)
         configfiles.insert(0, expanded_path)
 
     # locate notmuch config
