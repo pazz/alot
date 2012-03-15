@@ -1,3 +1,30 @@
+
+# editor command
+# if unset, alot will first try the EDITOR env variable, then file /usr/bin/editor
+#editor_cmd = nano
+
+
+#[accounts]
+    # your main email address
+#    address = me@example.com
+
+    # used to format the (proposed) From-header in outgoing mails
+#    realname = string
+
+    # used to clear your addresses/ match account when formatting replies
+#    aliases = string_list(default=list())
+
+    # where to store outgoing mails, e.g. `maildir:///home/you/mail//Sent`
+    # You can use mbox, maildir, mh, babyl and mmdf in the protocol part of the URL.
+#    sent_box = mail_container(default=None)
+
+    # where to store draft mails, see :ref:`sent_box <sent-box>` for the format
+#    draft_box = mail_container(default=None)
+
+    # list of tags to automatically add to outgoing messages
+#    sent_tags = string_list(default=list('sent'))
+
+
 [bindings]
     j = move down
     k = move up

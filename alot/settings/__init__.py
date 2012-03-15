@@ -95,7 +95,7 @@ class SettingsManager(object):
                 pass
             else:
                 raise
-        shutil.copyfile(os.path.join(DEFAULTSPATH, 'bindings'), path)
+        shutil.copyfile(os.path.join(DEFAULTSPATH, 'config.stub'), path)
 
     def _parse_accounts(self, config):
         """
