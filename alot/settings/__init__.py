@@ -1,9 +1,11 @@
 import imp
 import os
 import re
+import errno
 import mailcap
 import logging
 import urwid
+import shutil
 from urwid import AttrSpecError
 from configobj import ConfigObj, Section
 
@@ -34,7 +36,7 @@ class SettingsManager(object):
 
         theme_path = theme or os.path.join(DEFAULTSPATH, 'default.theme')
         self._theme = Theme(theme_path)
-        self._bindings = read_config(os.path.join(DEFAULTSPATH, 'bindings'))
+        self._bindings = ConfigObj()
 
         self._config = ConfigObj()
         self._accounts = None
@@ -83,6 +85,18 @@ class SettingsManager(object):
 
         self._accounts = self._parse_accounts(self._config)
         self._accountmap = self._account_table(self._accounts)
+
+    def write_default_config(self, path):
+        """write out defaults/config.stub to path"""
+        (dir, file) = os.path.split(path)
+        try:
+            os.makedirs(dir)
+        except OSError, e:
+            if e.errno == errno.EEXIST:
+                pass
+            else:
+                raise
+        shutil.copyfile(os.path.join(DEFAULTSPATH, 'config.stub'), path)
 
     def _parse_accounts(self, config):
         """

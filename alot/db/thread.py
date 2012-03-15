@@ -8,8 +8,8 @@ class Thread(object):
     """
     A wrapper around a notmuch mailthread (:class:`notmuch.database.Thread`)
     that ensures persistence of the thread: It can be safely read multiple
-    times, its manipulation is done via a :class:`alot.db.DBManager` and it
-    can directly provide contained messages as :class:`~alot.db.message.Message`.
+    times, its manipulation is done via a :class:`alot.db.DBManager` and it can
+    directly provide contained messages as :class:`~alot.db.message.Message`.
     """
 
     def __init__(self, dbman, thread):

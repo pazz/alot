@@ -84,7 +84,7 @@ class Options(usage.Options):
     debuglogstring.coerceDoc = "Must be one of debug,info,warning or error"
 
     optParameters = [
-            ['config', 'c', '~/.config/alot/config', 'config file'],
+            ['config', 'c', None, 'config file'],
             ['notmuch-config', 'n', '~/.notmuch-config', 'notmuch config'],
             ['colour-mode', 'C', None, 'terminal colour mode', colourint],
             ['mailindex-path', 'p', None, 'path to notmuch index'],
@@ -128,12 +128,12 @@ def main():
         os.path.join(os.environ.get('XDG_CONFIG_HOME',
                                     os.path.expanduser('~/.config')),
                      'alot', 'config'),
-        os.path.expanduser('~/.alot.rc'),
     ]
     if args['config']:
         expanded_path = os.path.expanduser(args['config'])
         if not os.path.exists(expanded_path):
-            sys.exit('File %s does not exist' % expanded_path)
+            msg = 'Config file "%s" does not exist. Goodbye for now.'
+            sys.exit(msg % expanded_path)
         configfiles.insert(0, expanded_path)
 
     # locate notmuch config
@@ -147,9 +147,13 @@ def main():
             break  # use only the first
 
     try:
+        if not alotconfig:
+            alotconfig = configfiles[0]
+            settings.write_default_config(alotconfig)
+
         settings.read_config(alotconfig)
         settings.read_notmuch_config(notmuchconfig)
-    except ConfigError, e:  # exit on parse errors
+    except (ConfigError, OSError, IOError), e:
         sys.exit(e)
 
     # store options given by config swiches to the settingsManager:
