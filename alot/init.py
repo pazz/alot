@@ -128,7 +128,6 @@ def main():
         os.path.join(os.environ.get('XDG_CONFIG_HOME',
                                     os.path.expanduser('~/.config')),
                      'alot', 'config'),
-        os.path.expanduser('~/.alot.rc'),
     ]
     if args['config']:
         expanded_path = os.path.expanduser(args['config'])
