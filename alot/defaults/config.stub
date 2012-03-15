@@ -1,31 +1,27 @@
-
 # For a complete list and description of options, please refer to:
-#   http://alot.readthedocs.org/en/latest/configuration/index.html#config-options
-# or the file: defaults/alot.rc.spec in your alot installation.
+# http://alot.readthedocs.org/en/latest/configuration/index.html#config-options
 
 # editor command
 # if unset, alot will first try the EDITOR env variable, then file /usr/bin/editor
 #editor_cmd = nano
 
 #[accounts]
-    # your main email address
+#  [[foo-account]]
+#    # your main email address
 #    address = me@example.com
-
-    # used to format the (proposed) From-header in outgoing mails
+#
+#    # used to format the (proposed) From-header in outgoing mails
 #    realname = string
-
-    # used to clear your addresses/ match account when formatting replies
-#    aliases = string_list(default=list())
-
-    # where to store outgoing mails, e.g. `maildir:///home/you/mail//Sent`
-    # You can use mbox, maildir, mh, babyl and mmdf in the protocol part of the URL.
-#    sent_box = mail_container(default=None)
-
-    # where to store draft mails, see :ref:`sent_box <sent-box>` for the format
-#    draft_box = mail_container(default=None)
-
-    # list of tags to automatically add to outgoing messages
-#    sent_tags = string_list(default=list('sent'))
+#
+#    # used to clear your addresses/ match account when formatting replies
+#    aliases = foo@bar.com, foo@barmail.com
+#
+#    # where to store outgoing mails and drafts
+#    sent_box = maildir:///home/you/mail/Sent
+#    draft_box = maildir:///home/you/mail/Drafts
+#
+#    # list of tags to automatically add to outgoing messages
+#    sent_tags = sent,
 
 
 [bindings]
