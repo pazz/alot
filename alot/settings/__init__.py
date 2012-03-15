@@ -87,6 +87,7 @@ class SettingsManager(object):
         self._accountmap = self._account_table(self._accounts)
 
     def write_default_config(self, path):
+        """write out defaults/config.stub to path"""
         (dir, file) = os.path.split(path)
         try:
             os.makedirs(dir)
