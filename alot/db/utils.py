@@ -7,8 +7,8 @@ from email.header import Header
 import email.charset as charset
 charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 from email.iterators import typed_subpart_iterator
-import logging
 import mailcap
+import logging
 
 import alot.helper as helper
 from alot.settings import settings
@@ -115,11 +115,13 @@ def extract_body(mail, types=None):
                     body_parts.append(string_sanitize(rendered_payload))
     return '\n\n'.join(body_parts)
 
+
 def decode_plaintext_part(part):
     enc = part.get_content_charset() or 'ascii'
     return string_decode(raw_payload, enc)
 
-def call_handler(part, interactive):
+
+def call_handler(part, interactive=False):
     ctype = part.get_content_type()
     cd = part.get('Content-Disposition', '')
     raw_payload = part.get_payload(decode=True)
@@ -128,10 +130,10 @@ def call_handler(part, interactive):
     key = 'copiousoutput'
     if interactive:
         key = 'view'
-    cmd, entry = settings.get_mime_handler(ctype, key=key)
+    cmd, entry = settings.mailcap_find_match(ctype, key=key)
 
     # open tempfile, respect mailcaps nametemplate
-    nametemplate = entry.get('nametemplate','%s')
+    nametemplate = entry.get('nametemplate', '%s')
     nt_list = nametemplate.split('%s')
     template_prefix = ''
     template_suffix = ''
@@ -150,13 +152,14 @@ def call_handler(part, interactive):
     parms = tuple(map('='.join, part.get_params()))
 
     # create and call external command
-    cmd = mailcap.subst(entry['view'], ctype, filename=tmpfile.name, plist=parms)
+    cmd = mailcap.subst(entry['view'], ctype, filename=tmpfile.name,
+                        plist=parms)
     logging.debug(cmd)
     cmdlist = shlex.split(cmd.encode('utf-8', errors='ignore'))
 
     # define callback
     def cleanup(returndata):
-        os.unlink(tmpfile.name) # remove tempfile
+        os.unlink(tmpfile.name)  # remove tempfile
         return returndata  # make sure successive callbacks are called
 
     d = call_cmd_async(cmdlist)
