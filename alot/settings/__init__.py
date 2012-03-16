@@ -322,32 +322,12 @@ class SettingsManager(object):
                     abooks.append(a.abook)
         return abooks
 
-    def get_mime_handler(self, mime_type, key='view', interactive=True):
+    def mailcap_find_match(self, *args, **kwargs):
         """
-        get shellcomand defined in the users `mailcap` as handler for files of
-        given `mime_type`.
-
-        :param mime_type: file type
-        :type mime_type: str
-        :param key: identifies one of possibly many commands for this type by
-                    naming the intended usage, e.g. 'edit' or 'view'. Defaults
-                    to 'view'.
-        :type key: str
-        :param interactive: choose the "interactive session" handler rather
-                            than the "print to stdout and immediately return"
-                            handler
-        :type interactive: bool
+        Propagates :func:`mailcap.find_match` but caches the mailcap (first
+        argument)
         """
-        if interactive:
-            mc_tuple = mailcap.findmatch(self._mailcaps, mime_type, key=key)
-        else:
-            mc_tuple = mailcap.findmatch(self._mailcaps, mime_type,
-                                         key='copiousoutput')
-        if mc_tuple:
-            if mc_tuple[1]:
-                return mc_tuple[1][key]
-        else:
-            return None
+        return mailcap.findmatch(self._mailcaps, *args, **kwargs)
 
 
 settings = SettingsManager()
