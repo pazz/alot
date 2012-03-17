@@ -1,20 +1,17 @@
-current:
+0.22:
 
 * revised config syntax!
 * config file validation, better feedback on malformed configs
 * themes read from separate files in their own (validated) syntax
+* complete mailcap compatibility
 * user manual
-
 * direct addressbook type that parses `abook`s contacts
 * completion for multiple recipients via AbooksCompleter
 * completion for optional command parameter
-
 * generate and set a Message-ID header when constructing mails
 * add User-Agent header by default
-
 * add sent and saved draft mails to the notmuch index and add custom tags
 * guess file encodings with libmagic
-
 * new thread mode command: "remove" to delete messages from the index
 * new thread mode command: "editnew" e.g. to continue drafts (bound to 'n')
 * new thread mode command: "togglesource" to display raw messages (bound to 'h')
@@ -22,18 +19,15 @@ current:
 * much improved pipeto command in thread mode
 * --spawn parameter for reply,forward,compose,editnew in thread mode
 * --no-flush parameter for delayed flushing in tag,untag,toggletags commands
-
 * make "signature as attachment" configurable; --omit_signature parameter for compose
 * new envelope command: "save" to save as draft (bound to 'P')
 * --no-refocus and --spawn parameter for edit in envelope mode
 * header key completion for set/unset in envelope buffer
-
 * "Me" substitution for ones own name/address in authors string
 * new search mode command and search argument: "sort"
 * renamed search mode command 'toggletag' to "toggletags"
 * new search mode commands: "tag" and "untag"
 * custom tagstring representation: hiding, substitution, colours, multi-matching
-
 
 
 0.21
