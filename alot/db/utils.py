@@ -41,9 +41,9 @@ def extract_headers(mail, headers=None):
 def extract_body(mail, types=None):
     """
     returns a body text string for given mail.
-    If types is `None`, 'text/*' is used:
-    In case mail has a 'text/html' part, it is prefered over
-    'text/plain' parts.
+    If types is `None`, `text/*` is used:
+    In case mail has a `text/html` part, it is prefered over
+    `text/plain` parts.
 
     :param mail: the mail to use
     :type mail: :class:`email.Message`

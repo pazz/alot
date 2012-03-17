@@ -22,7 +22,7 @@
     used to clear your addresses/ match account when formatting replies
 
     :type: string_list
-    :default: ","
+    :default: `,`
 
 
 .. _sendmail-command:
@@ -32,18 +32,27 @@
     sendmail command. This is the shell command used to send out mails via the sendmail protocol
 
     :type: string
-    :default: "sendmail"
+    :default: `sendmail`
 
 
 .. _sent-box:
 
 .. describe:: sent_box
 
-    specifies the mailbox where you want outgoing mails to be stored after successfully sending them, e.g. 
-    where to store outgoing mail, e.g. `maildir:///home/you/mail//Sent`
+    where to store outgoing mails, e.g. `maildir:///home/you/mail//Sent`
     You can use mbox, maildir, mh, babyl and mmdf in the protocol part of the URL.
 
-    :type: string
+    :type: mail_container
+    :default: None
+
+
+.. _draft-box:
+
+.. describe:: draft_box
+
+    where to store draft mails, see :ref:`sent_box <sent-box>` for the format
+
+    :type: mail_container
     :default: None
 
 
@@ -54,7 +63,7 @@
     list of tags to automatically add to outgoing messages
 
     :type: string_list
-    :default: "sent,"
+    :default: `sent,`
 
 
 .. _signature:

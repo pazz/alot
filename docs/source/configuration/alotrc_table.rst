@@ -77,7 +77,7 @@
     headers that get displayed by default
 
     :type: string_list
-    :default: "From, To, Cc, Bcc, Subject"
+    :default: `From, To, Cc, Bcc, Subject`
 
 
 .. _edit-headers-blacklist:
@@ -87,7 +87,7 @@
     see :ref:`edit_headers_whitelist <edit-headers-whitelist>`
 
     :type: string_list
-    :default: "Content-Type, MIME-Version, References, In-Reply-To"
+    :default: `Content-Type, MIME-Version, References, In-Reply-To`
 
 
 .. _edit-headers-whitelist:
@@ -99,7 +99,7 @@
     in both cases '*' may be used to indicate all fields.
 
     :type: string_list
-    :default: "*,"
+    :default: `*,`
 
 
 .. _editor-cmd:
@@ -107,7 +107,7 @@
 .. describe:: editor_cmd
 
     editor command
-    if unset, alot will first try the :env:`EDITOR` env variable, then :file:`/usr/bin/editor`
+    if unset, alot will first try the :envvar:`EDITOR` env variable, then :file:`/usr/bin/editor`
 
     :type: string
     :default: None
@@ -142,7 +142,7 @@
     file encoding used by your editor
 
     :type: string
-    :default: "UTF-8"
+    :default: `UTF-8`
 
 
 .. _envelope-headers-blacklist:
@@ -152,7 +152,7 @@
     headers that are hidden in envelope buffers by default
 
     :type: string_list
-    :default: "In-Reply-To, References"
+    :default: `In-Reply-To, References`
 
 
 .. _flush-retry-timeout:
@@ -172,7 +172,7 @@
     where to look up hooks
 
     :type: string
-    :default: "~/.config/alot/hooks.py"
+    :default: `~/.config/alot/hooks.py`
 
 
 .. _initial-command:
@@ -182,7 +182,7 @@
     initial command when none is given as argument:
 
     :type: string
-    :default: "search tag:inbox AND NOT tag:killed"
+    :default: `search tag:inbox AND NOT tag:killed`
 
 
 .. _notify-timeout:
@@ -206,6 +206,16 @@
 
     :type: string
     :default: None
+
+
+.. _prompt-suffix:
+
+.. describe:: prompt_suffix
+
+    Suffix of the prompt used when waiting for user input
+
+    :type: string
+    :default: `:`
 
 
 .. _quit-on-last-bclose:
@@ -256,7 +266,7 @@
     It will be used if you give `compose --template` a filename without a path prefix.
 
     :type: string
-    :default: "$XDG_CONFIG_HOME/alot/templates"
+    :default: `$XDG_CONFIG_HOME/alot/templates`
 
 
 .. _terminal-cmd:
@@ -266,7 +276,7 @@
     set terminal command used for spawning shell commands
 
     :type: string
-    :default: "x-terminal-emulator -e"
+    :default: `x-terminal-emulator -e`
 
 
 .. _theme:
@@ -297,7 +307,7 @@
     :ref:`thread_authors_replace_me <thread-authors-replace-me>`
 
     :type: string
-    :default: "Me"
+    :default: `Me`
 
 
 .. _thread-authors-replace-me:
@@ -330,5 +340,5 @@
     The string '{version}' will be replaced by the version string of the running instance.
 
     :type: string
-    :default: "alot/{version}"
+    :default: `alot/{version}`
 
