@@ -10,6 +10,8 @@ import alot.db.message as message
 from alot.db.attachment import Attachment
 import time
 from alot.db.utils import decode_header
+from alot.db.utils import call_handler
+from alot.treetools import TreeWalker, TreeListBox, TreeNode, ParentNode, TreeWidget
 
 
 class DialogBox(urwid.WidgetWrap):
@@ -504,7 +506,8 @@ class MessageWidget(urwid.WidgetWrap):
     def _get_body_widget(self):
         """creates/returns the widget that displays the mail body"""
         if not self.bodyw:
-            cols = [MessageBodyWidget(self.message.get_email())]
+            #cols = [MessageBodyWidget(self.message.get_email())]
+            cols = [PartWidget(self.message.get_email())]
             bc = list()
             if self.depth:
                 cols.insert(0, self._get_spacer(self.bars_at[1:]))
@@ -692,6 +695,51 @@ class AttachmentWidget(urwid.WidgetWrap):
 
     def get_attachment(self):
         return self.attachment
+
+    def selectable(self):
+        return self._selectable
+
+    def keypress(self, size, key):
+        return key
+
+class PartWidget(urwid.Pile):
+    def __init__(self, part, selectable=True):
+        self._selectable = selectable
+        self.part = part
+        ctype = part.get_content_type()
+        maintype = part.get_content_maintype()
+        subtype = part.get_content_subtype()
+        cdisp = part.get('Content-Disposition', '')
+        logging.debug('read part: %s' % ctype)
+        self.subparts = []
+
+        if ctype == 'text/plain':
+            logging.debug('text/plain')
+            enc = part.get_content_charset() or 'ascii'
+            payload = part.get_payload(decode=True)
+            text = string_decode(payload, enc)
+            logging.debug('text=%s' % text)
+            self.subparts.append(urwid.Text(text))
+        elif ctype == 'multipart/mixed':
+            logging.debug('multipart/mixed. rucurring')
+            # Multipart/mixed is used for sending files with different
+            # "Content-Type" headers inline (or as attachments). Defined in RFC
+            # 2046, Section 5.1.3
+            for subpart in part.get_payload():
+                self.subparts.append(PartWidget(subpart))
+        elif ctype == 'multipart/alternative':
+            for subpart in part.get_payload():
+                self.subparts.append(PartWidget(subpart))
+        else:  # try mailcap
+           rmme = urwid.Text('..loading..')
+           d = call_handler(part)
+           def cb(text):
+               logging.debug('CALLBACK')
+               rmme.set_text(text)
+           d.addCallback(cb)
+           rmme.set_text('not loading')
+           self.subparts.append(rmme)
+        urwid.Pile.__init__(self, self.subparts)
 
     def selectable(self):
         return self._selectable
