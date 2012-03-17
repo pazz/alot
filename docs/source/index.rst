@@ -15,3 +15,4 @@ User Manual
    usage/index
    configuration/index
    api/index
+   faq
