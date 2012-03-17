@@ -24,14 +24,5 @@ Run the :file:`setup.py` like this to install locally::
 
 and make sure :file:`~/.local/bin` is in your :envvar:`PATH`.
 
-
-All configs are optional, but if you want to send mails you need to specify at least one
-:ref:`account <account>` in your config. See the :ref:`configuration <configuration>` for how to do
-fancy customization.
-
-You do need to set an inline renderer for text/html in your :file:`~/.mailcap` to display
-html mails::
-   
-       text/html;  w3m -dump %s; nametemplate=%s.html; copiousoutput
-
-
+Alot uses mailcap to look up mime-handler for inline rendering and opening of attachments.
+For a full description of the maicap protocol consider the manpage :manpage:`mailcap(5)`.
