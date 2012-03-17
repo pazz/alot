@@ -12,6 +12,10 @@ The default location for the config file is :file:`~/.config/alot/config`. If
 upon startup this file is not found, a small default configuration (containing
 mostly standard key bindings) will be copied in its place.
 
+All configs are optional, but if you want to send mails you need to specify at least one
+:ref:`account <account>` in your config.
+
+
 Config options
 ==============
 
