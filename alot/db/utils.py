@@ -7,6 +7,8 @@ from email.header import Header
 import email.charset as charset
 charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 from email.iterators import typed_subpart_iterator
+import logging
+import mailcap
 
 import alot.helper as helper
 from alot.settings import settings
@@ -58,6 +60,7 @@ def extract_body(mail, types=None):
     body_parts = []
     for part in mail.walk():
         ctype = part.get_content_type()
+        logging.debug(ctype)
 
         if types is not None:
             if ctype not in types:
@@ -68,35 +71,47 @@ def extract_body(mail, types=None):
 
         enc = part.get_content_charset() or 'ascii'
         raw_payload = part.get_payload(decode=True)
-        if part.get_content_maintype() == 'text':
-            raw_payload = string_decode(raw_payload, enc)
         if ctype == 'text/plain' and not drop_plaintext:
+            raw_payload = string_decode(raw_payload, enc)
             body_parts.append(string_sanitize(raw_payload))
         else:
             #get mime handler
-            handler = settings.get_mime_handler(ctype, key='view',
-                                                interactive=False)
-            if handler:
-                #open tempfile. Not all handlers accept stuff from stdin
-                tmpfile = tempfile.NamedTemporaryFile(delete=False,
-                                                      suffix='.html')
-                #write payload to tmpfile
-                if part.get_content_maintype() == 'text':
-                    tmpfile.write(raw_payload.encode('utf8'))
+            key = 'copiousoutput'
+            handler, entry = settings.mailcap_find_match(ctype, key=key)
+
+            if entry:
+                # open tempfile, respect mailcaps nametemplate
+                nametemplate = entry.get('nametemplate', '%s')
+                nt_list = nametemplate.split('%s')
+                template_prefix = ''
+                template_suffix = ''
+                if len(nt_list) == 2:
+                    template_suffix = nt_list[1]
+                    template_prefix = nt_list[0]
                 else:
-                    tmpfile.write(raw_payload)
+                    template_suffix = nametemplate
+                tmpfile = tempfile.NamedTemporaryFile(delete=False,
+                                                      prefix=template_prefix,
+                                                      suffix=template_suffix)
+                # write payload to tmpfile
+                tmpfile.write(raw_payload)
                 tmpfile.close()
-                #create and call external command
-                cmd = handler % tmpfile.name
+
+                # read parameter, create handler command
+                parms = tuple(map('='.join, part.get_params()))
+
+                # create and call external command
+                cmd = mailcap.subst(entry['view'], ctype,
+                                    filename=tmpfile.name, plist=parms)
+                logging.debug('command: %s' % cmd)
+                logging.debug('parms: %s' % str(parms))
                 cmdlist = shlex.split(cmd.encode('utf-8', errors='ignore'))
+                # call handler
                 rendered_payload, errmsg, retval = helper.call_cmd(cmdlist)
-                #remove tempfile
+                # remove tempfile
                 os.unlink(tmpfile.name)
                 if rendered_payload:  # handler had output
                     body_parts.append(string_sanitize(rendered_payload))
-                elif part.get_content_maintype() == 'text':
-                    body_parts.append(string_sanitize(raw_payload))
-                # else drop
     return '\n\n'.join(body_parts)
 
 
