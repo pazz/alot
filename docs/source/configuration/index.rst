@@ -121,6 +121,7 @@ The only types supported at the moment are "shellcommand" and "abook":
             [[[abook]]]
                 type = abook
 
+.. _key_bindings:
 
 Key Bindings
 ============
@@ -230,7 +231,7 @@ from option `colourmode` config value. The default is 256, which scales down dep
 terminal supports.
 
 To specify the theme to use, set the `theme` config option to the name of a theme-file.
-A file by that name will be looked up in the path given by the `themes_dir` config setting
+A file by that name will be looked up in the path given by the :ref:`themes_dir <themes-dir>` config setting
 which defaults to :file:`~/.config/alot/themes/`.
 
 Theme-files can contain sections `[1], [16]` and `[256]` for different colour modes,
