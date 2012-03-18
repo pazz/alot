@@ -241,8 +241,6 @@ latex_documents = [
 man_pages = [
     ('manpage', 'alot', u'mail user agent for the notmuch mail system',
      [u'Patrick Totzke'], 1),
-    ('configuration', 'alot.rc', u'CONF',
-     [u'Patrick Totzke'], 5)
 ]
 
 
