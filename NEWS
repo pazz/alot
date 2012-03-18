@@ -1,4 +1,4 @@
-0.22:
+0.3:
 
 * revised config syntax!
 * config file validation, better feedback on malformed configs
