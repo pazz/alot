@@ -154,12 +154,14 @@ class SettingsManager(object):
                 accountmap[alias] = acc
         return accountmap
 
-    def get(self, key):
+    def get(self, key, fallback=None):
         """
         look up global config values from alot's config
 
         :param key: key to look up
         :type key: str
+        :param fallback: fallback returned if key is not present
+        :type fallback: str
         :returns: config value with type as specified in the spec-file
         """
         value = None
@@ -167,6 +169,8 @@ class SettingsManager(object):
             value = self._config[key]
             if isinstance(value, Section):
                 value = None
+        if value == None:
+            value = fallback
         return value
 
     def set(self, key, value):
@@ -180,7 +184,7 @@ class SettingsManager(object):
         """
         self._config[key] = value
 
-    def get_notmuch_setting(self, section, key):
+    def get_notmuch_setting(self, section, key, fallback=None):
         """
         look up config values from notmuch's config
 
@@ -188,12 +192,16 @@ class SettingsManager(object):
         :type section: str
         :param key: key to look up
         :type key: str
+        :param fallback: fallback returned if key is not present
+        :type fallback: str
         :returns: config value with type as specified in the spec-file
         """
         value = None
         if section in self._notmuchconfig:
             if key in self._notmuchconfig[section]:
                 value = self._notmuchconfig[section][key]
+        if value == None:
+            value = fallback
         return value
 
     def get_theming_attribute(self, mode, name):
