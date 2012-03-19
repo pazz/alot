@@ -358,6 +358,7 @@ class FlushCommand(Command):
             ui.notify('index locked, will try again in %d secs' % timeout)
             ui.update()
             return
+        logging.debug('flush complete')
 
 
 #TODO: choices

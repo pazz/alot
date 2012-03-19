@@ -84,6 +84,7 @@ class DBManager(object):
                 try:
                     # the first two coordinants are cnmdname and post-callback
                     cmd, afterwards = current_item[:2]
+                    logging.debug('cmd created')
 
                     # aquire a writeable db handler
                     try:
@@ -91,19 +92,26 @@ class DBManager(object):
                         db = Database(path=self.path, mode=mode)
                     except NotmuchError:
                         raise DatabaseLockedError()
+                    logging.debug('got write lock')
 
                     # make this a transaction
                     db.begin_atomic()
+                    logging.debug('got atomic')
 
                     if cmd == 'add':
+                        logging.debug('add')
                         path, tags = current_item[2:]
                         msg, status = db.add_message(path,
                                                      sync_maildir_flags=sync)
+                        logging.debug('added msg')
                         msg.freeze()
+                        logging.debug('freeze')
                         for tag in tags:
                             msg.add_tag(tag.encode(DB_ENC),
                                         sync_maildir_flags=sync)
+                        logging.debug('added tags ')
                         msg.thaw()
+                        logging.debug('thaw')
 
                     elif cmd == 'remove':
                         path = current_item[2]
@@ -129,16 +137,21 @@ class DBManager(object):
                                                   sync_maildir_flags=sync)
                             msg.thaw()
 
+                    logging.debug('ended atomic')
                     # end transaction and reinsert queue item on error
                     if db.end_atomic() != notmuch.STATUS.SUCCESS:
                         raise DatabaseError('end_atomic failed')
+                    logging.debug('ended atomic')
 
                     # close db
                     db.close()
+                    logging.debug('closed db')
 
                     # call post-callback
                     if callable(afterwards):
+                        logging.debug(str(afterwards))
                         afterwards()
+                    logging.debug('called callback')
 
                 # re-insert item to the queue upon Xapian/NotmuchErrors
                 except (XapianError, NotmuchError) as e:
@@ -149,6 +162,7 @@ class DBManager(object):
                     logging.debug('index temporarily locked')
                     self.writequeue.appendleft(current_item)
                     raise e
+                logging.debug('flush finished')
 
     def kill_search_processes(self):
         """
