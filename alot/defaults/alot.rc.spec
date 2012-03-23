@@ -51,6 +51,7 @@ editor_cmd = string(default=None)
 editor_writes_encoding = string(default='UTF-8')
 
 # use terminal_command to spawn a new terminal for the editor?
+# equivalent to always providing the `--spawn` parameter to compose/edit commands
 editor_spawn = boolean(default=False)
 
 # call editor in separate thread.
