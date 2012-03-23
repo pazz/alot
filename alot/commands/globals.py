@@ -216,10 +216,7 @@ class EditCommand(ExternalCommand):
         :type thread: bool
         """
         self.path = path
-        if spawn != None:
-            self.spawn = spawn
-        else:
-            self.spawn = settings.get('editor_spawn')
+        self.spawn = settings.get('editor_spawn') or spawn
         if thread != None:
             self.thread = thread
         else:
