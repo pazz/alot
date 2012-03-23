@@ -210,7 +210,7 @@ class EditCommand(ExternalCommand):
         """
         :param path: path to the file to be edited
         :type path: str
-        :param spawn: run command in a new terminal
+        :param spawn: force running edtor in a new terminal
         :type spawn: bool
         :param thread: run asynchronously, don't block alot
         :type thread: bool
