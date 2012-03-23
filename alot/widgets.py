@@ -72,10 +72,6 @@ class ThreadlineWidget(urwid.AttrMap):
         * `search_thread_subject, search_thread_subject_focus`
         * `search_thread_content, search_thread_content_focus`
     """
-    # The pretty_datetime needs 9 characters, but only 8 if locale
-    # doesn't use am/pm (in which case "jan 2012" is the longest)
-    pretty_datetime_len = 8 if len(time.strftime("%P")) == 0 else 9
-
     def __init__(self, tid, dbman):
         self.dbman = dbman
         #logging.debug('tid: %s' % tid)
@@ -102,7 +98,7 @@ class ThreadlineWidget(urwid.AttrMap):
                 datestring = pretty_datetime(newest)
             else:
                 datestring = newest.strftime(formatstring)
-        datestring = datestring.rjust(self.pretty_datetime_len)
+        datestring = datestring.rjust(9)
         self.date_w = urwid.AttrMap(urwid.Text(datestring),
                                     self._get_theme('date'))
         cols.append(('fixed', len(datestring), self.date_w))

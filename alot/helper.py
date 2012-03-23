@@ -214,7 +214,9 @@ def pretty_datetime(d):
         string = d.strftime('%b %Y')
     else:
         string = d.strftime('%b %d')
-    return string
+    # XXX: We may have utf-8 coming from strftime(),
+    # decode to proper python unicode. What about Python 3?
+    return string.decode('utf-8')
 
 
 def call_cmd(cmdlist, stdin=None):
