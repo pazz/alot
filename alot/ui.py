@@ -446,6 +446,7 @@ class UI(object):
                     cmd.prehook(ui=self, dbm=self.dbman)
                 except:
                     logging.exception('prehook failed')
+                    return False
 
             # define (callback) function that invokes post-hook
             def call_posthook(retval_from_apply):
