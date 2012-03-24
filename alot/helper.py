@@ -1,6 +1,7 @@
 # coding=utf-8
 from datetime import date
 from datetime import timedelta
+from datetime import datetime
 from collections import deque
 from string import strip
 import subprocess
@@ -192,28 +193,58 @@ def pretty_datetime(d):
     """
     translates :class:`datetime` `d` to a "sup-style" human readable string.
 
-    >>> now = datetime.now()
-    >>> pretty_datetime(now)
-    '09:31am'
+    >>> pretty_datetime(datetime.now())
+    'just now'
+    >>> one_minute_ago = datetime.today() - timedelta(minutes=1)
+    >>> pretty_datetime(one_minute_ago)
+    '1min ago'
+    >>> hours_ago = datetime.today() - timedelta(hours=11, minutes=59)
+    >>> pretty_datetime(hours_ago)
+    '11h ago'
+    >>> half_day_ago = datetime.today() - timedelta(hours=12)
+    >>> pretty_datetime(half_day_ago)
+    ' 9:31am'
     >>> one_day_ago = datetime.today() - timedelta(1)
     >>> pretty_datetime(one_day_ago)
-    'Yest. 9am'
-    >>> thirty_days_ago = datetime.today() - timedelta(30)
-    >>> pretty_datetime(thirty_days_ago)
-    'Nov 01'
-    >>> one_year_ago = datetime.today() - timedelta(356)
-    >>> pretty_datetime(one_year_ago)
-    'Dec 2010'
+    'yest  9am'
+    >>> two_days_ago = datetime.today() - timedelta(2)
+    >>> pretty_datetime(two_days_ago)
+    'Wed  9am'
+    >>> seven_days_ago = datetime.today() - timedelta(7)
+    >>> pretty_datetime(seven_days_ago)
+    'Nov  1'
+    >>> last_year = datetime.today() - timedelta(365)
+    >>> pretty_datetime(last_year)
+    'Nov 2010'
     """
-    today = date.today()
-    if today == d.date():
-        string = d.strftime('%H:%M%P')
+    ampm = d.strftime('%P')
+    if len(ampm):
+        hourfmt = '%l' + ampm
+        hourminfmt = '%l:%M' + ampm
+    else:
+        hourfmt = '%Hh'
+        hourminfmt = '%H:%M'
+
+    now = datetime.now()
+    today = now.date()
+    if d.date() == today or d > now - timedelta(hours=6):
+        delta = datetime.now() - d
+        if delta.seconds < 60:
+            string = 'just now'
+        elif delta.seconds < 3600:
+            string = '%dmin ago' % (delta.seconds / 60)
+        elif delta.seconds < 6 * 3600:
+            string = '%dh ago' % (delta.seconds / 3600)
+        else:
+            string = d.strftime(hourminfmt)
     elif d.date() == today - timedelta(1):
-        string = 'Yest.%2d' % d.hour + d.strftime('%P')
+        string = d.strftime('yest ' + hourfmt)
+    elif d.date() > today - timedelta(7):
+        string = d.strftime('%a ' + hourfmt)
     elif d.year != today.year:
         string = d.strftime('%b %Y')
     else:
-        string = d.strftime('%b %d')
+        string = d.strftime('%b %e')
     # XXX: We may have utf-8 coming from strftime(),
     # decode to proper python unicode. What about Python 3?
     return string.decode('utf-8')
