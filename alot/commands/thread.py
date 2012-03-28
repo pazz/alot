@@ -6,6 +6,7 @@ import shlex
 import re
 import subprocess
 from email.Utils import parseaddr
+import mailcap
 
 from alot.commands import Command, registerCommand
 from alot.commands.globals import ExternalCommand
@@ -23,6 +24,7 @@ from alot.db.attachment import Attachment
 
 from alot.db.errors import DatabaseROError
 from alot.settings import settings
+from alot.helper import parse_mailcap_nametemplate
 
 MODE = 'thread'
 
@@ -661,19 +663,33 @@ class OpenAttachmentCommand(Command):
         logging.info('open attachment')
         mimetype = self.attachment.get_content_type()
 
-        handler = settings.get_mime_handler(mimetype)
+        handler, entry = settings.mailcap_find_match(mimetype)
         if handler:
-            path = self.attachment.save(tempfile.gettempdir())
-            handler = re.sub('\'?%s\'?', '{}', handler)
+            nametemplate = entry.get('nametemplate', '%s')
+            prefix, suffix = parse_mailcap_nametemplate(nametemplate)
+            tmpfile = tempfile.NamedTemporaryFile(delete=False,
+                                                  prefix=prefix,
+                                                  suffix=suffix)
+
+            self.attachment.write(tmpfile)
+            tmpfile.close()
+
+            # read parameter, create handler command
+            part = self.attachment.get_mime_representation()
+            parms = tuple(map('='.join, part.get_params()))
+
+            # create and call external command
+            handler = mailcap.subst(entry['view'], mimetype,
+                                filename=tmpfile.name, plist=parms)
 
             # 'needsterminal' makes handler overtake the terminal
-            nt = settings.get_mime_handler(mimetype, key='needsterminal')
+            nt = entry.get('needsterminal', None)
             overtakes = (nt is None)
 
             def afterwards():
-                os.remove(path)
+                os.remove(tmpfile.name)
 
-            ui.apply_command(ExternalCommand(handler, path=path,
+            ui.apply_command(ExternalCommand(handler, path=tmpfile.name,
                                              on_success=afterwards,
                                              thread=overtakes))
         else:
