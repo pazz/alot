@@ -62,9 +62,13 @@ class Attachment(object):
                 FILE = tempfile.NamedTemporaryFile(delete=False, dir=path)
         else:
             FILE = open(path, "w")  # this throws IOErrors for invalid path
-        FILE.write(self.get_data())
+        self.write(FILE)
         FILE.close()
         return FILE.name
+
+    def write(self, fhandle):
+        """writes content to a given filehandle"""
+        fhandle.write(self.get_data())
 
     def get_data(self):
         """return data blob from wrapped file"""

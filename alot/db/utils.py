@@ -14,6 +14,7 @@ import alot.helper as helper
 from alot.settings import settings
 from alot.helper import string_sanitize
 from alot.helper import string_decode
+from alot.helper import parse_mailcap_nametemplate
 
 
 def extract_headers(mail, headers=None):
@@ -82,17 +83,10 @@ def extract_body(mail, types=None):
             if entry:
                 # open tempfile, respect mailcaps nametemplate
                 nametemplate = entry.get('nametemplate', '%s')
-                nt_list = nametemplate.split('%s')
-                template_prefix = ''
-                template_suffix = ''
-                if len(nt_list) == 2:
-                    template_suffix = nt_list[1]
-                    template_prefix = nt_list[0]
-                else:
-                    template_suffix = nametemplate
+                prefix, suffix = parse_mailcap_nametemplate(nametemplate)
                 tmpfile = tempfile.NamedTemporaryFile(delete=False,
-                                                      prefix=template_prefix,
-                                                      suffix=template_suffix)
+                                                      prefix=prefix,
+                                                      suffix=suffix)
                 # write payload to tmpfile
                 tmpfile.write(raw_payload)
                 tmpfile.close()
