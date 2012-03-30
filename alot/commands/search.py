@@ -199,11 +199,3 @@ class TagCommand(Command):
         # flush index
         if self.flush:
             ui.apply_command(commands.globals.FlushCommand())
-
-        # refresh buffer.
-        # TODO: This shouldn't be necessary but apparently it is: without the
-        # following call, the buffer is not updated by the refresh callback
-        # (given as afterwards parm above) because
-        # ui.dbman.count_messages(testquery) doesn't return 0 as expected - and
-        # as it does here.
-        refresh()
