@@ -124,12 +124,9 @@ class Message(object):
         the general section of the config.
         """
         if self._datetime == None:
-            return None
-        formatstring = settings.get('timestamp_format')
-        if formatstring == None:
-            res = helper.pretty_datetime(self._datetime)
+            res = None
         else:
-            res = self._datetime.strftime(formatstring)
+            res = settings.represent_datetime(self._datetime)
         return res
 
     def get_author(self):
