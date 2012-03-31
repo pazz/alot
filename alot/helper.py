@@ -214,7 +214,7 @@ def pretty_datetime(d):
         string = d.strftime('%b %Y')
     else:
         string = d.strftime('%b %d')
-    return string
+    return string_decode(string, 'UTF-8')
 
 
 def call_cmd(cmdlist, stdin=None):
