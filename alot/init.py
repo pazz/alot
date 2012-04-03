@@ -85,7 +85,6 @@ class Options(usage.Options):
 
     optParameters = [
             ['config', 'c', None, 'config file'],
-            ['notmuch-config', 'n', '~/.notmuch-config', 'notmuch config'],
             ['colour-mode', 'C', None, 'terminal colour mode', colourint],
             ['mailindex-path', 'p', None, 'path to notmuch index'],
             ['debug-level', 'd', 'info', 'debug log', debuglogstring],
@@ -137,7 +136,9 @@ def main():
         configfiles.insert(0, expanded_path)
 
     # locate notmuch config
-    notmuchconfig = os.path.expanduser(args['notmuch-config'])
+    notmuchconfig = os.path.expanduser(os.environ.get('NOTMUCH_CONFIG',
+                                       '~/.notmuch-config'))
+
 
     alotconfig = None
     # read the first alot config file we find
