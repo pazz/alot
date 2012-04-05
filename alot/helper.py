@@ -17,6 +17,7 @@ from twisted.internet.protocol import ProcessProtocol
 from twisted.internet.defer import Deferred
 import StringIO
 import logging
+import tempfile
 
 
 def safely_get(clb, E, on_error=''):
@@ -396,3 +397,17 @@ def humanize_size(size):
         if size / factor < 1024:
             return format_string % (float(size) / factor)
     return format_string % (size / factor)
+
+
+def parse_mailcap_nametemplate(tmplate='%s'):
+    """this returns a prefix and suffix to be used
+    in the tempfile module for a given mailcap nametemplate string"""
+    nt_list = tmplate.split('%s')
+    template_prefix = ''
+    template_suffix = ''
+    if len(nt_list) == 2:
+        template_suffix = nt_list[1]
+        template_prefix = nt_list[0]
+    else:
+        template_suffix = tmplate
+    return (template_prefix, template_suffix)
