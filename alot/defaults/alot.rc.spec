@@ -27,10 +27,10 @@ theme = string(default=None)
 display_content_in_threadline = boolean(default=False)
 
 # headers that get displayed by default
-displayed_headers = string_list(default=list(From,To,Cc,Bcc,Subject))
+displayed_headers = force_list(default=list(From,To,Cc,Bcc,Subject))
 
 # headers that are hidden in envelope buffers by default
-envelope_headers_blacklist = string_list(default=list(In-Reply-To,References))
+envelope_headers_blacklist = force_list(default=list(In-Reply-To,References))
 
 # Replace own email addresses with "me" in author lists
 # Uses own addresses and aliases in all configured accounts.
@@ -61,10 +61,10 @@ editor_in_thread = boolean(default=False)
 # Which header fields should be editable in your editor
 # used are those that match the whitelist and don't match the blacklist.
 # in both cases '*' may be used to indicate all fields.
-edit_headers_whitelist = string_list(default=list(*,))
+edit_headers_whitelist = force_list(default=list(*,))
 
 # see :ref:`edit_headers_whitelist <edit-headers-whitelist>`
-edit_headers_blacklist = string_list(default=list(Content-Type,MIME-Version,References,In-Reply-To))
+edit_headers_blacklist = force_list(default=list(Content-Type,MIME-Version,References,In-Reply-To))
 
 # timeout in seconds after a failed attempt to writeout the database is repeated
 flush_retry_timeout = integer(default=5)
@@ -145,7 +145,7 @@ prompt_suffix = string(default=':')
         realname = string
 
         # used to clear your addresses/ match account when formatting replies
-        aliases = string_list(default=list())
+        aliases = force_list(default=list())
 
         # sendmail command. This is the shell command used to send out mails via the sendmail protocol
         sendmail_command = string(default='sendmail')
@@ -158,7 +158,7 @@ prompt_suffix = string(default=':')
         draft_box = mail_container(default=None)
 
         # list of tags to automatically add to outgoing messages
-        sent_tags = string_list(default=list('sent'))
+        sent_tags = force_list(default=list('sent'))
 
         # path to signature file that gets attached to all outgoing mails from this account, optionally
         # renamed to ref:`signature_filename <signature-filename>`.
