@@ -255,7 +255,7 @@ class EditCommand(Command):
         # call pre-edit translate hook
         translate = settings.get_hook('pre_edit_translate')
         if translate:
-            bodytext = translate(bodytext, ui=ui, dbm=ui.dbman)
+            content = translate(content, ui=ui, dbm=ui.dbman)
 
         #write stuff to tempfile
         tf = tempfile.NamedTemporaryFile(delete=False, prefix='alot.')
