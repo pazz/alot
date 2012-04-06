@@ -44,8 +44,11 @@ class AbookAddressBook(AddressBook):
 
     def get_contacts(self):
         c = self._config
-        return [(c[id]['name'], c[id]['email']) for id in c.sections if \
-                c[id]['email'] is not None]
+        res = []
+        for id in c.sections:
+            for email in c[id]['email']:
+                if email: res.append((c[id]['name'], email))
+        return res
 
 
 class MatchSdtoutAddressbook(AddressBook):
