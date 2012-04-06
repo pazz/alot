@@ -221,7 +221,7 @@ class ForwardCommand(Command):
 
         else:  # attach original mode
             # attach original msg
-            mail.set_default_type('message/rfc822')
+            mail.set_type('message/rfc822')
             mail['Content-Disposition'] = 'attachment'
             envelope.attach(Attachment(mail))
 

@@ -30,9 +30,11 @@ class Attachment(object):
         If the content-disposition header contains no file name,
         this returns `None`
         """
-        extracted_name = decode_header(self.part.get_filename())
-        if extracted_name:
-            return os.path.basename(extracted_name)
+        fname = self.part.get_filename()
+        if fname:
+            extracted_name = decode_header()
+            if extracted_name:
+                return os.path.basename(extracted_name)
         return None
 
     def get_content_type(self):
