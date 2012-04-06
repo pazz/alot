@@ -4,4 +4,4 @@
 
 [__many__]
     name = string(default=None)
-    email = string(default=None)
+    email = force_list(default=list())
