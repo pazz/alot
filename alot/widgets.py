@@ -472,9 +472,14 @@ class MessageWidget(urwid.WidgetWrap):
         lines = []
         for key in self._displayed_headers:
             if key in mail:
-                for value in mail.get_all(key):
-                    dvalue = decode_header(value, normalize=norm)
-                    lines.append((key, dvalue))
+                if key.lower() in ['cc','bcc', 'to']:
+                    values = mail.get_all(key)
+                    dvalues = [decode_header(v, normalize=norm) for v in values]
+                    lines.append((key, ', '.join(dvalues)))
+                else:
+                    for value in mail.get_all(key):
+                        dvalue = decode_header(value, normalize=norm)
+                        lines.append((key, dvalue))
 
         cols = [HeadersList(lines)]
         bc = list()
