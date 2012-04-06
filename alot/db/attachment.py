@@ -32,7 +32,7 @@ class Attachment(object):
         """
         fname = self.part.get_filename()
         if fname:
-            extracted_name = decode_header()
+            extracted_name = decode_header(fname)
             if extracted_name:
                 return os.path.basename(extracted_name)
         return None
