@@ -2,6 +2,8 @@
 [[global]]
     [[[footer]]]
         fg = string(default='default')
+    [[[body]]]
+        fg = string(default='default')
     [[[notify_error]]]
         fg = string(default='default')
     [[[notify_normal]]]
@@ -11,8 +13,6 @@
     [[[tag]]]
         fg = string(default='default')
     [[[tag_focus]]]
-        fg = string(default='default')
-    [[[tag_draft]]]
         fg = string(default='default')
 [[help]]
     [[[text]]]
@@ -84,10 +84,22 @@
         fg = string(default='default')
     [[[summary_odd]]]
         fg = string(default='default')
+[[envelope]]
+    [[[body]]]
+        fg = string(default='default')
+    [[[header]]]
+        fg = string(default='default')
+    [[[header_key]]]
+        fg = string(default='default')
+    [[[header_value]]]
+        fg = string(default='default')
 
 [16]
 [[global]]
     [[[footer]]]
+        bg = string(default='default')
+        fg = string(default='default')
+    [[[body]]]
         bg = string(default='default')
         fg = string(default='default')
     [[[notify_error]]]
@@ -103,9 +115,6 @@
         bg = string(default='default')
         fg = string(default='default')
     [[[tag_focus]]]
-        bg = string(default='default')
-        fg = string(default='default')
-    [[[tag_draft]]]
         bg = string(default='default')
         fg = string(default='default')
 [[help]]
@@ -156,6 +165,19 @@
     [[[summary_odd]]]
         bg = string(default='default')
         fg = string(default='default')
+[[envelope]]
+    [[[body]]]
+        bg = string(default='default')
+        fg = string(default='default')
+    [[[header]]]
+        bg = string(default='default')
+        fg = string(default='default')
+    [[[header_key]]]
+        bg = string(default='default')
+        fg = string(default='default')
+    [[[header_value]]]
+        bg = string(default='default')
+        fg = string(default='default')
 [[search]]
     [[[thread]]]
         bg = string(default='default')
@@ -204,6 +226,9 @@
 [[global]]
     # attributes used in all modi
     [[[footer]]]
+        bg = string(default=None)
+        fg = string(default=None)
+    [[[body]]]
         bg = string(default=None)
         fg = string(default=None)
     [[[notify_error]]]
@@ -313,5 +338,16 @@
     [[[summary_odd]]]
         bg = string(default=None)
         fg = string(default=None)
-
-
+[[envelope]]
+    [[[body]]]
+        bg = string(default=None)
+        fg = string(default=None)
+    [[[header]]]
+        bg = string(default=None)
+        fg = string(default=None)
+    [[[header_key]]]
+        bg = string(default=None)
+        fg = string(default=None)
+    [[[header_value]]]
+        bg = string(default=None)
+        fg = string(default=None)

@@ -2,6 +2,8 @@
 [[global]]
     [[[footer]]]
         fg = 'standout'
+    [[[body]]]
+        fg = 'default'
     [[[notify_error]]]
         fg = 'standout'
     [[[notify_normal]]]
@@ -12,8 +14,6 @@
         fg = 'default'
     [[[tag_focus]]]
         fg = 'standout, bold'
-    [[[tag_draft]]]
-        fg = 'standout'
 [[help]]
     [[[text]]]
         fg = 'default'
@@ -84,12 +84,23 @@
         fg = 'standout'
     [[[summary_odd]]]
         fg = 'default'
-
+[[envelope]]
+    [[[body]]]
+        fg = 'default'
+    [[[header]]]
+        fg = 'default'
+    [[[header_key]]]
+        fg = 'default'
+    [[[header_value]]]
+        fg = 'default'
 [16]
 [[global]]
     [[[footer]]]
         bg = 'dark blue'
         fg = 'light green'
+    [[[body]]]
+        bg = 'default'
+        fg = 'default'
     [[[notify_error]]]
         bg = 'dark red'
         fg = 'white'
@@ -104,9 +115,6 @@
         fg = 'brown'
     [[[tag_focus]]]
         bg = 'dark gray'
-        fg = 'white'
-    [[[tag_draft]]]
-        bg = 'light red'
         fg = 'white'
 [[help]]
     [[[text]]]
@@ -156,6 +164,19 @@
     [[[summary_odd]]]
         bg = 'dark blue'
         fg = 'white'
+[[envelope]]
+    [[[body]]]
+        bg = 'default'
+        fg = 'light gray'
+    [[[header]]]
+        bg = 'dark gray'
+        fg = 'white'
+    [[[header_key]]]
+        bg = 'dark gray'
+        fg = 'white'
+    [[[header_value]]]
+        bg = 'dark gray'
+        fg = 'light gray'
 [[search]]
     [[[thread]]]
         bg = 'default'
@@ -206,6 +227,9 @@
     [[[footer]]]
         bg = '#006'
         fg = 'white'
+    [[[body]]]
+        bg = 'default'
+        fg = 'default'
     [[[notify_error]]]
         bg = 'dark red'
         fg = 'white'
@@ -315,3 +339,16 @@
     [[[summary_odd]]]
         bg = '#006'
         fg = 'white'
+[[envelope]]
+    [[[body]]]
+        bg = 'default'
+        fg = 'light gray'
+    [[[header]]]
+        bg = 'dark gray'
+        fg = 'white'
+    [[[header_key]]]
+        bg = 'dark gray'
+        fg = 'white'
+    [[[header_value]]]
+        bg = 'dark gray'
+        fg = 'light gray'

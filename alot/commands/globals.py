@@ -380,6 +380,9 @@ class HelpCommand(Command):
     def apply(self, ui):
         logging.debug('HELP')
         if self.commandname == 'bindings':
+            text_att = settings.get_theming_attribute('help', 'text')
+            title_att = settings.get_theming_attribute('help', 'title')
+            section_att = settings.get_theming_attribute('help', 'section')
             # get mappings
             modemaps = dict(settings._bindings[ui.mode].items())
             is_scalar = lambda (k, v): k in settings._bindings.scalars
@@ -392,29 +395,27 @@ class HelpCommand(Command):
 
             linewidgets = []
             # mode specific maps
-            linewidgets.append(urwid.Text(('help_section',
+            linewidgets.append(urwid.Text((section_att,
                                 '\n%s-mode specific maps' % ui.mode)))
             for (k, v) in modemaps.items():
-                line = urwid.Columns([('fixed', keycolumnwidth, urwid.Text(k)),
-                                      urwid.Text(v)])
+                line = urwid.Columns([('fixed', keycolumnwidth,
+                                       urwid.Text((text_att, k))),
+                                      urwid.Text((text_att, v))])
                 linewidgets.append(line)
 
             # global maps
-            linewidgets.append(urwid.Text(('help_section',
-                                           '\nglobal maps')))
+            linewidgets.append(urwid.Text((section_att, '\nglobal maps')))
             for (k, v) in globalmaps.items():
                 if k not in modemaps:
                     line = urwid.Columns(
-                        [('fixed', keycolumnwidth, urwid.Text(k)),
-                         urwid.Text(v)])
+                        [('fixed', keycolumnwidth, urwid.Text((text_att, k))),
+                         urwid.Text((text_att, v))])
                     linewidgets.append(line)
 
             body = urwid.ListBox(linewidgets)
             ckey = 'cancel'
             titletext = 'Bindings Help (%s cancels)' % ckey
 
-            text_att = settings.get_theming_attribute('help', 'text')
-            title_att = settings.get_theming_attribute('help', 'title')
             box = widgets.DialogBox(body, titletext,
                                     bodyattr=text_att,
                                     titleattr=title_att)
