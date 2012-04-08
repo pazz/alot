@@ -84,8 +84,10 @@ class UI(object):
 
         colourmode = int(settings.get('colourmode'))
         logging.info('setup gui in %d colours' % colourmode)
+        global_att = settings.get_theming_attribute('global', 'body')
         self.mainframe = urwid.Frame(urwid.SolidFill())
-        self.inputwrap = InputWrap(self, self.mainframe)
+        self.mainframe_themed = urwid.AttrMap(self.mainframe, global_att)
+        self.inputwrap = InputWrap(self, self.mainframe_themed)
         self.mainloop = urwid.MainLoop(self.inputwrap,
                 handle_mouse=False,
                 event_loop=urwid.TwistedEventLoop(),
@@ -227,7 +229,7 @@ class UI(object):
         else:
             if self.current_buffer != buf:
                 self.current_buffer = buf
-                self.inputwrap.set_root(self.mainframe)
+                self.inputwrap.set_root(self.mainframe_themed)
             self.mode = buf.modename
             if isinstance(self.current_buffer, BufferlistBuffer):
                 self.current_buffer.rebuild()
