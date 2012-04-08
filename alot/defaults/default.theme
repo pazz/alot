@@ -12,8 +12,6 @@
         fg = 'default'
     [[[tag_focus]]]
         fg = 'standout, bold'
-    [[[tag_draft]]]
-        fg = 'standout'
 [[help]]
     [[[text]]]
         fg = 'default'
@@ -104,9 +102,6 @@
         fg = 'brown'
     [[[tag_focus]]]
         bg = 'dark gray'
-        fg = 'white'
-    [[[tag_draft]]]
-        bg = 'light red'
         fg = 'white'
 [[help]]
     [[[text]]]

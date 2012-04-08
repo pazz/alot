@@ -12,8 +12,6 @@
         fg = string(default='default')
     [[[tag_focus]]]
         fg = string(default='default')
-    [[[tag_draft]]]
-        fg = string(default='default')
 [[help]]
     [[[text]]]
         fg = string(default='default')
@@ -103,9 +101,6 @@
         bg = string(default='default')
         fg = string(default='default')
     [[[tag_focus]]]
-        bg = string(default='default')
-        fg = string(default='default')
-    [[[tag_draft]]]
         bg = string(default='default')
         fg = string(default='default')
 [[help]]
