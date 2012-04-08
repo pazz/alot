@@ -2,6 +2,8 @@
 [[global]]
     [[[footer]]]
         fg = 'standout'
+    [[[body]]]
+        fg = 'default'
     [[[notify_error]]]
         fg = 'standout'
     [[[notify_normal]]]
@@ -88,6 +90,9 @@
     [[[footer]]]
         bg = 'dark blue'
         fg = 'light green'
+    [[[body]]]
+        bg = 'default'
+        fg = 'default'
     [[[notify_error]]]
         bg = 'dark red'
         fg = 'white'
@@ -201,6 +206,9 @@
     [[[footer]]]
         bg = '#006'
         fg = 'white'
+    [[[body]]]
+        bg = 'default'
+        fg = 'default'
     [[[notify_error]]]
         bg = 'dark red'
         fg = 'white'

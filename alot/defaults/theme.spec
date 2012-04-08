@@ -2,6 +2,8 @@
 [[global]]
     [[[footer]]]
         fg = string(default='default')
+    [[[body]]]
+        fg = string(default='default')
     [[[notify_error]]]
         fg = string(default='default')
     [[[notify_normal]]]
@@ -86,6 +88,9 @@
 [16]
 [[global]]
     [[[footer]]]
+        bg = string(default='default')
+        fg = string(default='default')
+    [[[body]]]
         bg = string(default='default')
         fg = string(default='default')
     [[[notify_error]]]
@@ -199,6 +204,9 @@
 [[global]]
     # attributes used in all modi
     [[[footer]]]
+        bg = string(default=None)
+        fg = string(default=None)
+    [[[body]]]
         bg = string(default=None)
         fg = string(default=None)
     [[[notify_error]]]
