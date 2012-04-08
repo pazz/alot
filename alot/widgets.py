@@ -476,7 +476,9 @@ class MessageWidget(urwid.WidgetWrap):
                     dvalue = decode_header(value, normalize=norm)
                     lines.append((key, dvalue))
 
-        cols = [HeadersList(lines)]
+        key_att = settings.get_theming_attribute('thread', 'header_key')
+        value_att = settings.get_theming_attribute('thread', 'header_value')
+        cols = [HeadersList(lines, key_att, value_att)]
         bc = list()
         if self.depth:
             cols.insert(0, self._get_spacer(self.bars_at[1:]))
@@ -619,16 +621,11 @@ class MessageSummaryWidget(urwid.WidgetWrap):
 
 
 class HeadersList(urwid.WidgetWrap):
-    """
-    renders a pile of header values as key/value list
-
-    Theme settings:
-        * `thread_header`
-        * `thread_header_key`
-        * `thread_header_value`
-    """
-    def __init__(self, headerslist):
+    """ renders a pile of header values as key/value list """
+    def __init__(self, headerslist, key_attr, value_attr):
         self.headers = headerslist
+        self.key_attr = key_attr
+        self.value_attr = value_attr
         pile = urwid.Pile(self._build_lines(headerslist))
         att = settings.get_theming_attribute('thread', 'header')
         pile = urwid.AttrMap(pile, att)
@@ -640,8 +637,6 @@ class HeadersList(urwid.WidgetWrap):
     def _build_lines(self, lines):
         max_key_len = 1
         headerlines = []
-        key_att = settings.get_theming_attribute('thread', 'header_key')
-        value_att = settings.get_theming_attribute('thread', 'header_value')
         #calc max length of key-string
         for key, value in lines:
             if len(key) > max_key_len:
@@ -649,8 +644,8 @@ class HeadersList(urwid.WidgetWrap):
         for key, value in lines:
             ##todo : even/odd
             keyw = ('fixed', max_key_len + 1,
-                    urwid.Text((key_att, key)))
-            valuew = urwid.Text((value_att, value))
+                    urwid.Text((self.key_attr, key)))
+            valuew = urwid.Text((self.value_attr, value))
             line = urwid.Columns([keyw, valuew])
             headerlines.append(line)
         return headerlines
