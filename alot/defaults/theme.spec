@@ -84,6 +84,15 @@
         fg = string(default='default')
     [[[summary_odd]]]
         fg = string(default='default')
+[[envelope]]
+    [[[body]]]
+        fg = string(default='default')
+    [[[header]]]
+        fg = string(default='default')
+    [[[header_key]]]
+        fg = string(default='default')
+    [[[header_value]]]
+        fg = string(default='default')
 
 [16]
 [[global]]
@@ -154,6 +163,19 @@
         bg = string(default='default')
         fg = string(default='default')
     [[[summary_odd]]]
+        bg = string(default='default')
+        fg = string(default='default')
+[[envelope]]
+    [[[body]]]
+        bg = string(default='default')
+        fg = string(default='default')
+    [[[header]]]
+        bg = string(default='default')
+        fg = string(default='default')
+    [[[header_key]]]
+        bg = string(default='default')
+        fg = string(default='default')
+    [[[header_value]]]
         bg = string(default='default')
         fg = string(default='default')
 [[search]]
@@ -316,5 +338,16 @@
     [[[summary_odd]]]
         bg = string(default=None)
         fg = string(default=None)
-
-
+[[envelope]]
+    [[[body]]]
+        bg = string(default=None)
+        fg = string(default=None)
+    [[[header]]]
+        bg = string(default=None)
+        fg = string(default=None)
+    [[[header_key]]]
+        bg = string(default=None)
+        fg = string(default=None)
+    [[[header_value]]]
+        bg = string(default=None)
+        fg = string(default=None)

@@ -84,7 +84,15 @@
         fg = 'standout'
     [[[summary_odd]]]
         fg = 'default'
-
+[[envelope]]
+    [[[body]]]
+        fg = 'default'
+    [[[header]]]
+        fg = 'default'
+    [[[header_key]]]
+        fg = 'default'
+    [[[header_value]]]
+        fg = 'default'
 [16]
 [[global]]
     [[[footer]]]
@@ -156,6 +164,19 @@
     [[[summary_odd]]]
         bg = 'dark blue'
         fg = 'white'
+[[envelope]]
+    [[[body]]]
+        bg = 'default'
+        fg = 'light gray'
+    [[[header]]]
+        bg = 'dark gray'
+        fg = 'white'
+    [[[header_key]]]
+        bg = 'dark gray'
+        fg = 'white'
+    [[[header_value]]]
+        bg = 'dark gray'
+        fg = 'light gray'
 [[search]]
     [[[thread]]]
         bg = 'default'
@@ -318,3 +339,16 @@
     [[[summary_odd]]]
         bg = '#006'
         fg = 'white'
+[[envelope]]
+    [[[body]]]
+        bg = 'default'
+        fg = 'light gray'
+    [[[header]]]
+        bg = 'dark gray'
+        fg = 'white'
+    [[[header_key]]]
+        bg = 'dark gray'
+        fg = 'white'
+    [[[header_value]]]
+        bg = 'dark gray'
+        fg = 'light gray'
