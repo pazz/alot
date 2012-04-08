@@ -118,7 +118,9 @@ class EnvelopeBuffer(Buffer):
 
         # add header list widget iff header values exists
         if lines:
-            self.header_wgt = widgets.HeadersList(lines)
+            key_att = settings.get_theming_attribute('envelope', 'header_key')
+            value_att = settings.get_theming_attribute('envelope', 'header_value')
+            self.header_wgt = widgets.HeadersList(lines, key_att, value_att)
             displayed_widgets.append(self.header_wgt)
 
         #display attachments
