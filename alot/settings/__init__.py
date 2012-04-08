@@ -11,11 +11,13 @@ from configobj import ConfigObj, Section
 
 from alot.account import SendmailAccount
 from alot.addressbooks import MatchSdtoutAddressbook, AbookAddressBook
+from alot.helper import pretty_datetime, string_decode
 
 from errors import ConfigError
 from utils import read_config
 from checks import mail_container
 from theme import Theme
+
 
 DEFAULTSPATH = os.path.join(os.path.dirname(__file__), '..', 'defaults')
 
@@ -337,5 +339,24 @@ class SettingsManager(object):
         """
         return mailcap.findmatch(self._mailcaps, *args, **kwargs)
 
+    def represent_datetime(self, d):
+        """
+        turns a given datetime obj into a unicode string representation.
+        This will:
+        1) look if a fixed 'timestamp_format' is given in the config
+        2) check if a 'timestamp_format' hook is defined
+        3) use :function:`pretty_datetime` as fallback
+        """
+
+        fixed_format = self.get('timestamp_format')
+        if fixed_format:
+            rep = string_decode(d.strftime(fixed_format), 'UTF-8')
+        else:
+            format_hook = self.get_hook('timestamp_format')
+            if format_hook:
+                rep = string_decode(format_hook(d), 'UTF-8')
+            else:
+                rep = pretty_datetime(d)
+        return rep
 
 settings = SettingsManager()

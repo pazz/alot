@@ -223,6 +223,13 @@ Apart from command pre- and posthooks, the following hooks will be interpreted:
     :type bodytext: str
     :rtype: str
     
+.. py:function:: timestamp_format(timestamp)
+
+    represents given timestamp as string
+
+    :param bodytext: timestamp to represent
+    :type timestamp: `datetime`
+    :rtype: str
 
 Themes
 ======

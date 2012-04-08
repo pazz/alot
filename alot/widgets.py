@@ -3,7 +3,6 @@ import logging
 
 from settings import settings
 from alot.helper import shorten_author_string
-from alot.helper import pretty_datetime
 from alot.helper import tag_cmp
 from alot.helper import string_decode
 import alot.db.message as message
@@ -97,11 +96,7 @@ class ThreadlineWidget(urwid.AttrMap):
         if newest == None:
             datestring = ''
         else:
-            formatstring = settings.get('timestamp_format')
-            if formatstring is None:
-                datestring = pretty_datetime(newest)
-            else:
-                datestring = newest.strftime(formatstring)
+            datestring = settings.represent_datetime(newest)
         datestring = datestring.rjust(self.pretty_datetime_len)
         self.date_w = urwid.AttrMap(urwid.Text(datestring),
                                     self._get_theme('date'))

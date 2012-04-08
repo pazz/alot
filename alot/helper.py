@@ -1,6 +1,6 @@
 # coding=utf-8
-from datetime import date
 from datetime import timedelta
+from datetime import datetime
 from collections import deque
 from string import strip
 import subprocess
@@ -194,28 +194,54 @@ def pretty_datetime(d):
     translates :class:`datetime` `d` to a "sup-style" human readable string.
 
     >>> now = datetime.now()
+    >>> now.strftime('%c')
+    'Sat 31 Mar 2012 14:47:26 '
     >>> pretty_datetime(now)
-    '09:31am'
-    >>> one_day_ago = datetime.today() - timedelta(1)
-    >>> pretty_datetime(one_day_ago)
-    'Yest. 9am'
-    >>> thirty_days_ago = datetime.today() - timedelta(30)
-    >>> pretty_datetime(thirty_days_ago)
-    'Nov 01'
-    >>> one_year_ago = datetime.today() - timedelta(356)
-    >>> pretty_datetime(one_year_ago)
-    'Dec 2010'
+    u'just now'
+    >>> pretty_datetime(now - timedelta(minutes=1))
+    u'1min ago'
+    >>> pretty_datetime(now - timedelta(hours=5))
+    u'5h ago'
+    >>> pretty_datetime(now - timedelta(hours=12))
+    u'02:54am'
+    >>> pretty_datetime(now - timedelta(days=1))
+    u'yest 02pm'
+    >>> pretty_datetime(now - timedelta(days=2))
+    u'Thu 02pm'
+    >>> pretty_datetime(now - timedelta(days=7))
+    u'Mar 24'
+    >>> pretty_datetime(now - timedelta(days=356))
+    u'Apr 2011'
     """
-    today = date.today()
-    if today == d.date():
-        string = d.strftime('%H:%M%P')
+    ampm = d.strftime('%P')
+    if len(ampm):
+        hourfmt = '%I' + ampm
+        hourminfmt = '%I:%M' + ampm
+    else:
+        hourfmt = '%Hh'
+        hourminfmt = '%H:%M'
+
+    now = datetime.now()
+    today = now.date()
+    if d.date() == today or d > now - timedelta(hours=6):
+        delta = datetime.now() - d
+        if delta.seconds < 60:
+            string = 'just now'
+        elif delta.seconds < 3600:
+            string = '%dmin ago' % (delta.seconds / 60)
+        elif delta.seconds < 6 * 3600:
+            string = '%dh ago' % (delta.seconds / 3600)
+        else:
+            string = d.strftime(hourminfmt)
     elif d.date() == today - timedelta(1):
-        string = 'Yest.%2d' % d.hour + d.strftime('%P')
+        string = d.strftime('yest ' + hourfmt)
+    elif d.date() > today - timedelta(7):
+        string = d.strftime('%a ' + hourfmt)
     elif d.year != today.year:
         string = d.strftime('%b %Y')
     else:
         string = d.strftime('%b %d')
-    return string
+    return string_decode(string, 'UTF-8')
 
 
 def call_cmd(cmdlist, stdin=None):
