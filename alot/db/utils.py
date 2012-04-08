@@ -106,6 +106,8 @@ def extract_body(mail, types=None):
                 logging.debug('command: %s' % cmd)
                 logging.debug('parms: %s' % str(parms))
                 cmdlist = shlex.split(cmd.encode('utf-8', errors='ignore'))
+                if 'w3m' in cmdlist[0]:
+                    cmdlist.extend(['-I', enc])
                 # call handler
                 rendered_payload, errmsg, retval = helper.call_cmd(cmdlist)
                 # remove tempfile

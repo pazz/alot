@@ -1,5 +1,6 @@
 import urwid
 import logging
+import locale
 
 from settings import settings
 from alot.helper import shorten_author_string
@@ -608,7 +609,7 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         date = self.message.get_datestring()
         rep = author if author != '' else address
         if date != None:
-            rep += " (%s)" % date
+            rep += " (%s)" % date.decode(locale.getdefaultlocale()[1])
         return rep
 
     def selectable(self):
