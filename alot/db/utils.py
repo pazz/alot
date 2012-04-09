@@ -9,6 +9,7 @@ charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 from email.iterators import typed_subpart_iterator
 import logging
 import mailcap
+import locale
 
 import alot.helper as helper
 from alot.settings import settings
@@ -94,7 +95,7 @@ def extract_body(mail, types=None):
                                                       prefix=template_prefix,
                                                       suffix=template_suffix)
                 # write payload to tmpfile
-                tmpfile.write(raw_payload)
+                tmpfile.write(unicode(raw_payload, enc).encode(locale.getdefaultlocale()[1]))
                 tmpfile.close()
 
                 # read parameter, create handler command
