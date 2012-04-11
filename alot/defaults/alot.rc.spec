@@ -148,7 +148,7 @@ prompt_suffix = string(default=':')
         aliases = string_list(default=list())
 
         # sendmail command. This is the shell command used to send out mails via the sendmail protocol
-        sendmail_command = string(default='sendmail')
+        sendmail_command = string(default='sendmail -t')
 
         # where to store outgoing mails, e.g. `maildir:///home/you/mail//Sent`
         # You can use mbox, maildir, mh, babyl and mmdf in the protocol part of the URL.
