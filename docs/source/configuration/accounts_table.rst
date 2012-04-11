@@ -32,7 +32,7 @@
     sendmail command. This is the shell command used to send out mails via the sendmail protocol
 
     :type: string
-    :default: `sendmail`
+    :default: `sendmail -t`
 
 
 .. _sent-box:
