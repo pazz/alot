@@ -656,7 +656,15 @@ class HeadersList(urwid.WidgetWrap):
         return headerlines
 
 
-class MessageBodyWidget(urwid.AttrMap):
+class SelectableText(urwid.Text):
+    def selectable(self):
+        return True
+
+    def keypress(self, size, key):
+        return key
+
+
+class MessageBodyWidget(urwid.BoxAdapter):
     """
     displays printable parts of an email
 
@@ -666,8 +674,15 @@ class MessageBodyWidget(urwid.AttrMap):
 
     def __init__(self, msg):
         bodytxt = message.extract_body(msg)
+        lines = bodytxt.split("\n")
+        texts = [urwid.Text(line) for line in lines]
         att = settings.get_theming_attribute('thread', 'body')
-        urwid.AttrMap.__init__(self, urwid.Text(bodytxt), att)
+        focus_att = settings.get_theming_attribute('thread', 'body_focus')
+        content = urwid.SimpleListWalker([
+            urwid.AttrMap(w, att, focus_att) for w in [
+                SelectableText(line) for line in lines]])
+
+        urwid.BoxAdapter.__init__(self, urwid.ListBox(content), len(lines))
 
 
 class AttachmentWidget(urwid.WidgetWrap):
