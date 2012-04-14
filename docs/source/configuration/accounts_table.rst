@@ -1,4 +1,3 @@
-
 .. _address:
 
 .. describe:: address
@@ -42,6 +41,11 @@
     where to store outgoing mails, e.g. `maildir:///home/you/mail//Sent`
     You can use mbox, maildir, mh, babyl and mmdf in the protocol part of the URL.
 
+    Note that the path you specify here must be within your notmuch database path.
+    That is, if you have `path=/home/michael/offlineimap-copy` in the `[database]`
+    section in `~/.notmuch-config`, a valid sent_box is for example
+    `/home/michael/offlineimap-copy/Sent`.
+
     :type: mail_container
     :default: None
 
@@ -51,6 +55,11 @@
 .. describe:: draft_box
 
     where to store draft mails, see :ref:`sent_box <sent-box>` for the format
+
+    Note that the path you specify here must be within your notmuch database path.
+    That is, if you have `path=/home/michael/offlineimap-copy` in the `[database]`
+    section in `~/.notmuch-config`, a valid draft_box is for example
+    `/home/michael/offlineimap-copy/Drafts`.
 
     :type: mail_container
     :default: None
