@@ -1,14 +1,24 @@
+# vim:ts=4:sw=4:expandtab
 import os
 import email
 import re
 import email.charset as charset
 charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
+from email.encoders import encode_7or8bit
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
+from email.generator import Generator
+from cStringIO import StringIO
+from twisted.internet import reactor, threads
+import pyme.core
+import pyme.constants
+import pyme.errors
 
 from alot import __version__
 import logging
 import alot.helper as helper
+import alot.crypto as crypto
 from alot.settings import settings
 
 from attachment import Attachment
@@ -128,20 +138,86 @@ class Envelope(object):
         if self.sent_time:
             self.modified_since_sent = True
 
-    def construct_mail(self):
+    def construct_mail(self, ui):
         """
         compiles the information contained in this envelope into a
         :class:`email.Message`.
         """
-        # build body text part
-        textpart = MIMEText(self.body.encode('utf-8'), 'plain', 'utf-8')
+        # Build body text part. To properly sign/encrypt messages later on, we
+        # convert the text to its canonical format (as per RFC 2015).
+        canonical_format = self.body.encode('utf-8')
+        canonical_format = canonical_format.replace('\\t', ' '*4)
+        textpart = MIMEText(canonical_format, 'plain', 'utf-8')
+
+        # XXX: for now
+        self.sign = True
 
         # wrap it in a multipart container if necessary
-        if self.attachments or self.sign or self.encrypt:
-            msg = MIMEMultipart()
-            msg.attach(textpart)
+        if self.attachments:
+            inner_msg = MIMEMultipart()
+            inner_msg.attach(textpart)
+            # add attachments
+            for a in self.attachments:
+                inner_msg.attach(a.get_mime_representation())
         else:
-            msg = textpart
+            inner_msg = textpart
+
+        if self.sign:
+            context = crypto.CryptoContext()
+
+            # We sign in a different thread so that twisted/urwid can continue
+            # to run. In case the passphrase callback is called, we call
+            # ui.prompt() blockingly from within the thread. When the thread is
+            # done, the defer object returned by deferToThread() will be called
+            # with the result of our operation.
+            def actuallySign():
+                def gpg_passphrase_cb(hint, desc, prev_bad):
+                    logging.info('requesting passphrase')
+                    result = threads.blockingCallFromThread(reactor,
+                                ui.prompt, 'Passphrase for ' + hint)
+                    logging.info('in cb, passphrase = ' + str(result))
+                    return result
+                context.set_passphrase_cb(gpg_passphrase_cb)
+
+                # Converting inner_msg to text with as_string() mangles lines
+                # beginning with "From", therefore we do it the hard way.
+                fp = StringIO()
+                g = Generator(fp, mangle_from_=False)
+                g.flatten(inner_msg)
+                plaintext = crypto.RFC3156_canonicalize(fp.getvalue())
+                logging.info('signing plaintext: ' + plaintext)
+
+                try:
+                    return context.detached_signature_for(plaintext)
+                except pyme.errors.GPGMEError as e:
+                    threads.blockingCallFromThread(reactor,
+                            ui.notify, 'GPG Error: ' + str(e), priority='error')
+                    return None, None
+
+            result, signature_str = yield threads.deferToThread(actuallySign)
+            if result is None or len(result.signatures) != 1:
+                # Ensure that the last value returned by our generator is None,
+                # then stop the generator.
+                yield None
+                return
+
+            micalg = crypto.RFC3156_micalg_from_result(result)
+            outer_msg = MIMEMultipart('signed', micalg=micalg,
+                            protocol='application/pgp-signature')
+
+            # wrap signature in MIMEcontainter
+            signature_mime = MIMEApplication(_data=signature_str,
+                _subtype='pgp-signature; name="signature.asc"',
+                _encoder=encode_7or8bit)
+            signature_mime['Content-Description'] = 'signature'
+            signature_mime.set_charset('us-ascii')
+
+            # add signed message and signature to outer message
+            outer_msg.attach(inner_msg)
+            outer_msg.attach(signature_mime)
+            outer_msg['Content-Disposition'] = 'inline'
+        else:
+            outer_msg = inner_msg
 
         headers = self.headers.copy()
         # add Message-ID
@@ -159,13 +235,9 @@ class Envelope(object):
         # copy headers from envelope to mail
         for k, vlist in headers.items():
             for v in vlist:
-                msg[k] = encode_header(k, v)
+                outer_msg[k] = encode_header(k, v)
 
-        # add attachments
-        for a in self.attachments:
-            msg.attach(a.get_mime_representation())
-
-        return msg
+        yield outer_msg
 
     def parse_template(self, tmp, reset=False, only_body=False):
         """parses a template or user edited string to fills this envelope.

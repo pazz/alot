@@ -12,3 +12,4 @@ API and Development
     settings
     utils
     commands
+    crypto
