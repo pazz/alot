@@ -30,7 +30,7 @@ def rewrite_entries(config, path, sec=None, sort=False):
         comments = [sec.inline_comments[entry]] + sec.comments[entry]
         for c in comments:
             if c:
-                description += ' '*4 + re.sub('^\s*#\s*', '', c) + '\n'
+                description += ' '*4 + re.sub('^\s*#', '', c) + '\n'
         if etype == 'option':
             description += '\n    :type: option, one of %s\n' % eargs
         else:
