@@ -150,11 +150,19 @@ prompt_suffix = string(default=':')
         # sendmail command. This is the shell command used to send out mails via the sendmail protocol
         sendmail_command = string(default='sendmail')
 
-        # where to store outgoing mails, e.g. `maildir:///home/you/mail//Sent`
+        # where to store outgoing mails, e.g. `maildir:///home/you/mail/Sent`.
         # You can use mbox, maildir, mh, babyl and mmdf in the protocol part of the URL.
+        #
+        # .. note:: If you want to add outgoing mails automatically to the notmuch index
+        #           you must use maildir in a path within your notmuch database path.
         sent_box = mail_container(default=None)
 
-        # where to store draft mails, see :ref:`sent_box <sent-box>` for the format
+        # where to store draft mails, e.g. `maildir:///home/you/mail/Drafts`.
+        # You can use mbox, maildir, mh, babyl and mmdf in the protocol part of the URL.
+        #
+        # .. note:: You will most likely want drafts indexed by notmuch to be able to
+        #           later access them within alot. This currently only works for
+        #           maildir containers in a path below your notmuch database path.
         draft_box = mail_container(default=None)
 
         # list of tags to automatically add to outgoing messages
