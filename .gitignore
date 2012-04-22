@@ -5,6 +5,6 @@
 /dist
 /MANIFEST
 .gdb_history
-docs/_build/
-docs/user/build
+docs/build
+docs/source/configuration/*table.rst
 /alot/VERSION
