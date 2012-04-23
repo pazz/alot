@@ -149,9 +149,6 @@ class Envelope(object):
         canonical_format = canonical_format.replace('\\t', ' '*4)
         textpart = MIMEText(canonical_format, 'plain', 'utf-8')
 
-        # XXX: for now
-        self.sign = True
-
         # wrap it in a multipart container if necessary
         if self.attachments:
             inner_msg = MIMEMultipart()

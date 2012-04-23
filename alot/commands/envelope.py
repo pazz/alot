@@ -321,3 +321,11 @@ class ToggleHeaderCommand(Command):
     """toggle display of all headers"""
     def apply(self, ui):
         ui.current_buffer.toggle_all_headers()
+
+
+@registerCommand(MODE, 'togglesign')
+class ToggleSignCommand(Command):
+    """toggle signing this email"""
+    def apply(self, ui):
+        ui.current_buffer.envelope.sign = not ui.current_buffer.envelope.sign
+        ui.current_buffer.rebuild()
