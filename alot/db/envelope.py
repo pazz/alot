@@ -8,9 +8,6 @@ from email.encoders import encode_7or8bit
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
-from email.generator import Generator
-from cStringIO import StringIO
-from twisted.internet import reactor, threads
 import pyme.core
 import pyme.constants
 import pyme.errors
@@ -170,8 +167,7 @@ class Envelope(object):
                 if len(result.signatures) != 1:
                     return None
             except pyme.errors.GPGMEError as e:
-                threads.blockingCallFromThread(reactor,
-                        ui.notify, 'GPG Error: ' + str(e), priority='error')
+                ui.notify('GPG Error: ' + str(e), priority='error')
                 return None
 
             micalg = crypto.RFC3156_micalg_from_result(result)
