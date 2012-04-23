@@ -133,18 +133,7 @@ class SendCommand(Command):
         # send
         clearme = ui.notify('sending..', timeout=-1)
 
-        # We wrap around construct_mail(), which is a generator. Since
-        # construct_mail() returns any amount of twisted.defer objects before
-        # actually returning the email as last object, we need to pass these
-        # defer objects to the main loop and send the return value back.
-        g = envelope.construct_mail(ui)
-        last_result = None
-        while True:
-            try:
-                mail = g.send(last_result)
-                last_result = yield mail
-            except StopIteration:
-                break
+        mail = envelope.construct_mail(ui)
 
         if mail is None:
             return

@@ -1,8 +1,19 @@
 # vim:ts=4:sw=4:expandtab
 import re
 
+from email.generator import Generator
+from cStringIO import StringIO
 import pyme.core
 import pyme.constants
+
+
+def email_as_string(mail):
+    # Converting inner_msg to text with as_string() mangles lines
+    # beginning with "From", therefore we do it the hard way.
+    fp = StringIO()
+    g = Generator(fp, mangle_from_=False)
+    g.flatten(mail)
+    return RFC3156_canonicalize(fp.getvalue())
 
 
 def _engine_file_name_by_protocol(engines, protocol):

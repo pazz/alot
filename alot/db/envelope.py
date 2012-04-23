@@ -165,41 +165,17 @@ class Envelope(object):
         if self.sign:
             context = crypto.CryptoContext()
 
-            # We sign in a different thread so that twisted/urwid can continue
-            # to run. In case the passphrase callback is called, we call
-            # ui.prompt() blockingly from within the thread. When the thread is
-            # done, the defer object returned by deferToThread() will be called
-            # with the result of our operation.
-            def actuallySign():
-                def gpg_passphrase_cb(hint, desc, prev_bad):
-                    logging.info('requesting passphrase')
-                    result = threads.blockingCallFromThread(reactor,
-                                ui.prompt, 'Passphrase for ' + hint)
-                    logging.info('in cb, passphrase = ' + str(result))
-                    return result
-                context.set_passphrase_cb(gpg_passphrase_cb)
+            plaintext = crypto.email_as_string(inner_msg)
+            logging.info('signing plaintext: ' + plaintext)
 
-                # Converting inner_msg to text with as_string() mangles lines
-                # beginning with "From", therefore we do it the hard way.
-                fp = StringIO()
-                g = Generator(fp, mangle_from_=False)
-                g.flatten(inner_msg)
-                plaintext = crypto.RFC3156_canonicalize(fp.getvalue())
-                logging.info('signing plaintext: ' + plaintext)
-
-                try:
-                    return context.detached_signature_for(plaintext)
-                except pyme.errors.GPGMEError as e:
-                    threads.blockingCallFromThread(reactor,
-                            ui.notify, 'GPG Error: ' + str(e), priority='error')
-                    return None, None
-
-            result, signature_str = yield threads.deferToThread(actuallySign)
-            if result is None or len(result.signatures) != 1:
-                # Ensure that the last value returned by our generator is None,
-                # then stop the generator.
-                yield None
-                return
+            try:
+                result, signature_str = context.detached_signature_for(plaintext)
+                if len(result.signatures) != 1:
+                    return None
+            except pyme.errors.GPGMEError as e:
+                threads.blockingCallFromThread(reactor,
+                        ui.notify, 'GPG Error: ' + str(e), priority='error')
+                return None
 
             micalg = crypto.RFC3156_micalg_from_result(result)
             outer_msg = MIMEMultipart('signed', micalg=micalg,
@@ -237,7 +213,7 @@ class Envelope(object):
             for v in vlist:
                 outer_msg[k] = encode_header(k, v)
 
-        yield outer_msg
+        return outer_msg
 
     def parse_template(self, tmp, reset=False, only_body=False):
         """parses a template or user edited string to fills this envelope.

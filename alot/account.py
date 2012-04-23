@@ -5,8 +5,6 @@ import email
 import os
 import glob
 import shlex
-from email.generator import Generator
-from cStringIO import StringIO
 
 from alot.helper import call_cmd_async
 import alot.crypto as crypto
@@ -166,14 +164,7 @@ class SendmailAccount(Account):
             logging.error(failure.value.stderr)
             raise SendingMailFailed(errmsg)
 
-        # Converting inner_msg to text with as_string() mangles lines
-        # beginning with "From", therefore we do it the hard way.
-        fp = StringIO()
-        g = Generator(fp, mangle_from_=False)
-        g.flatten(mail)
-        mailtext = crypto.RFC3156_canonicalize(fp.getvalue())
-
-        d = call_cmd_async(cmdlist, stdin=mailtext)
+        d = call_cmd_async(cmdlist, stdin=crypto.email_as_string(mail))
         d.addCallback(cb)
         d.addErrback(errb)
         return d
