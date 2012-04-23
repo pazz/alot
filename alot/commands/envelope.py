@@ -8,6 +8,7 @@ from twisted.internet.defer import inlineCallbacks
 import datetime
 
 from alot.account import SendingMailFailed
+from alot.db import ConstructMailError
 from alot import buffers
 from alot import commands
 from alot.commands import Command, registerCommand
@@ -133,9 +134,10 @@ class SendCommand(Command):
         # send
         clearme = ui.notify('sending..', timeout=-1)
 
-        mail = envelope.construct_mail(ui)
-
-        if mail is None:
+        try:
+            mail = envelope.construct_mail()
+        except ConstructMailError, e:
+            ui.notify(e.message, priority='error')
             return
 
         def afterwards(returnvalue):

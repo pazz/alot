@@ -17,6 +17,7 @@ import logging
 import alot.helper as helper
 import alot.crypto as crypto
 from alot.settings import settings
+from alot.db import ConstructMailError
 
 from attachment import Attachment
 from utils import encode_header
@@ -135,7 +136,7 @@ class Envelope(object):
         if self.sent_time:
             self.modified_since_sent = True
 
-    def construct_mail(self, ui):
+    def construct_mail(self):
         """
         compiles the information contained in this envelope into a
         :class:`email.Message`.
@@ -165,10 +166,19 @@ class Envelope(object):
             try:
                 result, signature_str = context.detached_signature_for(plaintext)
                 if len(result.signatures) != 1:
-                    return None
+                    raise ConstructMailError(("Could not sign message "
+                            "(GPGME did not return a signature)"))
             except pyme.errors.GPGMEError as e:
-                ui.notify('GPG Error: ' + str(e), priority='error')
-                return None
+                # 11 == GPG_ERR_BAD_PASSPHRASE
+                if e.getcode() == 11:
+                    if not os.environ['GPG_AGENT_INFO']:
+                        raise ConstructMailError(("Bad passphrase and "
+                                "GPG_AGENT_INFO not set. Please setup "
+                                "gpg-agent."))
+                    else:
+                        raise ConstructMailError(("Bad passphrase. Is "
+                                "gpg-agent running?"))
+                raise ConstructMailError(str(e))
 
             micalg = crypto.RFC3156_micalg_from_result(result)
             outer_msg = MIMEMultipart('signed', micalg=micalg,
