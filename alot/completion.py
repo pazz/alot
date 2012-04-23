@@ -403,4 +403,15 @@ class PathCompleter(Completer):
         if not original:
             return [('~/', 2)]
         prefix = os.path.expanduser(original[:pos])
-        return [(f, len(f)) for f in glob.glob(prefix + '*')]
+
+        def escape(path):
+            return path.replace('\\', '\\\\').replace(' ', '\ ')
+
+        def deescape(escaped_path):
+            return escaped_path.replace('\\ ', ' ').replace('\\\\', '\\')
+
+        def prep(path):
+            escaped_path = escape(path)
+            return escaped_path, len(escaped_path)
+
+        return map(prep, glob.glob(deescape(prefix) + '*'))
