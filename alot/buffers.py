@@ -122,12 +122,8 @@ class EnvelopeBuffer(Buffer):
             displayed_widgets.append(self.header_wgt)
 
         # sign/encrypt lines
-        lines = []
         if self.envelope.sign:
-            lines.append(('sign', 'yes'))
-
-        if lines:
-            self.crypto_wgt = widgets.HeadersList(lines)
+            self.crypto_wgt = widgets.HeadersList([ ('sign', 'yes') ])
             displayed_widgets.append(self.crypto_wgt)
 
         #display attachments
