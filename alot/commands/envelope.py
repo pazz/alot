@@ -8,7 +8,7 @@ from twisted.internet.defer import inlineCallbacks
 import datetime
 
 from alot.account import SendingMailFailed
-from alot.db import ConstructMailError
+from alot.db.errors import ConstructMailError
 from alot import buffers
 from alot import commands
 from alot.commands import Command, registerCommand

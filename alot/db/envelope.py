@@ -17,7 +17,7 @@ import logging
 import alot.helper as helper
 import alot.crypto as crypto
 from alot.settings import settings
-from alot.db import ConstructMailError
+from alot.db.errors import ConstructMailError
 
 from attachment import Attachment
 from utils import encode_header

@@ -333,8 +333,3 @@ class DBManager(object):
             raise errors.DatabaseROError()
         path = message.get_filename()
         self.writequeue.append(('remove', afterwards, path))
-
-
-class ConstructMailError(Exception):
-    """could not construct mail (GPG problem?)"""
-    pass
