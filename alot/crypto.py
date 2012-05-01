@@ -8,8 +8,13 @@ import pyme.constants
 
 
 def email_as_string(mail):
-    # Converting inner_msg to text with as_string() mangles lines
-    # beginning with "From", therefore we do it the hard way.
+    """
+    Converts the given message to a string, without mangling "From" lines
+    (like as_string() does).
+
+    :param mail: email to convert to string
+    :rtype: str
+    """
     fp = StringIO()
     g = Generator(fp, mangle_from_=False)
     g.flatten(mail)
