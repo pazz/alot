@@ -171,7 +171,7 @@ class Envelope(object):
             except pyme.errors.GPGMEError as e:
                 # 11 == GPG_ERR_BAD_PASSPHRASE
                 if e.getcode() == 11:
-                    if not os.environ['GPG_AGENT_INFO']:
+                    if not os.environ.has_key('GPG_AGENT_INFO'):
                         raise ConstructMailError(("Bad passphrase and "
                                 "GPG_AGENT_INFO not set. Please setup "
                                 "gpg-agent."))
