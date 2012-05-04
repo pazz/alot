@@ -8,7 +8,7 @@ from twisted.internet.defer import inlineCallbacks
 import datetime
 
 from alot.account import SendingMailFailed
-from alot.db.errors import ConstructMailError
+from alot.db.errors import GPGProblem
 from alot import buffers
 from alot import commands
 from alot.commands import Command, registerCommand
@@ -135,7 +135,7 @@ class SendCommand(Command):
 
         try:
             mail = envelope.construct_mail()
-        except ConstructMailError, e:
+        except GPGProblem, e:
             ui.clear_notify([clearme])
             ui.notify(e.message, priority='error')
             return

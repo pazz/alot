@@ -17,6 +17,6 @@ class NonexistantObjectError(DatabaseError):
     pass
 
 
-class ConstructMailError(Exception):
-    """could not construct mail (GPG problem?)"""
+class GPGProblem(Exception):
+    """A GPG occured while constructing your mail"""
     pass

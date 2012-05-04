@@ -17,7 +17,7 @@ import logging
 import alot.helper as helper
 import alot.crypto as crypto
 from alot.settings import settings
-from alot.db.errors import ConstructMailError
+from alot.db.errors import GPGProblem
 
 from attachment import Attachment
 from utils import encode_header
@@ -166,7 +166,7 @@ class Envelope(object):
             try:
                 result, signature_str = context.detached_signature_for(plaintext)
                 if len(result.signatures) != 1:
-                    raise ConstructMailError(("Could not sign message "
+                    raise GPGProblem(("Could not sign message "
                             "(GPGME did not return a signature)"))
             except pyme.errors.GPGMEError as e:
                 # 11 == GPG_ERR_BAD_PASSPHRASE
@@ -174,13 +174,13 @@ class Envelope(object):
                     # If GPG_AGENT_INFO is unset or empty, the user just does
                     # not have gpg-agent running (properly).
                     if os.environ.get('GPG_AGENT_INFO', '').strip() == '':
-                        raise ConstructMailError(("Bad passphrase and "
+                        raise GPGProblem(("Bad passphrase and "
                                 "GPG_AGENT_INFO not set. Please setup "
                                 "gpg-agent."))
                     else:
-                        raise ConstructMailError(("Bad passphrase. Is "
+                        raise GPGProblem(("Bad passphrase. Is "
                                 "gpg-agent running?"))
-                raise ConstructMailError(str(e))
+                raise GPGProblem(str(e))
 
             micalg = crypto.RFC3156_micalg_from_result(result)
             outer_msg = MIMEMultipart('signed', micalg=micalg,
