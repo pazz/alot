@@ -81,7 +81,26 @@ class CryptoContext(pyme.core.Context):
         self.set_engine_info(pyme.constants.PROTOCOL_OpenPGP, gpg_path)
         self.set_armor(1)
 
-    def detached_signature_for(self, plaintext_str):
+    def get_key(self, keyid):
+        """
+        Gets a key from the keyring by filtering for the specified keyid, but
+        only if the given keyid is specific enough (if it matches multiple
+        keys, an exception will be thrown).
+
+        :param keyid: filter term for the keyring (usually a key ID)
+        :rtype: pyme.pygpgme._gpgme_key
+        """
+        result = self.op_keylist_start(keyid, 0)
+        key = self.op_keylist_next()
+        if self.op_keylist_next() is not None:
+            # Deferred import to avoid a circular import dependency
+            from alot.db.errors import GPGProblem
+            raise GPGProblem(("More than one key found matching this filter."
+                " Please be more specific (use a key ID like 4AC8EE1D)."))
+        self.op_keylist_end()
+        return key
+
+    def detached_signature_for(self, plaintext_str, key=None):
         """
         Signs the given plaintext string and returns the detached signature.
 
@@ -101,8 +120,12 @@ class CryptoContext(pyme.core.Context):
                 return
 
         :param plaintext_str: text to sign
+        :param key: gpgme_key_t object representing the key to use
         :rtype: tuple of pyme.pygpgme._gpgme_op_sign_result and str
         """
+        if key is not None:
+            self.signers_clear()
+            self.signers_add(key)
         plaintext_data = pyme.core.Data(plaintext_str)
         signature_data = pyme.core.Data()
         self.op_sign(plaintext_data, signature_data,

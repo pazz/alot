@@ -1,3 +1,4 @@
+import argparse
 import os
 import re
 import glob
@@ -11,6 +12,7 @@ from alot.account import SendingMailFailed
 from alot.db.errors import GPGProblem
 from alot import buffers
 from alot import commands
+from alot import crypto
 from alot.commands import Command, registerCommand
 from alot.commands import globals
 from alot.helper import string_decode
@@ -330,9 +332,26 @@ class ToggleHeaderCommand(Command):
         ui.current_buffer.toggle_all_headers()
 
 
-@registerCommand(MODE, 'togglesign')
+@registerCommand(MODE, 'togglesign', arguments=[
+    (['keyid'], {'nargs':argparse.REMAINDER, 'help':'which key id to use'})])
 class ToggleSignCommand(Command):
     """toggle signing this email"""
+    def __init__(self, keyid, **kwargs):
+        """
+        :param keyid: which key id to use
+        :type keyid: str
+        """
+        self.keyid = keyid
+        Command.__init__(self, **kwargs)
+
     def apply(self, ui):
+        if len(self.keyid) > 0:
+            keyid = str(' '.join(self.keyid))
+            try:
+                key = crypto.CryptoContext().get_key(keyid)
+            except GPGProblem, e:
+                ui.notify(e.message, priority='error')
+                return
+            ui.current_buffer.envelope.sign_key = key
         ui.current_buffer.envelope.sign = not ui.current_buffer.envelope.sign
         ui.current_buffer.rebuild()

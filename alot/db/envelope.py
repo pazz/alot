@@ -26,7 +26,7 @@ from utils import encode_header
 class Envelope(object):
     """a message that is not yet sent and still editable"""
     def __init__(self, template=None, bodytext=u'', headers={}, attachments=[],
-            sign=False, encrypt=False):
+            sign=False, sign_key=None, encrypt=False):
         """
         :param template: if not None, the envelope will be initialised by
                          :meth:`parsing <parse_template>` this string before
@@ -52,6 +52,7 @@ class Envelope(object):
         self.headers.update(headers)
         self.attachments = list(attachments)
         self.sign = sign
+        self.sign_key = sign_key
         self.encrypt = encrypt
         self.sent_time = None
         self.modified_since_sent = False
@@ -164,7 +165,8 @@ class Envelope(object):
             logging.info('signing plaintext: ' + plaintext)
 
             try:
-                result, signature_str = context.detached_signature_for(plaintext)
+                result, signature_str = context.detached_signature_for(
+                        plaintext, self.sign_key)
                 if len(result.signatures) != 1:
                     raise GPGProblem(("Could not sign message "
                             "(GPGME did not return a signature)"))
