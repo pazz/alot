@@ -131,14 +131,19 @@ class SendCommand(Command):
             else:
                 account = settings.get_accounts()[0]
 
-        # send
-        clearme = ui.notify('sending..', timeout=-1)
+        clearme = ui.notify('constructing mail (GPG, attachments)...', timeout=-1)
 
         try:
             mail = envelope.construct_mail()
         except ConstructMailError, e:
+            ui.clear_notify([clearme])
             ui.notify(e.message, priority='error')
             return
+
+        ui.clear_notify([clearme])
+
+        # send
+        clearme = ui.notify('sending..', timeout=-1)
 
         def afterwards(returnvalue):
             logging.debug('mail sent successfully')
