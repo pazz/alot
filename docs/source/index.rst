@@ -14,5 +14,6 @@ User Manual
    installation
    usage/index
    configuration/index
+   crypto/index
    api/index
    faq
