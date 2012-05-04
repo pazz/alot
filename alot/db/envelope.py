@@ -171,7 +171,9 @@ class Envelope(object):
             except pyme.errors.GPGMEError as e:
                 # 11 == GPG_ERR_BAD_PASSPHRASE
                 if e.getcode() == 11:
-                    if not os.environ.has_key('GPG_AGENT_INFO'):
+                    # If GPG_AGENT_INFO is unset or empty, the user just does
+                    # not have gpg-agent running (properly).
+                    if os.environ.get('GPG_AGENT_INFO', '').strip() == '':
                         raise ConstructMailError(("Bad passphrase and "
                                 "GPG_AGENT_INFO not set. Please setup "
                                 "gpg-agent."))
