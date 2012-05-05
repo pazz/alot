@@ -6,6 +6,11 @@ from validate import is_list
 
 
 def mail_container(value):
+    """
+    Check that the value points to a valid mail container,
+    in URI-style, e.g.: `mbox:///home/username/mail/mail.box`.
+    The value is cast to a :class:`mailbox.Mailbox` object.
+    """
     if not re.match(r'.*://.*', value):
         raise VdtTypeError(value)
     mburl = urlparse(value)
