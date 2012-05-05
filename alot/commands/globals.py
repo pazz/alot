@@ -383,7 +383,10 @@ class HelpCommand(Command):
         logging.debug('HELP')
         if self.commandname == 'bindings':
             # get mappings
-            modemaps = dict(settings._bindings[ui.mode].items())
+            if ui.mode in settings._bindings:
+                modemaps = dict(settings._bindings[ui.mode].items())
+            else:
+                modemaps = {}
             is_scalar = lambda (k, v): k in settings._bindings.scalars
             globalmaps = dict(filter(is_scalar, settings._bindings.items()))
 
@@ -394,12 +397,13 @@ class HelpCommand(Command):
 
             linewidgets = []
             # mode specific maps
-            linewidgets.append(urwid.Text(('help_section',
-                                '\n%s-mode specific maps' % ui.mode)))
-            for (k, v) in modemaps.items():
-                line = urwid.Columns([('fixed', keycolumnwidth, urwid.Text(k)),
-                                      urwid.Text(v)])
-                linewidgets.append(line)
+            if modemaps:
+                linewidgets.append(urwid.Text(('help_section',
+                                    '\n%s-mode specific maps' % ui.mode)))
+                for (k, v) in modemaps.items():
+                    line = urwid.Columns([('fixed', keycolumnwidth, urwid.Text(k)),
+                                          urwid.Text(v)])
+                    linewidgets.append(line)
 
             # global maps
             linewidgets.append(urwid.Text(('help_section',
