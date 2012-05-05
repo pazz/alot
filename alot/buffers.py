@@ -80,7 +80,9 @@ class BufferlistBuffer(Buffer):
             num = urwid.Text('%3d:' % self.index_of(b))
             lines.append(urwid.Columns([('fixed', 4, num), buf]))
         self.bufferlist = urwid.ListBox(urwid.SimpleListWalker(lines))
-        self.bufferlist.set_focus(focusposition % len(displayedbuffers))
+        num_buffers = len(displayedbuffers)
+        if focusposition is not None and num_buffers > 0:
+            self.bufferlist.set_focus(focusposition % num_buffers)
         self.body = self.bufferlist
 
     def get_selected_buffer(self):

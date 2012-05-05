@@ -92,7 +92,7 @@ class PromptCommand(Command):
     @inlineCallbacks
     def apply(self, ui):
         logging.info('open command shell')
-        mode = ui.current_buffer.modename
+        mode = ui.mode or 'global'
         cmpl = CommandLineCompleter(ui.dbman, mode, ui.current_buffer)
         cmdline = yield ui.prompt('',
                                   text=self.startwith,
@@ -106,7 +106,6 @@ class PromptCommand(Command):
             # save into prompt history
             ui.commandprompthistory.append(cmdline)
 
-            mode = ui.current_buffer.modename
             try:
                 cmd = commandfactory(cmdline, mode)
                 ui.apply_command(cmd)
@@ -384,7 +383,10 @@ class HelpCommand(Command):
             title_att = settings.get_theming_attribute('help', 'title')
             section_att = settings.get_theming_attribute('help', 'section')
             # get mappings
-            modemaps = dict(settings._bindings[ui.mode].items())
+            if ui.mode in settings._bindings:
+                modemaps = dict(settings._bindings[ui.mode].items())
+            else:
+                modemaps = {}
             is_scalar = lambda (k, v): k in settings._bindings.scalars
             globalmaps = dict(filter(is_scalar, settings._bindings.items()))
 
@@ -395,13 +397,14 @@ class HelpCommand(Command):
 
             linewidgets = []
             # mode specific maps
-            linewidgets.append(urwid.Text((section_att,
-                                '\n%s-mode specific maps' % ui.mode)))
-            for (k, v) in modemaps.items():
-                line = urwid.Columns([('fixed', keycolumnwidth,
-                                       urwid.Text((text_att, k))),
-                                      urwid.Text((text_att, v))])
-                linewidgets.append(line)
+            if modemaps:
+                linewidgets.append(urwid.Text((section_att,
+                                    '\n%s-mode specific maps' % ui.mode)))
+                for (k, v) in modemaps.items():
+                    line = urwid.Columns([('fixed', keycolumnwidth,
+                                           urwid.Text((text_att, k))),
+                                          urwid.Text((text_att, v))])
+                    linewidgets.append(line)
 
             # global maps
             linewidgets.append(urwid.Text((section_att, '\nglobal maps')))
