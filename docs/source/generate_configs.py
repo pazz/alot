@@ -34,10 +34,12 @@ def rewrite_entries(config, path, sec=None, sort=False):
         if etype == 'option':
             description += '\n    :type: option, one of %s\n' % eargs
         else:
+            if etype == 'force_list':
+                etype = 'string list'
             description += '\n    :type: %s\n' % etype
 
         if default != None:
-            if etype in ['string', 'string_list'] and default != 'None':
+            if etype in ['string', 'string list'] and default != 'None':
                 description += '    :default: `%s`\n\n' % (default)
             else:
                 description += '    :default: %s\n\n' % (default)
