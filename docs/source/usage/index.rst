@@ -11,4 +11,10 @@ First Steps
 
 .. include:: first_steps
 
-.. include:: commands
+.. _commands:
+.. include:: commands.rst
+
+.. toctree::
+   :hidden:
+
+   commands
