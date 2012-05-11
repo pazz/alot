@@ -594,12 +594,14 @@ class ComposeCommand(Command):
                                         select='yes', cancel='no')) == 'no':
                             return
 
+        # Figure out whether we should GPG sign messages by default
+        sender = self.envelope.get('From')
+        name, addr = email.Utils.parseaddr(sender)
+        account = settings.get_account_by_address(addr)
+        self.envelope.apply_account_crypto_settings(account, ui)
+
         # get missing To header
         if 'To' not in self.envelope.headers:
-            sender = self.envelope.get('From')
-            name, addr = email.Utils.parseaddr(sender)
-            account = settings.get_account_by_address(addr)
-
             allbooks = not settings.get('complete_matching_abook_only')
             logging.debug(allbooks)
             if account is not None:

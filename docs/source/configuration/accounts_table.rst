@@ -98,3 +98,12 @@
     :type: string
     :default: None
 
+.. _sign-by-default:
+
+.. describe:: sign_by_default
+
+    Outgoing messages will be GPG signed by default if this is set to True.
+
+    :type: boolean
+    :default: False
+

@@ -48,7 +48,7 @@ class Account(object):
                  gpg_key=None, signature=None, signature_filename=None,
                  signature_as_attachment=False, sent_box=None,
                  sent_tags=['sent'], draft_box=None, draft_tags=['draft'],
-                 abook=None, **rest):
+                 abook=None, sign_by_default=False, **rest):
         self.address = address
         self.aliases = aliases
         self.realname = realname
@@ -56,6 +56,7 @@ class Account(object):
         self.signature = signature
         self.signature_filename = signature_filename
         self.signature_as_attachment = signature_as_attachment
+        self.sign_by_default = sign_by_default
         self.sent_box = sent_box
         self.sent_tags = sent_tags
         self.draft_box = draft_box
