@@ -204,6 +204,9 @@ class Envelope(object):
                     if key and value:  # save old one from stack
                         self.add(key, value)  # save
                     key, value = line.strip().split(':', 1)  # parse new pair
+                    # strip spaces, otherwise we end up having " foo" as value
+                    # of "Subject: foo"
+                    value = value.strip()
                 elif key and value:  # append new line without key prefix
                     value += line
             if key and value:  # save last one if present
