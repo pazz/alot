@@ -116,19 +116,18 @@ class EnvelopeBuffer(Buffer):
                 for value in vlist:
                     lines.append((k, value))
 
+        # sign/encrypt lines
+        if self.envelope.sign:
+            description = 'Yes'
+            sign_key = self.envelope.sign_key
+            if sign_key is not None and len(sign_key.subkeys) > 0:
+                description += ', with key ' + sign_key.subkeys[0].keyid
+            lines.append(('GPG sign', description))
+
         # add header list widget iff header values exists
         if lines:
             self.header_wgt = widgets.HeadersList(lines)
             displayed_widgets.append(self.header_wgt)
-
-        # sign/encrypt lines
-        if self.envelope.sign:
-            description = 'yes'
-            sign_key = self.envelope.sign_key
-            if sign_key is not None and len(sign_key.subkeys) > 0:
-                description += ', with key ' + sign_key.subkeys[0].keyid
-            self.crypto_wgt = widgets.HeadersList([ ('sign', description) ])
-            displayed_widgets.append(self.crypto_wgt)
 
         #display attachments
         lines = []
