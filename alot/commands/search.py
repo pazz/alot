@@ -148,21 +148,21 @@ class TagCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        threadline_widget = ui.current_buffer.get_selected_threadline()
+        searchbuffer = ui.current_buffer
+        threadline_widget = searchbuffer.get_selected_threadline()
         # pass if the current buffer has no selected threadline
         # (displays an empty search result)
         if threadline_widget is None:
             return
         thread = threadline_widget.get_thread()
-        testquery = "(%s) AND thread:%s" % (ui.current_buffer.querystring,
+        testquery = "(%s) AND thread:%s" % (searchbuffer.querystring,
                                             thread.get_thread_id())
 
         def remove_thread():
             logging.debug('remove thread from result list: %s' % thread)
-            threadlist = ui.current_buffer.threadlist
-            if threadline_widget in threadlist:
-                threadlist.remove(threadline_widget)
-            ui.current_buffer.result_count -= thread.get_total_messages()
+            if threadline_widget in searchbuffer.threadlist:
+                searchbuffer.threadlist.remove(threadline_widget)
+                searchbuffer.result_count -= thread.get_total_messages()
 
         def refresh():
             # remove thread from resultset if it doesn't match the search query

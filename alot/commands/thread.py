@@ -512,15 +512,16 @@ class RemoveCommand(Command):
 
     @inlineCallbacks
     def apply(self, ui):
+        threadbuffer = ui.current_buffer
         # get messages and notification strings
         if self.all:
-            thread = ui.current_buffer.get_selected_thread()
+            thread = threadbuffer.get_selected_thread()
             tid = thread.get_thread_id()
             messages = thread.get_messages().keys()
             confirm_msg = 'remove all messages in thread?'
             ok_msg = 'removed all messages in thread: %s' % tid
         else:
-            msg = ui.current_buffer.get_selected_message()
+            msg = threadbuffer.get_selected_message()
             messages = [msg]
             confirm_msg = 'remove selected message?'
             ok_msg = 'removed message: %s' % msg.get_message_id()
@@ -531,8 +532,8 @@ class RemoveCommand(Command):
 
         # notify callback
         def callback():
+            threadbuffer.rebuild()
             ui.notify(ok_msg)
-            ui.apply_command(RefreshCommand())
 
         # remove messages
         for m in messages:
