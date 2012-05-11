@@ -200,10 +200,10 @@ class Envelope(object):
             # email.message_from_file can't deal with raw utf8 header values
             key = value = None
             for line in headertext.splitlines():
-                if re.match('[a-zA-Z0-9_-]+:', line):  # new k/v pair
+                if re.match('[a-zA-Z0-9_-]+: ', line):  # new k/v pair
                     if key and value:  # save old one from stack
                         self.add(key, value)  # save
-                    key, value = line.strip().split(':', 1)  # parse new pair
+                    key, value = line.strip().split(': ', 1)  # parse new pair
                 elif key and value:  # append new line without key prefix
                     value += line
             if key and value:  # save last one if present
