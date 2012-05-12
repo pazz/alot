@@ -1,3 +1,9 @@
+..
+    CAUTION: THIS FILE IS AUTO-GENERATED
+    from the inline comments of specfile defaults/alot.rc.spec.
+
+    If you want to change its content make your changes
+    to that spec to ensure they woun't be overwritten later.
 
 .. _ask-subject:
 

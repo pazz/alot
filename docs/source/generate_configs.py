@@ -6,9 +6,16 @@ from alot.commands import COMMANDS
 from configobj import ConfigObj
 from validate import Validator
 import re
+NOTE = """..
+    CAUTION: THIS FILE IS AUTO-GENERATED
+    from the inline comments of specfile %s.
 
-def rewrite_entries(config, path, sec=None, sort=False):
+    If you want to change its content make your changes
+    to that spec to ensure they woun't be overwritten later.
+"""
+def rewrite_entries(config, path, specpath, sec=None, sort=False):
     file = open(path, 'w')
+    file.write(NOTE % specpath)
 
     if sec == None:
         sec = config
@@ -50,8 +57,8 @@ if __name__ == "__main__":
     config.validate(Validator())
 
     alotrc_table_file = os.path.join(HERE, 'configuration', 'alotrc_table.rst')
-    rewrite_entries(config.configspec, alotrc_table_file, sort=True)
+    rewrite_entries(config.configspec, alotrc_table_file, 'defaults/alot.rc.spec', sort=True)
 
-    rewrite_entries(config, os.path.join(HERE, 'configuration',
-                                         'accounts_table.rst'),
+    rewrite_entries(config, os.path.join(HERE, 'configuration', 'accounts_table.rst'),
+                    'defaults/alot.rc.spec',
                     sec=config.configspec['accounts']['__many__'])
