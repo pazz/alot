@@ -122,6 +122,10 @@ class ReplyCommand(Command):
         realname, address = recipient_to_from(mail, my_accounts)
         envelope.add('From', '%s <%s>' % (realname, address))
 
+        # set GPG sign from the account default setting
+        account = settings.get_account_by_address(address)
+        envelope.apply_account_crypto_settings(account, ui)
+
         # set To
         sender = mail['Reply-To'] or mail['From']
         recipients = [sender]
@@ -232,6 +236,10 @@ class ForwardCommand(Command):
         realname, address = recipient_to_from(mail, my_accounts)
         envelope.add('From', '%s <%s>' % (realname, address))
 
+        # set GPG sign from the account default setting
+        account = settings.get_account_by_address(address)
+        envelope.apply_account_crypto_settings(account, ui)
+
         # continue to compose
         ui.apply_command(ComposeCommand(envelope=envelope,
                                         spawn=self.force_spawn))
@@ -261,6 +269,10 @@ class EditNewCommand(Command):
         name, address = self.message.get_author()
         mailcontent = self.message.accumulate_body()
         envelope = Envelope(bodytext=mailcontent)
+
+        # set GPG sign from the account default setting
+        account = settings.get_account_by_address(address)
+        envelope.apply_account_crypto_settings(account, ui)
 
         # copy selected headers
         to_copy = ['Subject', 'From', 'To', 'Cc', 'Bcc', 'In-Reply-To',

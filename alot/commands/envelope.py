@@ -1,3 +1,4 @@
+import argparse
 import os
 import re
 import glob
@@ -8,8 +9,10 @@ from twisted.internet.defer import inlineCallbacks
 import datetime
 
 from alot.account import SendingMailFailed
+from alot.db.errors import GPGProblem
 from alot import buffers
 from alot import commands
+from alot import crypto
 from alot.commands import Command, registerCommand
 from alot.commands import globals
 from alot.helper import string_decode
@@ -130,9 +133,19 @@ class SendCommand(Command):
             else:
                 account = settings.get_accounts()[0]
 
+        clearme = ui.notify('constructing mail (GPG, attachments)...', timeout=-1)
+
+        try:
+            mail = envelope.construct_mail()
+        except GPGProblem, e:
+            ui.clear_notify([clearme])
+            ui.notify(e.message, priority='error')
+            return
+
+        ui.clear_notify([clearme])
+
         # send
         clearme = ui.notify('sending..', timeout=-1)
-        mail = envelope.construct_mail()
 
         def afterwards(returnvalue):
             logging.debug('mail sent successfully')
@@ -317,3 +330,28 @@ class ToggleHeaderCommand(Command):
     """toggle display of all headers"""
     def apply(self, ui):
         ui.current_buffer.toggle_all_headers()
+
+
+@registerCommand(MODE, 'togglesign', arguments=[
+    (['keyid'], {'nargs':argparse.REMAINDER, 'help':'which key id to use'})])
+class ToggleSignCommand(Command):
+    """toggle signing this email"""
+    def __init__(self, keyid, **kwargs):
+        """
+        :param keyid: which key id to use
+        :type keyid: str
+        """
+        self.keyid = keyid
+        Command.__init__(self, **kwargs)
+
+    def apply(self, ui):
+        if len(self.keyid) > 0:
+            keyid = str(' '.join(self.keyid))
+            try:
+                key = crypto.CryptoContext().get_key(keyid)
+            except GPGProblem, e:
+                ui.notify(e.message, priority='error')
+                return
+            ui.current_buffer.envelope.sign_key = key
+        ui.current_buffer.envelope.sign = not ui.current_buffer.envelope.sign
+        ui.current_buffer.rebuild()

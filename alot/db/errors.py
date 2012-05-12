@@ -15,3 +15,8 @@ class DatabaseLockedError(DatabaseError):
 class NonexistantObjectError(DatabaseError):
     """requested thread or message does not exist in the index"""
     pass
+
+
+class GPGProblem(Exception):
+    """A GPG occured while constructing your mail"""
+    pass

@@ -28,6 +28,7 @@ setup(name='alot',
         'twisted (>=10.2.0)',
         'magic',
         'configobj (>=4.6.0)',
-        'subprocess (>=2.7)'],
+        'subprocess (>=2.7)',
+        'pyme (>=0.8.1)'],
       provides='alot',
 )

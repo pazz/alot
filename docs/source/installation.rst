@@ -12,10 +12,11 @@ A full list of dependencies is below:
 * `twisted <http://twistedmatrix.com/trac/>`_, ≥ `10.2.0`:
 * `libnotmuch <http://notmuchmail.org/>`_ and it's python bindings, ≥ `0.12`.
 * `urwid <http://excess.org/urwid/>`_ toolkit, ≥ `1.0`
+* `pyme <http://pyme.sourceforge.net/>`_
 
 On debian/ubuntu these are packaged as::
 
-  python-magic python-configobj python-twisted python-notmuch python-urwid
+  python-magic python-configobj python-twisted python-notmuch python-urwid python-pyme
 
 Alot uses `mailcap <http://en.wikipedia.org/wiki/Mailcap>`_ to look up mime-handler for inline
 rendering and opening of attachments.  For a full description of the maicap protocol consider the
