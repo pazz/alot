@@ -17,12 +17,14 @@ from alot.commands import commandfactory
 from alot import buffers
 from alot import widgets
 from alot import helper
+from alot import crypto
 from alot.db.errors import DatabaseLockedError
 from alot.completion import ContactsCompleter
 from alot.completion import AccountCompleter
 from alot.db.envelope import Envelope
 from alot import commands
 from alot.settings import settings
+from alot.db.errors import GPGProblem
 
 MODE = 'global'
 
@@ -595,10 +597,17 @@ class ComposeCommand(Command):
                             return
 
         # Figure out whether we should GPG sign messages by default
+        # and look up key if so
         sender = self.envelope.get('From')
         name, addr = email.Utils.parseaddr(sender)
         account = settings.get_account_by_address(addr)
-        self.envelope.apply_account_crypto_settings(account, ui)
+        self.envelope.sign = account.sign_by_default
+        try:
+            key = crypto.CryptoContext().get_key(account.gpg_key)
+        except GPGProblem, e:
+            ui.notify(e.message, priority='error')
+            return
+        self.envelope.sign_key = key
 
         # get missing To header
         if 'To' not in self.envelope.headers:

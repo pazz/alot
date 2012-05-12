@@ -137,25 +137,6 @@ class Envelope(object):
         if self.sent_time:
             self.modified_since_sent = True
 
-    def apply_account_crypto_settings(self, account, ui):
-        """
-        initializes sign and sign_key from the account settings.
-        """
-        if account is None:
-            return
-
-        self.sign = account.sign_by_default
-
-        if account.gpg_key is None:
-            return
-
-        try:
-            key = crypto.CryptoContext().get_key(str(account.gpg_key))
-        except GPGProblem, e:
-            ui.notify(e.message, priority='error')
-            return
-        self.sign_key = key
-
     def construct_mail(self):
         """
         compiles the information contained in this envelope into a

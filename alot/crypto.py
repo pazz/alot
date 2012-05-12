@@ -88,9 +88,10 @@ class CryptoContext(pyme.core.Context):
         keys, an exception will be thrown).
 
         :param keyid: filter term for the keyring (usually a key ID)
+        :type keyid: bytestring
         :rtype: pyme.pygpgme._gpgme_key
         """
-        result = self.op_keylist_start(keyid, 0)
+        result = self.op_keylist_start(str(keyid), 0)
         key = self.op_keylist_next()
         if self.op_keylist_next() is not None:
             # Deferred import to avoid a circular import dependency
