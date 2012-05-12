@@ -98,6 +98,7 @@
     :type: string
     :default: None
 
+
 .. _sign-by-default:
 
 .. describe:: sign_by_default
@@ -106,4 +107,15 @@
 
     :type: boolean
     :default: False
+
+
+.. _gpg-key:
+
+.. describe:: gpg_key
+
+    The GPG key ID you want to use with this account. If unset, alot will
+    use your default key.
+
+    :type: string
+    :default: None
 
