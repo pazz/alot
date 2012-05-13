@@ -373,11 +373,6 @@ class SignCommand(Command):
                 keyid = str(' '.join(self.keyid))
                 try:
                     key = crypto.CryptoContext().get_key(keyid)
-                    if key == None:
-                        envelope.sign = False
-                        ui.notify('no key found using hint "%s"' % keyid,
-                                  priority='error')
-                        return
                 except GPGProblem, e:
                     envelope.sign = False
                     ui.notify(e.message, priority='error')

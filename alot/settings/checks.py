@@ -33,9 +33,6 @@ def gpg_key(value):
     and return that key as :class:`pyme.pygpgme._gpgme_key`.
     """
     try:
-        key = crypto.CryptoContext().get_key(value)
-        if key == None:
-            raise ValidateError('No key found for hint %s' % value)
-        return key
+        return crypto.CryptoContext().get_key(value)
     except GPGProblem, e:
         raise ValidateError(e.message)

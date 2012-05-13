@@ -87,10 +87,12 @@ class CryptoContext(pyme.core.Context):
         Gets a key from the keyring by filtering for the specified keyid, but
         only if the given keyid is specific enough (if it matches multiple
         keys, an exception will be thrown).
+        The same happens if no key is found for the given hint.
 
         :param keyid: filter term for the keyring (usually a key ID)
         :type keyid: bytestring
         :rtype: pyme.pygpgme._gpgme_key
+        :raises: GPGProblem
         """
         result = self.op_keylist_start(str(keyid), 0)
         key = self.op_keylist_next()
@@ -98,6 +100,8 @@ class CryptoContext(pyme.core.Context):
             raise GPGProblem(("More than one key found matching this filter."
                 " Please be more specific (use a key ID like 4AC8EE1D)."))
         self.op_keylist_end()
+        if key == None:
+            raise GPGProblem('No key could be found for hint "%s"' % keyid)
         return key
 
     def detached_signature_for(self, plaintext_str, key=None):
