@@ -368,7 +368,7 @@ class SignCommand(Command):
         envelope.sign = sign
 
         # try to find key if hint given as parameter
-        if self.action in ['sign', 'toggle']:
+        if sign:
             if len(self.keyid) > 0:
                 keyid = str(' '.join(self.keyid))
                 try:
