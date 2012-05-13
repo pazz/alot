@@ -133,7 +133,8 @@ class SendCommand(Command):
             else:
                 account = settings.get_accounts()[0]
 
-        clearme = ui.notify('constructing mail (GPG, attachments)...', timeout=-1)
+        clearme = ui.notify(u'constructing mail (GPG, attachments)\u2026',
+                            timeout=-1)
 
         try:
             mail = envelope.construct_mail()
@@ -332,26 +333,56 @@ class ToggleHeaderCommand(Command):
         ui.current_buffer.toggle_all_headers()
 
 
-@registerCommand(MODE, 'togglesign', arguments=[
-    (['keyid'], {'nargs':argparse.REMAINDER, 'help':'which key id to use'})])
-class ToggleSignCommand(Command):
+@registerCommand(MODE, 'sign', forced={'action': 'sign'}, arguments=[
+    (['keyid'], {'nargs':argparse.REMAINDER, 'help':'which key id to use'})],
+    help='mark mail to be signed before sending')
+@registerCommand(MODE, 'unsign', forced={'action': 'unsign'},
+    help='mark mail not to be signed before sending')
+@registerCommand(MODE, 'togglesign', forced={'action': 'toggle'}, arguments=[
+    (['keyid'], {'nargs':argparse.REMAINDER, 'help':'which key id to use'})],
+    help='toggle sign status')
+class SignCommand(Command):
     """toggle signing this email"""
-    def __init__(self, keyid, **kwargs):
+    def __init__(self, action=None, keyid=None, **kwargs):
         """
+        :param action: whether to sign/unsign/toggle
+        :type action: str
         :param keyid: which key id to use
         :type keyid: str
         """
+        self.action = action
         self.keyid = keyid
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        if len(self.keyid) > 0:
-            keyid = str(' '.join(self.keyid))
-            try:
-                key = crypto.CryptoContext().get_key(keyid)
-            except GPGProblem, e:
-                ui.notify(e.message, priority='error')
-                return
-            ui.current_buffer.envelope.sign_key = key
-        ui.current_buffer.envelope.sign = not ui.current_buffer.envelope.sign
+        sign = None
+        key = None
+        envelope = ui.current_buffer.envelope
+        # sign status
+        if self.action == 'sign':
+            sign = True
+        elif self.action == 'unsign':
+            sign = False
+        elif self.action == 'toggle':
+            sign = not envelope.sign
+        envelope.sign = sign
+
+        # try to find key if hint given as parameter
+        if self.action in ['sign', 'toggle']:
+            if len(self.keyid) > 0:
+                keyid = str(' '.join(self.keyid))
+                try:
+                    key = crypto.CryptoContext().get_key(keyid)
+                    if key == None:
+                        envelope.sign = False
+                        ui.notify('no key found using hint "%s"' % keyid,
+                                  priority='error')
+                        return
+                except GPGProblem, e:
+                    envelope.sign = False
+                    ui.notify(e.message, priority='error')
+                    return
+                envelope.sign_key = key
+
+        # reload buffer
         ui.current_buffer.rebuild()
