@@ -177,7 +177,7 @@ prompt_suffix = string(default=':')
 
         # The GPG key ID you want to use with this account. If unset, alot will
         # use your default key.
-        gpg_key = string(default=None)
+        gpg_key = gpg_key_hint(default=None)
 
         # address book for this account
         [[[abook]]]
