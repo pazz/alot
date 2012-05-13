@@ -24,7 +24,7 @@ from alot.completion import AccountCompleter
 from alot.db.envelope import Envelope
 from alot import commands
 from alot.settings import settings
-from alot.db.errors import GPGProblem
+from alot.errors import GPGProblem
 
 MODE = 'global'
 

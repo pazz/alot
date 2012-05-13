@@ -5,6 +5,7 @@ from email.generator import Generator
 from cStringIO import StringIO
 import pyme.core
 import pyme.constants
+from alot.errors import GPGProblem
 
 
 def email_as_string(mail):
@@ -94,8 +95,6 @@ class CryptoContext(pyme.core.Context):
         result = self.op_keylist_start(str(keyid), 0)
         key = self.op_keylist_next()
         if self.op_keylist_next() is not None:
-            # Deferred import to avoid a circular import dependency
-            from alot.db.errors import GPGProblem
             raise GPGProblem(("More than one key found matching this filter."
                 " Please be more specific (use a key ID like 4AC8EE1D)."))
         self.op_keylist_end()
