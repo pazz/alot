@@ -349,6 +349,10 @@ class CompleteEdit(urwid.Edit):
             self.on_exit(self.edit_text)
         elif key == 'cancel':
             self.on_exit(None)
+        elif key == 'ctrl a':
+            self.set_edit_pos(0)
+        elif key == 'ctrl e':
+            self.set_edit_pos(len(self.edit_text))
         else:
             result = urwid.Edit.keypress(self, size, key)
             self.completions = None
