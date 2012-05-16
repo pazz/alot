@@ -17,6 +17,17 @@ positional arguments
 optional arguments
 	:---append: keep previous values.
 
+.. index:: togglesign
+
+togglesign
+__________
+
+toggle sign status
+
+argument
+	which key id to use
+
+
 .. index:: toggleheaders
 
 toggleheaders
@@ -42,6 +53,17 @@ send
 ____
 
 send mail
+
+
+.. index:: sign
+
+sign
+____
+
+mark mail to be signed before sending
+
+argument
+	which key id to use
 
 
 .. index:: attach
@@ -72,6 +94,14 @@ save
 ____
 
 save draft
+
+
+.. index:: unsign
+
+unsign
+______
+
+mark mail not to be signed before sending
 
 
 .. index:: unset
