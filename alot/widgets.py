@@ -155,7 +155,8 @@ class ThreadlineWidget(urwid.AttrMap):
                 msgs = self.thread.get_messages().keys()
             else:
                 msgs = []
-            msgs.sort()
+            # sort the most recent messages first
+            msgs.sort(key=lambda msg: msg.get_date(), reverse=True)
             lastcontent = ' '.join([m.get_text_content() for m in msgs])
             contentstring = lastcontent.replace('\n', ' ').strip()
             self.content_w = urwid.AttrMap(urwid.Text(
