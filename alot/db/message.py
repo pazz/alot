@@ -149,7 +149,7 @@ class Message(object):
         :param headers: headers to extract
         :type headers: list of str
         """
-        return extract_headers(self.get_mail(), headers)
+        return extract_headers(self.get_email(), headers)
 
     def add_tags(self, tags, afterwards=None, remove_rest=False):
         """
