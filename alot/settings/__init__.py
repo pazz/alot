@@ -15,7 +15,9 @@ from alot.helper import pretty_datetime, string_decode
 
 from errors import ConfigError
 from utils import read_config
-from checks import mail_container, force_list
+from checks import force_list
+from checks import mail_container
+from checks import gpg_key
 from theme import Theme
 
 
@@ -56,7 +58,8 @@ class SettingsManager(object):
         spec = os.path.join(DEFAULTSPATH, 'alot.rc.spec')
         newconfig = read_config(path, spec,
                                 checks={'mail_container': mail_container,
-                                        'force_list': force_list})
+                                        'force_list': force_list,
+                                        'gpg_key_hint': gpg_key})
         self._config.merge(newconfig)
 
         hooks_path = os.path.expanduser(self._config.get('hooksfile'))

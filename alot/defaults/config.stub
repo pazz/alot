@@ -67,6 +67,7 @@
         t = 'refine To'
         b = 'refine Bcc'
         c = 'refine Cc'
+        S = togglesign
         select = edit
         H = toggleheaders
 

@@ -31,7 +31,8 @@ def rewrite_entries(config, path, specpath, sec=None, sort=False):
         if default is not None:
             default = config._quote(default)
 
-        #print etype
+        if etype == 'gpg_key_hint':
+            etype = 'string'
         description = '\n.. _%s:\n' % entry.replace('_', '-')
         description += '\n.. describe:: %s\n\n' % entry
         comments = [sec.inline_comments[entry]] + sec.comments[entry]
@@ -46,7 +47,7 @@ def rewrite_entries(config, path, specpath, sec=None, sort=False):
             description += '\n    :type: %s\n' % etype
 
         if default != None:
-            if etype in ['string', 'string list'] and default != 'None':
+            if etype in ['string', 'string_list', 'gpg_key_hint'] and default != 'None':
                 description += '    :default: `%s`\n\n' % (default)
             else:
                 description += '    :default: %s\n\n' % (default)

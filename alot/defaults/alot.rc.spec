@@ -181,6 +181,12 @@ prompt_suffix = string(default=':')
         # :ref:`signature_as_attachment <signature-as-attachment>` is set to True
         signature_filename = string(default=None)
 
+        # Outgoing messages will be GPG signed by default if this is set to True.
+        sign_by_default = boolean(default=False)
+
+        # The GPG key ID you want to use with this account. If unset, alot will
+        # use your default key.
+        gpg_key = gpg_key_hint(default=None)
 
         # address book for this account
         [[[abook]]]

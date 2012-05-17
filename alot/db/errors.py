@@ -15,3 +15,4 @@ class DatabaseLockedError(DatabaseError):
 class NonexistantObjectError(DatabaseError):
     """requested thread or message does not exist in the index"""
     pass
+

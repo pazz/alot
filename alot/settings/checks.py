@@ -3,6 +3,10 @@ import re
 from urlparse import urlparse
 from validate import VdtTypeError
 from validate import is_list
+from validate import ValidateError
+
+from alot import crypto
+from alot.errors import GPGProblem
 
 
 def mail_container(value):
@@ -53,3 +57,14 @@ def force_list(value, min=None, max=None):
     if rlist == ['']:
         rlist = []
     return rlist
+
+
+def gpg_key(value):
+    """
+    test if value points to a known gpg key
+    and return that key as :class:`pyme.pygpgme._gpgme_key`.
+    """
+    try:
+        return crypto.CryptoContext().get_key(value)
+    except GPGProblem, e:
+        raise ValidateError(e.message)

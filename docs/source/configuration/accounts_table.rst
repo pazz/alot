@@ -9,7 +9,7 @@
 
 .. describe:: address
 
-    your main email address
+     your main email address
 
     :type: string
 
@@ -17,7 +17,7 @@
 
 .. describe:: realname
 
-    used to format the (proposed) From-header in outgoing mails
+     used to format the (proposed) From-header in outgoing mails
 
     :type: string
 
@@ -25,17 +25,17 @@
 
 .. describe:: aliases
 
-    used to clear your addresses/ match account when formatting replies
+     used to clear your addresses/ match account when formatting replies
 
-    :type: string_list
-    :default: `,`
+    :type: string list
+    :default: ,
 
 
 .. _sendmail-command:
 
 .. describe:: sendmail_command
 
-    sendmail command. This is the shell command used to send out mails via the sendmail protocol
+     sendmail command. This is the shell command used to send out mails via the sendmail protocol
 
     :type: string
     :default: `sendmail -t`
@@ -45,8 +45,11 @@
 
 .. describe:: sent_box
 
-    where to store outgoing mails, e.g. `maildir:///home/you/mail//Sent`
-    You can use mbox, maildir, mh, babyl and mmdf in the protocol part of the URL.
+     where to store outgoing mails, e.g. `maildir:///home/you/mail/Sent`.
+     You can use mbox, maildir, mh, babyl and mmdf in the protocol part of the URL.
+    
+     .. note:: If you want to add outgoing mails automatically to the notmuch index
+               you must use maildir in a path within your notmuch database path.
 
     :type: mail_container
     :default: None
@@ -56,7 +59,12 @@
 
 .. describe:: draft_box
 
-    where to store draft mails, see :ref:`sent_box <sent-box>` for the format
+     where to store draft mails, e.g. `maildir:///home/you/mail/Drafts`.
+     You can use mbox, maildir, mh, babyl and mmdf in the protocol part of the URL.
+    
+     .. note:: You will most likely want drafts indexed by notmuch to be able to
+               later access them within alot. This currently only works for
+               maildir containers in a path below your notmuch database path.
 
     :type: mail_container
     :default: None
@@ -66,18 +74,18 @@
 
 .. describe:: sent_tags
 
-    list of tags to automatically add to outgoing messages
+     list of tags to automatically add to outgoing messages
 
-    :type: string_list
-    :default: `sent,`
+    :type: string list
+    :default: sent,
 
 
 .. _signature:
 
 .. describe:: signature
 
-    path to signature file that gets attached to all outgoing mails from this account, optionally
-    renamed to ref:`signature_filename <signature-filename>`.
+     path to signature file that gets attached to all outgoing mails from this account, optionally
+     renamed to ref:`signature_filename <signature-filename>`.
 
     :type: string
     :default: None
@@ -87,8 +95,8 @@
 
 .. describe:: signature_as_attachment
 
-    attach signature file if set to True, append its content (mimetype text)
-    to the body text if set to False.
+     attach signature file if set to True, append its content (mimetype text)
+     to the body text if set to False.
 
     :type: boolean
     :default: False
@@ -98,8 +106,29 @@
 
 .. describe:: signature_filename
 
-    signature file's name as it appears in outgoing mails if
-    :ref:`signature_as_attachment <signature-as-attachment>` is set to True
+     signature file's name as it appears in outgoing mails if
+     :ref:`signature_as_attachment <signature-as-attachment>` is set to True
+
+    :type: string
+    :default: None
+
+
+.. _sign-by-default:
+
+.. describe:: sign_by_default
+
+     Outgoing messages will be GPG signed by default if this is set to True.
+
+    :type: boolean
+    :default: False
+
+
+.. _gpg-key:
+
+.. describe:: gpg_key
+
+     The GPG key ID you want to use with this account. If unset, alot will
+     use your default key.
 
     :type: string
     :default: None
