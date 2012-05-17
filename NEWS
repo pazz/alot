@@ -1,3 +1,29 @@
+0.3.1:
+* use separate database for each write-queue entry when flushing
+* fix behaviour of editor spawning
+* fix opening of attachments in thread buffer
+* fix pre_edit_translate hook
+* fix opening of attachments without filename Content-Disposition parm
+* clean up and complete theming (bindings help/envelope/mainframe body)
+* fix datetime decoding issues
+* fix abort commands on pre-hook exceptions
+* fix correct default sendmail command to 'sendmail -t'
+* use '> ' instead of '>' to quote in replies/fwds
+* fix path completer wrt spaces in paths
+* fix UI when no buffers are open
+* fix issue with buffer type changing between flushes
+* support multiple addresses per abook contact when using 'abook' completer
+* smarter timestamp pretty printer
+* new hook 'timestamp_format'
+* merge multiple cc/to headers into one when displaying
+* respect NOTMUCH_CONFIG env var
+* smarter parsing of edited header values
+* allow for singleton lists without trailing comma in config
+* fix reverse-date sorted content in threadline if displayed
+* emacs-style C-a and C-E in prompts
+* added ability to sign outgoing mails via PGP/MIME
+
+
 0.3:
 
 * revised config syntax!
