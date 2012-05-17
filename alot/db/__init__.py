@@ -8,8 +8,10 @@ from collections import deque
 from message import Message
 from alot.settings import settings
 from thread import Thread
-
-import errors
+from errors import DatabaseError
+from errors import DatabaseLockedError
+from errors import DatabaseROError
+from errors import NonexistantObjectError
 
 DB_ENC = 'utf-8'
 
@@ -63,19 +65,12 @@ class DBManager(object):
         You are responsible to retry flushing at a later time if you want to
         ensure that the cached changes are applied to the database.
 
-        :exception: :exc:`errors.DatabaseROError` if db is opened read-only
-        :exception: :exc:`errors.DatabaseLockedError` if db is locked
+        :exception: :exc:`~errors.DatabaseROError` if db is opened read-only
+        :exception: :exc:`~errors.DatabaseLockedError` if db is locked
         """
         if self.ro:
-            raise errors.DatabaseROError()
+            raise DatabaseROError()
         if self.writequeue:
-            # aquire a writeable db handler
-            try:
-                mode = Database.MODE.READ_WRITE
-                db = Database(path=self.path, mode=mode)
-            except NotmuchError:
-                raise errors.DatabaseLockedError()
-
             # read notmuch's config regarding imap flag synchronization
             sync = settings.get_notmuch_setting('maildir', 'synchronize_flags')
 
@@ -89,19 +84,34 @@ class DBManager(object):
                 try:
                     # the first two coordinants are cnmdname and post-callback
                     cmd, afterwards = current_item[:2]
+                    logging.debug('cmd created')
+
+                    # aquire a writeable db handler
+                    try:
+                        mode = Database.MODE.READ_WRITE
+                        db = Database(path=self.path, mode=mode)
+                    except NotmuchError:
+                        raise DatabaseLockedError()
+                    logging.debug('got write lock')
 
                     # make this a transaction
                     db.begin_atomic()
+                    logging.debug('got atomic')
 
                     if cmd == 'add':
+                        logging.debug('add')
                         path, tags = current_item[2:]
                         msg, status = db.add_message(path,
                                                      sync_maildir_flags=sync)
+                        logging.debug('added msg')
                         msg.freeze()
+                        logging.debug('freeze')
                         for tag in tags:
                             msg.add_tag(tag.encode(DB_ENC),
                                         sync_maildir_flags=sync)
+                        logging.debug('added tags ')
                         msg.thaw()
+                        logging.debug('thaw')
 
                     elif cmd == 'remove':
                         path = current_item[2]
@@ -127,18 +137,32 @@ class DBManager(object):
                                                   sync_maildir_flags=sync)
                             msg.thaw()
 
+                    logging.debug('ended atomic')
                     # end transaction and reinsert queue item on error
                     if db.end_atomic() != notmuch.STATUS.SUCCESS:
-                        raise errors.DatabaseError('end_atomic failed')
+                        raise DatabaseError('end_atomic failed')
+                    logging.debug('ended atomic')
+
+                    # close db
+                    db.close()
+                    logging.debug('closed db')
 
                     # call post-callback
                     if callable(afterwards):
+                        logging.debug(str(afterwards))
                         afterwards()
+                    logging.debug('called callback')
 
                 # re-insert item to the queue upon Xapian/NotmuchErrors
                 except (XapianError, NotmuchError) as e:
+                    logging.exception(e)
                     self.writequeue.appendleft(current_item)
-                    raise errors.DatabaseError(unicode(e))
+                    raise DatabaseError(unicode(e))
+                except DatabaseLockedError as e:
+                    logging.debug('index temporarily locked')
+                    self.writequeue.appendleft(current_item)
+                    raise e
+                logging.debug('flush finished')
 
     def kill_search_processes(self):
         """
@@ -153,7 +177,7 @@ class DBManager(object):
         """
         add tags to messages matching `querystring`.
         This appends a tag operation to the write queue and raises
-        :exc:`errors.DatabaseROError` if in read only mode.
+        :exc:`~errors.DatabaseROError` if in read only mode.
 
         :param querystring: notmuch search string
         :type querystring: str
@@ -164,13 +188,13 @@ class DBManager(object):
         :type afterwards: callable
         :param remove_rest: remove tags from matching messages before tagging
         :type remove_rest: bool
-        :exception: :exc:`errors.DatabaseROError`
+        :exception: :exc:`~errors.DatabaseROError`
 
         .. note::
             You need to call :meth:`DBManager.flush` to actually write out.
         """
         if self.ro:
-            raise errors.DatabaseROError()
+            raise DatabaseROError()
         if remove_rest:
             self.writequeue.append(('set', afterwards, querystring, tags))
         else:
@@ -180,7 +204,7 @@ class DBManager(object):
         """
         removes tags from messages that match `querystring`.
         This appends an untag operation to the write queue and raises
-        :exc:`errors.DatabaseROError` if in read only mode.
+        :exc:`~errors.DatabaseROError` if in read only mode.
 
         :param querystring: notmuch search string
         :type querystring: str
@@ -189,13 +213,13 @@ class DBManager(object):
         :param afterwards: callback that gets called after successful
                            application of this tagging operation
         :type afterwards: callable
-        :exception: :exc:`errors.DatabaseROError`
+        :exception: :exc:`~errors.DatabaseROError`
 
         .. note::
             You need to call :meth:`DBManager.flush` to actually write out.
         """
         if self.ro:
-            raise errors.DatabaseROError()
+            raise DatabaseROError()
         self.writequeue.append(('untag', afterwards, querystring, tags))
 
     def count_messages(self, querystring):
@@ -223,7 +247,7 @@ class DBManager(object):
             return query.search_threads().next()
         except StopIteration:
             errmsg = 'no thread with id %s exists!' % tid
-            raise errors.NonexistantObjectError(errmsg)
+            raise NonexistantObjectError(errmsg)
 
     def get_thread(self, tid):
         """returns :class:`Thread` with given thread id (str)"""
@@ -237,7 +261,7 @@ class DBManager(object):
             return db.find_message(mid)
         except:
             errmsg = 'no message with id %s exists!' % mid
-            raise errors.NonexistantObjectError(errmsg)
+            raise NonexistantObjectError(errmsg)
 
     def get_message(self, mid):
         """returns :class:`Message` with given message id (str)"""
@@ -317,7 +341,7 @@ class DBManager(object):
         :type afterwards: callable or None
         """
         if self.ro:
-            raise errors.DatabaseROError()
+            raise DatabaseROError()
         self.writequeue.append(('add', afterwards, path, tags))
 
     def remove_message(self, message, afterwards=None):
@@ -330,6 +354,6 @@ class DBManager(object):
         :type afterwards: callable or None
         """
         if self.ro:
-            raise errors.DatabaseROError()
+            raise DatabaseROError()
         path = message.get_filename()
         self.writequeue.append(('remove', afterwards, path))
