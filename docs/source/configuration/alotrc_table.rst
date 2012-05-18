@@ -105,7 +105,7 @@
      in both cases '*' may be used to indicate all fields.
 
     :type: string list
-    :default: *,
+    :default: \*,
 
 
 .. _editor-cmd:

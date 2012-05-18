@@ -225,6 +225,8 @@ Apart from command pre- and posthooks, the following hooks will be interpreted:
     :type timestamp: `datetime`
     :rtype: str
 
+.. _themes:
+
 Themes
 ======
 Alot can be run in 1, 16 or 256 colour mode. The requested mode is determined by the command-line parameter `-C` or read
@@ -273,7 +275,7 @@ Custom Tagstring Formatting
 To specify how a particular tagstring is displayed throughout the interface you can
 add a subsection named after the tag to the `[tags]` config section.
 The following attribute keys will interpreted and may contain urwid attribute strings
-as described in the :ref:`Themes` section above:
+as described in the :ref:`Themes <themes>` section above:
         
 `fg` (foreground), `bg` (background), `focus_fg` (foreground if focused) and `focus_bg` (background if focused).
 An alternative string representation is read from the option `translated` or can be given
