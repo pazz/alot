@@ -609,11 +609,12 @@ class SaveAttachmentCommand(Command):
     @inlineCallbacks
     def apply(self, ui):
         pcomplete = completion.PathCompleter()
+        savedir = settings.get('attachment_prefix', '~')
         if self.all:
             msg = ui.current_buffer.get_selected_message()
             if not self.path:
                 self.path = yield ui.prompt('save attachments to',
-                                            text=os.path.join('~', ''),
+                                            text=os.path.join(savedir, ''),
                                             completer=pcomplete)
             if self.path:
                 if os.path.isdir(os.path.expanduser(self.path)):
@@ -636,7 +637,7 @@ class SaveAttachmentCommand(Command):
                 filename = attachment.get_filename()
                 if not self.path:
                     msg = 'save attachment (%s) to ' % filename
-                    initialtext = os.path.join('~', filename)
+                    initialtext = os.path.join(savedir, filename)
                     self.path = yield ui.prompt(msg,
                                                 completer=pcomplete,
                                                 text=initialtext)

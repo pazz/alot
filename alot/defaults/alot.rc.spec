@@ -1,6 +1,9 @@
 
 ask_subject = boolean(default=True) # ask for subject when compose
 
+# directory prefix for downloading attachments
+attachment_prefix = string(default='~')
+
 # confirm exit
 bug_on_exit = boolean(default=False)
 
