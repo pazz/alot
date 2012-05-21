@@ -125,19 +125,7 @@ if __name__ == "__main__":
             modefile.write('The following commands are available globally\n\n')
         for cmdstring,struct in modecommands.items():
             cls, parser, forced_args = struct
+            labelline = '.. _cmd_%s_%s:\n' % (mode, cmdstring)
+            modefile.write(labelline)
             modefile.write(rstify_parser(parser))
         modefile.close()
-    indexfile = open(os.path.join(HERE, 'usage', 'commands.rst'), 'w')
-
-    mode_docstrings = get_mode_docs()
-    tbl = ':doc:`modes/global`\n'
-    tbl += (' ' * 4) + 'globally available commands\n'
-    for m in modes:
-        tbl += ':doc:`modes/%s`\n' % m
-        tbl += (' ' * 4) + mode_docstrings[m] + '\n'
-
-    includes = '\n'.join([':doc:`modes/%s`' % m for m in modes])
-    indexfile.write('Commands\n========\n\n')
-    indexfile.write('\n\n')
-    indexfile.write(tbl)
-    indexfile.close()

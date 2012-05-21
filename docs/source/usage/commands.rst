@@ -1,8 +1,6 @@
 Commands
 ========
 
-
-
 :doc:`modes/global`
     globally available commands
 :doc:`modes/search`
