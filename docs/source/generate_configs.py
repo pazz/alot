@@ -47,6 +47,7 @@ def rewrite_entries(config, path, specpath, sec=None, sort=False):
             description += '\n    :type: %s\n' % etype
 
         if default != None:
+            default = default.replace('*','\\*')
             if etype in ['string', 'string_list', 'gpg_key_hint'] and default != 'None':
                 description += '    :default: `%s`\n\n' % (default)
             else:

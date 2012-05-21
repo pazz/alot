@@ -603,8 +603,9 @@ class ComposeCommand(Command):
         sender = self.envelope.get('From')
         name, addr = email.Utils.parseaddr(sender)
         account = settings.get_account_by_address(addr)
-        self.envelope.sign = account.sign_by_default
-        self.envelope.sign_key = account.gpg_key
+        if account:
+            self.envelope.sign = account.sign_by_default
+            self.envelope.sign_key = account.gpg_key
 
         # get missing To header
         if 'To' not in self.envelope.headers:
