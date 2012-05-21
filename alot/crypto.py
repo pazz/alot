@@ -3,9 +3,8 @@ import re
 
 from email.generator import Generator
 from cStringIO import StringIO
-import pyme.core
-import pyme.constants
 from alot.errors import GPGProblem
+import gpgme
 
 
 def email_as_string(mail):
@@ -22,25 +21,48 @@ def email_as_string(mail):
     return RFC3156_canonicalize(fp.getvalue())
 
 
-def _engine_file_name_by_protocol(engines, protocol):
-    for engine in engines:
-        if engine.protocol == protocol:
-            return engine.file_name
-    return None
+def _hash_algo_name(hash_algo):
+    """
+    Re-implements GPGME's hash_algo_name as long as pygpgme doesn't wrap that
+    function.
+
+    :param hash_algo: GPGME hash_algo
+    :rtype: str
+    """
+    mapping = {
+        gpgme.MD_MD5: "MD5",
+        gpgme.MD_SHA1: "SHA1",
+        gpgme.MD_RMD160: "RIPEMD160",
+        gpgme.MD_MD2: "MD2",
+        gpgme.MD_TIGER: "TIGER192",
+        gpgme.MD_HAVAL: "HAVAL",
+        gpgme.MD_SHA256: "SHA256",
+        gpgme.MD_SHA384: "SHA384",
+        gpgme.MD_SHA512: "SHA512",
+        gpgme.MD_MD4: "MD4",
+        gpgme.MD_CRC32: "CRC32",
+        gpgme.MD_CRC32_RFC1510: "CRC32RFC1510",
+        gpgme.MD_CRC24_RFC2440: "CRC24RFC2440",
+    }
+    if hash_algo in mapping:
+        return mapping[hash_algo]
+    else:
+        raise GPGProblem(("Invalid hash_algo passed to hash_algo_name."
+            " Please report this as a bug in alot."))
 
 
-def RFC3156_micalg_from_result(result):
+def RFC3156_micalg_from_algo(hash_algo):
     """
     Converts a GPGME hash algorithm name to one conforming to RFC3156.
 
     GPGME returns hash algorithm names such as "SHA256", but RFC3156 says that
     programs need to use names such as "pgp-sha256" instead.
 
-    :param result: GPGME op_sign_result() return value
+    :param hash_algo: GPGME hash_algo
     :rtype: str
     """
     # hash_algo will be something like SHA256, but we need pgp-sha256.
-    hash_algo = pyme.core.hash_algo_name(result.signatures[0].hash_algo)
+    hash_algo = _hash_algo_name(hash_algo)
     return 'pgp-' + hash_algo.lower()
 
 
@@ -67,74 +89,47 @@ def RFC3156_canonicalize(text):
     return text
 
 
-class CryptoContext(pyme.core.Context):
+def get_key(keyid):
     """
-    This is a wrapper around pyme.core.Context which simplifies the pyme API.
+    Gets a key from the keyring by filtering for the specified keyid, but
+    only if the given keyid is specific enough (if it matches multiple
+    keys, an exception will be thrown).
+
+    :param keyid: filter term for the keyring (usually a key ID)
+    :rtype: gpgme.Key
     """
-    def __init__(self):
-        pyme.core.Context.__init__(self)
-        gpg_path = _engine_file_name_by_protocol(pyme.core.get_engine_info(),
-                pyme.constants.PROTOCOL_OpenPGP)
-        if not gpg_path:
-            # TODO: proper exception
-            raise "no GPG engine found"
-
-        self.set_engine_info(pyme.constants.PROTOCOL_OpenPGP, gpg_path)
-        self.set_armor(1)
-
-    def get_key(self, keyid):
-        """
-        Gets a key from the keyring by filtering for the specified keyid, but
-        only if the given keyid is specific enough (if it matches multiple
-        keys, an exception will be thrown).
-        The same happens if no key is found for the given hint.
-
-        :param keyid: filter term for the keyring (usually a key ID)
-        :type keyid: bytestring
-        :rtype: pyme.pygpgme._gpgme_key
-        :raises: GPGProblem
-        """
-        result = self.op_keylist_start(str(keyid), 0)
-        key = self.op_keylist_next()
-        if self.op_keylist_next() is not None:
+    ctx = gpgme.Context()
+    try:
+        key = ctx.get_key(keyid)
+    except gpgme.GpgmeError as e:
+        if e.code == gpgme.ERR_AMBIGUOUS_NAME:
+            # Deferred import to avoid a circular import dependency
+            from alot.db.errors import GPGProblem
             raise GPGProblem(("More than one key found matching this filter."
                 " Please be more specific (use a key ID like 4AC8EE1D)."))
-        self.op_keylist_end()
-        if key == None:
-            raise GPGProblem('No key could be found for hint "%s"' % keyid)
-        return key
+        else:
+            raise e
+    return key
 
-    def detached_signature_for(self, plaintext_str, key=None):
-        """
-        Signs the given plaintext string and returns the detached signature.
 
-        A detached signature in GPG speak is a separate blob of data containing
-        a signature for the specified plaintext.
+def detached_signature_for(plaintext_str, key=None):
+    """
+    Signs the given plaintext string and returns the detached signature.
 
-        .. note:: You should use #set_passphrase_cb before calling this method
-                  if gpg-agent is not running.
-        ::
+    A detached signature in GPG speak is a separate blob of data containing
+    a signature for the specified plaintext.
 
-            context = crypto.CryptoContext()
-            def gpg_passphrase_cb(hint, desc, prev_bad):
-                return raw_input("Passphrase for key " + hint + ":")
-            context.set_passphrase_cb(gpg_passphrase_cb)
-            result, signature = context.detached_signature_for('Hello World')
-            if result is None:
-                return
-
-        :param plaintext_str: text to sign
-        :param key: gpgme_key_t object representing the key to use
-        :rtype: tuple of pyme.pygpgme._gpgme_op_sign_result and str
-        """
-        if key is not None:
-            self.signers_clear()
-            self.signers_add(key)
-        plaintext_data = pyme.core.Data(plaintext_str)
-        signature_data = pyme.core.Data()
-        self.op_sign(plaintext_data, signature_data,
-            pyme.pygpgme.GPGME_SIG_MODE_DETACH)
-        result = self.op_sign_result()
-        signature_data.seek(0, 0)
-        signature = signature_data.read()
-        return result, signature
+    :param plaintext_str: text to sign
+    :param key: gpgme_key_t object representing the key to use
+    :rtype: tuple of gpgme.NewSignature array and str
+    """
+    ctx = gpgme.Context()
+    ctx.armor = True
+    if key is not None:
+        ctx.signers = [key]
+    plaintext_data = StringIO(plaintext_str)
+    signature_data = StringIO()
+    sigs = ctx.sign(plaintext_data, signature_data, gpgme.SIG_MODE_DETACH)
+    signature_data.seek(0, 0)
+    signature = signature_data.read()
+    return sigs, signature
