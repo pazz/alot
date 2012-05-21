@@ -14,11 +14,7 @@ import re as _re
 import sys as _sys
 import textwrap as _textwrap
 
-#print """
-#********
-#Commands
-#********
-#"""
+NOTE = ".. CAUTION: THIS FILE IS AUTO-GENERATED!\n\n\n"
 
 class HF(HelpFormatter):
     def _metavar_formatter(self, action, default_metavar):
@@ -117,6 +113,7 @@ if __name__ == "__main__":
     for mode, modecommands in COMMANDS.items():
         modefilename = mode+'.rst'
         modefile = open(os.path.join(HERE, 'usage', 'modes', modefilename), 'w')
+        modefile.write(NOTE)
         modefile.write('%s\n%s\n' % (mode, '-' * len(mode)))
         if mode != 'global':
             modes.append(mode)
