@@ -14,6 +14,16 @@
     :default: True
 
 
+.. _attachment-prefix:
+
+.. describe:: attachment_prefix
+
+     directory prefix for downloading attachments
+
+    :type: string
+    :default: `~`
+
+
 .. _authors-maxlength:
 
 .. describe:: authors_maxlength
