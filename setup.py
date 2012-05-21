@@ -29,6 +29,6 @@ setup(name='alot',
         'magic',
         'configobj (>=4.6.0)',
         'subprocess (>=2.7)',
-        'pyme (>=0.8.1)'],
+        'gpgme (>=0.2)'],
       provides='alot',
 )

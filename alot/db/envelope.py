@@ -8,9 +8,6 @@ from email.encoders import encode_7or8bit
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
-import pyme.core
-import pyme.constants
-import pyme.errors
 
 from alot import __version__
 import logging
@@ -159,20 +156,17 @@ class Envelope(object):
             inner_msg = textpart
 
         if self.sign:
-            context = crypto.CryptoContext()
-
             plaintext = crypto.email_as_string(inner_msg)
             logging.info('signing plaintext: ' + plaintext)
 
             try:
-                result, signature_str = context.detached_signature_for(
+                signatures, signature_str = crypto.detached_signature_for(
                         plaintext, self.sign_key)
-                if len(result.signatures) != 1:
+                if len(signatures) != 1:
                     raise GPGProblem(("Could not sign message "
                             "(GPGME did not return a signature)"))
-            except pyme.errors.GPGMEError as e:
-                # 11 == GPG_ERR_BAD_PASSPHRASE
-                if e.getcode() == 11:
+            except gpgme.GpgmeError as e:
+                if e.code == gpgme.ERR_BAD_PASSPHRASE:
                     # If GPG_AGENT_INFO is unset or empty, the user just does
                     # not have gpg-agent running (properly).
                     if os.environ.get('GPG_AGENT_INFO', '').strip() == '':
@@ -184,7 +178,7 @@ class Envelope(object):
                                 "gpg-agent running?"))
                 raise GPGProblem(str(e))
 
-            micalg = crypto.RFC3156_micalg_from_result(result)
+            micalg = crypto.RFC3156_micalg_from_algo(signatures[0].hash_algo)
             outer_msg = MIMEMultipart('signed', micalg=micalg,
                             protocol='application/pgp-signature')
 
