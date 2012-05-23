@@ -1,7 +1,11 @@
+.. CAUTION: THIS FILE IS AUTO-GENERATED!
+
+
 search
 ------
 The following commands are available in search mode
 
+.. _cmd_search_sort:
 .. index:: sort
 
 sort
@@ -13,6 +17,7 @@ argument
 	sort order. valid choices are: \`oldest_first\`,\`newest_first\`,\`message_id\`,\`unsorted\`.
 
 
+.. _cmd_search_untag:
 .. index:: untag
 
 untag
@@ -26,6 +31,7 @@ argument
 optional arguments
 	:---no-flush: postpone a writeout to the index (Defaults to: 'True').
 
+.. _cmd_search_retag:
 .. index:: retag
 
 retag
@@ -39,6 +45,7 @@ argument
 optional arguments
 	:---no-flush: postpone a writeout to the index (Defaults to: 'True').
 
+.. _cmd_search_refineprompt:
 .. index:: refineprompt
 
 refineprompt
@@ -47,6 +54,7 @@ ____________
 prompt to change this buffers querystring
 
 
+.. _cmd_search_tag:
 .. index:: tag
 
 tag
@@ -60,6 +68,7 @@ argument
 optional arguments
 	:---no-flush: postpone a writeout to the index (Defaults to: 'True').
 
+.. _cmd_search_refine:
 .. index:: refine
 
 refine
@@ -73,6 +82,7 @@ argument
 optional arguments
 	:---sort: sort order. Valid choices are: \`oldest_first\`,\`newest_first\`,\`message_id\`,\`unsorted\`.
 
+.. _cmd_search_retagprompt:
 .. index:: retagprompt
 
 retagprompt
@@ -81,6 +91,7 @@ ___________
 prompt to retag selected threads' tags
 
 
+.. _cmd_search_toggletags:
 .. index:: toggletags
 
 toggletags
@@ -98,6 +109,7 @@ argument
 optional arguments
 	:---no-flush: postpone a writeout to the index (Defaults to: 'True').
 
+.. _cmd_search_select:
 .. index:: select
 
 select

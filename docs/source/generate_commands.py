@@ -14,11 +14,7 @@ import re as _re
 import sys as _sys
 import textwrap as _textwrap
 
-#print """
-#********
-#Commands
-#********
-#"""
+NOTE = ".. CAUTION: THIS FILE IS AUTO-GENERATED!\n\n\n"
 
 class HF(HelpFormatter):
     def _metavar_formatter(self, action, default_metavar):
@@ -117,6 +113,7 @@ if __name__ == "__main__":
     for mode, modecommands in COMMANDS.items():
         modefilename = mode+'.rst'
         modefile = open(os.path.join(HERE, 'usage', 'modes', modefilename), 'w')
+        modefile.write(NOTE)
         modefile.write('%s\n%s\n' % (mode, '-' * len(mode)))
         if mode != 'global':
             modes.append(mode)
@@ -125,19 +122,7 @@ if __name__ == "__main__":
             modefile.write('The following commands are available globally\n\n')
         for cmdstring,struct in modecommands.items():
             cls, parser, forced_args = struct
+            labelline = '.. _cmd_%s_%s:\n' % (mode, cmdstring)
+            modefile.write(labelline)
             modefile.write(rstify_parser(parser))
         modefile.close()
-    indexfile = open(os.path.join(HERE, 'usage', 'commands.rst'), 'w')
-
-    mode_docstrings = get_mode_docs()
-    tbl = ':doc:`modes/global`\n'
-    tbl += (' ' * 4) + 'globally available commands\n'
-    for m in modes:
-        tbl += ':doc:`modes/%s`\n' % m
-        tbl += (' ' * 4) + mode_docstrings[m] + '\n'
-
-    includes = '\n'.join([':doc:`modes/%s`' % m for m in modes])
-    indexfile.write('Commands\n========\n\n')
-    indexfile.write('\n\n')
-    indexfile.write(tbl)
-    indexfile.close()

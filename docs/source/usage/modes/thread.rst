@@ -1,7 +1,11 @@
+.. CAUTION: THIS FILE IS AUTO-GENERATED!
+
+
 thread
 ------
 The following commands are available in thread mode
 
+.. _cmd_thread_pipeto:
 .. index:: pipeto
 
 pipeto
@@ -21,6 +25,7 @@ optional arguments
 	:---shell: let the shell interpret the command.
 	:---notify_stdout: display command's stdout as notification message.
 
+.. _cmd_thread_editnew:
 .. index:: editnew
 
 editnew
@@ -31,6 +36,7 @@ edit message in as new
 optional arguments
 	:---spawn: open editor in new window.
 
+.. _cmd_thread_toggleheaders:
 .. index:: toggleheaders
 
 toggleheaders
@@ -41,6 +47,7 @@ display all headers
 optional arguments
 	:---all: affect all messages.
 
+.. _cmd_thread_print:
 .. index:: print
 
 print
@@ -54,6 +61,7 @@ optional arguments
 	:---separately: call print command once for each message.
 	:---add_tags: add 'Tags' header to the message.
 
+.. _cmd_thread_remove:
 .. index:: remove
 
 remove
@@ -64,6 +72,7 @@ remove message(s) from the index
 optional arguments
 	:---all: remove whole thread.
 
+.. _cmd_thread_togglesource:
 .. index:: togglesource
 
 togglesource
@@ -74,6 +83,7 @@ display message source
 optional arguments
 	:---all: affect all messages.
 
+.. _cmd_thread_retag:
 .. index:: retag
 
 retag
@@ -88,6 +98,7 @@ optional arguments
 	:---all: tag all messages in thread.
 	:---no-flush: postpone a writeout to the index (Defaults to: 'True').
 
+.. _cmd_thread_fold:
 .. index:: fold
 
 fold
@@ -98,6 +109,7 @@ fold message(s)
 optional arguments
 	:---all: fold all messages.
 
+.. _cmd_thread_tag:
 .. index:: tag
 
 tag
@@ -112,6 +124,7 @@ optional arguments
 	:---all: tag all messages in thread.
 	:---no-flush: postpone a writeout to the index (Defaults to: 'True').
 
+.. _cmd_thread_untag:
 .. index:: untag
 
 untag
@@ -126,6 +139,7 @@ optional arguments
 	:---all: tag all messages in thread.
 	:---no-flush: postpone a writeout to the index (Defaults to: 'True').
 
+.. _cmd_thread_unfold:
 .. index:: unfold
 
 unfold
@@ -136,6 +150,7 @@ unfold message(s)
 optional arguments
 	:---all: unfold all messages.
 
+.. _cmd_thread_forward:
 .. index:: forward
 
 forward
@@ -147,6 +162,7 @@ optional arguments
 	:---attach: attach original mail.
 	:---spawn: open editor in new window.
 
+.. _cmd_thread_reply:
 .. index:: reply
 
 reply
@@ -158,6 +174,7 @@ optional arguments
 	:---all: reply to all.
 	:---spawn: open editor in new window.
 
+.. _cmd_thread_save:
 .. index:: save
 
 save
@@ -171,6 +188,7 @@ argument
 optional arguments
 	:---all: save all attachments.
 
+.. _cmd_thread_toggletags:
 .. index:: toggletags
 
 toggletags
@@ -185,6 +203,7 @@ optional arguments
 	:---all: tag all messages in thread.
 	:---no-flush: postpone a writeout to the index (Defaults to: 'True').
 
+.. _cmd_thread_select:
 .. index:: select
 
 select
