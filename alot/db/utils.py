@@ -106,7 +106,7 @@ def extract_body(mail, types=None):
                 os.unlink(tmpfile.name)
                 if rendered_payload:  # handler had output
                     body_parts.append(string_sanitize(rendered_payload))
-    return '\n\n'.join(body_parts)
+    return u'\n\n'.join(body_parts)
 
 
 def decode_header(header, normalize=False):
