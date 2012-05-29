@@ -51,7 +51,7 @@ class Attachment(object):
 
     def save(self, path):
         """
-        save the attachment to disk. Uses :meth:`get_filename` in case path
+        save the attachment to disk. Uses :meth:`~get_filename` in case path
         is a directory
         """
         filename = self.get_filename()

@@ -77,8 +77,8 @@ class Thread(object):
         .. note::
 
             This only adds the requested operation to this objects
-            :class:`DBManager's <~alot.db.DBManager>` write queue.
-            You need to call :meth:`DBManager.flush <~alot.db.DBManager.flush>`
+            :class:`DBManager's <alot.db.DBManager>` write queue.
+            You need to call :meth:`DBManager.flush <alot.db.DBManager.flush>`
             to actually write out.
 
         :param tags: a list of tags to be added
@@ -108,7 +108,7 @@ class Thread(object):
 
             This only adds the requested operation to this objects
             :class:`DBManager's <alot.db.DBManager>` write queue.
-            You need to call :meth:`DBManager.flush  <alot.db.DBManager.flush>`
+            You need to call :meth:`DBManager.flush <alot.db.DBManager.flush>`
             to actually write out.
 
         :param tags: a list of tags to be added

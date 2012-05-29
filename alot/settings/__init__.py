@@ -347,9 +347,10 @@ class SettingsManager(object):
         """
         turns a given datetime obj into a unicode string representation.
         This will:
+
         1) look if a fixed 'timestamp_format' is given in the config
         2) check if a 'timestamp_format' hook is defined
-        3) use :function:`pretty_datetime` as fallback
+        3) use :func:`~alot.helper.pretty_datetime` as fallback
         """
 
         fixed_format = self.get('timestamp_format')
