@@ -6,6 +6,7 @@ from string import strip
 import subprocess
 import email
 import os
+import re
 from email.mime.audio import MIMEAudio
 from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
@@ -338,9 +339,14 @@ def guess_mimetype(blob):
     :returns: mime-type, falls back to 'application/octet-stream'
     :rtype: str
     """
+    mimetype = 'application/octet-stream'
     m = magic.open(magic.MAGIC_MIME_TYPE)
     m.load()
-    return m.buffer(blob) or 'application/octet-stream'
+    magictype = m.buffer(blob)
+    # libmagic does not always return proper mimetype strings, cf. issue #459
+    if re.match(r'\w+\/\w+', magictype):
+        mimetype = magictype
+    return mimetype
 
 
 def guess_encoding(blob):
