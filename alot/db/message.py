@@ -8,6 +8,7 @@ import alot.helper as helper
 from alot.settings import settings
 
 from utils import extract_headers, extract_body
+from alot.db.utils import decode_header
 from attachment import Attachment
 
 
@@ -34,8 +35,9 @@ class Message(object):
         self._datetime = helper.safely_get(casts_date,
                                           ValueError, None)
         self._filename = msg.get_filename()
-        self._from = helper.safely_get(lambda: msg.get_header('From'),
+        author = helper.safely_get(lambda: msg.get_header('From'),
                                        NullPointerError)
+        self._from = decode_header(author)
         self._email = None  # will be read upon first use
         self._attachments = None  # will be read upon first use
         self._tags = set(msg.get_tags())
