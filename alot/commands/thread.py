@@ -7,6 +7,7 @@ import re
 import subprocess
 from email.Utils import parseaddr
 import mailcap
+from cStringIO import StringIO
 
 from alot.commands import Command, registerCommand
 from alot.commands.globals import ExternalCommand
@@ -667,31 +668,43 @@ class OpenAttachmentCommand(Command):
 
         handler, entry = settings.mailcap_find_match(mimetype)
         if handler:
-            nametemplate = entry.get('nametemplate', '%s')
-            prefix, suffix = parse_mailcap_nametemplate(nametemplate)
-            tmpfile = tempfile.NamedTemporaryFile(delete=False,
-                                                  prefix=prefix,
-                                                  suffix=suffix)
-
-            self.attachment.write(tmpfile)
-            tmpfile.close()
-
-            # read parameter, create handler command
+            afterwards = None
+            handler_stdin = None
+            tempfile_name = None
+            handler_commandstring = entry['view']
+            # read parameter
             part = self.attachment.get_mime_representation()
             parms = tuple(map('='.join, part.get_params()))
 
+            # in case the mailcap defined command contains no '%s',
+            # we pipe the files content to the handling command via stdin
+            if '%s' in handler_commandstring:
+                nametemplate = entry.get('nametemplate', '%s')
+                prefix, suffix = parse_mailcap_nametemplate(nametemplate)
+                tmpfile = tempfile.NamedTemporaryFile(delete=False,
+                                                      prefix=prefix,
+                                                      suffix=suffix)
+
+                tempfile_name = tmpfile.name
+                self.attachment.write(tmpfile)
+                tmpfile.close()
+                def afterwards():
+                    os.remove(tempfile_name)
+            else:
+                handler_stdin = StringIO()
+                self.attachment.write(handler_stdin)
+
+
             # create and call external command
-            handler = mailcap.subst(entry['view'], mimetype,
-                                filename=tmpfile.name, plist=parms)
+            handler = mailcap.subst(handler_commandstring, mimetype,
+                                    filename=tempfile_name, plist=parms)
+
 
             # 'needsterminal' makes handler overtake the terminal
             nt = entry.get('needsterminal', None)
             overtakes = (nt is None)
 
-            def afterwards():
-                os.remove(tmpfile.name)
-
-            ui.apply_command(ExternalCommand(handler, path=tmpfile.name,
+            ui.apply_command(ExternalCommand(handler, stdin=handler_stdin,
                                              on_success=afterwards,
                                              thread=overtakes))
         else:
