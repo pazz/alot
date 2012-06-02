@@ -9,6 +9,7 @@ from twisted.internet.defer import inlineCallbacks
 import logging
 import argparse
 import glob
+from StringIO import StringIO
 
 from alot.commands import Command, registerCommand
 from alot.completion import CommandLineCompleter
@@ -129,18 +130,23 @@ class RefreshCommand(Command):
     (['--refocus'], {'action': 'store_true', 'help':'refocus current buffer \
                      after command has finished'}),
     (['cmd'], {'help':'command line to execute'})],
+    forced={'shell': True},
 )
 class ExternalCommand(Command):
     """run external command"""
-    def __init__(self, cmd, path=None, spawn=False, refocus=True,
-                 thread=False, on_success=None, **kwargs):
+    def __init__(self, cmd, path=None, stdin=None, shell=False,spawn=False,
+                 refocus=True, thread=False, on_success=None, **kwargs):
         """
         :param cmd: the command to call
         :type cmd: str
         :param path: a path to a file (or None)
         :type path: str
+        :param stdin: input to pipe to the process
+        :type stdin: file or str
         :param spawn: run command in a new terminal
         :type spawn: bool
+        :param shell: let shell interret command string
+        :type shell: bool
         :param thread: run asynchronously, don't block alot
         :type thread: bool
         :param refocus: refocus calling buffer after cmd termination
@@ -150,6 +156,8 @@ class ExternalCommand(Command):
         """
         self.commandstring = cmd
         self.path = path
+        self.stdin = stdin
+        self.shell = shell
         self.spawn = spawn
         self.refocus = refocus
         self.in_thread = thread
@@ -158,6 +166,15 @@ class ExternalCommand(Command):
 
     def apply(self, ui):
         callerbuffer = ui.current_buffer
+
+        #set standard input for subcommand
+        stdin = None
+        if self.stdin is not None:
+            # wrap strings in StrinIO so that they behaves like a file
+            if isinstance(self.stdin, unicode):
+                stdin = StringIO(self.stdin)
+            else:
+                stdin = self.stdin
 
         def afterwards(data):
             if data == 'success':
@@ -185,7 +202,15 @@ class ExternalCommand(Command):
             cmd = cmd.encode('utf-8', errors='ignore')
             logging.info('calling external command: %s' % cmd)
             try:
-                if 0 == subprocess.call(shlex.split(cmd)):
+                cmdlist = shlex.split(cmd)
+                if stdin == None:
+                    ret = subprocess.call(cmdlist, shell=self.shell)
+                else:
+                    proc = subprocess.Popen(cmdlist, shell=self.shell,
+                                            stdin=subprocess.PIPE)
+                    out, err = proc.communicate(stdin.read())
+                    ret = proc.wait()
+                if ret == 0:
                     return 'success'
             except OSError, e:
                 return str(e)
