@@ -132,8 +132,12 @@ def decode_header(header, normalize=False):
     except UnicodeEncodeError:
         return value
 
+    # some mailers send out incorrectly escaped headers
+    # and double quote the escaped realname part again. remove those
+    value = re.sub(r'\"(.*?=\?.*?.*?)\"', r'\1', value)
+
     # otherwise we interpret RFC2822 encoding escape sequences
-    valuelist = email.header.decode_header(header)
+    valuelist = email.header.decode_header(value)
     decoded_list = []
     for v, enc in valuelist:
         v = string_decode(v, enc)
