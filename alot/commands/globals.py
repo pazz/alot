@@ -134,11 +134,11 @@ class RefreshCommand(Command):
 )
 class ExternalCommand(Command):
     """run external command"""
-    def __init__(self, cmdlist, stdin=None, shell=False, spawn=False,
+    def __init__(self, cmd, stdin=None, shell=False, spawn=False,
                  refocus=True, thread=False, on_success=None, **kwargs):
         """
-        :param cmdlist: the command to call
-        :type cmdlist: list of str
+        :param cmd: the command to call
+        :type cmd: list or str
         :param stdin: input to pipe to the process
         :type stdin: file or str
         :param spawn: run command in a new terminal
@@ -152,7 +152,9 @@ class ExternalCommand(Command):
         :param on_success: code to execute after command successfully exited
         :type on_success: callable
         """
-        self.cmdlist = cmdlist
+        if isinstance(cmd, unicode):
+            cmd = split_commandstring(cmd)
+        self.cmdlist = cmd
         self.stdin = stdin
         self.shell = shell
         self.spawn = spawn
