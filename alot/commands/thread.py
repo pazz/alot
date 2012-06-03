@@ -2,7 +2,6 @@ import os
 import logging
 import tempfile
 from twisted.internet.defer import inlineCallbacks
-import shlex
 import re
 import subprocess
 from email.Utils import parseaddr
@@ -22,10 +21,10 @@ from alot.db.utils import extract_headers
 from alot.db.utils import extract_body
 from alot.db.envelope import Envelope
 from alot.db.attachment import Attachment
-
 from alot.db.errors import DatabaseROError
 from alot.settings import settings
 from alot.helper import parse_mailcap_nametemplate
+from alot.helper import split_commandstring
 
 MODE = 'thread'
 
@@ -402,7 +401,7 @@ class PipeCommand(Command):
         """
         Command.__init__(self, **kwargs)
         if isinstance(cmd, unicode):
-            cmd = shlex.split(cmd.encode('UTF-8'))
+            cmd = split_commandstring(cmd)
         self.cmd = cmd
         self.whole_thread = all
         self.separately = separately
@@ -666,19 +665,21 @@ class OpenAttachmentCommand(Command):
         logging.info('open attachment')
         mimetype = self.attachment.get_content_type()
 
-        handler, entry = settings.mailcap_find_match(mimetype)
-        if handler:
-            afterwards = None
+        # returns pair of preliminary command string and entry dict containing
+        # more info. We only use the dict and construct the command ourselves
+        _, entry = settings.mailcap_find_match(mimetype)
+        if entry:
+            afterwards = None  # callback, will rm tempfile if used
             handler_stdin = None
             tempfile_name = None
-            handler_commandstring = entry['view']
+            handler_raw_commandstring = entry['view']
             # read parameter
             part = self.attachment.get_mime_representation()
             parms = tuple(map('='.join, part.get_params()))
 
             # in case the mailcap defined command contains no '%s',
             # we pipe the files content to the handling command via stdin
-            if '%s' in handler_commandstring:
+            if '%s' in handler_raw_commandstring:
                 nametemplate = entry.get('nametemplate', '%s')
                 prefix, suffix = parse_mailcap_nametemplate(nametemplate)
                 tmpfile = tempfile.NamedTemporaryFile(delete=False,
@@ -688,23 +689,25 @@ class OpenAttachmentCommand(Command):
                 tempfile_name = tmpfile.name
                 self.attachment.write(tmpfile)
                 tmpfile.close()
+
                 def afterwards():
                     os.remove(tempfile_name)
             else:
                 handler_stdin = StringIO()
                 self.attachment.write(handler_stdin)
 
+            # create handler command list
+            handler_cmd = mailcap.subst(handler_raw_commandstring, mimetype,
+                                        filename=tempfile_name, plist=parms)
 
-            # create and call external command
-            handler = mailcap.subst(handler_commandstring, mimetype,
-                                    filename=tempfile_name, plist=parms)
-
+            handler_cmdlist = split_commandstring(handler_cmd)
 
             # 'needsterminal' makes handler overtake the terminal
             nt = entry.get('needsterminal', None)
             overtakes = (nt is None)
 
-            ui.apply_command(ExternalCommand(handler, stdin=handler_stdin,
+            ui.apply_command(ExternalCommand(handler_cmdlist,
+                                             stdin=handler_stdin,
                                              on_success=afterwards,
                                              thread=overtakes))
         else:

@@ -4,6 +4,7 @@ from datetime import datetime
 from collections import deque
 from string import strip
 import subprocess
+import shlex
 import email
 import os
 import re
@@ -20,6 +21,16 @@ import StringIO
 import logging
 import tempfile
 
+
+def split_commandstring(cmdstring):
+    """
+    split command string into a list of strings to pass on to subprocess.Popen
+    and the like. This simply calls shlex.split but works also with unicode
+    bytestrings.
+    """
+    if isinstance(cmdstring, unicode):
+        cmdstring = cmdstring.encode('utf-8', errors='ignore')
+    return shlex.split(cmdstring)
 
 def safely_get(clb, E, on_error=''):
     """

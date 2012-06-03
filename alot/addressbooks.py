@@ -1,9 +1,9 @@
 import re
 import os
-import shlex
 
 from alot.settings.utils import read_config
 from helper import call_cmd
+from alot.helper import split_commandstring
 
 
 class AddressBook(object):
@@ -73,7 +73,7 @@ class MatchSdtoutAddressbook(AddressBook):
         return self.lookup('\'\'')
 
     def lookup(self, prefix):
-        cmdlist = shlex.split(self.command.encode('utf-8', errors='ignore'))
+        cmdlist = split_commandstring(self.command)
         resultstring, errmsg, retval = call_cmd(cmdlist + [prefix])
         if not resultstring:
             return []

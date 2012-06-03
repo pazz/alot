@@ -4,9 +4,9 @@ import time
 import email
 import os
 import glob
-import shlex
 
 from alot.helper import call_cmd_async
+from alot.helper import split_commandstring
 import alot.crypto as crypto
 
 
@@ -151,7 +151,7 @@ class SendmailAccount(Account):
 
     def send_mail(self, mail):
         mail['Date'] = email.utils.formatdate(time.time(), True)
-        cmdlist = shlex.split(self.cmd.encode('utf-8', errors='ignore'))
+        cmdlist = split_commandstring(self.cmd)
 
         def cb(out):
             logging.info('sent mail successfully')
