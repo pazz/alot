@@ -134,13 +134,11 @@ class RefreshCommand(Command):
 )
 class ExternalCommand(Command):
     """run external command"""
-    def __init__(self, cmd, path=None, stdin=None, shell=False,spawn=False,
+    def __init__(self, cmdlist, stdin=None, shell=False, spawn=False,
                  refocus=True, thread=False, on_success=None, **kwargs):
         """
-        :param cmd: the command to call
-        :type cmd: str
-        :param path: a path to a file (or None)
-        :type path: str
+        :param cmdlist: the command to call
+        :type cmdlist: list of str
         :param stdin: input to pipe to the process
         :type stdin: file or str
         :param spawn: run command in a new terminal
@@ -154,8 +152,7 @@ class ExternalCommand(Command):
         :param on_success: code to execute after command successfully exited
         :type on_success: callable
         """
-        self.commandstring = cmd
-        self.path = path
+        self.cmdlist = cmdlist
         self.stdin = stdin
         self.shell = shell
         self.spawn = spawn
@@ -165,6 +162,7 @@ class ExternalCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
+        logging.debug('cmdlist: %s' % self.cmdlist)
         callerbuffer = ui.current_buffer
 
         #set standard input for subcommand
@@ -186,27 +184,22 @@ class ExternalCommand(Command):
                 logging.info('refocussing')
                 ui.buffer_focus(callerbuffer)
 
-        def thread_code(*args):
-            if self.path:
-                if '{}' in self.commandstring:
-                    cmd = self.commandstring.replace('{}',
-                            helper.shell_quote(self.path))
-                else:
-                    cmd = '%s %s' % (self.commandstring,
-                                     helper.shell_quote(self.path))
-            else:
-                cmd = self.commandstring
+        if self.spawn:
+            term_cmd = settings.get('terminal_cmd', '')
+            term_cmd = term_cmd.encode('utf-8', errors='ignore')
+            logging.info('spawn in terminal: %s' % term_cmd)
+            termcmdlist = shlex.split(term_cmd)
+            logging.info('term cmdlist: %s' % termcmdlist)
+            self.cmdlist = termcmdlist + self.cmdlist
 
-            if self.spawn:
-                cmd = '%s %s' % (settings.get('terminal_cmd'), cmd)
-            cmd = cmd.encode('utf-8', errors='ignore')
-            logging.info('calling external command: %s' % cmd)
+        logging.info('calling external command: %s' % self.cmdlist)
+
+        def thread_code(*args):
             try:
-                cmdlist = shlex.split(cmd)
                 if stdin == None:
-                    ret = subprocess.call(cmdlist, shell=self.shell)
+                    ret = subprocess.call(self.cmdlist, shell=self.shell)
                 else:
-                    proc = subprocess.Popen(cmdlist, shell=self.shell,
+                    proc = subprocess.Popen(self.cmdlist, shell=self.shell,
                                             stdin=subprocess.PIPE)
                     out, err = proc.communicate(stdin.read())
                     ret = proc.wait()
@@ -241,26 +234,37 @@ class EditCommand(ExternalCommand):
         :param thread: run asynchronously, don't block alot
         :type thread: bool
         """
-        self.path = path
         self.spawn = settings.get('editor_spawn') or spawn
         if thread != None:
             self.thread = thread
         else:
             self.thread = settings.get('editor_in_thread')
 
-        self.editor_cmd = None
+        editor_cmdstring = None
         if os.path.isfile('/usr/bin/editor'):
-            self.editor_cmd = '/usr/bin/editor'
-        self.editor_cmd = os.environ.get('EDITOR', self.editor_cmd)
-        self.editor_cmd = settings.get('editor_cmd') or self.editor_cmd
-        logging.debug('using editor_cmd: %s' % self.editor_cmd)
+            editor_cmdstring = '/usr/bin/editor'
+        editor_cmdstring = os.environ.get('EDITOR', editor_cmdstring)
+        editor_cmdstring = settings.get('editor_cmd') or editor_cmdstring
+        logging.debug('using editor_cmd: %s' % editor_cmdstring)
 
-        ExternalCommand.__init__(self, self.editor_cmd, path=self.path,
+        self.cmdlist = None
+        if '%s' in editor_cmdstring:
+            cmdstring = editor_cmdstring.replace('%s',
+                                                 helper.shell_quote(path))
+            cmdstring = cmdstring.encode('utf-8', errors='ignore')
+            self.cmdlist = shlex.split(cmdstring)
+        else:
+            cmdstring = editor_cmdstring.encode('utf-8', errors='ignore')
+            self.cmdlist = shlex.split(cmdstring) + [path]
+
+        logging.debug(self.cmdlist)
+
+        ExternalCommand.__init__(self, self.cmdlist,
                                  spawn=self.spawn, thread=self.thread,
                                  **kwargs)
 
     def apply(self, ui):
-        if self.editor_cmd == None:
+        if self.cmdlist == None:
             ui.notify('no editor set', priority='error')
         else:
             return ExternalCommand.apply(self, ui)
