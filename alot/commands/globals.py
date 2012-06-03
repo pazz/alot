@@ -2,7 +2,6 @@ import os
 import code
 from twisted.internet import threads
 import subprocess
-import shlex
 import email
 import urwid
 from twisted.internet.defer import inlineCallbacks
@@ -26,6 +25,7 @@ from alot.db.envelope import Envelope
 from alot import commands
 from alot.settings import settings
 from alot.errors import GPGProblem
+from alot.helper import split_commandstring
 
 MODE = 'global'
 
@@ -188,7 +188,7 @@ class ExternalCommand(Command):
             term_cmd = settings.get('terminal_cmd', '')
             term_cmd = term_cmd.encode('utf-8', errors='ignore')
             logging.info('spawn in terminal: %s' % term_cmd)
-            termcmdlist = shlex.split(term_cmd)
+            termcmdlist = split_commandstring(term_cmd)
             logging.info('term cmdlist: %s' % termcmdlist)
             self.cmdlist = termcmdlist + self.cmdlist
 
@@ -251,11 +251,9 @@ class EditCommand(ExternalCommand):
         if '%s' in editor_cmdstring:
             cmdstring = editor_cmdstring.replace('%s',
                                                  helper.shell_quote(path))
-            cmdstring = cmdstring.encode('utf-8', errors='ignore')
-            self.cmdlist = shlex.split(cmdstring)
+            self.cmdlist = split_commandstring(cmdstring)
         else:
-            cmdstring = editor_cmdstring.encode('utf-8', errors='ignore')
-            self.cmdlist = shlex.split(cmdstring) + [path]
+            self.cmdlist = split_commandstring(editor_cmdstring) + [path]
 
         logging.debug(self.cmdlist)
 

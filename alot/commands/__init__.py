@@ -1,12 +1,12 @@
 import os
 import re
 import glob
-import shlex
 import logging
 import argparse
 
 from alot.settings import settings
 import alot.helper
+from alot.helper import split_commandstring
 
 
 class Command(object):
@@ -168,7 +168,7 @@ def commandfactory(cmdline, mode='global'):
         cmdline = 'shellescape \'%s\'' % cmdline[1:]
     cmdline = re.sub(r'"(.*)"', r'"\\"\1\\""', cmdline)
     try:
-        args = shlex.split(cmdline.encode('utf-8'))
+        args = split_commandstring(cmdline)
     except ValueError, e:
         raise CommandParseError(e.message)
     args = map(lambda x: alot.helper.string_decode(x, 'utf-8'), args)

@@ -2,7 +2,6 @@ import os
 import email
 import tempfile
 import re
-import shlex
 from email.header import Header
 import email.charset as charset
 charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
@@ -15,6 +14,7 @@ from alot.settings import settings
 from alot.helper import string_sanitize
 from alot.helper import string_decode
 from alot.helper import parse_mailcap_nametemplate
+from alot.helper import split_commandstring
 
 
 def extract_headers(mail, headers=None):
@@ -99,7 +99,7 @@ def extract_body(mail, types=None):
                                     filename=tmpfile.name, plist=parms)
                 logging.debug('command: %s' % cmd)
                 logging.debug('parms: %s' % str(parms))
-                cmdlist = shlex.split(cmd.encode('utf-8', errors='ignore'))
+                cmdlist = split_commandstring(cmd)
                 # call handler
                 rendered_payload, errmsg, retval = helper.call_cmd(cmdlist)
                 # remove tempfile

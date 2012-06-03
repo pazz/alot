@@ -2,7 +2,6 @@ import os
 import logging
 import tempfile
 from twisted.internet.defer import inlineCallbacks
-import shlex
 import re
 import subprocess
 from email.Utils import parseaddr
@@ -22,10 +21,10 @@ from alot.db.utils import extract_headers
 from alot.db.utils import extract_body
 from alot.db.envelope import Envelope
 from alot.db.attachment import Attachment
-
 from alot.db.errors import DatabaseROError
 from alot.settings import settings
 from alot.helper import parse_mailcap_nametemplate
+from alot.helper import split_commandstring
 
 MODE = 'thread'
 
@@ -402,7 +401,7 @@ class PipeCommand(Command):
         """
         Command.__init__(self, **kwargs)
         if isinstance(cmd, unicode):
-            cmd = shlex.split(cmd.encode('UTF-8'))
+            cmd = split_commandstring(cmd)
         self.cmd = cmd
         self.whole_thread = all
         self.separately = separately
@@ -701,8 +700,7 @@ class OpenAttachmentCommand(Command):
             handler_cmd = mailcap.subst(handler_raw_commandstring, mimetype,
                                         filename=tempfile_name, plist=parms)
 
-            handler_cmd = handler_cmd.encode('utf-8', errors='ignore')
-            handler_cmdlist = shlex.split(handler_cmd)
+            handler_cmdlist = split_commandstring(handler_cmd)
 
             # 'needsterminal' makes handler overtake the terminal
             nt = entry.get('needsterminal', None)
