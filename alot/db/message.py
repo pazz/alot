@@ -120,10 +120,12 @@ class Message(object):
 
     def get_datestring(self):
         """
-        returns reformated datestring for this messages.
+        returns reformated datestring for this message.
 
-        It uses the format spacified by `timestamp_format` in
-        the general section of the config.
+        It uses :meth:`SettingsManager.represent_datetime` to represent
+        this messages `Date` header
+
+        :rtype: str
         """
         if self._datetime == None:
             res = None

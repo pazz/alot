@@ -191,6 +191,7 @@ class DBManager(object):
         :exception: :exc:`~errors.DatabaseROError`
 
         .. note::
+            This only adds the requested operation to the write queue.
             You need to call :meth:`DBManager.flush` to actually write out.
         """
         if self.ro:
@@ -216,6 +217,7 @@ class DBManager(object):
         :exception: :exc:`~errors.DatabaseROError`
 
         .. note::
+            This only adds the requested operation to the write queue.
             You need to call :meth:`DBManager.flush` to actually write out.
         """
         if self.ro:
