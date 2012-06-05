@@ -143,7 +143,7 @@ class ExternalCommand(Command):
         :type stdin: file or str
         :param spawn: run command in a new terminal
         :type spawn: bool
-        :param shell: let shell interret command string
+        :param shell: let shell interpret command string
         :type shell: bool
         :param thread: run asynchronously, don't block alot
         :type thread: bool
@@ -153,7 +153,9 @@ class ExternalCommand(Command):
         :type on_success: callable
         """
         if isinstance(cmd, unicode):
-            cmd = split_commandstring(cmd)
+            # convert cmdstring to list: in case shell==True,
+            # Popen passes only the first item in the list to $SHELL
+            cmd = [cmd] if shell else split_commandstring(cmd)
         self.cmdlist = cmd
         self.stdin = stdin
         self.shell = shell
