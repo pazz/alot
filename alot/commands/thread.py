@@ -112,6 +112,8 @@ class ReplyCommand(Command):
         for line in self.message.accumulate_body().splitlines():
             if line == '':
                 mailcontent += '>\n'
+            elif line[0] == '>':
+                mailcontent += '>' + line + '\n'
             else:
                 mailcontent += '> ' + line + '\n'
 
