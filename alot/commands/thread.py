@@ -110,7 +110,12 @@ class ReplyCommand(Command):
             quotestring = 'Quoting %s (%s)\n' % (name, timestamp)
         mailcontent = quotestring
         for line in self.message.accumulate_body().splitlines():
-            mailcontent += '> ' + line + '\n'
+            if line == '':
+                mailcontent += '>\n'
+            elif line[0] == '>':
+                mailcontent += '>' + line + '\n'
+            else:
+                mailcontent += '> ' + line + '\n'
 
         envelope = Envelope(bodytext=mailcontent)
 
