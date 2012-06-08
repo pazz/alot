@@ -113,8 +113,9 @@ class ReplyCommand(Command):
         if quotehook:
             mailcontent += quotehook(self.message.accumulate_body())
         else:
+            quote_prefix = settings.get('quote_prefix')
             for line in self.message.accumulate_body().splitlines():
-                mailcontent += '> ' + line + '\n'
+                mailcontent += quote_prefix + line + '\n'
 
         envelope = Envelope(bodytext=mailcontent)
 
@@ -222,8 +223,9 @@ class ForwardCommand(Command):
             if quotehook:
                 mailcontent += quotehook(self.message.accumulate_body())
             else:
+                quote_prefix = settings.get('quote_prefix')
                 for line in self.message.accumulate_body().splitlines():
-                    mailcontent += '> ' + line + '\n'
+                    mailcontent += quote_prefix + line + '\n'
 
             envelope.body = mailcontent
 
