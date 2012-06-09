@@ -125,8 +125,10 @@ class RefreshCommand(Command):
 
 
 @registerCommand(MODE, 'shellescape', arguments=[
-    (['--spawn'], {'action': 'store_true', 'help':'run in terminal window'}),
-    (['--thread'], {'action': 'store_true', 'help':'run in separate thread'}),
+    (['--spawn'], {'action': 'store_true', 'default':None,
+                   'help':'run in terminal window'}),
+    (['--thread'], {'action': 'store_true', 'default':None,
+                    'help':'run in separate thread'}),
     (['--refocus'], {'action': 'store_true', 'help':'refocus current buffer \
                      after command has finished'}),
     (['cmd'], {'help':'command line to execute'})],
@@ -143,7 +145,7 @@ class ExternalCommand(Command):
         :type stdin: file or str
         :param spawn: run command in a new terminal
         :type spawn: bool
-        :param shell: let shell interret command string
+        :param shell: let shell interpret command string
         :type shell: bool
         :param thread: run asynchronously, don't block alot
         :type thread: bool
@@ -153,7 +155,9 @@ class ExternalCommand(Command):
         :type on_success: callable
         """
         if isinstance(cmd, unicode):
-            cmd = split_commandstring(cmd)
+            # convert cmdstring to list: in case shell==True,
+            # Popen passes only the first item in the list to $SHELL
+            cmd = [cmd] if shell else split_commandstring(cmd)
         self.cmdlist = cmd
         self.stdin = stdin
         self.shell = shell
@@ -257,8 +261,7 @@ class EditCommand(ExternalCommand):
         else:
             self.cmdlist = split_commandstring(editor_cmdstring) + [path]
 
-        logging.debug(self.cmdlist)
-
+        logging.debug({'spawn: ': self.spawn, 'in_thread': self.thread})
         ExternalCommand.__init__(self, self.cmdlist,
                                  spawn=self.spawn, thread=self.thread,
                                  **kwargs)
@@ -481,7 +484,7 @@ class HelpCommand(Command):
     (['--attach'], {'nargs':'+', 'help':'attach files'}),
     (['--omit_signature'], {'action': 'store_true',
                             'help':'do not add signature'}),
-    (['--spawn'], {'action': 'store_true',
+    (['--spawn'], {'action': 'store_true', 'default': None,
                    'help':'spawn editor in new terminal'}),
 ])
 class ComposeCommand(Command):
