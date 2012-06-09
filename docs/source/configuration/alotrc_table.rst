@@ -245,6 +245,16 @@
     :default: False
 
 
+.. _quote-prefix:
+
+.. describe:: quote_prefix
+
+     String prepended to line when quoting
+
+    :type: string
+    :default: `> `
+
+
 .. _search-threads-sort-order:
 
 .. describe:: search_threads_sort_order

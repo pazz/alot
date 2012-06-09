@@ -116,6 +116,9 @@ user_agent = string(default='alot/{version}')
 # Suffix of the prompt used when waiting for user input
 prompt_suffix = string(default=':')
 
+# String prepended to line when quoting
+quote_prefix = string(default='> ')
+
 # Key bindings 
 [bindings]
     __many__ = string(default=None)
