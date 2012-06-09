@@ -43,7 +43,7 @@ Here is an example configuration::
             sendmail_command = msmtp --account=wayne -t
             sent_box = maildir:///home/bruce/mail/work/Sent
             draft_box = maildir:///home/bruce/mail/work/Drafts
-    
+
         [[secret]]
             realname = Batman
             address = batman@batcave.org
@@ -216,7 +216,7 @@ Apart from command pre- and posthooks, the following hooks will be interpreted:
     :param bodytext: text representation of mail body as displayed in the interface and as sent to the editor
     :type bodytext: str
     :rtype: str
-    
+
 .. py:function:: timestamp_format(timestamp)
 
     represents given timestamp as string
@@ -276,7 +276,7 @@ To specify how a particular tagstring is displayed throughout the interface you 
 add a subsection named after the tag to the `[tags]` config section.
 The following attribute keys will interpreted and may contain urwid attribute strings
 as described in the :ref:`Themes <themes>` section above:
-        
+
 `fg` (foreground), `bg` (background), `focus_fg` (foreground if focused) and `focus_bg` (background if focused).
 An alternative string representation is read from the option `translated` or can be given
 as pair of strings in `translation`.
