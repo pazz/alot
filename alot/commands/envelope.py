@@ -178,7 +178,7 @@ class SendCommand(Command):
 
 
 @registerCommand(MODE, 'edit', arguments=[
-    (['--spawn'], {'action': 'store_true',
+    (['--spawn'], {'action': 'store_true', 'default': None,
                    'help':'force spawning of editor in a new terminal'}),
     (['--no-refocus'], {'action': 'store_false', 'dest':'refocus',
                         'help':'don\'t refocus envelope after editing'}),
