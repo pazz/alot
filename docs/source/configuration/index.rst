@@ -217,6 +217,14 @@ Apart from command pre- and posthooks, the following hooks will be interpreted:
     :type bodytext: str
     :rtype: str
 
+.. py:function:: text_quote(message)
+
+    used to transform a message into a quoted one
+
+    :param message: message to be quoted
+    :type message: str
+    :rtype: str
+
 .. py:function:: timestamp_format(timestamp)
 
     represents given timestamp as string
