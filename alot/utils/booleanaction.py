@@ -26,5 +26,5 @@ class BooleanAction(argparse.Action):
     def __init__(self, *args, **kwargs):
         kwargs['type'] = boolean
         kwargs['choices'] = TRUEISH + FALSISH
-        #%kwargs['metavar'] = 'BOOL'
+        kwargs['metavar'] = 'BOOL'
         argparse.Action.__init__(self, *args, **kwargs)
