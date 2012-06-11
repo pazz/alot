@@ -17,10 +17,23 @@ def email_as_string(mail):
     :param mail: email to convert to string
     :rtype: str
     """
+    # Get the boundary for later. Before being able to call get_boundary(), we
+    # need to serialize the mail to string once.
+    mail.as_string()
+    boundary = mail.get_boundary()
+
     fp = StringIO()
     g = Generator(fp, mangle_from_=False)
     g.flatten(mail)
-    return RFC3156_canonicalize(fp.getvalue())
+    as_string = RFC3156_canonicalize(fp.getvalue())
+
+    # Workaround for http://bugs.python.org/issue14983:
+    # Insert a newline before the outer mail boundary so that other mail
+    # clients (like KMail, Claws-Mail, mutt, …) can verify the signature when
+    # sending an email which contains attachments.
+    as_string = re.sub(r'--\n--' + boundary,
+        '--\n\n--' + boundary, as_string, flags=re.MULTILINE)
+    return as_string
 
 
 def _hash_algo_name(hash_algo):
