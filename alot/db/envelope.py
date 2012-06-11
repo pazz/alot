@@ -13,6 +13,7 @@ from alot import __version__
 import logging
 import alot.helper as helper
 import alot.crypto as crypto
+import gpgme
 from alot.settings import settings
 from alot.errors import GPGProblem
 
