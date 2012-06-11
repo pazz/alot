@@ -7,6 +7,7 @@ import argparse
 import alot.commands as commands
 from alot.buffers import EnvelopeBuffer
 from alot.settings import settings
+from alot.utils.booleanaction import BooleanAction
 
 
 class Completer(object):
@@ -228,13 +229,15 @@ class ArgparseOptionCompleter(Completer):
                 optionstring = pref[:pref.rfind('=') + 1]
                 # get choices
                 if 'choices' in act.__dict__:
+                    # TODO: respect prefix
                     choices = act.choices or []
                     res = res + [optionstring + a for a in choices]
             else:
                 for optionstring in act.option_strings:
                     if optionstring.startswith(pref):
                         # append '=' for options that await a string value
-                        if isinstance(act, argparse._StoreAction):
+                        if isinstance(act, argparse._StoreAction) or\
+                         isinstance(act, BooleanAction):
                             optionstring += '='
                         res.append(optionstring)
 
