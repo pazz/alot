@@ -71,7 +71,6 @@ def recipient_to_from(mail, my_accounts):
 
 @registerCommand(MODE, 'reply', arguments=[
     (['--all'], {'action':'store_true', 'help':'reply to all'}),
-    (['--spawn'], {'action': 'store_true', 'default':None,
     (['--spawn'], {'action': BooleanAction, 'default':None,
                    'help':'open editor in new window'})])
 class ReplyCommand(Command):
@@ -109,7 +108,7 @@ class ReplyCommand(Command):
         if qf:
             quotestring = qf(name, address, timestamp, ui=ui, dbm=ui.dbman)
         else:
-            quotestring = 'Quoting %s (%s)\n' % (name, timestamp)
+            quotestring = 'Quoting %s (%s)\n' % (name or address, timestamp)
         mailcontent = quotestring
         quotehook = settings.get_hook('text_quote')
         if quotehook:
@@ -219,7 +218,7 @@ class ForwardCommand(Command):
             if qf:
                 quote = qf(name, address, timestamp, ui=ui, dbm=ui.dbman)
             else:
-                quote = 'Forwarded message from %s (%s):\n' % (name, timestamp)
+                quote = 'Forwarded message from %s (%s):\n' % (name or address, timestamp)
             mailcontent = quote
             quotehook = settings.get_hook('text_quote')
             if quotehook:
