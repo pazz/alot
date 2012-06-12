@@ -107,7 +107,7 @@ class ReplyCommand(Command):
         if qf:
             quotestring = qf(name, address, timestamp, ui=ui, dbm=ui.dbman)
         else:
-            quotestring = 'Quoting %s (%s)\n' % (name, timestamp)
+            quotestring = 'Quoting %s (%s)\n' % (name or address, timestamp)
         mailcontent = quotestring
         for line in self.message.accumulate_body().splitlines():
             mailcontent += '> ' + line + '\n'
@@ -212,7 +212,7 @@ class ForwardCommand(Command):
             if qf:
                 quote = qf(name, address, timestamp, ui=ui, dbm=ui.dbman)
             else:
-                quote = 'Forwarded message from %s (%s):\n' % (name, timestamp)
+                quote = 'Forwarded message from %s (%s):\n' % (name or address, timestamp)
             mailcontent = quote
             for line in self.message.accumulate_body().splitlines():
                 mailcontent += '>' + line + '\n'
