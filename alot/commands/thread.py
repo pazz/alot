@@ -25,6 +25,7 @@ from alot.db.errors import DatabaseROError
 from alot.settings import settings
 from alot.helper import parse_mailcap_nametemplate
 from alot.helper import split_commandstring
+from alot.utils.booleanaction import BooleanAction
 
 MODE = 'thread'
 
@@ -71,6 +72,7 @@ def recipient_to_from(mail, my_accounts):
 @registerCommand(MODE, 'reply', arguments=[
     (['--all'], {'action':'store_true', 'help':'reply to all'}),
     (['--spawn'], {'action': 'store_true', 'default':None,
+    (['--spawn'], {'action': BooleanAction, 'default':None,
                    'help':'open editor in new window'})])
 class ReplyCommand(Command):
     """reply to message"""
@@ -177,7 +179,7 @@ class ReplyCommand(Command):
 
 @registerCommand(MODE, 'forward', arguments=[
     (['--attach'], {'action':'store_true', 'help':'attach original mail'}),
-    (['--spawn'], {'action': 'store_true', 'default':None,
+    (['--spawn'], {'action': BooleanAction, 'default':None,
                    'help':'open editor in new window'})])
 class ForwardCommand(Command):
     """forward message"""
@@ -250,7 +252,7 @@ class ForwardCommand(Command):
 
 
 @registerCommand(MODE, 'editnew', arguments=[
-    (['--spawn'], {'action': 'store_true', 'default':None,
+    (['--spawn'], {'action': BooleanAction, 'default':None,
                    'help':'open editor in new window'})])
 class EditNewCommand(Command):
     """edit message in as new"""

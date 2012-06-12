@@ -17,6 +17,7 @@ from alot.commands import Command, registerCommand
 from alot.commands import globals
 from alot.helper import string_decode
 from alot.settings import settings
+from alot.utils.booleanaction import BooleanAction
 
 
 MODE = 'envelope'
@@ -178,10 +179,10 @@ class SendCommand(Command):
 
 
 @registerCommand(MODE, 'edit', arguments=[
-    (['--spawn'], {'action': 'store_true', 'default': None,
+    (['--spawn'], {'action': BooleanAction, 'default':None,
                    'help':'force spawning of editor in a new terminal'}),
-    (['--no-refocus'], {'action': 'store_false', 'dest':'refocus',
-                        'help':'don\'t refocus envelope after editing'}),
+    (['--refocus'], {'action': BooleanAction, 'default':True,
+                    'help':'refocus envelope after editing'}),
     ])
 class EditCommand(Command):
     """edit mail"""

@@ -26,6 +26,7 @@ from alot import commands
 from alot.settings import settings
 from alot.errors import GPGProblem
 from alot.helper import split_commandstring
+from alot.utils.booleanaction import BooleanAction
 
 MODE = 'global'
 
@@ -125,11 +126,11 @@ class RefreshCommand(Command):
 
 
 @registerCommand(MODE, 'shellescape', arguments=[
-    (['--spawn'], {'action': 'store_true', 'default':None,
+    (['--spawn'], {'action': BooleanAction, 'default':None,
                    'help':'run in terminal window'}),
-    (['--thread'], {'action': 'store_true', 'default':None,
+    (['--thread'], {'action': BooleanAction, 'default':None,
                     'help':'run in separate thread'}),
-    (['--refocus'], {'action': 'store_true', 'help':'refocus current buffer \
+    (['--refocus'], {'action': BooleanAction, 'help':'refocus current buffer \
                      after command has finished'}),
     (['cmd'], {'help':'command line to execute'})],
     forced={'shell': True},
@@ -484,7 +485,7 @@ class HelpCommand(Command):
     (['--attach'], {'nargs':'+', 'help':'attach files'}),
     (['--omit_signature'], {'action': 'store_true',
                             'help':'do not add signature'}),
-    (['--spawn'], {'action': 'store_true', 'default': None,
+    (['--spawn'], {'action': BooleanAction, 'default':None,
                    'help':'spawn editor in new terminal'}),
 ])
 class ComposeCommand(Command):
