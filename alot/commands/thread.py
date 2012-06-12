@@ -109,7 +109,7 @@ class ReplyCommand(Command):
         if qf:
             quotestring = qf(name, address, timestamp, ui=ui, dbm=ui.dbman)
         else:
-            quotestring = 'Quoting %s (%s)\n' % (name, timestamp)
+            quotestring = 'Quoting %s (%s)\n' % (name or address, timestamp)
         mailcontent = quotestring
         quotehook = settings.get_hook('text_quote')
         if quotehook:
@@ -219,7 +219,7 @@ class ForwardCommand(Command):
             if qf:
                 quote = qf(name, address, timestamp, ui=ui, dbm=ui.dbman)
             else:
-                quote = 'Forwarded message from %s (%s):\n' % (name, timestamp)
+                quote = 'Forwarded message from %s (%s):\n' % (name or address, timestamp)
             mailcontent = quote
             quotehook = settings.get_hook('text_quote')
             if quotehook:
