@@ -6,6 +6,7 @@ from alot.commands import *
 from alot.commands import COMMANDS
 import alot.buffers
 from argparse import HelpFormatter, SUPPRESS, OPTIONAL, ZERO_OR_MORE, ONE_OR_MORE, PARSER, REMAINDER
+from alot.utils.booleanaction import BooleanAction
 from gettext import gettext as _
 import collections as _collections
 import copy as _copy
@@ -84,7 +85,7 @@ def rstify_parser(parser):
         for a in parser._optionals._group_actions:
             switches = [s.replace('--','---') for s in a.option_strings]
             out += "\t:%s: %s" % (', '.join(switches), a.help)
-            if a.choices:
+            if a.choices and not isinstance(a, BooleanAction):
                 out += ". Valid choices are: %s" % ','.join(['\`%s\`' % s for s
                                                               in a.choices])
             if a.default:
