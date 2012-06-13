@@ -109,8 +109,13 @@ class ReplyCommand(Command):
         else:
             quotestring = 'Quoting %s (%s)\n' % (name or address, timestamp)
         mailcontent = quotestring
-        for line in self.message.accumulate_body().splitlines():
-            mailcontent += '> ' + line + '\n'
+        quotehook = settings.get_hook('text_quote')
+        if quotehook:
+            mailcontent += quotehook(self.message.accumulate_body())
+        else:
+            quote_prefix = settings.get('quote_prefix')
+            for line in self.message.accumulate_body().splitlines():
+                mailcontent += quote_prefix + line + '\n'
 
         envelope = Envelope(bodytext=mailcontent)
 
@@ -214,8 +219,13 @@ class ForwardCommand(Command):
             else:
                 quote = 'Forwarded message from %s (%s):\n' % (name or address, timestamp)
             mailcontent = quote
-            for line in self.message.accumulate_body().splitlines():
-                mailcontent += '>' + line + '\n'
+            quotehook = settings.get_hook('text_quote')
+            if quotehook:
+                mailcontent += quotehook(self.message.accumulate_body())
+            else:
+                quote_prefix = settings.get('quote_prefix')
+                for line in self.message.accumulate_body().splitlines():
+                    mailcontent += quote_prefix + line + '\n'
 
             envelope.body = mailcontent
 
