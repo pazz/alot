@@ -5,3 +5,6 @@ Utils
 
 .. automodule:: alot.helper
   :members:
+
+.. automodule:: alot.utils
+  :members:
