@@ -1,3 +1,6 @@
+# Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
+# This file is released under the GNU GPL, version 3 or a later revision.
+# For further details see the COPYING file
 """
 This defines the ConfigureAction for argparse found here:
 http://code.google.com/p/argparse/issues/detail?id=2#c6
