@@ -128,8 +128,10 @@ class ReplyCommand(Command):
         reply_subject_hook = settings.get_hook('reply_subject')
         if reply_subject_hook:
             subject = reply_subject_hook(subject)
-        elif not subject.startswith('Re:'):
-            subject = 'Re: ' + subject
+        else:
+            rsp = settings.get('reply_subject_prefix')
+            if not subject.startwith(('Re:', rsp)):
+                subject = rsp + subject
         envelope.add('Subject', subject)
 
         # set From

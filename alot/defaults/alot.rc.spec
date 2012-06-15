@@ -119,6 +119,10 @@ prompt_suffix = string(default=':')
 # String prepended to line when quoting
 quote_prefix = string(default='> ')
 
+# String prepended to subject header on reply
+# only if original subject doesn't start with 'Re:' or this prefix
+reply_subject_prefix = string(default='Re: ')
+
 # Key bindings 
 [bindings]
     __many__ = string(default=None)
