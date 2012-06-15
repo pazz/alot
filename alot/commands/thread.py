@@ -125,8 +125,13 @@ class ReplyCommand(Command):
 
         # copy subject
         subject = decode_header(mail.get('Subject', ''))
-        if not subject.startswith('Re:'):
-            subject = 'Re: ' + subject
+        reply_subject_hook = settings.get_hook('reply_subject')
+        if reply_subject_hook:
+            subject = reply_subject_hook(subject)
+        else:
+            rsp = settings.get('reply_subject_prefix')
+            if not subject.startwith(('Re:', rsp)):
+                subject = rsp + subject
         envelope.add('Subject', subject)
 
         # set From
@@ -242,6 +247,13 @@ class ForwardCommand(Command):
         # copy subject
         subject = decode_header(mail.get('Subject', ''))
         subject = 'Fwd: ' + subject
+        forward_subject_hook = settings.get_hook('forward_subject')
+        if forward_subject_hook:
+            subject = forward_subject_hook(subject)
+        else:
+            fsp = settings.get('forward_subject_prefix')
+            if not subject.startwith(('Fwd:', fsp)):
+                subject = fsp + subject
         envelope.add('Subject', subject)
 
         # set From

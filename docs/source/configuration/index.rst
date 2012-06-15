@@ -233,6 +233,22 @@ Apart from command pre- and posthooks, the following hooks will be interpreted:
     :type timestamp: `datetime`
     :rtype: str
 
+.. py:function:: reply_subject(subject)
+
+    used to reformat the subject header on reply
+
+    :param subject: subject to reformat
+    :type subject: str
+    :rtype: str
+
+.. py:function:: forward_subject(subject)
+
+    used to reformat the subject header on forward
+
+    :param subject: subject to reformat
+    :type subject: str
+    :rtype: str
+
 .. _themes:
 
 Themes
