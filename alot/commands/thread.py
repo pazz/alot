@@ -247,6 +247,13 @@ class ForwardCommand(Command):
         # copy subject
         subject = decode_header(mail.get('Subject', ''))
         subject = 'Fwd: ' + subject
+        forward_subject_hook = settings.get_hook('forward_subject')
+        if forward_subject_hook:
+            subject = forward_subject_hook(subject)
+        else:
+            fsp = settings.get('forward_subject_prefix')
+            if not subject.startwith(('Fwd:', fsp)):
+                subject = fsp + subject
         envelope.add('Subject', subject)
 
         # set From
