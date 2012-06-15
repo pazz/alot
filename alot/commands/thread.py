@@ -125,7 +125,10 @@ class ReplyCommand(Command):
 
         # copy subject
         subject = decode_header(mail.get('Subject', ''))
-        if not subject.startswith('Re:'):
+        reply_subject_hook = settings.get_hook('reply_subject')
+        if reply_subject_hook:
+            subject = reply_subject_hook(subject)
+        elif not subject.startswith('Re:'):
             subject = 'Re: ' + subject
         envelope.add('Subject', subject)
 
