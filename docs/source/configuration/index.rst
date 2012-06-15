@@ -249,6 +249,14 @@ Apart from command pre- and posthooks, the following hooks will be interpreted:
     :returns: triple of amended command list, shell and thread flags
     :rtype: list of str, bool, bool
 
+.. py:function:: reply_subject(subject)
+
+    used to reformat the subject header on reply
+
+    :param subject: subject to reformat
+    :type subject: str
+    :rtype: str
+
 .. _themes:
 
 Themes
