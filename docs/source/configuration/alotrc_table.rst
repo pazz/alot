@@ -182,6 +182,17 @@
     :default: 5
 
 
+.. _forward-subject-prefix:
+
+.. describe:: forward_subject_prefix
+
+     String prepended to subject header on forward
+     only if original subject doesn't start with 'Fwd:' or this prefix
+
+    :type: string
+    :default: `Fwd: `
+
+
 .. _hooksfile:
 
 .. describe:: hooksfile
