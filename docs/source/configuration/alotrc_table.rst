@@ -255,6 +255,17 @@
     :default: `> `
 
 
+.. _reply-subject-prefix:
+
+.. describe:: reply_subject_prefix
+
+     String prepended to subject header on reply
+     only if original subject doesn't start with 'Re:' or this prefix
+
+    :type: string
+    :default: `Re: `
+
+
 .. _search-threads-sort-order:
 
 .. describe:: search_threads_sort_order
