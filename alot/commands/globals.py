@@ -244,11 +244,8 @@ class EditCommand(ExternalCommand):
         :param thread: run asynchronously, don't block alot
         :type thread: bool
         """
-        self.spawn = settings.get('editor_spawn') or spawn
-        if thread != None:
-            self.thread = thread
-        else:
-            self.thread = settings.get('editor_in_thread')
+        self.spawn = spawn or settings.get('editor_spawn')
+        self.thread = thread or settings.get('editor_in_thread')
 
         editor_cmdstring = None
         if os.path.isfile('/usr/bin/editor'):
