@@ -158,14 +158,30 @@ class ExternalCommand(Command):
         :param on_success: code to execute after command successfully exited
         :type on_success: callable
         """
+        logging.debug({'spawn': spawn})
+        # make sure cmd is a list of str
         if isinstance(cmd, unicode):
             # convert cmdstring to list: in case shell==True,
             # Popen passes only the first item in the list to $SHELL
             cmd = [cmd] if shell else split_commandstring(cmd)
+
+        # determine complete command list to pass
+        # filter cmd, shell and thread through hook if defined
+        touchhook = settings.get_hook('touch_external_cmdlist')
+        if touchhook is not None:
+            logging.debug('calling hook: touch_external_cmdlist')
+            res = touchhook(cmd, shell=shell, spawn=spawn, thread=thread)
+            logging.debug('got: %s' % res)
+            cmd, shell, thread = res
+        elif spawn:
+            term_cmd = settings.get('terminal_cmd', '')
+            logging.info('spawn in terminal: %s' % term_cmd)
+            termcmdlist = split_commandstring(term_cmd)
+            cmd = termcmdlist + cmd
+
         self.cmdlist = cmd
         self.stdin = stdin
         self.shell = shell
-        self.spawn = spawn
         self.refocus = refocus
         self.in_thread = thread
         self.on_success = on_success
@@ -193,14 +209,6 @@ class ExternalCommand(Command):
             if self.refocus and callerbuffer in ui.buffers:
                 logging.info('refocussing')
                 ui.buffer_focus(callerbuffer)
-
-        if self.spawn:
-            term_cmd = settings.get('terminal_cmd', '')
-            term_cmd = term_cmd.encode('utf-8', errors='ignore')
-            logging.info('spawn in terminal: %s' % term_cmd)
-            termcmdlist = split_commandstring(term_cmd)
-            logging.info('term cmdlist: %s' % termcmdlist)
-            self.cmdlist = termcmdlist + self.cmdlist
 
         logging.info('calling external command: %s' % self.cmdlist)
 
