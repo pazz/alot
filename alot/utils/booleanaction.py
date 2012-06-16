@@ -5,8 +5,8 @@ import argparse
 import re
 
 
-TRUEISH = ['1', 't', 'true', 'yes', 'on']
-FALSISH = ['0', 'f', 'false', 'no', 'off']
+TRUEISH = ['true', 'yes', 'on', '1', 't', 'y']
+FALSISH = ['false', 'no', 'off', '0', 'f', 'n']
 
 
 def boolean(string):
@@ -25,6 +25,8 @@ class BooleanAction(argparse.Action):
     """
     def __init__(self, *args, **kwargs):
         kwargs['type'] = boolean
-        kwargs['choices'] = TRUEISH + FALSISH
         kwargs['metavar'] = 'BOOL'
         argparse.Action.__init__(self, *args, **kwargs)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        setattr(namespace, self.dest, values)
