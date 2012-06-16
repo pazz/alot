@@ -216,14 +216,20 @@ class ExternalCommand(Command):
         def thread_code(*args):
             try:
                 if stdin == None:
-                    ret = subprocess.call(self.cmdlist, shell=self.shell)
+                    proc = subprocess.Popen(self.cmdlist, shell=self.shell,
+                                            stderr=subprocess.PIPE)
+                    ret = proc.wait()
+                    err = proc.stderr.read()
                 else:
                     proc = subprocess.Popen(self.cmdlist, shell=self.shell,
-                                            stdin=subprocess.PIPE)
+                                            stdin=subprocess.PIPE,
+                                            stderr=subprocess.PIPE)
                     out, err = proc.communicate(stdin.read())
                     ret = proc.wait()
                 if ret == 0:
                     return 'success'
+                else:
+                    return err.strip()
             except OSError, e:
                 return str(e)
 
