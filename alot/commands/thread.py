@@ -130,7 +130,7 @@ class ReplyCommand(Command):
             subject = reply_subject_hook(subject)
         else:
             rsp = settings.get('reply_subject_prefix')
-            if not subject.startwith(('Re:', rsp)):
+            if not subject.startswith(('Re:', rsp)):
                 subject = rsp + subject
         envelope.add('Subject', subject)
 
@@ -252,7 +252,7 @@ class ForwardCommand(Command):
             subject = forward_subject_hook(subject)
         else:
             fsp = settings.get('forward_subject_prefix')
-            if not subject.startwith(('Fwd:', fsp)):
+            if not subject.startswith(('Fwd:', fsp)):
                 subject = fsp + subject
         envelope.add('Subject', subject)
 
