@@ -166,14 +166,15 @@ class ExternalCommand(Command):
             cmd = [cmd] if shell else split_commandstring(cmd)
 
         # determine complete command list to pass
-        # filter cmd, shell and thread through hook if defined
         touchhook = settings.get_hook('touch_external_cmdlist')
+        # filter cmd, shell and thread through hook if defined
         if touchhook is not None:
             logging.debug('calling hook: touch_external_cmdlist')
             res = touchhook(cmd, shell=shell, spawn=spawn, thread=thread)
             logging.debug('got: %s' % res)
-            cmd, shell, thread = res
-        elif spawn:
+            cmd, shell, self.in_thread = res
+        # otherwise if spawn requested and X11 is running
+        elif spawn and 'DISPLAY' in os.environ:
             term_cmd = settings.get('terminal_cmd', '')
             logging.info('spawn in terminal: %s' % term_cmd)
             termcmdlist = split_commandstring(term_cmd)
