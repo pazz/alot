@@ -233,6 +233,22 @@ Apart from command pre- and posthooks, the following hooks will be interpreted:
     :type timestamp: `datetime`
     :rtype: str
 
+.. py:function:: touch_external_cmdlist(cmd, shell=shell, spawn=spawn, thread=thread)
+
+    used to change external commands according to given flags shortly
+    before they are called.
+
+    :param cmd: command to be called
+    :type cmd: list of str
+    :param shell: is this to be interpreted by the shell?
+    :type shell: bool
+    :param spawn: should be spawned in new terminal/environment
+    :type spawn: bool
+    :param threads: should be called in new thread
+    :type thread: bool
+    :returns: triple of amended command list, shell and thread flags
+    :rtype: list of str, bool, bool
+
 .. _themes:
 
 Themes

@@ -9,6 +9,7 @@ TRUEISH = ['true', 'yes', 'on', '1', 't', 'y']
 FALSISH = ['false', 'no', 'off', '0', 'f', 'n']
 
 
+
 def boolean(string):
     string = string.lower()
     if string in FALSISH:

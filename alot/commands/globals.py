@@ -158,14 +158,31 @@ class ExternalCommand(Command):
         :param on_success: code to execute after command successfully exited
         :type on_success: callable
         """
+        logging.debug({'spawn': spawn})
+        # make sure cmd is a list of str
         if isinstance(cmd, unicode):
             # convert cmdstring to list: in case shell==True,
             # Popen passes only the first item in the list to $SHELL
             cmd = [cmd] if shell else split_commandstring(cmd)
+
+        # determine complete command list to pass
+        touchhook = settings.get_hook('touch_external_cmdlist')
+        # filter cmd, shell and thread through hook if defined
+        if touchhook is not None:
+            logging.debug('calling hook: touch_external_cmdlist')
+            res = touchhook(cmd, shell=shell, spawn=spawn, thread=thread)
+            logging.debug('got: %s' % res)
+            cmd, shell, self.in_thread = res
+        # otherwise if spawn requested and X11 is running
+        elif spawn and 'DISPLAY' in os.environ:
+            term_cmd = settings.get('terminal_cmd', '')
+            logging.info('spawn in terminal: %s' % term_cmd)
+            termcmdlist = split_commandstring(term_cmd)
+            cmd = termcmdlist + cmd
+
         self.cmdlist = cmd
         self.stdin = stdin
         self.shell = shell
-        self.spawn = spawn
         self.refocus = refocus
         self.in_thread = thread
         self.on_success = on_success
@@ -194,27 +211,25 @@ class ExternalCommand(Command):
                 logging.info('refocussing')
                 ui.buffer_focus(callerbuffer)
 
-        if self.spawn:
-            term_cmd = settings.get('terminal_cmd', '')
-            term_cmd = term_cmd.encode('utf-8', errors='ignore')
-            logging.info('spawn in terminal: %s' % term_cmd)
-            termcmdlist = split_commandstring(term_cmd)
-            logging.info('term cmdlist: %s' % termcmdlist)
-            self.cmdlist = termcmdlist + self.cmdlist
-
         logging.info('calling external command: %s' % self.cmdlist)
 
         def thread_code(*args):
             try:
                 if stdin == None:
-                    ret = subprocess.call(self.cmdlist, shell=self.shell)
+                    proc = subprocess.Popen(self.cmdlist, shell=self.shell,
+                                            stderr=subprocess.PIPE)
+                    ret = proc.wait()
+                    err = proc.stderr.read()
                 else:
                     proc = subprocess.Popen(self.cmdlist, shell=self.shell,
-                                            stdin=subprocess.PIPE)
+                                            stdin=subprocess.PIPE,
+                                            stderr=subprocess.PIPE)
                     out, err = proc.communicate(stdin.read())
                     ret = proc.wait()
                 if ret == 0:
                     return 'success'
+                else:
+                    return err.strip()
             except OSError, e:
                 return str(e)
 
@@ -244,11 +259,8 @@ class EditCommand(ExternalCommand):
         :param thread: run asynchronously, don't block alot
         :type thread: bool
         """
-        self.spawn = settings.get('editor_spawn') or spawn
-        if thread != None:
-            self.thread = thread
-        else:
-            self.thread = settings.get('editor_in_thread')
+        self.spawn = spawn or settings.get('editor_spawn')
+        self.thread = thread or settings.get('editor_in_thread')
 
         editor_cmdstring = None
         if os.path.isfile('/usr/bin/editor'):
