@@ -321,6 +321,9 @@
     [[[body]]]
         bg = 'default'
         fg = 'light gray'
+    [[[body_focus]]]
+        bg = 'h14'
+        fg = 'black'
     [[[header]]]
         bg = 'dark gray'
         fg = 'white'
