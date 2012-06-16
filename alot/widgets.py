@@ -144,7 +144,7 @@ class ThreadlineWidget(urwid.AttrMap):
         subjectstring = subjectstring.strip()
 
         self.subject_w = urwid.AttrMap(urwid.Text(subjectstring, wrap='clip'),
-                                       self._get_theme('subject'))
+                                       self._get_subject_theme())
         if subjectstring:
             cols.append(('weight', 2, self.subject_w))
 
@@ -175,8 +175,7 @@ class ThreadlineWidget(urwid.AttrMap):
                 tw.set_focussed()
             self.authors_w.set_attr_map({None: self._get_theme('authors',
                                                                focus)})
-            self.subject_w.set_attr_map({None: self._get_theme('subject',
-                                                               focus)})
+            self.subject_w.set_attr_map({None: self._get_subject_theme(focus)})
             if self.display_content:
                 self.content_w.set_attr_map(
                     {None: self._get_theme('content', focus=True)})
@@ -186,7 +185,7 @@ class ThreadlineWidget(urwid.AttrMap):
             for tw in self.tag_widgets:
                 tw.set_unfocussed()
             self.authors_w.set_attr_map({None: self._get_theme('authors')})
-            self.subject_w.set_attr_map({None: self._get_theme('subject')})
+            self.subject_w.set_attr_map({None: self._get_subject_theme()})
             if self.display_content:
                 self.content_w.set_attr_map({None: self._get_theme('content')})
         return urwid.AttrMap.render(self, size, focus)
@@ -199,6 +198,12 @@ class ThreadlineWidget(urwid.AttrMap):
 
     def get_thread(self):
         return self.thread
+
+    def _get_subject_theme(self, focus=False):
+        if 'unread' in self.thread.get_tags():
+            return self._get_theme('subject_isunread', focus)
+        else:
+            return self._get_theme('subject', focus)
 
     def _get_theme(self, component, focus=False):
         attr_key = 'thread_{0}'.format(component)
