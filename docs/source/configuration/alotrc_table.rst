@@ -44,6 +44,20 @@
     :default: -1
 
 
+.. _bufferlist-statusbar:
+
+.. describe:: bufferlist_statusbar
+
+     Format of the status-bar in bufferlist mode.
+     This is a pair of strings to be left and right aligned in the status-bar that may contain variables:
+     
+     * `{buffer_no}`: index of this buffer in the global buffer list
+     * `{total_messages}`: total numer of messages indexed by notmuch
+
+    :type: mixed_list
+    :default: [{buffer_no}: bufferlist], total: {total_messages}
+
+
 .. _bug-on-exit:
 
 .. describe:: bug_on_exit
@@ -172,6 +186,21 @@
     :default: In-Reply-To, References
 
 
+.. _envelope-statusbar:
+
+.. describe:: envelope_statusbar
+
+     Format of the status-bar in envelope mode.
+     This is a pair of strings to be left and right aligned in the status-bar.
+     Apart from the global variables listed at :ref:`bufferlist_statusbar <bufferlist-statusbar>`
+     these strings may contain variables:
+     
+     * `{to}`: To-header of the envelope
+
+    :type: mixed_list
+    :default: [{buffer_no}: envelope], total: {total_messages}
+
+
 .. _flush-retry-timeout:
 
 .. describe:: flush_retry_timeout
@@ -277,6 +306,21 @@
     :default: `Re: `
 
 
+.. _search-statusbar:
+
+.. describe:: search_statusbar
+
+     Format of the status-bar in search mode.
+     This is a pair of strings to be left and right aligned in the status-bar.
+     Apart from the global variables listed at :ref:`bufferlist_statusbar <bufferlist-statusbar>`
+     these strings may contain variables:
+    
+     * `{querystring}`: search string
+
+    :type: mixed_list
+    :default: [{buffer_no}: search] for "{querystring}", total: {total_messages}
+
+
 .. _search-threads-sort-order:
 
 .. describe:: search_threads_sort_order
@@ -305,6 +349,17 @@
 
     :type: integer
     :default: 8
+
+
+.. _taglist-statusbar:
+
+.. describe:: taglist_statusbar
+
+     Format of the status-bar in taglist mode.
+     This is a pair of strings to be left and right aligned in the status-bar.
+
+    :type: mixed_list
+    :default: [{buffer_no}: taglist], total: {total_messages}
 
 
 .. _template-dir:
@@ -368,6 +423,22 @@
 
     :type: boolean
     :default: True
+
+
+.. _thread-statusbar:
+
+.. describe:: thread_statusbar
+
+     Format of the status-bar in thread mode.
+     This is a pair of strings to be left and right aligned in the status-bar.
+     Apart from the global variables listed at :ref:`bufferlist_statusbar <bufferlist-statusbar>`
+     these strings may contain variables:
+     
+     * `{tid}`: thread id
+     * `{subject}`: subject line of the thread
+
+    :type: mixed_list
+    :default: [{buffer_no}: thread] {subject}, total: {total_messages}
 
 
 .. _timestamp-format:
