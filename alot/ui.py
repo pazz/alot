@@ -416,13 +416,25 @@ class UI(object):
 
     def build_statusbar(self):
         """construct and return statusbar widget"""
-        if self.current_buffer is not None:
-            idx = self.buffers.index(self.current_buffer)
-            lefttxt = '%d: %s' % (idx, self.current_buffer)
-        else:
-            lefttxt = '[no buffers]'
+        info = {}
+        cb = self.current_buffer
+        btype = None
+
+        if cb is not None:
+            info = cb.get_info()
+            btype = cb.modename
+            info['buffer_no'] = self.buffers.index(cb)
+            info['buffer_type'] = btype
+        info['total_messages'] = self.dbman.count_messages('*')
+        info['pending_writes'] = len(self.dbman.writequeue)
+
+        lefttxt = righttxt = ''
+        if cb is not None:
+            lefttxt, righttxt = settings.get(btype + '_statusbar', ('',''))
+            lefttxt = lefttxt.format(**info)
+            righttxt = righttxt.format(**info)
+
         footerleft = urwid.Text(lefttxt, align='left')
-        righttxt = 'total messages: %d' % self.dbman.count_messages('*')
         pending_writes = len(self.dbman.writequeue)
         if pending_writes > 0:
             righttxt = ('|' * pending_writes) + ' ' + righttxt
