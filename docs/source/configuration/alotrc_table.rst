@@ -50,12 +50,13 @@
 
      Format of the status-bar in bufferlist mode.
      This is a pair of strings to be left and right aligned in the status-bar that may contain variables:
-     
+    
      * `{buffer_no}`: index of this buffer in the global buffer list
      * `{total_messages}`: total numer of messages indexed by notmuch
+     * `{pending_writes}`: number of pending write operations to the index
 
     :type: mixed_list
-    :default: [{buffer_no}: bufferlist], total: {total_messages}
+    :default: [{buffer_no}: bufferlist], total messages: {total_messages}
 
 
 .. _bug-on-exit:
@@ -160,7 +161,7 @@
 .. describe:: editor_spawn
 
      use terminal_command to spawn a new terminal for the editor?
-     equivalent to always providing the `--spawn` parameter to compose/edit commands
+     equivalent to always providing the `--spawn=yes` parameter to compose/edit commands
 
     :type: boolean
     :default: False
@@ -194,11 +195,11 @@
      This is a pair of strings to be left and right aligned in the status-bar.
      Apart from the global variables listed at :ref:`bufferlist_statusbar <bufferlist-statusbar>`
      these strings may contain variables:
-     
+    
      * `{to}`: To-header of the envelope
 
     :type: mixed_list
-    :default: [{buffer_no}: envelope], total: {total_messages}
+    :default: [{buffer_no}: envelope], total messages: {total_messages}
 
 
 .. _flush-retry-timeout:
@@ -316,9 +317,11 @@
      these strings may contain variables:
     
      * `{querystring}`: search string
+     * `{result_count}`: number of matching messages
+     * `{result_count_positive}`: 's' if result count is greater than 0.
 
     :type: mixed_list
-    :default: [{buffer_no}: search] for "{querystring}", total: {total_messages}
+    :default: [{buffer_no}: search] for "{querystring}", {result_count} of {total_messages} messages
 
 
 .. _search-threads-sort-order:
@@ -357,9 +360,11 @@
 
      Format of the status-bar in taglist mode.
      This is a pair of strings to be left and right aligned in the status-bar.
+     These strings may contain variables listed at :ref:`bufferlist_statusbar <bufferlist-statusbar>`
+     that will be substituted accordingly.
 
     :type: mixed_list
-    :default: [{buffer_no}: taglist], total: {total_messages}
+    :default: [{buffer_no}: taglist], total messages: {total_messages}
 
 
 .. _template-dir:
@@ -433,12 +438,14 @@
      This is a pair of strings to be left and right aligned in the status-bar.
      Apart from the global variables listed at :ref:`bufferlist_statusbar <bufferlist-statusbar>`
      these strings may contain variables:
-     
+    
      * `{tid}`: thread id
      * `{subject}`: subject line of the thread
+     * `{authors}`: abbreviated authors string for this thread
+     * `{message_count}`: number of contained messages
 
     :type: mixed_list
-    :default: [{buffer_no}: thread] {subject}, total: {total_messages}
+    :default: [{buffer_no}: thread] {subject}, total messages: {total_messages}
 
 
 .. _timestamp-format:

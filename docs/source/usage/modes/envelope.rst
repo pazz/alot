@@ -51,7 +51,7 @@ ____
 edit mail
 
 optional arguments
-	:---spawn: spawn editor in new terminal.
+	:---spawn: force spawning of editor in a new terminal.
 	:---refocus: refocus envelope after editing (Defaults to: 'True').
 
 .. _cmd_envelope_send:

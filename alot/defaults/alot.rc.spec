@@ -54,7 +54,7 @@ editor_cmd = string(default=None)
 editor_writes_encoding = string(default='UTF-8')
 
 # use terminal_command to spawn a new terminal for the editor?
-# equivalent to always providing the `--spawn` parameter to compose/edit commands
+# equivalent to always providing the `--spawn=yes` parameter to compose/edit commands
 editor_spawn = boolean(default=False)
 
 # call editor in separate thread.
@@ -87,6 +87,7 @@ show_statusbar = boolean(default=True)
 #
 # * `{buffer_no}`: index of this buffer in the global buffer list
 # * `{total_messages}`: total numer of messages indexed by notmuch
+# * `{pending_writes}`: number of pending write operations to the index
 bufferlist_statusbar = mixed_list(string, string, default=list('[{buffer_no}: bufferlist]','total messages: {total_messages}'))
 
 # Format of the status-bar in search mode.
