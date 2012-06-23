@@ -11,6 +11,7 @@ from buffers import BufferlistBuffer
 import commands
 from commands import commandfactory
 from alot.commands import CommandParseError
+from alot.helper import string_decode
 import widgets
 
 
@@ -428,10 +429,12 @@ class UI(object):
         info['total_messages'] = self.dbman.count_messages('*')
         info['pending_writes'] = len(self.dbman.writequeue)
 
-        lefttxt = righttxt = ''
+        lefttxt = righttxt = u''
         if cb is not None:
-            lefttxt, righttxt = settings.get(btype + '_statusbar', ('',''))
+            lefttxt, righttxt = settings.get(btype + '_statusbar', (u'', u''))
+            lefttxt = string_decode(lefttxt, 'UTF-8')
             lefttxt = lefttxt.format(**info)
+            righttxt = string_decode(righttxt, 'UTF-8')
             righttxt = righttxt.format(**info)
 
         footerleft = urwid.Text(lefttxt, align='left')
