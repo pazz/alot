@@ -160,7 +160,7 @@ class Envelope(object):
 
         if self.sign:
             plaintext = crypto.email_as_string(inner_msg)
-            logging.info('signing plaintext: ' + plaintext)
+            logging.debug('signing plaintext: ' + plaintext)
 
             try:
                 signatures, signature_str = crypto.detached_signature_for(
