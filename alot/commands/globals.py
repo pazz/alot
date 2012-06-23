@@ -174,11 +174,14 @@ class ExternalCommand(Command):
             logging.debug('got: %s' % res)
             cmd, shell, self.in_thread = res
         # otherwise if spawn requested and X11 is running
-        elif spawn and 'DISPLAY' in os.environ:
-            term_cmd = settings.get('terminal_cmd', '')
-            logging.info('spawn in terminal: %s' % term_cmd)
-            termcmdlist = split_commandstring(term_cmd)
-            cmd = termcmdlist + cmd
+        elif spawn:
+            if 'DISPLAY' in os.environ:
+                term_cmd = settings.get('terminal_cmd', '')
+                logging.info('spawn in terminal: %s' % term_cmd)
+                termcmdlist = split_commandstring(term_cmd)
+                cmd = termcmdlist + cmd
+            else:
+                thread = False
 
         self.cmdlist = cmd
         self.stdin = stdin
