@@ -213,7 +213,7 @@ class UI(object):
             string = 'tried to close unknown buffer: %s. \n\ni have:%s'
             logging.error(string % (buf, self.buffers))
         elif self.current_buffer == buf:
-            logging.debug('UI: closing current buffer %s' % buf)
+            logging.info('closing current buffer %s' % buf)
             index = buffers.index(buf)
             buffers.remove(buf)
             offset = settings.get('bufferclose_focus_offset')
@@ -222,7 +222,7 @@ class UI(object):
             buf.cleanup()
         else:
             string = 'closing buffer %d:%s'
-            logging.debug(string % (buffers.index(buf), buf))
+            logging.info(string % (buffers.index(buf), buf))
             buffers.remove(buf)
             buf.cleanup()
 
@@ -461,7 +461,7 @@ class UI(object):
         if cmd:
             # call pre- hook
             if cmd.prehook:
-                logging.debug('calling pre-hook')
+                logging.info('calling pre-hook')
                 try:
                     cmd.prehook(ui=self, dbm=self.dbman)
                 except:
@@ -471,7 +471,7 @@ class UI(object):
             # define (callback) function that invokes post-hook
             def call_posthook(retval_from_apply):
                 if cmd.posthook:
-                    logging.debug('calling post-hook')
+                    logging.info('calling post-hook')
                     try:
                         cmd.posthook(ui=self, dbm=self.dbman)
                     except:
@@ -480,12 +480,12 @@ class UI(object):
             # define error handler for Failures/Exceptions
             # raised in cmd.apply()
             def errorHandler(failure):
-                logging.debug(failure.getTraceback())
-                msg = "Error: %s,\ncheck the log for details"
+                logging.error(failure.getTraceback())
+                msg = "Error: %s,\n(check the log for details)"
                 self.notify(msg % failure.getErrorMessage(), priority='error')
 
             # call cmd.apply
-            logging.debug('apply command: %s' % cmd)
+            logging.info('apply command: %s' % cmd)
             d = defer.maybeDeferred(cmd.apply, self)
             d.addErrback(errorHandler)
             d.addCallback(call_posthook)
