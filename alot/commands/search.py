@@ -160,21 +160,25 @@ class TagCommand(Command):
         thread = threadline_widget.get_thread()
         testquery = "(%s) AND thread:%s" % (searchbuffer.querystring,
                                             thread.get_thread_id())
+        hitcount_before = ui.dbman.count_messages(testquery)
 
         def remove_thread():
             logging.debug('remove thread from result list: %s' % thread)
             if threadline_widget in searchbuffer.threadlist:
+                # remove this thread from result list
                 searchbuffer.threadlist.remove(threadline_widget)
-                searchbuffer.result_count -= thread.get_total_messages()
 
         def refresh():
             # remove thread from resultset if it doesn't match the search query
             # any more and refresh selected threadline otherwise
-            if ui.dbman.count_messages(testquery) == 0:
+            hitcount_after = ui.dbman.count_messages(testquery)
+            if hitcount_after == 0:
                 remove_thread()
-                ui.update()
             else:
                 threadline_widget.rebuild()
+            # update total result count
+            searchbuffer.result_count += (hitcount_after - hitcount_before)
+            ui.update()
 
         tags = filter(lambda x: x, self.tagsstring.split(','))
         try:
