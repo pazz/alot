@@ -41,6 +41,10 @@ class Buffer(object):
         """called before buffer is dismissed"""
         pass
 
+    def get_info(self):
+        """return dict of meta infos about this buffer"""
+        return {}
+
 
 class BufferlistBuffer(Buffer):
     """lists all active buffers"""
@@ -111,6 +115,11 @@ class EnvelopeBuffer(Buffer):
         to = self.envelope.get('To', fallback='unset')
         return '[envelope] to: %s' % (shorten_author_string(to, 400))
 
+    def get_info(self):
+        info = {}
+        info['to'] = self.envelope.get('To', fallback='unset')
+        return info
+
     def rebuild(self):
         displayed_widgets = []
         hidden = settings.get('envelope_headers_blacklist')
@@ -132,7 +141,8 @@ class EnvelopeBuffer(Buffer):
         # add header list widget iff header values exists
         if lines:
             key_att = settings.get_theming_attribute('envelope', 'header_key')
-            value_att = settings.get_theming_attribute('envelope', 'header_value')
+            value_att = settings.get_theming_attribute('envelope',
+                                                       'header_value')
             self.header_wgt = widgets.HeadersList(lines, key_att, value_att)
             displayed_widgets.append(self.header_wgt)
 
@@ -176,6 +186,13 @@ class SearchBuffer(Buffer):
         formatstring = '[search] for "%s" (%d message%s)'
         return formatstring % (self.querystring, self.result_count,
                                's' * (not (self.result_count == 1)))
+
+    def get_info(self):
+        info = {}
+        info['querystring'] = self.querystring
+        info['result_count'] = self.result_count
+        info['result_count_positive'] = 's' * (not (self.result_count == 1))
+        return info
 
     def cleanup(self):
         self.kill_filler_process()
@@ -249,6 +266,14 @@ class ThreadBuffer(Buffer):
         return '[thread] %s (%d message%s)' % (self.thread.get_subject(),
                                                self.message_count,
                                                's' * (self.message_count > 1))
+
+    def get_info(self):
+        info = {}
+        info['subject'] = self.thread.get_subject()
+        info['authors'] = self.thread.get_authors_string()
+        info['tid'] = self.thread.get_thread_id()
+        info['message_count'] = self.message_count
+        return info
 
     def get_selected_thread(self):
         """returns the displayed :class:`~alot.db.Thread`"""

@@ -54,7 +54,7 @@ editor_cmd = string(default=None)
 editor_writes_encoding = string(default='UTF-8')
 
 # use terminal_command to spawn a new terminal for the editor?
-# equivalent to always providing the `--spawn` parameter to compose/edit commands
+# equivalent to always providing the `--spawn=yes` parameter to compose/edit commands
 editor_spawn = boolean(default=False)
 
 # call editor in separate thread.
@@ -81,6 +81,49 @@ notify_timeout = integer(default=2)
 
 # display status-bar at the bottom of the screen?
 show_statusbar = boolean(default=True)
+
+# Format of the status-bar in bufferlist mode.
+# This is a pair of strings to be left and right aligned in the status-bar that may contain variables:
+#
+# * `{buffer_no}`: index of this buffer in the global buffer list
+# * `{total_messages}`: total numer of messages indexed by notmuch
+# * `{pending_writes}`: number of pending write operations to the index
+bufferlist_statusbar = mixed_list(string, string, default=list('[{buffer_no}: bufferlist]','total messages: {total_messages}'))
+
+# Format of the status-bar in search mode.
+# This is a pair of strings to be left and right aligned in the status-bar.
+# Apart from the global variables listed at :ref:`bufferlist_statusbar <bufferlist-statusbar>`
+# these strings may contain variables:
+#
+# * `{querystring}`: search string
+# * `{result_count}`: number of matching messages
+# * `{result_count_positive}`: 's' if result count is greater than 0.
+search_statusbar = mixed_list(string, string, default=list('[{buffer_no}: search] for "{querystring}"','{result_count} of {total_messages} messages'))
+
+# Format of the status-bar in thread mode.
+# This is a pair of strings to be left and right aligned in the status-bar.
+# Apart from the global variables listed at :ref:`bufferlist_statusbar <bufferlist-statusbar>`
+# these strings may contain variables:
+#
+# * `{tid}`: thread id
+# * `{subject}`: subject line of the thread
+# * `{authors}`: abbreviated authors string for this thread
+# * `{message_count}`: number of contained messages
+thread_statusbar = mixed_list(string, string, default=list('[{buffer_no}: thread] {subject}','total messages: {total_messages}'))
+
+# Format of the status-bar in taglist mode.
+# This is a pair of strings to be left and right aligned in the status-bar.
+# These strings may contain variables listed at :ref:`bufferlist_statusbar <bufferlist-statusbar>`
+# that will be substituted accordingly.
+taglist_statusbar = mixed_list(string, string, default=list('[{buffer_no}: taglist]','total messages: {total_messages}'))
+
+# Format of the status-bar in envelope mode.
+# This is a pair of strings to be left and right aligned in the status-bar.
+# Apart from the global variables listed at :ref:`bufferlist_statusbar <bufferlist-statusbar>`
+# these strings may contain variables:
+#
+# * `{to}`: To-header of the envelope
+envelope_statusbar = mixed_list(string, string, default=list('[{buffer_no}: envelope]','total messages: {total_messages}'))
 
 # timestamp format in `strftime format syntax <http://docs.python.org/library/datetime.html#strftime-strptime-behavior>`_
 timestamp_format = string(default=None)
