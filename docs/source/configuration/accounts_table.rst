@@ -1,5 +1,7 @@
-..
-    CAUTION: THIS FILE IS AUTO-GENERATED
+
+:orphan:
+
+.. CAUTION: THIS FILE IS AUTO-GENERATED
     from the inline comments of specfile defaults/alot.rc.spec.
 
     If you want to change its content make your changes
@@ -38,7 +40,7 @@
      sendmail command. This is the shell command used to send out mails via the sendmail protocol
 
     :type: string
-    :default: `sendmail -t`
+    :default: "sendmail -t"
 
 
 .. _sent-box:

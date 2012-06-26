@@ -1,5 +1,7 @@
-..
-    CAUTION: THIS FILE IS AUTO-GENERATED
+
+:orphan:
+
+.. CAUTION: THIS FILE IS AUTO-GENERATED
     from the inline comments of specfile defaults/alot.rc.spec.
 
     If you want to change its content make your changes
@@ -21,7 +23,7 @@
      directory prefix for downloading attachments
 
     :type: string
-    :default: `~`
+    :default: "~"
 
 
 .. _authors-maxlength:
@@ -174,7 +176,7 @@
      file encoding used by your editor
 
     :type: string
-    :default: `UTF-8`
+    :default: "UTF-8"
 
 
 .. _envelope-headers-blacklist:
@@ -220,7 +222,7 @@
      only if original subject doesn't start with 'Fwd:' or this prefix
 
     :type: string
-    :default: `Fwd: `
+    :default: "Fwd: "
 
 
 .. _hooksfile:
@@ -230,7 +232,7 @@
      where to look up hooks
 
     :type: string
-    :default: `~/.config/alot/hooks.py`
+    :default: "~/.config/alot/hooks.py"
 
 
 .. _initial-command:
@@ -240,7 +242,7 @@
      initial command when none is given as argument:
 
     :type: string
-    :default: `search tag:inbox AND NOT tag:killed`
+    :default: "search tag:inbox AND NOT tag:killed"
 
 
 .. _notify-timeout:
@@ -273,7 +275,7 @@
      Suffix of the prompt used when waiting for user input
 
     :type: string
-    :default: `:`
+    :default: ":"
 
 
 .. _quit-on-last-bclose:
@@ -293,7 +295,7 @@
      String prepended to line when quoting
 
     :type: string
-    :default: `> `
+    :default: "> "
 
 
 .. _reply-subject-prefix:
@@ -304,7 +306,7 @@
      only if original subject doesn't start with 'Re:' or this prefix
 
     :type: string
-    :default: `Re: `
+    :default: "Re: "
 
 
 .. _search-statusbar:
@@ -375,7 +377,7 @@
      It will be used if you give `compose --template` a filename without a path prefix.
 
     :type: string
-    :default: `$XDG_CONFIG_HOME/alot/templates`
+    :default: "$XDG_CONFIG_HOME/alot/templates"
 
 
 .. _terminal-cmd:
@@ -385,7 +387,7 @@
      set terminal command used for spawning shell commands
 
     :type: string
-    :default: `x-terminal-emulator -e`
+    :default: "x-terminal-emulator -e"
 
 
 .. _theme:
@@ -416,7 +418,7 @@
      :ref:`thread_authors_replace_me <thread-authors-replace-me>`
 
     :type: string
-    :default: `Me`
+    :default: "Me"
 
 
 .. _thread-authors-replace-me:
@@ -467,5 +469,5 @@
      The string '{version}' will be replaced by the version string of the running instance.
 
     :type: string
-    :default: `alot/{version}`
+    :default: "alot/{version}"
 

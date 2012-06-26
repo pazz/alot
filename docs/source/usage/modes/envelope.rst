@@ -1,3 +1,5 @@
+:orphan:
+
 .. CAUTION: THIS FILE IS AUTO-GENERATED!
 
 
@@ -51,7 +53,7 @@ ____
 edit mail
 
 optional arguments
-	:---spawn: force spawning of editor in a new terminal.
+	:---spawn: spawn editor in new terminal.
 	:---refocus: refocus envelope after editing (Defaults to: 'True').
 
 .. _cmd_envelope_send:
