@@ -198,7 +198,12 @@ class UI(object):
 
     def buffer_open(self, buf):
         """register and focus new :class:`~alot.buffers.Buffer`."""
-        self.buffers.append(buf)
+        if self.current_buffer is not None:
+            offset = settings.get('bufferclose_focus_offset') * -1
+            currentindex = self.buffers.index(self.current_buffer)
+            self.buffers.insert(currentindex + offset, buf)
+        else:
+            self.buffers.append(buf)
         self.buffer_focus(buf)
 
     def buffer_close(self, buf):
