@@ -1,3 +1,5 @@
+:orphan:
+
 .. code-block:: none
 
     alot [-r] [-c CONFIGFILE] [-n NOTMUCHCONFIGFILE] [-C {1,16,256}] [-p DB_PATH]
