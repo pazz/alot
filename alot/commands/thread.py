@@ -74,21 +74,25 @@ def recipient_to_from(mail, my_accounts):
 
 @registerCommand(MODE, 'reply', arguments=[
     (['--all'], {'action':'store_true', 'help':'reply to all'}),
+    (['--list'], {'action':'store_true', 'help':'reply to list'}),
     (['--spawn'], {'action': BooleanAction, 'default':None,
                    'help':'open editor in new window'})])
 class ReplyCommand(Command):
     """reply to message"""
-    def __init__(self, message=None, all=False, spawn=None, **kwargs):
+    def __init__(self, message=None, all=False, list=False, spawn=None, **kwargs):
         """
         :param message: message to reply to (defaults to selected message)
         :type message: `alot.db.message.Message`
         :param all: group reply; copies recipients from Bcc/Cc/To to the reply
         :type all: bool
+        :param list: list reply
+        :type list: bool
         :param spawn: force spawning of editor in a new terminal
         :type spawn: bool
         """
         self.message = message
         self.groupreply = all
+        self.listreply = list
         self.force_spawn = spawn
         Command.__init__(self, **kwargs)
 
@@ -152,6 +156,12 @@ class ReplyCommand(Command):
             if 'Cc' in mail:
                 cc = self.clear_my_address(my_addresses, mail['Cc'])
                 envelope.add('Cc', decode_header(cc))
+
+        if self.listreply:
+            cc = mail['From']
+            if 'Cc' in mail:
+                cc += ", " + self.clear_my_address(my_addresses, mail['Cc'])
+            envelope.add('Cc', decode_header(cc))
 
         to = ', '.join(recipients)
         logging.debug('reply to: %s' % to)
