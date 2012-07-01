@@ -36,6 +36,16 @@
     :default: 30
 
 
+.. _autodetect-list:
+
+.. describe:: autodetect_list
+
+     Automatically switch to list reply mode if appropriate
+
+    :type: boolean
+    :default: True
+
+
 .. _bufferclose-focus-offset:
 
 .. describe:: bufferclose_focus_offset

@@ -170,6 +170,9 @@ reply_subject_prefix = string(default='Re: ')
 # only if original subject doesn't start with 'Fwd:' or this prefix
 forward_subject_prefix = string(default='Fwd: ')
 
+# Automatically switch to list reply mode if appropriate
+autodetect_list = boolean(default=True)
+
 # Key bindings 
 [bindings]
     __many__ = string(default=None)
