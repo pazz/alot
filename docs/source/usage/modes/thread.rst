@@ -174,6 +174,7 @@ reply to message
 
 optional arguments
 	:---all: reply to all.
+	:---list: reply to list.
 	:---spawn: open editor in new window.
 
 .. _cmd_thread_save:
