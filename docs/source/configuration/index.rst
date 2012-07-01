@@ -265,6 +265,14 @@ Apart from command pre- and posthooks, the following hooks will be interpreted:
     :type subject: str
     :rtype: str
 
+.. py:function:: is_list(mail)
+
+    checks if the given mail is from a mailing list
+
+    :param mail: mail to check
+    :type mail: email.message.Message
+    :rtype: boolean
+
 .. _themes:
 
 Themes

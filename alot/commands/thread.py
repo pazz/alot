@@ -138,6 +138,13 @@ class ReplyCommand(Command):
                 subject = rsp + subject
         envelope.add('Subject', subject)
 
+        is_list_hook = settings.get_hook('is_list')
+        if is_list_hook:
+            self.listreply = is_list_hook(mail)
+        autodetect_lists = settings.get('autodetect_list')
+        if autodetect_lists and mail['List-Id']:
+            self.listreply = True
+
         # set From
         realname, address = recipient_to_from(mail, my_accounts)
         envelope.add('From', '%s <%s>' % (realname, address))
