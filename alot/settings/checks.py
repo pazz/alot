@@ -7,7 +7,7 @@ from urwid import AttrSpec, AttrSpecError
 from urlparse import urlparse
 from validate import VdtTypeError
 from validate import is_list
-from validate import ValidateError, VdtValueTooLongError
+from validate import ValidateError, VdtValueTooLongError, VdtValueError
 
 from alot import crypto
 from alot.errors import GPGProblem
@@ -48,6 +48,14 @@ def attr_triple(value):
         raise ValidateError(e.message)
     return mono, normal, high
 
+
+def align_mode(value):
+    """
+    test if value is one of 'left', 'right' or 'center'
+    """
+    if value not in ['left', 'right', 'center']:
+        raise VdtValueError
+    return value
 
 def mail_container(value):
     """
