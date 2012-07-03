@@ -5,6 +5,8 @@ import os
 from urwid import AttrSpec, AttrSpecError
 
 from utils import read_config
+from checks import align_mode
+from checks import attr_triple
 from errors import ConfigError
 
 DEFAULTSPATH = os.path.join(os.path.dirname(__file__), '..', 'defaults')
@@ -19,45 +21,9 @@ class Theme(object):
         :raises: :class:`~alot.settings.errors.ConfigError`
         """
         self._spec = os.path.join(DEFAULTSPATH, 'theme.spec')
-        self._config = read_config(path, self._spec)
-        self.attributes = self._parse_attributes(self._config)
-
-    def _parse_attributes(self, c):
-        """
-        parse a (previously validated) valid theme file
-        into urwid AttrSpec attributes for internal use.
-
-        :param c: config object for theme file
-        :type c: `configobj.ConfigObj`
-        :raises: `ConfigError`
-        """
-
-        attributes = {}
-        for sec in c.sections:
-            try:
-                colours = int(sec)
-            except ValueError:
-                err_msg = 'section name %s is not a valid colour mode'
-                raise ConfigError(err_msg % sec)
-            attributes[colours] = {}
-            for mode in c[sec].sections:
-                attributes[colours][mode] = {}
-                for themable in c[sec][mode].sections:
-                    block = c[sec][mode][themable]
-                    fg = block['fg']
-                    if colours == 1:
-                        bg = 'default'
-                    else:
-                        bg = block['bg']
-                    if colours == 256:
-                        fg = fg or c['16'][mode][themable][fg]
-                        bg = bg or c['16'][mode][themable][bg]
-                    try:
-                        att = AttrSpec(fg, bg, colours)
-                    except AttrSpecError, e:
-                        raise ConfigError(e)
-                    attributes[colours][mode][themable] = att
-        return attributes
+        self._config = read_config(path, self._spec,
+                                   checks={'align': align_mode,
+                                           'attrtriple': attr_triple})
 
     def get_attribute(self, mode, name, colourmode):
         """
@@ -70,4 +36,4 @@ class Theme(object):
         :param colourmode: colour mode; in [1, 16, 256]
         :type colourmode: int
         """
-        return self.attributes[colourmode][mode][name]
+        return self._config[mode][name][[1, 16, 256].index(colourmode)]
