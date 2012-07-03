@@ -21,6 +21,8 @@ from utils import read_config
 from checks import force_list
 from checks import mail_container
 from checks import gpg_key
+from checks import attr_triple
+from checks import align_mode
 from theme import Theme
 
 
@@ -62,6 +64,8 @@ class SettingsManager(object):
         newconfig = read_config(path, spec,
                                 checks={'mail_container': mail_container,
                                         'force_list': force_list,
+                                        'align': align_mode,
+                                        'attrtriple': attr_triple,
                                         'gpg_key_hint': gpg_key})
         self._config.merge(newconfig)
 

@@ -14,6 +14,18 @@ import time
 from alot.db.utils import decode_header
 
 
+class AttrFlipWidget(urwid.AttrMap):
+    """
+    An AttrMap that can remember attributes to set
+    """
+    def __init__(self, w, maps, init_map='normal'):
+        self.maps = maps
+        urwid.AttrMap.__init__(self, w, maps[init_map])
+
+    def set_map(self, attrstring):
+        self.set_attr_map({None: self.maps[attrstring]})
+
+
 class DialogBox(urwid.WidgetWrap):
     def __init__(self, body, title, bodyattr=None, titleattr=None):
         self.body = urwid.LineBox(body)
