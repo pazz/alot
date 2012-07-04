@@ -34,21 +34,21 @@
         normal = 'default','','default','default','#6d6','default'
         focus = 'standout','','light gray','dark gray','white','#68a'
         order = date,mailcount,tags,authors,subject
-        [[date]]
+        [[[date]]]
             normal = 'default','','light gray','default','g58','default'
             focus = 'standout','','light gray','dark gray','g89','#68a'
-        [[mailcount]]
+        [[[mailcount]]]
             normal = 'default','','light gray','default','light gray','default'
             focus = 'standout','','light gray','dark gray','g89','#68a'
-        [[tags]]
+        [[[tags]]]
             normal = 'bold','','brown','default','#a86','default'
             focus = 'standout','','yellow,bold','dark gray','#ff8','#68a'
-        [[authors]]
+        [[[authors]]]
             normal = 'default,underline','','dark green','default','#6d6','default'
             focus = 'standout','','dark green,bold','dark gray','#8f6','#68a'
-        [[subject]]
+        [[[subject]]]
             normal = 'default','','light gray','default','g58','default'
             focus = 'standout','','light gray','dark gray','g89','#68a'
-        [[content]]
+        [[[content]]]
             normal = 'default','','dark gray','default','#866','default'
             focus = 'standout','','black','dark gray','#866','#68a'
