@@ -37,15 +37,18 @@
         [[[date]]]
             normal = 'default','','light gray','default','g58','default'
             focus = 'standout','','light gray','dark gray','g89','#68a'
+            width = 'fit',10,10
         [[[mailcount]]]
             normal = 'default','','light gray','default','light gray','default'
             focus = 'standout','','light gray','dark gray','g89','#68a'
+            width = 'fit',5,5
         [[[tags]]]
             normal = 'bold','','brown','default','#a86','default'
             focus = 'standout','','yellow,bold','dark gray','#ff8','#68a'
         [[[authors]]]
             normal = 'default,underline','','dark green','default','#6d6','default'
             focus = 'standout','','dark green,bold','dark gray','#8f6','#68a'
+            width = 'fit',0,30
         [[[subject]]]
             normal = 'default','','light gray','default','g58','default'
             focus = 'standout','','light gray','dark gray','g89','#68a'
