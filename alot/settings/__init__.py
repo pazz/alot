@@ -229,6 +229,10 @@ class SettingsManager(object):
         colours = int(self._config.get('colourmode'))
         return self._theme.get_attribute(mode, name,  colours)
 
+    def get_threadline_theming(self, thread):
+        colours = int(self._config.get('colourmode'))
+        return self._theme.get_threadline_structure(thread, colours)
+
     def get_tagstring_representation(self, tag):
         """
         looks up user's preferred way to represent a given tagstring
