@@ -30,12 +30,14 @@
             width = widthtuple(default=None)
             alignment = align(default='right')
     [[__many__]]
-        normal = attrtriple
-        focus = attrtriple
+        normal = attrtriple(default=None)
+        focus = attrtriple(default=None)
         parts = string_list(default=None)
+        query = string(default=None)
+        tagged_with = force_list(default=None)
         [[[__many__]]]
-            normal = attrtriple
-            focus = attrtriple
+            normal = attrtriple(default=None)
+            focus = attrtriple(default=None)
             width = widthtuple(default=None)
             alignment = align(default='right')
 [thread]
