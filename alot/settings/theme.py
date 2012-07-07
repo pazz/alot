@@ -88,7 +88,7 @@ class Theme(object):
         res['order'] = match.get('order', default['order'])
         for part in res['order']:
             res[part] = {}
-            res[part]['width'] = match[part].get('width', ('fit', 0, 0))
+            res[part]['width'] = match[part].get('width') or ('fit', 0, 0)
             res[part]['alignment'] = match[part].get('alignment')
             res[part]['normal'] = pickcolour(match[part].get('normal', default['normal']))
             res[part]['focus'] = pickcolour(match[part].get('focus', default['focus']))
