@@ -62,19 +62,28 @@ def width_tuple(value):
     """
     test if value is a valid width indicator (for a sub-widget in a column).
     This can either be
-    ('fit', min, max): use the length actually needed for the content, padded to
-                       use at least width min, and cut of at width max. Here, min
-                       and max are positive integers or 0 to disable the boundary.
+    ('fit', min, max): use the length actually needed for the content, padded
+                       to use at least width min, and cut of at width max.
+                       Here, min and max are positive integers or 0 to disable
+                       the boundary.
     ('weight',n): have it relative weight of n compared to other columns.
                   Here, n is an int.
     """
     if value is None:
-        value = 'fit',0,0
+        res = 'fit', 0, 0
     elif not isinstance(value, (list, tuple)):
         raise VdtTypeError(value)
     elif value[0] not in ['fit', 'weight']:
         raise VdtTypeError(value)
-    return value
+    if value[0] == 'fit':
+        if not isinstance(value[1], int) or not isinstance(value[2], int):
+            VdtTypeError(value)
+        res = 'fit', int(value[1]), int(value[2])
+    else:
+        if not isinstance(value[1], int):
+            VdtTypeError(value)
+        res = 'weight', int(value[1])
+    return res
 
 
 def mail_container(value):
