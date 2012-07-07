@@ -57,3 +57,20 @@
             normal = 'default','','dark gray','default','#866','default'
             focus = 'standout','','black','dark gray','#866','#68a'
             width = 'weight', 1
+
+    # highlight threads containing unread messages
+    [[threadline-unread]]
+        normal = 'default','','default,bold','default','#6d6,bold','default'
+        tagged_with = 'unread'
+        [[[date]]]
+            normal = 'default','','light gray,bold','default','g58,bold','default'
+        [[[mailcount]]]
+            normal = 'default','','light gray,bold','default','light gray,bold','default'
+        [[[tags]]]
+            normal = 'bold','','brown,bold','default','#a86,bold','default'
+        [[[authors]]]
+            normal = 'default,underline','','dark green,bold','default','#6d6,bold','default'
+        [[[subject]]]
+            normal = 'default','','light gray,bold','default','g58,bold','default'
+        [[[content]]]
+            normal = 'default','','dark gray,bold','default','#866,bold','default'
