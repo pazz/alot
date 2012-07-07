@@ -33,7 +33,7 @@
     [[threadline]]
         normal = 'default','','default','default','#6d6','default'
         focus = 'standout','','light gray','dark gray','white','#68a'
-        order = date,mailcount,tags,authors,subject
+        parts = date,mailcount,tags,authors,subject
         [[[date]]]
             normal = 'default','','light gray','default','g58','default'
             focus = 'standout','','light gray','dark gray','g89','#68a'

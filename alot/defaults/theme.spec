@@ -23,7 +23,7 @@
         focus = attrtriple
         # order subwidgets are displayed. subset of {date,mailcount,tags,authors,subject,count}
         # every element listed must have its own subsection below
-        order = string_list(default=list(date,mailcount,tags,authors,subject))
+        parts = string_list(default=None)
         [[[__many__]]]
             normal = attrtriple
             focus = attrtriple
@@ -32,7 +32,7 @@
     [[__many__]]
         normal = attrtriple
         focus = attrtriple
-        order = string_list(default=list(date,mailcount,tags,authors,subject))
+        parts = string_list(default=None)
         [[[__many__]]]
             normal = attrtriple
             focus = attrtriple

@@ -210,7 +210,7 @@ class ThreadlineWidget(urwid.AttrMap):
         self.widgets = []
         columns = []
         self.structure = settings.get_threadline_theming(self.thread)
-        for partname in self.structure['order']:
+        for partname in self.structure['parts']:
             minw = maxw = None
             width_tuple = self.structure[partname]['width']
             if width_tuple is not None:

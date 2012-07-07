@@ -31,9 +31,11 @@ class Theme(object):
         # make sure every entry in 'order' lists have their own subsections
         for sec in self._config['search']:
             if sec.startswith('threadline'):
+                logging.debug(sec)
                 threadline = self._config['search'][sec]
-                if 'order' in threadline:
-                    listed = set(threadline['order'])
+                logging.debug(threadline)
+                if threadline['parts'] is not None:
+                    listed = set(threadline['parts'])
                     present = set(threadline.sections)
                     difference = listed.difference(present)
                     if difference:
@@ -79,14 +81,13 @@ class Theme(object):
                matches(candidate, thread):
                     match = candidate
                     break
-        #logging.debug('match: %s' % match)
 
         # fill in values
         res = {}
         res['normal'] = pickcolour(match.get('normal', default['normal']))
         res['focus'] = pickcolour(match.get('focus', default['focus']))
-        res['order'] = match.get('order', default['order'])
-        for part in res['order']:
+        res['parts'] = match.get('parts', default['parts'])
+        for part in res['parts']:
             res[part] = {}
             res[part]['width'] = match[part].get('width') or ('fit', 0, 0)
             res[part]['alignment'] = match[part].get('alignment')
