@@ -18,9 +18,12 @@ def get_leaf_value(cfg, path, fallback=''):
             else:
                 return cfg[path[0]]
     else:
-        scfg = cfg[path[0]]
-        sp = path[1:]
-        return get_leaf_value(scfg, sp, fallback)
+        if path[0] in cfg:
+            scfg = cfg[path[0]]
+            sp = path[1:]
+            return get_leaf_value(scfg, sp, fallback)
+        else:
+            return None
 
 
 if __name__ == "__main__":
@@ -37,14 +40,14 @@ if __name__ == "__main__":
     def lookup(path):
         values = []
         for c in ['1', '16', '256']:
-            values.append(get_leaf_value(old, [c] + path + ['fg']))
-            values.append(get_leaf_value(old, [c] + path + ['bg']))
+            values.append(get_leaf_value(old, [c] + path + ['fg']) or 'default')
+            values.append(get_leaf_value(old, [c] + path + ['bg']) or 'default')
         values = map(lambda s: '\'' + s + '\'', values)
         return ','.join(values)
 
     for bmode in ['global', 'help', 'bufferlist', 'thread', 'envelope']:
         out.write('[%s]\n' % bmode)
-        for themable in old['1'][bmode].sections:
+        for themable in old['16'][bmode].sections:
             out.write('    %s = %s\n' % (themable, lookup([bmode, themable])))
 
     out.write('[search]\n')
@@ -52,7 +55,7 @@ if __name__ == "__main__":
 
     out.write(' ' * 8 + 'normal = %s\n' % lookup(['search', 'thread']))
     out.write(' ' * 8 + 'focus = %s\n' % lookup(['search', 'thread_focus']))
-    out.write(' ' * 8 + 'order = date,mailcount,tags,authors,subject\n')
+    out.write(' ' * 8 + 'parts = date,mailcount,tags,authors,subject\n')
 
     out.write(' ' * 8 + '[[[date]]]\n')
     out.write(' ' * 12 + 'normal = %s\n' % lookup(['search', 'thread_date']))
