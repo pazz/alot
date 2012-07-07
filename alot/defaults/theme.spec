@@ -27,8 +27,7 @@
         [[[__many__]]]
             normal = attrtriple
             focus = attrtriple
-            #width_fixed = integer
-            #width_weight = integer
+            width = widthtuple(default=None)
             alignment = align(default='right')
     [[__many__]]
         normal = attrtriple
@@ -37,8 +36,7 @@
         [[[__many__]]]
             normal = attrtriple
             focus = attrtriple
-            #width_fixed = integer
-            #width_weight = integer
+            width = widthtuple(default=None)
             alignment = align(default='right')
 [thread]
     attachment = attrtriple

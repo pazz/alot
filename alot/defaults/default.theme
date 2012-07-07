@@ -41,7 +41,7 @@
         [[[mailcount]]]
             normal = 'default','','light gray','default','light gray','default'
             focus = 'standout','','light gray','dark gray','g89','#68a'
-            width = 'fit',5,5
+            width = 'fit', 5,5
         [[[tags]]]
             normal = 'bold','','brown','default','#a86','default'
             focus = 'standout','','yellow,bold','dark gray','#ff8','#68a'
@@ -52,6 +52,8 @@
         [[[subject]]]
             normal = 'default','','light gray','default','g58','default'
             focus = 'standout','','light gray','dark gray','g89','#68a'
+            width = 'weight', 1
         [[[content]]]
             normal = 'default','','dark gray','default','#866','default'
             focus = 'standout','','black','dark gray','#866','#68a'
+            width = 'weight', 1
