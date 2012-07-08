@@ -277,36 +277,37 @@ To specify the theme to use, set the `theme` config option to the name of a them
 A file by that name will be looked up in the path given by the :ref:`themes_dir <themes-dir>` config setting
 which defaults to :file:`~/.config/alot/themes/`.
 
-Theme-files can contain sections `[1], [16]` and `[256]` for different colour modes,
-each of which has subsections named after the :ref:`MODE <modes>` they are used in
-plus "help" for the bindings-help overlay and "global" for globally used themables
-like footer, prompt etc.
-The themables live in sub-sub-sections and define the attributes `fg` and `bg` for foreground
-and backround colours and attributes, the names of the themables should be self-explanatory.
+Theme files contain a section for each :ref:`MODE <modes>` plus "help" for the bindings-help overlay
+and "global" for globally used themables like footer, prompt etc.
+Each such section contains attribute values for the parts that can be themed.
+The names of the themables should be self-explanatory. Attributes are sextuples of urwid Attribute
+strings that specify fore/background for mono, 16 and 256-colour modes respectively.
+
+For mono-mode only the flags "blink,standup,underline,bold" are available,
+16c mode supports these in combination with the colour names::
+
+    brown    dark red     dark magenta    dark blue    dark cyan    dark green
+    yellow   light red    light magenta   light blue   light cyan   light green
+    black    dark gray    light gray      white
+
+In high-colour mode, you may use the above plus grayscales `g0` to `g100` and
+colour codes given as `#` followed by three hex values.
+See `here <http://excess.org/urwid/wiki/DisplayAttributes>`_
+and `here <http://excess.org/urwid/reference.html#AttrSpec>`_
+for more details on the interpreted values.
+A colour picker that makes choosing colours easy can be found in :file:`alot/extra/colour_picker.py`.
+
 Have a look at the default theme file at :file:`alot/defaults/default.theme`
-and the config spec :file:`alot/defaults/default.theme` for the format.
+and the config spec :file:`alot/defaults/default.theme` for the exact format.
 
 As an example, check the setting below that makes the footer line appear as
 underlined bold red text on a bright green background::
 
-    [256]
-      [[global]]
-        [[[footer]]]
-            fg = 'light red, bold, underline'
-            bg = '#8f6'
-
-Values can be colour names (`light red`, `dark green`..), RGB colour codes (e.g. `#868`),
-font attributes (`bold`, `underline`, `blink`, `standout`) or a comma separated combination of
-colour and font attributes.
-
-.. note:: In monochromatic mode only the entry `fg` is interpreted. It may only contain
-          (a comma-separated list of) font attributes: 'bold', 'underline', 'blink', 'standout'.
-
-See `urwids docs on Attributes <http://excess.org/urwid/reference.html#AttrSpec>`_ for more details
-on the interpreted values. Urwid provides a `neat colour picker script`_ that makes choosing
-colours easy.
-
-.. _neat colour picker script: http://excess.org/urwid/browser/palette_test.py
+  [[global]]
+    #name    mono fg     mono bg   16c fg                        16c bg         256c fg                 256c bg
+    #        |                 |   |                             |              |                             |
+    #        v                 v   v                             v              v                             v
+    footer = 'bold,underline', '', 'light red, bold, underline', 'light green', 'light red, bold, underline', '#8f6'
 
 
 Custom Tagstring Formatting
@@ -314,10 +315,9 @@ Custom Tagstring Formatting
 
 To specify how a particular tagstring is displayed throughout the interface you can
 add a subsection named after the tag to the `[tags]` config section.
-The following attribute keys will interpreted and may contain urwid attribute strings
-as described in the :ref:`Themes <themes>` section above:
+`normal` and `focus` keys will interpreted and may contain urwid attribute strings
+as described in the :ref:`Themes <themes>` section above.
 
-`fg` (foreground), `bg` (background), `focus_fg` (foreground if focused) and `focus_bg` (background if focused).
 An alternative string representation is read from the option `translated` or can be given
 as pair of strings in `translation`.
 
@@ -328,8 +328,7 @@ The following will make alot display the "todo" tag as "TODO" in white on red. :
 
     [tags]
       [[todo]]
-        bg = '#d66'
-        fg = white
+        normal = '','', 'white','light red', 'white','#d66'
         translated = TODO
 
 Utf-8 symbols are welcome here, see e.g.
@@ -337,13 +336,14 @@ http://panmental.de/symbols/info.htm for some fancy symbols. I personally displa
 like this::
 
     [tags]
+
       [[flagged]]
         translated = ⚑
-        fg = light red
+        normal = '','','light red','','light red',''
+        focus = '','','light red','','light red',''
 
       [[unread]]
         translated = ✉
-        fg = white
 
       [[replied]]
         translated = ⏎
@@ -358,12 +358,11 @@ rename a matching tagstring. `translation` takes a comma separated *pair* of str
 do the following::
 
   [[notmuch::bug]]
-      fg = 'light red, bold'
-      bg = '#88d'
-      translated = 'nm:bug'
+    translated = 'nm:bug'
+    normal = "", "", "light red, bold", "light blue", "light red, bold", "#88d"
+
   [[notmuch::.*]]
-      fg = '#fff'
-      bg = '#88d'
-      translation = 'notmuch::(.*)','nm:\1'
+    translation = 'notmuch::(.*)','nm:\1'
+    normal = "", "", "white", "light blue", "#fff", "#88d"
 
 .. _nmbug: http://notmuchmail.org/nmbug/
