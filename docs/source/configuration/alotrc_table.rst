@@ -26,16 +26,6 @@
     :default: "~"
 
 
-.. _authors-maxlength:
-
-.. describe:: authors_maxlength
-
-     maximal length of authors string in search mode before it gets truncated
-
-    :type: integer
-    :default: 30
-
-
 .. _bufferclose-focus-offset:
 
 .. describe:: bufferclose_focus_offset

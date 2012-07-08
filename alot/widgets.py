@@ -77,7 +77,6 @@ class ThreadlineWidget(urwid.AttrMap):
     Respected settings:
         * `general.display_content_in_threadline`
         * `general.timestamp_format`
-        * `general.authors_maxlength`
     Theme settings:
         * `search_thread, search_thread_focus`
         * `search_thread_date, search_thread_date_focus`
@@ -147,7 +146,6 @@ class ThreadlineWidget(urwid.AttrMap):
                 authors = self.thread.get_authors_string() or '(None)'
             else:
                 authors = '(None)'
-            maxlength = settings.get('authors_maxlength')  # TODO
             authorsstring = pad(authors, shorten_author_string)
             authors_w = AttrFlipWidget(urwid.Text(authorsstring),
                                            struct['authors'])
