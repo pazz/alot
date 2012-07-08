@@ -253,7 +253,7 @@ class SettingsManager(object):
             if a.background in ['default', '']:
                 a.background = fallback.background
             if a.foreground in ['default', '']:
-                a.foreground = fallfore.foreground
+                a.foreground = fallback.foreground
             return a
 
         default_normal = theme.get_attribute('global', 'tag', colourmode)
