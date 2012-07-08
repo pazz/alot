@@ -233,7 +233,7 @@ class SettingsManager(object):
         colours = int(self._config.get('colourmode'))
         return self._theme.get_threadline_structure(thread, colours)
 
-    def get_tagstring_representation(self, tag):
+    def get_tagstring_representation(self, tag, normal=None, focus=None):
         """
         looks up user's preferred way to represent a given tagstring
 
@@ -241,41 +241,47 @@ class SettingsManager(object):
         'normal' and 'focussed' to `urwid.AttrSpec` sttributes,
         and 'translated' to an alternative string representation
         """
-        colours = int(self._config.get('colourmode'))
-        # default attributes: normal and focussed
-        default = self._theme.get_attribute('global', 'tag', colours)
-        default_f = self._theme.get_attribute('global', 'tag_focus', colours)
-        for sec in self._config['tags'].sections:
+        colourmode = int(self._config.get('colourmode'))
+        theme = self._theme
+        cfg = self._config
+        colours = [1, 16, 256]
+
+        def resolve_att(triple, fallback):
+            if triple is None:
+                return fallback
+            a = triple[colours.index(colourmode)]
+            if a.background in ['default', '']:
+                a.background = fallback.background
+            if a.foreground in ['default', '']:
+                a.foreground = fallfore.foreground
+            return a
+
+        default_normal = theme.get_attribute('global', 'tag', colourmode)
+        default_focus = theme.get_attribute('global', 'tag_focus', colourmode)
+        fallback_normal = normal or default_normal
+        fallback_focus = focus or default_focus
+
+        for sec in cfg['tags'].sections:
             if re.match('^' + sec + '$', tag):
-                fg = self._config['tags'][sec]['fg'] or default.foreground
-                bg = self._config['tags'][sec]['bg'] or default.background
-                try:
-                    normal = urwid.AttrSpec(fg, bg, colours)
-                except AttrSpecError:
-                    normal = default
-                focus_fg = self._config['tags'][sec]['focus_fg']
-                focus_fg = focus_fg or default_f.foreground
-                focus_bg = self._config['tags'][sec]['focus_bg']
-                focus_bg = focus_bg or default_f.background
-                try:
-                    focussed = urwid.AttrSpec(focus_fg, focus_bg, colours)
-                except AttrSpecError:
-                    focussed = default_f
+                normal = resolve_att(cfg['tags'][sec]['normal'],
+                                     fallback_normal)
+                logging.debug(normal)
+                focus = resolve_att(cfg['tags'][sec]['focus'], fallback_focus)
 
-                hidden = self._config['tags'][sec]['hidden'] or False
+                hidden = cfg['tags'][sec]['hidden'] or False
 
-                translated = self._config['tags'][sec]['translated'] or tag
-                translation = self._config['tags'][sec]['translation']
+                translated = cfg['tags'][sec]['translated'] or tag
+                translation = cfg['tags'][sec]['translation']
                 if translation:
                     translated = re.sub(translation[0], translation[1], tag)
                 break
         else:
-            normal = default
-            focussed = default_f
+            normal = fallback_normal
+            focus = fallback_focus
             hidden = False
             translated = tag
 
-        return {'normal': normal, 'focussed': focussed,
+        return {'normal': normal, 'focussed': focus,
                 'hidden': hidden, 'translated': translated}
 
     def get_hook(self, key):
