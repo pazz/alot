@@ -179,14 +179,10 @@ forward_subject_prefix = string(default='Fwd: ')
 [tags]
     # for each tag
     [[__many__]]
-        # foreground
-        fg = string(default=None)
-        # background
-        bg = string(default=None)
-        # foreground if focused
-        focus_fg = string(default=None)
-        # background if focused
-        focus_bg = string(default=None)
+        # unfocussed
+        normal = attrtriple(default=None)
+        # focussed
+        focus = attrtriple(default=None)
         # don't display at all?
         hidden = boolean(default=False)
         # alternative string representation
