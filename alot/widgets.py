@@ -147,7 +147,7 @@ class ThreadlineWidget(urwid.AttrMap):
                 authors = self.thread.get_authors_string() or '(None)'
             else:
                 authors = '(None)'
-            maxlength = settings.get('authors_maxlength')  #TODO
+            maxlength = settings.get('authors_maxlength')  # TODO
             authorsstring = pad(authors, shorten_author_string)
             authors_w = AttrFlipWidget(urwid.Text(authorsstring),
                                            struct['authors'])
@@ -187,7 +187,9 @@ class ThreadlineWidget(urwid.AttrMap):
             part = content_w
         elif name == 'tags':
             if self.thread:
-                tag_widgets = [TagWidget(t)
+                fallback_normal = self.structure['normal']
+                fallback_focus = self.structure['focus']
+                tag_widgets = [TagWidget(t, fallback_normal, fallback_focus)
                                     for t in self.thread.get_tags()]
                 tag_widgets.sort(tag_cmp,
                                   lambda tag_widget: tag_widget.translated)
@@ -197,10 +199,10 @@ class ThreadlineWidget(urwid.AttrMap):
             length = -1
             for tag_widget in tag_widgets:
                 if not tag_widget.hidden:
-                    wrapped_tagwidget = AttrFlipWidget(tag_widget, struct['tags'])
+                    wrapped_tagwidget = tag_widget
                     tag_width = tag_widget.width()
                     cols.append(('fixed', tag_width, wrapped_tagwidget))
-                    length += tag_width +1
+                    length += tag_width + 1
             if cols:
                 part = urwid.Columns(cols, dividechars=1)
                 width = length
@@ -288,15 +290,21 @@ class TagWidget(urwid.AttrMap):
     tag may also be configured as hidden, which users of this widget
     should honour.
     """
-    def __init__(self, tag):
+    def __init__(self, tag, fallback_normal=None, fallback_focus=None):
         self.tag = tag
-        representation = settings.get_tagstring_representation(tag)
+        representation = settings.get_tagstring_representation(tag,
+                                                               fallback_normal,
+                                                               fallback_focus)
         self.hidden = representation['hidden']
         self.translated = representation['translated']
         self.txt = urwid.Text(self.translated, wrap='clip')
-        self.normal_att = representation['normal']
-        self.focus_att = representation['focussed']
-        urwid.AttrMap.__init__(self, self.txt, self.normal_att, self.focus_att)
+        normal_att = representation['normal']
+        focus_att = representation['focussed']
+        self.attmaps = {'normal': normal_att, 'focus': focus_att}
+        urwid.AttrMap.__init__(self, self.txt, normal_att)
+
+    def set_map(self, attrstring):
+        self.set_attr_map({None: self.attmaps[attrstring]})
 
     def width(self):
         # evil voodoo hotfix for double width chars that may
@@ -313,10 +321,10 @@ class TagWidget(urwid.AttrMap):
         return self.tag
 
     def set_focussed(self):
-        self.set_attr_map({None: self.focus_att})
+        self.set_attr_map(self.attmap['focus'])
 
     def set_unfocussed(self):
-        self.set_attr_map({None: self.normal_att})
+        self.set_attr_map(self.attmap['normal'])
 
 
 class ChoiceWidget(urwid.Text):
@@ -526,10 +534,10 @@ class MessageWidget(urwid.WidgetWrap):
         lines = []
         for key in self._displayed_headers:
             if key in mail:
-                if key.lower() in ['cc','bcc', 'to']:
+                if key.lower() in ['cc', 'bcc', 'to']:
                     values = mail.get_all(key)
-                    dvalues = [decode_header(v, normalize=norm) for v in values]
-                    lines.append((key, ', '.join(dvalues)))
+                    values = [decode_header(v, normalize=norm) for v in values]
+                    lines.append((key, ', '.join(values)))
                 else:
                     for value in mail.get_all(key):
                         dvalue = decode_header(value, normalize=norm)
