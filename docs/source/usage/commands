@@ -1,4 +1,4 @@
-:orphan:
+.. _commands:
 
 Commands
 ========
@@ -15,3 +15,15 @@ Commands
     lists all active buffers
 :doc:`modes/taglist`
     lists all tagstrings present in the notmuch database
+
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+
+   modes/global
+   modes/search
+   modes/thread
+   modes/envelope
+   modes/bufferlist
+   modes/taglist
+
