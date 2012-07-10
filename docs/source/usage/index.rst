@@ -4,11 +4,11 @@ Usage
 
 Commandline invocation
 ======================
-.. include:: synopsis.rst
+.. include:: synopsis
 
 First Steps
 ===========
 
-.. include:: first_steps.rst
+.. include:: first_steps
 
-.. include:: commands.rst
+.. include:: commands

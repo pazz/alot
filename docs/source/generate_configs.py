@@ -60,9 +60,9 @@ if __name__ == "__main__":
     config = ConfigObj(None, configspec=specpath, stringify=False, list_values=False)
     config.validate(Validator())
 
-    alotrc_table_file = os.path.join(HERE, 'configuration', 'alotrc_table.rst')
+    alotrc_table_file = os.path.join(HERE, 'configuration', 'alotrc_table')
     rewrite_entries(config.configspec, alotrc_table_file, 'defaults/alot.rc.spec', sort=True)
 
-    rewrite_entries(config, os.path.join(HERE, 'configuration', 'accounts_table.rst'),
+    rewrite_entries(config, os.path.join(HERE, 'configuration', 'accounts_table'),
                     'defaults/alot.rc.spec',
                     sec=config.configspec['accounts']['__many__'])
