@@ -1,6 +1,4 @@
 
-:orphan:
-
 .. CAUTION: THIS FILE IS AUTO-GENERATED
     from the inline comments of specfile defaults/alot.rc.spec.
 

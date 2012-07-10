@@ -1,5 +1,3 @@
-:orphan:
-
 The arrow keys, `page-up/down`, `j`, `k` and `Space` can be used to move the focus.
 `Escape` cancels prompts and `Enter` selects. Hit `:` at any time and type in commands
 to the prompt.

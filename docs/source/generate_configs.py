@@ -7,8 +7,6 @@ from configobj import ConfigObj
 from validate import Validator
 import re
 NOTE = """
-:orphan:
-
 .. CAUTION: THIS FILE IS AUTO-GENERATED
     from the inline comments of specfile %s.
 
