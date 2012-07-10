@@ -15,7 +15,7 @@ import re as _re
 import sys as _sys
 import textwrap as _textwrap
 
-NOTE = ":orphan:\n\n.. CAUTION: THIS FILE IS AUTO-GENERATED!\n\n\n"
+NOTE = ".. CAUTION: THIS FILE IS AUTO-GENERATED!\n\n\n"
 
 class HF(HelpFormatter):
     def _metavar_formatter(self, action, default_metavar):
