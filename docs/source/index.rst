@@ -5,7 +5,7 @@
 
 User Manual
 ===========
-.. include:: description.rst
+.. include:: description
 
 .. toctree::
    :maxdepth: 2

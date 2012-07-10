@@ -24,7 +24,7 @@ The type of an option is used to validate a given value. For instance,
 if the type says "boolean" you may only provide "True" or "False" as values in your config file,
 otherwise alot will complain on startup. Strings *may* be quoted but do not need to be.
 
-.. include:: alotrc_table.rst
+.. include:: alotrc_table
 
 .. _account:
 
@@ -59,7 +59,7 @@ Here is an example configuration::
 
 The following entries are interpreted at the moment:
 
-.. include:: accounts_table.rst
+.. include:: accounts_table
 
 
 Contacts Completion
@@ -151,7 +151,7 @@ Hooks are python callables that live in a module specified by `hooksfile` in the
 config. Per default this points to :file:`~/.config/alot/hooks.py`.
 When a hook gets called it receives a reference to the :class:`main user interface <alot.ui.UI>` and the
 :class:`database manager <alot.db.DBManager>`.
-For every :doc:`COMMAND <../usage/commands>` in mode :ref:`MODE <modes>`, the callables :func:`pre_MODE_COMMAND` and :func:`post_MODE_COMMAND`
+For every :ref:`COMMAND <commands>` in mode :ref:`MODE <modes>`, the callables :func:`pre_MODE_COMMAND` and :func:`post_MODE_COMMAND`
 -- if defined -- will be called before and after the command is applied respectively. The signature for the
 pre-`send` hook in envelope mode for example looks like this:
 
