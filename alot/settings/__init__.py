@@ -233,7 +233,8 @@ class SettingsManager(object):
         colours = int(self._config.get('colourmode'))
         return self._theme.get_threadline_structure(thread, colours)
 
-    def get_tagstring_representation(self, tag, normal=None, focus=None):
+    def get_tagstring_representation(self, tag, onebelow_normal=None,
+                                     onebelow_focus=None):
         """
         looks up user's preferred way to represent a given tagstring
 
@@ -246,27 +247,43 @@ class SettingsManager(object):
         cfg = self._config
         colours = [1, 16, 256]
 
-        def resolve_att(triple, fallback):
+        def colourpick(triple):
+            """ pick attribute from triple (mono,16c,256c) according to current
+            colourmode"""
             if triple is None:
+                return None
+            return triple[colours.index(colourmode)]
+
+        def resolve_att(a, fallback):
+            """ replace '' and 'default' by fallback values """
+            if a is None:
                 return fallback
-            a = triple[colours.index(colourmode)]
-            if a.background in ['default', '']:
-                a.background = fallback.background
-            if a.foreground in ['default', '']:
-                a.foreground = fallback.foreground
+            try:
+                if a.background in ['default', '']:
+                    a.background = fallback.background
+                if a.foreground in ['default', '']:
+                    a.foreground = fallback.foreground
+            except:
+                logging.debug('DEFAULT_NORMAL')
+                logging.debug(a)
             return a
 
+        # global default attributes for tagstrings.
+        # These could contain values '' and 'default' which we interpret as
+        # "use the values from the widget below"
         default_normal = theme.get_attribute('global', 'tag', colourmode)
         default_focus = theme.get_attribute('global', 'tag_focus', colourmode)
-        fallback_normal = normal or default_normal
-        fallback_focus = focus or default_focus
+
+        # local defaults for tagstring attributes. depend on next lower widget
+        fallback_normal = resolve_att(default_normal, onebelow_normal)
+        fallback_focus = resolve_att(default_focus, onebelow_focus)
 
         for sec in cfg['tags'].sections:
             if re.match('^' + sec + '$', tag):
-                normal = resolve_att(cfg['tags'][sec]['normal'],
+                normal = resolve_att(colourpick(cfg['tags'][sec]['normal']),
                                      fallback_normal)
-                logging.debug(normal)
-                focus = resolve_att(cfg['tags'][sec]['focus'], fallback_focus)
+                focus = resolve_att(colourpick(cfg['tags'][sec]['focus']),
+                                    fallback_focus)
 
                 hidden = cfg['tags'][sec]['hidden'] or False
 
