@@ -59,7 +59,7 @@ class Theme(object):
         """
         return self._config[mode][name][self._colours.index(colourmode)]
 
-    def get_threadline_structure(self, thread, colourmode):
+    def get_threadline_theming(self, thread, colourmode):
         def pickcolour(triple):
             return triple[self._colours.index(colourmode)]
 
