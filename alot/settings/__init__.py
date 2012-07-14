@@ -225,13 +225,16 @@ class SettingsManager(object):
         :type mode: str
         :param name: identifier of the atttribute
         :type name: str
+        :rtype: urwid.AttrSpec
         """
         colours = int(self._config.get('colourmode'))
         return self._theme.get_attribute(mode, name,  colours)
 
     def get_threadline_theming(self, thread):
         """
-        looks up theming info a threadline displaying a given thread
+        looks up theming info a threadline displaying a given thread. This
+        wraps around :meth:`~alot.settings.theme.Theme.get_threadline_theming`,
+        filling in the current colour mode.
 
         :param thread: thread to theme
         :type thread: alot.db.thread.Thread
@@ -242,20 +245,23 @@ class SettingsManager(object):
     def get_tagstring_representation(self, tag, onebelow_normal=None,
                                      onebelow_focus=None):
         """
-        looks up user's preferred way to represent a given tagstring
-        on top of a widget with given attributes that shine though
-        for '' and 'default' values.
-
-        This returns a dictionary mapping 'normal' and 'focussed' to
-        `urwid.AttrSpec` attributes, 'translated' to an alternative string
-        representation and 'hidden' to a boolean flag.
+        looks up user's preferred way to represent a given tagstring.
 
         :param tag: tagstring
         :type tag: str
-        :param onebelow_normal: attribute that shine through if unfocussed
+        :param onebelow_normal: attribute that shines through if unfocussed
         :type onebelow_normal: urwid.AttrSpec
         :param onebelow_focus: attribute that shines through if focussed
-        :type onebelow_focus : urwid.AttrSpec
+        :type onebelow_focus: urwid.AttrSpec
+
+        If `onebelow_normal` or `onebelow_focus` is given these attributes will
+        be used as fallbacks for fg/bg values '' and 'default'.
+
+        This returns a dictionary mapping
+            :normal: to :class:`urwid.AttrSpec` used if unfocussed
+            :focussed: to :class:`urwid.AttrSpec` used if focussed
+            :translated: to an alternative string representation
+            :hidden: to a boolean
         """
         colourmode = int(self._config.get('colourmode'))
         theme = self._theme

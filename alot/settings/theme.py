@@ -43,9 +43,6 @@ class Theme(object):
                         msg = 'missing threadline parts: %s' % difference
                         raise ConfigError(msg)
 
-    def _by_colour(self, triple, colour):
-        return triple[self._colours.index(colour)]
-
     def get_attribute(self, mode, name, colourmode):
         """
         returns requested attribute
@@ -56,10 +53,37 @@ class Theme(object):
         :type name: str
         :param colourmode: colour mode; in [1, 16, 256]
         :type colourmode: int
+        :rtype: urwid.AttrSpec
         """
         return self._config[mode][name][self._colours.index(colourmode)]
 
     def get_threadline_theming(self, thread, colourmode):
+        """
+        look up how to display a Threadline wiidget in search mode
+        for a given thread.
+
+        :param thread: Thread to theme Threadline for
+        :type thread: alot.db.thread.Thread
+        :param colourmode: colourmode to use, one of 1,16,256.
+        :type colourmode: int
+
+        This will return a dict mapping
+            :normal: to `urwid.AttrSpec`,
+            :focus: to `urwid.AttrSpec`,
+            :parts: to a list of strings indentifying subwidgets
+                    to be displayed in this order.
+
+        Moreover, for every part listed this will map 'part' to a dict mapping
+            :normal: to `urwid.AttrSpec`,
+            :focus: to `urwid.AttrSpec`,
+            :width: to a tuple indicating the width of the subpart.
+                    This is either `('fit', min, max)` to force the widget
+                    to be at least `min` and at most `max` characters wide,
+                    or `('weight', n)` which makes it share remaining space
+                    with other 'weight' parts.
+            :alignment: where to place the content if shorter than the widget.
+                        This is either 'right', 'left' or 'center'.
+        """
         def pickcolour(triple):
             return triple[self._colours.index(colourmode)]
 
