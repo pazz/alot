@@ -2,7 +2,6 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 import os
-from urwid import AttrSpec, AttrSpecError
 
 from utils import read_config
 from checks import align_mode
@@ -40,7 +39,7 @@ class Theme(object):
                     indefault = set(threadline.sections)
                     diff = listed.difference(here.union(indefault))
                     if diff:
-                        msg = 'missing threadline parts: %s' % difference
+                        msg = 'missing threadline parts: %s' % diff
                         raise ConfigError(msg)
 
     def get_attribute(self, mode, name, colourmode):
@@ -114,12 +113,16 @@ class Theme(object):
         res['focus'] = pickcolour(match.get('focus') or default['focus'])
         res['parts'] = match.get('parts') or default['parts']
         for part in res['parts']:
-            partsec = match.get(part) or default[part]
+            defaultsec = default.get(part)
+            partsec = match.get(part)
+
+            def fill(key, fallback=None):
+                pvalue = partsec.get(key) or defaultsec.get(key)
+                return pvalue or fallback
+
             res[part] = {}
-            res[part]['width'] = partsec.get('width') or ('fit', 0, 0)
-            res[part]['alignment'] = partsec.get('alignment')
-            normal_triple = partsec.get('normal') or default['normal']
-            res[part]['normal'] = pickcolour(normal_triple)
-            focus_triple = partsec.get('focus') or default['focus']
-            res[part]['focus'] = pickcolour(focus_triple)
+            res[part]['width'] = fill('width', ('fit', 0, 0))
+            res[part]['alignment'] = fill('alignment', 'right')
+            res[part]['normal'] = pickcolour(fill('normal'))
+            res[part]['focus'] = pickcolour(fill('focus'))
         return res
