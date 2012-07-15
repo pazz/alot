@@ -185,8 +185,8 @@ class ThreadlineWidget(urwid.AttrMap):
             part = content_w
         elif name == 'tags':
             if self.thread:
-                fallback_normal = self.structure['normal']
-                fallback_focus = self.structure['focus']
+                fallback_normal = struct[name]['normal']
+                fallback_focus = struct[name]['focus']
                 tag_widgets = [TagWidget(t, fallback_normal, fallback_focus)
                                     for t in self.thread.get_tags()]
                 tag_widgets.sort(tag_cmp,
