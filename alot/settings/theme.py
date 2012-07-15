@@ -42,19 +42,22 @@ class Theme(object):
                         msg = 'missing threadline parts: %s' % diff
                         raise ConfigError(msg)
 
-    def get_attribute(self, mode, name, colourmode):
+    def get_attribute(self, colourmode, mode, name, part=None):
         """
         returns requested attribute
 
         :param mode: ui-mode (e.g. `search`,`thread`...)
         :type mode: str
-        :param name: identifier of the atttribute
+        :param name: of the atttribute
         :type name: str
         :param colourmode: colour mode; in [1, 16, 256]
         :type colourmode: int
         :rtype: urwid.AttrSpec
         """
-        return self._config[mode][name][self._colours.index(colourmode)]
+        thmble = self._config[mode][name]
+        if part is not None:
+            thmble = thmble[part]
+        return thmble[self._colours.index(colourmode)]
 
     def get_threadline_theming(self, thread, colourmode):
         """

@@ -52,9 +52,10 @@
     header = attrtriple
     header_key = attrtriple
     header_value = attrtriple
-    summary_even = attrtriple
-    summary_focus = attrtriple
-    summary_odd = attrtriple
+    [[summary]]
+        even = attrtriple
+        odd = attrtriple
+        focus = attrtriple
 [envelope]
     body = attrtriple
     header = attrtriple

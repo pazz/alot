@@ -649,9 +649,10 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         self.message = message
         self.even = even
         if even:
-            attr = settings.get_theming_attribute('thread', 'summary_even')
+            attr = settings.get_theming_attribute('thread', 'summary', 'even')
         else:
-            attr = settings.get_theming_attribute('thread', 'summary_odd')
+            attr = settings.get_theming_attribute('thread', 'summary', 'odd')
+        focus_att = settings.get_theming_attribute('thread', 'summary', 'focus')
         cols = []
 
         sumstr = self.__str__()
@@ -660,12 +661,11 @@ class MessageSummaryWidget(urwid.WidgetWrap):
 
         thread_tags = message.get_thread().get_tags(intersection=True)
         outstanding_tags = set(message.get_tags()).difference(thread_tags)
-        tag_widgets = [TagWidget(t) for t in outstanding_tags]
+        tag_widgets = [TagWidget(t, attr, focus_att) for t in outstanding_tags]
         tag_widgets.sort(tag_cmp, lambda tag_widget: tag_widget.translated)
         for tag_widget in tag_widgets:
             if not tag_widget.hidden:
                 cols.append(('fixed', tag_widget.width(), tag_widget))
-        focus_att = settings.get_theming_attribute('thread', 'summary_focus')
         line = urwid.AttrMap(urwid.Columns(cols, dividechars=1), attr,
                              focus_att)
         urwid.WidgetWrap.__init__(self, line)

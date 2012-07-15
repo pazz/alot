@@ -217,7 +217,7 @@ class SettingsManager(object):
             value = fallback
         return value
 
-    def get_theming_attribute(self, mode, name):
+    def get_theming_attribute(self, mode, name, part=None):
         """
         looks up theming attribute
 
@@ -228,7 +228,7 @@ class SettingsManager(object):
         :rtype: urwid.AttrSpec
         """
         colours = int(self._config.get('colourmode'))
-        return self._theme.get_attribute(mode, name,  colours)
+        return self._theme.get_attribute(colours, mode, name, part)
 
     def get_threadline_theming(self, thread):
         """
@@ -292,8 +292,8 @@ class SettingsManager(object):
         # global default attributes for tagstrings.
         # These could contain values '' and 'default' which we interpret as
         # "use the values from the widget below"
-        default_normal = theme.get_attribute('global', 'tag', colourmode)
-        default_focus = theme.get_attribute('global', 'tag_focus', colourmode)
+        default_normal = theme.get_attribute(colourmode, 'global', 'tag')
+        default_focus = theme.get_attribute(colourmode, 'global', 'tag_focus')
 
         # local defaults for tagstring attributes. depend on next lower widget
         fallback_normal = resolve_att(onebelow_normal, default_normal)

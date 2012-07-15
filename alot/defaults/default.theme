@@ -25,9 +25,12 @@
     header = 'default','','white','dark gray','white','dark gray'
     header_key = 'default','','white','dark gray','white','dark gray'
     header_value = 'default','','light gray','dark gray','light gray','dark gray'
-    summary_even = 'default','','white','light blue','white','#068'
-    summary_focus = 'standout','','white','dark cyan','#ff8','g58'
-    summary_odd = 'default','','white','dark blue','white','#006'
+
+    [[summary]]
+        even = 'default','','white','light blue','white','#068'
+        odd = 'default','','white','dark blue','white','#006'
+        focus = 'standout','','white','dark cyan','#ff8','g58'
+
 [envelope]
     body = 'default','','light gray','default','light gray','default'
     header = 'default','','white','dark gray','white','dark gray'
