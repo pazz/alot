@@ -296,8 +296,8 @@ class SettingsManager(object):
         default_focus = theme.get_attribute('global', 'tag_focus', colourmode)
 
         # local defaults for tagstring attributes. depend on next lower widget
-        fallback_normal = resolve_att(default_normal, onebelow_normal)
-        fallback_focus = resolve_att(default_focus, onebelow_focus)
+        fallback_normal = resolve_att(onebelow_normal, default_normal)
+        fallback_focus = resolve_att(onebelow_focus, default_focus)
 
         for sec in cfg['tags'].sections:
             if re.match('^' + sec + '$', tag):
