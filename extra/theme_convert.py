@@ -35,6 +35,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     old = ConfigObj(args.themefile)
+    new = ConfigObj()
     out = args.out
 
     def lookup(path):
@@ -42,36 +43,73 @@ if __name__ == "__main__":
         for c in ['1', '16', '256']:
             values.append(get_leaf_value(old, [c] + path + ['fg']) or 'default')
             values.append(get_leaf_value(old, [c] + path + ['bg']) or 'default')
+        return values
         values = map(lambda s: '\'' + s + '\'', values)
         return ','.join(values)
 
-    for bmode in ['global', 'help', 'bufferlist', 'thread', 'envelope']:
-        out.write('[%s]\n' % bmode)
+    for bmode in ['global', 'help', 'envelope']:
+        new[bmode] = {}
+        #out.write('[%s]\n' % bmode)
         for themable in old['16'][bmode].sections:
-            out.write('    %s = %s\n' % (themable, lookup([bmode, themable])))
+            new[bmode][themable] = lookup([bmode, themable])
+            #out.write('    %s = %s\n' % (themable, lookup([bmode, themable])))
 
-    out.write('[search]\n')
-    out.write('    [[threadline]]\n')
+    # BUFFERLIST
+    new['bufferlist'] = {}
+    new['bufferlist']['line_even'] = lookup(['bufferlist','results_even'])
+    new['bufferlist']['line_odd'] = lookup(['bufferlist','results_odd'])
+    new['bufferlist']['line_focus'] = lookup(['bufferlist','focus'])
 
-    out.write(' ' * 8 + 'normal = %s\n' % lookup(['search', 'thread']))
-    out.write(' ' * 8 + 'focus = %s\n' % lookup(['search', 'thread_focus']))
-    out.write(' ' * 8 + 'parts = date,mailcount,tags,authors,subject\n')
+    # TAGLIST
+    new['taglist'] = {}
+    new['taglist']['line_even'] = lookup(['bufferlist','results_even'])
+    new['taglist']['line_odd'] = lookup(['bufferlist','results_odd'])
+    new['taglist']['line_focus'] = lookup(['bufferlist','focus'])
 
-    out.write(' ' * 8 + '[[[date]]]\n')
-    out.write(' ' * 12 + 'normal = %s\n' % lookup(['search', 'thread_date']))
-    out.write(' ' * 12 + 'focus = %s\n' % lookup(['search', 'thread_date_focus']))
-    out.write(' ' * 8 + '[[[mailcount]]]\n')
-    out.write(' ' * 12 + 'normal = %s\n' % lookup(['search', 'thread_mailcount']))
-    out.write(' ' * 12 + 'focus = %s\n' % lookup(['search', 'thread_mailcount_focus']))
-    out.write(' ' * 8 + '[[[tags]]]\n')
-    out.write(' ' * 12 + 'normal = %s\n' % lookup(['search', 'thread_tags']))
-    out.write(' ' * 12 + 'focus = %s\n' % lookup(['search', 'thread_tags_focus']))
-    out.write(' ' * 8 + '[[[authors]]]\n')
-    out.write(' ' * 12 + 'normal = %s\n' % lookup(['search', 'thread_authors']))
-    out.write(' ' * 12 + 'focus = %s\n' % lookup(['search', 'thread_authors_focus']))
-    out.write(' ' * 8 + '[[[subject]]]\n')
-    out.write(' ' * 12 + 'normal = %s\n' % lookup(['search', 'thread_subject']))
-    out.write(' ' * 12 + 'focus = %s\n' % lookup(['search', 'thread_subject_focus']))
-    out.write(' ' * 8 + '[[[content]]]\n')
-    out.write(' ' * 12 + 'normal = %s\n' % lookup(['search', 'thread_content']))
-    out.write(' ' * 12 + 'focus = %s\n' % lookup(['search', 'thread_content_focus']))
+    # SEARCH
+    new['search'] = {}
+
+    new['search']['threadline'] = {}
+    new['search']['threadline']['normal'] = lookup(['search', 'thread'])
+    new['search']['threadline']['focus'] = lookup(['search', 'thread_focus'])
+    new['search']['threadline']['parts'] = ['date','mailcount','tags','authors','subject']
+
+    new['search']['threadline']['date'] = {}
+    new['search']['threadline']['date']['normal'] = lookup(['search', 'thread_date'])
+    new['search']['threadline']['date']['focus'] = lookup(['search', 'thread_date_focus'])
+
+    new['search']['threadline']['mailcount'] = {}
+    new['search']['threadline']['mailcount']['normal'] = lookup(['search', 'thread_mailcount'])
+    new['search']['threadline']['mailcount']['focus'] = lookup(['search', 'thread_mailcount_focus'])
+
+    new['search']['threadline']['tags'] = {}
+    new['search']['threadline']['tags']['normal'] = lookup(['search', 'thread_tags'])
+    new['search']['threadline']['tags']['focus'] = lookup(['search', 'thread_tags_focus'])
+
+    new['search']['threadline']['authors'] = {}
+    new['search']['threadline']['authors']['normal'] = lookup(['search', 'thread_authors'])
+    new['search']['threadline']['authors']['focus'] = lookup(['search', 'thread_authors_focus'])
+
+    new['search']['threadline']['subject'] = {}
+    new['search']['threadline']['subject']['normal'] = lookup(['search', 'thread_subject'])
+    new['search']['threadline']['subject']['focus'] = lookup(['search', 'thread_subject_focus'])
+
+    new['search']['threadline']['content'] = {}
+    new['search']['threadline']['content']['normal'] = lookup(['search', 'thread_content'])
+    new['search']['threadline']['content']['focus'] = lookup(['search', 'thread_content_focus'])
+
+    # THREAD
+    new['thread'] = {}
+    new['thread']['attachment'] = lookup(['thread','attachment'])
+    new['thread']['attachment_focus'] = lookup(['thread','attachment_focus'])
+    new['thread']['body'] = lookup(['thread','body'])
+    new['thread']['header'] = lookup(['thread','header'])
+    new['thread']['header_key'] = lookup(['thread','header_key'])
+    new['thread']['header_value'] = lookup(['thread','header_value'])
+    new['thread']['summary'] = {}
+    new['thread']['summary']['even'] = lookup(['thread','summary_even'])
+    new['thread']['summary']['odd'] = lookup(['thread','summary_odd'])
+    new['thread']['summary']['focus'] = lookup(['thread','summary_focus'])
+
+    # write out
+    new.write(out)
