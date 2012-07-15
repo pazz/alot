@@ -299,7 +299,7 @@ class TagWidget(urwid.AttrMap):
         normal_att = representation['normal']
         focus_att = representation['focussed']
         self.attmaps = {'normal': normal_att, 'focus': focus_att}
-        urwid.AttrMap.__init__(self, self.txt, normal_att)
+        urwid.AttrMap.__init__(self, self.txt, normal_att, focus_att)
 
     def set_map(self, attrstring):
         self.set_attr_map({None: self.attmaps[attrstring]})
