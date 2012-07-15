@@ -33,10 +33,10 @@ def read_config(configpath=None, specpath=None, checks={}):
 
         if results != True:
             error_msg = 'Validation errors occurred:\n'
-            for (section_list, key, _) in flatten_errors(config, results):
+            for (section_list, key, res) in flatten_errors(config, results):
                 if key is not None:
-                    msg = 'key "%s" in section "%s" failed validation'
-                    msg = msg % (key, ', '.join(section_list))
+                    msg = 'key "%s" in section "%s" failed validation: %s'
+                    msg = msg % (key, ', '.join(section_list), res)
                 else:
                     msg = 'section "%s" is malformed' % ', '.join(section_list)
                 error_msg += msg + '\n'
