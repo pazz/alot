@@ -11,9 +11,9 @@
     section = 'underline','','bold,underline','dark gray','bold,underline','g35'
     title = 'standout','','white','dark blue','white,bold,underline','g35'
 [bufferlist]
-    focus = 'standout','','white','dark gray','#ffa','#68a'
-    results_even = 'default','','light gray','black','default','g3'
-    results_odd = 'default','','light gray','black','default','default'
+    line_focus = 'standout','','white','dark gray','#ffa','#68a'
+    line_even = 'default','','light gray','black','default','g3'
+    line_odd = 'default','','light gray','black','default','default'
 [thread]
     attachment = 'default','','light gray','dark gray','light gray','dark gray'
     attachment_focus = 'underline','','light gray','light green','light gray','light green'

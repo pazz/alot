@@ -14,9 +14,9 @@
     title = attrtriple
 # mode specific attributes
 [bufferlist]
-    focus = attrtriple
-    results_even = attrtriple
-    results_odd = attrtriple
+    line_focus = attrtriple
+    line_even = attrtriple
+    line_odd = attrtriple
 [search]
     [[threadline]]
         normal = attrtriple
