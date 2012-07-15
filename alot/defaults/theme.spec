@@ -17,6 +17,11 @@
     line_focus = attrtriple
     line_even = attrtriple
     line_odd = attrtriple
+
+[taglist]
+    line_focus = attrtriple
+    line_even = attrtriple
+    line_odd = attrtriple
 [search]
     [[threadline]]
         normal = attrtriple

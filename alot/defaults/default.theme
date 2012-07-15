@@ -14,6 +14,10 @@
     line_focus = 'standout','','white','dark gray','#ffa','#68a'
     line_even = 'default','','light gray','black','default','g3'
     line_odd = 'default','','light gray','black','default','default'
+[taglist]
+    line_focus = 'standout','','white','dark gray','#ffa','#68a'
+    line_even = 'default','','light gray','black','default','g3'
+    line_odd = 'default','','light gray','black','default','default'
 [thread]
     attachment = 'default','','light gray','dark gray','light gray','dark gray'
     attachment_focus = 'underline','','light gray','light green','light gray','light green'

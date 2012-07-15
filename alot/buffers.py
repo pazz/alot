@@ -387,12 +387,10 @@ class TagListBuffer(Buffer):
         for (num, b) in enumerate(displayedtags):
             line = widgets.BufferlineWidget(b)
             if (num % 2) == 0:
-                attr = settings.get_theming_attribute('bufferlist',
-                                                      'results_even')
+                attr = settings.get_theming_attribute('taglist', 'line_even')
             else:
-                attr = settings.get_theming_attribute('bufferlist',
-                                                      'results_odd')
-            focus_att = settings.get_theming_attribute('bufferlist', 'focus')
+                attr = settings.get_theming_attribute('taglist', 'line_odd')
+            focus_att = settings.get_theming_attribute('taglist', 'line_focus')
 
             tw = widgets.TagWidget(b)
             rows = [('fixed', tw.width(), tw)]
