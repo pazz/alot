@@ -387,21 +387,22 @@ and just bold if the thread has unread but no flagged messages::
             [[[date]]]
                 normal = 'default','default','light gray,bold','default','g58,bold','default'
 
-
+.. _config.theming.tags:
 
 Custom Tagstring Formatting
-===========================
+---------------------------
 
 To specify how a particular tagstring is displayed throughout the interface you can
 add a subsection named after the tag to the `[tags]` config section.
-`normal` and `focus` keys will interpreted and may contain urwid attribute strings
-as described in the :ref:`Themes <themes>` section above.
+Such a section may define
 
-An alternative string representation is read from the option `translated` or can be given
-as pair of strings in `translation`.
-
-The tag can also be hidden from view, if the key `hidden` is present and set to
-True. The tag can still be seen in the taglist buffer.
+:normal: :ref:`attribute <config.theming.attributes>` used if unfocussed
+:focus: :ref:`attribute <config.theming.attributes>` used if focussed
+:translated: fixed string representation for this tag. The tag can be hidden from view,
+             if the key `translated` is set to '', the empty string.
+:translation: a pair of strings that define a regular substitution to compute the string
+              representation on the fly using `re.sub`. This only really makes sense if
+              one uses a regular expression to match more than one tagstring (see below).
 
 The following will make alot display the "todo" tag as "TODO" in white on red. ::
 
