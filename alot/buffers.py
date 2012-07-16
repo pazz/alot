@@ -395,7 +395,7 @@ class TagListBuffer(Buffer):
             tw = widgets.TagWidget(b, attr, focus_att)
             rows = [('fixed', tw.width(), tw)]
             if tw.hidden:
-                rows.append(urwid.Text('[hidden]'))
+                rows.append(urwid.Text(b + ' [hidden]'))
             elif tw.translated is not b:
                 rows.append(urwid.Text('(%s)' % b))
             line = urwid.Columns(rows, dividechars=1)

@@ -293,8 +293,8 @@ class TagWidget(urwid.AttrMap):
         representation = settings.get_tagstring_representation(tag,
                                                                fallback_normal,
                                                                fallback_focus)
-        self.hidden = representation['hidden']
         self.translated = representation['translated']
+        self.hidden = self.translated == ''
         self.txt = urwid.Text(self.translated, wrap='clip')
         normal_att = representation['normal']
         focus_att = representation['focussed']

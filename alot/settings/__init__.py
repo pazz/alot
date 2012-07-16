@@ -261,7 +261,6 @@ class SettingsManager(object):
             :normal: to :class:`urwid.AttrSpec` used if unfocussed
             :focussed: to :class:`urwid.AttrSpec` used if focussed
             :translated: to an alternative string representation
-            :hidden: to a boolean
         """
         colourmode = int(self._config.get('colourmode'))
         theme = self._theme
@@ -306,9 +305,9 @@ class SettingsManager(object):
                 focus = resolve_att(colourpick(cfg['tags'][sec]['focus']),
                                     fallback_focus)
 
-                hidden = cfg['tags'][sec]['hidden'] or False
-
-                translated = cfg['tags'][sec]['translated'] or tag
+                translated = cfg['tags'][sec]['translated']
+                if translated is None:
+                    translated = tag
                 translation = cfg['tags'][sec]['translation']
                 if translation:
                     translated = re.sub(translation[0], translation[1], tag)
@@ -316,11 +315,9 @@ class SettingsManager(object):
         else:
             normal = fallback_normal
             focus = fallback_focus
-            hidden = False
             translated = tag
 
-        return {'normal': normal, 'focussed': focus,
-                'hidden': hidden, 'translated': translated}
+        return {'normal': normal, 'focussed': focus, 'translated': translated}
 
     def get_hook(self, key):
         """return hook (`callable`) identified by `key`"""
