@@ -305,6 +305,29 @@ class PythonShellCommand(Command):
         ui.mainloop.screen.start()
 
 
+@registerCommand(MODE, 'call', arguments=[
+    (['command'], {'help':'python command string to call'})])
+class CallCommand(Command):
+    """ Executes python code """
+    def __init__(self, command, **kwargs):
+        """
+        :param command: python command string to call
+        :type command: str
+        """
+        Command.__init__(self, **kwargs)
+        self.command = command
+
+    def apply(self, ui):
+        hooks = settings.hooks
+        try:
+            exec self.command
+        except Exception as e:
+            logging.exception(e)
+            msg = 'an error occurred during execution of "%s":\n'\
+                  '%s\nSee the logfile for details'
+            ui.notify(msg % e, priority='error')
+
+
 @registerCommand(MODE, 'bclose')
 class BufferCloseCommand(Command):
     """close a buffer"""
