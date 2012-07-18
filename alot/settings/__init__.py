@@ -18,6 +18,7 @@ from alot.helper import pretty_datetime, string_decode
 
 from errors import ConfigError
 from utils import read_config
+from utils import resolve_att
 from checks import force_list
 from checks import mail_container
 from checks import gpg_key
@@ -273,20 +274,6 @@ class SettingsManager(object):
             if triple is None:
                 return None
             return triple[colours.index(colourmode)]
-
-        def resolve_att(a, fallback):
-            """ replace '' and 'default' by fallback values """
-            if a is None:
-                return fallback
-            try:
-                if a.background in ['default', '']:
-                    a.background = fallback.background
-                if a.foreground in ['default', '']:
-                    a.foreground = fallback.foreground
-            except:
-                logging.debug('DEFAULT_NORMAL')
-                logging.debug(a)
-            return a
 
         # global default attributes for tagstrings.
         # These could contain values '' and 'default' which we interpret as

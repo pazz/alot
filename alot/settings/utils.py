@@ -42,3 +42,14 @@ def read_config(configpath=None, specpath=None, checks={}):
                 error_msg += msg + '\n'
             raise ConfigError(error_msg)
     return config
+
+
+def resolve_att(a, fallback):
+    """ replace '' and 'default' by fallback values """
+    if a is None:
+        return fallback
+    if a.background in ['default', '']:
+        a.background = fallback.background
+    if a.foreground in ['default', '']:
+        a.foreground = fallback.foreground
+    return a
