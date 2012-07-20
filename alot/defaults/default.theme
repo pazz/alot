@@ -1,9 +1,9 @@
 [global]
-    footer = 'standout','','light green','dark blue','white','#006'
-    body = 'default','','default','default','default','default'
+    footer = 'standout','','light green,bold','dark blue','light green,bold','dark blue'
+    body = 'default','','default','default','dark red','default'
     notify_error = 'standout','','white','dark red','white','dark red'
     notify_normal = 'default','','light gray','dark gray','light gray','#68a'
-    prompt = 'default','','light gray','black','light gray','g10'
+    prompt = 'default','','light gray','black','light gray','black'
     tag = 'default','','brown','black','brown','default'
     tag_focus = 'standout, bold','','white','dark gray','#ffa','#68a'
 [help]
@@ -19,6 +19,8 @@
     line_even = 'default','','light gray','black','default','g3'
     line_odd = 'default','','light gray','black','default','default'
 [thread]
+    arrow_heads = '','','light red','','light red',''
+    arrow_bars = '','','dark red','','dark red',''
     attachment = 'default','','light gray','dark gray','light gray','dark gray'
     attachment_focus = 'underline','','light gray','light green','light gray','light green'
     body = 'default','','light gray','default','light gray','default'

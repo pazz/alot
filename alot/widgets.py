@@ -12,6 +12,7 @@ import alot.db.message as message
 from alot.db.attachment import Attachment
 import time
 from alot.db.utils import decode_header
+from alot.settings.utils import resolve_att
 
 
 class AttrFlipWidget(urwid.AttrMap):
@@ -467,6 +468,12 @@ class MessageWidget(urwid.WidgetWrap):
         self._filtered_headers = [k for k in displayed if k in self.mail]
         self._displayed_headers = None
 
+        bars = settings.get_theming_attribute('thread', 'arrow_bars')
+        self.arrow_bars_att = bars
+        heads = settings.get_theming_attribute('thread', 'arrow_heads')
+        self.arrow_heads_att = heads
+        logging.debug(self.arrow_heads_att)
+
         self.rebuild()  # this will build self.pile
         urwid.WidgetWrap.__init__(self, self.pile)
 
@@ -501,12 +508,15 @@ class MessageWidget(urwid.WidgetWrap):
         bc = list()  # box_columns
         if self.depth > 1:
             bc.append(0)
-            cols.append(self._get_spacer(self.bars_at[1:-1]))
+            spacer = self._get_spacer(self.bars_at[1:-1])
+            cols.append(spacer)
         if self.depth > 0:
             if self.bars_at[-1]:
-                arrowhead = u'\u251c\u25b6'
+                arrowhead = [(self.arrow_bars_att, u'\u251c'),
+                             (self.arrow_heads_att, u'\u25b6')]
             else:
-                arrowhead = u'\u2514\u25b6'
+                arrowhead = [(self.arrow_bars_att, u'\u2514'),
+                             (self.arrow_heads_att, u'\u25b6')]
             cols.append(('fixed', 2, urwid.Text(arrowhead)))
         cols.append(self.sumw)
         line = urwid.Columns(cols, box_columns=bc)
@@ -605,6 +615,7 @@ class MessageWidget(urwid.WidgetWrap):
             prefixchars.append(('fixed', 1, urwid.SolidFill(c)))
 
         spacer = urwid.Columns(prefixchars, box_columns=range(length))
+        spacer = urwid.AttrMap(spacer, self.arrow_bars_att)
         return ('fixed', length, spacer)
 
     def _get_arrowhead_aligner(self):
@@ -612,7 +623,8 @@ class MessageWidget(urwid.WidgetWrap):
             aligner = u'\u2502'
         else:
             aligner = ' '
-        return ('fixed', 1, urwid.SolidFill(aligner))
+        aligner = urwid.SolidFill(aligner)
+        return ('fixed', 1, urwid.AttrMap(aligner, self.arrow_bars_att))
 
     def selectable(self):
         return True

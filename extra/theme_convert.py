@@ -103,6 +103,8 @@ if __name__ == "__main__":
     new['thread']['attachment'] = lookup(['thread','attachment'])
     new['thread']['attachment_focus'] = lookup(['thread','attachment_focus'])
     new['thread']['body'] = lookup(['thread','body'])
+    new['thread']['arrow_heads'] = lookup(['thread','body'])
+    new['thread']['arrow_bars'] = lookup(['thread','body'])
     new['thread']['header'] = lookup(['thread','header'])
     new['thread']['header_key'] = lookup(['thread','header_key'])
     new['thread']['header_value'] = lookup(['thread','header_value'])
