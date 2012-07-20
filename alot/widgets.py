@@ -155,13 +155,13 @@ class ThreadlineWidget(urwid.AttrMap):
 
         elif name == 'subject':
             if self.thread:
-                subjectstring = self.thread.get_subject() or ''
+                subjectstring = self.thread.get_subject() or ' '
             else:
-                subjectstring = ''
+                subjectstring = ' '
             # sanitize subject string:
             subjectstring = subjectstring.replace('\n', ' ')
             subjectstring = subjectstring.replace('\r', '')
-            subjectstring = pad(subjectstring.strip())
+            subjectstring = pad(subjectstring)
 
             subject_w = AttrFlipWidget(urwid.Text(subjectstring, wrap='clip'),
                                            struct['subject'])
