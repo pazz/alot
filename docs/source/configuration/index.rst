@@ -283,10 +283,10 @@ Theme Files
 -----------
 contain a section for each :ref:`MODE <modes>` plus "help" for the bindings-help overlay
 and "global" for globally used themables like footer, prompt etc.
-Each such section contains attribute values for the parts that can be themed.
-The names of the themables should be self-explanatory.
-Have a look at the default theme file at :file:`alot/defaults/default.theme`
-and the config spec :file:`alot/defaults/default.theme` for the exact format.
+Each such section defines colour :ref:`attributes <config.theming.attributes>` for the parts that
+can be themed.  The names of the themables should be self-explanatory.
+Have a look at the default theme file at :file:`alot/defaults/default.theme` and the config spec
+:file:`alot/defaults/default.theme` for the exact format.
 
 .. _config.theming.attributes:
 
