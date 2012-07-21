@@ -4,6 +4,7 @@
 from configobj import ConfigObj, ConfigObjError, flatten_errors
 from validate import Validator
 from errors import ConfigError
+from urwid import AttrSpec
 
 
 def read_config(configpath=None, specpath=None, checks={}):
@@ -57,7 +58,11 @@ def resolve_att(a, fallback):
     if a is None:
         return fallback
     if a.background in ['default', '']:
-        a.background = fallback.background
+        bg = fallback.background
+    else:
+        bg = a.background
     if a.foreground in ['default', '']:
-        a.foreground = fallback.foreground
-    return a
+        fg = fallback.foreground
+    else:
+        fg = a.foreground
+    return AttrSpec(fg, bg)
