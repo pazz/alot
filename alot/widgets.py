@@ -12,7 +12,6 @@ import alot.db.message as message
 from alot.db.attachment import Attachment
 import time
 from alot.db.utils import decode_header
-from alot.settings.utils import resolve_att
 
 
 class AttrFlipWidget(urwid.AttrMap):
@@ -664,7 +663,8 @@ class MessageSummaryWidget(urwid.WidgetWrap):
             attr = settings.get_theming_attribute('thread', 'summary', 'even')
         else:
             attr = settings.get_theming_attribute('thread', 'summary', 'odd')
-        focus_att = settings.get_theming_attribute('thread', 'summary', 'focus')
+        focus_att = settings.get_theming_attribute('thread', 'summary',
+                                                   'focus')
         cols = []
 
         sumstr = self.__str__()

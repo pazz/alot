@@ -4,7 +4,6 @@
 import urwid
 import logging
 from twisted.internet import reactor, defer
-import sys
 
 from settings import settings
 from buffers import BufferlistBuffer

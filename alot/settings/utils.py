@@ -24,9 +24,9 @@ def read_config(configpath=None, specpath=None, checks={}):
     try:
         config = ConfigObj(infile=configpath, configspec=specpath,
                            file_error=True, encoding='UTF8')
-    except (ConfigObjError, IOError), e:
+    except (ConfigObjError, IOError):
         raise ConfigError('Couls not read %s' % configpath)
-    except UnboundLocalError as e:
+    except UnboundLocalError:
         # this works around a bug in configobj
         msg = '%s is malformed. Check for sections without parents..'
         raise ConfigError(msg % configpath)

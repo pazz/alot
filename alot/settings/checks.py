@@ -24,7 +24,6 @@ def attr_triple(value):
     :raises: VdtValueTooLongError, VdtTypeError
     :rtype: triple of `urwid.AttrSpec`
     """
-    fg = bg = 'default'
     keys = ['dfg', 'dbg', '1fg', '1bg', '16fg', '16bg', '256fg', '256bg']
     acc = {}
     if not isinstance(value, (list, tuple)):

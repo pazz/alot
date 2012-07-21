@@ -7,9 +7,7 @@ import re
 import errno
 import mailcap
 import logging
-import urwid
 import shutil
-from urwid import AttrSpecError
 from configobj import ConfigObj, Section
 
 from alot.account import SendmailAccount
