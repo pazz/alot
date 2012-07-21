@@ -24,21 +24,29 @@ def read_config(configpath=None, specpath=None, checks={}):
         config = ConfigObj(infile=configpath, configspec=specpath,
                            file_error=True, encoding='UTF8')
     except (ConfigObjError, IOError), e:
-        raise ConfigError('Could not read "%s": %s' % (configpath, e))
+        raise ConfigError('Couls not read %s' % configpath)
+    except UnboundLocalError as e:
+        # this works around a bug in configobj
+        msg = '%s is malformed. Check for sections without parents..'
+        raise ConfigError(msg % configpath)
 
     if specpath:
         validator = Validator()
         validator.functions.update(checks)
-        results = config.validate(validator)
+        results = config.validate(validator, preserve_errors=True)
 
         if results != True:
-            error_msg = 'Validation errors occurred:\n'
+            error_msg = ''
             for (section_list, key, res) in flatten_errors(config, results):
                 if key is not None:
-                    msg = 'key "%s" in section "%s" failed validation: %s'
-                    msg = msg % (key, ', '.join(section_list), res)
+                    if res == False:
+                        msg = 'key "%s" in section "%s" is missing.'
+                        msg = msg % (key, ', '.join(section_list))
+                    else:
+                        msg = 'key "%s" in section "%s" failed validation: %s'
+                        msg = msg % (key, ', '.join(section_list), res)
                 else:
-                    msg = 'section "%s" is malformed' % ', '.join(section_list)
+                    msg = 'section "%s" is missing' % '.'.join(section_list)
                 error_msg += msg + '\n'
             raise ConfigError(error_msg)
     return config

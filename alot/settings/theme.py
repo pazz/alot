@@ -39,7 +39,7 @@ class Theme(object):
                     indefault = set(threadline.sections)
                     diff = listed.difference(here.union(indefault))
                     if diff:
-                        msg = 'missing threadline parts: %s' % diff
+                        msg = 'missing threadline parts: %s' % ', '.join(diff)
                         raise ConfigError(msg)
 
     def get_attribute(self, colourmode, mode, name, part=None):

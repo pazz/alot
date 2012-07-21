@@ -95,7 +95,11 @@ class SettingsManager(object):
                 raise ConfigError(err_msg % (themestring, themes_dir))
             else:
                 theme_path = os.path.join(themes_dir, themestring)
-                self._theme = Theme(theme_path)
+                try:
+                    self._theme = Theme(theme_path)
+                except ConfigError as e:
+                    err_msg = 'Theme file %s failed validation:\n'
+                    raise ConfigError((err_msg % themestring) + e.message)
 
         self._accounts = self._parse_accounts(self._config)
         self._accountmap = self._account_table(self._accounts)
