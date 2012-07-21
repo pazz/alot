@@ -33,7 +33,7 @@
             normal = attrtriple
             focus = attrtriple
             width = widthtuple(default=None)
-            alignment = align(default='right')
+            alignment = align(default='left')
     [[__many__]]
         normal = attrtriple(default=None)
         focus = attrtriple(default=None)

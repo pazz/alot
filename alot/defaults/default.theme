@@ -47,6 +47,7 @@
             normal = 'default','','light gray','default','g74','default'
             focus = 'standout','','yellow','light gray','yellow','g58'
             width = 'fit',10,10
+            alignment = right
         [[[mailcount]]]
             normal = 'default','','light gray','default','g66','default'
             focus = 'standout','','yellow','light gray','yellow','g58'

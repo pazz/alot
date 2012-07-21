@@ -10,7 +10,6 @@ from alot.helper import tag_cmp
 from alot.helper import string_decode
 import alot.db.message as message
 from alot.db.attachment import Attachment
-import time
 from alot.db.utils import decode_header
 
 
@@ -74,10 +73,6 @@ class ThreadlineWidget(urwid.AttrMap):
     selectable line widget that represents a :class:`~alot.db.Thread`
     in the :class:`~alot.buffers.SearchBuffer`.
     """
-    # The pretty_datetime needs 9 characters, but only 8 if locale
-    # doesn't use am/pm (in which case "jan 2012" is the longest)
-    pretty_datetime_len = 8 if len(time.strftime("%P")) == 0 else 9
-
     def __init__(self, tid, dbman):
         self.dbman = dbman
         self.thread = dbman.get_thread(tid)
@@ -115,7 +110,6 @@ class ThreadlineWidget(urwid.AttrMap):
             if self.thread:
                 newest = self.thread.get_newest_date()
                 datestring = settings.represent_datetime(newest)
-                datestring = datestring.rjust(self.pretty_datetime_len)
             datestring = pad(datestring)
             width = len(datestring)
             part = AttrFlipWidget(urwid.Text(datestring), struct['date'])
