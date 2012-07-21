@@ -73,17 +73,6 @@ class ThreadlineWidget(urwid.AttrMap):
     """
     selectable line widget that represents a :class:`~alot.db.Thread`
     in the :class:`~alot.buffers.SearchBuffer`.
-
-    Respected settings:
-        * `general.display_content_in_threadline`
-        * `general.timestamp_format`
-    Theme settings:
-        * `search_thread, search_thread_focus`
-        * `search_thread_date, search_thread_date_focus`
-        * `search_thread_mailcount, search_thread_mailcount_focus`
-        * `search_thread_authors, search_thread_authors_focus`
-        * `search_thread_subject, search_thread_subject_focus`
-        * `search_thread_content, search_thread_content_focus`
     """
     # The pretty_datetime needs 9 characters, but only 8 if locale
     # doesn't use am/pm (in which case "jan 2012" is the longest)
@@ -283,10 +272,8 @@ class TagWidget(urwid.AttrMap):
     """
     text widget that renders a tagstring.
 
-    It looks up the string it displays in the `tag-translate` section
-    of the config as well as custom theme settings for its tag. The
-    tag may also be configured as hidden, which users of this widget
-    should honour.
+    It looks up the string it displays in the `tags` section
+    of the config as well as custom theme settings for its tag.
     """
     def __init__(self, tag, fallback_normal=None, fallback_focus=None):
         self.tag = tag
@@ -418,9 +405,6 @@ class CompleteEdit(urwid.Edit):
 class MessageWidget(urwid.WidgetWrap):
     """
     Flow widget that renders a :class:`~alot.db.message.Message`.
-
-    Respected settings:
-        * `general.displayed_headers`
     """
     #TODO: atm this is heavily bent to work nicely with ThreadBuffer to display
     #a tree structure. A better way would be to keep this widget simple
@@ -643,11 +627,6 @@ class MessageWidget(urwid.WidgetWrap):
 class MessageSummaryWidget(urwid.WidgetWrap):
     """
     one line summary of a :class:`~alot.db.message.Message`.
-
-    Theme settings:
-        * `thread_summary_even`
-        * `thread_summary_odd`
-        * `thread_summary_focus`
     """
 
     def __init__(self, message, even=True):
@@ -731,9 +710,6 @@ class HeadersList(urwid.WidgetWrap):
 class MessageBodyWidget(urwid.AttrMap):
     """
     displays printable parts of an email
-
-    Theme settings:
-        * `thread_body`
     """
 
     def __init__(self, msg):
@@ -745,10 +721,6 @@ class MessageBodyWidget(urwid.AttrMap):
 class AttachmentWidget(urwid.WidgetWrap):
     """
     one-line summary of an :class:`~alot.db.attachment.Attachment`.
-
-    Theme settings:
-        * `thread_attachment`
-        * `thread_attachment_focus`
     """
     def __init__(self, attachment, selectable=True):
         self._selectable = selectable
