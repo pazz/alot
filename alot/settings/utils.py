@@ -34,7 +34,11 @@ def read_config(configpath=None, specpath=None, checks={}):
     if specpath:
         validator = Validator()
         validator.functions.update(checks)
-        results = config.validate(validator, preserve_errors=True)
+        try:
+            results = config.validate(validator, preserve_errors=True)
+        except ConfigObjError as e:
+            raise ConfigError(e.message)
+
 
         if results != True:
             error_msg = ''
