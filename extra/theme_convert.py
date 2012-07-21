@@ -1,4 +1,11 @@
 #!/usr/bin/python
+"""
+ THEME CONVERTER
+ this script converts your custom alot theme files from the v.3.1 syntax
+ to the current format.
+
+     >>> theme_convert.py -o themefile.new themefile.old
+"""
 
 from configobj import ConfigObj
 import argparse
