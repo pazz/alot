@@ -3,13 +3,86 @@
 # For further details see the COPYING file
 import mailbox
 import re
+from urwid import AttrSpec, AttrSpecError
 from urlparse import urlparse
 from validate import VdtTypeError
 from validate import is_list
-from validate import ValidateError
+from validate import ValidateError, VdtValueTooLongError, VdtValueError
 
 from alot import crypto
 from alot.errors import GPGProblem
+
+
+def attr_triple(value):
+    """
+    Check that interprets the value as `urwid.AttrSpec` triple for the colour
+    modes 1,16 and 256.  It assumes a <6 tuple of attribute strings for
+    mono foreground, mono background, 16c fg, 16c bg, 256 fg and 256 bg
+    respectively. If any of these are missing, we downgrade to the next
+    lower available pair, defaulting to 'default'.
+
+    :raises: VdtValueTooLongError, VdtTypeError
+    :rtype: triple of `urwid.AttrSpec`
+    """
+    keys = ['dfg', 'dbg', '1fg', '1bg', '16fg', '16bg', '256fg', '256bg']
+    acc = {}
+    if not isinstance(value, (list, tuple)):
+        value = value,
+    if len(value) > 6:
+        raise VdtValueTooLongError(value)
+    # ensure we have exactly 6 attribute strings
+    attrstrings = (value + (6 - len(value)) * [None])[:6]
+    # add fallbacks for the empty list
+    attrstrings = (2 * ['default']) + attrstrings
+    for i, value in enumerate(attrstrings):
+        if value:
+            acc[keys[i]] = value
+        else:
+            acc[keys[i]] = acc[keys[i - 2]]
+    try:
+        mono = AttrSpec(acc['1fg'], acc['1bg'], 1)
+        normal = AttrSpec(acc['16fg'], acc['16bg'], 16)
+        high = AttrSpec(acc['256fg'], acc['256bg'], 256)
+    except AttrSpecError, e:
+        raise ValidateError(e.message)
+    return mono, normal, high
+
+
+def align_mode(value):
+    """
+    test if value is one of 'left', 'right' or 'center'
+    """
+    if value not in ['left', 'right', 'center']:
+        raise VdtValueError
+    return value
+
+
+def width_tuple(value):
+    """
+    test if value is a valid width indicator (for a sub-widget in a column).
+    This can either be
+    ('fit', min, max): use the length actually needed for the content, padded
+                       to use at least width min, and cut of at width max.
+                       Here, min and max are positive integers or 0 to disable
+                       the boundary.
+    ('weight',n): have it relative weight of n compared to other columns.
+                  Here, n is an int.
+    """
+    if value is None:
+        res = 'fit', 0, 0
+    elif not isinstance(value, (list, tuple)):
+        raise VdtTypeError(value)
+    elif value[0] not in ['fit', 'weight']:
+        raise VdtTypeError(value)
+    if value[0] == 'fit':
+        if not isinstance(value[1], int) or not isinstance(value[2], int):
+            VdtTypeError(value)
+        res = 'fit', int(value[1]), int(value[2])
+    else:
+        if not isinstance(value[1], int):
+            VdtTypeError(value)
+        res = 'weight', int(value[1])
+    return res
 
 
 def mail_container(value):
