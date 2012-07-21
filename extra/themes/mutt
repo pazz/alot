@@ -7,14 +7,14 @@
 
 [global]
     footer = 'standout,bold','','light green,bold','dark blue','light green,bold','dark blue'
-    body = '','','','black','','black'
-    notify_error = 'standout','','white','dark red','white','dark red'
+    body = '','','light gray','black','light gray','black'
+    notify_error = 'standout','','light gray','dark red','light gray','dark red'
     notify_normal = '','','light gray','black','light gray','#68a'
     prompt = '','','light gray','black','light gray','black'
     tag = '','','yellow','','yellow',''
     tag_focus = 'standout, bold','','yellow','','yellow',''
 [help]
-    text = '','','','dark gray','','dark gray'
+    text = '','','light gray','dark gray','light gray','dark gray'
     section = 'underline','','white,underline','dark gray','white,underline','dark gray'
     title = 'standout','','white,underline','dark gray','white,underline','dark gray'
 [bufferlist]
@@ -47,48 +47,30 @@
     header_value = '','','dark cyan','black','dark cyan','black'
 [search]
     [[threadline]]
-        normal = '','','','black','','black'
+        normal = '','','light gray','black','light gray','black'
         focus = 'standout','','black','dark cyan','black','dark cyan'
         parts = date,authors,mailcount,subject,tags
         [[[date]]]
-            normal = '','','','black','','black'
+            normal = '','','light gray','black','light gray','black'
             focus = 'standout','','black','dark cyan','black','dark cyan'
             width = 'fit',10,10
             alignment = right
         [[[mailcount]]]
-            normal = '','','','black','','black'
+            normal = '','','light gray','black','light gray','black'
             focus = 'standout','','black','dark cyan','black','dark cyan'
             width = 'fit', 5,5
         [[[tags]]]
-            normal = '','','','black','','black'
+            normal = '','','yellow','black','yellow','black'
             focus = 'standout','','black','dark cyan','black','dark cyan'
         [[[authors]]]
-            normal = '','','','black','','black'
+            normal = '','','light gray','black','light gray','black'
             focus = 'standout','','black','dark cyan','black','dark cyan'
             width = 'fit',25,25
         [[[subject]]]
-            normal = '','','','black','','black'
+            normal = '','','light gray','black','light gray','black'
             focus = 'standout','','black','dark cyan','black','dark cyan'
             width = 'weight', 1
         [[[content]]]
-            normal = '','','','black','','black'
+            normal = '','','light gray','black','light gray','black'
             focus = 'standout','','black','dark cyan','black','dark cyan'
             width = 'weight', 1
-
-    # highlight threads containing unread messages
-#    [[threadline-unread]]
-#        tagged_with = 'unread'
-#        [[[date]]]
-#            normal = 'bold','','light gray','','light gray',''
-#            alignment = left
-#        [[[mailcount]]]
-#            normal = 'bold','','light gray','','light gray',''
-#        [[[tags]]]
-#            normal = 'bold','','light gray','','light green,bold',''
-#        [[[authors]]]
-#            normal = 'bold','','light gray','','light gray',''
-#            alignment = left
-#        [[[subject]]]
-#            normal = 'bold','','light gray','','light gray',''
-#        [[[content]]]
-#            normal = 'bold','','light gray','','light gray',''
