@@ -1,4 +1,13 @@
 #!/usr/bin/python
+"""
+ CONFIG CONVERTER
+ this script converts your custom tag string section from the v.3.1 syntax
+ to the current format.
+
+     >>> tagsections_convert.py -o config.new config.old
+
+ will convert your whole alot config safely to the new format.
+"""
 
 from configobj import ConfigObj
 import argparse
@@ -63,6 +72,6 @@ if __name__ == "__main__":
                 del(sec['bg'])
             sec['normal'] = att
 
-            if sec['hidden']:
+            if sec.get('hidden'):
                 sec['translated'] = ''
     cfg.write(out)
