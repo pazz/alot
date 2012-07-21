@@ -48,31 +48,38 @@
 
 # This is the actual alot theme
 [global]
-    footer = 'standout','default','%(16_base0)s','%(16_base03)s','%(256_base0)s','%(256_base03)s'
+    footer = 'standout','default','%(16_base1)s','%(16_base02)s','%(256_base1)s','%(256_base02)s'
     body = 'default','default','%(16_base0)s','%(16_base03)s','%(256_base0)s','%(256_base03)s'
     notify_error = 'standout','default','%(16_base3)s','%(16_red)s','%(256_base3)s','%(256_red)s'
     notify_normal = 'default','default','%(16_base01)s','%(16_base02)s','%(256_base01)s','%(256_base02)s'
     prompt = 'default','default','%(16_base0)s','%(16_base02)s','%(256_base0)s','%(256_base02)s'
     tag = 'default','default','%(16_yellow)s','%(16_base03)s','%(256_yellow)s','%(256_base03)s'
-    tag_focus = 'default','default','%(16_base02)s','%(16_yellow)s','%(256_base02)s','%(256_yellow)s'
+    tag_focus = 'standout','default','%(16_base03)s','%(16_yellow)s','%(256_base03)s','%(256_yellow)s'
 [help]
     text = 'default','default','light gray','dark gray','%(256_base0)s','%(256_base03)s'
     section = 'underline','default','%(16_base1)s','%(16_base02)s','%(256_base1)s','%(256_base02)s'
     title = 'standout','default','%(16_base1)s','%(16_base03)s','%(256_base1)s','%(256_base03)s'
+[taglist]
+    line_focus = 'standout','default','%(16_base02)s','%(16_yellow)s','%(256_base02)s','%(256_yellow)s'
+    line_even = 'default','default','%(16_base0)s','%(16_base03)s','%(256_base0)s','%(256_base03)s'
+    line_odd = 'default','default','%(16_base0)s','%(16_base02)s','%(256_base0)s','%(256_base02)s'
 [bufferlist]
-    focus = 'standout','default','%(16_base02)s','%(16_yellow)s','%(256_base02)s','%(256_yellow)s'
-    results_even = 'default','default','%(16_base0)s','%(16_base03)s','%(256_base0)s','%(256_base03)s'
-    results_odd = 'default','default','%(16_base0)s','%(16_base02)s','%(256_base0)s','%(256_base02)s'
+    line_focus = 'standout','default','%(16_base02)s','%(16_yellow)s','%(256_base02)s','%(256_yellow)s'
+    line_even = 'default','default','%(16_base0)s','%(16_base03)s','%(256_base0)s','%(256_base03)s'
+    line_odd = 'default','default','%(16_base0)s','%(16_base02)s','%(256_base0)s','%(256_base02)s'
 [thread]
     attachment = 'default','default','%(16_base0)s','%(16_base03)s','%(256_base0)s','%(256_base03)s'
     attachment_focus = 'underline','default','%(16_base02)s','%(16_yellow)s','%(256_base02)s','%(256_yellow)s'
+    arrow_bars = 'default','default','%(16_yellow)s','%(16_base03)s','%(256_yellow)s','%(256_base03)s'
+    arrow_heads = 'default','default','%(16_yellow)s','%(16_base03)s','%(256_yellow)s','%(256_base03)s'
     body = 'default','default','%(16_base0)s','%(16_base03)s','%(256_base0)s','%(256_base03)s'
     header = 'default','default','%(16_base0)s','%(16_base02)s','%(256_base0)s','%(256_base02)s'
     header_key = 'default','default','%(16_magenta)s','%(16_base02)s','%(256_magenta)s','%(256_base02)s'
     header_value = 'default','default','%(16_blue)s','%(16_base02)s','%(256_blue)s','%(256_base02)s'
-    summary_even = 'default','default','%(16_base0)s','%(16_base02)s','%(256_base0)s','%(256_base02)s'
-    summary_focus = 'standout','default','%(16_base02)s','%(16_yellow)s','%(256_base02)s','%(256_yellow)s'
-    summary_odd = 'default','default','%(16_base0)s','%(16_base03)s','%(256_base0)s','%(256_base03)s'
+    [[summary]]
+      even = 'default','default','%(16_base0)s','%(16_base02)s','%(256_base0)s','%(256_base02)s'
+      focus = 'standout','default','%(16_base03)s','%(16_yellow)s','%(256_base03)s','%(256_yellow)s'
+      odd = 'default','default','%(16_base0)s','%(16_base03)s','%(256_base0)s','%(256_base03)s'
 [envelope]
     body = 'default','default','%(16_base0)s','%(16_base03)s','%(256_base0)s','%(256_base03)s'
     header = 'default','default','%(16_base0)s','%(16_base02)s','%(256_base0)s','%(256_base02)s'
@@ -85,19 +92,20 @@
         parts = date,mailcount,tags,authors,subject
         [[[date]]]
             normal = 'default','default','%(16_base1)s','%(16_base03)s','%(256_base1)s','%(256_base03)s'
-            focus = 'standout','default','%(16_base02)s','%(16_yellow)s','%(256_base02)s','%(256_yellow)s'
+            focus = 'standout','default','%(16_base02)s,bold','%(16_yellow)s','%(256_base02)s,bold','%(256_yellow)s'
         [[[mailcount]]]
             normal = 'default','default','%(16_base1)s','%(16_base03)s','%(256_base1)s','%(256_base03)s'
-            focus = 'standout','default','%(16_base01)s','%(16_yellow)s','%(256_base01)s','%(256_yellow)s'
+            focus = 'standout','default','%(16_base02)s','%(16_yellow)s','%(256_base02)s','%(256_yellow)s'
         [[[tags]]]
             normal = 'bold','default','%(16_yellow)s','%(16_base03)s','%(256_yellow)s','%(256_base03)s'
-            focus = 'standout','default','%(16_base02)s','%(16_orange)s','%(256_base02)s','%(256_orange)s'
+            focus = 'standout','default','%(16_base02)s,bold','%(16_yellow)s','%(256_base02)s,bold','%(256_yellow)s'
         [[[authors]]]
             normal = 'default,underline','default','%(16_cyan)s','%(16_base03)s','%(256_cyan)s','%(256_base03)s'
-            focus = 'standout','default','%(16_base02)s,bold','%(16_yellow)s','%(256_base02)s,bold','%(256_yellow)s'
+            focus = 'standout','default','%(16_base02)s','%(16_yellow)s','%(256_base02)s','%(256_yellow)s'
+            width = 'fit',0,30
         [[[subject]]]
             normal = 'default','default','%(16_base0)s','%(16_base03)s','%(256_base0)s','%(256_base03)s'
-            focus = 'standout','default','%(16_base01)s','%(16_yellow)s','%(256_base01)s','%(256_yellow)s'
+            focus = 'standout','default','%(16_base02)s,bold','%(16_yellow)s','%(256_base02)s,bold','%(256_yellow)s'
             width = 'weight',1
         [[[content]]]
             normal = 'default','default','%(16_base01)s','%(16_base03)s','%(256_base01)s','%(256_base03)s'
