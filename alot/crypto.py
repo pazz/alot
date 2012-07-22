@@ -19,7 +19,7 @@ def email_as_string(mail):
     :rtype: str
     """
     fp = StringIO()
-    g = Generator(fp, mangle_from_=False)
+    g = Generator(fp, mangle_from_=False, maxheaderlen=78)
     g.flatten(mail)
     as_string = RFC3156_canonicalize(fp.getvalue())
 
