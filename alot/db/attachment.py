@@ -4,6 +4,8 @@
 import os
 import tempfile
 import email.charset as charset
+from email.header import Header
+from copy import deepcopy
 charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 import alot.helper as helper
 from alot.helper import string_decode
@@ -81,4 +83,9 @@ class Attachment(object):
 
     def get_mime_representation(self):
         """returns mime part that constitutes this attachment"""
-        return self.part
+        part = deepcopy(self.part)
+        cd = self.part['Content-Disposition']
+        del part['Content-Disposition']
+        part['Content-Disposition'] = Header(cd, maxlinelen=78,
+                                         header_name='Content-Disposition')
+        return part

@@ -100,7 +100,7 @@ class SaveCommand(Command):
         # store mail locally
         # add Date header
         mail['Date'] = email.Utils.formatdate(localtime=True)
-        path = account.store_draft_mail(mail)
+        path = account.store_draft_mail(crypto.email_as_string(mail))
         ui.notify('draft saved successfully')
 
         # add mail to index if maildir path available
@@ -142,6 +142,8 @@ class SendCommand(Command):
 
         try:
             mail = envelope.construct_mail()
+            mail['Date'] = email.Utils.formatdate(localtime=True)
+            mail = crypto.email_as_string(mail)
         except GPGProblem, e:
             ui.clear_notify([clearme])
             ui.notify(e.message, priority='error')
@@ -160,8 +162,6 @@ class SendCommand(Command):
             ui.notify('mail sent successfully')
             # store mail locally
             # add Date header
-            if 'Date' not in mail:
-                mail['Date'] = email.Utils.formatdate(localtime=True)
             path = account.store_sent_mail(mail)
             # add mail to index if maildir path available
             if path is not None:

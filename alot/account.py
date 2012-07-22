@@ -4,7 +4,6 @@
 import mailbox
 import logging
 import time
-import email
 import os
 import glob
 
@@ -153,7 +152,6 @@ class SendmailAccount(Account):
         self.cmd = cmd
 
     def send_mail(self, mail):
-        mail['Date'] = email.utils.formatdate(time.time(), True)
         cmdlist = split_commandstring(self.cmd)
 
         def cb(out):
@@ -168,7 +166,7 @@ class SendmailAccount(Account):
             logging.error(failure.value.stderr)
             raise SendingMailFailed(errmsg)
 
-        d = call_cmd_async(cmdlist, stdin=crypto.email_as_string(mail))
+        d = call_cmd_async(cmdlist, stdin=mail)
         d.addCallback(cb)
         d.addErrback(errb)
         return d
