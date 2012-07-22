@@ -78,11 +78,11 @@ class BufferlistBuffer(Buffer):
             line = widgets.BufferlineWidget(b)
             if (num % 2) == 0:
                 attr = settings.get_theming_attribute('bufferlist',
-                                                      'results_even')
+                                                      'line_even')
             else:
-                attr = settings.get_theming_attribute('bufferlist',
-                                                      'results_odd')
-            focus_att = settings.get_theming_attribute('bufferlist', 'focus')
+                attr = settings.get_theming_attribute('bufferlist', 'line_odd')
+            focus_att = settings.get_theming_attribute('bufferlist',
+                                                       'line_focus')
             buf = urwid.AttrMap(line, attr, focus_att)
             num = urwid.Text('%3d:' % self.index_of(b))
             lines.append(urwid.Columns([('fixed', 4, num), buf]))
@@ -385,13 +385,23 @@ class TagListBuffer(Buffer):
         displayedtags = sorted(filter(self.filtfun, self.tags),
                                key=unicode.lower)
         for (num, b) in enumerate(displayedtags):
-            tw = widgets.TagWidget(b)
+            line = widgets.BufferlineWidget(b)
+            if (num % 2) == 0:
+                attr = settings.get_theming_attribute('taglist', 'line_even')
+            else:
+                attr = settings.get_theming_attribute('taglist', 'line_odd')
+            focus_att = settings.get_theming_attribute('taglist', 'line_focus')
+
+            tw = widgets.TagWidget(b, attr, focus_att)
             rows = [('fixed', tw.width(), tw)]
             if tw.hidden:
-                rows.append(urwid.Text('[hidden]'))
+                rows.append(urwid.Text(b + ' [hidden]'))
             elif tw.translated is not b:
                 rows.append(urwid.Text('(%s)' % b))
-            lines.append(urwid.Columns(rows, dividechars=1))
+            line = urwid.Columns(rows, dividechars=1)
+            line = urwid.AttrMap(line, attr, focus_att)
+            lines.append(line)
+
         self.taglist = urwid.ListBox(urwid.SimpleListWalker(lines))
         self.body = self.taglist
 
@@ -400,5 +410,5 @@ class TagListBuffer(Buffer):
     def get_selected_tag(self):
         """returns selected tagstring"""
         (cols, pos) = self.taglist.get_focus()
-        tagwidget = cols.get_focus()
+        tagwidget = cols.original_widget.get_focus()
         return tagwidget.get_tag()

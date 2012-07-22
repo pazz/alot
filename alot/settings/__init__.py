@@ -7,9 +7,7 @@ import re
 import errno
 import mailcap
 import logging
-import urwid
 import shutil
-from urwid import AttrSpecError
 from configobj import ConfigObj, Section
 
 from alot.account import SendmailAccount
@@ -18,9 +16,12 @@ from alot.helper import pretty_datetime, string_decode
 
 from errors import ConfigError
 from utils import read_config
+from utils import resolve_att
 from checks import force_list
 from checks import mail_container
 from checks import gpg_key
+from checks import attr_triple
+from checks import align_mode
 from theme import Theme
 
 
@@ -62,6 +63,8 @@ class SettingsManager(object):
         newconfig = read_config(path, spec,
                                 checks={'mail_container': mail_container,
                                         'force_list': force_list,
+                                        'align': align_mode,
+                                        'attrtriple': attr_triple,
                                         'gpg_key_hint': gpg_key})
         self._config.merge(newconfig)
 
@@ -90,7 +93,11 @@ class SettingsManager(object):
                 raise ConfigError(err_msg % (themestring, themes_dir))
             else:
                 theme_path = os.path.join(themes_dir, themestring)
-                self._theme = Theme(theme_path)
+                try:
+                    self._theme = Theme(theme_path)
+                except ConfigError as e:
+                    err_msg = 'Theme file %s failed validation:\n'
+                    raise ConfigError((err_msg % themestring) + e.message)
 
         self._accounts = self._parse_accounts(self._config)
         self._accountmap = self._account_table(self._accounts)
@@ -213,7 +220,7 @@ class SettingsManager(object):
             value = fallback
         return value
 
-    def get_theming_attribute(self, mode, name):
+    def get_theming_attribute(self, mode, name, part=None):
         """
         looks up theming attribute
 
@@ -221,54 +228,85 @@ class SettingsManager(object):
         :type mode: str
         :param name: identifier of the atttribute
         :type name: str
+        :rtype: urwid.AttrSpec
         """
         colours = int(self._config.get('colourmode'))
-        return self._theme.get_attribute(mode, name,  colours)
+        return self._theme.get_attribute(colours, mode, name, part)
 
-    def get_tagstring_representation(self, tag):
+    def get_threadline_theming(self, thread):
         """
-        looks up user's preferred way to represent a given tagstring
+        looks up theming info a threadline displaying a given thread. This
+        wraps around :meth:`~alot.settings.theme.Theme.get_threadline_theming`,
+        filling in the current colour mode.
+
+        :param thread: thread to theme
+        :type thread: alot.db.thread.Thread
+        """
+        colours = int(self._config.get('colourmode'))
+        return self._theme.get_threadline_theming(thread, colours)
+
+    def get_tagstring_representation(self, tag, onebelow_normal=None,
+                                     onebelow_focus=None):
+        """
+        looks up user's preferred way to represent a given tagstring.
+
+        :param tag: tagstring
+        :type tag: str
+        :param onebelow_normal: attribute that shines through if unfocussed
+        :type onebelow_normal: urwid.AttrSpec
+        :param onebelow_focus: attribute that shines through if focussed
+        :type onebelow_focus: urwid.AttrSpec
+
+        If `onebelow_normal` or `onebelow_focus` is given these attributes will
+        be used as fallbacks for fg/bg values '' and 'default'.
 
         This returns a dictionary mapping
-        'normal' and 'focussed' to `urwid.AttrSpec` sttributes,
-        and 'translated' to an alternative string representation
+            :normal: to :class:`urwid.AttrSpec` used if unfocussed
+            :focussed: to :class:`urwid.AttrSpec` used if focussed
+            :translated: to an alternative string representation
         """
-        colours = int(self._config.get('colourmode'))
-        # default attributes: normal and focussed
-        default = self._theme.get_attribute('global', 'tag', colours)
-        default_f = self._theme.get_attribute('global', 'tag_focus', colours)
-        for sec in self._config['tags'].sections:
+        colourmode = int(self._config.get('colourmode'))
+        theme = self._theme
+        cfg = self._config
+        colours = [1, 16, 256]
+
+        def colourpick(triple):
+            """ pick attribute from triple (mono,16c,256c) according to current
+            colourmode"""
+            if triple is None:
+                return None
+            return triple[colours.index(colourmode)]
+
+        # global default attributes for tagstrings.
+        # These could contain values '' and 'default' which we interpret as
+        # "use the values from the widget below"
+        default_normal = theme.get_attribute(colourmode, 'global', 'tag')
+        default_focus = theme.get_attribute(colourmode, 'global', 'tag_focus')
+
+        # local defaults for tagstring attributes. depend on next lower widget
+        fallback_normal = resolve_att(onebelow_normal, default_normal)
+        fallback_focus = resolve_att(onebelow_focus, default_focus)
+
+        for sec in cfg['tags'].sections:
             if re.match('^' + sec + '$', tag):
-                fg = self._config['tags'][sec]['fg'] or default.foreground
-                bg = self._config['tags'][sec]['bg'] or default.background
-                try:
-                    normal = urwid.AttrSpec(fg, bg, colours)
-                except AttrSpecError:
-                    normal = default
-                focus_fg = self._config['tags'][sec]['focus_fg']
-                focus_fg = focus_fg or default_f.foreground
-                focus_bg = self._config['tags'][sec]['focus_bg']
-                focus_bg = focus_bg or default_f.background
-                try:
-                    focussed = urwid.AttrSpec(focus_fg, focus_bg, colours)
-                except AttrSpecError:
-                    focussed = default_f
+                normal = resolve_att(colourpick(cfg['tags'][sec]['normal']),
+                                     fallback_normal)
+                focus = resolve_att(colourpick(cfg['tags'][sec]['focus']),
+                                    fallback_focus)
 
-                hidden = self._config['tags'][sec]['hidden'] or False
-
-                translated = self._config['tags'][sec]['translated'] or tag
-                translation = self._config['tags'][sec]['translation']
+                translated = cfg['tags'][sec]['translated']
+                if translated is None:
+                    translated = tag
+                translation = cfg['tags'][sec]['translation']
                 if translation:
                     translated = re.sub(translation[0], translation[1], tag)
                 break
         else:
-            normal = default
-            focussed = default_f
-            hidden = False
+            normal = fallback_normal
+            focus = fallback_focus
             translated = tag
 
-        return {'normal': normal, 'focussed': focussed,
-                'hidden': hidden, 'translated': translated}
+        return {'normal': normal, 'focussed': focus, 'translated': translated}
 
     def get_hook(self, key):
         """return hook (`callable`) identified by `key`"""

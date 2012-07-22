@@ -1,354 +1,87 @@
-[1]
-[[global]]
-    [[[footer]]]
-        fg = 'standout'
-    [[[body]]]
-        fg = 'default'
-    [[[notify_error]]]
-        fg = 'standout'
-    [[[notify_normal]]]
-        fg = 'default'
-    [[[prompt]]]
-        fg = 'default'
-    [[[tag]]]
-        fg = 'default'
-    [[[tag_focus]]]
-        fg = 'standout, bold'
-[[help]]
-    [[[text]]]
-        fg = 'default'
-    [[[section]]]
-        fg = 'underline'
-    [[[title]]]
-        fg = 'standout'
-[[bufferlist]]
-    [[[focus]]]
-        fg = 'standout'
-    [[[results_even]]]
-        fg = 'default'
-    [[[results_odd]]]
-        fg = 'default'
-[[search]]
-    [[[thread]]]
-        fg = 'default'
-    [[[thread_authors]]]
-        fg = 'default,underline'
-    [[[thread_authors_focus]]]
-        fg = 'standout'
-    [[[thread_content]]]
-        fg = 'default'
-    [[[thread_content_focus]]]
-        fg = 'standout'
-    [[[thread_date]]]
-        fg = 'default'
-    [[[thread_date_focus]]]
-        fg = 'standout'
-    [[[thread_focus]]]
-        fg = 'standout'
-    [[[thread_mailcount]]]
-        fg = 'default'
-    [[[thread_mailcount_focus]]]
-        fg = 'standout'
-    [[[thread_subject]]]
-        fg = 'default'
-    [[[thread_subject_isunread]]]
-        fg = 'bold'
-    [[[thread_subject_isflagged]]]
-        fg = 'underline'
-    [[[thread_subject_focus]]]
-        fg = 'standout'
-    [[[thread_subject_isunread_focus]]]
-        fg = 'standout,bold'
-    [[[thread_subject_isflagged_focus]]]
-        fg = 'standout,underline'
-    [[[thread_tags]]]
-        fg = 'bold'
-    [[[thread_tags_focus]]]
-        fg = 'standout'
-[[thread]]
-    [[[attachment]]]
-        fg = 'default'
-    [[[attachment_focus]]]
-        fg = 'underline'
-    [[[body]]]
-        fg = 'default'
-    [[[header]]]
-        fg = 'default'
-    [[[header_key]]]
-        fg = 'default'
-    [[[header_value]]]
-        fg = 'default'
-    [[[summary_even]]]
-        fg = 'default'
-    [[[summary_focus]]]
-        fg = 'standout'
-    [[[summary_odd]]]
-        fg = 'default'
-[[envelope]]
-    [[[body]]]
-        fg = 'default'
-    [[[header]]]
-        fg = 'default'
-    [[[header_key]]]
-        fg = 'default'
-    [[[header_value]]]
-        fg = 'default'
-[16]
-[[global]]
-    [[[footer]]]
-        bg = 'dark blue'
-        fg = 'light green'
-    [[[body]]]
-        bg = 'default'
-        fg = 'default'
-    [[[notify_error]]]
-        bg = 'dark red'
-        fg = 'white'
-    [[[notify_normal]]]
-        bg = 'dark gray'
-        fg = 'light gray'
-    [[[prompt]]]
-        bg = 'black'
-        fg = 'light gray'
-    [[[tag]]]
-        bg = 'black'
-        fg = 'brown'
-    [[[tag_focus]]]
-        bg = 'dark gray'
-        fg = 'white'
-[[help]]
-    [[[text]]]
-        bg = 'dark gray'
-        fg = 'default'
-    [[[section]]]
-        bg = 'dark gray'
-        fg = 'bold,underline'
-    [[[title]]]
-        bg = 'dark blue'
-        fg = 'white'
-[[bufferlist]]
-    [[[focus]]]
-        bg = 'dark gray'
-        fg = 'white'
-    [[[results_even]]]
-        bg = 'black'
-        fg = 'light gray'
-    [[[results_odd]]]
-        bg = 'black'
-        fg = 'light gray'
-[[thread]]
-    [[[attachment]]]
-        bg = 'dark gray'
-        fg = 'light gray'
-    [[[attachment_focus]]]
-        bg = 'light green'
-        fg = 'light gray'
-    [[[body]]]
-        bg = 'default'
-        fg = 'light gray'
-    [[[header]]]
-        bg = 'dark gray'
-        fg = 'white'
-    [[[header_key]]]
-        bg = 'dark gray'
-        fg = 'white'
-    [[[header_value]]]
-        bg = 'dark gray'
-        fg = 'light gray'
-    [[[summary_even]]]
-        bg = 'light blue'
-        fg = 'white'
-    [[[summary_focus]]]
-        bg = 'dark cyan'
-        fg = 'white'
-    [[[summary_odd]]]
-        bg = 'dark blue'
-        fg = 'white'
-[[envelope]]
-    [[[body]]]
-        bg = 'default'
-        fg = 'light gray'
-    [[[header]]]
-        bg = 'dark gray'
-        fg = 'white'
-    [[[header_key]]]
-        bg = 'dark gray'
-        fg = 'white'
-    [[[header_value]]]
-        bg = 'dark gray'
-        fg = 'light gray'
-[[search]]
-    [[[thread]]]
-        bg = 'default'
-        fg = 'default'
-    [[[thread_authors]]]
-        bg = 'default'
-        fg = 'dark green'
-    [[[thread_authors_focus]]]
-        bg = 'dark gray'
-        fg = 'dark green,bold'
-    [[[thread_content]]]
-        bg = 'default'
-        fg = 'dark gray'
-    [[[thread_content_focus]]]
-        bg = 'dark gray'
-        fg = 'black'
-    [[[thread_date]]]
-        bg = 'default'
-        fg = 'light gray'
-    [[[thread_date_focus]]]
-        bg = 'dark gray'
-        fg = 'light gray'
-    [[[thread_focus]]]
-        bg = 'dark gray'
-        fg = 'light gray'
-    [[[thread_mailcount]]]
-        bg = 'default'
-        fg = 'light gray'
-    [[[thread_mailcount_focus]]]
-        bg = 'dark gray'
-        fg = 'light gray'
-    [[[thread_subject]]]
-        bg = 'default'
-        fg = 'light gray'
-    [[[thread_subject_focus]]]
-        bg = 'dark gray'
-        fg = 'light gray'
-    [[[thread_tags]]]
-        bg = 'default'
-        fg = 'brown'
-    [[[thread_tags_focus]]]
-        bg = 'dark gray'
-        fg = 'yellow,bold'
+[global]
+    footer = 'standout','','white,bold','dark blue','white,bold','#006'
+    body = 'default','','dark gray','default','g58','default'
+    notify_error = 'standout','','white','dark red','white','dark red'
+    notify_normal = 'default','','light gray','dark gray','light gray','#68a'
+    prompt = 'default','','light gray','black','light gray','g11'
+    tag = 'default','','light gray','black','light gray','default'
+    tag_focus = 'standout, bold','','white','dark gray','#ffa','#68a'
+[help]
+    text = 'default','','default','dark gray','default','g35'
+    section = 'underline','','bold,underline','dark gray','bold,underline','g35'
+    title = 'standout','','white','dark blue','white,bold,underline','g35'
+[bufferlist]
+    line_focus = 'standout','','yellow','light gray','#ff8','g58'
+    line_even = 'default','','light gray','black','default','g3'
+    line_odd = 'default','','light gray','black','default','default'
+[taglist]
+    line_focus = 'standout','','yellow','light gray','#ff8','g58'
+    line_even = 'default','','light gray','black','default','g3'
+    line_odd = 'default','','light gray','black','default','default'
+[thread]
+    arrow_heads = '','','dark red','','#a00',''
+    arrow_bars = '','','dark red','','#800',''
+    attachment = 'default','','light gray','dark gray','light gray','dark gray'
+    attachment_focus = 'underline','','light gray','light green','light gray','light green'
+    body = 'default','','light gray','default','light gray','default'
+    header = 'default','','white','dark gray','white','dark gray'
+    header_key = 'default','','white','dark gray','white','dark gray'
+    header_value = 'default','','light gray','dark gray','light gray','dark gray'
 
-[256]
-[[global]]
-    # attributes used in all modi
-    [[[footer]]]
-        bg = '#006'
-        fg = 'white'
-    [[[body]]]
-        bg = 'default'
-        fg = 'default'
-    [[[notify_error]]]
-        bg = 'dark red'
-        fg = 'white'
-    [[[notify_normal]]]
-        bg = '#68a'
-        fg = 'light gray'
-    [[[prompt]]]
-        bg = 'g10'
-        fg = 'light gray'
-    [[[tag]]]
-        bg = 'default'
-        fg = 'brown'
-    [[[tag_focus]]]
-        bg = '#68a'
-        fg = '#ffa'
-[[help]]
-    # formating of the `help bindings` overlay
-    [[[text]]]
-        bg = 'g35'
-        fg = 'default'
-    [[[section]]]
-        bg = 'g35'
-        fg = 'bold,underline'
-    [[[title]]]
-        bg = 'g35'
-        fg = 'white,bold,underline'
-# mode specific attributes
-[[bufferlist]]
-    [[[focus]]]
-        bg = '#68a'
-        fg = '#ffa'
-    [[[results_even]]]
-        bg = 'g3'
-        fg = 'default'
-    [[[results_odd]]]
-        bg = 'default'
-        fg = 'default'
-[[search]]
-    [[[thread]]]
-        bg = 'default'
-        fg = '#6d6'
-        
-    [[[thread_authors]]]
-        bg = 'default'
-        fg = '#6d6'
-    [[[thread_authors_focus]]]
-        bg = '#68a'
-        fg = '#8f6'
-    [[[thread_content]]]
-        bg = 'default'
-        fg = '#866'
-    [[[thread_content_focus]]]
-        bg = '#68a'
-        fg = '#866'
-    [[[thread_date]]]
-        bg = 'default'
-        fg = 'g58'
-    [[[thread_date_focus]]]
-        bg = '#68a'
-        fg = 'g89'
-    [[[thread_focus]]]
-        bg = '#68a'
-        fg = 'white'
-    [[[thread_mailcount]]]
-        bg = 'default'
-        fg = 'light gray'
-    [[[thread_mailcount_focus]]]
-        bg = '#68a'
-        fg = 'g89'
-    [[[thread_subject]]]
-        bg = 'default'
-        fg = 'g58'
-    [[[thread_subject_focus]]]
-        bg = '#68a'
-        fg = 'g89'
-    [[[thread_tags]]]
-        bg = 'default'
-        fg = '#a86'
-    [[[thread_tags_focus]]]
-        bg = '#68a'
-        fg = '#ff8'
-[[thread]]
-    [[[attachment]]]
-        bg = 'dark gray'
-        fg = 'light gray'
-    [[[attachment_focus]]]
-        bg = 'light green'
-        fg = 'light gray'
-    [[[body]]]
-        bg = 'default'
-        fg = 'light gray'
-    [[[header]]]
-        bg = 'dark gray'
-        fg = 'white'
-    [[[header_key]]]
-        bg = 'dark gray'
-        fg = 'white'
-    [[[header_value]]]
-        bg = 'dark gray'
-        fg = 'light gray'
-    [[[summary_even]]]
-        bg = '#068'
-        fg = 'white'
-    [[[summary_focus]]]
-        bg = 'g58'
-        fg = '#ff8'
-    [[[summary_odd]]]
-        bg = '#006'
-        fg = 'white'
-[[envelope]]
-    [[[body]]]
-        bg = 'default'
-        fg = 'light gray'
-    [[[header]]]
-        bg = 'dark gray'
-        fg = 'white'
-    [[[header_key]]]
-        bg = 'dark gray'
-        fg = 'white'
-    [[[header_value]]]
-        bg = 'dark gray'
-        fg = 'light gray'
+    [[summary]]
+        even = 'default','','white','light blue','white','#006'
+        odd = 'default','','white','dark blue','white','#068'
+        focus = 'standout','','white','light gray','#ff8','g58'
+
+[envelope]
+    body = 'default','','light gray','default','light gray','default'
+    header = 'default','','white','dark gray','white','dark gray'
+    header_key = 'default','','white','dark gray','white','dark gray'
+    header_value = 'default','','light gray','dark gray','light gray','dark gray'
+[search]
+    [[threadline]]
+        normal = 'default','','default','default','#6d6','default'
+        focus = 'standout','','light gray','light gray','g85','g58'
+        parts = date,mailcount,tags,authors,subject
+        [[[date]]]
+            normal = 'default','','light gray','default','g74','default'
+            focus = 'standout','','yellow','light gray','yellow','g58'
+            width = 'fit',10,10
+            alignment = right
+        [[[mailcount]]]
+            normal = 'default','','light gray','default','g66','default'
+            focus = 'standout','','yellow','light gray','yellow','g58'
+            width = 'fit', 5,5
+        [[[tags]]]
+            normal = 'bold','','dark cyan','','dark cyan',''
+            focus = 'standout','','yellow','light gray','yellow','g58'
+        [[[authors]]]
+            normal = 'default,underline','','light blue','default','#068','default'
+            focus = 'standout','','yellow','light gray','yellow','g58'
+            width = 'fit',0,30
+        [[[subject]]]
+            normal = 'default','','light gray','default','g66','default'
+            focus = 'standout','','yellow','light gray','yellow','g58'
+            #width = 'weight', 1
+        [[[content]]]
+            normal = 'default','','light gray','default','dark gray','default'
+            focus = 'standout','','yellow','light gray','yellow','g58'
+            width = 'weight', 1
+
+    # highlight threads containing unread messages
+    [[threadline-unread]]
+        tagged_with = 'unread'
+        normal = 'default','','default,bold','default','#6d6,bold','default'
+        parts = date,mailcount,tags,authors,subject
+        [[[date]]]
+            normal = 'default','','light gray,bold','default','white','default'
+        [[[mailcount]]]
+            normal = 'default','','light gray,bold','default','g93','default'
+        [[[tags]]]
+            normal = 'bold','','dark cyan,bold','','#6dd',''
+        [[[authors]]]
+            normal = 'default,underline','','light blue,bold','default','#68f','default'
+        [[[subject]]]
+            normal = 'default','','light gray,bold','default','g93','default'
+        [[[content]]]
+            normal = 'default','','light gray,bold','default','dark gray,bold','default'

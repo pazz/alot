@@ -273,63 +273,142 @@ Alot can be run in 1, 16 or 256 colour mode. The requested mode is determined by
 from option `colourmode` config value. The default is 256, which scales down depending on how many colours your
 terminal supports.
 
-To specify the theme to use, set the `theme` config option to the name of a theme-file.
+To specify the theme to use, set the :ref:`theme <theme>` config option to the name of a theme-file.
 A file by that name will be looked up in the path given by the :ref:`themes_dir <themes-dir>` config setting
 which defaults to :file:`~/.config/alot/themes/`.
 
-Theme-files can contain sections `[1], [16]` and `[256]` for different colour modes,
-each of which has subsections named after the :ref:`MODE <modes>` they are used in
-plus "help" for the bindings-help overlay and "global" for globally used themables
-like footer, prompt etc.
-The themables live in sub-sub-sections and define the attributes `fg` and `bg` for foreground
-and backround colours and attributes, the names of the themables should be self-explanatory.
-Have a look at the default theme file at :file:`alot/defaults/default.theme`
-and the config spec :file:`alot/defaults/default.theme` for the format.
+.. _config.theming.themefiles:
+
+Theme Files
+-----------
+contain a section for each :ref:`MODE <modes>` plus "help" for the bindings-help overlay
+and "global" for globally used themables like footer, prompt etc.
+Each such section defines colour :ref:`attributes <config.theming.attributes>` for the parts that
+can be themed.  The names of the themables should be self-explanatory.
+Have a look at the default theme file at :file:`alot/defaults/default.theme` and the config spec
+:file:`alot/defaults/default.theme` for the exact format.
+
+.. _config.theming.attributes:
+
+Colour Attributes
+-----------------
+Attributes are *sextuples* of `urwid Attribute strings <http://excess.org/urwid/wiki/DisplayAttributes>`__
+that specify foreground and background for mono, 16 and 256-colour modes respectively.
+For mono-mode only the flags `blink`, `standup`, `underline` and `bold` are available,
+16c mode supports these in combination with the colour names::
+
+    brown    dark red     dark magenta    dark blue    dark cyan    dark green
+    yellow   light red    light magenta   light blue   light cyan   light green
+    black    dark gray    light gray      white
+
+In high-colour mode, you may use the above plus grayscales `g0` to `g100` and
+colour codes given as `#` followed by three hex values.
+See `here <http://excess.org/urwid/wiki/DisplayAttributes>`__
+and `here <http://excess.org/urwid/reference.html#AttrSpec>`__
+for more details on the interpreted values.  A colour picker that makes choosing colours easy can be
+found in :file:`alot/extra/colour_picker.py`.
 
 As an example, check the setting below that makes the footer line appear as
 underlined bold red text on a bright green background::
 
-    [256]
-      [[global]]
-        [[[footer]]]
-            fg = 'light red, bold, underline'
-            bg = '#8f6'
+  [[global]]
+    #name    mono fg     mono bg   16c fg                        16c bg         256c fg                 256c bg
+    #        |                 |   |                             |              |                             |
+    #        v                 v   v                             v              v                             v
+    footer = 'bold,underline', '', 'light red, bold, underline', 'light green', 'light red, bold, underline', '#8f6'
 
-Values can be colour names (`light red`, `dark green`..), RGB colour codes (e.g. `#868`),
-font attributes (`bold`, `underline`, `blink`, `standout`) or a comma separated combination of
-colour and font attributes.
+Highlighting Thread lines in Search Mode
+----------------------------------------
+The subsection '[[threadline]]' of the '[search]' section in :ref:`Theme Files <config.theming.themefiles>`
+determines how to present a thread: here, :ref:`attributes <config.theming.attributes>` 'normal' and
+'focus' provide fallback/spacer themes and 'parts' is a (string) list of displayed subwidgets.
+Possible part strings are:
 
-.. note:: In monochromatic mode only the entry `fg` is interpreted. It may only contain
-          (a comma-separated list of) font attributes: 'bold', 'underline', 'blink', 'standout'.
+* date
+* mailcount
+* tags
+* authors
+* subject
 
-See `urwids docs on Attributes <http://excess.org/urwid/reference.html#AttrSpec>`_ for more details
-on the interpreted values. Urwid provides a `neat colour picker script`_ that makes choosing
-colours easy.
+For every listed part there must be a subsection with the same name, defining
 
-.. _neat colour picker script: http://excess.org/urwid/browser/palette_test.py
+:normal: :ref:`attribute <config.theming.attributes>` used for this part if unfocussed
+:focus: :ref:`attribute <config.theming.attributes>` used for this part if focussed
+:width: tuple indicating the width of the part. This is either `('fit', min, max)` to force the widget
+        to be at least `min` and at most `max` characters wide,
+        or `('weight', n)` which makes it share remaining space
+        with other 'weight' parts.
+:alignment: how to place the content string if the widget space is larger.
+            This must be one of 'right', 'left' or 'center'.
 
+To "highlight" some thread lines (use different attributes than the defaults found in the
+'[[threadline]]' section), one can define sections with prefix 'threadline'.
+Each one of those can redefine any part of the structure outlined above, the rest defaults to
+values defined in '[[threadline]]'.
+
+The section used to theme a particular thread is the first one (in file-order) that matches
+the criteria defined by its 'query' and 'taggeswith' values:
+
+* If 'query' is defined, the thread must match that querystring.
+* If 'tagged_with' is defined, is value (string list)  must be a subset of the accumulated tags of all messages in the thread.
+
+.. note:: that 'tagged_with = A,B' is different from 'query = "is:A AND is:B"':
+   the latter will match only if the thread contains a single message that is both tagged with
+   A and B.
+
+   Moreover, note that if both query and tagged_with is undefined, this section will always match
+   and thus overwrite the defaults.
+
+The example below shows how to highlight unread threads:
+The date-part will be bold red if the thread has unread messages and flagged messages
+and just bold if the thread has unread but no flagged messages::
+
+    [search]
+        # default threadline
+        [[threadline]]
+            normal = 'default','default','default','default','#6d6','default'
+            focus = 'standout','default','light gray','dark gray','white','#68a'
+            parts = date,mailcount,tags,authors,subject
+            [[[date]]]
+                normal = 'default','default','light gray','default','g58','default'
+                focus = 'standout','default','light gray','dark gray','g89','#68a'
+                width = 'fit',10,10
+            ...
+
+        # highlight threads containing unread and flagged messages
+        [[threadline-flagged-unread]]
+            tagged_with = 'unread','flagged'
+            [[[date]]]
+                normal = 'default','default','light red,bold','default','light red,bold','default'
+
+        # highlight threads containing unread messages
+        [[threadline-unread]]
+            query = 'is:unread'
+            [[[date]]]
+                normal = 'default','default','light gray,bold','default','g58,bold','default'
+
+.. _config.theming.tags:
 
 Custom Tagstring Formatting
-===========================
+---------------------------
 
 To specify how a particular tagstring is displayed throughout the interface you can
 add a subsection named after the tag to the `[tags]` config section.
-The following attribute keys will interpreted and may contain urwid attribute strings
-as described in the :ref:`Themes <themes>` section above:
+Such a section may define
 
-`fg` (foreground), `bg` (background), `focus_fg` (foreground if focused) and `focus_bg` (background if focused).
-An alternative string representation is read from the option `translated` or can be given
-as pair of strings in `translation`.
-
-The tag can also be hidden from view, if the key `hidden` is present and set to
-True. The tag can still be seen in the taglist buffer.
+:normal: :ref:`attribute <config.theming.attributes>` used if unfocussed
+:focus: :ref:`attribute <config.theming.attributes>` used if focussed
+:translated: fixed string representation for this tag. The tag can be hidden from view,
+             if the key `translated` is set to '', the empty string.
+:translation: a pair of strings that define a regular substitution to compute the string
+              representation on the fly using `re.sub`. This only really makes sense if
+              one uses a regular expression to match more than one tagstring (see below).
 
 The following will make alot display the "todo" tag as "TODO" in white on red. ::
 
     [tags]
       [[todo]]
-        bg = '#d66'
-        fg = white
+        normal = '','', 'white','light red', 'white','#d66'
         translated = TODO
 
 Utf-8 symbols are welcome here, see e.g.
@@ -337,13 +416,14 @@ http://panmental.de/symbols/info.htm for some fancy symbols. I personally displa
 like this::
 
     [tags]
+
       [[flagged]]
         translated = ⚑
-        fg = light red
+        normal = '','','light red','','light red',''
+        focus = '','','light red','','light red',''
 
       [[unread]]
         translated = ✉
-        fg = white
 
       [[replied]]
         translated = ⏎
@@ -358,12 +438,11 @@ rename a matching tagstring. `translation` takes a comma separated *pair* of str
 do the following::
 
   [[notmuch::bug]]
-      fg = 'light red, bold'
-      bg = '#88d'
-      translated = 'nm:bug'
+    translated = 'nm:bug'
+    normal = "", "", "light red, bold", "light blue", "light red, bold", "#88d"
+
   [[notmuch::.*]]
-      fg = '#fff'
-      bg = '#88d'
-      translation = 'notmuch::(.*)','nm:\1'
+    translation = 'notmuch::(.*)','nm:\1'
+    normal = "", "", "white", "light blue", "#fff", "#88d"
 
 .. _nmbug: http://notmuchmail.org/nmbug/

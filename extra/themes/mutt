@@ -1,0 +1,76 @@
+###############################################################################
+# MUTT
+#
+# colour theme for alot. © 2012 Patrick Totzke, GNU GPL3+
+# https://github.com/pazz/alot
+###############################################################################
+
+[global]
+    footer = 'standout,bold','','light green,bold','dark blue','light green,bold','dark blue'
+    body = '','','light gray','black','light gray','black'
+    notify_error = 'standout','','light gray','dark red','light gray','dark red'
+    notify_normal = '','','light gray','black','light gray','#68a'
+    prompt = '','','light gray','black','light gray','black'
+    tag = '','','yellow','','yellow',''
+    tag_focus = 'standout, bold','','yellow','','yellow',''
+[help]
+    text = '','','light gray','dark gray','light gray','dark gray'
+    section = 'underline','','white,underline','dark gray','white,underline','dark gray'
+    title = 'standout','','white,underline','dark gray','white,underline','dark gray'
+[bufferlist]
+    line_even = '','','light gray','black','light gray','black'
+    line_odd = '','','light gray','black','light gray','black'
+    line_focus = 'standout','','black','dark cyan','black','dark cyan'
+[taglist]
+    line_even = '','','light gray','black','light gray','black'
+    line_odd = '','','light gray','black','light gray','black'
+    line_focus = 'standout','','black','dark cyan','black','dark cyan'
+[thread]
+    arrow_heads = '','','dark red','black','dark red','black'
+    arrow_bars = '','','dark red','black','dark red','black'
+    attachment = '','','yellow,bold','black','yellow,bold','black'
+    attachment_focus = 'standout','','black','yellow','black','yellow'
+    body = '','','light gray','black','light gray','black'
+    header = '','','dark cyan','black','dark cyan','black'
+    header_key = '','','dark cyan','black','dark cyan','black'
+    header_value = '','','dark cyan','black','dark cyan','black'
+
+    [[summary]]
+        even = '','','light gray','black','light gray','black'
+        odd = '','','light gray','black','light gray','black'
+        focus = 'standout','','black','dark cyan','black','dark cyan'
+
+[envelope]
+    body = '','','light gray','black','light gray','black'
+    header = '','','dark cyan','black','dark cyan','black'
+    header_key = '','','dark cyan','black','dark cyan','black'
+    header_value = '','','dark cyan','black','dark cyan','black'
+[search]
+    [[threadline]]
+        normal = '','','light gray','black','light gray','black'
+        focus = 'standout','','black','dark cyan','black','dark cyan'
+        parts = date,authors,mailcount,subject,tags
+        [[[date]]]
+            normal = '','','light gray','black','light gray','black'
+            focus = 'standout','','black','dark cyan','black','dark cyan'
+            width = 'fit',10,10
+            alignment = right
+        [[[mailcount]]]
+            normal = '','','light gray','black','light gray','black'
+            focus = 'standout','','black','dark cyan','black','dark cyan'
+            width = 'fit', 5,5
+        [[[tags]]]
+            normal = '','','yellow','black','yellow','black'
+            focus = 'standout','','black','dark cyan','black','dark cyan'
+        [[[authors]]]
+            normal = '','','light gray','black','light gray','black'
+            focus = 'standout','','black','dark cyan','black','dark cyan'
+            width = 'fit',25,25
+        [[[subject]]]
+            normal = '','','light gray','black','light gray','black'
+            focus = 'standout','','black','dark cyan','black','dark cyan'
+            width = 'weight', 1
+        [[[content]]]
+            normal = '','','light gray','black','light gray','black'
+            focus = 'standout','','black','dark cyan','black','dark cyan'
+            width = 'weight', 1

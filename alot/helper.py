@@ -22,7 +22,6 @@ from twisted.internet.protocol import ProcessProtocol
 from twisted.internet.defer import Deferred
 import StringIO
 import logging
-import tempfile
 
 
 def split_commandstring(cmdstring):
@@ -34,6 +33,7 @@ def split_commandstring(cmdstring):
     if isinstance(cmdstring, unicode):
         cmdstring = cmdstring.encode('utf-8', errors='ignore')
     return shlex.split(cmdstring)
+
 
 def safely_get(clb, E, on_error=''):
     """

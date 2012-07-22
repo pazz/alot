@@ -128,9 +128,6 @@ envelope_statusbar = mixed_list(string, string, default=list('[{buffer_no}: enve
 # timestamp format in `strftime format syntax <http://docs.python.org/library/datetime.html#strftime-strptime-behavior>`_
 timestamp_format = string(default=None)
 
-# maximal length of authors string in search mode before it gets truncated
-authors_maxlength = integer(default=30)
-
 # how to print messages:
 # this specifies a shell command used for printing.
 # threads/messages are piped to this command as plain text.
@@ -179,14 +176,10 @@ forward_subject_prefix = string(default='Fwd: ')
 [tags]
     # for each tag
     [[__many__]]
-        # foreground
-        fg = string(default=None)
-        # background
-        bg = string(default=None)
-        # foreground if focused
-        focus_fg = string(default=None)
-        # background if focused
-        focus_bg = string(default=None)
+        # unfocussed
+        normal = attrtriple(default=None)
+        # focussed
+        focus = attrtriple(default=None)
         # don't display at all?
         hidden = boolean(default=False)
         # alternative string representation
