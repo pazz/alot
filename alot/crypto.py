@@ -29,10 +29,12 @@ def email_as_string(mail):
 
         # Workaround for http://bugs.python.org/issue14983:
         # Insert a newline before the outer mail boundary so that other mail
-        # clients (like KMail, Claws-Mail, mutt, …) can verify the signature when
-        # sending an email which contains attachments.
-        as_string = re.sub(r'--\n--' + boundary,
-            '--\n\n--' + boundary, as_string, flags=re.MULTILINE)
+        # clients (like KMail, Claws-Mail, mutt, …) can verify the signature
+        # when sending an email which contains attachments.
+        as_string = re.sub(r'--(\r\n)--' + boundary,
+                           '--\g<1>\g<1>--' + boundary,
+                           as_string, flags=re.MULTILINE)
+
     return as_string
 
 
