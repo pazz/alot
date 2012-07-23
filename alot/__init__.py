@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 __productname__ = 'alot'
 __version__ = '0.3.2'
 __copyright__ = "Copyright (C) 2012 Patrick Totzke"
