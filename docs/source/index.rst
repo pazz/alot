@@ -17,3 +17,8 @@ User Manual
    crypto/index
    api/index
    faq
+
+.. toctree::
+   :hidden:
+
+   manpage
