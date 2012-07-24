@@ -329,14 +329,18 @@ class CallCommand(Command):
 
 
 @registerCommand(MODE, 'bclose')
+@registerCommand(MODE, 'bclose!', forced={'force': True})
 class BufferCloseCommand(Command):
     """close a buffer"""
-    def __init__(self, buffer=None, **kwargs):
+    def __init__(self, buffer=None, force=False, **kwargs):
         """
         :param buffer: the buffer to close or None for current
         :type buffer: `alot.buffers.Buffer`
+        :param force: force buffer close
+        :type force: bool
         """
         self.buffer = buffer
+        self.force = force
         Command.__init__(self, **kwargs)
 
     @inlineCallbacks
@@ -346,8 +350,9 @@ class BufferCloseCommand(Command):
 
         if (isinstance(self.buffer, buffers.EnvelopeBuffer) and
                 not self.buffer.envelope.sent_time):
-            if (yield ui.choice('close without sending?', select='yes',
-                               cancel='no', msg_position='left')) == 'no':
+            if (not self.force and
+                    (yield ui.choice('close without sending?', select='yes',
+                                cancel='no', msg_position='left')) == 'no'):
                 return
 
         if len(ui.buffers) == 1:
