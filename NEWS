@@ -1,3 +1,20 @@
+0.3.2:
+* fix bad GPG signatures for mails with attachments
+* new theme-files + tags section syntax
+* re-introduce "highlighting" of thread lines in search mode
+* new global command "call" to directly call and bind python commands
+* add new buffers to direct neighbourhood of current one
+* fix sanitize --spawn for X11-less use
+* add new hook 'touch_external_cmdlist'
+* make statusline configurable
+* fix update result count after tag operations in search mode
+* add config options and hooks for reply/forward subject generation
+* add config options and hook for quoting messages in replies/forwards
+* allow True/False/None values for boolean command parameters
+* new config option "attachment_prefix"
+* various small fixes for libmagic, header encoding and decoding
+
+
 0.3.1:
 * use separate database for each write-queue entry when flushing
 * fix behaviour of editor spawning
