@@ -339,9 +339,17 @@ class BufferCloseCommand(Command):
         self.buffer = buffer
         Command.__init__(self, **kwargs)
 
+    @inlineCallbacks
     def apply(self, ui):
         if self.buffer == None:
             self.buffer = ui.current_buffer
+
+        if (isinstance(self.buffer, buffers.EnvelopeBuffer) and
+                not self.buffer.envelope.sent_time):
+            if (yield ui.choice('close without sending?', select='yes',
+                               cancel='no', msg_position='left')) == 'no':
+                return
+
         if len(ui.buffers) == 1:
             if settings.get('quit_on_last_bclose'):
                 logging.info('closing the last buffer, exiting')
