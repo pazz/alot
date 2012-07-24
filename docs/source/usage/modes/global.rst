@@ -165,6 +165,18 @@ __________
 open a list of active buffers
 
 
+.. _cmd_global_call:
+.. index:: call
+
+call
+____
+
+ Executes python code 
+
+argument
+	python command string to call
+
+
 .. _cmd_global_bnext:
 .. index:: bnext
 
