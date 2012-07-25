@@ -342,9 +342,6 @@ class BufferCloseCommand(Command):
     def apply(self, ui):
         if self.buffer == None:
             self.buffer = ui.current_buffer
-        if (isinstance(self.buffer, buffers.EnvelopeBuffer) and
-                self.buffer.envelope.tf):
-            os.unlink(self.buffer.envelope.tf.name)
         if len(ui.buffers) == 1:
             if settings.get('quit_on_last_bclose'):
                 logging.info('closing the last buffer, exiting')

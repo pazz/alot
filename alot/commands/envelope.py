@@ -226,7 +226,8 @@ class EditCommand(Command):
             # worry about encodings.
 
             # get input
-            # tempfile will be removed on buffer close
+            # tempfile will be removed on buffer cleanup
+
             f = open(self.envelope.tf.name)
             enc = settings.get('editor_writes_encoding')
             template = string_decode(f.read(), enc)

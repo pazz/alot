@@ -2,6 +2,7 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 import urwid
+import os
 from notmuch import NotmuchError
 
 import widgets
@@ -119,6 +120,10 @@ class EnvelopeBuffer(Buffer):
         info = {}
         info['to'] = self.envelope.get('To', fallback='unset')
         return info
+
+    def cleanup(self):
+        if self.envelope.tf:
+            os.unlink(self.envelope.tf.name)
 
     def rebuild(self):
         displayed_widgets = []
