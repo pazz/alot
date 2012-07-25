@@ -276,7 +276,7 @@ class EditCommand(Command):
             content = translate(content, ui=ui, dbm=ui.dbman)
 
         #write stuff to tempfile
-        self.envelope.tf = tempfile.NamedTemporaryFile(delete=False, 
+        self.envelope.tf = tempfile.NamedTemporaryFile(delete=False,
                                                       prefix='alot.')
         self.envelope.tf.write(content.encode('utf-8'))
         self.envelope.tf.flush()
