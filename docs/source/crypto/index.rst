@@ -25,7 +25,7 @@ In case no key is specified, alot will leave the selection of a suitable key to 
 so you can influence that by setting the `default-key` option in :file:`~/.gnupg/gpg.conf`
 accordingly.
 
-You can set the default to-sign bit and the key to use for each :ref:`account <account>`
+You can set the default to-sign bit and the key to use for each :ref:`account <config.accounts>`
 individually using the options :ref:`sign_by_default <sign-by-default>` and :ref:`gpg_key <gpg-key>`.
 
 
