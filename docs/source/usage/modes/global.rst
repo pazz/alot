@@ -1,8 +1,8 @@
 .. CAUTION: THIS FILE IS AUTO-GENERATED!
 
 
-global
-------
+Global Commands
+---------------
 The following commands are available globally
 
 .. _cmd.global.bclose:

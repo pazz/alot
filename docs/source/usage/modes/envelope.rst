@@ -1,8 +1,8 @@
 .. CAUTION: THIS FILE IS AUTO-GENERATED!
 
 
-envelope
---------
+Commands in `envelope` mode
+---------------------------
 The following commands are available in envelope mode
 
 .. _cmd.envelope.set:

@@ -112,11 +112,14 @@ if __name__ == "__main__":
         modefilename = mode+'.rst'
         modefile = open(os.path.join(HERE, 'usage', 'modes', modefilename), 'w')
         modefile.write(NOTE)
-        modefile.write('%s\n%s\n' % (mode, '-' * len(mode)))
         if mode != 'global':
             modes.append(mode)
+            header = 'Commands in `%s` mode' % mode
+            modefile.write('%s\n%s\n' % (header, '-' * len(header)))
             modefile.write('The following commands are available in %s mode\n\n' % mode)
         else:
+            header = 'Global Commands'
+            modefile.write('%s\n%s\n' % (header, '-' * len(header)))
             modefile.write('The following commands are available globally\n\n')
         for cmdstring,struct in modecommands.items():
             cls, parser, forced_args = struct

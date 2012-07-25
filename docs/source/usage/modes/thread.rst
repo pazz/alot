@@ -1,8 +1,8 @@
 .. CAUTION: THIS FILE IS AUTO-GENERATED!
 
 
-thread
-------
+Commands in `thread` mode
+-------------------------
 The following commands are available in thread mode
 
 .. _cmd.thread.pipeto:

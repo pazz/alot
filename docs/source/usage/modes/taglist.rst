@@ -1,8 +1,8 @@
 .. CAUTION: THIS FILE IS AUTO-GENERATED!
 
 
-taglist
--------
+Commands in `taglist` mode
+--------------------------
 The following commands are available in taglist mode
 
 .. _cmd.taglist.select:

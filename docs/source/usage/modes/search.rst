@@ -1,8 +1,8 @@
 .. CAUTION: THIS FILE IS AUTO-GENERATED!
 
 
-search
-------
+Commands in `search` mode
+-------------------------
 The following commands are available in search mode
 
 .. _cmd.search.sort:
