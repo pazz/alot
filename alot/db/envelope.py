@@ -42,7 +42,7 @@ class Envelope(object):
         assert isinstance(bodytext, unicode)
         self.headers = {}
         self.body = None
-        self.tf = None
+        self.tf = list()
         logging.debug('TEMPLATE: %s' % template)
         if template:
             self.parse_template(template)

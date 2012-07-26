@@ -122,8 +122,8 @@ class EnvelopeBuffer(Buffer):
         return info
 
     def cleanup(self):
-        if self.envelope.tf:
-            os.unlink(self.envelope.tf.name)
+        for tmp in self.envelope.tf:
+            os.unlink(tmp.name)
 
     def rebuild(self):
         displayed_widgets = []
