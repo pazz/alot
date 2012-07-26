@@ -717,7 +717,7 @@ class OpenAttachmentCommand(Command):
                 tmpfile.close()
 
                 def afterwards():
-                    os.remove(tempfile_name)
+                    os.unlink(tempfile_name)
             else:
                 handler_stdin = StringIO()
                 self.attachment.write(handler_stdin)
