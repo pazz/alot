@@ -385,7 +385,6 @@ class TagListBuffer(Buffer):
         displayedtags = sorted(filter(self.filtfun, self.tags),
                                key=unicode.lower)
         for (num, b) in enumerate(displayedtags):
-            line = widgets.BufferlineWidget(b)
             if (num % 2) == 0:
                 attr = settings.get_theming_attribute('taglist', 'line_even')
             else:
