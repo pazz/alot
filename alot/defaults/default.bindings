@@ -1,0 +1,66 @@
+j = move down
+k = move up
+' ' = move page down
+esc = cancel
+enter = select
+@ = refresh
+? = help bindings
+I = search tag:inbox AND NOT tag:killed
+L = taglist
+shift tab = bprevious
+U = search tag:unread
+tab = bnext
+\ = prompt 'search '
+d = bclose
+$ = flush
+m = compose
+o = prompt 'search '
+q = exit
+';' = bufferlist
+':' = prompt
+
+[bufferlist]
+    x = close
+    select = openfocussed
+
+[search]
+    a = toggletags inbox
+    & = toggletags killed
+    ! = toggletags flagged
+    s = toggletags unread
+    l = retagprompt
+    O = refineprompt
+    | = refineprompt
+
+[envelope]
+    a = prompt 'attach ~/'
+    y = send
+    P = save
+    s = 'refine Subject'
+    t = 'refine To'
+    b = 'refine Bcc'
+    c = 'refine Cc'
+    S = togglesign
+    select = edit
+    H = toggleheaders
+
+[taglist]
+
+[thread]
+    C = fold --all
+    E = unfold --all
+    c = fold
+    e = unfold
+    < = fold
+    > = unfold
+    H = toggleheaders
+    h = togglesource
+    P = print --all --separately --add_tags
+    S = save --all
+    g = reply --all
+    f = forward
+    p = print --add_tags
+    n = editnew
+    s = save
+    r = reply
+    | = prompt 'pipeto '

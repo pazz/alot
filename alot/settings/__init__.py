@@ -44,8 +44,8 @@ class SettingsManager(object):
 
         theme_path = theme or os.path.join(DEFAULTSPATH, 'default.theme')
         self._theme = Theme(theme_path)
-        self._bindings = ConfigObj()
-
+        bindings_path = os.path.join(DEFAULTSPATH, 'default.bindings')
+        self._bindings = ConfigObj(bindings_path)
         self._config = ConfigObj()
         self._accounts = None
         self._accountmap = None
@@ -331,7 +331,9 @@ class SettingsManager(object):
             cmdline = bindings[key]
         if mode in bindings.sections:
             if key in bindings[mode].scalars:
-                cmdline = bindings[mode][key]
+                value = bindings[mode][key]
+                if value:
+                    cmdline = value
         return cmdline
 
     def get_accounts(self):
