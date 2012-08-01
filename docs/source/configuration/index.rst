@@ -22,4 +22,4 @@ All configs are optional, but if you want to send mails you need to specify at l
    contacts_completion
    key_bindings
    hooks
-   themes
+   theming
