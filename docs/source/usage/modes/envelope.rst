@@ -1,131 +1,109 @@
 .. CAUTION: THIS FILE IS AUTO-GENERATED!
 
 
-envelope
---------
+Commands in `envelope` mode
+---------------------------
 The following commands are available in envelope mode
 
-.. _cmd_envelope_set:
-.. index:: set
+.. _cmd.envelope.set:
 
-set
-___
+.. describe:: set
 
-set header value
+    set header value
 
-positional arguments
-	:0: header to refine
-	:1: value
+    positional arguments
+        0: header to refine
+        1: value
 
 
-optional arguments
-	:---append: keep previous values.
+    optional arguments
+        :---append: keep previous values.
 
-.. _cmd_envelope_togglesign:
-.. index:: togglesign
+.. _cmd.envelope.togglesign:
 
-togglesign
-__________
+.. describe:: togglesign
 
-toggle sign status
+    toggle sign status
 
-argument
-	which key id to use
+    argument
+        which key id to use
 
 
-.. _cmd_envelope_toggleheaders:
-.. index:: toggleheaders
+.. _cmd.envelope.toggleheaders:
 
-toggleheaders
-_____________
+.. describe:: toggleheaders
 
-toggle display of all headers
+    toggle display of all headers
 
 
-.. _cmd_envelope_edit:
-.. index:: edit
+.. _cmd.envelope.edit:
 
-edit
-____
+.. describe:: edit
 
-edit mail
+    edit mail
 
-optional arguments
-	:---spawn: spawn editor in new terminal.
-	:---refocus: refocus envelope after editing (Defaults to: 'True').
+    optional arguments
+        :---spawn: spawn editor in new terminal.
+        :---refocus: refocus envelope after editing (Defaults to: 'True').
 
-.. _cmd_envelope_send:
-.. index:: send
+.. _cmd.envelope.send:
 
-send
-____
+.. describe:: send
 
-send mail
+    send mail
 
 
-.. _cmd_envelope_sign:
-.. index:: sign
+.. _cmd.envelope.sign:
 
-sign
-____
+.. describe:: sign
 
-mark mail to be signed before sending
+    mark mail to be signed before sending
 
-argument
-	which key id to use
+    argument
+        which key id to use
 
 
-.. _cmd_envelope_attach:
-.. index:: attach
+.. _cmd.envelope.attach:
 
-attach
-______
+.. describe:: attach
 
-attach files to the mail
+    attach files to the mail
 
-argument
-	file(s) to attach (accepts wildcads)
+    argument
+        file(s) to attach (accepts wildcads)
 
 
-.. _cmd_envelope_refine:
-.. index:: refine
+.. _cmd.envelope.refine:
 
-refine
-______
+.. describe:: refine
 
-prompt to change the value of a header
+    prompt to change the value of a header
 
-argument
-	header to refine
+    argument
+        header to refine
 
 
-.. _cmd_envelope_save:
-.. index:: save
+.. _cmd.envelope.save:
 
-save
-____
+.. describe:: save
 
-save draft
+    save draft
 
 
-.. _cmd_envelope_unsign:
-.. index:: unsign
+.. _cmd.envelope.unsign:
 
-unsign
-______
+.. describe:: unsign
 
-mark mail not to be signed before sending
+    mark mail not to be signed before sending
 
 
-.. _cmd_envelope_unset:
-.. index:: unset
+.. _cmd.envelope.unset:
 
-unset
-_____
+.. describe:: unset
 
-remove header field
+    remove header field
 
-argument
-	header to refine
+    argument
+        header to refine
 
 

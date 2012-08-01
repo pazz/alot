@@ -1,215 +1,183 @@
 .. CAUTION: THIS FILE IS AUTO-GENERATED!
 
 
-thread
-------
+Commands in `thread` mode
+-------------------------
 The following commands are available in thread mode
 
-.. _cmd_thread_pipeto:
-.. index:: pipeto
+.. _cmd.thread.pipeto:
 
-pipeto
-______
+.. describe:: pipeto
 
-pipe message(s) to stdin of a shellcommand
+    pipe message(s) to stdin of a shellcommand
 
-argument
-	shellcommand to pipe to
+    argument
+        shellcommand to pipe to
 
-optional arguments
-	:---all: pass all messages.
-	:---format: output format. Valid choices are: \`raw\`,\`decoded\`,\`id\`,\`filepath\` (Defaults to: 'raw').
-	:---separately: call command once for each message.
-	:---background: don't stop the interface.
-	:---add_tags: add 'Tags' header to the message.
-	:---shell: let the shell interpret the command.
-	:---notify_stdout: display command's stdout as notification message.
+    optional arguments
+        :---all: pass all messages.
+        :---format: output format. Valid choices are: \`raw\`,\`decoded\`,\`id\`,\`filepath\` (Defaults to: 'raw').
+        :---separately: call command once for each message.
+        :---background: don't stop the interface.
+        :---add_tags: add 'Tags' header to the message.
+        :---shell: let the shell interpret the command.
+        :---notify_stdout: display command's stdout as notification message.
 
-.. _cmd_thread_editnew:
-.. index:: editnew
+.. _cmd.thread.editnew:
 
-editnew
-_______
+.. describe:: editnew
 
-edit message in as new
+    edit message in as new
 
-optional arguments
-	:---spawn: open editor in new window.
+    optional arguments
+        :---spawn: open editor in new window.
 
-.. _cmd_thread_toggleheaders:
-.. index:: toggleheaders
+.. _cmd.thread.toggleheaders:
 
-toggleheaders
-_____________
+.. describe:: toggleheaders
 
-display all headers
+    display all headers
 
-optional arguments
-	:---all: affect all messages.
+    optional arguments
+        :---all: affect all messages.
 
-.. _cmd_thread_print:
-.. index:: print
+.. _cmd.thread.print:
 
-print
-_____
+.. describe:: print
 
-print message(s)
+    print message(s)
 
-optional arguments
-	:---all: print all messages.
-	:---raw: pass raw mail string.
-	:---separately: call print command once for each message.
-	:---add_tags: add 'Tags' header to the message.
+    optional arguments
+        :---all: print all messages.
+        :---raw: pass raw mail string.
+        :---separately: call print command once for each message.
+        :---add_tags: add 'Tags' header to the message.
 
-.. _cmd_thread_remove:
-.. index:: remove
+.. _cmd.thread.remove:
 
-remove
-______
+.. describe:: remove
 
-remove message(s) from the index
+    remove message(s) from the index
 
-optional arguments
-	:---all: remove whole thread.
+    optional arguments
+        :---all: remove whole thread.
 
-.. _cmd_thread_togglesource:
-.. index:: togglesource
+.. _cmd.thread.togglesource:
 
-togglesource
-____________
+.. describe:: togglesource
 
-display message source
+    display message source
 
-optional arguments
-	:---all: affect all messages.
+    optional arguments
+        :---all: affect all messages.
 
-.. _cmd_thread_retag:
-.. index:: retag
+.. _cmd.thread.retag:
 
-retag
-_____
+.. describe:: retag
 
-set message(s) tags.
+    set message(s) tags.
 
-argument
-	comma separated list of tags
+    argument
+        comma separated list of tags
 
-optional arguments
-	:---all: tag all messages in thread.
-	:---no-flush: postpone a writeout to the index (Defaults to: 'True').
+    optional arguments
+        :---all: tag all messages in thread.
+        :---no-flush: postpone a writeout to the index (Defaults to: 'True').
 
-.. _cmd_thread_fold:
-.. index:: fold
+.. _cmd.thread.fold:
 
-fold
-____
+.. describe:: fold
 
-fold message(s)
+    fold message(s)
 
-optional arguments
-	:---all: fold all messages.
+    optional arguments
+        :---all: fold all messages.
 
-.. _cmd_thread_tag:
-.. index:: tag
+.. _cmd.thread.tag:
 
-tag
-___
+.. describe:: tag
 
-add tags to message(s)
+    add tags to message(s)
 
-argument
-	comma separated list of tags
+    argument
+        comma separated list of tags
 
-optional arguments
-	:---all: tag all messages in thread.
-	:---no-flush: postpone a writeout to the index (Defaults to: 'True').
+    optional arguments
+        :---all: tag all messages in thread.
+        :---no-flush: postpone a writeout to the index (Defaults to: 'True').
 
-.. _cmd_thread_untag:
-.. index:: untag
+.. _cmd.thread.untag:
 
-untag
-_____
+.. describe:: untag
 
-remove tags from message(s)
+    remove tags from message(s)
 
-argument
-	comma separated list of tags
+    argument
+        comma separated list of tags
 
-optional arguments
-	:---all: tag all messages in thread.
-	:---no-flush: postpone a writeout to the index (Defaults to: 'True').
+    optional arguments
+        :---all: tag all messages in thread.
+        :---no-flush: postpone a writeout to the index (Defaults to: 'True').
 
-.. _cmd_thread_unfold:
-.. index:: unfold
+.. _cmd.thread.unfold:
 
-unfold
-______
+.. describe:: unfold
 
-unfold message(s)
+    unfold message(s)
 
-optional arguments
-	:---all: unfold all messages.
+    optional arguments
+        :---all: unfold all messages.
 
-.. _cmd_thread_forward:
-.. index:: forward
+.. _cmd.thread.forward:
 
-forward
-_______
+.. describe:: forward
 
-forward message
+    forward message
 
-optional arguments
-	:---attach: attach original mail.
-	:---spawn: open editor in new window.
+    optional arguments
+        :---attach: attach original mail.
+        :---spawn: open editor in new window.
 
-.. _cmd_thread_reply:
-.. index:: reply
+.. _cmd.thread.reply:
 
-reply
-_____
+.. describe:: reply
 
-reply to message
+    reply to message
 
-optional arguments
-	:---all: reply to all.
-	:---spawn: open editor in new window.
+    optional arguments
+        :---all: reply to all.
+        :---spawn: open editor in new window.
 
-.. _cmd_thread_save:
-.. index:: save
+.. _cmd.thread.save:
 
-save
-____
+.. describe:: save
 
-save attachment(s)
+    save attachment(s)
 
-argument
-	path to save to
+    argument
+        path to save to
 
-optional arguments
-	:---all: save all attachments.
+    optional arguments
+        :---all: save all attachments.
 
-.. _cmd_thread_toggletags:
-.. index:: toggletags
+.. _cmd.thread.toggletags:
 
-toggletags
-__________
+.. describe:: toggletags
 
-flip presence of tags on message(s)
+    flip presence of tags on message(s)
 
-argument
-	comma separated list of tags
+    argument
+        comma separated list of tags
 
-optional arguments
-	:---all: tag all messages in thread.
-	:---no-flush: postpone a writeout to the index (Defaults to: 'True').
+    optional arguments
+        :---all: tag all messages in thread.
+        :---no-flush: postpone a writeout to the index (Defaults to: 'True').
 
-.. _cmd_thread_select:
-.. index:: select
+.. _cmd.thread.select:
 
-select
-______
+.. describe:: select
 
-select focussed element. The fired action depends on the focus:
+    select focussed element. The fired action depends on the focus:
         - if message summary, this toggles visibility of the message,
         - if attachment line, this opens the attachment
 

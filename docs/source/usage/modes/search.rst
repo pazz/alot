@@ -1,120 +1,102 @@
 .. CAUTION: THIS FILE IS AUTO-GENERATED!
 
 
-search
-------
+Commands in `search` mode
+-------------------------
 The following commands are available in search mode
 
-.. _cmd_search_sort:
-.. index:: sort
+.. _cmd.search.sort:
 
-sort
-____
+.. describe:: sort
 
-set sort order
+    set sort order
 
-argument
-	sort order. valid choices are: \`oldest_first\`,\`newest_first\`,\`message_id\`,\`unsorted\`.
+    argument
+        sort order. valid choices are: \`oldest_first\`,\`newest_first\`,\`message_id\`,\`unsorted\`.
 
 
-.. _cmd_search_untag:
-.. index:: untag
+.. _cmd.search.untag:
 
-untag
-_____
+.. describe:: untag
 
-remove tags from all messages in the thread
+    remove tags from all messages in the thread
 
-argument
-	comma separated list of tags
+    argument
+        comma separated list of tags
 
-optional arguments
-	:---no-flush: postpone a writeout to the index (Defaults to: 'True').
+    optional arguments
+        :---no-flush: postpone a writeout to the index (Defaults to: 'True').
 
-.. _cmd_search_retag:
-.. index:: retag
+.. _cmd.search.retag:
 
-retag
-_____
+.. describe:: retag
 
-set tags of all messages in the thread
+    set tags of all messages in the thread
 
-argument
-	comma separated list of tags
+    argument
+        comma separated list of tags
 
-optional arguments
-	:---no-flush: postpone a writeout to the index (Defaults to: 'True').
+    optional arguments
+        :---no-flush: postpone a writeout to the index (Defaults to: 'True').
 
-.. _cmd_search_refineprompt:
-.. index:: refineprompt
+.. _cmd.search.refineprompt:
 
-refineprompt
-____________
+.. describe:: refineprompt
 
-prompt to change this buffers querystring
+    prompt to change this buffers querystring
 
 
-.. _cmd_search_tag:
-.. index:: tag
+.. _cmd.search.tag:
 
-tag
-___
+.. describe:: tag
 
-add tags to all messages in the thread
+    add tags to all messages in the thread
 
-argument
-	comma separated list of tags
+    argument
+        comma separated list of tags
 
-optional arguments
-	:---no-flush: postpone a writeout to the index (Defaults to: 'True').
+    optional arguments
+        :---no-flush: postpone a writeout to the index (Defaults to: 'True').
 
-.. _cmd_search_refine:
-.. index:: refine
+.. _cmd.search.refine:
 
-refine
-______
+.. describe:: refine
 
-refine query
+    refine query
 
-argument
-	search string
+    argument
+        search string
 
-optional arguments
-	:---sort: sort order. Valid choices are: \`oldest_first\`,\`newest_first\`,\`message_id\`,\`unsorted\`.
+    optional arguments
+        :---sort: sort order. Valid choices are: \`oldest_first\`,\`newest_first\`,\`message_id\`,\`unsorted\`.
 
-.. _cmd_search_retagprompt:
-.. index:: retagprompt
+.. _cmd.search.retagprompt:
 
-retagprompt
-___________
+.. describe:: retagprompt
 
-prompt to retag selected threads' tags
+    prompt to retag selected threads' tags
 
 
-.. _cmd_search_toggletags:
-.. index:: toggletags
+.. _cmd.search.toggletags:
 
-toggletags
-__________
+.. describe:: toggletags
 
-flip presence of tags on this thread.
+    flip presence of tags on this thread.
     A tag is considered present if at least one message contained in this
     thread is tagged with it. In that case this command will remove the tag
     from every message in the thread.
     
 
-argument
-	comma separated list of tags
+    argument
+        comma separated list of tags
 
-optional arguments
-	:---no-flush: postpone a writeout to the index (Defaults to: 'True').
+    optional arguments
+        :---no-flush: postpone a writeout to the index (Defaults to: 'True').
 
-.. _cmd_search_select:
-.. index:: select
+.. _cmd.search.select:
 
-select
-______
+.. describe:: select
 
-open thread in a new buffer
+    open thread in a new buffer
 
 

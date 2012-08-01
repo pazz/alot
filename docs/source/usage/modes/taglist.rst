@@ -1,16 +1,14 @@
 .. CAUTION: THIS FILE IS AUTO-GENERATED!
 
 
-taglist
--------
+Commands in `taglist` mode
+--------------------------
 The following commands are available in taglist mode
 
-.. _cmd_taglist_select:
-.. index:: select
+.. _cmd.taglist.select:
 
-select
-______
+.. describe:: select
 
-search for messages with selected tag
+    search for messages with selected tag
 
 

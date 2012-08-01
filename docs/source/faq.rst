@@ -27,8 +27,8 @@ FAQ
 
 4. Why are the default key bindings so counter-intuitive?
 
-    Be aware that the bindings for all modes are :ref:`fully configurable <key_bindings>`.
-    That said, I choose the bindings to be natural for me. I use `vim <http://vim.org>`_ and
+    Be aware that the bindings for all modes are :ref:`fully configurable <config.key_bindings>`.
+    That said, I choose the bindings to be natural for me. I use `vim <http://www.vim.org>`_ and
     `pentadactyl <http://dactyl.sourceforge.net/pentadactyl/>`_ a lot.  However, I'd be
     interested in discussing the defaults. If you think your bindings are more intuitive or
     better suited as defaults for some reason, don't hesitate to send me your config. The same
