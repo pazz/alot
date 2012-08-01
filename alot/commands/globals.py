@@ -328,8 +328,9 @@ class CallCommand(Command):
             ui.notify(msg % e, priority='error')
 
 
-@registerCommand(MODE, 'bclose')
-@registerCommand(MODE, 'bclose!', forced={'force': True})
+@registerCommand(MODE, 'bclose', arguments=[
+    (['--force'], {'action': 'store_true',
+                   'help': 'never ask for confirmation'})])
 class BufferCloseCommand(Command):
     """close a buffer"""
     def __init__(self, buffer=None, force=False, **kwargs):
