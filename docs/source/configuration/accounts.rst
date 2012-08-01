@@ -5,7 +5,9 @@ Accounts
 In order to be able to send mails, you have to define at least one account subsection in your config:
 There needs to be a section "accounts", and each subsection, indicated by double square brackets defines an account.
 
-Here is an example configuration::
+Here is an example configuration
+
+.. code-block:: ini
 
     [accounts]
         [[work]]

@@ -42,7 +42,9 @@ for more details on the interpreted values.  A colour picker that makes choosing
 found in :file:`alot/extra/colour_picker.py`.
 
 As an example, check the setting below that makes the footer line appear as
-underlined bold red text on a bright green background::
+underlined bold red text on a bright green background:
+
+.. sourcecode:: ini
 
   [[global]]
     #name    mono fg     mono bg   16c fg                        16c bg         256c fg                 256c bg
@@ -94,7 +96,9 @@ the criteria defined by its 'query' and 'taggeswith' values:
 
 The example below shows how to highlight unread threads:
 The date-part will be bold red if the thread has unread messages and flagged messages
-and just bold if the thread has unread but no flagged messages::
+and just bold if the thread has unread but no flagged messages:
+
+.. sourcecode:: ini
 
     [search]
         # default threadline
@@ -106,7 +110,7 @@ and just bold if the thread has unread but no flagged messages::
                 normal = 'default','default','light gray','default','g58','default'
                 focus = 'standout','default','light gray','dark gray','g89','#68a'
                 width = 'fit',10,10
-            ...
+            # ...
 
         # highlight threads containing unread and flagged messages
         [[threadline-flagged-unread]]
@@ -137,7 +141,9 @@ Such a section may define
               representation on the fly using `re.sub`. This only really makes sense if
               one uses a regular expression to match more than one tagstring (see below).
 
-The following will make alot display the "todo" tag as "TODO" in white on red. ::
+The following will make alot display the "todo" tag as "TODO" in white on red.
+
+.. sourcecode:: ini
 
     [tags]
       [[todo]]
@@ -146,7 +152,9 @@ The following will make alot display the "todo" tag as "TODO" in white on red. :
 
 Utf-8 symbols are welcome here, see e.g.
 http://panmental.de/symbols/info.htm for some fancy symbols. I personally display my maildir flags
-like this::
+like this:
+
+.. sourcecode:: ini
 
     [tags]
 
@@ -168,7 +176,9 @@ You may use regular expressions in the tagstring subsections to theme multiple t
 If you do so, you can use the `translation` option to specify a string substitution that will
 rename a matching tagstring. `translation` takes a comma separated *pair* of strings that will be fed to
 :func:`re.sub`. For instance, to theme all your `nmbug`_ tagstrings and especially colour tag `notmuch::bug` red,
-do the following::
+do the following:
+
+.. sourcecode:: ini
 
   [[notmuch::bug]]
     translated = 'nm:bug'
