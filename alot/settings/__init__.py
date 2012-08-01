@@ -102,18 +102,6 @@ class SettingsManager(object):
         self._accounts = self._parse_accounts(self._config)
         self._accountmap = self._account_table(self._accounts)
 
-    def write_default_config(self, path):
-        """write out defaults/config.stub to path"""
-        (dir, file) = os.path.split(path)
-        try:
-            os.makedirs(dir)
-        except OSError, e:
-            if e.errno == errno.EEXIST:
-                pass
-            else:
-                raise
-        shutil.copyfile(os.path.join(DEFAULTSPATH, 'config.stub'), path)
-
     def _parse_accounts(self, config):
         """
         read accounts information from config

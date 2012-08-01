@@ -152,10 +152,6 @@ def main():
             break  # use only the first
 
     try:
-        if not alotconfig:
-            alotconfig = configfiles[0]
-            settings.write_default_config(alotconfig)
-
         settings.read_config(alotconfig)
         settings.read_notmuch_config(notmuchconfig)
     except (ConfigError, OSError, IOError), e:
