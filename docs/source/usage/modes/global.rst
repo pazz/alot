@@ -1,206 +1,170 @@
 .. CAUTION: THIS FILE IS AUTO-GENERATED!
 
 
-global
-------
+Global Commands
+---------------
 The following commands are available globally
 
-.. _cmd_global_bclose:
-.. index:: bclose
+.. _cmd.global.bclose:
 
-bclose
-______
+.. describe:: bclose
 
-close a buffer
+    close a buffer
 
 
-.. _cmd_global_bprevious:
-.. index:: bprevious
+.. _cmd.global.bprevious:
 
-bprevious
-_________
+.. describe:: bprevious
 
-focus previous buffer
+    focus previous buffer
 
 
-.. _cmd_global_search:
-.. index:: search
+.. _cmd.global.search:
 
-search
-______
+.. describe:: search
 
-open a new search buffer
+    open a new search buffer
 
-argument
-	search string
+    argument
+        search string
 
-optional arguments
-	:---sort: sort order. Valid choices are: \`oldest_first\`,\`newest_first\`,\`message_id\`,\`unsorted\`.
+    optional arguments
+        :---sort: sort order. Valid choices are: \`oldest_first\`,\`newest_first\`,\`message_id\`,\`unsorted\`.
 
-.. _cmd_global_compose:
-.. index:: compose
+.. _cmd.global.compose:
 
-compose
-_______
+.. describe:: compose
 
-compose a new email
+    compose a new email
 
-optional arguments
-	:---sender: sender.
-	:---template: path to a template message file.
-	:---subject: subject line.
-	:---to: recipients.
-	:---cc: copy to.
-	:---bcc: blind copy to.
-	:---attach: attach files.
-	:---omit_signature: do not add signature.
-	:---spawn: spawn editor in new terminal.
+    optional arguments
+        :---sender: sender.
+        :---template: path to a template message file.
+        :---subject: subject line.
+        :---to: recipients.
+        :---cc: copy to.
+        :---bcc: blind copy to.
+        :---attach: attach files.
+        :---omit_signature: do not add signature.
+        :---spawn: spawn editor in new terminal.
 
-.. _cmd_global_prompt:
-.. index:: prompt
+.. _cmd.global.prompt:
 
-prompt
-______
+.. describe:: prompt
 
-prompts for commandline and interprets it upon select
+    prompts for commandline and interprets it upon select
 
-argument
-	initial content
+    argument
+        initial content
 
 
-.. _cmd_global_help:
-.. index:: help
+.. _cmd.global.help:
 
-help
-____
+.. describe:: help
 
-
+    
     display help for a command. Use 'bindings' to
     display all keybings interpreted in current mode.'
     
 
-argument
-	command or 'bindings'
+    argument
+        command or 'bindings'
 
 
-.. _cmd_global_move:
-.. index:: move
+.. _cmd.global.move:
 
-move
-____
+.. describe:: move
 
-move focus
+    move focus
 
-argument
-	direction
+    argument
+        direction
 
 
-.. _cmd_global_shellescape:
-.. index:: shellescape
+.. _cmd.global.shellescape:
 
-shellescape
-___________
+.. describe:: shellescape
 
-run external command
+    run external command
 
-argument
-	command line to execute
+    argument
+        command line to execute
 
-optional arguments
-	:---spawn: run in terminal window.
-	:---thread: run in separate thread.
-	:---refocus: refocus current buffer                      after command has finished.
+    optional arguments
+        :---spawn: run in terminal window.
+        :---thread: run in separate thread.
+        :---refocus: refocus current buffer                      after command has finished.
 
-.. _cmd_global_refresh:
-.. index:: refresh
+.. _cmd.global.refresh:
 
-refresh
-_______
+.. describe:: refresh
 
-refresh the current buffer
+    refresh the current buffer
 
 
-.. _cmd_global_cancel:
-.. index:: cancel
+.. _cmd.global.cancel:
 
-cancel
-______
+.. describe:: cancel
 
-send cancel event
+    send cancel event
 
 
-.. _cmd_global_pyshell:
-.. index:: pyshell
+.. _cmd.global.pyshell:
 
-pyshell
-_______
+.. describe:: pyshell
 
-open an interactive python shell for introspection
+    open an interactive python shell for introspection
 
 
-.. _cmd_global_exit:
-.. index:: exit
+.. _cmd.global.exit:
 
-exit
-____
+.. describe:: exit
 
-shut down cleanly
+    shut down cleanly
 
 
-.. _cmd_global_flush:
-.. index:: flush
+.. _cmd.global.flush:
 
-flush
-_____
+.. describe:: flush
 
-flush write operations or retry until committed
+    flush write operations or retry until committed
 
 
-.. _cmd_global_bufferlist:
-.. index:: bufferlist
+.. _cmd.global.bufferlist:
 
-bufferlist
-__________
+.. describe:: bufferlist
 
-open a list of active buffers
+    open a list of active buffers
 
 
-.. _cmd_global_call:
-.. index:: call
+.. _cmd.global.call:
 
-call
-____
+.. describe:: call
 
- Executes python code 
+     Executes python code 
 
-argument
-	python command string to call
+    argument
+        python command string to call
 
 
-.. _cmd_global_bnext:
-.. index:: bnext
+.. _cmd.global.bnext:
 
-bnext
-_____
+.. describe:: bnext
 
-focus next buffer
+    focus next buffer
 
 
-.. _cmd_global_select:
-.. index:: select
+.. _cmd.global.select:
 
-select
-______
+.. describe:: select
 
-send select event
+    send select event
 
 
-.. _cmd_global_taglist:
-.. index:: taglist
+.. _cmd.global.taglist:
 
-taglist
-_______
+.. describe:: taglist
 
-opens taglist buffer
+    opens taglist buffer
 
 

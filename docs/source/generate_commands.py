@@ -49,19 +49,16 @@ def rstify_parser(parser):
         usage = usage.replace('--','---')
 
         # section header
-        out += '.. index:: %s\n' % parser.prog
-        out +='\n%s\n' % parser.prog
-        out += '_'*len(parser.prog)
-        out += '\n\n'
+        out += '.. describe:: %s\n\n' % parser.prog
 
         # description
-        out += parser.description
+        out += ' '*4 + parser.description
         out += '\n\n'
 
         if len(parser._positionals._group_actions) == 1:
-            out += "argument\n"
+            out += "    argument\n"
             a = parser._positionals._group_actions[0]
-            out += "\t%s" % parser._positionals._group_actions[0].help
+            out += ' '*8 + parser._positionals._group_actions[0].help
             if a.choices:
                 out += ". valid choices are: %s." % ','.join(['\`%s\`' % s for s
                                                               in a.choices])
@@ -69,9 +66,9 @@ def rstify_parser(parser):
                 out += ". defaults to: '%s'." % a.default
             out += '\n\n'
         elif len(parser._positionals._group_actions) > 1:
-            out += "positional arguments\n"
+            out += "    positional arguments\n"
             for index, a in enumerate(parser._positionals._group_actions):
-                out += "\t:%s: %s" % (index, a.help)
+                out += "        %s: %s" % (index, a.help)
                 if a.choices:
                     out += ". valid choices are: %s." % ','.join(['\`%s\`' % s for s
                                                                   in a.choices])
@@ -81,10 +78,10 @@ def rstify_parser(parser):
             out += '\n\n'
 
         if parser._optionals._group_actions:
-            out += "optional arguments\n"
+            out += "    optional arguments\n"
         for a in parser._optionals._group_actions:
             switches = [s.replace('--','---') for s in a.option_strings]
-            out += "\t:%s: %s" % (', '.join(switches), a.help)
+            out += "        :%s: %s" % (', '.join(switches), a.help)
             if a.choices and not isinstance(a, BooleanAction):
                 out += ". Valid choices are: %s" % ','.join(['\`%s\`' % s for s
                                                               in a.choices])
@@ -115,15 +112,19 @@ if __name__ == "__main__":
         modefilename = mode+'.rst'
         modefile = open(os.path.join(HERE, 'usage', 'modes', modefilename), 'w')
         modefile.write(NOTE)
-        modefile.write('%s\n%s\n' % (mode, '-' * len(mode)))
         if mode != 'global':
             modes.append(mode)
+            header = 'Commands in `%s` mode' % mode
+            modefile.write('%s\n%s\n' % (header, '-' * len(header)))
             modefile.write('The following commands are available in %s mode\n\n' % mode)
         else:
+            header = 'Global Commands'
+            modefile.write('%s\n%s\n' % (header, '-' * len(header)))
             modefile.write('The following commands are available globally\n\n')
         for cmdstring,struct in modecommands.items():
             cls, parser, forced_args = struct
-            labelline = '.. _cmd_%s_%s:\n' % (mode, cmdstring)
+            labelline = '.. _cmd.%s.%s:\n\n' % (mode, cmdstring.replace('_',
+                                                                        '-'))
             modefile.write(labelline)
             modefile.write(rstify_parser(parser))
         modefile.close()

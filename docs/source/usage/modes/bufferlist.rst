@@ -1,25 +1,21 @@
 .. CAUTION: THIS FILE IS AUTO-GENERATED!
 
 
-bufferlist
-----------
+Commands in `bufferlist` mode
+-----------------------------
 The following commands are available in bufferlist mode
 
-.. _cmd_bufferlist_close:
-.. index:: close
+.. _cmd.bufferlist.close:
 
-close
-_____
+.. describe:: close
 
-close focussed buffer
+    close focussed buffer
 
 
-.. _cmd_bufferlist_select:
-.. index:: select
+.. _cmd.bufferlist.select:
 
-select
-______
+.. describe:: select
 
-focus selected buffer
+    focus selected buffer
 
 

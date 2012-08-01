@@ -3,17 +3,17 @@
 Commands
 ========
 
-:doc:`modes/global`
+:doc:`global <modes/global>`
     globally available commands
-:doc:`modes/search`
+:doc:`search <modes/search>`
     shows a result list of threads for a query
-:doc:`modes/thread`
+:doc:`thread <modes/thread>`
     displays a thread as a tree of messages
-:doc:`modes/envelope`
+:doc:`envelope <modes/envelope>`
     message composition mode
-:doc:`modes/bufferlist`
+:doc:`bufferlist <modes/bufferlist>`
     lists all active buffers
-:doc:`modes/taglist`
+:doc:`taglist <modes/taglist>`
     lists all tagstrings present in the notmuch database
 
 .. toctree::
