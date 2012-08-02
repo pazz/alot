@@ -122,7 +122,7 @@ class EnvelopeBuffer(Buffer):
         return info
 
     def cleanup(self):
-        for tmp in self.envelope.tf:
+        for tmp in self.envelope.tmpfile:
             os.unlink(tmp.name)
 
     def rebuild(self):
