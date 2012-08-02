@@ -228,7 +228,7 @@ class EditCommand(Command):
             # get input
             # tempfile will be removed on buffer cleanup
 
-            f = open(tmpfile.name)
+            f = open(self.envelope.tmpfile.name)
             enc = settings.get('editor_writes_encoding')
             template = string_decode(f.read(), enc)
             f.close()
@@ -277,12 +277,17 @@ class EditCommand(Command):
             content = translate(content, ui=ui, dbm=ui.dbman)
 
         #write stuff to tempfile
-        tmpfile = tempfile.NamedTemporaryFile(delete=False, prefix='alot.')
-        self.envelope.tmpfile.append(tmpfile) # for later cleanup
-        tmpfile.write(content.encode('utf-8'))
-        tmpfile.flush()
-        tmpfile.close()
-        cmd = globals.EditCommand(tmpfile.name,
+        old_tmpfile = None
+        if self.envelope.tmpfile:
+            old_tmpfile = self.envelope.tmpfile
+        self.envelope.tmpfile = tempfile.NamedTemporaryFile(delete=False,
+                prefix='alot.')
+        self.envelope.tmpfile.write(content.encode('utf-8'))
+        self.envelope.tmpfile.flush()
+        self.envelope.tmpfile.close()
+        if old_tmpfile:
+            os.unlink(old_tmpfile.name)
+        cmd = globals.EditCommand(self.envelope.tmpfile.name,
                 on_success=openEnvelopeFromTmpfile, spawn=self.force_spawn,
                 thread=self.force_spawn, refocus=self.refocus)
         ui.apply_command(cmd)
