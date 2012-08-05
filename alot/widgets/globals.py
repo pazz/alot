@@ -3,7 +3,7 @@
 # For further details see the COPYING file
 
 """
-This contains alot-specific :ref:`urwid.Widgets` used in more than one mode.
+This contains alot-specific :class:`urwid.Widget` used in more than one mode.
 """
 import urwid
 

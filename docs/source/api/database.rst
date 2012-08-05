@@ -5,23 +5,23 @@ Email Database
 
 The python bindings to libnotmuch define :class:`notmuch.Thread` and 
 :class:`notmuch.Message`, which unfortunately are very fragile.
-Alot defines the wrapper classes :class:`Thread` and :class:`~alot.db.message.Message` that
-use an :class:`DBManager` instance to transparently provide persistent objects.
+Alot defines the wrapper classes :class:`alot.db.Thread` and :class:`alot.db.Message` that
+use an :class:`manager.DBManager` instance to transparently provide persistent objects.
 
-:class:`~alot.db.message.Message` moreover contains convenience methods
+:class:`alot.db.Message` moreover contains convenience methods
 to extract information about the message like reformated header values, a summary,
 decoded and interpreted body text and a list of :class:`Attachments <alot.db.attachment.Attachment>`.
 
-The central :class:`~alot.ui.UI` instance carries around a :class:`DBManager` object that
-is used for any lookups or modifications of the email base. :class:`DBManager` can
-directly look up :class:`Thread` and :class:`~alot.db.message.Message` objects and is able to
+The central :class:`~alot.ui.UI` instance carries around a :class:`~manager.DBManager` object that
+is used for any lookups or modifications of the email base. :class:`~manager.DBManager` can
+directly look up :class:`Thread` and :class:`~alot.db.Message` objects and is able to
 postpone/cache/retry writing operations in case the Xapian index is locked by another
 process.
 
 
 Database Manager
 -----------------
-.. autoclass:: DBManager
+.. autoclass:: alot.db.manager.DBManager
    :members:
 
 
@@ -41,11 +41,11 @@ Errors
 
 Wrapper
 -------
-.. autoclass:: alot.db.thread.Thread
+.. autoclass:: alot.db.Thread
    :members:
 
 
-.. autoclass:: alot.db.message.Message
+.. autoclass:: alot.db.Message
    :members:
 
 
