@@ -5,13 +5,13 @@ import sys
 import logging
 import os
 
-from settings import settings, ConfigError
-from db import DBManager
-from ui import UI
+from alot.settings import settings
+from alot.settings.errors import ConfigError
+from alot.db import DBManager
+from alot.ui import UI
 import alot.commands as commands
-from commands import *
+from alot.commands import *
 from alot.commands import CommandParseError
-import alot
 
 from twisted.python import usage
 
