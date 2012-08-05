@@ -7,7 +7,7 @@ import os
 
 from alot.settings import settings
 from alot.settings.errors import ConfigError
-from alot.db import DBManager
+from alot.db.manager import DBManager
 from alot.ui import UI
 import alot.commands as commands
 from alot.commands import *
