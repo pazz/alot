@@ -57,6 +57,7 @@ class Envelope(object):
         self.encrypt = encrypt
         self.sent_time = None
         self.modified_since_sent = False
+        self.sending = False  # used as semaphore to avoid accidental double sendout
 
     def __str__(self):
         return "Envelope (%s)\n%s" % (self.headers, self.body)
