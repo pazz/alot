@@ -119,6 +119,9 @@ class SendCommand(Command):
         currentbuffer = ui.current_buffer  # needed to close later
         envelope = currentbuffer.envelope
 
+        # This is to warn the user before re-sending
+        # an already sent message in case the envelope buffer
+        # was not closed because it was the last remaining buffer.
         if envelope.sent_time:
             warning = 'A modified version of ' * envelope.modified_since_sent
             warning += 'this message has been sent at %s.' % envelope.sent_time
@@ -127,6 +130,8 @@ class SendCommand(Command):
                                 msg_position='left')) == 'no':
                 return
 
+        # don't do anything if another SendCommand is in the middle of sending
+        # the message and we were triggered accidentally
         if envelope.sending:
             msg = 'sending this message already!'
             logging.debug(msg)
