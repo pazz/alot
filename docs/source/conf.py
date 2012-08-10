@@ -19,8 +19,12 @@ class Mock(object):
     def __getattr__(self, name):
         return Mock() if name not in ('__file__', '__path__') else '/dev/null'
 
-MOCK_MODULES = ['notmuch', 'notmuch.globals',
-                'twisted', 'twisted.internet',
+class MockModule(object):
+    @classmethod
+    def __getattr__(self, name):
+        return Mock if name not in ('__file__', '__path__') else '/dev/null'
+
+MOCK_MODULES = ['twisted', 'twisted.internet',
                 'twisted.internet.defer',
                 'twisted.python',
                 'twisted.python.failure',
@@ -29,7 +33,10 @@ MOCK_MODULES = ['notmuch', 'notmuch.globals',
                 'magic',
                 'gpgme',
                 'argparse']
+MOCK_DIRTY = ['notmuch']
 for mod_name in MOCK_MODULES:
+    sys.modules[mod_name] = MockModule()
+for mod_name in MOCK_DIRTY:
     sys.modules[mod_name] = Mock()
 
 # end of readthedocs.org hack

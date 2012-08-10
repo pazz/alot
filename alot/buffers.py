@@ -5,12 +5,18 @@ import urwid
 import os
 from notmuch import NotmuchError
 
-import widgets
 from settings import settings
 import commands
 from walker import PipeWalker
 from helper import shorten_author_string
 from db.errors import NonexistantObjectError
+
+from alot.widgets.globals import TagWidget
+from alot.widgets.globals import HeadersList
+from alot.widgets.globals import AttachmentWidget
+from alot.widgets.bufferlist import BufferlineWidget
+from alot.widgets.search import ThreadlineWidget
+from alot.widgets.thread import MessageWidget
 
 
 class Buffer(object):
@@ -76,7 +82,7 @@ class BufferlistBuffer(Buffer):
         lines = list()
         displayedbuffers = filter(self.filtfun, self.ui.buffers)
         for (num, b) in enumerate(displayedbuffers):
-            line = widgets.BufferlineWidget(b)
+            line = BufferlineWidget(b)
             if (num % 2) == 0:
                 attr = settings.get_theming_attribute('bufferlist',
                                                       'line_even')
@@ -148,13 +154,13 @@ class EnvelopeBuffer(Buffer):
             key_att = settings.get_theming_attribute('envelope', 'header_key')
             value_att = settings.get_theming_attribute('envelope',
                                                        'header_value')
-            self.header_wgt = widgets.HeadersList(lines, key_att, value_att)
+            self.header_wgt = HeadersList(lines, key_att, value_att)
             displayed_widgets.append(self.header_wgt)
 
         #display attachments
         lines = []
         for a in self.envelope.attachments:
-            lines.append(widgets.AttachmentWidget(a, selectable=False))
+            lines.append(AttachmentWidget(a, selectable=False))
         if lines:
             self.attachment_wgt = urwid.Pile(lines)
             displayed_widgets.append(self.attachment_wgt)
@@ -232,7 +238,7 @@ class SearchBuffer(Buffer):
             self.body = self.listbox
             return
 
-        self.threadlist = PipeWalker(self.pipe, widgets.ThreadlineWidget,
+        self.threadlist = PipeWalker(self.pipe, ThreadlineWidget,
                                      dbman=self.dbman)
 
         self.listbox = urwid.ListBox(self.threadlist)
@@ -318,9 +324,9 @@ class ThreadBuffer(Buffer):
             childcount[p] -= 1
 
             bars.append(childcount[p] > 0)
-            mwidget = widgets.MessageWidget(m, even=(num % 2 == 0),
-                                            depth=depth,
-                                            bars_at=bars)
+            mwidget = MessageWidget(m, even=(num % 2 == 0),
+                                    depth=depth,
+                                    bars_at=bars)
             msglines.append(mwidget)
 
         self.body = urwid.ListBox(msglines)
@@ -396,7 +402,7 @@ class TagListBuffer(Buffer):
                 attr = settings.get_theming_attribute('taglist', 'line_odd')
             focus_att = settings.get_theming_attribute('taglist', 'line_focus')
 
-            tw = widgets.TagWidget(b, attr, focus_att)
+            tw = TagWidget(b, attr, focus_att)
             rows = [('fixed', tw.width(), tw)]
             if tw.hidden:
                 rows.append(urwid.Text(b + ' [hidden]'))

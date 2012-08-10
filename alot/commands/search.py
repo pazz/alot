@@ -39,11 +39,11 @@ class OpenThreadCommand(Command):
 
 @registerCommand(MODE, 'refine', help='refine query', arguments=[
     (['--sort'], {'help':'sort order', 'choices':[
-                   'oldest_first', 'newest_first', 'message_id', 'unsorted']}),
+                  'oldest_first', 'newest_first', 'message_id', 'unsorted']}),
     (['query'], {'nargs':argparse.REMAINDER, 'help':'search string'})])
 @registerCommand(MODE, 'sort', help='set sort order', arguments=[
     (['sort'], {'help':'sort order', 'choices':[
-                 'oldest_first', 'newest_first', 'message_id', 'unsorted']}),
+                'oldest_first', 'newest_first', 'message_id', 'unsorted']}),
 ])
 class RefineCommand(Command):
     """refine the querystring of this buffer"""
@@ -186,7 +186,7 @@ class TagCommand(Command):
                 thread.add_tags(tags, afterwards=refresh)
             if self.action == 'set':
                 thread.add_tags(tags, afterwards=refresh,
-                           remove_rest=True)
+                                remove_rest=True)
             elif self.action == 'remove':
                 thread.remove_tags(tags, afterwards=refresh)
             elif self.action == 'toggle':

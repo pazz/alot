@@ -196,9 +196,9 @@ def commandfactory(cmdline, mode='global'):
     # set pre and post command hooks
     get_hook = settings.get_hook
     parms['prehook'] = get_hook('pre_%s_%s' % (mode, cmdname)) or \
-            get_hook('pre_global_%s' % cmdname)
+        get_hook('pre_global_%s' % cmdname)
     parms['posthook'] = get_hook('post_%s_%s' % (mode, cmdname)) or \
-            get_hook('post_global_%s' % cmdname)
+        get_hook('post_global_%s' % cmdname)
 
     logging.debug('cmd parms %s' % parms)
     return cmdclass(**parms)

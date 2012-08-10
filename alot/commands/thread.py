@@ -5,7 +5,6 @@ import os
 import logging
 import tempfile
 from twisted.internet.defer import inlineCallbacks
-import re
 import subprocess
 from email.Utils import parseaddr
 import mailcap
@@ -15,8 +14,6 @@ from alot.commands import Command, registerCommand
 from alot.commands.globals import ExternalCommand
 from alot.commands.globals import FlushCommand
 from alot.commands.globals import ComposeCommand
-from alot.commands.globals import RefreshCommand
-from alot import widgets
 from alot import completion
 from alot.db.utils import decode_header
 from alot.db.utils import encode_header
@@ -29,6 +26,9 @@ from alot.settings import settings
 from alot.helper import parse_mailcap_nametemplate
 from alot.helper import split_commandstring
 from alot.utils.booleanaction import BooleanAction
+
+from alot.widgets.globals import AttachmentWidget
+from alot.widgets.thread import MessageSummaryWidget
 
 MODE = 'thread'
 
@@ -226,7 +226,8 @@ class ForwardCommand(Command):
             if qf:
                 quote = qf(name, address, timestamp, ui=ui, dbm=ui.dbman)
             else:
-                quote = 'Forwarded message from %s (%s):\n' % (name or address, timestamp)
+                quote = 'Forwarded message from %s (%s):\n' % (
+                    name or address, timestamp)
             mailcontent = quote
             quotehook = settings.get_hook('text_quote')
             if quotehook:
@@ -317,9 +318,9 @@ class EditNewCommand(Command):
     (['--all'], {'action': 'store_true', 'help':'affect all messages'})],
     help='display message source')
 @registerCommand(MODE, 'toggleheaders', forced={'all_headers': 'toggle'},
-    arguments=[
-        (['--all'], {'action': 'store_true', 'help':'affect all messages'})],
-    help='display all headers')
+                 arguments=[
+                 (['--all'], {'action': 'store_true', 'help':'affect all messages'})],
+                 help='display all headers')
 class ChangeDisplaymodeCommand(Command):
     """fold or unfold messages"""
     def __init__(self, all=False, visible=None, raw=None, all_headers=None,
@@ -383,11 +384,11 @@ class ChangeDisplaymodeCommand(Command):
     (['--background'], {'action': 'store_true',
                         'help':'don\'t stop the interface'}),
     (['--add_tags'], {'action': 'store_true',
-                        'help':'add \'Tags\' header to the message'}),
+                      'help':'add \'Tags\' header to the message'}),
     (['--shell'], {'action': 'store_true',
-                        'help':'let the shell interpret the command'}),
+                   'help':'let the shell interpret the command'}),
     (['--notify_stdout'], {'action': 'store_true',
-                'help':'display command\'s stdout as notification message'}),
+                           'help':'display command\'s stdout as notification message'}),
 ],
 )
 class PipeCommand(Command):
@@ -574,7 +575,7 @@ class RemoveCommand(Command):
     (['--separately'], {'action': 'store_true',
                         'help':'call print command once for each message'}),
     (['--add_tags'], {'action': 'store_true',
-                        'help':'add \'Tags\' header to the message'}),
+                      'help':'add \'Tags\' header to the message'}),
 ],
 )
 class PrintCommand(PipeCommand):
@@ -604,7 +605,7 @@ class PrintCommand(PipeCommand):
 
         # no print cmd set
         noop_msg = 'no print command specified. Set "print_cmd" in the '\
-                    'global section.'
+            'global section.'
 
         PipeCommand.__init__(self, [cmd], all=all, separately=separately,
                              background=True,
@@ -658,7 +659,7 @@ class SaveAttachmentCommand(Command):
                 ui.notify('canceled')
         else:  # save focussed attachment
             focus = ui.get_deep_focus()
-            if isinstance(focus, widgets.AttachmentWidget):
+            if isinstance(focus, AttachmentWidget):
                 attachment = focus.get_attachment()
                 filename = attachment.get_filename()
                 if not self.path:
@@ -747,9 +748,9 @@ class ThreadSelectCommand(Command):
         - if attachment line, this opens the attachment"""
     def apply(self, ui):
         focus = ui.get_deep_focus()
-        if isinstance(focus, widgets.MessageSummaryWidget):
+        if isinstance(focus, MessageSummaryWidget):
             ui.apply_command(ChangeDisplaymodeCommand(visible='toggle'))
-        elif isinstance(focus, widgets.AttachmentWidget):
+        elif isinstance(focus, AttachmentWidget):
             logging.info('open attachment')
             ui.apply_command(OpenAttachmentCommand(focus.get_attachment()))
         else:

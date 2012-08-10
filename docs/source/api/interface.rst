@@ -85,7 +85,29 @@ Widgets
 What follows is a list of the non-standard urwid widgets used in alot.
 Some of them respect :doc:`user settings <settings>`, themes in particular.
 
-.. automodule:: alot.widgets
+utils
+`````
+.. automodule:: alot.widgets.utils
+    :members:
+
+globals
+```````
+.. automodule:: alot.widgets.globals
+    :members:
+
+bufferlist
+``````````
+.. automodule:: alot.widgets.bufferlist
+    :members:
+
+search
+``````
+.. automodule:: alot.widgets.search
+    :members:
+
+thread
+``````
+.. automodule:: alot.widgets.thread
     :members:
 
 Completion
