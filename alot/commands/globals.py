@@ -328,20 +328,34 @@ class CallCommand(Command):
             ui.notify(msg % e, priority='error')
 
 
-@registerCommand(MODE, 'bclose')
+@registerCommand(MODE, 'bclose', arguments=[
+    (['--force'], {'action': 'store_true',
+                   'help': 'never ask for confirmation'})])
 class BufferCloseCommand(Command):
     """close a buffer"""
-    def __init__(self, buffer=None, **kwargs):
+    def __init__(self, buffer=None, force=False, **kwargs):
         """
         :param buffer: the buffer to close or None for current
         :type buffer: `alot.buffers.Buffer`
+        :param force: force buffer close
+        :type force: bool
         """
         self.buffer = buffer
+        self.force = force
         Command.__init__(self, **kwargs)
 
+    @inlineCallbacks
     def apply(self, ui):
         if self.buffer == None:
             self.buffer = ui.current_buffer
+
+        if (isinstance(self.buffer, buffers.EnvelopeBuffer) and
+                not self.buffer.envelope.sent_time):
+            if (not self.force and
+                    (yield ui.choice('close without sending?', select='yes',
+                                cancel='no', msg_position='left')) == 'no'):
+                return
+
         if len(ui.buffers) == 1:
             if settings.get('quit_on_last_bclose'):
                 logging.info('closing the last buffer, exiting')
