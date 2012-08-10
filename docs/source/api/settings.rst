@@ -1,24 +1,29 @@
 User Settings
 =============
 
-.. module:: alot.settings
+.. module:: alot.settings.manager
 
-There are four types of user settings: notmuchs and alot's config
-files, the hooks-file for user provided python code and the mailcap,
-defining shell comands as handlers for files of certain mime types.
-Alot sets up :class:`SettingsManager` objects to access these user settings uniformly.
+Alot sets up a :class:`SettingsManager` to access user settings
+defined in different places uniformly.
+There are four types of user settings:
 
-MIME handlers can be looked up via :meth:`SettingsManager.get_mime_handler`,
-config values of alot and notmuch's config are accessible using
-:meth:`SettingsManager.get` and :meth:`SettingsManager.get_notmuch_setting`.
-These methods return either None or the requested value typed as indicated in
-the spec files :file:`alot/defaults/*spec`.
++------------------------------------+----------------------------------+---------------------------------------------+
+| what?                              | location                         | accessible via                              |
++====================================+==================================+=============================================+
+| alot config                        | :file:`~/.config/alot/config`    | :meth:`SettingsManager.get`                 |
+|                                    | or given by command option `-c`. |                                             |
++------------------------------------+----------------------------------+---------------------------------------------+
+| hooks -- user provided python code | :file:`~/.config/alot/hooks.py`  | :meth:`SettingsManager.get_hook`            |
+|                                    | or as given by the `hooksfile`   |                                             |
+|                                    | config value                     |                                             |
++------------------------------------+----------------------------------+---------------------------------------------+
+| notmuch config                     | :file:`~/.notmuchrc`             | :meth:`SettingsManager.get_notmuch_setting` |
+|                                    | or given by command option `-n`  |                                             |
++------------------------------------+----------------------------------+---------------------------------------------+
+| mailcap -- defines shellcommands   | :file:`~/.mailcap`               | :meth:`SettingsManager.mailcap_find_match`  |
+| to handle mime types               | (:file:`/etc/mailcap`)           |                                             |
++------------------------------------+----------------------------------+---------------------------------------------+
 
-Hooks can be looked up via :meth:`SettingsManager.get_hook`.
-They are user defined callables that expect to be called with the following parameters:
-
-  :ui: :class:`~alot.ui.UI` -- the initialized main component
-  :dbm: :class:`~alot.db.DBManager` -- :obj:`ui.dbman`
 
 Settings Manager
 ----------------

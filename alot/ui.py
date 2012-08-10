@@ -11,7 +11,9 @@ import commands
 from commands import commandfactory
 from alot.commands import CommandParseError
 from alot.helper import string_decode
-import widgets
+from alot.widgets.utils import CatchKeyWidgetWrap
+from alot.widgets.globals import CompleteEdit
+from alot.widgets.globals import ChoiceWidget
 
 
 class InputWrap(urwid.WidgetWrap):
@@ -92,9 +94,9 @@ class UI(object):
         self.mainframe_themed = urwid.AttrMap(self.mainframe, global_att)
         self.inputwrap = InputWrap(self, self.mainframe_themed)
         self.mainloop = urwid.MainLoop(self.inputwrap,
-                handle_mouse=False,
-                event_loop=urwid.TwistedEventLoop(),
-                unhandled_input=self.unhandeled_input)
+                                       handle_mouse=False,
+                                       event_loop=urwid.TwistedEventLoop(),
+                                       unhandled_input=self.unhandeled_input)
         self.mainloop.screen.set_terminal_properties(colors=colourmode)
 
         self.show_statusbar = settings.get('show_statusbar')
@@ -123,8 +125,8 @@ class UI(object):
                 logging.debug('called')
                 afterwards()
         logging.debug('relay: %s' % relay_rest)
-        helpwrap = widgets.CatchKeyWidgetWrap(w, key, on_catch=oe,
-                                              relay_rest=relay_rest)
+        helpwrap = CatchKeyWidgetWrap(w, key, on_catch=oe,
+                                      relay_rest=relay_rest)
         self.inputwrap.set_root(helpwrap)
         self.inputwrap.select_cancel_only = not relay_rest
 
@@ -158,7 +160,7 @@ class UI(object):
 
         #set up widgets
         leftpart = urwid.Text(prefix, align='left')
-        editpart = widgets.CompleteEdit(completer, on_exit=select_or_cancel,
+        editpart = CompleteEdit(completer, on_exit=select_or_cancel,
                                 edit_text=text, history=history)
 
         for i in range(tab):  # hit some tabs
@@ -314,8 +316,8 @@ class UI(object):
 
         #set up widgets
         msgpart = urwid.Text(message)
-        choicespart = widgets.ChoiceWidget(choices, callback=select_or_cancel,
-                                           select=select, cancel=cancel)
+        choicespart = ChoiceWidget(choices, callback=select_or_cancel,
+                                   select=select, cancel=cancel)
 
         # build widget
         if msg_position == 'left':

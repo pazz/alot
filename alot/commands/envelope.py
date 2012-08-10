@@ -84,14 +84,14 @@ class SaveCommand(Command):
         # determine account to use
         sname, saddr = email.Utils.parseaddr(envelope.get('From'))
         account = settings.get_account_by_address(saddr)
-        if account == None:
+        if account is None:
             if not settings.get_accounts():
                 ui.notify('no accounts set.', priority='error')
                 return
             else:
                 account = settings.get_accounts()[0]
 
-        if account.draft_box == None:
+        if account.draft_box is None:
             ui.notify('abort: account <%s> has no draft_box set.' % saddr,
                       priority='error')
             return
@@ -130,7 +130,7 @@ class SendCommand(Command):
 
         # determine account to use for sending
         account = settings.get_account_by_address(saddr)
-        if account == None:
+        if account is None:
             if not settings.get_accounts():
                 ui.notify('no accounts set', priority='error')
                 return
@@ -185,8 +185,8 @@ class SendCommand(Command):
     (['--spawn'], {'action': BooleanAction, 'default':None,
                    'help':'force spawning of editor in a new terminal'}),
     (['--refocus'], {'action': BooleanAction, 'default':True,
-                    'help':'refocus envelope after editing'}),
-    ])
+                     'help':'refocus envelope after editing'}),
+])
 class EditCommand(Command):
     """edit mail"""
     def __init__(self, envelope=None, spawn=None, refocus=True, **kwargs):
@@ -198,7 +198,7 @@ class EditCommand(Command):
         :param refocus: m
         """
         self.envelope = envelope
-        self.openNew = (envelope != None)
+        self.openNew = (envelope is not None)
         self.force_spawn = spawn
         self.refocus = refocus
         self.edit_only_body = False
@@ -280,15 +280,15 @@ class EditCommand(Command):
         if self.envelope.tmpfile:
             old_tmpfile = self.envelope.tmpfile
         self.envelope.tmpfile = tempfile.NamedTemporaryFile(delete=False,
-                prefix='alot.')
+                                                            prefix='alot.')
         self.envelope.tmpfile.write(content.encode('utf-8'))
         self.envelope.tmpfile.flush()
         self.envelope.tmpfile.close()
         if old_tmpfile:
             os.unlink(old_tmpfile.name)
         cmd = globals.EditCommand(self.envelope.tmpfile.name,
-                on_success=openEnvelopeFromTmpfile, spawn=self.force_spawn,
-                thread=self.force_spawn, refocus=self.refocus)
+                                  on_success=openEnvelopeFromTmpfile, spawn=self.force_spawn,
+                                  thread=self.force_spawn, refocus=self.refocus)
         ui.apply_command(cmd)
 
 
@@ -347,7 +347,7 @@ class ToggleHeaderCommand(Command):
     (['keyid'], {'nargs':argparse.REMAINDER, 'help':'which key id to use'})],
     help='mark mail to be signed before sending')
 @registerCommand(MODE, 'unsign', forced={'action': 'unsign'},
-    help='mark mail not to be signed before sending')
+                 help='mark mail not to be signed before sending')
 @registerCommand(MODE, 'togglesign', forced={'action': 'toggle'}, arguments=[
     (['keyid'], {'nargs':argparse.REMAINDER, 'help':'which key id to use'})],
     help='toggle sign status')

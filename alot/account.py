@@ -3,13 +3,11 @@
 # For further details see the COPYING file
 import mailbox
 import logging
-import time
 import os
 import glob
 
 from alot.helper import call_cmd_async
 from alot.helper import split_commandstring
-import alot.crypto as crypto
 
 
 class SendingMailFailed(RuntimeError):
