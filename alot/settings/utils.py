@@ -24,7 +24,9 @@ def read_config(configpath=None, specpath=None, checks={}):
     try:
         config = ConfigObj(infile=configpath, configspec=specpath,
                            file_error=True, encoding='UTF8')
-    except (ConfigObjError, IOError):
+    except ConfigObjError as e:
+        raise ConfigError(e)
+    except IOError:
         raise ConfigError('Could not read %s' % configpath)
     except UnboundLocalError:
         # this works around a bug in configobj
