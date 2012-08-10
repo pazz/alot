@@ -1,0 +1,86 @@
+###############################################################################
+# SUP
+#
+# colour theme for alot. © 2012 Patrick Totzke, GNU GPL3+
+# https://github.com/pazz/alot
+###############################################################################
+
+[global]
+    footer = 'standout,bold','','white,bold','dark blue','white,bold','dark blue'
+    body = '','','light gray','black','light gray','g0'
+    notify_error = 'standout','','light gray','dark red','light gray','dark red'
+    notify_normal = '','','light gray','black','light gray','#68a'
+    prompt = '','','light gray','black','light gray','g0'
+    tag = '','','yellow','','yellow',''
+    tag_focus = 'standout, bold','','yellow','','yellow',''
+[help]
+    text = '','','light gray','dark gray','light gray','dark gray'
+    section = 'underline','','white,underline','dark gray','white,underline','dark gray'
+    title = 'standout','','white,underline','dark gray','white,underline','dark gray'
+[bufferlist]
+    line_even = '','','light gray','black','light gray','g0'
+    line_odd = '','','light gray','black','light gray','g0'
+    line_focus = 'standout','','black','dark cyan','black','dark cyan'
+[taglist]
+    line_even = '','','light gray','black','light gray','g0'
+    line_odd = '','','light gray','black','light gray','g0'
+    line_focus = 'standout','','black','dark cyan','black','dark cyan'
+[thread]
+    arrow_heads = '','','black','black','g0','g0'
+    arrow_bars = '','','black','black','g0','g0'
+    attachment = '','','dark cyan','black','dark cyan','g0'
+    attachment_focus = 'standout','','black','dark cyan','black','dark cyan'
+    body = '','','light gray','black','light gray','g0'
+    header = '','','dark cyan','black','dark cyan','g0'
+    header_key = '','','brown','black','brown','g0'
+    header_value = '','','brown','black','brown','g0'
+
+    [[summary]]
+        even = '','','light gray','dark green','black','dark green'
+        odd = '','','light gray','dark green','black','dark green'
+        focus = 'standout','','black','dark cyan','black','dark cyan'
+
+[envelope]
+    body = '','','light gray','black','light gray','g0'
+    header = '','','dark cyan','black','dark cyan','g0'
+    header_key = '','','dark cyan','black','dark cyan','g0'
+    header_value = '','','dark cyan','black','dark cyan','g0'
+[search]
+    [[threadline]]
+        normal = '','','light gray','black','light gray','g0'
+        focus = 'standout','','black','dark cyan','black','dark cyan'
+        parts = date,authors,mailcount,subject,tags,content
+        [[[date]]]
+            normal = '','','light gray','black','light gray','g0'
+            focus = 'standout','','black,bold','dark cyan','black,bold','dark cyan'
+            width = 'fit',10,10
+            alignment = right
+        [[[mailcount]]]
+            normal = '','','light gray','black','light gray','g0'
+            focus = 'standout','','black,bold','dark cyan','black,bold','dark cyan'
+            alignment = right
+            width = 'fit', 5,5
+            template = '{%d}'
+        [[[tags]]]
+            normal = '','','brown','black','brown','g0'
+            focus = 'standout','','yellow,bold','dark cyan','yellow,bold','dark cyan'
+        [[[authors]]]
+            normal = '','','light gray','black','light gray','g0'
+            focus = 'standout','','black,bold','dark cyan','black,bold','dark cyan'
+            width = 'fit',18,18
+            alignment = left
+        [[[subject]]]
+            normal = '','','light gray','black','light gray','g0'
+            focus = 'standout','','black,bold','dark cyan','black,bold','dark cyan'
+            alignment = left
+            width = 'fit', 0, 0
+        [[[content]]]
+            normal = '','','dark cyan','black','dark cyan','g0'
+            focus = 'standout','','black','dark cyan','black','dark cyan'
+            width = 'weight', 1
+    [[threadline-unread]]
+        tagged_with = unread
+        [[[authors]]]
+            normal = '','','white,bold','black','white,bold','g0'
+        [[[subject]]]
+            normal = '','','white,bold','black','white,bold','g0'
