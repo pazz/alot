@@ -64,7 +64,7 @@ class ThreadlineWidget(urwid.AttrMap):
                 mailcountstring = "(%d)" % self.thread.get_total_messages()
             else:
                 mailcountstring = "(?)"
-            datestring = pad(mailcountstring)
+            mailcountstring = pad(mailcountstring)
             width = len(mailcountstring)
             mailcount_w = AttrFlipWidget(urwid.Text(mailcountstring),
                                          struct['mailcount'])
