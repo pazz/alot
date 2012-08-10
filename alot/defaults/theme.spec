@@ -44,7 +44,7 @@
             normal = attrtriple(default=None)
             focus = attrtriple(default=None)
             width = widthtuple(default=None)
-            alignment = align(default='right')
+            alignment = align(default=None)
 [thread]
     arrow_heads = attrtriple
     arrow_bars = attrtriple
