@@ -64,7 +64,6 @@ def extract_body(mail, types=None):
     body_parts = []
     for part in mail.walk():
         ctype = part.get_content_type()
-        logging.debug(ctype)
 
         if types is not None:
             if ctype not in types:
