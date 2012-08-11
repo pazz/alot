@@ -56,9 +56,9 @@
     tag = 'default','default','%(16_yellow)s','%(16_base03)s','%(256_yellow)s','%(256_base03)s'
     tag_focus = 'standout','default','%(16_base03)s','%(16_yellow)s','%(256_base03)s','%(256_yellow)s'
 [help]
-    text = 'default','default','light gray','dark gray','%(256_base0)s','%(256_base03)s'
-    section = 'underline','default','%(16_base1)s','%(16_base02)s','%(256_base1)s','%(256_base02)s'
-    title = 'standout','default','%(16_base1)s','%(16_base03)s','%(256_base1)s','%(256_base03)s'
+    text = 'default','default','%(16_base1)s','%(16_base02)s','%(256_base1)s','%(256_base02)s'
+    section = 'underline','default','%(16_base1)s,underline','%(16_base02)s','%(256_base1)s,underline','%(256_base02)s'
+    title = 'standout','default','%(16_base1)s','%(16_base02)s','%(256_base1)s,bold','%(256_base02)s'
 [taglist]
     line_focus = 'standout','default','%(16_base02)s','%(16_yellow)s','%(256_base02)s','%(256_yellow)s'
     line_even = 'default','default','%(16_base0)s','%(16_base03)s','%(256_base0)s','%(256_base03)s'
