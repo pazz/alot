@@ -45,7 +45,7 @@ class Buffer(object):
             return self.body.keypress(size, key)
 
     def cleanup(self):
-        """called before buffer is dismissed"""
+        """called before buffer is closed"""
         pass
 
     def get_info(self):
