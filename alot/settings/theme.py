@@ -117,7 +117,7 @@ class Theme(object):
         res['parts'] = match.get('parts') or default['parts']
         for part in res['parts']:
             defaultsec = default.get(part)
-            partsec = match.get(part)
+            partsec = match.get(part) or {}
 
             def fill(key, fallback=None):
                 pvalue = partsec.get(key) or defaultsec.get(key)
