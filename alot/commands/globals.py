@@ -516,7 +516,7 @@ class HelpCommand(Command):
                             titleattr=title_att)
 
             # put promptwidget as overlay on main widget
-            overlay = urwid.Overlay(box, ui.mainframe, 'center',
+            overlay = urwid.Overlay(box, ui.mainframe_themed, 'center',
                                     ('relative', 70), 'middle',
                                     ('relative', 70))
             ui.show_as_root_until_keypress(overlay, 'cancel')
