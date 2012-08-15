@@ -480,7 +480,7 @@ class PipeCommand(Command):
                 mail = msg.get_email()
                 if self.add_tags:
                     mail['Tags'] = encode_header('Tags',
-                                                 ' '.join(msg.get_tags()))
+                                                 ', '.join(msg.get_tags()))
                 if self.output_format == 'raw':
                     pipestrings.append(mail.as_string())
                 elif self.output_format == 'decoded':
