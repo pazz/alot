@@ -118,6 +118,10 @@ class SendCommand(Command):
     def apply(self, ui):
         currentbuffer = ui.current_buffer  # needed to close later
         envelope = currentbuffer.envelope
+
+        # This is to warn the user before re-sending
+        # an already sent message in case the envelope buffer
+        # was not closed because it was the last remaining buffer.
         if envelope.sent_time:
             warning = 'A modified version of ' * envelope.modified_since_sent
             warning += 'this message has been sent at %s.' % envelope.sent_time
@@ -125,6 +129,14 @@ class SendCommand(Command):
             if (yield ui.choice(warning, cancel='no',
                                 msg_position='left')) == 'no':
                 return
+
+        # don't do anything if another SendCommand is in the middle of sending
+        # the message and we were triggered accidentally
+        if envelope.sending:
+            msg = 'sending this message already!'
+            logging.debug(msg)
+            return
+
         frm = envelope.get('From')
         sname, saddr = email.Utils.parseaddr(frm)
 
@@ -155,6 +167,7 @@ class SendCommand(Command):
         clearme = ui.notify('sending..', timeout=-1)
 
         def afterwards(returnvalue):
+            envelope.sending = False
             logging.debug('mail sent successfully')
             ui.clear_notify([clearme])
             envelope.sent_time = datetime.datetime.now()
@@ -170,11 +183,13 @@ class SendCommand(Command):
                 ui.apply_command(globals.FlushCommand())
 
         def errb(failure):
+            envelope.sending = False
             ui.clear_notify([clearme])
             failure.trap(SendingMailFailed)
             errmsg = 'failed to send: %s' % failure.value
             ui.notify(errmsg, priority='error')
 
+        envelope.sending = True
         d = account.send_mail(mail)
         d.addCallback(afterwards)
         d.addErrback(errb)
@@ -185,8 +200,7 @@ class SendCommand(Command):
     (['--spawn'], {'action': BooleanAction, 'default':None,
                    'help':'spawn editor in new terminal'}),
     (['--refocus'], {'action': BooleanAction, 'default':True,
-                     'help':'refocus envelope after editing'}),
-])
+                     'help':'refocus envelope after editing'})])
 class EditCommand(Command):
     """edit mail"""
     def __init__(self, envelope=None, spawn=None, refocus=True, **kwargs):
