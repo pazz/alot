@@ -379,8 +379,8 @@ class UI(object):
 
         if block:
             # put "cancel to continue" widget as overlay on main widget
-            txt = urwid.Text('(cancel continues)')
-            overlay = urwid.Overlay(txt, self.mainframe,
+            txt = build_line('(cancel continues)', priority)
+            overlay = urwid.Overlay(txt, self.mainframe_themed,
                                     ('fixed left', 0),
                                     ('fixed right', 0),
                                     ('fixed bottom', 0),
