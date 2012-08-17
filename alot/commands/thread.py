@@ -396,7 +396,7 @@ class PipeCommand(Command):
     def __init__(self, cmd, all=False, separately=False, background=False,
                  shell=False, notify_stdout=False, format='raw',
                  add_tags=False, noop_msg='no command specified',
-                 confirm_msg='', done_msg='done', **kwargs):
+                 confirm_msg='', done_msg=None, **kwargs):
         """
         :param cmd: shellcommand to open
         :type cmd: str or list of str
