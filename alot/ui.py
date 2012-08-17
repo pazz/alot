@@ -119,7 +119,7 @@ class UI(object):
     def show_as_root_until_keypress(self, w, key, relay_rest=True,
                                     afterwards=None):
         def oe():
-            self.inputwrap.set_root(self.mainframe)
+            self.inputwrap.set_root(self.mainframe_themed)
             self.inputwrap.select_cancel_only = False
             if callable(afterwards):
                 logging.debug('called')
