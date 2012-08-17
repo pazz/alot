@@ -503,13 +503,17 @@ class PipeCommand(Command):
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.PIPE)
                 out, err = proc.communicate(mail)
+                if self.notify_stdout:
+                    ui.notify(out)
             else:
                 logging.debug('stop urwid screen')
                 ui.mainloop.screen.stop()
                 logging.debug('call: %s' % str(self.cmd))
+                # if proc.stdout is defined later calls to communicate
+                # seem to be non-blocking!
                 proc = subprocess.Popen(self.cmd, shell=True,
                                         stdin=subprocess.PIPE,
-                                        stdout=subprocess.PIPE,
+                                        #stdout=subprocess.PIPE,
                                         stderr=subprocess.PIPE)
                 out, err = proc.communicate(mail)
                 logging.debug('start urwid screen')
@@ -517,8 +521,6 @@ class PipeCommand(Command):
             if err:
                 ui.notify(err, priority='error')
                 return
-            if self.notify_stdout:
-                ui.notify(out)
 
         # display 'done' message
         if self.done_msg:
