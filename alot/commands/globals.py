@@ -56,6 +56,9 @@ class SearchCommand(Command):
         """
         :param query: notmuch querystring
         :type query: str
+        :param sort: how to order results. Must be one of
+                     'oldest_first', 'newest_first', 'message_id' or 'unsorted'.
+        :type sort: str
         """
         self.query = ' '.join(query)
         self.order = sort
