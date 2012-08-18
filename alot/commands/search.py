@@ -10,6 +10,9 @@ from alot.commands.globals import PromptCommand
 from alot.db.errors import DatabaseROError
 from alot import commands
 from alot import buffers
+from alot.walker import PipeWalker
+from alot.widgets.search import ThreadlineWidget
+
 
 MODE = 'search'
 
@@ -211,20 +214,29 @@ class TagCommand(Command):
     (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
                       'help': 'postpone a writeout to the index'}),
     (['tags'], {'help':'comma separated list of tags'})],
-    help='add tags to all messages in the thread',
+    help='add tags to all messages in the search results',
 )
 @registerCommand(MODE, 'retagsearch', forced={'action': 'set'}, arguments=[
     (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
                       'help': 'postpone a writeout to the index'}),
     (['tags'], {'help':'comma separated list of tags'})],
-    help='set tags of all messages in the thread',
+    help='set tags of all messages in the search results',
 )
 @registerCommand(MODE, 'untagsearch', forced={'action': 'remove'}, arguments=[
     (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
                       'help': 'postpone a writeout to the index'}),
     (['tags'], {'help':'comma separated list of tags'})],
-    help='remove tags from all messages in the thread',
+    help='remove tags from all messages in the search results',
 )
+@registerCommand(MODE, 'toggletagssearch', forced={'action': 'toggle'}, arguments=[
+    (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
+                      'help': 'postpone a writeout to the index'}),
+    (['tags'], {'help':'comma separated list of tags'})],
+    help="""flip presence of tags on this search results.
+    A tag is considered present if at least one message contained in each
+    thread is tagged with it. In that case this command will remove the tag
+    from every message in the thread.
+    """)
 class TagSearchCommand(Command):
     """manipulate search thread tags"""
     def __init__(self, tags=u'', action='add', flush=True,
@@ -254,6 +266,9 @@ class TagSearchCommand(Command):
 
         testquery = searchbuffer.querystring
         hitcount_before = ui.dbman.count_messages(testquery)
+        thread_count = ui.dbman.count_threads(testquery)
+        pipe, proc = ui.dbman.get_threads(testquery)
+        threadlist = PipeWalker(pipe, ThreadlineWidget, dbman=ui.dbman)
 
         def refresh():
             # remove thread from resultset if it doesn't match the search query
@@ -266,13 +281,28 @@ class TagSearchCommand(Command):
 
         tags = filter(lambda x: x, self.tagsstring.split(','))
         try:
-            if self.action == 'add':
-                ui.dbman.tag(testquery, tags, afterwards=refresh)
-            if self.action == 'set':
-                ui.dbman.tag(testquery, tags, afterwards=refresh,
-                                remove_rest=True)
-            elif self.action == 'remove':
-                ui.dbman.untag(testquery, tags, afterwards=refresh)
+            pos = -1
+            while pos < thread_count - 1:
+                (threadline,size) = threadlist.get_next(pos)
+                thread = threadline.get_thread()
+                if self.action == 'add':
+                    thread.add_tags(tags, afterwards=refresh)
+                if self.action == 'set':
+                    thread.add_tags(tags, afterwards=refresh,
+                                    remove_rest=True)
+                elif self.action == 'remove':
+                    thread.remove_tags(tags, afterwards=refresh)
+                elif self.action == 'toggle':
+                    to_remove = []
+                    to_add = []
+                    for t in tags:
+                        if t in thread.get_tags():
+                            to_remove.append(t)
+                        else:
+                            to_add.append(t)
+                    thread.remove_tags(to_remove)
+                    thread.add_tags(to_add, afterwards=refresh)
+                pos += 1
         except DatabaseROError:
             ui.notify('index in read-only mode', priority='error')
             return
