@@ -370,9 +370,8 @@ def guess_mimetype(blob):
     :rtype: str
     """
     mimetype = 'application/octet-stream'
-    m = magic.open(magic.MAGIC_MIME_TYPE)
-    m.load()
-    magictype = m.buffer(blob)
+    m = magic.Magic(mime=True)
+    magictype = m.from_buffer(blob)
     # libmagic does not always return proper mimetype strings, cf. issue #459
     if re.match(r'\w+\/\w+', magictype):
         mimetype = magictype
@@ -388,9 +387,8 @@ def guess_encoding(blob):
     :returns: encoding
     :rtype: str
     """
-    m = magic.open(magic.MAGIC_MIME_ENCODING)
-    m.load()
-    return m.buffer(blob)
+    m = magic.Magic(mime_encoding=True)
+    return m.from_buffer(blob)
 
 
 # TODO: make this work on blobs, not paths
