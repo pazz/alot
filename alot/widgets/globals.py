@@ -57,9 +57,9 @@ class ChoiceWidget(urwid.Text):
         return True
 
     def keypress(self, size, key):
-        if key == 'select' and self.select is not None:
+        if key == 'enter' and self.select is not None:
             self.callback(self.select)
-        elif key == 'cancel' and self.cancel is not None:
+        elif key == 'esc' and self.cancel is not None:
             self.callback(self.cancel)
         elif key in self.choices:
             self.callback(self.choices[key])
@@ -114,9 +114,9 @@ class CompleteEdit(urwid.Edit):
                 else:
                     self.historypos = (self.historypos - 1) % len(self.history)
                 self.set_edit_text(self.history[self.historypos])
-        elif key == 'select':
+        elif key == 'enter':
             self.on_exit(self.edit_text)
-        elif key == 'cancel':
+        elif key == 'esc':
             self.on_exit(None)
         elif key == 'ctrl a':
             self.set_edit_pos(0)
