@@ -286,12 +286,11 @@ class TagSearchCommand(Command):
                 (threadline,size) = threadlist.get_next(pos)
                 thread = threadline.get_thread()
                 if self.action == 'add':
-                    thread.add_tags(tags, afterwards=refresh)
+                    thread.add_tags(tags)
                 if self.action == 'set':
-                    thread.add_tags(tags, afterwards=refresh,
-                                    remove_rest=True)
+                    thread.add_tags(tags, remove_rest=True)
                 elif self.action == 'remove':
-                    thread.remove_tags(tags, afterwards=refresh)
+                    thread.remove_tags(tags)
                 elif self.action == 'toggle':
                     to_remove = []
                     to_add = []
@@ -301,7 +300,7 @@ class TagSearchCommand(Command):
                         else:
                             to_add.append(t)
                     thread.remove_tags(to_remove)
-                    thread.add_tags(to_add, afterwards=refresh)
+                    thread.add_tags(to_add)
                 pos += 1
         except DatabaseROError:
             ui.notify('index in read-only mode', priority='error')
@@ -310,4 +309,6 @@ class TagSearchCommand(Command):
         # flush index
         if self.flush:
             ui.apply_command(commands.globals.FlushCommand())
+
+        refresh()
 
