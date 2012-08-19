@@ -4,6 +4,9 @@ ask_subject = boolean(default=True) # ask for subject when compose
 # directory prefix for downloading attachments
 attachment_prefix = string(default='~')
 
+# timeout in (floating point) seconds until partial input is cleared
+input_timeout = float(default=1.0)
+
 # confirm exit
 bug_on_exit = boolean(default=False)
 

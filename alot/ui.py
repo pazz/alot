@@ -31,6 +31,8 @@ class UI(object):
     """interface mode identifier - type of current buffer"""
     commandprompthistory = []
     """history of the command line prompt"""
+    input_queue = []
+    """stores partial keyboard input"""
 
     def __init__(self, dbman, initialcmd):
         """
@@ -101,8 +103,14 @@ class UI(object):
                 self._unlock_callback()
         # otherwise interpret keybinding
         else:
+            # define callback that resets input queue
+            def clear(*args):
+                self.input_queue = []
+
             key = keys[0]
-            cmdline = settings.get_keybinding(self.mode, key)
+            self.input_queue.append(key)
+            keyseq = ' '.join(self.input_queue)
+            cmdline = settings.get_keybinding(self.mode, keyseq)
             if cmdline:
                 logging.debug("cmdline: '%s'" % cmdline)
                 # move keys are always passed
@@ -110,13 +118,17 @@ class UI(object):
                     movecmd = cmdline[5:].rstrip()
                     logging.debug("GOT MOVE: '%s'" % movecmd)
                     if movecmd in ['up', 'down', 'page up', 'page down']:
+                        clear()
                         return [movecmd]
                 elif not self._locked:
                     try:
+                        clear()
                         cmd = commandfactory(cmdline, self.mode)
                         self.apply_command(cmd)
                     except CommandParseError, e:
                         self.notify(e.message, priority='error')
+            timeout = float(settings.get('input_timeout'))
+            self.mainloop.set_alarm_in(timeout, clear)
 
     def _unhandeled_input(self, key):
         """
