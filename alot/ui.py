@@ -7,60 +7,11 @@ from twisted.internet import reactor, defer
 
 from settings import settings
 from buffers import BufferlistBuffer
-import commands
 from commands import commandfactory
 from alot.commands import CommandParseError
 from alot.helper import string_decode
-from alot.widgets.utils import CatchKeyWidgetWrap
 from alot.widgets.globals import CompleteEdit
 from alot.widgets.globals import ChoiceWidget
-
-
-class InputWrap(urwid.WidgetWrap):
-    """
-    This is the topmost widget used in the widget tree.
-    Its purpose is to capture and interpret keypresses
-    by instantiating and applying the relevant :class:`Command` objects
-    or relaying them to the wrapped `rootwidget`.
-    """
-    def __init__(self, ui, rootwidget):
-        urwid.WidgetWrap.__init__(self, rootwidget)
-        self.ui = ui
-        self.rootwidget = rootwidget
-        self.select_cancel_only = False
-
-    def set_root(self, w):
-        self._w = w
-
-    def get_root(self):
-        return self._w
-
-    def allowed_command(self, cmd):
-        """sanity check if the given command should be applied.
-        This is used in :meth:`keypress`"""
-        if not self.select_cancel_only:
-            return True
-        elif isinstance(cmd, commands.globals.SendKeypressCommand):
-            if cmd.key in ['select', 'cancel']:
-                return True
-        else:
-            return False
-
-    def keypress(self, size, key):
-        """overwrites `urwid.WidgetWrap.keypress`"""
-        mode = self.ui.mode
-        if self.select_cancel_only:
-            mode = 'global'
-        cmdline = settings.get_keybinding(mode, key)
-        if cmdline:
-            try:
-                cmd = commandfactory(cmdline, mode)
-                if self.allowed_command(cmd):
-                    self.ui.apply_command(cmd)
-                    return None
-            except CommandParseError, e:
-                self.ui.notify(e.message, priority='error')
-        return self._w.keypress(size, key)
 
 
 class UI(object):
@@ -92,8 +43,7 @@ class UI(object):
         global_att = settings.get_theming_attribute('global', 'body')
         self.mainframe = urwid.Frame(urwid.SolidFill())
         self.mainframe_themed = urwid.AttrMap(self.mainframe, global_att)
-        self.inputwrap = InputWrap(self, self.mainframe_themed)
-        self.mainloop = urwid.MainLoop(self.inputwrap,
+        self.mainloop = urwid.MainLoop(self.mainframe_themed,
                                        handle_mouse=False,
                                        event_loop=urwid.TwistedEventLoop(),
                                        unhandled_input=self.unhandeled_input,
@@ -104,46 +54,59 @@ class UI(object):
         self.notificationbar = None
         self.mode = 'global'
         self.commandprompthistory = []
+        self.locked = False
+        self.unlock_callback = None
+        self.unlock_key = None
+        self.passall = False
 
         logging.debug('fire first command')
         self.apply_command(initialcmd)
         self.mainloop.run()
 
     def input_filter(self, keys, raw):
-        logging.debug("INPUt: (%s, %s)" % (keys, raw))
-        #cmdline = settings.get_keybinding(self.mode, key)
-        #if cmdline:
-        #    try:
-        #        cmd = commandfactory(cmdline, mode)
-        #        if self.allowed_command(cmd):
-        #            self.ui.apply_command(cmd)
-        #            return None
-        #    except CommandParseError, e:
-        #        self.ui.notify(e.message, priority='error')
-        #return self._w.keypress(size, key)
-        return keys
+        logging.debug("Got key (%s, %s)" % (keys, raw))
+        # work around: escape triggers this twice, with keys = raw = []
+        # the first time..
+        if not keys:
+            return
+        # let widgets handle input if key is virtual window resize keypress
+        # or we are in "passall" mode
+        elif 'window resize' in keys or self.passall:
+            return keys
+        # end "lockdown" mode if the right key was pressed
+        elif self.locked and keys[0] == self.unlock_key:
+            self.locked = False
+            self.mainloop.widget = self.mainframe_themed
+            if callable(self.unlock_callback):
+                self.unlock_callback()
+        # otherwise interpret keybinding
+        else:
+            key = keys[0]
+            cmdline = settings.get_keybinding(self.mode, key)
+            if cmdline:
+                logging.debug("cmdline: '%s'" % cmdline)
+                # move keys are always passed
+                if cmdline.startswith('move '):
+                    movecmd = cmdline[5:].rstrip()
+                    logging.debug("GOT MOVE: '%s'" % movecmd)
+                    if movecmd in ['up', 'down', 'page up', 'page down']:
+                        return [movecmd]
+                elif not self.locked:
+                    try:
+                        cmd = commandfactory(cmdline, self.mode)
+                        self.apply_command(cmd)
+                    except CommandParseError, e:
+                        self.notify(e.message, priority='error')
 
     def unhandeled_input(self, key):
         """called if a keypress is not handled."""
         logging.debug('unhandled input: %s' % key)
 
-    def keypress(self, key):
-        """relay all keypresses to our `InputWrap`"""
-        self.inputwrap.keypress((150, 20), key)
-
-    def show_as_root_until_keypress(self, w, key, relay_rest=True,
-                                    afterwards=None):
-        def oe():
-            self.inputwrap.set_root(self.mainframe_themed)
-            self.inputwrap.select_cancel_only = False
-            if callable(afterwards):
-                logging.debug('called')
-                afterwards()
-        logging.debug('relay: %s' % relay_rest)
-        helpwrap = CatchKeyWidgetWrap(w, key, on_catch=oe,
-                                      relay_rest=relay_rest)
-        self.inputwrap.set_root(helpwrap)
-        self.inputwrap.select_cancel_only = not relay_rest
+    def show_as_root_until_keypress(self, w, key, afterwards=None):
+        self.mainloop.widget = w
+        self.unlock_key = key
+        self.unlock_callback = afterwards
+        self.locked = True
 
     def prompt(self, prefix, text=u'', completer=None, tab=0, history=[]):
         """prompt for text input
@@ -162,13 +125,13 @@ class UI(object):
         :returns: a :class:`twisted.defer.Deferred`
         """
         d = defer.Deferred()  # create return deferred
-        oldroot = self.inputwrap.get_root()
+        oldroot = self.mainloop.widget
 
         def select_or_cancel(text):
             # restore main screen and invoke callback
             # (delayed return) with given text
-            self.inputwrap.set_root(oldroot)
-            self.inputwrap.select_cancel_only = False
+            self.mainloop.widget = oldroot
+            self.passall = False
             d.callback(text)
 
         prefix = prefix + settings.get('prompt_suffix')
@@ -196,8 +159,8 @@ class UI(object):
                                 ('fixed right', 0),
                                 ('fixed bottom', 1),
                                 None)
-        self.inputwrap.set_root(overlay)
-        self.inputwrap.select_cancel_only = True
+        self.mainloop.widget = overlay
+        self.passall = True
         return d  # return deferred
 
     def exit(self):
@@ -254,7 +217,6 @@ class UI(object):
         else:
             if self.current_buffer != buf:
                 self.current_buffer = buf
-                self.inputwrap.set_root(self.mainframe_themed)
             self.mode = buf.modename
             if isinstance(self.current_buffer, BufferlistBuffer):
                 self.current_buffer.rebuild()
@@ -322,11 +284,11 @@ class UI(object):
         assert msg_position in ['left', 'above']
 
         d = defer.Deferred()  # create return deferred
-        oldroot = self.inputwrap.get_root()
+        oldroot = self.mainloop.widget
 
         def select_or_cancel(text):
-            self.inputwrap.set_root(oldroot)
-            self.inputwrap.select_cancel_only = False
+            self.mainloop.widget = oldroot
+            self.passall = False
             d.callback(text)
 
         #set up widgets
@@ -352,8 +314,8 @@ class UI(object):
                                 ('fixed right', 0),
                                 ('fixed bottom', 1),
                                 None)
-        self.inputwrap.set_root(overlay)
-        self.inputwrap.select_cancel_only = True
+        self.mainloop.widget = overlay
+        self.passall = True
         return d  # return deferred
 
     def notify(self, message, priority='normal', timeout=0, block=False):
@@ -394,14 +356,13 @@ class UI(object):
 
         if block:
             # put "cancel to continue" widget as overlay on main widget
-            txt = build_line('(cancel continues)', priority)
+            txt = build_line('(escape continues)', priority)
             overlay = urwid.Overlay(txt, self.mainframe_themed,
                                     ('fixed left', 0),
                                     ('fixed right', 0),
                                     ('fixed bottom', 0),
                                     None)
-            self.show_as_root_until_keypress(overlay, 'cancel',
-                                             relay_rest=False,
+            self.show_as_root_until_keypress(overlay, 'esc',
                                              afterwards=clear)
         else:
             if timeout >= 0:
