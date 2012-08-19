@@ -26,7 +26,7 @@ class UI(object):
     current_buffer = None
     """points to currently active :class:`~alot.buffers.Buffer`"""
     dbman = None
-    """Database manager (:class:`~alot.db.DBManager`)"""
+    """Database Manager (:class:`~alot.db.manager.DBManager`)"""
 
     def __init__(self, dbman, initialcmd):
         """
@@ -46,8 +46,8 @@ class UI(object):
         self.mainloop = urwid.MainLoop(self.mainframe_themed,
                                        handle_mouse=False,
                                        event_loop=urwid.TwistedEventLoop(),
-                                       unhandled_input=self.unhandeled_input,
-                                       input_filter=self.input_filter)
+                                       unhandled_input=self._unhandeled_input,
+                                       input_filter=self._input_filter)
         self.mainloop.screen.set_terminal_properties(colors=colourmode)
 
         self.show_statusbar = settings.get('show_statusbar')
@@ -63,7 +63,14 @@ class UI(object):
         self.apply_command(initialcmd)
         self.mainloop.run()
 
-    def input_filter(self, keys, raw):
+    def _input_filter(self, keys, raw):
+        """
+        handles keypresses.
+        This function gets triggered directly by class:`urwid.MainLoop`
+        upon user input and is supposed to pass on its `keys` parameter
+        to let the root widget handle keys. We intercept the input here
+        to trigger custom commands as defined in our keybindings.
+        """
         logging.debug("Got key (%s, %s)" % (keys, raw))
         # work around: escape triggers this twice, with keys = raw = []
         # the first time..
@@ -98,11 +105,21 @@ class UI(object):
                     except CommandParseError, e:
                         self.notify(e.message, priority='error')
 
-    def unhandeled_input(self, key):
-        """called if a keypress is not handled."""
+    def _unhandeled_input(self, key):
+        """
+        Called by :class:`urwid.MainLoop` if a keypress was passed to the root widget by
+        `self._input_filter` but is not handled in any widget.
+        We keep it for debuging purposes.
+        """
         logging.debug('unhandled input: %s' % key)
 
     def show_as_root_until_keypress(self, w, key, afterwards=None):
+        """
+        Replaces root widget by given :class:`urwid.Widget` and makes the UI
+        ignore all further commands apart from cursor movement.
+        If later on `key` is pressed, the old root widget is reset, callable
+        `afterwards` is called and normal behaviour is resumed.
+        """
         self.mainloop.widget = w
         self.unlock_key = key
         self.unlock_callback = afterwards
@@ -122,7 +139,7 @@ class UI(object):
         :type tab: int
         :param history: history to be used for up/down keys
         :type history: list of str
-        :returns: a :class:`twisted.defer.Deferred`
+        :rtype: :class:`twisted.defer.Deferred`
         """
         d = defer.Deferred()  # create return deferred
         oldroot = self.mainloop.widget
@@ -166,7 +183,7 @@ class UI(object):
     def exit(self):
         """
         shuts down user interface without cleaning up.
-        Use a :class:`commands.globals.ExitCommand` for a clean shutdown.
+        Use a :class:`alot.commands.globals.ExitCommand` for a clean shutdown.
         """
         exit_msg = None
         try:
@@ -237,13 +254,13 @@ class UI(object):
     def get_buffers_of_type(self, t):
         """
         returns currently open buffers for a given subclass of
-        :class:`alot.buffer.Buffer`
+        :class:`~alot.buffers.Buffer`
         """
         return filter(lambda x: isinstance(x, t), self.buffers)
 
     def clear_notify(self, messages):
         """
-        clears notification popups. Call this to ged rid of messages that don't
+        Clears notification popups. Call this to ged rid of messages that don't
         time out.
 
         :param messages: The popups to remove. This should be exactly
@@ -277,7 +294,7 @@ class UI(object):
         :param msg_position: determines if `message` is above or left of the
                              prompt. Must be `above` or `left`.
         :type msg_position: str
-        :returns: a :class:`twisted.defer.Deferred`
+        :rtype:  :class:`twisted.defer.Deferred`
         """
         assert select in choices.values() + [None]
         assert cancel in choices.values() + [None]
@@ -373,11 +390,6 @@ class UI(object):
 
     def update(self):
         """redraw interface"""
-        #who needs a header?
-        #head = urwid.Text('notmuch gui')
-        #h=urwid.AttrMap(head, 'header')
-        #self.mainframe.set_header(h)
-
         # body
         if self.current_buffer:
             self.mainframe.set_body(self.current_buffer)
