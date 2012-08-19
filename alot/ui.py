@@ -42,8 +42,8 @@ class UI(object):
         logging.info('setup gui in %d colours' % colourmode)
         global_att = settings.get_theming_attribute('global', 'body')
         self.mainframe = urwid.Frame(urwid.SolidFill())
-        self.mainframe_themed = urwid.AttrMap(self.mainframe, global_att)
-        self.mainloop = urwid.MainLoop(self.mainframe_themed,
+        self.root_widget = urwid.AttrMap(self.mainframe, global_att)
+        self.mainloop = urwid.MainLoop(self.root_widget,
                                        handle_mouse=False,
                                        event_loop=urwid.TwistedEventLoop(),
                                        unhandled_input=self._unhandeled_input,
@@ -83,7 +83,7 @@ class UI(object):
         # end "lockdown" mode if the right key was pressed
         elif self.locked and keys[0] == self.unlock_key:
             self.locked = False
-            self.mainloop.widget = self.mainframe_themed
+            self.mainloop.widget = self.root_widget
             if callable(self.unlock_callback):
                 self.unlock_callback()
         # otherwise interpret keybinding
@@ -374,7 +374,7 @@ class UI(object):
         if block:
             # put "cancel to continue" widget as overlay on main widget
             txt = build_line('(escape continues)', priority)
-            overlay = urwid.Overlay(txt, self.mainframe_themed,
+            overlay = urwid.Overlay(txt, self.root_widget,
                                     ('fixed left', 0),
                                     ('fixed right', 0),
                                     ('fixed bottom', 0),
@@ -390,9 +390,12 @@ class UI(object):
 
     def update(self):
         """redraw interface"""
+        # get the main urwid.Frame widget
+        mainframe = self.root_widget.original_widget
+
         # body
         if self.current_buffer:
-            self.mainframe.set_body(self.current_buffer)
+            mainframe.set_body(self.current_buffer)
 
         # footer
         lines = []
@@ -402,9 +405,9 @@ class UI(object):
             lines.append(self.build_statusbar())
 
         if lines:
-            self.mainframe.set_footer(urwid.Pile(lines))
+            mainframe.set_footer(urwid.Pile(lines))
         else:
-            self.mainframe.set_footer(None)
+            mainframe.set_footer(None)
         # force a screen redraw
         if self.mainloop.screen.started:
             self.mainloop.draw_screen()
