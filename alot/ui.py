@@ -27,6 +27,10 @@ class UI(object):
     """points to currently active :class:`~alot.buffers.Buffer`"""
     dbman = None
     """Database Manager (:class:`~alot.db.manager.DBManager`)"""
+    mode = None
+    """interface mode identifier - type of current buffer"""
+    commandprompthistory = []
+    """history of the command line prompt"""
 
     def __init__(self, dbman, initialcmd):
         """
@@ -36,31 +40,40 @@ class UI(object):
         :param colourmode: determines which theme to chose
         :type colourmode: int in [1,16,256]
         """
+        # store database manager
         self.dbman = dbman
+        # define empty notification pile
+        self._notificationbar = None
+        # should we show a status bar?
+        self._show_statusbar = settings.get('show_statusbar')
+        # pass keypresses to the root widget and never interpret bindings
+        self._passall = False
+        # indicates "input lock": only focus move commands are interpreted
+        self._locked = False
+        self._unlock_callback = None  # will be called after input lock ended
+        self._unlock_key = None  # key that ends input lock
 
-        colourmode = int(settings.get('colourmode'))
-        logging.info('setup gui in %d colours' % colourmode)
+        # create root widget
         global_att = settings.get_theming_attribute('global', 'body')
-        self.mainframe = urwid.Frame(urwid.SolidFill())
-        self.root_widget = urwid.AttrMap(self.mainframe, global_att)
+        mainframe = urwid.Frame(urwid.SolidFill())
+        self.root_widget = urwid.AttrMap(mainframe, global_att)
+
+        # set up main loop
         self.mainloop = urwid.MainLoop(self.root_widget,
                                        handle_mouse=False,
                                        event_loop=urwid.TwistedEventLoop(),
                                        unhandled_input=self._unhandeled_input,
                                        input_filter=self._input_filter)
-        self.mainloop.screen.set_terminal_properties(colors=colourmode)
 
-        self.show_statusbar = settings.get('show_statusbar')
-        self.notificationbar = None
-        self.mode = 'global'
-        self.commandprompthistory = []
-        self.locked = False
-        self.unlock_callback = None
-        self.unlock_key = None
-        self.passall = False
+        # set up colours
+        colourmode = int(settings.get('colourmode'))
+        logging.info('setup gui in %d colours' % colourmode)
+        self.mainloop.screen.set_terminal_properties(colors=colourmode)
 
         logging.debug('fire first command')
         self.apply_command(initialcmd)
+
+        # start urwids mainloop
         self.mainloop.run()
 
     def _input_filter(self, keys, raw):
@@ -78,14 +91,14 @@ class UI(object):
             return
         # let widgets handle input if key is virtual window resize keypress
         # or we are in "passall" mode
-        elif 'window resize' in keys or self.passall:
+        elif 'window resize' in keys or self._passall:
             return keys
         # end "lockdown" mode if the right key was pressed
-        elif self.locked and keys[0] == self.unlock_key:
-            self.locked = False
+        elif self._locked and keys[0] == self._unlock_key:
+            self._locked = False
             self.mainloop.widget = self.root_widget
-            if callable(self.unlock_callback):
-                self.unlock_callback()
+            if callable(self._unlock_callback):
+                self._unlock_callback()
         # otherwise interpret keybinding
         else:
             key = keys[0]
@@ -98,7 +111,7 @@ class UI(object):
                     logging.debug("GOT MOVE: '%s'" % movecmd)
                     if movecmd in ['up', 'down', 'page up', 'page down']:
                         return [movecmd]
-                elif not self.locked:
+                elif not self._locked:
                     try:
                         cmd = commandfactory(cmdline, self.mode)
                         self.apply_command(cmd)
@@ -121,9 +134,9 @@ class UI(object):
         `afterwards` is called and normal behaviour is resumed.
         """
         self.mainloop.widget = w
-        self.unlock_key = key
-        self.unlock_callback = afterwards
-        self.locked = True
+        self._unlock_key = key
+        self._unlock_callback = afterwards
+        self._locked = True
 
     def prompt(self, prefix, text=u'', completer=None, tab=0, history=[]):
         """prompt for text input
@@ -148,7 +161,7 @@ class UI(object):
             # restore main screen and invoke callback
             # (delayed return) with given text
             self.mainloop.widget = oldroot
-            self.passall = False
+            self._passall = False
             d.callback(text)
 
         prefix = prefix + settings.get('prompt_suffix')
@@ -177,7 +190,7 @@ class UI(object):
                                 ('fixed bottom', 1),
                                 None)
         self.mainloop.widget = overlay
-        self.passall = True
+        self._passall = True
         return d  # return deferred
 
     def exit(self):
@@ -266,14 +279,14 @@ class UI(object):
         :param messages: The popups to remove. This should be exactly
                          what :meth:`notify` returned when creating the popup
         """
-        newpile = self.notificationbar.widget_list
+        newpile = self._notificationbar.widget_list
         for l in messages:
             if l in newpile:
                 newpile.remove(l)
         if newpile:
-            self.notificationbar = urwid.Pile(newpile)
+            self._notificationbar = urwid.Pile(newpile)
         else:
-            self.notificationbar = None
+            self._notificationbar = None
         self.update()
 
     def choice(self, message, choices={'y': 'yes', 'n': 'no'},
@@ -305,7 +318,7 @@ class UI(object):
 
         def select_or_cancel(text):
             self.mainloop.widget = oldroot
-            self.passall = False
+            self._passall = False
             d.callback(text)
 
         #set up widgets
@@ -332,7 +345,7 @@ class UI(object):
                                 ('fixed bottom', 1),
                                 None)
         self.mainloop.widget = overlay
-        self.passall = True
+        self._passall = True
         return d  # return deferred
 
     def notify(self, message, priority='normal', timeout=0, block=False):
@@ -361,11 +374,11 @@ class UI(object):
             return urwid.AttrMap(cols, att)
         msgs = [build_line(message, priority)]
 
-        if not self.notificationbar:
-            self.notificationbar = urwid.Pile(msgs)
+        if not self._notificationbar:
+            self._notificationbar = urwid.Pile(msgs)
         else:
-            newpile = self.notificationbar.widget_list + msgs
-            self.notificationbar = urwid.Pile(newpile)
+            newpile = self._notificationbar.widget_list + msgs
+            self._notificationbar = urwid.Pile(newpile)
         self.update()
 
         def clear(*args):
@@ -399,9 +412,9 @@ class UI(object):
 
         # footer
         lines = []
-        if self.notificationbar:  # .get_text()[0] != ' ':
-            lines.append(self.notificationbar)
-        if self.show_statusbar:
+        if self._notificationbar:  # .get_text()[0] != ' ':
+            lines.append(self._notificationbar)
+        if self._show_statusbar:
             lines.append(self.build_statusbar())
 
         if lines:
