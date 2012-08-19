@@ -320,6 +320,10 @@ class SettingsManager(object):
                 value = bindings[mode][key]
                 if value:
                     cmdline = value
+        # Workaround for ConfigObj misbehaviour. cf issue #500
+        # this ensures that we get at least strings only as commandlines
+        if isinstance(cmdline, list):
+            cmdline = ','.join(cmdline)
         return cmdline
 
     def get_accounts(self):
