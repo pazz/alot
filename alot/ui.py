@@ -96,7 +96,8 @@ class UI(object):
         self.mainloop = urwid.MainLoop(self.inputwrap,
                                        handle_mouse=False,
                                        event_loop=urwid.TwistedEventLoop(),
-                                       unhandled_input=self.unhandeled_input)
+                                       unhandled_input=self.unhandeled_input,
+                                       input_filter=self.input_filter)
         self.mainloop.screen.set_terminal_properties(colors=colourmode)
 
         self.show_statusbar = settings.get('show_statusbar')
@@ -107,6 +108,20 @@ class UI(object):
         logging.debug('fire first command')
         self.apply_command(initialcmd)
         self.mainloop.run()
+
+    def input_filter(self, keys, raw):
+        logging.debug("INPUt: (%s, %s)" % (keys, raw))
+        #cmdline = settings.get_keybinding(self.mode, key)
+        #if cmdline:
+        #    try:
+        #        cmd = commandfactory(cmdline, mode)
+        #        if self.allowed_command(cmd):
+        #            self.ui.apply_command(cmd)
+        #            return None
+        #    except CommandParseError, e:
+        #        self.ui.notify(e.message, priority='error')
+        #return self._w.keypress(size, key)
+        return keys
 
     def unhandeled_input(self, key):
         """called if a keypress is not handled."""
