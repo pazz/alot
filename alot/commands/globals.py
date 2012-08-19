@@ -56,6 +56,9 @@ class SearchCommand(Command):
         """
         :param query: notmuch querystring
         :type query: str
+        :param sort: how to order results. Must be one of
+                     'oldest_first', 'newest_first', 'message_id' or 'unsorted'.
+        :type sort: str
         """
         self.query = ' '.join(query)
         self.order = sort
@@ -508,18 +511,17 @@ class HelpCommand(Command):
                     linewidgets.append(line)
 
             body = urwid.ListBox(linewidgets)
-            ckey = 'cancel'
-            titletext = 'Bindings Help (%s cancels)' % ckey
+            titletext = 'Bindings Help (escape cancels)'
 
             box = DialogBox(body, titletext,
                             bodyattr=text_att,
                             titleattr=title_att)
 
             # put promptwidget as overlay on main widget
-            overlay = urwid.Overlay(box, ui.mainframe_themed, 'center',
+            overlay = urwid.Overlay(box, ui.root_widget, 'center',
                                     ('relative', 70), 'middle',
                                     ('relative', 70))
-            ui.show_as_root_until_keypress(overlay, 'cancel')
+            ui.show_as_root_until_keypress(overlay, 'esc')
         else:
             logging.debug('HELP %s' % self.commandname)
             parser = commands.lookup_parser(self.commandname, ui.mode)
@@ -732,21 +734,3 @@ class ComposeCommand(Command):
         cmd = commands.envelope.EditCommand(envelope=self.envelope,
                                             spawn=self.force_spawn, refocus=False)
         ui.apply_command(cmd)
-
-
-@registerCommand(MODE, 'move', help='move focus', arguments=[
-    (['key'], {'nargs':'+', 'help':'direction'})])
-@registerCommand(MODE, 'cancel', help='send cancel event',
-                 forced={'key': 'cancel'})
-@registerCommand(MODE, 'select', help='send select event',
-                 forced={'key': 'select'})
-class SendKeypressCommand(Command):
-    """send a keypress to the main widget to be processed by urwid"""
-    def __init__(self, key, **kwargs):
-        Command.__init__(self, **kwargs)
-        if isinstance(key, list):
-            key = ' '.join(key)
-        self.key = key
-
-    def apply(self, ui):
-        ui.keypress(self.key)

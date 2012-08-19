@@ -14,17 +14,9 @@ from alot.helper import split_commandstring
 
 class Command(object):
     """base class for commands"""
-    def __init__(self, prehook=None, posthook=None):
-        """
-        :param prehook: name of the hook to call directly before
-                        applying this command
-        :type prehook: str
-        :param posthook: name of the hook to call directly after
-                         applying this command
-        :type posthook: str
-        """
-        self.prehook = prehook
-        self.posthook = posthook
+    def __init__(self):
+        self.prehook = None
+        self.posthook = None
         self.undoable = False
         self.help = self.__doc__
 
@@ -191,17 +183,20 @@ def commandfactory(cmdline, mode='global'):
 
     parms = vars(parser.parse_args(args))
     parms.update(forcedparms)
-    logging.debug('PARMS: %s' % parms)
+
+    logging.debug('cmd parms %s' % parms)
+
+    # create Command
+    cmd = cmdclass(**parms)
 
     # set pre and post command hooks
     get_hook = settings.get_hook
-    parms['prehook'] = get_hook('pre_%s_%s' % (mode, cmdname)) or \
+    cmd.prehook = get_hook('pre_%s_%s' % (mode, cmdname)) or \
         get_hook('pre_global_%s' % cmdname)
-    parms['posthook'] = get_hook('post_%s_%s' % (mode, cmdname)) or \
+    cmd.posthook = get_hook('post_%s_%s' % (mode, cmdname)) or \
         get_hook('post_global_%s' % cmdname)
 
-    logging.debug('cmd parms %s' % parms)
-    return cmdclass(**parms)
+    return cmd
 
 
 pyfiles = glob.glob1(os.path.dirname(__file__), '*.py')

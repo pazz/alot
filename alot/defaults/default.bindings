@@ -1,7 +1,10 @@
+up = move up
+down = move down
+page up = move page up
+page down = move page down
 j = move down
 k = move up
 ' ' = move page down
-esc = cancel
 enter = select
 @ = refresh
 ? = help bindings

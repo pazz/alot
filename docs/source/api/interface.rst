@@ -38,22 +38,7 @@ input and acts on it:
 
 .. module:: alot.ui
 .. autoclass:: UI
-
-    .. autoattribute:: buffers
-    .. autoattribute:: current_buffer
-    .. autoattribute:: dbman
-
-    .. automethod:: apply_command
-    .. automethod:: prompt
-    .. automethod:: choice
-    .. automethod:: notify
-    .. automethod:: clear_notify
-    .. automethod:: buffer_open
-    .. automethod:: buffer_focus
-    .. automethod:: buffer_close
-    .. automethod:: get_buffers_of_type
-    .. automethod:: exit
-
+    :members:
 
 Buffers
 ----------
