@@ -55,6 +55,9 @@ class UI(object):
         self._unlock_callback = None  # will be called after input lock ended
         self._unlock_key = None  # key that ends input lock
 
+        # alarm handle for callback that clears input queue (to cancel alarm)
+        self._alarm = None
+
         # create root widget
         global_att = settings.get_theming_attribute('global', 'body')
         mainframe = urwid.Frame(urwid.SolidFill())
@@ -105,6 +108,8 @@ class UI(object):
         else:
             # define callback that resets input queue
             def clear(*args):
+                if self._alarm is not None:
+                    self.mainloop.remove_alarm(self._alarm)
                 self.input_queue = []
                 self.update()
 
@@ -128,8 +133,11 @@ class UI(object):
                         self.apply_command(cmd)
                     except CommandParseError, e:
                         self.notify(e.message, priority='error')
+
             timeout = float(settings.get('input_timeout'))
-            self.mainloop.set_alarm_in(timeout, clear)
+            if self._alarm is not None:
+                self.mainloop.remove_alarm(self._alarm)
+            self._alarm = self.mainloop.set_alarm_in(timeout, clear)
             # update statusbar
             self.update()
 
