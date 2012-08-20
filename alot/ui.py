@@ -31,6 +31,8 @@ class UI(object):
     """interface mode identifier - type of current buffer"""
     commandprompthistory = []
     """history of the command line prompt"""
+    input_queue = []
+    """stores partial keyboard input"""
 
     def __init__(self, dbman, initialcmd):
         """
@@ -52,6 +54,9 @@ class UI(object):
         self._locked = False
         self._unlock_callback = None  # will be called after input lock ended
         self._unlock_key = None  # key that ends input lock
+
+        # alarm handle for callback that clears input queue (to cancel alarm)
+        self._alarm = None
 
         # create root widget
         global_att = settings.get_theming_attribute('global', 'body')
@@ -101,8 +106,17 @@ class UI(object):
                 self._unlock_callback()
         # otherwise interpret keybinding
         else:
+            # define callback that resets input queue
+            def clear(*args):
+                if self._alarm is not None:
+                    self.mainloop.remove_alarm(self._alarm)
+                self.input_queue = []
+                self.update()
+
             key = keys[0]
-            cmdline = settings.get_keybinding(self.mode, key)
+            self.input_queue.append(key)
+            keyseq = ' '.join(self.input_queue)
+            cmdline = settings.get_keybinding(self.mode, keyseq)
             if cmdline:
                 logging.debug("cmdline: '%s'" % cmdline)
                 # move keys are always passed
@@ -110,13 +124,22 @@ class UI(object):
                     movecmd = cmdline[5:].rstrip()
                     logging.debug("GOT MOVE: '%s'" % movecmd)
                     if movecmd in ['up', 'down', 'page up', 'page down']:
+                        clear()
                         return [movecmd]
                 elif not self._locked:
                     try:
+                        clear()
                         cmd = commandfactory(cmdline, self.mode)
                         self.apply_command(cmd)
                     except CommandParseError, e:
                         self.notify(e.message, priority='error')
+
+            timeout = float(settings.get('input_timeout'))
+            if self._alarm is not None:
+                self.mainloop.remove_alarm(self._alarm)
+            self._alarm = self.mainloop.set_alarm_in(timeout, clear)
+            # update statusbar
+            self.update()
 
     def _unhandeled_input(self, key):
         """
@@ -438,6 +461,7 @@ class UI(object):
             info['buffer_type'] = btype
         info['total_messages'] = self.dbman.count_messages('*')
         info['pending_writes'] = len(self.dbman.writequeue)
+        info['input_queue'] = ' '.join(self.input_queue)
 
         lefttxt = righttxt = u''
         if cb is not None:
