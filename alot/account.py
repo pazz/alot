@@ -14,6 +14,10 @@ class SendingMailFailed(RuntimeError):
     pass
 
 
+class StoreMailError(Exception):
+    pass
+
+
 class Account(object):
     """
     Datastructure that represents an email account. It manages this account's
@@ -79,6 +83,7 @@ class Account(object):
         :returns: absolute path of mail-file for Maildir or None if mail was
                   successfully stored
         :rtype: str or None
+        :raises: StoreMailError
         """
         if not isinstance(mbx, mailbox.Mailbox):
             logging.debug('Not a mailbox')
@@ -93,10 +98,13 @@ class Account(object):
             logging.debug('no Maildir')
             msg = mailbox.Message(mail)
 
-        message_id = mbx.add(msg)
-        mbx.flush()
-        mbx.unlock()
-        logging.debug('got id : %s' % id)
+        try:
+            message_id = mbx.add(msg)
+            mbx.flush()
+            mbx.unlock()
+            logging.debug('got mailbox msg id : %s' % message_id)
+        except Exception as e:
+            raise StoreMailError(e)
 
         path = None
         # add new Maildir message to index and add tags

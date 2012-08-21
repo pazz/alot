@@ -11,7 +11,7 @@ import tempfile
 from twisted.internet.defer import inlineCallbacks
 import datetime
 
-from alot.account import SendingMailFailed
+from alot.account import SendingMailFailed, StoreMailError
 from alot.errors import GPGProblem
 from alot import buffers
 from alot import commands
@@ -173,26 +173,36 @@ class SendCommand(Command):
             envelope.sent_time = datetime.datetime.now()
             ui.apply_command(commands.globals.BufferCloseCommand())
             ui.notify('mail sent successfully')
+
             # store mail locally
-            # add Date header
+            # This can raise StoreMailError
             path = account.store_sent_mail(mail)
+
             # add mail to index if maildir path available
             if path is not None:
                 logging.debug('adding new mail to index')
                 ui.dbman.add_message(path, account.sent_tags)
                 ui.apply_command(globals.FlushCommand())
 
-        def errb(failure):
+        def send_errb(failure):
             envelope.sending = False
             ui.clear_notify([clearme])
             failure.trap(SendingMailFailed)
+            logging.error(failure.getTraceback())
             errmsg = 'failed to send: %s' % failure.value
+            ui.notify(errmsg, priority='error')
+
+        def store_errb(failure):
+            failure.trap(StoreMailError)
+            logging.error(failure.getTraceback())
+            errmsg = 'could not store mail: %s' % failure.value
             ui.notify(errmsg, priority='error')
 
         envelope.sending = True
         d = account.send_mail(mail)
         d.addCallback(afterwards)
-        d.addErrback(errb)
+        d.addErrback(send_errb)
+        d.addErrback(store_errb)
         logging.debug('added errbacks,callbacks')
 
 
