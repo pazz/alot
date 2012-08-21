@@ -34,9 +34,13 @@ class PipeWalker(urwid.ListWalker):
         return self._get_at_pos(start_from - 1)
 
     def remove(self, obj):
+        next_focus = self.focus % len(self.lines)
+        if self.focus == len(self.lines) - 1 and self.empty:
+            next_focus = self.focus - 1
+
         self.lines.remove(obj)
         if self.lines:
-            self.set_focus(self.focus % len(self.lines))
+            self.set_focus(next_focus)
         self._modified()
 
     def _get_at_pos(self, pos):
