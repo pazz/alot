@@ -7,60 +7,11 @@ from twisted.internet import reactor, defer
 
 from settings import settings
 from buffers import BufferlistBuffer
-import commands
 from commands import commandfactory
 from alot.commands import CommandParseError
 from alot.helper import string_decode
-from alot.widgets.utils import CatchKeyWidgetWrap
 from alot.widgets.globals import CompleteEdit
 from alot.widgets.globals import ChoiceWidget
-
-
-class InputWrap(urwid.WidgetWrap):
-    """
-    This is the topmost widget used in the widget tree.
-    Its purpose is to capture and interpret keypresses
-    by instantiating and applying the relevant :class:`Command` objects
-    or relaying them to the wrapped `rootwidget`.
-    """
-    def __init__(self, ui, rootwidget):
-        urwid.WidgetWrap.__init__(self, rootwidget)
-        self.ui = ui
-        self.rootwidget = rootwidget
-        self.select_cancel_only = False
-
-    def set_root(self, w):
-        self._w = w
-
-    def get_root(self):
-        return self._w
-
-    def allowed_command(self, cmd):
-        """sanity check if the given command should be applied.
-        This is used in :meth:`keypress`"""
-        if not self.select_cancel_only:
-            return True
-        elif isinstance(cmd, commands.globals.SendKeypressCommand):
-            if cmd.key in ['select', 'cancel']:
-                return True
-        else:
-            return False
-
-    def keypress(self, size, key):
-        """overwrites `urwid.WidgetWrap.keypress`"""
-        mode = self.ui.mode
-        if self.select_cancel_only:
-            mode = 'global'
-        cmdline = settings.get_keybinding(mode, key)
-        if cmdline:
-            try:
-                cmd = commandfactory(cmdline, mode)
-                if self.allowed_command(cmd):
-                    self.ui.apply_command(cmd)
-                    return None
-            except CommandParseError, e:
-                self.ui.notify(e.message, priority='error')
-        return self._w.keypress(size, key)
 
 
 class UI(object):
@@ -75,7 +26,13 @@ class UI(object):
     current_buffer = None
     """points to currently active :class:`~alot.buffers.Buffer`"""
     dbman = None
-    """Database manager (:class:`~alot.db.DBManager`)"""
+    """Database Manager (:class:`~alot.db.manager.DBManager`)"""
+    mode = None
+    """interface mode identifier - type of current buffer"""
+    commandprompthistory = []
+    """history of the command line prompt"""
+    input_queue = []
+    """stores partial keyboard input"""
 
     def __init__(self, dbman, initialcmd):
         """
@@ -85,50 +42,124 @@ class UI(object):
         :param colourmode: determines which theme to chose
         :type colourmode: int in [1,16,256]
         """
+        # store database manager
         self.dbman = dbman
+        # define empty notification pile
+        self._notificationbar = None
+        # should we show a status bar?
+        self._show_statusbar = settings.get('show_statusbar')
+        # pass keypresses to the root widget and never interpret bindings
+        self._passall = False
+        # indicates "input lock": only focus move commands are interpreted
+        self._locked = False
+        self._unlock_callback = None  # will be called after input lock ended
+        self._unlock_key = None  # key that ends input lock
 
-        colourmode = int(settings.get('colourmode'))
-        logging.info('setup gui in %d colours' % colourmode)
+        # alarm handle for callback that clears input queue (to cancel alarm)
+        self._alarm = None
+
+        # create root widget
         global_att = settings.get_theming_attribute('global', 'body')
-        self.mainframe = urwid.Frame(urwid.SolidFill())
-        self.mainframe_themed = urwid.AttrMap(self.mainframe, global_att)
-        self.inputwrap = InputWrap(self, self.mainframe_themed)
-        self.mainloop = urwid.MainLoop(self.inputwrap,
+        mainframe = urwid.Frame(urwid.SolidFill())
+        self.root_widget = urwid.AttrMap(mainframe, global_att)
+
+        # set up main loop
+        self.mainloop = urwid.MainLoop(self.root_widget,
                                        handle_mouse=False,
                                        event_loop=urwid.TwistedEventLoop(),
-                                       unhandled_input=self.unhandeled_input)
-        self.mainloop.screen.set_terminal_properties(colors=colourmode)
+                                       unhandled_input=self._unhandeled_input,
+                                       input_filter=self._input_filter)
 
-        self.show_statusbar = settings.get('show_statusbar')
-        self.notificationbar = None
-        self.mode = 'global'
-        self.commandprompthistory = []
+        # set up colours
+        colourmode = int(settings.get('colourmode'))
+        logging.info('setup gui in %d colours' % colourmode)
+        self.mainloop.screen.set_terminal_properties(colors=colourmode)
 
         logging.debug('fire first command')
         self.apply_command(initialcmd)
+
+        # start urwids mainloop
         self.mainloop.run()
 
-    def unhandeled_input(self, key):
-        """called if a keypress is not handled."""
+    def _input_filter(self, keys, raw):
+        """
+        handles keypresses.
+        This function gets triggered directly by class:`urwid.MainLoop`
+        upon user input and is supposed to pass on its `keys` parameter
+        to let the root widget handle keys. We intercept the input here
+        to trigger custom commands as defined in our keybindings.
+        """
+        logging.debug("Got key (%s, %s)" % (keys, raw))
+        # work around: escape triggers this twice, with keys = raw = []
+        # the first time..
+        if not keys:
+            return
+        # let widgets handle input if key is virtual window resize keypress
+        # or we are in "passall" mode
+        elif 'window resize' in keys or self._passall:
+            return keys
+        # end "lockdown" mode if the right key was pressed
+        elif self._locked and keys[0] == self._unlock_key:
+            self._locked = False
+            self.mainloop.widget = self.root_widget
+            if callable(self._unlock_callback):
+                self._unlock_callback()
+        # otherwise interpret keybinding
+        else:
+            # define callback that resets input queue
+            def clear(*args):
+                if self._alarm is not None:
+                    self.mainloop.remove_alarm(self._alarm)
+                self.input_queue = []
+                self.update()
+
+            key = keys[0]
+            self.input_queue.append(key)
+            keyseq = ' '.join(self.input_queue)
+            cmdline = settings.get_keybinding(self.mode, keyseq)
+            if cmdline:
+                logging.debug("cmdline: '%s'" % cmdline)
+                # move keys are always passed
+                if cmdline.startswith('move '):
+                    movecmd = cmdline[5:].rstrip()
+                    logging.debug("GOT MOVE: '%s'" % movecmd)
+                    if movecmd in ['up', 'down', 'page up', 'page down']:
+                        clear()
+                        return [movecmd]
+                elif not self._locked:
+                    try:
+                        clear()
+                        cmd = commandfactory(cmdline, self.mode)
+                        self.apply_command(cmd)
+                    except CommandParseError, e:
+                        self.notify(e.message, priority='error')
+
+            timeout = float(settings.get('input_timeout'))
+            if self._alarm is not None:
+                self.mainloop.remove_alarm(self._alarm)
+            self._alarm = self.mainloop.set_alarm_in(timeout, clear)
+            # update statusbar
+            self.update()
+
+    def _unhandeled_input(self, key):
+        """
+        Called by :class:`urwid.MainLoop` if a keypress was passed to the root widget by
+        `self._input_filter` but is not handled in any widget.
+        We keep it for debuging purposes.
+        """
         logging.debug('unhandled input: %s' % key)
 
-    def keypress(self, key):
-        """relay all keypresses to our `InputWrap`"""
-        self.inputwrap.keypress((150, 20), key)
-
-    def show_as_root_until_keypress(self, w, key, relay_rest=True,
-                                    afterwards=None):
-        def oe():
-            self.inputwrap.set_root(self.mainframe_themed)
-            self.inputwrap.select_cancel_only = False
-            if callable(afterwards):
-                logging.debug('called')
-                afterwards()
-        logging.debug('relay: %s' % relay_rest)
-        helpwrap = CatchKeyWidgetWrap(w, key, on_catch=oe,
-                                      relay_rest=relay_rest)
-        self.inputwrap.set_root(helpwrap)
-        self.inputwrap.select_cancel_only = not relay_rest
+    def show_as_root_until_keypress(self, w, key, afterwards=None):
+        """
+        Replaces root widget by given :class:`urwid.Widget` and makes the UI
+        ignore all further commands apart from cursor movement.
+        If later on `key` is pressed, the old root widget is reset, callable
+        `afterwards` is called and normal behaviour is resumed.
+        """
+        self.mainloop.widget = w
+        self._unlock_key = key
+        self._unlock_callback = afterwards
+        self._locked = True
 
     def prompt(self, prefix, text=u'', completer=None, tab=0, history=[]):
         """prompt for text input
@@ -144,16 +175,16 @@ class UI(object):
         :type tab: int
         :param history: history to be used for up/down keys
         :type history: list of str
-        :returns: a :class:`twisted.defer.Deferred`
+        :rtype: :class:`twisted.defer.Deferred`
         """
         d = defer.Deferred()  # create return deferred
-        oldroot = self.inputwrap.get_root()
+        oldroot = self.mainloop.widget
 
         def select_or_cancel(text):
             # restore main screen and invoke callback
             # (delayed return) with given text
-            self.inputwrap.set_root(oldroot)
-            self.inputwrap.select_cancel_only = False
+            self.mainloop.widget = oldroot
+            self._passall = False
             d.callback(text)
 
         prefix = prefix + settings.get('prompt_suffix')
@@ -181,14 +212,14 @@ class UI(object):
                                 ('fixed right', 0),
                                 ('fixed bottom', 1),
                                 None)
-        self.inputwrap.set_root(overlay)
-        self.inputwrap.select_cancel_only = True
+        self.mainloop.widget = overlay
+        self._passall = True
         return d  # return deferred
 
     def exit(self):
         """
         shuts down user interface without cleaning up.
-        Use a :class:`commands.globals.ExitCommand` for a clean shutdown.
+        Use a :class:`alot.commands.globals.ExitCommand` for a clean shutdown.
         """
         exit_msg = None
         try:
@@ -239,7 +270,6 @@ class UI(object):
         else:
             if self.current_buffer != buf:
                 self.current_buffer = buf
-                self.inputwrap.set_root(self.mainframe_themed)
             self.mode = buf.modename
             if isinstance(self.current_buffer, BufferlistBuffer):
                 self.current_buffer.rebuild()
@@ -260,26 +290,26 @@ class UI(object):
     def get_buffers_of_type(self, t):
         """
         returns currently open buffers for a given subclass of
-        :class:`alot.buffer.Buffer`
+        :class:`~alot.buffers.Buffer`
         """
         return filter(lambda x: isinstance(x, t), self.buffers)
 
     def clear_notify(self, messages):
         """
-        clears notification popups. Call this to ged rid of messages that don't
+        Clears notification popups. Call this to ged rid of messages that don't
         time out.
 
         :param messages: The popups to remove. This should be exactly
                          what :meth:`notify` returned when creating the popup
         """
-        newpile = self.notificationbar.widget_list
+        newpile = self._notificationbar.widget_list
         for l in messages:
             if l in newpile:
                 newpile.remove(l)
         if newpile:
-            self.notificationbar = urwid.Pile(newpile)
+            self._notificationbar = urwid.Pile(newpile)
         else:
-            self.notificationbar = None
+            self._notificationbar = None
         self.update()
 
     def choice(self, message, choices={'y': 'yes', 'n': 'no'},
@@ -300,18 +330,18 @@ class UI(object):
         :param msg_position: determines if `message` is above or left of the
                              prompt. Must be `above` or `left`.
         :type msg_position: str
-        :returns: a :class:`twisted.defer.Deferred`
+        :rtype:  :class:`twisted.defer.Deferred`
         """
         assert select in choices.values() + [None]
         assert cancel in choices.values() + [None]
         assert msg_position in ['left', 'above']
 
         d = defer.Deferred()  # create return deferred
-        oldroot = self.inputwrap.get_root()
+        oldroot = self.mainloop.widget
 
         def select_or_cancel(text):
-            self.inputwrap.set_root(oldroot)
-            self.inputwrap.select_cancel_only = False
+            self.mainloop.widget = oldroot
+            self._passall = False
             d.callback(text)
 
         #set up widgets
@@ -337,8 +367,8 @@ class UI(object):
                                 ('fixed right', 0),
                                 ('fixed bottom', 1),
                                 None)
-        self.inputwrap.set_root(overlay)
-        self.inputwrap.select_cancel_only = True
+        self.mainloop.widget = overlay
+        self._passall = True
         return d  # return deferred
 
     def notify(self, message, priority='normal', timeout=0, block=False):
@@ -367,11 +397,11 @@ class UI(object):
             return urwid.AttrMap(cols, att)
         msgs = [build_line(message, priority)]
 
-        if not self.notificationbar:
-            self.notificationbar = urwid.Pile(msgs)
+        if not self._notificationbar:
+            self._notificationbar = urwid.Pile(msgs)
         else:
-            newpile = self.notificationbar.widget_list + msgs
-            self.notificationbar = urwid.Pile(newpile)
+            newpile = self._notificationbar.widget_list + msgs
+            self._notificationbar = urwid.Pile(newpile)
         self.update()
 
         def clear(*args):
@@ -379,14 +409,13 @@ class UI(object):
 
         if block:
             # put "cancel to continue" widget as overlay on main widget
-            txt = build_line('(cancel continues)', priority)
-            overlay = urwid.Overlay(txt, self.mainframe_themed,
+            txt = build_line('(escape continues)', priority)
+            overlay = urwid.Overlay(txt, self.root_widget,
                                     ('fixed left', 0),
                                     ('fixed right', 0),
                                     ('fixed bottom', 0),
                                     None)
-            self.show_as_root_until_keypress(overlay, 'cancel',
-                                             relay_rest=False,
+            self.show_as_root_until_keypress(overlay, 'esc',
                                              afterwards=clear)
         else:
             if timeout >= 0:
@@ -397,26 +426,24 @@ class UI(object):
 
     def update(self):
         """redraw interface"""
-        #who needs a header?
-        #head = urwid.Text('notmuch gui')
-        #h=urwid.AttrMap(head, 'header')
-        #self.mainframe.set_header(h)
+        # get the main urwid.Frame widget
+        mainframe = self.root_widget.original_widget
 
         # body
         if self.current_buffer:
-            self.mainframe.set_body(self.current_buffer)
+            mainframe.set_body(self.current_buffer)
 
         # footer
         lines = []
-        if self.notificationbar:  # .get_text()[0] != ' ':
-            lines.append(self.notificationbar)
-        if self.show_statusbar:
+        if self._notificationbar:  # .get_text()[0] != ' ':
+            lines.append(self._notificationbar)
+        if self._show_statusbar:
             lines.append(self.build_statusbar())
 
         if lines:
-            self.mainframe.set_footer(urwid.Pile(lines))
+            mainframe.set_footer(urwid.Pile(lines))
         else:
-            self.mainframe.set_footer(None)
+            mainframe.set_footer(None)
         # force a screen redraw
         if self.mainloop.screen.started:
             self.mainloop.draw_screen()
@@ -434,6 +461,7 @@ class UI(object):
             info['buffer_type'] = btype
         info['total_messages'] = self.dbman.count_messages('*')
         info['pending_writes'] = len(self.dbman.writequeue)
+        info['input_queue'] = ' '.join(self.input_queue)
 
         lefttxt = righttxt = u''
         if cb is not None:
