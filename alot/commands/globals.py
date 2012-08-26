@@ -323,9 +323,8 @@ class CallCommand(Command):
             exec self.command
         except Exception as e:
             logging.exception(e)
-            msg = 'an error occurred during execution of "%s":\n'\
-                  '%s\nSee the logfile for details'
-            ui.notify(msg % e, priority='error')
+            msg = 'an error occurred during execution of "%s":\n%s'
+            ui.notify(msg % (self.command,e), priority='error')
 
 
 @registerCommand(MODE, 'bclose', arguments=[
