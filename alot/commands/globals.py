@@ -370,26 +370,39 @@ class BufferCloseCommand(Command):
                  help='focus previous buffer')
 @registerCommand(MODE, 'bnext', forced={'offset': +1},
                  help='focus next buffer')
+@registerCommand(MODE, 'buffer', arguments=[
+    (['index'], {'type':int, 'help':'buffer index to focus'}),],
+                 help='focus buffer with given index')
 class BufferFocusCommand(Command):
     """focus a :class:`~alot.buffers.Buffer`"""
-    def __init__(self, buffer=None, offset=0, **kwargs):
+    def __init__(self, buffer=None, index=None, offset=0, **kwargs):
         """
         :param buffer: the buffer to focus or None
         :type buffer: `alot.buffers.Buffer`
+        :param index: index (in bufferlist) of the buffer to focus.
+        :type index: int
         :param offset: position of the buffer to focus relative to the
                        currently focussed one. This is used only if `buffer`
                        is set to `None`
         :type offset: int
         """
         self.buffer = buffer
+        self.index = index
         self.offset = offset
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        if self.offset:
-            idx = ui.buffers.index(ui.current_buffer)
+        if self.buffer is None:
+            if self.index is not None:
+                try:
+                    self.buffer = ui.buffers[self.index]
+                except IndexError:
+                    ui.notify('no buffer exists at index %d' % self.index)
+                    return
+            else:
+                self.index = ui.buffers.index(ui.current_buffer)
             num = len(ui.buffers)
-            self.buffer = ui.buffers[(idx + self.offset) % num]
+            self.buffer = ui.buffers[(self.index + self.offset) % num]
         ui.buffer_focus(self.buffer)
 
 
