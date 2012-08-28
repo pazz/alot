@@ -752,9 +752,8 @@ class CommandSequenceCommand(Command):
 
     @inlineCallbacks
     def apply(self, ui):
-        for cmd in self.commandlist:
-            logging.debug('CMDSEQ: apply %s' % str(cmd))
-            yield ui.apply(cmd)
+        for cmdstring in self.commandlist:
+            logging.debug('CMDSEQ: apply %s' % str(cmdstring))
             # translate cmdstring into :class:`Command`
-            cmd = commandfactory(cstring, ui.mode)
-            ui.apply_command(cmd)
+            cmd = commandfactory(cmdstring, ui.mode)
+            yield ui.apply_command(cmd)
