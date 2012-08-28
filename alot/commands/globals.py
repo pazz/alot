@@ -114,12 +114,7 @@ class PromptCommand(Command):
         if cmdline:
             # save into prompt history
             ui.commandprompthistory.append(cmdline)
-
-            try:
-                cmd = commandfactory(cmdline, mode)
-                ui.apply_command(cmd)
-            except CommandParseError, e:
-                ui.notify(e.message, priority='error')
+            ui.apply_commandline(cmdline)
 
 
 @registerCommand(MODE, 'refresh')
