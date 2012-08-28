@@ -751,7 +751,8 @@ class ComposeCommand(Command):
 class CommandSequenceCommand(Command):
     """Meta-Command that just applies a sequence of given Commands in order"""
 
-    def __init__(self, commandlist=[]):
+    def __init__(self, commandlist=[], **kwargs):
+        Command.__init__(self, **kwargs)
         self.commandlist = commandlist
 
     @inlineCallbacks
@@ -759,3 +760,6 @@ class CommandSequenceCommand(Command):
         for cmd in self.commandlist:
             logging.debug('CMDSEQ: apply %s' % str(cmd))
             yield ui.apply(cmd)
+            # translate cmdstring into :class:`Command`
+            cmd = commandfactory(cstring, ui.mode)
+            ui.apply_command(cmd)
