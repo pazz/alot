@@ -9,7 +9,9 @@ from settings import settings
 from buffers import BufferlistBuffer
 from commands import commandfactory
 from alot.commands import CommandParseError
+from alot.commands.globals import CommandSequenceCommand
 from alot.helper import string_decode
+from alot.helper import split_commandline
 from alot.widgets.globals import CompleteEdit
 from alot.widgets.globals import ChoiceWidget
 
@@ -140,6 +142,21 @@ class UI(object):
             self._alarm = self.mainloop.set_alarm_in(timeout, clear)
             # update statusbar
             self.update()
+
+    def apply_commandline(self, cmdline):
+        # split commandline if necessary
+        cmd = None
+        cmdlist = split_commandline(cmdline)
+        if len(cmdlist) == 1:
+            try:
+                # translate cmdstring into :class:`Command`
+                cmd = commandfactory(cmdlist[0], self.mode)
+            except CommandParseError, e:
+                self.notify(e.message, priority='error')
+                return
+        else:
+            cmd = CommandSequenceCommand(cmdlist)
+        self.apply_command(cmd)
 
     def _unhandeled_input(self, key):
         """
