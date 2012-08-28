@@ -749,3 +749,16 @@ class ComposeCommand(Command):
                                             spawn=self.force_spawn,
                                             refocus=False)
         ui.apply_command(cmd)
+
+
+class CommandSequenceCommand(Command):
+    """Meta-Command that just applies a sequence of given Commands in order"""
+
+    def __init__(self, commandlist=[]):
+        self.commandlist = commandlist
+
+    @inlineCallbacks
+    def apply(self, ui):
+        for cmd in self.commandlist:
+            logging.debug('CMDSEQ: apply %s' % str(cmd))
+            yield ui.apply(cmd)
