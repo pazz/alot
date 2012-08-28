@@ -523,3 +523,4 @@ class UI(object):
             d = defer.maybeDeferred(cmd.apply, self)
             d.addErrback(errorHandler)
             d.addCallback(call_posthook)
+            return d
