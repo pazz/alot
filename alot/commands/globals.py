@@ -243,8 +243,8 @@ class ExternalCommand(Command):
         else:
             ui.mainloop.screen.stop()
             ret = thread_code()
-            afterwards(ret)
             ui.mainloop.screen.start()
+            afterwards(ret)
 
 
 #@registerCommand(MODE, 'edit', arguments=[
