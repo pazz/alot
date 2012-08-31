@@ -23,7 +23,7 @@ q = exit
 
 [bufferlist]
     x = close
-    enter = openfocussed
+    enter = open
 
 [search]
     enter = select
