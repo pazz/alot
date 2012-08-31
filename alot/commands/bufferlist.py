@@ -7,7 +7,7 @@ import globals
 MODE = 'bufferlist'
 
 
-@registerCommand(MODE, 'select')
+@registerCommand(MODE, 'open')
 class BufferFocusCommand(Command):
     """focus selected buffer"""
     def apply(self, ui):
