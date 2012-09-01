@@ -311,8 +311,10 @@ class EditCommand(Command):
         if old_tmpfile:
             os.unlink(old_tmpfile.name)
         cmd = globals.EditCommand(self.envelope.tmpfile.name,
-                                  on_success=openEnvelopeFromTmpfile, spawn=self.force_spawn,
-                                  thread=self.force_spawn, refocus=self.refocus)
+                                  on_success=openEnvelopeFromTmpfile,
+                                  spawn=self.force_spawn,
+                                  thread=self.force_spawn,
+                                  refocus=self.refocus)
         ui.apply_command(cmd)
 
 

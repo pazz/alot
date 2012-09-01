@@ -26,7 +26,7 @@ from utils import encode_header
 class Envelope(object):
     """a message that is not yet sent and still editable"""
     def __init__(self, template=None, bodytext=u'', headers={}, attachments=[],
-            sign=False, sign_key=None, encrypt=False):
+                 sign=False, sign_key=None, encrypt=False):
         """
         :param template: if not None, the envelope will be initialised by
                          :meth:`parsing <parse_template>` this string before
@@ -48,7 +48,7 @@ class Envelope(object):
             self.parse_template(template)
             logging.debug('PARSED TEMPLATE: %s' % template)
             logging.debug('BODY: %s' % self.body)
-        if self.body == None:
+        if self.body is None:
             self.body = bodytext
         self.headers.update(headers)
         self.attachments = list(attachments)
@@ -57,7 +57,7 @@ class Envelope(object):
         self.encrypt = encrypt
         self.sent_time = None
         self.modified_since_sent = False
-        self.sending = False  # used as semaphore to avoid accidental double sendout
+        self.sending = False  # semaphore to avoid accidental double sendout
 
     def __str__(self):
         return "Envelope (%s)\n%s" % (self.headers, self.body)
@@ -147,7 +147,7 @@ class Envelope(object):
         # Build body text part. To properly sign/encrypt messages later on, we
         # convert the text to its canonical format (as per RFC 2015).
         canonical_format = self.body.encode('utf-8')
-        canonical_format = canonical_format.replace('\\t', ' '*4)
+        canonical_format = canonical_format.replace('\\t', ' ' * 4)
         textpart = MIMEText(canonical_format, 'plain', 'utf-8')
 
         # wrap it in a multipart container if necessary
@@ -166,31 +166,32 @@ class Envelope(object):
 
             try:
                 signatures, signature_str = crypto.detached_signature_for(
-                        plaintext, self.sign_key)
+                    plaintext, self.sign_key)
                 if len(signatures) != 1:
                     raise GPGProblem(("Could not sign message "
-                            "(GPGME did not return a signature)"))
+                                      "(GPGME did not return a signature)"))
             except gpgme.GpgmeError as e:
                 if e.code == gpgme.ERR_BAD_PASSPHRASE:
                     # If GPG_AGENT_INFO is unset or empty, the user just does
                     # not have gpg-agent running (properly).
                     if os.environ.get('GPG_AGENT_INFO', '').strip() == '':
-                        raise GPGProblem(("Bad passphrase and "
-                                "GPG_AGENT_INFO not set. Please setup "
-                                "gpg-agent."))
+                        msg = "Got invalid passphrase and GPG_AGENT_INFO\
+                                not set. Please set up gpg-agent."
+                        raise GPGProblem(msg)
                     else:
                         raise GPGProblem(("Bad passphrase. Is "
-                                "gpg-agent running?"))
+                                          "gpg-agent running?"))
                 raise GPGProblem(str(e))
 
             micalg = crypto.RFC3156_micalg_from_algo(signatures[0].hash_algo)
             outer_msg = MIMEMultipart('signed', micalg=micalg,
-                            protocol='application/pgp-signature')
+                                      protocol='application/pgp-signature')
 
             # wrap signature in MIMEcontainter
+            stype = 'pgp-signature; name="signature.asc"'
             signature_mime = MIMEApplication(_data=signature_str,
-                _subtype='pgp-signature; name="signature.asc"',
-                _encoder=encode_7or8bit)
+                                             _subtype=stype,
+                                             _encoder=encode_7or8bit)
             signature_mime['Content-Description'] = 'signature'
             signature_mime.set_charset('us-ascii')
 

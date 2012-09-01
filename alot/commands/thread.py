@@ -318,8 +318,8 @@ class EditNewCommand(Command):
     (['--all'], {'action': 'store_true', 'help':'affect all messages'})],
     help='display message source')
 @registerCommand(MODE, 'toggleheaders', forced={'all_headers': 'toggle'},
-                 arguments=[
-                 (['--all'], {'action': 'store_true', 'help':'affect all messages'})],
+                 arguments=[ (['--all'], {'action': 'store_true',
+                              'help':'affect all messages'})],
                  help='display all headers')
 class ChangeDisplaymodeCommand(Command):
     """fold or unfold messages"""
@@ -388,7 +388,7 @@ class ChangeDisplaymodeCommand(Command):
     (['--shell'], {'action': 'store_true',
                    'help':'let the shell interpret the command'}),
     (['--notify_stdout'], {'action': 'store_true',
-                           'help':'display command\'s stdout as notification message'}),
+                           'help':'display cmd\'s stdout as notification'}),
 ],
 )
 class PipeCommand(Command):

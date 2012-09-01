@@ -57,7 +57,8 @@ class SearchCommand(Command):
         :param query: notmuch querystring
         :type query: str
         :param sort: how to order results. Must be one of
-                     'oldest_first', 'newest_first', 'message_id' or 'unsorted'.
+                     'oldest_first', 'newest_first', 'message_id' or
+                     'unsorted'.
         :type sort: str
         """
         self.query = ' '.join(query)
@@ -324,7 +325,7 @@ class CallCommand(Command):
         except Exception as e:
             logging.exception(e)
             msg = 'an error occurred during execution of "%s":\n%s'
-            ui.notify(msg % (self.command,e), priority='error')
+            ui.notify(msg % (self.command, e), priority='error')
 
 
 @registerCommand(MODE, 'bclose', arguments=[
@@ -350,9 +351,10 @@ class BufferCloseCommand(Command):
 
         if (isinstance(self.buffer, buffers.EnvelopeBuffer) and
                 not self.buffer.envelope.sent_time):
-            if (not self.force and
-                    (yield ui.choice('close without sending?', select='yes',
-                                cancel='no', msg_position='left')) == 'no'):
+            if (not self.force and (yield ui.choice('close without sending?',
+                                                    select='yes', cancel='no',
+                                                    msg_position='left')) ==
+                    'no'):
                 return
 
         if len(ui.buffers) == 1:
@@ -371,8 +373,8 @@ class BufferCloseCommand(Command):
 @registerCommand(MODE, 'bnext', forced={'offset': +1},
                  help='focus next buffer')
 @registerCommand(MODE, 'buffer', arguments=[
-    (['index'], {'type':int, 'help':'buffer index to focus'}),],
-                 help='focus buffer with given index')
+    (['index'], {'type':int, 'help':'buffer index to focus'}), ],
+    help='focus buffer with given index')
 class BufferFocusCommand(Command):
     """focus a :class:`~alot.buffers.Buffer`"""
     def __init__(self, buffer=None, index=None, offset=0, **kwargs):
@@ -505,8 +507,8 @@ class HelpCommand(Command):
             linewidgets = []
             # mode specific maps
             if modemaps:
-                linewidgets.append(urwid.Text((section_att,
-                                               '\n%s-mode specific maps' % ui.mode)))
+                txt = (section_att, '\n%s-mode specific maps' % ui.mode)
+                linewidgets.append(urwid.Text(txt))
                 for (k, v) in modemaps.items():
                     line = urwid.Columns([('fixed', keycolumnwidth,
                                            urwid.Text((text_att, k))),
@@ -697,8 +699,8 @@ class ComposeCommand(Command):
                     else:
                         ui.notify('could not locate signature: %s' % sig,
                                   priority='error')
-                        if (yield ui.choice('send without signature',
-                                            select='yes', cancel='no')) == 'no':
+                        if (yield ui.choice('send without signature?', 'yes',
+                                            'no')) == 'no':
                             return
 
         # Figure out whether we should GPG sign messages by default
@@ -744,5 +746,6 @@ class ComposeCommand(Command):
                     logging.debug('attaching: ' + a)
 
         cmd = commands.envelope.EditCommand(envelope=self.envelope,
-                                            spawn=self.force_spawn, refocus=False)
+                                            spawn=self.force_spawn,
+                                            refocus=False)
         ui.apply_command(cmd)

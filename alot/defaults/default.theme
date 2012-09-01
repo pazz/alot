@@ -1,3 +1,9 @@
+############################################################################
+#                               Default Theme                              #
+#                                                                          #
+# for alot. © 2012 Patrick Totzke, GNU GPL3+, https://github.com/pazz/alot #
+############################################################################
+
 [global]
     footer = 'standout','','white,bold','dark blue','white,bold','#006'
     body = 'default','','dark gray','default','g58','default'

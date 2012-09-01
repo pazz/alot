@@ -126,7 +126,7 @@ class QueryCompleter(Completer):
                                                           mypos - cmdlen)
             else:
                 localres = self._tagcompleter.complete(mypart[cmdlen:],
-                                                        mypos - cmdlen)
+                                                       mypos - cmdlen)
             resultlist = []
             for ltxt, lpos in localres:
                 newtext = original[:start] + cmd + ':' + ltxt + original[end:]
@@ -240,7 +240,7 @@ class ArgparseOptionCompleter(Completer):
                     if optionstring.startswith(pref):
                         # append '=' for options that await a string value
                         if isinstance(act, argparse._StoreAction) or\
-                         isinstance(act, BooleanAction):
+                                isinstance(act, BooleanAction):
                             optionstring += '='
                         res.append(optionstring)
 
@@ -372,8 +372,9 @@ class CommandLineCompleter(Completer):
                         def f((completed, pos)):
                             return ('%s %s' % (header, completed),
                                     pos + len(header) + 1)
-                        res = map(f, self._contactscompleter.complete(params,
-                                                                  localpos))
+                        res = map(f,
+                                  self._contactscompleter.complete(params,
+                                                                   localpos))
             elif self.mode == 'envelope' and cmd == 'unset':
                 plist = params.split(' ', 1)
                 if len(plist) == 1:  # complete from header keys

@@ -1,3 +1,9 @@
+###########################################################################
+#                         Default Key Bindings                            #
+#                                                                         #
+# for alot. © 2012 Patrick Totzke, GNU GPL3+ https://github.com/pazz/alot #
+###########################################################################
+
 up = move up
 down = move down
 page up = move page up

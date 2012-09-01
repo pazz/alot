@@ -41,7 +41,6 @@ def read_config(configpath=None, specpath=None, checks={}):
         except ConfigObjError as e:
             raise ConfigError(e.message)
 
-
         if results != True:
             error_msg = ''
             for (section_list, key, res) in flatten_errors(config, results):
