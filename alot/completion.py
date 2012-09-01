@@ -11,6 +11,7 @@ import alot.commands as commands
 from alot.buffers import EnvelopeBuffer
 from alot.settings import settings
 from alot.utils.booleanaction import BooleanAction
+from alot.helper import split_commandline
 
 
 class Completer(object):
@@ -255,8 +256,8 @@ class AccountCompleter(StringlistCompleter):
         StringlistCompleter.__init__(self, resultlist)
 
 
-class CommandCompleter(Completer):
-    """completes commands"""
+class CommandNameCompleter(Completer):
+    """completes command names"""
 
     def __init__(self, mode):
         """
@@ -275,8 +276,8 @@ class CommandCompleter(Completer):
         return [(t, len(t)) for t in matching]
 
 
-class CommandLineCompleter(Completer):
-    """completion for commandline"""
+class CommandCompleter(Completer):
+    """completes one command consisting of command name and parameters"""
 
     def __init__(self, dbman, mode, currentbuffer=None):
         """
@@ -292,7 +293,7 @@ class CommandLineCompleter(Completer):
         self.dbman = dbman
         self.mode = mode
         self.currentbuffer = currentbuffer
-        self._commandcompleter = CommandCompleter(mode)
+        self._commandnamecompleter = CommandNameCompleter(mode)
         self._querycompleter = QueryCompleter(dbman)
         self._tagcompleter = TagCompleter(dbman)
         abooks = settings.get_addressbooks()
@@ -300,11 +301,18 @@ class CommandLineCompleter(Completer):
         self._pathcompleter = PathCompleter()
 
     def complete(self, line, pos):
+        # remember how many preceding space characters we see until the command
+        # string starts. We'll continue to complete from there on and will add
+        # these whitespaces again at the very end
+        whitespaceoffset = len(line) - len(line.lstrip())
+        line = line[whitespaceoffset:]
+        pos = pos - whitespaceoffset
+
         words = line.split(' ', 1)
 
         res = []
         if pos <= len(words[0]):  # we complete commands
-            for cmd, cpos in self._commandcompleter.complete(line, pos):
+            for cmd, cpos in self._commandnamecompleter.complete(line, pos):
                 newtext = ('%s %s' % (cmd, ' '.join(words[1:])))
                 res.append((newtext, cpos + 1))
         else:
@@ -339,7 +347,7 @@ class CommandLineCompleter(Completer):
             elif cmd == 'search':
                 res = self._querycompleter.complete(params, localpos)
             elif cmd == 'help':
-                res = self._commandcompleter.complete(params, localpos)
+                res = self._commandnamecompleter.complete(params, localpos)
             elif cmd in ['compose']:
                 res = self._contactscompleter.complete(params, localpos)
             # search
@@ -400,6 +408,54 @@ class CommandLineCompleter(Completer):
 
             # prepend cmd and correct position
             res = [('%s %s' % (cmd, t), p + len(cmd) + 1) for (t, p) in res]
+        res = [(' ' * whitespaceoffset + cmd, p + whitespaceoffset) for cmd, p in res]
+        return res
+
+
+class CommandLineCompleter(Completer):
+    """completes command lines: semicolon separated command strings"""
+
+    def __init__(self, dbman, mode, currentbuffer=None):
+        """
+        :param dbman: used to look up avaliable tagstrings
+        :type dbman: :class:`~alot.db.DBManager`
+        :param mode: mode identifier
+        :type mode: str
+        :param currentbuffer: currently active buffer. If defined, this will be
+                              used to dynamically extract possible completion
+                              strings
+        :type currentbuffer: :class:`~alot.buffers.Buffer`
+        """
+        self._commandcompleter = CommandCompleter(dbman, mode, currentbuffer)
+
+    def get_context(self, line, pos):
+        """
+        computes start and end position of substring of line that is the
+        command string under given position
+        """
+        commands = split_commandline(line) + ['']
+        i = 0
+        start = 0
+        end = len(commands[i])
+        while pos > end:
+            i += 1
+            start = end + 1
+            end += 1 + len(commands[i])
+        return start, end
+
+    def complete(self, line, pos):
+        cstart, cend = self.get_context(line, pos)
+        before = line[:cstart]
+        after = line[cend:]
+        cmdstring = line[cstart:cend]
+        cpos = pos - cstart
+
+        res = []
+        for ccmd, ccpos in self._commandcompleter.complete(cmdstring, cpos):
+            logging.debug((before, cmdstring, after, ccmd))
+            newtext = before + ccmd + after
+            newpos = pos + (ccpos - cpos)
+            res.append((newtext, newpos))
         return res
 
 

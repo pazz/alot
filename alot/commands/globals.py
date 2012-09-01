@@ -113,12 +113,7 @@ class PromptCommand(Command):
         if cmdline:
             # save into prompt history
             ui.commandprompthistory.append(cmdline)
-
-            try:
-                cmd = commandfactory(cmdline, mode)
-                ui.apply_command(cmd)
-            except CommandParseError, e:
-                ui.notify(e.message, priority='error')
+            ui.apply_commandline(cmdline)
 
 
 @registerCommand(MODE, 'refresh')
@@ -746,3 +741,19 @@ class ComposeCommand(Command):
         cmd = commands.envelope.EditCommand(envelope=self.envelope,
                                             spawn=self.force_spawn, refocus=False)
         ui.apply_command(cmd)
+
+
+class CommandSequenceCommand(Command):
+    """Meta-Command that just applies a sequence of given Commands in order"""
+
+    def __init__(self, commandlist=[], **kwargs):
+        Command.__init__(self, **kwargs)
+        self.commandlist = commandlist
+
+    @inlineCallbacks
+    def apply(self, ui):
+        for cmdstring in self.commandlist:
+            logging.debug('CMDSEQ: apply %s' % str(cmdstring))
+            # translate cmdstring into :class:`Command`
+            cmd = commandfactory(cmdstring, ui.mode)
+            yield ui.apply_command(cmd)

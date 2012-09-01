@@ -4,16 +4,16 @@ Manpage
 Synopsis
 --------
 
-.. include:: usage/synopsis
+.. include:: usage/synopsis.rst
 
 Description
 -----------
 
-.. include:: description
+.. include:: description.rst
 
 Usage
 -----
-.. include:: usage/first_steps
+.. include:: usage/first_steps.rst
 
 
 See Also
