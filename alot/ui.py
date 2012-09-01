@@ -130,9 +130,7 @@ class UI(object):
                         return [movecmd]
                 elif not self._locked:
                     try:
-                        clear()
-                        cmd = commandfactory(cmdline, self.mode)
-                        self.apply_command(cmd)
+                        self.apply_commandline(cmdline)
                     except CommandParseError, e:
                         self.notify(e.message, priority='error')
 
