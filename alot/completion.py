@@ -452,7 +452,6 @@ class CommandLineCompleter(Completer):
 
         res = []
         for ccmd, ccpos in self._commandcompleter.complete(cmdstring, cpos):
-            logging.debug((before, cmdstring, after, ccmd))
             newtext = before + ccmd + after
             newpos = pos + (ccpos - cpos)
             res.append((newtext, newpos))
