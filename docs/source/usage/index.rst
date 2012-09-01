@@ -4,17 +4,21 @@ Usage
 
 Commandline invocation
 ======================
-.. include:: synopsis
+.. include:: synopsis.rst
 
 First Steps
 ===========
 
-.. include:: first_steps
+.. _usage.first_steps:
+.. include:: first_steps.rst
 
-.. _commands:
+.. _usage.commands:
 .. include:: commands.rst
 
 .. toctree::
    :hidden:
 
    commands
+   first_steps
+   synopsis
+

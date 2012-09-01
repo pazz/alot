@@ -17,10 +17,12 @@ Options
     --help                         Display  help and exit
 
 
-Commands
+Subommands
 
     search
         start in a search buffer using the querystring provided as
-        parameter. See the SEARCH SYNTAX section of notmuch(1).
+        parameter. See also the SEARCH SYNTAX section of notmuch(1)
+        and the output of `alot search --help`.
     compose
         compose a new message
+        See the output of `alot compose --help` for more info on parameters.
