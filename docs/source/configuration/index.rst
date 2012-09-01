@@ -16,7 +16,8 @@ All configs are optional, but if you want to send mails you need to specify at l
 :ref:`account <config.accounts>` in your config.
 
 .. toctree::
-   
+   :maxdepth: 2
+
    config_options
    accounts
    contacts_completion

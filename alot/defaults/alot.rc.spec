@@ -223,7 +223,7 @@ forward_subject_prefix = string(default='Fwd: ')
         sent_tags = force_list(default=list('sent'))
 
         # path to signature file that gets attached to all outgoing mails from this account, optionally
-        # renamed to ref:`signature_filename <signature-filename>`.
+        # renamed to :ref:`signature_filename <signature-filename>`.
         signature = string(default=None)
 
         # attach signature file if set to True, append its content (mimetype text)

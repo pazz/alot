@@ -29,16 +29,18 @@ Known modes are:
 
 Have a look at `the urwid User Input documentation <http://excess.org/urwid/wiki/UserInput>`_ on how key strings are formatted.
 
-.. _cofig.key-bingings.defaults:
+.. _config.key-bingings.defaults:
 
-.. rubric:: Default bindings 
+Default bindings 
+----------------
 
 User-defined bindings are combined with the default bindings listed below.
 
 .. literalinclude:: ../../../alot/defaults/default.bindings
   :language: ini
 
-.. rubric:: Overwriting defaults
+Overwriting defaults
+--------------------
 
 To disable a global binding you can redefine it in your config to point to an empty command string.
 For example, to add a new global binding for key `a`, which is bound to `toggletags inbox` in search

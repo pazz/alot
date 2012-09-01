@@ -46,7 +46,7 @@
      * `{pending_writes}`: number of pending write operations to the index
 
     :type: mixed_list
-    :default: [{buffer_no}: bufferlist], total messages: {total_messages}
+    :default: [{buffer_no}: bufferlist], {input_queue} total messages: {total_messages}
 
 
 .. _bug-on-exit:
@@ -189,7 +189,7 @@
      * `{to}`: To-header of the envelope
 
     :type: mixed_list
-    :default: [{buffer_no}: envelope], total messages: {total_messages}
+    :default: [{buffer_no}: envelope], {input_queue} total messages: {total_messages}
 
 
 .. _flush-retry-timeout:
@@ -231,6 +231,16 @@
 
     :type: string
     :default: "search tag:inbox AND NOT tag:killed"
+
+
+.. _input-timeout:
+
+.. describe:: input_timeout
+
+     timeout in (floating point) seconds until partial input is cleared
+
+    :type: float
+    :default: 1.0
 
 
 .. _notify-timeout:
@@ -311,7 +321,7 @@
      * `{result_count_positive}`: 's' if result count is greater than 0.
 
     :type: mixed_list
-    :default: [{buffer_no}: search] for "{querystring}", {result_count} of {total_messages} messages
+    :default: [{buffer_no}: search] for "{querystring}", {input_queue} {result_count} of {total_messages} messages
 
 
 .. _search-threads-sort-order:
@@ -354,7 +364,7 @@
      that will be substituted accordingly.
 
     :type: mixed_list
-    :default: [{buffer_no}: taglist], total messages: {total_messages}
+    :default: [{buffer_no}: taglist], {input_queue} total messages: {total_messages}
 
 
 .. _template-dir:
@@ -435,7 +445,7 @@
      * `{message_count}`: number of contained messages
 
     :type: mixed_list
-    :default: [{buffer_no}: thread] {subject}, total messages: {total_messages}
+    :default: [{buffer_no}: thread] {subject}, {input_queue} total messages: {total_messages}
 
 
 .. _timestamp-format:
