@@ -81,8 +81,9 @@ class SettingsManager(object):
         if themes_dir:
             themes_dir = os.path.expanduser(themes_dir)
         else:
-            themes_dir = os.path.join(os.environ.get('XDG_CONFIG_HOME',
-                                                     os.path.expanduser('~/.config')), 'alot', 'themes')
+            configdir = os.environ.get('XDG_CONFIG_HOME',
+                                       os.path.expanduser('~/.config'))
+            themes_dir = os.path.join(configdir, 'alot', 'themes')
         logging.debug(themes_dir)
 
         if themestring:

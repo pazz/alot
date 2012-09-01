@@ -158,9 +158,9 @@ class UI(object):
 
     def _unhandeled_input(self, key):
         """
-        Called by :class:`urwid.MainLoop` if a keypress was passed to the root widget by
-        `self._input_filter` but is not handled in any widget.
-        We keep it for debuging purposes.
+        Called by :class:`urwid.MainLoop` if a keypress was passed to the root
+        widget by `self._input_filter` but is not handled in any widget. We
+        keep it for debuging purposes.
         """
         logging.debug('unhandled input: %s' % key)
 
