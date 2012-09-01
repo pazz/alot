@@ -301,6 +301,13 @@ class CommandCompleter(Completer):
         self._pathcompleter = PathCompleter()
 
     def complete(self, line, pos):
+        # remember how many preceding space characters we see until the command
+        # string starts. We'll continue to complete from there on and will add
+        # these whitespaces again at the very end
+        whitespaceoffset = len(line) - len(line.lstrip())
+        line = line[whitespaceoffset:]
+        pos = pos - whitespaceoffset
+
         words = line.split(' ', 1)
 
         res = []
@@ -402,6 +409,7 @@ class CommandCompleter(Completer):
 
             # prepend cmd and correct position
             res = [('%s %s' % (cmd, t), p + len(cmd) + 1) for (t, p) in res]
+        res = [(' ' * whitespaceoffset + cmd, p + whitespaceoffset) for cmd, p in res]
         return res
 
 
