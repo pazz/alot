@@ -5,7 +5,7 @@
 
 User Manual
 ===========
-.. include:: description
+.. include:: description.rst
 
 .. toctree::
    :maxdepth: 2
@@ -22,3 +22,4 @@ User Manual
    :hidden:
 
    manpage
+   description
