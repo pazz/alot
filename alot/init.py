@@ -5,6 +5,7 @@ import sys
 import logging
 import os
 
+import alot
 from alot.settings import settings
 from alot.settings.errors import ConfigError
 from alot.db.manager import DBManager
