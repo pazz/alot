@@ -120,13 +120,13 @@ class UI(object):
             keyseq = ' '.join(self.input_queue)
             cmdline = settings.get_keybinding(self.mode, keyseq)
             if cmdline:
+                clear()
                 logging.debug("cmdline: '%s'" % cmdline)
                 # move keys are always passed
                 if cmdline.startswith('move '):
                     movecmd = cmdline[5:].rstrip()
                     logging.debug("GOT MOVE: '%s'" % movecmd)
                     if movecmd in ['up', 'down', 'page up', 'page down']:
-                        clear()
                         return [movecmd]
                 elif not self._locked:
                     try:
