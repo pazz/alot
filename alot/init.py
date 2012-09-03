@@ -41,16 +41,16 @@ class SubcommandOptions(usage.Options):
 
 class ComposeOptions(SubcommandOptions):
     optParameters = [
-                ['sender', '', None, 'From line'],
-                ['subject', '', None, 'subject line'],
-                ['cc', '', None, 'copy to'],
-                ['bcc', '', None, 'blind copy to'],
-                ['template', '', None, 'path to template file'],
-                ['attach', '', None, 'files to attach'],
-            ]
+        ['sender', '', None, 'From line'],
+        ['subject', '', None, 'subject line'],
+        ['cc', '', None, 'copy to'],
+        ['bcc', '', None, 'blind copy to'],
+        ['template', '', None, 'path to template file'],
+        ['attach', '', None, 'files to attach'],
+    ]
     optFlags = [
-            ['omit_signature', '', 'do not add signature'],
-            ]
+        ['omit_signature', '', 'do not add signature'],
+    ]
 
     def parseArgs(self, *args):
         SubcommandOptions.parseArgs(self, *args)
@@ -66,8 +66,8 @@ class SearchOptions(SubcommandOptions):
         return val
     colourint.coerceDoc = "Must be one of " + str(accepted)
     optParameters = [
-                ['sort', 'newest_first', None, 'Sort order'],
-            ]
+        ['sort', 'newest_first', None, 'Sort order'],
+    ]
 
 
 class Options(usage.Options):
@@ -87,12 +87,12 @@ class Options(usage.Options):
     debuglogstring.coerceDoc = "Must be one of debug,info,warning or error"
 
     optParameters = [
-            ['config', 'c', None, 'config file'],
-            ['notmuch-config', 'n', None, 'notmuch config'],
-            ['colour-mode', 'C', None, 'terminal colour mode', colourint],
-            ['mailindex-path', 'p', None, 'path to notmuch index'],
-            ['debug-level', 'd', 'info', 'debug log', debuglogstring],
-            ['logfile', 'l', '/dev/null', 'logfile'],
+        ['config', 'c', None, 'config file'],
+        ['notmuch-config', 'n', None, 'notmuch config'],
+        ['colour-mode', 'C', None, 'terminal colour mode', colourint],
+        ['mailindex-path', 'p', None, 'path to notmuch index'],
+        ['debug-level', 'd', 'info', 'debug log', debuglogstring],
+        ['logfile', 'l', '/dev/null', 'logfile'],
     ]
     search_help = "start in a search buffer using the querystring provided "\
                   "as parameter. See the SEARCH SYNTAX section of notmuch(1)."
