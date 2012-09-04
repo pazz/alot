@@ -4,9 +4,10 @@ Hooks
 =====
 Hooks are python callables that live in a module specified by `hooksfile` in the
 config. Per default this points to :file:`~/.config/alot/hooks.py`.
-When a hook gets called it receives a reference to the :class:`main user interface <alot.ui.UI>` and the
-:class:`database manager <alot.db.DBManager>`.
-For every :ref:`COMMAND <commands>` in mode :ref:`MODE <modes>`, the callables :func:`pre_MODE_COMMAND` and :func:`post_MODE_COMMAND`
+
+.. rubric:: Pre/Post Command Hooks
+
+For every :ref:`COMMAND <usage.commands>` in mode :ref:`MODE <modes>`, the callables :func:`pre_MODE_COMMAND` and :func:`post_MODE_COMMAND`
 -- if defined -- will be called before and after the command is applied respectively. The signature for the
 pre-`send` hook in envelope mode for example looks like this:
 
@@ -15,7 +16,7 @@ pre-`send` hook in envelope mode for example looks like this:
     :param ui: the main user interface
     :type ui: :class:`alot.ui.UI`
     :param dbm: a database manager
-    :type dbm: :class:`alot.db.DBManager`
+    :type dbm: :class:`alot.db.manager.DBManager`
 
 Consider this pre-hook for the exit command, that logs a personalized goodbye message::
 
@@ -27,6 +28,8 @@ Consider this pre-hook for the exit command, that logs a personalized goodbye me
             logging.info('goodbye, %s!' % accounts[0].realname)
         else:
             logging.info('goodbye!')
+
+.. rubric:: Other Hooks
 
 Apart from command pre- and posthooks, the following hooks will be interpreted:
 

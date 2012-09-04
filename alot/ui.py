@@ -9,7 +9,9 @@ from settings import settings
 from buffers import BufferlistBuffer
 from commands import commandfactory
 from alot.commands import CommandParseError
+from alot.commands.globals import CommandSequenceCommand
 from alot.helper import string_decode
+from alot.helper import split_commandline
 from alot.widgets.globals import CompleteEdit
 from alot.widgets.globals import ChoiceWidget
 
@@ -118,19 +120,17 @@ class UI(object):
             keyseq = ' '.join(self.input_queue)
             cmdline = settings.get_keybinding(self.mode, keyseq)
             if cmdline:
+                clear()
                 logging.debug("cmdline: '%s'" % cmdline)
                 # move keys are always passed
                 if cmdline.startswith('move '):
                     movecmd = cmdline[5:].rstrip()
                     logging.debug("GOT MOVE: '%s'" % movecmd)
                     if movecmd in ['up', 'down', 'page up', 'page down']:
-                        clear()
                         return [movecmd]
                 elif not self._locked:
                     try:
-                        clear()
-                        cmd = commandfactory(cmdline, self.mode)
-                        self.apply_command(cmd)
+                        self.apply_commandline(cmdline)
                     except CommandParseError, e:
                         self.notify(e.message, priority='error')
 
@@ -140,6 +140,21 @@ class UI(object):
             self._alarm = self.mainloop.set_alarm_in(timeout, clear)
             # update statusbar
             self.update()
+
+    def apply_commandline(self, cmdline):
+        # split commandline if necessary
+        cmd = None
+        cmdlist = split_commandline(cmdline)
+        if len(cmdlist) == 1:
+            try:
+                # translate cmdstring into :class:`Command`
+                cmd = commandfactory(cmdlist[0], self.mode)
+            except CommandParseError, e:
+                self.notify(e.message, priority='error')
+                return
+        else:
+            cmd = CommandSequenceCommand(cmdlist)
+        self.apply_command(cmd)
 
     def _unhandeled_input(self, key):
         """
@@ -523,3 +538,4 @@ class UI(object):
             d = defer.maybeDeferred(cmd.apply, self)
             d.addErrback(errorHandler)
             d.addCallback(call_posthook)
+            return d
