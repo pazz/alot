@@ -24,7 +24,6 @@ class Account(object):
     settings, can send and store mails to maildirs (drafts/send).
 
     .. note::
-
         This is an abstract class that leaves :meth:`send_mail` unspecified.
         See :class:`SendmailAccount` for a subclass that uses a sendmail
         command to send out mails.
@@ -74,7 +73,8 @@ class Account(object):
 
     def store_mail(self, mbx, mail):
         """
-        stores given mail in mailbox. If mailbox is maildir, set the S-flag.
+        stores given mail in mailbox. If mailbox is maildir, set the S-flag and
+        return path to newly added mail. Oherwise this will return `None`.
 
         :param mbx: mailbox to use
         :type mbx: :class:`mailbox.Mailbox`

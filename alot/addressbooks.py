@@ -13,7 +13,6 @@ class AddressBook(object):
     """can look up email addresses and realnames for contacts.
 
     .. note::
-
         This is an abstract class that leaves :meth:`get_contacts`
         unspecified. See :class:`AbookAddressBook` and
         :class:`MatchSdtoutAddressbook` for implementations.
@@ -57,6 +56,7 @@ class AbookAddressBook(AddressBook):
 
 class MatchSdtoutAddressbook(AddressBook):
     """:class:`AddressBook` that parses a shell command's output for lookups"""
+
     def __init__(self, command, match=None):
         """
         :param command: lookup command

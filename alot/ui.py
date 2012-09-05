@@ -142,6 +142,13 @@ class UI(object):
             self.update()
 
     def apply_commandline(self, cmdline):
+        """
+        Interprets a command line string and applies the resulting
+        (sequence of) :class:`Commands <alot.commands.Command>`.
+
+        :param cmdline: command line to interpret
+        :type cmdline: str
+        """
         # split commandline if necessary
         cmd = None
         cmdlist = split_commandline(cmdline)
@@ -177,7 +184,10 @@ class UI(object):
         self._locked = True
 
     def prompt(self, prefix, text=u'', completer=None, tab=0, history=[]):
-        """prompt for text input
+        """
+        prompt for text input.
+        This returns a :class:`~twisted.defer.Deferred` that calls back with
+        the input string.
 
         :param prefix: text to print before the input field
         :type prefix: str
@@ -305,7 +315,11 @@ class UI(object):
     def get_buffers_of_type(self, t):
         """
         returns currently open buffers for a given subclass of
-        :class:`~alot.buffers.Buffer`
+        :class:`~alot.buffers.Buffer`.
+
+        :param t: Buffer class
+        :type t: alot.buffers.Buffer
+        :rtype: list
         """
         return filter(lambda x: isinstance(x, t), self.buffers)
 
@@ -330,7 +344,7 @@ class UI(object):
     def choice(self, message, choices={'y': 'yes', 'n': 'no'},
                select=None, cancel=None, msg_position='above'):
         """
-        prompt user to make a choice
+        prompt user to make a choice.
 
         :param message: string to display before list of choices
         :type message: unicode
@@ -388,7 +402,7 @@ class UI(object):
 
     def notify(self, message, priority='normal', timeout=0, block=False):
         """
-        opens notification popup
+        opens notification popup.
 
         :param message: message to print
         :type message: str
