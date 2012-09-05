@@ -49,7 +49,10 @@ class Buffer(object):
         pass
 
     def get_info(self):
-        """return dict of meta infos about this buffer"""
+        """
+        return dict of meta infos about this buffer.
+        This can be requested to be displayed in the statusbar.
+        """
         return {}
 
 

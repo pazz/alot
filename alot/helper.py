@@ -55,7 +55,7 @@ def split_commandstring(cmdstring):
 def safely_get(clb, E, on_error=''):
     """
     returns result of :func:`clb` and falls back to `on_error`
-    in case `E` is raised.
+    in case exception `E` is raised.
 
     :param clb: function to evaluate
     :type clb: callable
@@ -112,8 +112,9 @@ def string_sanitize(string, tab_width=8):
 
 
 def string_decode(string, enc='ascii'):
-    """safely decodes string to unicode bytestring,
-    respecting `enc` as a hint"""
+    """
+    safely decodes string to unicode bytestring, respecting `enc` as a hint.
+    """
 
     if enc is None:
         enc = 'ascii'
@@ -127,6 +128,7 @@ def string_decode(string, enc='ascii'):
 
 
 def shorten(string, maxlen):
+    """shortens string if longer than maxlen, appending ellipsis"""
     if maxlen > 1 and len(string) > maxlen:
         string = string[:maxlen - 1] + u'\u2026'
     return string[:maxlen]
@@ -145,16 +147,13 @@ def shorten_author_string(authors_string, maxlength):
 
       - First author is always shown (if too long is shorten with ellipsis)
 
-      - If possible, last author is also shown (if too long, uses
-        ellipsis)
+      - If possible, last author is also shown (if too long, uses ellipsis)
 
       - If there are more than 2 authors in the thread, show the
-        maximum of them. More recent senders have more priority (Is
-        the list of authors already sorted by the date of msgs????)
+        maximum of them. More recent senders have higher priority.
 
       - If it is finally necessary to hide any author, an ellipsis
         between first and next authors is added.
-
 
     >>> authors = u'King Kong, Mucho Muchacho, Jaime Huerta, Flash Gordon'
     >>> print shorten_author_string(authors, 60)
