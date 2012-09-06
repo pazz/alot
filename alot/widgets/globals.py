@@ -39,19 +39,21 @@ class AttachmentWidget(urwid.WidgetWrap):
 
 
 class ChoiceWidget(urwid.Text):
-    def __init__(self, choices, callback, cancel=None, select=None):
+    def __init__(self, choices, callback, cancel=None, select=None, separator=' '):
         self.choices = choices
         self.callback = callback
         self.cancel = cancel
         self.select = select
+        self.separator = separator
 
         items = []
         for k, v in choices.items():
             if v == select and select is not None:
-                items.append('[%s]:%s' % (k, v))
+                items += ['[', k, ']:', v]
             else:
-                items.append('(%s):%s' % (k, v))
-        urwid.Text.__init__(self, ' '.join(items))
+                items += ['(', k, '):', v]
+            items += [self.separator]
+        urwid.Text.__init__(self, items)
 
     def selectable(self):
         return True
