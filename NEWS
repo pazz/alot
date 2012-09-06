@@ -1,3 +1,25 @@
+0.3.3:
+* interpret (semicolon separated) sequences of commands
+* new input handling: allow for binding sequences of keypresses
+* add ability to overwrite default bindings
+* remove tempfiles (email drafts) as late as possible for better error recovery
+* confirmation prompt when closing unsent envelopes
+* prevent accidental double sendout of envelopes
+* fix focus placement after tagcommand on last entry in search buffer
+* new command 'buffer' that can directly jump to buffer with given number
+* extra: sup theme
+* fix tagstring sorting in taglist buffer
+* update docs
+* lots of internal cleanups
+* search buffer theming fixes (alignment of threadline parts)
+* fix help box theming
+* comma-separate virtual "Tags" header added before printing mails
+* fix pipeto command for interactive (foreground) shell commands
+* handle possible errors occurring while saving mails
+* indicate (yet uninterpreted) input queue in the status bar
+* handle python exceptions that occur during 'call' command
+
+
 0.3.2:
 * fix bad GPG signatures for mails with attachments
 * new theme-files + tags section syntax
