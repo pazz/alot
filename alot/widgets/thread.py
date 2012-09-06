@@ -150,7 +150,8 @@ class MessageWidget(urwid.WidgetWrap):
 
         key_att = settings.get_theming_attribute('thread', 'header_key')
         value_att = settings.get_theming_attribute('thread', 'header_value')
-        cols = [HeadersList(lines, key_att, value_att)]
+        gaps_att = settings.get_theming_attribute('thread', 'header')
+        cols = [HeadersList(lines, key_att, value_att, gaps_att)]
         bc = list()
         if self.depth:
             cols.insert(0, self._get_spacer(self.bars_at[1:]))

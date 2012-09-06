@@ -130,13 +130,24 @@ class CompleteEdit(urwid.Edit):
 
 class HeadersList(urwid.WidgetWrap):
     """ renders a pile of header values as key/value list """
-    def __init__(self, headerslist, key_attr, value_attr):
+    def __init__(self, headerslist, key_attr, value_attr, gaps_attr=None):
+        """
+        :param headerslist: list of key/value pairs to display
+        :type headerslist: list of (str, str)
+        :param key_attr: theming attribute to use for keys
+        :type key_attr: urwid.AttrSpec
+        :param value_attr: theming attribute to use for values
+        :type value_attr: urwid.AttrSpec
+        :param gaps_attr: theming attribute to wrap lines in
+        :type gaps_attr: urwid.AttrSpec
+        """
         self.headers = headerslist
         self.key_attr = key_attr
         self.value_attr = value_attr
         pile = urwid.Pile(self._build_lines(headerslist))
-        att = settings.get_theming_attribute('thread', 'header')
-        pile = urwid.AttrMap(pile, att)
+        if gaps_attr is None:
+            gaps_attr = key_attr
+        pile = urwid.AttrMap(pile, gaps_attr)
         urwid.WidgetWrap.__init__(self, pile)
 
     def __str__(self):
