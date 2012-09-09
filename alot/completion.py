@@ -409,7 +409,10 @@ class CommandCompleter(Completer):
 
             # prepend cmd and correct position
             res = [('%s %s' % (cmd, t), p + len(cmd) + 1) for (t, p) in res]
-        res = [(' ' * whitespaceoffset + cmd, p + whitespaceoffset) for cmd, p in res]
+        # re-insert whitespaces and correct position
+        wso = whitespaceoffset
+        res = [(' ' * wso + cmd, p + wso) for cmd, p
+               in res]
         return res
 
 
