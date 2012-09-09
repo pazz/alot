@@ -29,7 +29,7 @@ def split_commandline(s, comments=False, posix=True):
     splits semi-colon separated commandlines
     """
     # shlex seems to remove unescaped quotes
-    s = s.replace('\'','\\\'')
+    s = s.replace('\'', '\\\'')
     # encode s to utf-8 for shlex
     if isinstance(s, unicode):
         s = s.encode('utf-8')
@@ -200,8 +200,8 @@ def shorten_author_string(authors_string, maxlength):
     # that if any author will be hidden, and ellipsis should be added
     while authors and remaining_length >= 3:
         au = authors.pop()
-        if len(au) > 1 and (remaining_length == 3 or
-                          (authors and remaining_length < 7)):
+        if len(au) > 1 and (remaining_length == 3 or (authors and
+                                                      remaining_length < 7)):
             authors_chain.appendleft(u'\u2026')
             break
         else:
@@ -346,7 +346,7 @@ def call_cmd_async(cmdlist, stdin=None, env=None):
 
     d = Deferred()
     environment = os.environ
-    if env != None:
+    if env is not None:
         environment.update(env)
     logging.debug('ENV = %s' % environment)
     logging.debug('CMD = %s' % cmdlist)

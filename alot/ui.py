@@ -29,7 +29,7 @@ class UI(object):
     """points to currently active :class:`~alot.buffers.Buffer`"""
     dbman = None
     """Database Manager (:class:`~alot.db.manager.DBManager`)"""
-    mode = None
+    mode = 'global'
     """interface mode identifier - type of current buffer"""
     commandprompthistory = []
     """history of the command line prompt"""

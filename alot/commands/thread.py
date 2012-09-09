@@ -318,8 +318,8 @@ class EditNewCommand(Command):
     (['--all'], {'action': 'store_true', 'help':'affect all messages'})],
     help='display message source')
 @registerCommand(MODE, 'toggleheaders', forced={'all_headers': 'toggle'},
-                 arguments=[ (['--all'], {'action': 'store_true',
-                              'help':'affect all messages'})],
+                 arguments=[(['--all'], {'action': 'store_true',
+                            'help':'affect all messages'})],
                  help='display all headers')
 class ChangeDisplaymodeCommand(Command):
     """fold or unfold messages"""

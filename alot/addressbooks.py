@@ -13,6 +13,7 @@ class AddressBook(object):
     """can look up email addresses and realnames for contacts.
 
     .. note::
+
         This is an abstract class that leaves :meth:`get_contacts`
         unspecified. See :class:`AbookAddressBook` and
         :class:`MatchSdtoutAddressbook` for implementations.
