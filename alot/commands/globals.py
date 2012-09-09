@@ -316,6 +316,12 @@ class CallCommand(Command):
 
     def apply(self, ui):
         try:
+            hooks = settings.hooks
+            env = {'ui': ui, 'settings': settings}
+            for k, v in env.items():
+                if k not in hooks.__dict__:
+                    hooks.__dict__[k] = v
+
             exec self.command
         except Exception as e:
             logging.exception(e)
