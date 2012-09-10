@@ -105,26 +105,50 @@ class RetagPromptCommand(Command):
 
 
 @registerCommand(MODE, 'tag', forced={'action': 'add'}, arguments=[
+    (['--all'], {'action': 'store_true', 'dest': 'all', 'default': 'True',
+                 'help':'tag all messages in selection'}),
+    (['--match'], {'action': 'store_false', 'dest': 'all',
+                   'help':'tag matching messages in selection'}),
     (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
+                      'default': 'True',
                       'help': 'postpone a writeout to the index'}),
+    (['--target'], {'help':'search or thread',
+                    'choices':['search', 'thread'], 'default': 'thread'}),
     (['tags'], {'help':'comma separated list of tags'})],
     help='add tags to all messages in the thread',
 )
 @registerCommand(MODE, 'retag', forced={'action': 'set'}, arguments=[
+    (['--all'], {'action': 'store_true', 'dest': 'all', 'default': 'True',
+                 'help':'retag all messages in selection'}),
+    (['--match'], {'action': 'store_false', 'dest': 'all',
+                   'help':'retag matching messages in selection'}),
     (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
+                      'default': 'True',
                       'help': 'postpone a writeout to the index'}),
+    (['--target'], {'help':'search or thread',
+                    'choices':['search', 'thread'], 'default': 'thread'}),
     (['tags'], {'help':'comma separated list of tags'})],
     help='set tags of all messages in the thread',
 )
 @registerCommand(MODE, 'untag', forced={'action': 'remove'}, arguments=[
+    (['--all'], {'action': 'store_true', 'dest': 'all', 'default': 'True',
+                 'help':'untag all messages in selection'}),
+    (['--match'], {'action': 'store_false', 'dest': 'all',
+                   'help':'untag matching messages in selection'}),
     (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
+                      'default': 'True',
                       'help': 'postpone a writeout to the index'}),
+    (['--target'], {'help':'search or thread',
+                    'choices':['search', 'thread'], 'default': 'thread'}),
     (['tags'], {'help':'comma separated list of tags'})],
     help='remove tags from all messages in the thread',
 )
 @registerCommand(MODE, 'toggletags', forced={'action': 'toggle'}, arguments=[
     (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
+                      'default': 'True',
                       'help': 'postpone a writeout to the index'}),
+    (['--target'], {'help':'search or thread',
+                    'choices':['search', 'thread'], 'default': 'thread'}),
     (['tags'], {'help':'comma separated list of tags'})],
     help="""flip presence of tags on this thread.
     A tag is considered present if at least one message contained in this
@@ -133,8 +157,8 @@ class RetagPromptCommand(Command):
     """)
 class TagCommand(Command):
     """manipulate message tags"""
-    def __init__(self, tags=u'', action='add', all=False, flush=True,
-                 **kwargs):
+    def __init__(self, tags=u'', action='add', all=True, flush=True,
+                 target='thread', **kwargs):
         """
         :param tags: comma separated list of tagstrings to set
         :type tags: str
@@ -142,173 +166,148 @@ class TagCommand(Command):
                        and removes all other if 'set' or toggle individually if
                        'toggle'
         :type action: str
-        :param all: tag all messages in thread
+        :param target: if 'search' apply changes to search results, if 'thread'
+                       apply changes to currently selected thread(s)
+        :type target: str
+        :param all: tag all messages in target set
         :type all: bool
+        :param match: tag only matching messages in target set
+        :type match: bool
         :param flush: imediately write out to the index
         :type flush: bool
         """
         self.tagsstring = tags
+        self.action = action
         self.all = all
-        self.action = action
+        self.target = target
         self.flush = flush
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
+        logging.debug('TagCommand.apply target: %s' % self.target)
         searchbuffer = ui.current_buffer
         threadline_widget = searchbuffer.get_selected_threadline()
         # pass if the current buffer has no selected threadline
         # (displays an empty search result)
         if threadline_widget is None:
             return
-        thread = threadline_widget.get_thread()
-        testquery = "(%s) AND thread:%s" % (searchbuffer.querystring,
-                                            thread.get_thread_id())
-        hitcount_before = ui.dbman.count_messages(testquery)
+        if self.target not in ['search','thread']:
+            ui.notify('tag command target %s not supported' % (self.target))
+            return
 
-        def remove_thread():
-            logging.debug('remove thread from result list: %s' % thread)
-            if threadline_widget in searchbuffer.threadlist:
-                # remove this thread from result list
-                searchbuffer.threadlist.remove(threadline_widget)
+        if self.all:
+            testquery = searchbuffer.querystring
+            thread = threadline_widget.get_thread()
+            if self.target == 'thread':
+                testquery = "(%s) AND thread:%s" % (testquery,
+                                                    thread.get_thread_id())
 
-        def refresh():
-            # remove thread from resultset if it doesn't match the search query
-            # any more and refresh selected threadline otherwise
-            hitcount_after = ui.dbman.count_messages(testquery)
-            if hitcount_after == 0:
-                remove_thread()
-            else:
-                threadline_widget.rebuild()
-            # update total result count
-            searchbuffer.result_count += (hitcount_after - hitcount_before)
-            ui.update()
+            hitcount_before = ui.dbman.count_messages(testquery)
+            thread_count = ui.dbman.count_threads(testquery)
+            pipe, proc = ui.dbman.get_threads(testquery)
+            threadlist = PipeWalker(pipe, ThreadlineWidget, dbman=ui.dbman)
 
-        tags = filter(lambda x: x, self.tagsstring.split(','))
-        try:
-            if self.action == 'add':
-                thread.add_tags(tags, afterwards=refresh)
-            if self.action == 'set':
-                thread.add_tags(tags, afterwards=refresh,
-                                remove_rest=True)
-            elif self.action == 'remove':
-                thread.remove_tags(tags, afterwards=refresh)
-            elif self.action == 'toggle':
-                to_remove = []
-                to_add = []
-                for t in tags:
-                    if t in thread.get_tags():
-                        to_remove.append(t)
+            def remove_thread():
+                logging.debug('remove thread from result list: %s' % thread)
+                if threadline_widget in searchbuffer.threadlist:
+                    # remove this thread from result list
+                    searchbuffer.threadlist.remove(threadline_widget)
+
+            def refresh():
+                # remove thread from resultset if it doesn't match the search query
+                # any more and refresh selected threadline otherwise
+                hitcount_after = ui.dbman.count_messages(testquery)
+                # update total result count
+                if self.target == 'thread':
+                    if hitcount_after == 0:
+                        remove_thread()
                     else:
-                        to_add.append(t)
-                thread.remove_tags(to_remove)
-                thread.add_tags(to_add, afterwards=refresh)
-        except DatabaseROError:
-            ui.notify('index in read-only mode', priority='error')
-            return
+                        threadline_widget.rebuild()
+                else:
+                    searchbuffer.rebuild()
 
-        # flush index
-        if self.flush:
-            ui.apply_command(commands.globals.FlushCommand())
+                searchbuffer.result_count += (hitcount_after - hitcount_before)
+                ui.update()
 
-@registerCommand(MODE, 'tagsearch', forced={'action': 'add'}, arguments=[
-    (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
-                      'help': 'postpone a writeout to the index'}),
-    (['tags'], {'help':'comma separated list of tags'})],
-    help='add tags to all messages in the search results',
-)
-@registerCommand(MODE, 'retagsearch', forced={'action': 'set'}, arguments=[
-    (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
-                      'help': 'postpone a writeout to the index'}),
-    (['tags'], {'help':'comma separated list of tags'})],
-    help='set tags of all messages in the search results',
-)
-@registerCommand(MODE, 'untagsearch', forced={'action': 'remove'}, arguments=[
-    (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
-                      'help': 'postpone a writeout to the index'}),
-    (['tags'], {'help':'comma separated list of tags'})],
-    help='remove tags from all messages in the search results',
-)
-@registerCommand(MODE, 'toggletagssearch', forced={'action': 'toggle'}, arguments=[
-    (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
-                      'help': 'postpone a writeout to the index'}),
-    (['tags'], {'help':'comma separated list of tags'})],
-    help="""flip presence of tags on this search results.
-    A tag is considered present if at least one message contained in each
-    thread is tagged with it. In that case this command will remove the tag
-    from every message in the thread.
-    """)
-class TagSearchCommand(Command):
-    """manipulate search thread tags"""
-    def __init__(self, tags=u'', action='add', flush=True,
-                 **kwargs):
-        """
-        :param tags: comma separated list of tagstrings to set
-        :type tags: str
-        :param action: adds tags if 'add', removes them if 'remove', adds tags
-                       and removes all other if 'set' or toggle individually if
-                       'toggle'
-        :type action: str
-        :param flush: imediately write out to the index
-        :type flush: bool
-        """
-        self.tagsstring = tags
-        self.action = action
-        self.flush = flush
-        Command.__init__(self, **kwargs)
+            tags = filter(lambda x: x, self.tagsstring.split(','))
+            try:
+                pos = -1
+                while pos < thread_count - 1:
+                    (threadline,size) = threadlist.get_next(pos)
+                    thread = threadline.get_thread()
+                    if self.action == 'add':
+                        thread.add_tags(tags)
+                    if self.action == 'set':
+                        thread.add_tags(tags, remove_rest=True)
+                    elif self.action == 'remove':
+                        thread.remove_tags(tags)
+                    elif self.action == 'toggle':
+                        to_remove = []
+                        to_add = []
+                        for t in tags:
+                            if t in thread.get_tags():
+                                to_remove.append(t)
+                            else:
+                                to_add.append(t)
+                        thread.remove_tags(to_remove)
+                        thread.add_tags(to_add)
+                    pos += 1
+            except DatabaseROError:
+                ui.notify('index in read-only mode', priority='error')
+                return
 
-    def apply(self, ui):
-        searchbuffer = ui.current_buffer
-        threadline_widget = searchbuffer.get_selected_threadline()
-        # pass if the current buffer has no selected threadline
-        # (displays an empty search result)
-        if threadline_widget is None:
-            return
+            # flush index
+            if self.flush:
+                ui.apply_command(commands.globals.FlushCommand())
 
-        testquery = searchbuffer.querystring
-        hitcount_before = ui.dbman.count_messages(testquery)
-        thread_count = ui.dbman.count_threads(testquery)
-        pipe, proc = ui.dbman.get_threads(testquery)
-        threadlist = PipeWalker(pipe, ThreadlineWidget, dbman=ui.dbman)
+            refresh()
 
-        def refresh():
-            # remove thread from resultset if it doesn't match the search query
-            # any more and refresh selected threadline otherwise
-            hitcount_after = ui.dbman.count_messages(testquery)
-            # update total result count
-            searchbuffer.result_count += (hitcount_after - hitcount_before)
-            ui.current_buffer.rebuild()
-            ui.update()
+        else: # not self.all
+            testquery = searchbuffer.querystring
+            thread = threadline_widget.get_thread()
+            if self.target == 'thread':
+                testquery = "(%s) AND thread:%s" % (testquery,
+                                                    thread.get_thread_id())
 
-        tags = filter(lambda x: x, self.tagsstring.split(','))
-        try:
-            pos = -1
-            while pos < thread_count - 1:
-                (threadline,size) = threadlist.get_next(pos)
-                thread = threadline.get_thread()
+            hitcount_before = ui.dbman.count_messages(testquery)
+            thread_count = ui.dbman.count_threads(testquery)
+
+            def remove_thread():
+                logging.debug('remove thread from result list: %s' % thread)
+                if threadline_widget in searchbuffer.threadlist:
+                    # remove this thread from result list
+                    searchbuffer.threadlist.remove(threadline_widget)
+
+            def refresh():
+                # remove thread from resultset if it doesn't match the search query
+                # any more and refresh selected threadline otherwise
+                hitcount_after = ui.dbman.count_messages(testquery)
+                # update total result count
+                if hitcount_after == 0 and self.target == 'thread':
+                    remove_thread()
+
+                searchbuffer.result_count += (hitcount_after - hitcount_before)
+                searchbuffer.rebuild()
+                ui.update()
+
+            tags = filter(lambda x: x, self.tagsstring.split(','))
+            try:
                 if self.action == 'add':
-                    thread.add_tags(tags)
+                    ui.dbman.tag(testquery, tags,
+                                 remove_rest=False, afterwards=refresh)
                 if self.action == 'set':
-                    thread.add_tags(tags, remove_rest=True)
+                    ui.dbman.tag(testquery, tags,
+                                 remove_rest=True, afterwards=refresh)
                 elif self.action == 'remove':
-                    thread.remove_tags(tags)
+                    ui.dbman.untag(testquery, tags, afterwards=refresh)
                 elif self.action == 'toggle':
-                    to_remove = []
-                    to_add = []
-                    for t in tags:
-                        if t in thread.get_tags():
-                            to_remove.append(t)
-                        else:
-                            to_add.append(t)
-                    thread.remove_tags(to_remove)
-                    thread.add_tags(to_add)
-                pos += 1
-        except DatabaseROError:
-            ui.notify('index in read-only mode', priority='error')
-            return
+                    ui.notify('toggletags on search matches not supported',
+                              priority='error')
+            except DatabaseROError:
+                ui.notify('index in read-only mode', priority='error')
+                return
 
-        # flush index
-        if self.flush:
-            ui.apply_command(commands.globals.FlushCommand())
-
-        refresh()
+            # flush index
+            if self.flush:
+                ui.apply_command(commands.globals.FlushCommand())
 
