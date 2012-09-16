@@ -4,7 +4,8 @@ Contacts Completion
 ===================
 For each :ref:`account <config.accounts>` you can define an address book by providing a subsection named `abook`.
 Crucially, this section needs an option `type` that specifies the type of the address book.
-The only types supported at the moment are "shellcommand" and "abook":
+The only types supported at the moment are "shellcommand" and "abook".
+Both respect the `ignorecase` option which defaults to `True` and results in case insensitive lookups.
 
 .. describe:: shellcommand
 
@@ -25,6 +26,7 @@ The only types supported at the moment are "shellcommand" and "abook":
                     type = shellcommand
                     command = abook --mutt-query
                     regexp = '^(?P<email>[^@]+@[^\t]+)\t+(?P<name>[^\t]+)'
+                    ignorecase = True
 
 
     See `here <http://notmuchmail.org/emacstips/#index12h2>`_ for alternative lookup commands.
