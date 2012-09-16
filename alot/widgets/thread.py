@@ -63,7 +63,7 @@ class MessageWidget(urwid.WidgetWrap):
         self._all_headers = list(set(self.mail.keys()))
         displayed = settings.get('displayed_headers')
         self._filtered_headers = [k for k in displayed
-                                    if k.lower() == 'tags' or k in self.mail]
+                                  if k.lower() == 'tags' or k in self.mail]
         self._displayed_headers = None
 
         bars = settings.get_theming_attribute('thread', 'arrow_bars')
