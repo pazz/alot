@@ -130,7 +130,7 @@ class SettingsManager(object):
                         raise ConfigError(msg)
                 elif abook['type'] == 'abook':
                     contacts_path = abook['abook_contacts_file']
-                    args['abook'] = AbookAddressBook(contacts_path)
+                    args['abook'] = AbookAddressBook(contacts_path, ignorecase=abook['ignorecase'])
                 else:
                     del(args['abook'])
 
