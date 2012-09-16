@@ -23,6 +23,7 @@ from alot import helper
 from alot.db.errors import DatabaseLockedError
 from alot.completion import ContactsCompleter
 from alot.completion import AccountCompleter
+from alot.completion import TagsCompleter
 from alot.db.envelope import Envelope
 from alot import commands
 from alot.settings import settings
@@ -734,6 +735,15 @@ class ComposeCommand(Command):
                 ui.notify('canceled')
                 return
             self.envelope.add('Subject', subject)
+
+        if settings.get('compose_ask_tags'):
+            comp = TagsCompleter(ui.dbman)
+            tagsstring = yield ui.prompt('Tags', completer=comp)
+            tags = filter(lambda x: x, tagsstring.split(','))
+            if tags is None:
+                ui.notify('canceled')
+                return
+            self.envelope.tags = tags
 
         if self.attach:
             for gpath in self.attach:
