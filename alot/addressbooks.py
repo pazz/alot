@@ -23,12 +23,17 @@ class AddressBook(object):
         """list all contacts tuples in this abook as (name, email) tuples"""
         return []
 
-    def lookup(self, prefix=''):
-        """looks up all contacts with given prefix (in name or address)"""
+    def lookup(self, query='', ignorecase=True):
+        """looks up all contacts where name or address match query"""
         res = []
+        query = '.*%s.*' % query
+        flags = re.IGNORECASE if ignorecase else 0
         for name, email in self.get_contacts():
-            if name.startswith(prefix) or email.startswith(prefix):
-                res.append((name, email))
+            try:
+                if re.match(query, name, flags) or re.match(query, email, flags):
+                    res.append((name, email))
+            except:
+                pass
         return res
 
 
