@@ -18,27 +18,34 @@ class AddressBook(object):
         unspecified. See :class:`AbookAddressBook` and
         :class:`MatchSdtoutAddressbook` for implementations.
     """
+    def __init__(self, ignorecase=True):
+        self.reflags = re.IGNORECASE if ignorecase else 0
 
     def get_contacts(self):
         """list all contacts tuples in this abook as (name, email) tuples"""
         return []
 
-    def lookup(self, prefix=''):
-        """looks up all contacts with given prefix (in name or address)"""
+    def lookup(self, query=''):
+        """looks up all contacts where name or address match query"""
         res = []
+        query = '.*%s.*' % query
         for name, email in self.get_contacts():
-            if name.startswith(prefix) or email.startswith(prefix):
-                res.append((name, email))
+            try:
+                if re.match(query, name, self.reflags) or re.match(query, email, self.reflags):
+                    res.append((name, email))
+            except:
+                pass
         return res
 
 
 class AbookAddressBook(AddressBook):
     """:class:`AddressBook` that parses abook's config/database files"""
-    def __init__(self, path='~/.abook/addressbook'):
+    def __init__(self, path='~/.abook/addressbook', **kwargs):
         """
         :param path: path to theme file
         :type path: str
         """
+        AddressBook.__init__(self, **kwargs)
         DEFAULTSPATH = os.path.join(os.path.dirname(__file__), 'defaults')
         self._spec = os.path.join(DEFAULTSPATH, 'abook_contacts.spec')
         path = os.path.expanduser(path)
@@ -58,7 +65,7 @@ class AbookAddressBook(AddressBook):
 class MatchSdtoutAddressbook(AddressBook):
     """:class:`AddressBook` that parses a shell command's output for lookups"""
 
-    def __init__(self, command, match=None):
+    def __init__(self, command, match=None, **kwargs):
         """
         :param command: lookup command
         :type command: str
@@ -68,6 +75,7 @@ class MatchSdtoutAddressbook(AddressBook):
                       :regexp:`^(?P<email>[^@]+@[^\t]+)\t+(?P<name>[^\t]+)`.
         :type match: str
         """
+        AddressBook.__init__(self, **kwargs)
         self.command = command
         if not match:
             self.match = '^(?P<email>[^@]+@[^\t]+)\t+(?P<name>[^\t]+)'
@@ -85,7 +93,7 @@ class MatchSdtoutAddressbook(AddressBook):
         lines = resultstring.splitlines()
         res = []
         for l in lines:
-            m = re.match(self.match, l)
+            m = re.match(self.match, l, self.reflags)
             if m:
                 info = m.groupdict()
                 email = info['email'].strip()
