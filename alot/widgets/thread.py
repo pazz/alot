@@ -151,7 +151,12 @@ class MessageWidget(urwid.WidgetWrap):
                         lines.append((key, dvalue))
             elif key.lower() == 'tags':
                 logging.debug('want tags header')
-                values = self.message.get_tags()
+                values = []
+                for t in self.message.get_tags():
+                    tagrep = settings.get_tagstring_representation(t)
+                    if t is not tagrep['translated']:
+                        t = '%s (%s)' % (tagrep['translated'], t)
+                    values.append(t)
                 lines.append((key, ', '.join(values)))
 
         key_att = settings.get_theming_attribute('thread', 'header_key')
