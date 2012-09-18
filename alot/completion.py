@@ -299,6 +299,7 @@ class CommandCompleter(Completer):
         abooks = settings.get_addressbooks()
         self._contactscompleter = ContactsCompleter(abooks)
         self._pathcompleter = PathCompleter()
+        self._accountscompleter = AccountCompleter()
 
     def complete(self, line, pos):
         # remember how many preceding space characters we see until the command
@@ -367,7 +368,7 @@ class CommandCompleter(Completer):
                 plist = params.split(' ', 1)
                 if len(plist) == 1:  # complete from header keys
                     localprefix = params
-                    headers = ['Subject', 'To', 'Cc', 'Bcc', 'In-Reply-To']
+                    headers = ['Subject', 'To', 'Cc', 'Bcc', 'In-Reply-To', 'From']
                     localcompleter = StringlistCompleter(headers)
                     localres = localcompleter.complete(localprefix, localpos)
                     res = [(c, p + 6) for (c, p) in localres]
@@ -375,14 +376,19 @@ class CommandCompleter(Completer):
                     header, params = plist
                     localpos = localpos - (len(header) + 1)
                     if header.lower() in ['to', 'cc', 'bcc']:
+                        res = self._contactscompleter.complete(params,
+                                                               localpos)
+                    elif header.lower() == 'from':
+                        res = self._accountscompleter.complete(params,
+                                                               localpos)
 
-                        # prepend 'set ' + header and correct position
-                        def f((completed, pos)):
-                            return ('%s %s' % (header, completed),
-                                    pos + len(header) + 1)
-                        res = map(f,
-                                  self._contactscompleter.complete(params,
-                                                                   localpos))
+                    # prepend 'set ' + header and correct position
+                    def f((completed, pos)):
+                        return ('%s %s' % (header, completed),
+                                pos + len(header) + 1)
+                    res = map(f, res)
+                    logging.debug(res)
+
             elif self.mode == 'envelope' and cmd == 'unset':
                 plist = params.split(' ', 1)
                 if len(plist) == 1:  # complete from header keys
