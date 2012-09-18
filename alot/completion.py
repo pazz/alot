@@ -45,16 +45,27 @@ class Completer(object):
 class StringlistCompleter(Completer):
     """completer for a fixed list of strings"""
 
-    def __init__(self, resultlist):
+    def __init__(self, resultlist, ignorecase=True, match_anywhere=False):
         """
         :param resultlist: strings used for completion
         :type resultlist: list of str
+        :param liberal: match case insensitive and not prefix-only
+        :type liberal: bool
         """
         self.resultlist = resultlist
+        self.flags = re.IGNORECASE if ignorecase else 0
+        self.match_anywhere = match_anywhere
 
     def complete(self, original, pos):
         pref = original[:pos]
-        return [(a, len(a)) for a in self.resultlist if a.startswith(pref)]
+
+        re_prefix = '.*' if self.match_anywhere else ''
+
+        def match(s, m):
+            r = re_prefix + m + '.*'
+            return re.match(r, s, flags=self.flags) is not None
+
+        return [(a, len(a)) for a in self.resultlist if match(a, pref)]
 
 
 class MultipleSelectionCompleter(Completer):
@@ -251,9 +262,10 @@ class ArgparseOptionCompleter(Completer):
 class AccountCompleter(StringlistCompleter):
     """completes users' own mailaddresses"""
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         resultlist = settings.get_main_addresses()
-        StringlistCompleter.__init__(self, resultlist)
+        StringlistCompleter.__init__(self, resultlist, match_anywhere=True,
+                                     **kwargs)
 
 
 class CommandNameCompleter(Completer):
