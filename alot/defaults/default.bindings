@@ -40,6 +40,7 @@ q = exit
     y = send
     P = save
     s = 'refine Subject'
+    f = prompt 'set From '
     t = 'refine To'
     b = 'refine Bcc'
     c = 'refine Cc'
