@@ -263,7 +263,8 @@ class AccountCompleter(StringlistCompleter):
     """completes users' own mailaddresses"""
 
     def __init__(self, **kwargs):
-        resultlist = settings.get_main_addresses()
+        accounts = settings.get_accounts()
+        resultlist = ["%s <%s>" % (a.realname, a.address) for a in accounts]
         StringlistCompleter.__init__(self, resultlist, match_anywhere=True,
                                      **kwargs)
 
