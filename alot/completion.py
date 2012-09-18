@@ -45,16 +45,27 @@ class Completer(object):
 class StringlistCompleter(Completer):
     """completer for a fixed list of strings"""
 
-    def __init__(self, resultlist):
+    def __init__(self, resultlist, ignorecase=True, match_anywhere=False):
         """
         :param resultlist: strings used for completion
         :type resultlist: list of str
+        :param liberal: match case insensitive and not prefix-only
+        :type liberal: bool
         """
         self.resultlist = resultlist
+        self.flags = re.IGNORECASE if ignorecase else 0
+        self.match_anywhere = match_anywhere
 
     def complete(self, original, pos):
         pref = original[:pos]
-        return [(a, len(a)) for a in self.resultlist if a.startswith(pref)]
+
+        re_prefix = '.*' if self.match_anywhere else ''
+
+        def match(s, m):
+            r = re_prefix + m + '.*'
+            return re.match(r, s, flags=self.flags) is not None
+
+        return [(a, len(a)) for a in self.resultlist if match(a, pref)]
 
 
 class MultipleSelectionCompleter(Completer):
@@ -251,9 +262,11 @@ class ArgparseOptionCompleter(Completer):
 class AccountCompleter(StringlistCompleter):
     """completes users' own mailaddresses"""
 
-    def __init__(self):
-        resultlist = settings.get_main_addresses()
-        StringlistCompleter.__init__(self, resultlist)
+    def __init__(self, **kwargs):
+        accounts = settings.get_accounts()
+        resultlist = ["%s <%s>" % (a.realname, a.address) for a in accounts]
+        StringlistCompleter.__init__(self, resultlist, match_anywhere=True,
+                                     **kwargs)
 
 
 class CommandNameCompleter(Completer):
@@ -299,6 +312,7 @@ class CommandCompleter(Completer):
         abooks = settings.get_addressbooks()
         self._contactscompleter = ContactsCompleter(abooks)
         self._pathcompleter = PathCompleter()
+        self._accountscompleter = AccountCompleter()
 
     def complete(self, line, pos):
         # remember how many preceding space characters we see until the command
@@ -367,7 +381,7 @@ class CommandCompleter(Completer):
                 plist = params.split(' ', 1)
                 if len(plist) == 1:  # complete from header keys
                     localprefix = params
-                    headers = ['Subject', 'To', 'Cc', 'Bcc', 'In-Reply-To']
+                    headers = ['Subject', 'To', 'Cc', 'Bcc', 'In-Reply-To', 'From']
                     localcompleter = StringlistCompleter(headers)
                     localres = localcompleter.complete(localprefix, localpos)
                     res = [(c, p + 6) for (c, p) in localres]
@@ -375,14 +389,19 @@ class CommandCompleter(Completer):
                     header, params = plist
                     localpos = localpos - (len(header) + 1)
                     if header.lower() in ['to', 'cc', 'bcc']:
+                        res = self._contactscompleter.complete(params,
+                                                               localpos)
+                    elif header.lower() == 'from':
+                        res = self._accountscompleter.complete(params,
+                                                               localpos)
 
-                        # prepend 'set ' + header and correct position
-                        def f((completed, pos)):
-                            return ('%s %s' % (header, completed),
-                                    pos + len(header) + 1)
-                        res = map(f,
-                                  self._contactscompleter.complete(params,
-                                                                   localpos))
+                    # prepend 'set ' + header and correct position
+                    def f((completed, pos)):
+                        return ('%s %s' % (header, completed),
+                                pos + len(header) + 1)
+                    res = map(f, res)
+                    logging.debug(res)
+
             elif self.mode == 'envelope' and cmd == 'unset':
                 plist = params.split(' ', 1)
                 if len(plist) == 1:  # complete from header keys
