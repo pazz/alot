@@ -668,12 +668,7 @@ class ComposeCommand(Command):
                 if fromaddress is None:
                     ui.notify('canceled')
                     return
-                a = settings.get_account_by_address(fromaddress)
-                if a is not None:
-                    fromstring = "%s <%s>" % (a.realname, a.address)
-                    self.envelope.add('From', fromstring)
-                else:
-                    self.envelope.add('From', fromaddress)
+                self.envelope.add('From', fromaddress)
 
         # add signature
         if not self.omit_signature:
