@@ -2,6 +2,7 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 import os
+import re
 import logging
 import tempfile
 from twisted.internet.defer import inlineCallbacks
@@ -54,22 +55,36 @@ def recipient_to_from(mail, my_accounts):
     if delivered_to is not None:
         recipients.append(delivered_to)
 
+    logging.debug('recipients: %s' % recipients)
     # pick the most important account that has an address in recipients
     # and use that accounts realname and the found recipient address
     for acc in my_accounts:
         acc_addresses = acc.get_addresses()
-        for rec in recipients:
-            _, raddress = parseaddr(rec)
-            raddress = raddress.decode()
-            if raddress in acc_addresses and realname is None:
-                realname = acc.realname
-                address = raddress
+        for alias_re in acc_addresses:
+            if realname is not None:
+                break
+            regex = re.compile(alias_re)
+            for rec in recipients:
+                seen_name, seen_address = parseaddr(rec)
+                if regex.match(seen_address):
+                    logging.debug("match!: '%s' '%s'" % (seen_address, alias_re))
+                    if settings.get('reply_force_realname'):
+                        realname = acc.realname
+                    else:
+                        realname = seen_name
+                    if settings.get('reply_force_address'):
+                        address = acc.address
+                    else:
+                        address = seen_address
 
     # revert to default account if nothing found
     if realname is None:
         realname = my_accounts[0].realname
         address = my_accounts[0].address
-    return realname, address
+    logging.debug('using realname: "%s"' % realname)
+    logging.debug('using address: %s' % address)
+
+    return address if realname == '' else '%s <%s>' % (realname, address)
 
 
 @registerCommand(MODE, 'reply', arguments=[
@@ -135,8 +150,7 @@ class ReplyCommand(Command):
         envelope.add('Subject', subject)
 
         # set From
-        realname, address = recipient_to_from(mail, my_accounts)
-        envelope.add('From', '%s <%s>' % (realname, address))
+        envelope.add('From', recipient_to_from(mail, my_accounts))
 
         # set To
         sender = mail['Reply-To'] or mail['From']
@@ -258,8 +272,7 @@ class ForwardCommand(Command):
         envelope.add('Subject', subject)
 
         # set From
-        realname, address = recipient_to_from(mail, my_accounts)
-        envelope.add('From', '%s <%s>' % (realname, address))
+        envelope.add('From', recipient_to_from(mail, my_accounts))
 
         # continue to compose
         ui.apply_command(ComposeCommand(envelope=envelope,
