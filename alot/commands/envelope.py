@@ -152,18 +152,6 @@ class SendCommand(Command):
                 logging.debug(msg)
                 return
 
-            frm = self.envelope.get('From')
-            sname, saddr = email.Utils.parseaddr(frm)
-
-            # determine account to use for sending
-            account = settings.get_account_by_address(saddr)
-            if account is None:
-                if not settings.get_accounts():
-                    ui.notify('no accounts set', priority='error')
-                    return
-                else:
-                    account = settings.get_accounts()[0]
-
             clearme = ui.notify(u'constructing mail (GPG, attachments)\u2026',
                                 timeout=-1)
 
@@ -178,7 +166,25 @@ class SendCommand(Command):
 
             ui.clear_notify([clearme])
 
-        # define call
+        # determine account to use for sending
+        msg = self.mail
+        if not isinstance(msg, email.message.Message):
+            msg = email.message_from_string(self.mail)
+        sname, saddr = email.Utils.parseaddr(msg.get('From', ''))
+        account = settings.get_account_by_address(saddr)
+        if account is None:
+            if not settings.get_accounts():
+                ui.notify('no accounts set', priority='error')
+                return
+            else:
+                account = settings.get_accounts()[0]
+
+        # make sure self.mail is a string
+        logging.debug(self.mail.__class__)
+        if isinstance(self.mail, email.message.Message):
+            self.mail = str(self.mail)
+
+        # define callback
         def afterwards(returnvalue):
             if self.envelope is not None:
                 self.envelope.sending = False
