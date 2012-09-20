@@ -15,6 +15,7 @@ from alot.commands import Command, registerCommand
 from alot.commands.globals import ExternalCommand
 from alot.commands.globals import FlushCommand
 from alot.commands.globals import ComposeCommand
+from alot.commands.envelope import SendCommand
 from alot import completion
 from alot.db.utils import decode_header
 from alot.db.utils import encode_header
@@ -27,6 +28,7 @@ from alot.settings import settings
 from alot.helper import parse_mailcap_nametemplate
 from alot.helper import split_commandstring
 from alot.utils.booleanaction import BooleanAction
+from alot.completion import ContactsCompleter
 
 from alot.widgets.globals import AttachmentWidget
 from alot.widgets.thread import MessageSummaryWidget
@@ -277,6 +279,48 @@ class ForwardCommand(Command):
         # continue to compose
         ui.apply_command(ComposeCommand(envelope=envelope,
                                         spawn=self.force_spawn))
+
+
+@registerCommand(MODE, 'bounce')
+class BounceMailCommand(Command):
+    """directly re-sends selected message"""
+    def __init__(self, message=None, **kwargs):
+        """
+        :param message: message to bounce (defaults to selected message)
+        :type message: `alot.db.message.Message`
+        """
+        self.message = message
+        Command.__init__(self, **kwargs)
+
+    @inlineCallbacks
+    def apply(self, ui):
+        # get mail to bounce
+        if not self.message:
+            self.message = ui.current_buffer.get_selected_message()
+        mail = self.message.get_email()
+
+        # look if this makes sense: do we have any accounts set up?
+        my_accounts = settings.get_accounts()
+        if not my_accounts:
+            ui.notify('no accounts set', priority='error')
+            return
+
+        # set Resent-From
+        realname, address = recipient_to_from(mail, my_accounts)
+        mail['Resent-From'] = '%s <%s>' % (realname, address)
+        # set Reset-To
+        abooks = settings.get_addressbooks()
+        completer = ContactsCompleter(abooks)
+        to = yield ui.prompt('To', completer=completer)
+        if to is None:
+            ui.notify('canceled')
+            return
+        mail['Resent-To'] = to.strip(' \t\n,')
+
+        logging.debug("bouncing mail")
+        logging.debug(mail.__class__)
+
+        ui.apply_command(SendCommand(mail=mail))
 
 
 @registerCommand(MODE, 'editnew', arguments=[
