@@ -208,11 +208,7 @@ class SendCommand(Command):
             # add mail to index if maildir path available
             if path is not None:
                 logging.debug('adding new mail to index')
-<<<<<<< HEAD
-                ui.dbman.add_message(path, account.sent_tags + envelope.tags)
-=======
                 ui.dbman.add_message(path, account.sent_tags + initial_tags)
->>>>>>> 0.3.3-feature-bounce-524
                 ui.apply_command(globals.FlushCommand())
 
         # define errback
