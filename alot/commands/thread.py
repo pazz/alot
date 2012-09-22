@@ -88,7 +88,7 @@ def determine_sender(mail, action='reply'):
     if realname is None:
         account = my_accounts[0]
         realname = account.realname
-        address = accounts.address
+        address = account.address
     logging.debug('using realname: "%s"' % realname)
     logging.debug('using address: %s' % address)
 
@@ -288,7 +288,7 @@ class ForwardCommand(Command):
 
 @registerCommand(MODE, 'bounce')
 class BounceMailCommand(Command):
-    """directly re-sends selected message"""
+    """directly re-send selected message"""
     def __init__(self, message=None, **kwargs):
         """
         :param message: message to bounce (defaults to selected message)
