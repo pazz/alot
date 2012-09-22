@@ -27,7 +27,7 @@ from utils import encode_header
 class Envelope(object):
     """a message that is not yet sent and still editable"""
     def __init__(self, template=None, bodytext=u'', headers={}, attachments=[],
-                 sign=False, sign_key=None, encrypt=False):
+                 sign=False, sign_key=None, encrypt=False, tags=[]):
         """
         :param template: if not None, the envelope will be initialised by
                          :meth:`parsing <parse_template>` this string before
@@ -39,6 +39,8 @@ class Envelope(object):
         :type headers: dict (str -> unicode)
         :param attachments: file attachments to include
         :type attachments: list of :class:`~alot.db.attachment.Attachment`
+        :param tags: tags to add after successful sendout and saving this message
+        :type tags: list of str
         """
         assert isinstance(bodytext, unicode)
         self.headers = {}
@@ -56,6 +58,7 @@ class Envelope(object):
         self.sign = sign
         self.sign_key = sign_key
         self.encrypt = encrypt
+        self.tags = tags  # tags to add after successful sendout
         self.sent_time = None
         self.modified_since_sent = False
         self.sending = False  # semaphore to avoid accidental double sendout
