@@ -248,6 +248,10 @@ forward_subject_prefix = string(default='Fwd: ')
         [[[abook]]]
             # type identifier for address book
             type = option('shellcommand', 'abook', default=None)
+
+            # make case-insensitive lookups
+            ignorecase = boolean(default=True)
+
             # command to lookup contacts in shellcommand abooks
             # it will be called with the lookup prefix as only argument
             command = string(default=None)
