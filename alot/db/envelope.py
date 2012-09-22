@@ -4,6 +4,7 @@
 import os
 import email
 import re
+import glob
 import email.charset as charset
 charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 from email.encoders import encode_7or8bit
@@ -266,3 +267,14 @@ class Envelope(object):
                     value += line
             if key and value:  # save last one if present
                 self.add(key, value)
+
+            # interpret 'Attach' pseudo header
+            if 'Attach' in self:
+                to_attach = []
+                for line in self['Attach']:
+                    gpath = os.path.expanduser(line.strip())
+                    to_attach += filter(os.path.isfile, glob.glob(gpath))
+                logging.debug('Attaching: %s' % to_attach)
+                for path in to_attach:
+                    self.attach(path)
+                del(self['Attach'])
