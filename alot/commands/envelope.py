@@ -118,8 +118,8 @@ class SendCommand(Command):
         """
         :param mail: email to send
         :type email: email.message.Message
-        :param envelope: envelope to use to construct the outgoing mail.
-                         This will be ignored in case the mail parameter is set.
+        :param envelope: envelope to use to construct the outgoing mail. This
+                         will be ignored in case the mail parameter is set.
         :type envelope: alot.db.envelope.envelope
         """
         Command.__init__(self, **kwargs)
@@ -131,22 +131,25 @@ class SendCommand(Command):
     def apply(self, ui):
         if self.mail is None:
             if self.envelope is None:
-                self.envelope_buffer = ui.current_buffer  # needed to close later
+                # needed to close later
+                self.envelope_buffer = ui.current_buffer
                 self.envelope = self.envelope_buffer.envelope
 
             # This is to warn the user before re-sending
             # an already sent message in case the envelope buffer
             # was not closed because it was the last remaining buffer.
             if self.envelope.sent_time:
-                warning = 'A modified version of ' * self.envelope.modified_since_sent
-                warning += 'this message has been sent at %s.' % self.envelope.sent_time
+                mod = self.envelope.modified_since_sent
+                when = self.envelope.sent_time
+                warning = 'A modified version of ' * mod
+                warning += 'this message has been sent at %s.' % when
                 warning += ' Do you want to resend?'
                 if (yield ui.choice(warning, cancel='no',
                                     msg_position='left')) == 'no':
                     return
 
-            # don't do anything if another SendCommand is in the middle of sending
-            # the message and we were triggered accidentally
+            # don't do anything if another SendCommand is in the middle of
+            # sending the message and we were triggered accidentally
             if self.envelope.sending:
                 msg = 'sending this message already!'
                 logging.debug(msg)

@@ -67,14 +67,14 @@ def determine_sender(mail, action='reply'):
     # and use that accounts realname and the found recipient address
     for account in my_accounts:
         acc_addresses = account.get_addresses()
-        for alias_re in acc_addresses:
+        for alias in acc_addresses:
             if realname is not None:
                 break
-            regex = re.compile(alias_re)
+            regex = re.compile(alias)
             for rec in recipients:
                 seen_name, seen_address = parseaddr(rec)
                 if regex.match(seen_address):
-                    logging.debug("match!: '%s' '%s'" % (seen_address, alias_re))
+                    logging.debug("match!: '%s' '%s'" % (seen_address, alias))
                     if settings.get(action + '_force_realname'):
                         realname = account.realname
                     else:

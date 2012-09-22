@@ -381,7 +381,8 @@ class CommandCompleter(Completer):
                 plist = params.split(' ', 1)
                 if len(plist) == 1:  # complete from header keys
                     localprefix = params
-                    headers = ['Subject', 'To', 'Cc', 'Bcc', 'In-Reply-To', 'From']
+                    headers = ['Subject', 'To', 'Cc', 'Bcc', 'In-Reply-To',
+                               'From']
                     localcompleter = StringlistCompleter(headers)
                     localres = localcompleter.complete(localprefix, localpos)
                     res = [(c, p + 6) for (c, p) in localres]
