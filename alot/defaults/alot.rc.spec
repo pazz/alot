@@ -183,6 +183,30 @@ reply_force_address = boolean(default=False)
 # only if original subject doesn't start with 'Fwd:' or this prefix
 forward_subject_prefix = string(default='Fwd: ')
 
+# Always use the proper realname when constructing "From" headers for replies.
+# Set this to False to use the realname string as received in the original message.
+reply_force_realname = boolean(default=True)
+
+# Always use the accounts main address when constructing "From" headers for replies.
+# Set this to False to use the address string as received in the original message.
+reply_force_address = boolean(default=False)
+
+# Always use the proper realname when constructing "From" headers for forwards.
+# Set this to False to use the realname string as received in the original message.
+forward_force_realname = boolean(default=True)
+
+# Always use the accounts main address when constructing "From" headers for forwards.
+# Set this to False to use the address string as received in the original message.
+forward_force_address = boolean(default=False)
+
+# Always use the proper realname when constructing "Resent-From" headers for bounces.
+# Set this to False to use the realname string as received in the original message.
+bounce_force_realname = boolean(default=True)
+
+# Always use the accounts main address when constructing "Resent-From" headers for bounces.
+# Set this to False to use the address string as received in the original message.
+bounce_force_address = boolean(default=False)
+
 # Key bindings 
 [bindings]
     __many__ = string(default=None)
