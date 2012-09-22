@@ -62,7 +62,8 @@ class MessageWidget(urwid.WidgetWrap):
         # set available and to be displayed headers
         self._all_headers = list(set(self.mail.keys()))
         displayed = settings.get('displayed_headers')
-        self._filtered_headers = [k for k in displayed if k in self.mail]
+        self._filtered_headers = [k for k in displayed
+                                  if k.lower() == 'tags' or k in self.mail]
         self._displayed_headers = None
 
         bars = settings.get_theming_attribute('thread', 'arrow_bars')
@@ -138,6 +139,7 @@ class MessageWidget(urwid.WidgetWrap):
         #build lines
         lines = []
         for key in self._displayed_headers:
+            logging.debug('want header: %s' % (key))
             if key in mail:
                 if key.lower() in ['cc', 'bcc', 'to']:
                     values = mail.get_all(key)
@@ -147,6 +149,15 @@ class MessageWidget(urwid.WidgetWrap):
                     for value in mail.get_all(key):
                         dvalue = decode_header(value, normalize=norm)
                         lines.append((key, dvalue))
+            elif key.lower() == 'tags':
+                logging.debug('want tags header')
+                values = []
+                for t in self.message.get_tags():
+                    tagrep = settings.get_tagstring_representation(t)
+                    if t is not tagrep['translated']:
+                        t = '%s (%s)' % (tagrep['translated'], t)
+                    values.append(t)
+                lines.append((key, ', '.join(values)))
 
         key_att = settings.get_theming_attribute('thread', 'header_key')
         value_att = settings.get_theming_attribute('thread', 'header_value')
