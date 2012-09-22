@@ -36,18 +36,23 @@ from alot.widgets.thread import MessageSummaryWidget
 MODE = 'thread'
 
 
-def recipient_to_from(mail, my_accounts):
+def determine_sender(mail, action='reply'):
     """
-    construct a suitable From-Header for forwards/replies to
-    a given mail.
+    Inspect a given mail to reply/forward/bounce and find the most appropriate
+    account to act from and construct a suitable From-Header to use.
 
     :param mail: the email to inspect
     :type mail: `email.message.Message`
-    :param my_accounts: list of accounts from which to chose from
-    :type my_accounts: list of `alot.account.Account`
+    :param action: intended use case: one of "reply", "forward" or "bounce"
+    :type action: str
     """
+    assert action in ['reply', 'forward', 'bounce']
     realname = None
     address = None
+
+    # get accounts
+    my_accounts = settings.get_accounts()
+    assert my_accounts, 'no accounts set!'
 
     # extract list of recipients to check for my address
     rec_to = filter(lambda x: x, mail.get('To', '').split(','))
@@ -60,8 +65,8 @@ def recipient_to_from(mail, my_accounts):
     logging.debug('recipients: %s' % recipients)
     # pick the most important account that has an address in recipients
     # and use that accounts realname and the found recipient address
-    for acc in my_accounts:
-        acc_addresses = acc.get_addresses()
+    for account in my_accounts:
+        acc_addresses = account.get_addresses()
         for alias_re in acc_addresses:
             if realname is not None:
                 break
@@ -70,23 +75,25 @@ def recipient_to_from(mail, my_accounts):
                 seen_name, seen_address = parseaddr(rec)
                 if regex.match(seen_address):
                     logging.debug("match!: '%s' '%s'" % (seen_address, alias_re))
-                    if settings.get('reply_force_realname'):
-                        realname = acc.realname
+                    if settings.get(action + '_force_realname'):
+                        realname = account.realname
                     else:
                         realname = seen_name
-                    if settings.get('reply_force_address'):
-                        address = acc.address
+                    if settings.get(action + '_force_address'):
+                        address = account.address
                     else:
                         address = seen_address
 
     # revert to default account if nothing found
     if realname is None:
-        realname = my_accounts[0].realname
-        address = my_accounts[0].address
+        account = my_accounts[0]
+        realname = account.realname
+        address = accounts.address
     logging.debug('using realname: "%s"' % realname)
     logging.debug('using address: %s' % address)
 
-    return address if realname == '' else '%s <%s>' % (realname, address)
+    from_value = address if realname == '' else '%s <%s>' % (realname, address)
+    return from_value, account
 
 
 @registerCommand(MODE, 'reply', arguments=[
@@ -110,12 +117,6 @@ class ReplyCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        # look if this makes sense: do we have any accounts set up?
-        my_accounts = settings.get_accounts()
-        if not my_accounts:
-            ui.notify('no accounts set', priority='error')
-            return
-
         # get message to forward if not given in constructor
         if not self.message:
             self.message = ui.current_buffer.get_selected_message()
@@ -151,8 +152,13 @@ class ReplyCommand(Command):
                 subject = rsp + subject
         envelope.add('Subject', subject)
 
-        # set From
-        envelope.add('From', recipient_to_from(mail, my_accounts))
+        # set From-header and sending account
+        try:
+            from_header, account = determine_sender(mail, 'reply')
+        except AssertionError as e:
+            ui.notify(e.message, priority='error')
+            return
+        envelope.add('From', from_header)
 
         # set To
         sender = mail['Reply-To'] or mail['From']
@@ -221,12 +227,6 @@ class ForwardCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        # look if this makes sense: do we have any accounts set up?
-        my_accounts = settings.get_accounts()
-        if not my_accounts:
-            ui.notify('no accounts set', priority='error')
-            return
-
         # get message to forward if not given in constructor
         if not self.message:
             self.message = ui.current_buffer.get_selected_message()
@@ -273,8 +273,13 @@ class ForwardCommand(Command):
                 subject = fsp + subject
         envelope.add('Subject', subject)
 
-        # set From
-        envelope.add('From', recipient_to_from(mail, my_accounts))
+        # set From-header and sending account
+        try:
+            from_header, account = determine_sender(mail, 'reply')
+        except AssertionError as e:
+            ui.notify(e.message, priority='error')
+            return
+        envelope.add('From', from_header)
 
         # continue to compose
         ui.apply_command(ComposeCommand(envelope=envelope,
@@ -305,12 +310,24 @@ class BounceMailCommand(Command):
             ui.notify('no accounts set', priority='error')
             return
 
-        # set Resent-From
-        realname, address = recipient_to_from(mail, my_accounts)
-        mail['Resent-From'] = '%s <%s>' % (realname, address)
+        # set Resent-From-header and sending account
+        try:
+            resent_from_header, account = determine_sender(mail, 'bounce')
+        except AssertionError as e:
+            ui.notify(e.message, priority='error')
+            return
+        mail['Resent-From'] = resent_from_header
+
         # set Reset-To
-        abooks = settings.get_addressbooks()
-        completer = ContactsCompleter(abooks)
+        allbooks = not settings.get('complete_matching_abook_only')
+        logging.debug('allbooks: %s', allbooks)
+        if account is not None:
+            abooks = settings.get_addressbooks(order=[account],
+                                               append_remaining=allbooks)
+            logging.debug(abooks)
+            completer = ContactsCompleter(abooks)
+        else:
+            completer = None
         to = yield ui.prompt('To', completer=completer)
         if to is None:
             ui.notify('canceled')
