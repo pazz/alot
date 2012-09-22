@@ -65,24 +65,6 @@ def determine_sender(mail, action='reply'):
     logging.debug('recipients: %s' % recipients)
     # pick the most important account that has an address in recipients
     # and use that accounts realname and the found recipient address
-<<<<<<< HEAD
-    for acc in my_accounts:
-        acc_addresses = acc.get_addresses()
-        for alias_re in acc_addresses:
-            if realname is not None:
-                break
-            regex = re.compile(alias_re)
-            for rec in recipients:
-                seen_name, seen_address = parseaddr(rec)
-                if regex.match(seen_address):
-                    logging.debug("match!: '%s' '%s'" % (seen_address, alias_re))
-                    if settings.get('reply_force_realname'):
-                        realname = acc.realname
-                    else:
-                        realname = seen_name
-                    if settings.get('reply_force_address'):
-                        address = acc.address
-=======
     for account in my_accounts:
         acc_addresses = account.get_addresses()
         for alias in acc_addresses:
@@ -99,20 +81,11 @@ def determine_sender(mail, action='reply'):
                         realname = seen_name
                     if settings.get(action + '_force_address'):
                         address = account.address
->>>>>>> 0.3.3-feature-bounce-524
                     else:
                         address = seen_address
 
     # revert to default account if nothing found
     if realname is None:
-<<<<<<< HEAD
-        realname = my_accounts[0].realname
-        address = my_accounts[0].address
-    logging.debug('using realname: "%s"' % realname)
-    logging.debug('using address: %s' % address)
-
-    return address if realname == '' else '%s <%s>' % (realname, address)
-=======
         account = my_accounts[0]
         realname = account.realname
         address = account.address
@@ -121,7 +94,6 @@ def determine_sender(mail, action='reply'):
 
     from_value = address if realname == '' else '%s <%s>' % (realname, address)
     return from_value, account
->>>>>>> 0.3.3-feature-bounce-524
 
 
 @registerCommand(MODE, 'reply', arguments=[
@@ -180,10 +152,6 @@ class ReplyCommand(Command):
                 subject = rsp + subject
         envelope.add('Subject', subject)
 
-<<<<<<< HEAD
-        # set From
-        envelope.add('From', recipient_to_from(mail, my_accounts))
-=======
         # set From-header and sending account
         try:
             from_header, account = determine_sender(mail, 'reply')
@@ -191,7 +159,6 @@ class ReplyCommand(Command):
             ui.notify(e.message, priority='error')
             return
         envelope.add('From', from_header)
->>>>>>> 0.3.3-feature-bounce-524
 
         # set To
         sender = mail['Reply-To'] or mail['From']
@@ -306,10 +273,6 @@ class ForwardCommand(Command):
                 subject = fsp + subject
         envelope.add('Subject', subject)
 
-<<<<<<< HEAD
-        # set From
-        envelope.add('From', recipient_to_from(mail, my_accounts))
-=======
         # set From-header and sending account
         try:
             from_header, account = determine_sender(mail, 'reply')
@@ -317,7 +280,6 @@ class ForwardCommand(Command):
             ui.notify(e.message, priority='error')
             return
         envelope.add('From', from_header)
->>>>>>> 0.3.3-feature-bounce-524
 
         # continue to compose
         ui.apply_command(ComposeCommand(envelope=envelope,
