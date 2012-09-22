@@ -186,9 +186,11 @@ class SendCommand(Command):
 
         # define callback
         def afterwards(returnvalue):
+            initial_tags = []
             if self.envelope is not None:
                 self.envelope.sending = False
                 self.envelope.sent_time = datetime.datetime.now()
+                initial_tags = self.envelope.tags
             logging.debug('mail sent successfully')
             ui.clear_notify([clearme])
             if self.envelope_buffer is not None:
@@ -203,7 +205,7 @@ class SendCommand(Command):
             # add mail to index if maildir path available
             if path is not None:
                 logging.debug('adding new mail to index')
-                ui.dbman.add_message(path, account.sent_tags + envelope.tags)
+                ui.dbman.add_message(path, account.sent_tags + initial_tags)
                 ui.apply_command(globals.FlushCommand())
 
         # define errback
