@@ -192,45 +192,46 @@ class TagCommand(Command):
         if threadline_widget is None:
             return
 
-        if self.all:
-            testquery = searchbuffer.querystring
-            thread = threadline_widget.get_thread()
-            if self.target == 'thread':
-                testquery = "(%s) AND thread:%s" % (testquery,
-                                                    thread.get_thread_id())
+        testquery = searchbuffer.querystring
+        thread = threadline_widget.get_thread()
+        if self.target == 'thread':
+            testquery = "(%s) AND thread:%s" % (testquery,
+                                                thread.get_thread_id())
 
-            hitcount_before = ui.dbman.count_messages(testquery)
-            thread_count = ui.dbman.count_threads(testquery)
+        hitcount_before = ui.dbman.count_messages(testquery)
+        thread_count = ui.dbman.count_threads(testquery)
+
+        def remove_thread():
+            logging.debug('remove thread from result list: %s' % thread)
+            if threadline_widget in searchbuffer.threadlist:
+                # remove this thread from result list
+                searchbuffer.threadlist.remove(threadline_widget)
+
+        def refresh():
+            # remove thread from resultset if it doesn't match the search query
+            # any more and refresh selected threadline otherwise
+            hitcount_after = ui.dbman.count_messages(testquery)
+            # update total result count
+            if self.target == 'thread':
+                if hitcount_after == 0:
+                    remove_thread()
+                else:
+                    threadline_widget.rebuild()
+            else:
+                searchbuffer.rebuild()
+
+            searchbuffer.result_count += (hitcount_after - hitcount_before)
+            ui.update()
+
+        tags = filter(lambda x: x, self.tagsstring.split(','))
+
+        if self.all:
             pipe, proc = ui.dbman.get_threads(testquery)
             threadlist = PipeWalker(pipe, ThreadlineWidget, dbman=ui.dbman)
-
-            def remove_thread():
-                logging.debug('remove thread from result list: %s' % thread)
-                if threadline_widget in searchbuffer.threadlist:
-                    # remove this thread from result list
-                    searchbuffer.threadlist.remove(threadline_widget)
-
-            def refresh():
-                # remove thread from resultset if it doesn't match the search query
-                # any more and refresh selected threadline otherwise
-                hitcount_after = ui.dbman.count_messages(testquery)
-                # update total result count
-                if self.target == 'thread':
-                    if hitcount_after == 0:
-                        remove_thread()
-                    else:
-                        threadline_widget.rebuild()
-                else:
-                    searchbuffer.rebuild()
-
-                searchbuffer.result_count += (hitcount_after - hitcount_before)
-                ui.update()
-
-            tags = filter(lambda x: x, self.tagsstring.split(','))
             try:
                 pos = -1
                 while pos < thread_count - 1:
-                    (threadline,size) = threadlist.get_next(pos)
+                    (threadline, size) = threadlist.get_next(pos)
                     thread = threadline.get_thread()
                     if self.action == 'add':
                         thread.add_tags(tags)
@@ -253,41 +254,7 @@ class TagCommand(Command):
                 ui.notify('index in read-only mode', priority='error')
                 return
 
-            # flush index
-            if self.flush:
-                ui.apply_command(commands.globals.FlushCommand())
-
-            refresh()
-
-        else: # not self.all
-            testquery = searchbuffer.querystring
-            thread = threadline_widget.get_thread()
-            if self.target == 'thread':
-                testquery = "(%s) AND thread:%s" % (testquery,
-                                                    thread.get_thread_id())
-
-            hitcount_before = ui.dbman.count_messages(testquery)
-            thread_count = ui.dbman.count_threads(testquery)
-
-            def remove_thread():
-                logging.debug('remove thread from result list: %s' % thread)
-                if threadline_widget in searchbuffer.threadlist:
-                    # remove this thread from result list
-                    searchbuffer.threadlist.remove(threadline_widget)
-
-            def refresh():
-                # remove thread from resultset if it doesn't match the search query
-                # any more and refresh selected threadline otherwise
-                hitcount_after = ui.dbman.count_messages(testquery)
-                # update total result count
-                if hitcount_after == 0 and self.target == 'thread':
-                    remove_thread()
-
-                searchbuffer.result_count += (hitcount_after - hitcount_before)
-                searchbuffer.rebuild()
-                ui.update()
-
-            tags = filter(lambda x: x, self.tagsstring.split(','))
+        else:  # not self.all
             try:
                 if self.action == 'add':
                     ui.dbman.tag(testquery, tags,
@@ -304,7 +271,6 @@ class TagCommand(Command):
                 ui.notify('index in read-only mode', priority='error')
                 return
 
-            # flush index
-            if self.flush:
-                ui.apply_command(commands.globals.FlushCommand())
-
+        # flush index
+        if self.flush:
+            ui.apply_command(commands.globals.FlushCommand())
