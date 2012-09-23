@@ -191,9 +191,6 @@ class TagCommand(Command):
         # (displays an empty search result)
         if threadline_widget is None:
             return
-        if self.target not in ['search','thread']:
-            ui.notify('tag command target %s not supported' % (self.target))
-            return
 
         if self.all:
             testquery = searchbuffer.querystring
