@@ -333,7 +333,7 @@ class ThreadBuffer(Buffer):
                                     bars_at=bars)
             msglines.append(mwidget)
 
-        self.body = urwid.ListBox(msglines)
+        self.body = urwid.ListBox(urwid.SimpleListWalker(msglines))
         self.message_count = self.thread.get_total_messages()
 
     def get_selection(self):
@@ -360,20 +360,35 @@ class ThreadBuffer(Buffer):
     def get_focus(self):
         return self.body.get_focus()
 
-    def unfold_matching(self, querystring):
+    def unfold_matching(self, querystring, focus_first=True):
         """
-        unfolds those :class:`MessageWidgets <alot.widgets.MessageWidget>`
-        that represent :class:`Messages <alot.db.message.Message>` matching
-        `querystring`.
+        unfolds messages that match a given querystring.
+
+        :param querystring: query to match
+        :type querystring: str
+        :param focus_first: set the focus to the first matching message
+        :type focus_first: bool
         """
+        i = 0
         for mw in self.get_message_widgets():
             msg = mw.get_message()
             if msg.matches(querystring):
+                if focus_first:
+                    # let urwid.ListBox focus this widget:
+                    # The first parameter is a "size" tuple: that needs only to
+                    # be iterable an is *never* used. i is the integer index
+                    # to focus. offset_inset is may be used to shift the visible area
+                    # so that the focus lies at given offset
+                    self.body.change_focus((0, 0), i,
+                                           offset_inset=0,
+                                           coming_from='above')
+                    focus_first = False
                 mw.folded = False
                 if 'unread' in msg.get_tags():
                     msg.remove_tags(['unread'])
                     self.ui.apply_command(commands.globals.FlushCommand())
                 mw.rebuild()
+            i = i + 1
 
 
 class TagListBuffer(Buffer):
