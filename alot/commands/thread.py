@@ -310,6 +310,13 @@ class BounceMailCommand(Command):
             ui.notify('no accounts set', priority='error')
             return
 
+        # remove "Resent-*" headers if already present
+        del mail['Resent-From']
+        del mail['Resent-To']
+        del mail['Resent-Cc']
+        del mail['Resent-Date']
+        del mail['Resent-Message-ID']
+
         # set Resent-From-header and sending account
         try:
             resent_from_header, account = determine_sender(mail, 'bounce')
