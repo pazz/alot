@@ -10,8 +10,6 @@ from alot.commands.globals import PromptCommand
 from alot.db.errors import DatabaseROError
 from alot import commands
 from alot import buffers
-from alot.walker import PipeWalker
-from alot.widgets.search import ThreadlineWidget
 
 
 MODE = 'search'
@@ -105,41 +103,29 @@ class RetagPromptCommand(Command):
 
 
 @registerCommand(MODE, 'tag', forced={'action': 'add'}, arguments=[
-    (['--all'], {'action': 'store_true', 'dest': 'all', 'default': 'True',
-                 'help':'tag all messages in selection'}),
-    (['--match'], {'action': 'store_false', 'dest': 'all',
-                   'help':'tag matching messages in selection'}),
     (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
                       'default': 'True',
                       'help': 'postpone a writeout to the index'}),
-    (['--target'], {'help':'search or thread',
-                    'choices':['search', 'thread'], 'default': 'thread'}),
+    (['--all'], {'action': 'store_true', 'dest': 'allmessages', 'default':
+                 False, 'help':'retag all messages in search result'}),
     (['tags'], {'help':'comma separated list of tags'})],
     help='add tags to all messages in the thread',
 )
 @registerCommand(MODE, 'retag', forced={'action': 'set'}, arguments=[
-    (['--all'], {'action': 'store_true', 'dest': 'all', 'default': 'True',
-                 'help':'retag all messages in selection'}),
-    (['--match'], {'action': 'store_false', 'dest': 'all',
-                   'help':'retag matching messages in selection'}),
     (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
                       'default': 'True',
                       'help': 'postpone a writeout to the index'}),
-    (['--target'], {'help':'search or thread',
-                    'choices':['search', 'thread'], 'default': 'thread'}),
+    (['--all'], {'action': 'store_true', 'dest': 'allmessages', 'default':
+                 False, 'help':'retag all messages in search result'}),
     (['tags'], {'help':'comma separated list of tags'})],
     help='set tags of all messages in the thread',
 )
 @registerCommand(MODE, 'untag', forced={'action': 'remove'}, arguments=[
-    (['--all'], {'action': 'store_true', 'dest': 'all', 'default': 'True',
-                 'help':'untag all messages in selection'}),
-    (['--match'], {'action': 'store_false', 'dest': 'all',
-                   'help':'untag matching messages in selection'}),
     (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
                       'default': 'True',
                       'help': 'postpone a writeout to the index'}),
-    (['--target'], {'help':'search or thread',
-                    'choices':['search', 'thread'], 'default': 'thread'}),
+    (['--all'], {'action': 'store_true', 'dest': 'allmessages', 'default':
+                 False, 'help':'retag all messages in search result'}),
     (['tags'], {'help':'comma separated list of tags'})],
     help='remove tags from all messages in the thread',
 )
@@ -147,8 +133,6 @@ class RetagPromptCommand(Command):
     (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
                       'default': 'True',
                       'help': 'postpone a writeout to the index'}),
-    (['--target'], {'help':'search or thread',
-                    'choices':['search', 'thread'], 'default': 'thread'}),
     (['tags'], {'help':'comma separated list of tags'})],
     help="""flip presence of tags on this thread.
     A tag is considered present if at least one message contained in this
@@ -157,8 +141,8 @@ class RetagPromptCommand(Command):
     """)
 class TagCommand(Command):
     """manipulate message tags"""
-    def __init__(self, tags=u'', action='add', all=True, flush=True,
-                 target='thread', **kwargs):
+    def __init__(self, tags=u'', action='add', allmessages=False, flush=True,
+                 **kwargs):
         """
         :param tags: comma separated list of tagstrings to set
         :type tags: str
@@ -166,25 +150,18 @@ class TagCommand(Command):
                        and removes all other if 'set' or toggle individually if
                        'toggle'
         :type action: str
-        :param target: if 'search' apply changes to search results, if 'thread'
-                       apply changes to currently selected thread(s)
-        :type target: str
-        :param all: tag all messages in target set
+        :param all: tag all messages in search result
         :type all: bool
-        :param match: tag only matching messages in target set
-        :type match: bool
         :param flush: imediately write out to the index
         :type flush: bool
         """
         self.tagsstring = tags
         self.action = action
-        self.all = all
-        self.target = target
+        self.allm = allmessages
         self.flush = flush
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        logging.debug('TagCommand.apply target: %s' % self.target)
         searchbuffer = ui.current_buffer
         threadline_widget = searchbuffer.get_selected_threadline()
         # pass if the current buffer has no selected threadline
@@ -194,12 +171,13 @@ class TagCommand(Command):
 
         testquery = searchbuffer.querystring
         thread = threadline_widget.get_thread()
-        if self.target == 'thread':
+        if not self.allm:
             testquery = "(%s) AND thread:%s" % (testquery,
                                                 thread.get_thread_id())
+        logging.debug('all? %s' % self.allm)
+        logging.debug('q: %s' % testquery)
 
         hitcount_before = ui.dbman.count_messages(testquery)
-        thread_count = ui.dbman.count_threads(testquery)
 
         def remove_thread():
             logging.debug('remove thread from result list: %s' % thread)
@@ -212,7 +190,7 @@ class TagCommand(Command):
             # any more and refresh selected threadline otherwise
             hitcount_after = ui.dbman.count_messages(testquery)
             # update total result count
-            if self.target == 'thread':
+            if not self.allm:
                 if hitcount_after == 0:
                     remove_thread()
                 else:
@@ -225,52 +203,17 @@ class TagCommand(Command):
 
         tags = filter(lambda x: x, self.tagsstring.split(','))
 
-        if self.all:
-            pipe, proc = ui.dbman.get_threads(testquery)
-            threadlist = PipeWalker(pipe, ThreadlineWidget, dbman=ui.dbman)
-            try:
-                pos = -1
-                while pos < thread_count - 1:
-                    (threadline, size) = threadlist.get_next(pos)
-                    thread = threadline.get_thread()
-                    if self.action == 'add':
-                        thread.add_tags(tags)
-                    if self.action == 'set':
-                        thread.add_tags(tags, remove_rest=True)
-                    elif self.action == 'remove':
-                        thread.remove_tags(tags)
-                    elif self.action == 'toggle':
-                        to_remove = []
-                        to_add = []
-                        for t in tags:
-                            if t in thread.get_tags():
-                                to_remove.append(t)
-                            else:
-                                to_add.append(t)
-                        thread.remove_tags(to_remove)
-                        thread.add_tags(to_add)
-                    pos += 1
-            except DatabaseROError:
-                ui.notify('index in read-only mode', priority='error')
-                return
-
-        else:  # not self.all
-            try:
-                if self.action == 'add':
-                    ui.dbman.tag(testquery, tags,
-                                 remove_rest=False, afterwards=refresh)
-                if self.action == 'set':
-                    ui.dbman.tag(testquery, tags,
-                                 remove_rest=True, afterwards=refresh)
-                elif self.action == 'remove':
-                    ui.dbman.untag(testquery, tags, afterwards=refresh)
-                elif self.action == 'toggle':
-                    ui.notify('toggletags on search matches not supported',
-                              priority='error')
-            except DatabaseROError:
-                ui.notify('index in read-only mode', priority='error')
-                return
+        try:
+            if self.action == 'add':
+                ui.dbman.tag(testquery, tags, remove_rest=False)
+            if self.action == 'set':
+                ui.dbman.tag(testquery, tags, remove_rest=True)
+            elif self.action == 'remove':
+                ui.dbman.untag(testquery, tags)
+        except DatabaseROError:
+            ui.notify('index in read-only mode', priority='error')
+            return
 
         # flush index
         if self.flush:
-            ui.apply_command(commands.globals.FlushCommand())
+            ui.apply_command(commands.globals.FlushCommand(callback=refresh))
