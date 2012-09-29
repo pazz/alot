@@ -388,7 +388,7 @@ class ChangeDisplaymodeCommand(Command):
 
 
 @registerCommand(MODE, 'pipeto', arguments=[
-    (['cmd'], {'help':'shellcommand to pipe to'}),
+    (['cmd'], {'help':'shellcommand to pipe to', 'nargs': '+'}),
     (['--all'], {'action': 'store_true', 'help':'pass all messages'}),
     (['--format'], {'help':'output format', 'default':'raw',
                     'choices':['raw', 'decoded', 'id', 'filepath']}),
