@@ -166,7 +166,8 @@ class SendmailAccount(Account):
 
         def errb(failure):
             termobj = failure.value
-            errmsg = '%s failed with code %s:\n%s' % (self.cmd, termobj.exitCode, failure.value.stderr.rstrip())
+            errmsg = '%s failed with code %s:\n%s' % \
+                (self.cmd, termobj.exitCode, failure.value.stderr.rstrip())
             logging.error(errmsg)
             logging.error(failure.getTraceback())
             logging.error(failure.value.stderr)
