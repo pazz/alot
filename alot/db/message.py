@@ -6,6 +6,7 @@ from datetime import datetime
 import email.charset as charset
 charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 from notmuch import NullPointerError
+import logging
 
 import alot.helper as helper
 from alot.settings import settings
@@ -255,3 +256,12 @@ class Message(object):
         """tests if this messages is in the resultset for `querystring`"""
         searchfor = querystring + ' AND id:' + self._id
         return self._dbman.count_messages(searchfor) > 0
+
+    def test_parser(self):
+        import pprint
+        def pf(t):
+            logging.debug(pprint.PrettyPrinter(indent=2).pformat(t))
+
+        from alot.db.utils import mimeparse
+        mimeparse(self.get_email()).addCallback(pf)
+
