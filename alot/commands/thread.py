@@ -74,7 +74,6 @@ def determine_sender(mail, action='reply'):
             for rec in recipients:
                 seen_name, seen_address = parseaddr(rec)
                 if regex.match(seen_address):
-                    logging.debug("match!: '%s' '%s'" % (seen_address, alias))
                     if settings.get(action + '_force_realname'):
                         realname = account.realname
                     else:
