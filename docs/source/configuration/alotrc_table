@@ -24,6 +24,17 @@
     :default: "~"
 
 
+.. _body_mimetype:
+
+.. describe:: body_mimetype
+
+     Preferred MIME type to display as mail body if it is present.
+     The fallback type is text/* if the preferred type is missing
+
+    :type: string
+    :default: "text/html"
+
+
 .. _bufferclose-focus-offset:
 
 .. describe:: bufferclose_focus_offset

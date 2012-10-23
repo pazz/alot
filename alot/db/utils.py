@@ -46,20 +46,21 @@ def extract_body(mail, types=None):
     """
     returns a body text string for given mail.
     If types is `None`, `text/*` is used:
-    In case mail has a `text/html` part, it is prefered over
-    `text/plain` parts.
+    The exact preferred type is specified by the body_mimetype config option
+    which defaults to text/html.
 
     :param mail: the mail to use
     :type mail: :class:`email.Message`
     :param types: mime content types to use for body string
     :type types: list of str
     """
-    html = list(typed_subpart_iterator(mail, 'text', 'html'))
 
-    # if no specific types are given, we favor text/html over text/plain
-    drop_plaintext = False
-    if html and not types:
-        drop_plaintext = True
+    preferred = settings.get('body_mimetype', 'text/html')
+    has_preferred = False
+
+    # see if the mail has our preferred type
+    if types == None:
+        has_preferred = list(typed_subpart_iterator(mail, *preferred.split('/')))
 
     body_parts = []
     for part in mail.walk():
@@ -71,10 +72,14 @@ def extract_body(mail, types=None):
         cd = part.get('Content-Disposition', '')
         if cd.startswith('attachment'):
             continue
+        # if the mail has our preferred type, we only keep this type
+        # note that if types != None, has_preferred always stays False
+        if has_preferred and ctype != preferred:
+            continue
 
         enc = part.get_content_charset() or 'ascii'
         raw_payload = part.get_payload(decode=True)
-        if ctype == 'text/plain' and not drop_plaintext:
+        if ctype == 'text/plain':
             raw_payload = string_decode(raw_payload, enc)
             body_parts.append(string_sanitize(raw_payload))
         else:
