@@ -46,7 +46,7 @@ def extract_body(mail, types=None):
     """
     returns a body text string for given mail.
     If types is `None`, `text/*` is used:
-    The exact preferred type is specified by the body_mimetype config option
+    The exact preferred type is specified by the prefer_plaintext config option
     which defaults to text/html.
 
     :param mail: the mail to use
@@ -55,7 +55,7 @@ def extract_body(mail, types=None):
     :type types: list of str
     """
 
-    preferred = settings.get('body_mimetype', 'text/html')
+    preferred = 'text/plain' if settings.get('prefer_plaintext') else 'text/html'
     has_preferred = False
 
     # see if the mail has our preferred type

@@ -183,6 +183,10 @@ reply_force_address = boolean(default=False)
 # only if original subject doesn't start with 'Fwd:' or this prefix
 forward_subject_prefix = string(default='Fwd: ')
 
+
+# prefer plaintext alternatives over html content in multipart/alternative
+prefer_plaintext = boolean(default=False)
+
 # Key bindings 
 [bindings]
     __many__ = string(default=None)
