@@ -24,17 +24,6 @@
     :default: "~"
 
 
-.. _body_mimetype:
-
-.. describe:: body_mimetype
-
-     Preferred MIME type to display as mail body if it is present.
-     The fallback type is text/* if the preferred type is missing
-
-    :type: string
-    :default: "text/html"
-
-
 .. _bufferclose-focus-offset:
 
 .. describe:: bufferclose_focus_offset
@@ -87,6 +76,16 @@
      in case more than one account has an address book:
      Set this to True to make tab completion for recipients during compose only
      look in the abook of the account matching the sender address
+
+    :type: boolean
+    :default: False
+
+
+.. _compose-ask-tags:
+
+.. describe:: compose_ask_tags
+
+     prompt for initial tags when compose
 
     :type: boolean
     :default: False
@@ -264,6 +263,16 @@
     :default: 2
 
 
+.. _prefer-plaintext:
+
+.. describe:: prefer_plaintext
+
+     prefer plaintext alternatives over html content in multipart/alternative
+
+    :type: boolean
+    :default: False
+
+
 .. _print-cmd:
 
 .. describe:: print_cmd
@@ -305,6 +314,30 @@
 
     :type: string
     :default: "> "
+
+
+.. _reply-force-address:
+
+.. describe:: reply_force_address
+
+     Always use the accounts main address when constructing "From" headers
+     for replies/forwards. Set this to False to use the address string
+     as received in the original message.
+
+    :type: boolean
+    :default: False
+
+
+.. _reply-force-realname:
+
+.. describe:: reply_force_realname
+
+     Always use the proper realname when constructing "From" headers
+     for replies/forwards. Set this to False to use the realname string
+     as received in the original message.
+
+    :type: boolean
+    :default: True
 
 
 .. _reply-subject-prefix:
