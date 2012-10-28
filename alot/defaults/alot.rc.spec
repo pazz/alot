@@ -197,6 +197,10 @@ bounce_force_realname = boolean(default=True)
 # Set this to False to use the address string as received in the original message.
 bounce_force_address = boolean(default=False)
 
+
+# prefer plaintext alternatives over html content in multipart/alternative
+prefer_plaintext = boolean(default=False)
+
 # Key bindings 
 [bindings]
     __many__ = string(default=None)
