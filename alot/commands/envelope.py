@@ -219,13 +219,13 @@ class SendCommand(Command):
             failure.trap(SendingMailFailed)
             logging.error(failure.getTraceback())
             errmsg = 'failed to send: %s' % failure.value
-            ui.notify(errmsg, priority='error')
+            ui.notify(errmsg, priority='error', block=True)
 
         def store_errb(failure):
             failure.trap(StoreMailError)
             logging.error(failure.getTraceback())
             errmsg = 'could not store mail: %s' % failure.value
-            ui.notify(errmsg, priority='error')
+            ui.notify(errmsg, priority='error', block=True)
 
         # send out
         clearme = ui.notify('sending..', timeout=-1)
