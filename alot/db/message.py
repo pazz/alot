@@ -243,9 +243,7 @@ class Message(object):
         """
         returns bodystring extracted from this mail
         """
-        #TODO: don't hardcode which part is considered body but allow toggle
-        #      commands and a config default setting
-
+        #TODO: allow toggle commands to decide which part is considered body
         return extract_body(self.get_email())
 
     def get_text_content(self):
