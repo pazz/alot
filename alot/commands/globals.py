@@ -310,6 +310,16 @@ class PythonShellCommand(Command):
         ui.mainloop.screen.start()
 
 
+@registerCommand(MODE, 'repeat')
+class RepeatCommand(Command):
+    """Repeats the command executed last time"""
+    def apply(self, ui):
+        if ui.last_command != None:
+            ui.apply_command(ui.last_command)
+        else:
+            ui.notify('no last command')
+
+
 @registerCommand(MODE, 'call', arguments=[
     (['command'], {'help':'python command string to call'})])
 class CallCommand(Command):
