@@ -114,33 +114,66 @@ class SaveCommand(Command):
 @registerCommand(MODE, 'send')
 class SendCommand(Command):
     """send mail"""
+    def __init__(self, mail=None, envelope=None, **kwargs):
+        """
+        :param mail: email to send
+        :type email: email.message.Message
+        :param envelope: envelope to use to construct the outgoing mail. This
+                         will be ignored in case the mail parameter is set.
+        :type envelope: alot.db.envelope.envelope
+        """
+        Command.__init__(self, **kwargs)
+        self.mail = mail
+        self.envelope = envelope
+        self.envelope_buffer = None
+
     @inlineCallbacks
     def apply(self, ui):
-        currentbuffer = ui.current_buffer  # needed to close later
-        envelope = currentbuffer.envelope
+        if self.mail is None:
+            if self.envelope is None:
+                # needed to close later
+                self.envelope_buffer = ui.current_buffer
+                self.envelope = self.envelope_buffer.envelope
 
-        # This is to warn the user before re-sending
-        # an already sent message in case the envelope buffer
-        # was not closed because it was the last remaining buffer.
-        if envelope.sent_time:
-            warning = 'A modified version of ' * envelope.modified_since_sent
-            warning += 'this message has been sent at %s.' % envelope.sent_time
-            warning += ' Do you want to resend?'
-            if (yield ui.choice(warning, cancel='no',
-                                msg_position='left')) == 'no':
+            # This is to warn the user before re-sending
+            # an already sent message in case the envelope buffer
+            # was not closed because it was the last remaining buffer.
+            if self.envelope.sent_time:
+                mod = self.envelope.modified_since_sent
+                when = self.envelope.sent_time
+                warning = 'A modified version of ' * mod
+                warning += 'this message has been sent at %s.' % when
+                warning += ' Do you want to resend?'
+                if (yield ui.choice(warning, cancel='no',
+                                    msg_position='left')) == 'no':
+                    return
+
+            # don't do anything if another SendCommand is in the middle of
+            # sending the message and we were triggered accidentally
+            if self.envelope.sending:
+                msg = 'sending this message already!'
+                logging.debug(msg)
                 return
 
-        # don't do anything if another SendCommand is in the middle of sending
-        # the message and we were triggered accidentally
-        if envelope.sending:
-            msg = 'sending this message already!'
-            logging.debug(msg)
-            return
+            clearme = ui.notify(u'constructing mail (GPG, attachments)\u2026',
+                                timeout=-1)
 
-        frm = envelope.get('From')
-        sname, saddr = email.Utils.parseaddr(frm)
+            try:
+                self.mail = self.envelope.construct_mail()
+                self.mail['Date'] = email.Utils.formatdate(localtime=True)
+                self.mail = crypto.email_as_string(self.mail)
+            except GPGProblem, e:
+                ui.clear_notify([clearme])
+                ui.notify(e.message, priority='error')
+                return
+
+            ui.clear_notify([clearme])
 
         # determine account to use for sending
+        msg = self.mail
+        if not isinstance(msg, email.message.Message):
+            msg = email.message_from_string(self.mail)
+        sname, saddr = email.Utils.parseaddr(msg.get('From', ''))
         account = settings.get_account_by_address(saddr)
         if account is None:
             if not settings.get_accounts():
@@ -149,43 +182,39 @@ class SendCommand(Command):
             else:
                 account = settings.get_accounts()[0]
 
-        clearme = ui.notify(u'constructing mail (GPG, attachments)\u2026',
-                            timeout=-1)
+        # make sure self.mail is a string
+        logging.debug(self.mail.__class__)
+        if isinstance(self.mail, email.message.Message):
+            self.mail = str(self.mail)
 
-        try:
-            mail = envelope.construct_mail()
-            mail['Date'] = email.Utils.formatdate(localtime=True)
-            mail = crypto.email_as_string(mail)
-        except GPGProblem, e:
-            ui.clear_notify([clearme])
-            ui.notify(e.message, priority='error')
-            return
-
-        ui.clear_notify([clearme])
-
-        # send
-        clearme = ui.notify('sending..', timeout=-1)
-
+        # define callback
         def afterwards(returnvalue):
-            envelope.sending = False
+            initial_tags = []
+            if self.envelope is not None:
+                self.envelope.sending = False
+                self.envelope.sent_time = datetime.datetime.now()
+                initial_tags = self.envelope.tags
             logging.debug('mail sent successfully')
             ui.clear_notify([clearme])
-            envelope.sent_time = datetime.datetime.now()
-            ui.apply_command(commands.globals.BufferCloseCommand())
+            if self.envelope_buffer is not None:
+                cmd = commands.globals.BufferCloseCommand(self.envelope_buffer)
+                ui.apply_command(cmd)
             ui.notify('mail sent successfully')
 
             # store mail locally
             # This can raise StoreMailError
-            path = account.store_sent_mail(mail)
+            path = account.store_sent_mail(self.mail)
 
             # add mail to index if maildir path available
             if path is not None:
                 logging.debug('adding new mail to index')
-                ui.dbman.add_message(path, account.sent_tags + envelope.tags)
+                ui.dbman.add_message(path, account.sent_tags + initial_tags)
                 ui.apply_command(globals.FlushCommand())
 
+        # define errback
         def send_errb(failure):
-            envelope.sending = False
+            if self.envelope is not None:
+                self.envelope.sending = False
             ui.clear_notify([clearme])
             failure.trap(SendingMailFailed)
             logging.error(failure.getTraceback())
@@ -198,12 +227,14 @@ class SendCommand(Command):
             errmsg = 'could not store mail: %s' % failure.value
             ui.notify(errmsg, priority='error', block=True)
 
-        envelope.sending = True
-        d = account.send_mail(mail)
+        # send out
+        clearme = ui.notify('sending..', timeout=-1)
+        if self.envelope is not None:
+            self.envelope.sending = True
+        d = account.send_mail(self.mail)
         d.addCallback(afterwards)
         d.addErrback(send_errb)
         d.addErrback(store_errb)
-        logging.debug('added errbacks,callbacks')
 
 
 @registerCommand(MODE, 'edit', arguments=[
