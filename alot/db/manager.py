@@ -153,7 +153,7 @@ class DBManager(object):
                     if callable(afterwards):
                         logging.debug(str(afterwards))
                         afterwards()
-                    logging.debug('called callback')
+                        logging.debug('called callback')
 
                 # re-insert item to the queue upon Xapian/NotmuchErrors
                 except (XapianError, NotmuchError) as e:

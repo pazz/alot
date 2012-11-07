@@ -111,6 +111,8 @@
     :default: From, To, Cc, Bcc, Subject
 
 
+     The pseudo-header "Tags" displays message tags.
+
 .. _edit-headers-blacklist:
 
 .. describe:: edit_headers_blacklist

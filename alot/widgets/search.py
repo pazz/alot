@@ -20,7 +20,8 @@ class ThreadlineWidget(urwid.AttrMap):
     """
     def __init__(self, tid, dbman):
         self.dbman = dbman
-        self.thread = dbman.get_thread(tid)
+        self.tid = tid
+        self.thread = None  # will be set by refresh()
         self.tag_widgets = []
         self.display_content = settings.get('display_content_in_threadline')
         self.structure = None
@@ -105,9 +106,7 @@ class ThreadlineWidget(urwid.AttrMap):
             msgs.sort(key=lambda msg: msg.get_date(), reverse=True)
             lastcontent = ' '.join([m.get_text_content() for m in msgs])
             contentstring = pad(lastcontent.replace('\n', ' ').strip())
-            content_w = AttrFlipWidget(urwid.Text(
-                                                   contentstring,
-                                                   wrap='clip'),
+            content_w = AttrFlipWidget(urwid.Text(contentstring, wrap='clip'),
                                        struct['content'])
             width = len(contentstring)
             part = content_w
@@ -135,6 +134,7 @@ class ThreadlineWidget(urwid.AttrMap):
         return width, part
 
     def rebuild(self):
+        self.thread = self.dbman.get_thread(self.tid)
         self.widgets = []
         columns = []
         self.structure = settings.get_threadline_theming(self.thread)
