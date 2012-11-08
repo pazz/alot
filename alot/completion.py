@@ -333,102 +333,107 @@ class CommandCompleter(Completer):
             cmd, params = words
             localpos = pos - (len(cmd) + 1)
             parser = commands.lookup_parser(cmd, self.mode)
-            # set 'res' - the result set of matching completionstrings
-            # depending on the current mode and command
+            if parser is not None:
+                # set 'res' - the result set of matching completionstrings
+                # depending on the current mode and command
 
-            # detect if we are completing optional parameter
-            arguments_until_now = params[:localpos].split(' ')
-            all_optionals = True
-            logging.debug(str(arguments_until_now))
-            for a in arguments_until_now:
-                logging.debug(a)
-                if a and not a.startswith('-'):
-                    all_optionals = False
-            # complete optional parameter if
-            # 1. all arguments prior to current position are optional parameter
-            # 2. the parameter starts with '-' or we are at its beginning
-            if all_optionals:
-                myarg = arguments_until_now[-1]
-                start_myarg = params.rindex(myarg)
-                beforeme = params[:start_myarg]
-                # set up local stringlist completer
-                # and let it complete for given list of options
-                localcompleter = ArgparseOptionCompleter(parser)
-                localres = localcompleter.complete(myarg, len(myarg))
-                res = [(beforeme + c, p + start_myarg) for (c, p) in localres]
+                # detect if we are completing optional parameter
+                arguments_until_now = params[:localpos].split(' ')
+                all_optionals = True
+                logging.debug(str(arguments_until_now))
+                for a in arguments_until_now:
+                    logging.debug(a)
+                    if a and not a.startswith('-'):
+                        all_optionals = False
+                # complete optional parameter if
+                # 1. all arguments prior to current position are optional parameter
+                # 2. the parameter starts with '-' or we are at its beginning
+                if all_optionals:
+                    myarg = arguments_until_now[-1]
+                    start_myarg = params.rindex(myarg)
+                    beforeme = params[:start_myarg]
+                    # set up local stringlist completer
+                    # and let it complete for given list of options
+                    localcompleter = ArgparseOptionCompleter(parser)
+                    localres = localcompleter.complete(myarg, len(myarg))
+                    res = [(
+                        beforeme + c, p + start_myarg) for (c, p) in localres]
 
-            # global
-            elif cmd == 'search':
-                res = self._querycompleter.complete(params, localpos)
-            elif cmd == 'help':
-                res = self._commandnamecompleter.complete(params, localpos)
-            elif cmd in ['compose']:
-                res = self._contactscompleter.complete(params, localpos)
-            # search
-            elif self.mode == 'search' and cmd == 'refine':
-                res = self._querycompleter.complete(params, localpos)
-            elif self.mode == 'search' and cmd in ['tag', 'retag', 'untag',
-                                                   'toggletags']:
-                localcomp = MultipleSelectionCompleter(self._tagcompleter,
-                                                       separator=',')
-                res = localcomp.complete(params, localpos)
-            elif self.mode == 'search' and cmd == 'toggletag':
-                localcomp = MultipleSelectionCompleter(self._tagcompleter,
-                                                       separator=' ')
-                res = localcomp.complete(params, localpos)
-            # envelope
-            elif self.mode == 'envelope' and cmd == 'set':
-                plist = params.split(' ', 1)
-                if len(plist) == 1:  # complete from header keys
-                    localprefix = params
-                    headers = ['Subject', 'To', 'Cc', 'Bcc', 'In-Reply-To',
-                               'From']
-                    localcompleter = StringlistCompleter(headers)
-                    localres = localcompleter.complete(localprefix, localpos)
-                    res = [(c, p + 6) for (c, p) in localres]
-                else:  # must have 2 elements
-                    header, params = plist
-                    localpos = localpos - (len(header) + 1)
-                    if header.lower() in ['to', 'cc', 'bcc']:
-                        res = self._contactscompleter.complete(params,
-                                                               localpos)
-                    elif header.lower() == 'from':
-                        res = self._accountscompleter.complete(params,
-                                                               localpos)
+                # global
+                elif cmd == 'search':
+                    res = self._querycompleter.complete(params, localpos)
+                elif cmd == 'help':
+                    res = self._commandnamecompleter.complete(params, localpos)
+                elif cmd in ['compose']:
+                    res = self._contactscompleter.complete(params, localpos)
+                # search
+                elif self.mode == 'search' and cmd == 'refine':
+                    res = self._querycompleter.complete(params, localpos)
+                elif self.mode == 'search' and cmd in ['tag', 'retag', 'untag',
+                                                       'toggletags']:
+                    localcomp = MultipleSelectionCompleter(self._tagcompleter,
+                                                           separator=',')
+                    res = localcomp.complete(params, localpos)
+                elif self.mode == 'search' and cmd == 'toggletag':
+                    localcomp = MultipleSelectionCompleter(self._tagcompleter,
+                                                           separator=' ')
+                    res = localcomp.complete(params, localpos)
+                # envelope
+                elif self.mode == 'envelope' and cmd == 'set':
+                    plist = params.split(' ', 1)
+                    if len(plist) == 1:  # complete from header keys
+                        localprefix = params
+                        headers = ['Subject', 'To', 'Cc', 'Bcc', 'In-Reply-To',
+                                   'From']
+                        localcompleter = StringlistCompleter(headers)
+                        localres = localcompleter.complete(
+                            localprefix, localpos)
+                        res = [(c, p + 6) for (c, p) in localres]
+                    else:  # must have 2 elements
+                        header, params = plist
+                        localpos = localpos - (len(header) + 1)
+                        if header.lower() in ['to', 'cc', 'bcc']:
+                            res = self._contactscompleter.complete(params,
+                                                                   localpos)
+                        elif header.lower() == 'from':
+                            res = self._accountscompleter.complete(params,
+                                                                   localpos)
 
-                    # prepend 'set ' + header and correct position
-                    def f((completed, pos)):
-                        return ('%s %s' % (header, completed),
-                                pos + len(header) + 1)
-                    res = map(f, res)
-                    logging.debug(res)
+                        # prepend 'set ' + header and correct position
+                        def f((completed, pos)):
+                            return ('%s %s' % (header, completed),
+                                    pos + len(header) + 1)
+                        res = map(f, res)
+                        logging.debug(res)
 
-            elif self.mode == 'envelope' and cmd == 'unset':
-                plist = params.split(' ', 1)
-                if len(plist) == 1:  # complete from header keys
-                    localprefix = params
-                    buf = self.currentbuffer
-                    if buf:
-                        if isinstance(buf, EnvelopeBuffer):
-                            available = buf.envelope.headers.keys()
-                            localcompleter = StringlistCompleter(available)
-                            localres = localcompleter.complete(localprefix,
-                                                               localpos)
-                            res = [(c, p + 6) for (c, p) in localres]
+                elif self.mode == 'envelope' and cmd == 'unset':
+                    plist = params.split(' ', 1)
+                    if len(plist) == 1:  # complete from header keys
+                        localprefix = params
+                        buf = self.currentbuffer
+                        if buf:
+                            if isinstance(buf, EnvelopeBuffer):
+                                available = buf.envelope.headers.keys()
+                                localcompleter = StringlistCompleter(available)
+                                localres = localcompleter.complete(localprefix,
+                                                                   localpos)
+                                res = [(c, p + 6) for (c, p) in localres]
 
-            elif self.mode == 'envelope' and cmd == 'attach':
-                res = self._pathcompleter.complete(params, localpos)
-            # thread
-            elif self.mode == 'thread' and cmd == 'save':
-                res = self._pathcompleter.complete(params, localpos)
-            elif self.mode == 'thread' and cmd in ['tag', 'retag', 'untag',
-                                                   'toggletags']:
-                localcomp = MultipleSelectionCompleter(self._tagcompleter,
-                                                       separator=',')
-                res = localcomp.complete(params, localpos)
+                elif self.mode == 'envelope' and cmd == 'attach':
+                    res = self._pathcompleter.complete(params, localpos)
+                # thread
+                elif self.mode == 'thread' and cmd == 'save':
+                    res = self._pathcompleter.complete(params, localpos)
+                elif self.mode == 'thread' and cmd in ['tag', 'retag', 'untag',
+                                                       'toggletags']:
+                    localcomp = MultipleSelectionCompleter(self._tagcompleter,
+                                                           separator=',')
+                    res = localcomp.complete(params, localpos)
 
-            # prepend cmd and correct position
-            res = [('%s %s' % (cmd, t), p + len(cmd) + 1) for (t, p) in res]
+                # prepend cmd and correct position
+                res = [('%s %s' % (cmd, t), p + len(cmd) +
+                        1) for (t, p) in res]
+
         # re-insert whitespaces and correct position
         wso = whitespaceoffset
         res = [(' ' * wso + cmd, p + wso) for cmd, p
