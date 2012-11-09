@@ -314,8 +314,8 @@ class PythonShellCommand(Command):
 class RepeatCommand(Command):
     """Repeats the command executed last time"""
     def apply(self, ui):
-        if ui.last_command != None:
-            ui.apply_command(ui.last_command)
+        if ui.last_commandline is not None:
+            ui.apply_commandline(ui.last_commandline)
         else:
             ui.notify('no last command')
 
