@@ -10,9 +10,6 @@ from buffers import BufferlistBuffer
 from commands import commandfactory
 from alot.commands import CommandParseError
 from alot.commands.globals import CommandSequenceCommand
-from alot.commands.globals import FlushCommand
-from alot.commands.globals import PromptCommand
-from alot.commands.globals import RepeatCommand
 from alot.helper import string_decode
 from alot.helper import split_commandline
 from alot.widgets.globals import CompleteEdit
@@ -38,8 +35,8 @@ class UI(object):
     """history of the command line prompt"""
     input_queue = []
     """stores partial keyboard input"""
-    last_command = None
-    """saves the last executed command"""
+    last_commandline = None
+    """saves the last executed commandline"""
 
     def __init__(self, dbman, initialcmd):
         """
@@ -167,10 +164,11 @@ class UI(object):
         else:
             cmd = CommandSequenceCommand(cmdlist)
         self.apply_command(cmd)
-        if not isinstance(cmd, RepeatCommand) and \
-                not isinstance(cmd, PromptCommand) and \
-                not isinstance(cmd, FlushCommand):
-            self.last_command = cmd
+
+        # store cmdline for use with 'repeat' command
+        cmdline = cmdline.lstrip()
+        if not cmdline.startswith('prompt') and not cmdline.startswith('repeat'):
+            self.last_commandline = cmdline
 
     def _unhandeled_input(self, key):
         """
