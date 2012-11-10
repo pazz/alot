@@ -97,7 +97,8 @@ class MatchSdtoutAddressbook(AddressBook):
             m = re.match(self.match, l, self.reflags)
             if m:
                 info = m.groupdict()
-                email = info['email'].strip()
-                name = info['name']
-                res.append((name, email))
+                if 'email' and 'name' in info:
+                    email = info['email'].strip()
+                    name = info['name']
+                    res.append((name, email))
         return res
