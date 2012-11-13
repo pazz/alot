@@ -413,9 +413,11 @@ class TagListBuffer(Buffer):
                 rows.append(urwid.Text(b + ' [hidden]'))
             elif tw.translated is not b:
                 rows.append(urwid.Text('(%s)' % b))
-            threads_count = self.tags_with_counts[b][0]
-            unread_count = self.tags_with_counts[b][1]
-            rows.append(urwid.Text(' (%d / %d)' % (unread_count,
+            # print counts if enabled
+            if self.tags_with_counts[b]:
+                threads_count = self.tags_with_counts[b][0]
+                unread_count = self.tags_with_counts[b][1]
+                rows.append(urwid.Text(' (%d / %d)' % (unread_count,
                                                    threads_count)))
             line = urwid.Columns(rows, dividechars=1)
             line = urwid.AttrMap(line, attr, focus_att)
