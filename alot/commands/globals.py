@@ -445,10 +445,18 @@ class TagListCommand(Command):
         tags_with_count = {}
         tags = ui.dbman.get_all_tags()
         for tag in tags:
-            threads_count = ui.dbman.count_threads("tag:%s" % tag)
-            unread_count = ui.dbman.count_threads(
+            if settings.get('show_count_in_tag_list') == 'threads':
+                threads_count = ui.dbman.count_threads("tag:%s" % tag)
+                unread_count = ui.dbman.count_threads(
                     "tag:%s AND tag:unread" % tag)
-            tags_with_count[tag] = [threads_count, unread_count]
+                tags_with_count[tag] = [threads_count, unread_count]
+            elif settings.get('show_count_in_tag_list') == 'messages':
+                messages_count = ui.dbman.count_messages("tag:%s" % tag)
+                unread_count = ui.dbman.count_messages(
+                    "tag:%s AND tag:unread" % tag)
+                tags_with_count[tag] = [messages_count, unread_count]
+            else:
+                tags_with_count[tag] = []
         blists = ui.get_buffers_of_type(buffers.TagListBuffer)
         if blists:
             buf = blists[0]
