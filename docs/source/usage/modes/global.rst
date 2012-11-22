@@ -13,6 +13,7 @@ The following commands are available globally
 
     optional arguments
         :---force: never ask for confirmation.
+        :---redraw: redraw display after closing current buffer.
 
 .. _cmd.global.bprevious:
 
