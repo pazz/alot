@@ -797,7 +797,11 @@ class MoveCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        ui.mainloop.process_input([self.movement])
+        if self.movement in ['up', 'down', 'page up', 'page down']:
+            ui.mainloop.process_input([self.movement])
+        else:
+            ui.notify('unknown movement: ' + self.movement,
+                      priority='error')
 
 
 class CommandSequenceCommand(Command):
