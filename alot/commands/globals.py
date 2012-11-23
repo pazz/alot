@@ -377,7 +377,7 @@ class BufferCloseCommand(Command):
                 logging.info('not closing last remaining buffer as '
                              'global.quit_on_last_bclose is set to False')
         else:
-            ui.buffer_close(self.buffer,self.redraw)
+            ui.buffer_close(self.buffer, self.redraw)
 
 
 @registerCommand(MODE, 'bprevious', forced={'offset': -1},
@@ -782,10 +782,11 @@ class ComposeCommand(Command):
                                             refocus=False)
         ui.apply_command(cmd)
 
+
 @registerCommand(MODE, 'move', help='move focus in current buffer',
-    arguments = [(['movement'], {'nargs':argparse.REMAINDER,
-                                 'help':'up, down, page up, page down'})]
-)
+                 arguments=[(['movement'], {
+                             'nargs':argparse.REMAINDER,
+                             'help':'up, down, page up, page down'})])
 class MoveCommand(Command):
     """move in widget"""
     def __init__(self, movement=None, **kwargs):
@@ -797,6 +798,7 @@ class MoveCommand(Command):
 
     def apply(self, ui):
         ui.mainloop.process_input([self.movement])
+
 
 class CommandSequenceCommand(Command):
     """Meta-Command that just applies a sequence of given Commands in order"""
