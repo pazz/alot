@@ -53,7 +53,7 @@ thread_authors_me = string(default='Me')
 terminal_cmd = string(default='x-terminal-emulator -e')
 
 # editor command
-# if unset, alot will first try the :envvar:`EDITOR` env variable, then :file:`/usr/bin/editor`
+# if unset, alot will first try :file:`/usr/bin/editor`, then  the :envvar:`EDITOR` env variable
 editor_cmd = string(default=None)
 
 # file encoding used by your editor
