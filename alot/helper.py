@@ -5,7 +5,6 @@
 from datetime import timedelta
 from datetime import datetime
 from collections import deque
-from string import strip
 import subprocess
 import shlex
 import email
@@ -179,13 +178,18 @@ def shorten_author_string(authors_string, maxlength):
     short_names = len(authors_string) > maxlength
     for au in authors_string.split(", "):
         if short_names:
-            authors.append(strip(au.split()[0]))
+            author_as_list = au.split()
+            if len(author_as_list) > 0:
+                authors.append(author_as_list[0])
         else:
             authors.append(au)
 
     # Author chain will contain the list of author strings to be
     # concatenated using commas for the final formatted author_string.
     authors_chain = deque()
+
+    if len(authors) == 0:
+        return u''
 
     # reserve space for first author
     first_au = shorten(authors.popleft(), maxlength)
