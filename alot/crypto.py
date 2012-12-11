@@ -2,6 +2,7 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 import re
+import logging
 
 from email.generator import Generator
 from cStringIO import StringIO
@@ -150,3 +151,21 @@ def detached_signature_for(plaintext_str, key=None):
     signature_data.seek(0, 0)
     signature = signature_data.read()
     return sigs, signature
+
+def encrypt(plaintext_str, key=None):
+    """
+    Encrypts the given plaintext string and returns a PGP/MIME compatible string
+    :param plaintext_str: the mail to encrypt
+    :param key: gpgme_key_t object representing the key to use
+    :rtype: a string holding the encrypted mail
+    """
+    plaintext_data = StringIO(plaintext_str)
+    encrypted_data = StringIO()
+    ctx = gpgme.Context()
+    ctx.armor = True
+    ctx.encrypt([key], gpgme.ENCRYPT_ALWAYS_TRUST, plaintext_data, encrypted_data)
+    encrypted_data.seek(0, 0)
+    encrypted = encrypted_data.read()
+    return encrypted
+
+
