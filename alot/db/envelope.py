@@ -188,7 +188,7 @@ class Envelope(object):
                 raise GPGProblem(str(e))
 
             micalg = crypto.RFC3156_micalg_from_algo(signatures[0].hash_algo)
-            outer_msg = MIMEMultipart('signed', micalg=micalg,
+            unencrypted_msg = MIMEMultipart('signed', micalg=micalg,
                                       protocol='application/pgp-signature')
 
             # wrap signature in MIMEcontainter
@@ -200,11 +200,42 @@ class Envelope(object):
             signature_mime.set_charset('us-ascii')
 
             # add signed message and signature to outer message
-            outer_msg.attach(inner_msg)
-            outer_msg.attach(signature_mime)
-            outer_msg['Content-Disposition'] = 'inline'
+            unencrypted_msg.attach(inner_msg)
+            unencrypted_msg.attach(signature_mime)
+            unencrypted_msg['Content-Disposition'] = 'inline'
         else:
-            outer_msg = inner_msg
+            unencrypted_msg = inner_msg
+
+        if self.encrypt:
+            plaintext = crypto.email_as_string(unencrypted_msg)
+            logging.debug('encrypting plaintext: ' + plaintext)
+           
+            # TODO: find the correct key, or ask user
+            key = crypto.get_key('recipient')
+
+            try:
+                encrypted_str = crypto.encrypt(plaintext, key)
+            except gpgme.GpgmeError as e:
+                raise GPGProblem(str(e))
+
+            outer_msg = MIMEMultipart('encrypted',
+                                 protocol='application/pgp-encrypted')
+
+            version_str = 'Version: 1'
+            encryption_mime = MIMEApplication(_data=version_str,
+                                              _subtype='pgp-encrypted',
+                                              _encoder=encode_7or8bit)
+            encryption_mime.set_charset('us-ascii')
+
+            encrypted_mime = MIMEApplication(_data=encrypted_str,
+                                             _subtype='octet-stream',
+                                             _encoder=encode_7or8bit)
+            encrypted_mime.set_charset('us-ascii')
+            outer_msg.attach(encryption_mime)
+            outer_msg.attach(encrypted_mime)
+
+        else:
+            outer_msg = unencrypted_msg
 
         headers = self.headers.copy()
         # add Message-ID
