@@ -448,3 +448,12 @@ class SignCommand(Command):
 
         # reload buffer
         ui.current_buffer.rebuild()
+
+@registerCommand(MODE, 'encrypt')
+class EncryptCommand(Command):
+    def apply(self, ui):
+        envelope = ui.current_buffer.envelope
+        envelope.encrypt = True
+        #reload buffer
+        ui.current_buffer.rebuild()
+
