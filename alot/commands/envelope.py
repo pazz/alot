@@ -449,11 +449,17 @@ class SignCommand(Command):
         # reload buffer
         ui.current_buffer.rebuild()
 
-@registerCommand(MODE, 'encrypt')
+@registerCommand(MODE, 'encrypt', arguments=[
+    (['keyid'], {'help':'keyid of the key to encrypt with'})])
 class EncryptCommand(Command):
+    def __init__(self, keyid, **kwargs):
+        self.encrypt_key = keyid
+        Command.__init__(self, **kwargs)
+
     def apply(self, ui):
         envelope = ui.current_buffer.envelope
         envelope.encrypt = True
+        envelope.encrypt_key = self.encrypt_key
         #reload buffer
         ui.current_buffer.rebuild()
 
