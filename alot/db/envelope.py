@@ -214,11 +214,8 @@ class Envelope(object):
 
 
             try:
-                key = crypto.get_key(self.encrypt_key)
-                encrypted_str = crypto.encrypt(plaintext, key)
+                encrypted_str = crypto.encrypt(plaintext, self.encrypt_key)
             except gpgme.GpgmeError as e:
-                if e.code == gpgme.ERR_INV_VALUE:
-                    raise GPGProblem("Can not find key to encrypt.")
                 raise GPGProblem(str(e))
 
             outer_msg = MIMEMultipart('encrypted',
