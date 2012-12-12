@@ -106,4 +106,18 @@ The following commands are available in envelope mode
     argument
         header to refine
 
+.. _cmd.envelope.encrypt:
+
+.. describe:: encrypt
+
+    mark mail to be encrypted with given key before sending
+
+    argument
+        key id to sign with
+
+.. _cmd.envelope.unencrypt:
+
+.. describe:: unencrypt
+
+    mark mail not to be encrypted
 
