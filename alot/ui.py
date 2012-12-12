@@ -125,12 +125,7 @@ class UI(object):
                 clear()
                 logging.debug("cmdline: '%s'" % cmdline)
                 # move keys are always passed
-                if cmdline.startswith('move '):
-                    movecmd = cmdline[5:].rstrip()
-                    logging.debug("GOT MOVE: '%s'" % movecmd)
-                    if movecmd in ['up', 'down', 'page up', 'page down']:
-                        return [movecmd]
-                elif not self._locked:
+                if cmdline.startswith('move ') or not self._locked:
                     try:
                         self.apply_commandline(cmdline)
                     except CommandParseError, e:
@@ -270,7 +265,7 @@ class UI(object):
             self.buffers.append(buf)
         self.buffer_focus(buf)
 
-    def buffer_close(self, buf):
+    def buffer_close(self, buf, redraw=True):
         """
         closes given :class:`~alot.buffers.Buffer`.
 
@@ -287,7 +282,7 @@ class UI(object):
             buffers.remove(buf)
             offset = settings.get('bufferclose_focus_offset')
             nextbuffer = buffers[(index + offset) % len(buffers)]
-            self.buffer_focus(nextbuffer)
+            self.buffer_focus(nextbuffer, redraw)
             buf.cleanup()
         else:
             string = 'closing buffer %d:%s'
@@ -295,7 +290,7 @@ class UI(object):
             buffers.remove(buf)
             buf.cleanup()
 
-    def buffer_focus(self, buf):
+    def buffer_focus(self, buf, redraw=True):
         """focus given :class:`~alot.buffers.Buffer`."""
         if buf not in self.buffers:
             logging.error('tried to focus unknown buffer')
@@ -305,7 +300,7 @@ class UI(object):
             self.mode = buf.modename
             if isinstance(self.current_buffer, BufferlistBuffer):
                 self.current_buffer.rebuild()
-            self.update()
+            self.update(redraw)
 
     def get_deep_focus(self, startfrom=None):
         """return the bottom most focussed widget of the widget tree"""
@@ -460,7 +455,7 @@ class UI(object):
                 self.mainloop.set_alarm_in(timeout, clear)
         return msgs[0]
 
-    def update(self):
+    def update(self, redraw=True):
         """redraw interface"""
         # get the main urwid.Frame widget
         mainframe = self.root_widget.original_widget
@@ -481,7 +476,7 @@ class UI(object):
         else:
             mainframe.set_footer(None)
         # force a screen redraw
-        if self.mainloop.screen.started:
+        if self.mainloop.screen.started and redraw:
             self.mainloop.draw_screen()
 
     def build_statusbar(self):

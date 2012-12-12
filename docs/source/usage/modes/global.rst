@@ -11,6 +11,8 @@ The following commands are available globally
 
     close a buffer
 
+    optional arguments
+        :---redraw: redraw display after closing current buffer.
 
 .. _cmd.global.bprevious:
 
