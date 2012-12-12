@@ -152,9 +152,12 @@ def detached_signature_for(plaintext_str, key=None):
     signature = signature_data.read()
     return sigs, signature
 
+
 def encrypt(plaintext_str, key=None):
     """
-    Encrypts the given plaintext string and returns a PGP/MIME compatible string
+    Encrypts the given plaintext string and returns a PGP/MIME compatible
+    string
+
     :param plaintext_str: the mail to encrypt
     :param key: gpgme_key_t object representing the key to use
     :rtype: a string holding the encrypted mail
@@ -163,9 +166,8 @@ def encrypt(plaintext_str, key=None):
     encrypted_data = StringIO()
     ctx = gpgme.Context()
     ctx.armor = True
-    ctx.encrypt([key], gpgme.ENCRYPT_ALWAYS_TRUST, plaintext_data, encrypted_data)
+    ctx.encrypt([key], gpgme.ENCRYPT_ALWAYS_TRUST, plaintext_data,
+                encrypted_data)
     encrypted_data.seek(0, 0)
     encrypted = encrypted_data.read()
     return encrypted
-
-
