@@ -458,6 +458,13 @@ class SignCommand(Command):
                  (['keyid'], {'help':'keyid of the key to encrypt with'})])
 class EncryptCommand(Command):
     def __init__(self, action=None, keyid=None, **kwargs):
+        """
+        :param action: wether to encrypt/unencrypt/toggleencrypt
+        :type action: str
+        :param keyid: the id of the key to encrypt
+        :type keyid: str
+        """
+
         self.encrypt_key = keyid
         self.action = action
         Command.__init__(self, **kwargs)
