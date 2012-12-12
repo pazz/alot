@@ -212,12 +212,13 @@ class Envelope(object):
             plaintext = crypto.email_as_string(unencrypted_msg)
             logging.debug('encrypting plaintext: ' + plaintext)
 
-            # TODO: find the correct key, or ask user
-            key = crypto.get_key(self.encrypt_key)
 
             try:
+                key = crypto.get_key(self.encrypt_key)
                 encrypted_str = crypto.encrypt(plaintext, key)
             except gpgme.GpgmeError as e:
+                if e.code == gpgme.ERR_INV_VALUE:
+                    raise GPGProblem("Can not find key to encrypt.")
                 raise GPGProblem(str(e))
 
             outer_msg = MIMEMultipart('encrypted',
