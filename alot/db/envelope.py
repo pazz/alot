@@ -190,7 +190,8 @@ class Envelope(object):
 
             micalg = crypto.RFC3156_micalg_from_algo(signatures[0].hash_algo)
             unencrypted_msg = MIMEMultipart('signed', micalg=micalg,
-                                      protocol='application/pgp-signature')
+                                            protocol=
+                                            'application/pgp-signature')
 
             # wrap signature in MIMEcontainter
             stype = 'pgp-signature; name="signature.asc"'
@@ -210,7 +211,7 @@ class Envelope(object):
         if self.encrypt:
             plaintext = crypto.email_as_string(unencrypted_msg)
             logging.debug('encrypting plaintext: ' + plaintext)
-           
+
             # TODO: find the correct key, or ask user
             key = crypto.get_key(self.encrypt_key)
 
@@ -220,7 +221,7 @@ class Envelope(object):
                 raise GPGProblem(str(e))
 
             outer_msg = MIMEMultipart('encrypted',
-                                 protocol='application/pgp-encrypted')
+                                      protocol='application/pgp-encrypted')
 
             version_str = 'Version: 1'
             encryption_mime = MIMEApplication(_data=version_str,
