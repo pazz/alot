@@ -3,6 +3,7 @@ Cryptography
 ************
 
 At the moment alot only supports signing of outgoing mails via PGP/MIME (:rfc:`3156`).
+Encryption via PGP/MIME (:rfc:`3156`) is in an experimental stadium.
 
 .. note:: To use GPG with alot, you need to have `gpg-agent` running.
 
@@ -37,4 +38,10 @@ instead of the default graphical pinentry. You can do that by setting up your
 
     pinentry-program /usr/bin/pinentry-curses
 
+.. rubric:: Encrypt outgoing emails
 
+You can use the commands `encrypt` and `unencrypt` in envelope mode to
+encrypt the mail. You have to give a hint string as argument to the `encrypt`
+command. This hint would normally be a fingerprint of the key.
+
+Encryption is done after signing (if signing is enabled) the email.
