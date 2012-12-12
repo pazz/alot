@@ -22,6 +22,8 @@ from alot.helper import string_decode
 from alot.settings import settings
 from alot.utils.booleanaction import BooleanAction
 
+import gpgme
+
 
 MODE = 'envelope'
 
@@ -478,6 +480,13 @@ class EncryptCommand(Command):
         elif self.action == 'toggleencrypt':
             encrypt = not envelope.encrypt
         envelope.encrypt = encrypt
-        envelope.encrypt_key = self.encrypt_key
+        if encrypt:
+            try:
+                envelope.encrypt_key = crypto.get_key(self.encrypt_key)
+            except gpgme.GpgmeError as e:
+                if e.code == gpgme.ERR_INV_VALUE:
+                    raise GPGProblem("Can not find key to encrypt.")
+                raise GPGProblem(str(e))
+            
         #reload buffer
         ui.current_buffer.rebuild()
