@@ -449,16 +449,26 @@ class SignCommand(Command):
         # reload buffer
         ui.current_buffer.rebuild()
 
-@registerCommand(MODE, 'encrypt', arguments=[
+@registerCommand(MODE, 'encrypt', forced={'action':'encrypt'}, arguments=[
+    (['keyid'], {'help':'keyid of the key to encrypt with'})])
+@registerCommand(MODE, 'unencrypt', forced={'action':'unencrypt'})
+@registerCommand(MODE, 'toggleencrypt', forced={'action':'toggleencrypt'}, arguments=[
     (['keyid'], {'help':'keyid of the key to encrypt with'})])
 class EncryptCommand(Command):
-    def __init__(self, keyid, **kwargs):
+    def __init__(self, action=None, keyid=None, **kwargs):
         self.encrypt_key = keyid
+        self.action = action
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
         envelope = ui.current_buffer.envelope
-        envelope.encrypt = True
+        if self.action == 'encrypt':
+            encrypt = True
+        elif self.action == 'unencrypt':
+            encrypt = False
+        elif self.action == 'toggleencrypt':
+            encrypt = not envelope.encrypt
+        envelope.encrypt = encrypt
         envelope.encrypt_key = self.encrypt_key
         #reload buffer
         ui.current_buffer.rebuild()
