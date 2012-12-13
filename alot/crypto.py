@@ -153,7 +153,7 @@ def detached_signature_for(plaintext_str, key=None):
     return sigs, signature
 
 
-def encrypt(plaintext_str, key=None):
+def encrypt(plaintext_str, keys=None):
     """
     Encrypts the given plaintext string and returns a PGP/MIME compatible
     string
@@ -166,7 +166,7 @@ def encrypt(plaintext_str, key=None):
     encrypted_data = StringIO()
     ctx = gpgme.Context()
     ctx.armor = True
-    ctx.encrypt([key], gpgme.ENCRYPT_ALWAYS_TRUST, plaintext_data,
+    ctx.encrypt(keys, gpgme.ENCRYPT_ALWAYS_TRUST, plaintext_data,
                 encrypted_data)
     encrypted_data.seek(0, 0)
     encrypted = encrypted_data.read()
