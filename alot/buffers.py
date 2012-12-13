@@ -154,9 +154,20 @@ class EnvelopeBuffer(Buffer):
 
         if self.envelope.encrypt:
             description = 'Yes'
-            encrypt_key = self.envelope.encrypt_key
-            if encrypt_key is not None and len(encrypt_key.subkeys) > 0:
-                description += ', with key ' + encrypt_key.subkeys[0].keyid
+            encrypt_keys = self.envelope.encrypt_keys
+            if  len(encrypt_keys) == 1:
+                description += ', with key '
+            elif len(encrypt_keys) > 1:
+                description += ', with keys '
+            first_key = True
+            for key in encrypt_keys: 
+                if key is not None:
+                    if first_key:
+                        first_key = False
+                    else:
+                        description += ', '
+                    if len(key.subkeys) > 0:
+                        description += key.subkeys[0].keyid
             lines.append(('GPG encrypt', description))
 
         # add header list widget iff header values exists
