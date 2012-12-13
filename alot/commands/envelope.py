@@ -453,13 +453,19 @@ class SignCommand(Command):
 
 
 @registerCommand(MODE, 'encrypt', forced={'action': 'encrypt'}, arguments=[
-    (['keyid'], {'help': 'keyid of the key to encrypt with'})])
+    (['keyids'], {'nargs':argparse.REMAINDER, 
+                 'help': 'keyid of the key to encrypt with'})])
 @registerCommand(MODE, 'unencrypt', forced={'action': 'unencrypt'})
 @registerCommand(MODE, 'toggleencrypt', forced={'action': 'toggleencrypt'},
                  arguments=[
-                 (['keyid'], {'help':'keyid of the key to encrypt with'})])
+                     (['keyids'], {'nargs': argparse.REMAINDER, 
+                      'help':'keyid of the key to encrypt with'})])
+@registerCommand(MODE, 'rmencrypt', forced={'action': 'rmencrypt'},
+                 arguments=[
+                     (['keyids'], {'nargs': argparse.REMAINDER, 
+                      'help':'keyid of the key to encrypt with'})])
 class EncryptCommand(Command):
-    def __init__(self, action=None, keyid=None, **kwargs):
+    def __init__(self, action=None, keyids=None, **kwargs):
         """
         :param action: wether to encrypt/unencrypt/toggleencrypt
         :type action: str
@@ -467,13 +473,30 @@ class EncryptCommand(Command):
         :type keyid: str
         """
 
-        self.encrypt_key = keyid
+        self.encrypt_keys = keyids
         self.action = action
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
         envelope = ui.current_buffer.envelope
-        if self.action == 'encrypt':
+        if self.action == 'rmencrypt':
+            try:
+                for keyid in self.encrypt_keys:
+                    # this is not so nice, but pygpgme doesn't supply a
+                    # __cmp__() operator so list.remove(x) doesn't work
+                    del envelope.encrypt_keys[int(keyid) - 1]
+            except gpgme.GpgmeError as e:
+                if e.code == gpgme.ERR_INV_VALUE:
+                    raise GPGProblem("Can not find key to encrypt.")
+                raise GPGProblem(str(e))
+            except ValueError as e:
+                raise Warning("Enter a the index of the key as argument to " +
+                              "rmencrypt.")
+            except IndexError as e:
+                raise Warning("There are not so many encryption keys.")
+            ui.current_buffer.rebuild()
+            return
+        elif self.action == 'encrypt':
             encrypt = True
         elif self.action == 'unencrypt':
             encrypt = False
@@ -482,7 +505,13 @@ class EncryptCommand(Command):
         envelope.encrypt = encrypt
         if encrypt:
             try:
-                envelope.encrypt_key = crypto.get_key(self.encrypt_key)
+                # cache all keys before appending to envelope, since otherwise
+                # we get an error message but all earlier keys are added, but
+                # not shown
+                keys = []
+                for keyid in self.encrypt_keys:
+                    keys.append(crypto.get_key(keyid))
+                envelope.encrypt_keys.extend(keys)
             except gpgme.GpgmeError as e:
                 if e.code == gpgme.ERR_INV_VALUE:
                     raise GPGProblem("Can not find key to encrypt.")
