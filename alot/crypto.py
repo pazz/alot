@@ -171,3 +171,17 @@ def encrypt(plaintext_str, keys=None):
     encrypted_data.seek(0, 0)
     encrypted = encrypted_data.read()
     return encrypted
+
+def hash_key(key):
+    """
+    Returns a hash of the given key. This is a workaround for 
+    https://bugs.launchpad.net/pygpgme/+bug/1089865
+    and can be removed if the missing feature is added to pygpgme
+
+    :param key: the key we want a hash of
+    :rtype: a has of the key as string
+    """
+    hash_str = ""
+    for tmp_key in key.subkeys:
+        hash_str += tmp_key.keyid
+    return hash_str
