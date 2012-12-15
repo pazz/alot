@@ -519,7 +519,7 @@ class EncryptCommand(Command):
                         
                 envelope.encrypt_keys.update(keys)
             except gpgme.GpgmeError as e:
-                if e.code == gpgme.ERR_INV_VALUE:
+                if e.code == gpgme.ERR_INV_VALUE or e.code == gpgme.ERR_EOF:
                     raise GPGProblem("Can not find key to encrypt.")
                 raise GPGProblem(str(e))
             
