@@ -154,13 +154,13 @@ class EnvelopeBuffer(Buffer):
 
         if self.envelope.encrypt:
             description = 'Yes'
-            encrypt_keys = self.envelope.encrypt_keys
+            encrypt_keys = self.envelope.encrypt_keys.values()
             if  len(encrypt_keys) == 1:
                 description += ', with key '
             elif len(encrypt_keys) > 1:
                 description += ', with keys '
             first_key = True
-            for key in encrypt_keys: 
+            for key in encrypt_keys:
                 if key is not None:
                     if first_key:
                         first_key = False

@@ -58,7 +58,7 @@ class Envelope(object):
         self.sign = sign
         self.sign_key = sign_key
         self.encrypt = encrypt
-        self.encrypt_keys = []
+        self.encrypt_keys = {}
         self.tags = tags  # tags to add after successful sendout
         self.sent_time = None
         self.modified_since_sent = False
@@ -214,7 +214,8 @@ class Envelope(object):
 
 
             try:
-                encrypted_str = crypto.encrypt(plaintext, self.encrypt_keys)
+                encrypted_str = crypto.encrypt(plaintext,
+                                               self.encrypt_keys.values())
             except gpgme.GpgmeError as e:
                 raise GPGProblem(str(e))
 
