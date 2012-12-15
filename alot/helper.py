@@ -29,6 +29,7 @@ def split_commandline(s, comments=False, posix=True):
     """
     # shlex seems to remove unescaped quotes
     s = s.replace('\'', '\\\'')
+    s = s.replace('\"', '\\\"')
     # encode s to utf-8 for shlex
     if isinstance(s, unicode):
         s = s.encode('utf-8')
