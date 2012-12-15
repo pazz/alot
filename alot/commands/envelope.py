@@ -488,6 +488,8 @@ class EncryptCommand(Command):
                 if e.code == gpgme.ERR_INV_VALUE:
                     raise GPGProblem("Can not find key to remove.")
                 raise GPGProblem(str(e))
+            if not envelope.encrypt_keys:
+                envelope.encrypt = False
             ui.current_buffer.rebuild()
             return
         elif self.action == 'encrypt':
