@@ -498,6 +498,14 @@ class EncryptCommand(Command):
             encrypt = not envelope.encrypt
         envelope.encrypt = encrypt
         if encrypt:
+            if not self.encrypt_keys:
+                for recipient in envelope.headers['To'][0].split(','):
+                    match = re.search("<(.*@.*)>", recipient)
+                    if match:
+                        recipient = match.group(0)
+                    self.encrypt_keys.append(recipient)
+
+            logging.debug("encryption keys: " + str(self.encrypt_keys)) 
             try:
                 # cache all keys before appending to envelope, since otherwise
                 # we get an error message but all earlier keys are added, but
