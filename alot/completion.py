@@ -7,6 +7,7 @@ import glob
 import logging
 import argparse
 
+import alot.crypto as crypto
 import alot.commands as commands
 from alot.buffers import EnvelopeBuffer
 from alot.settings import settings
@@ -313,6 +314,8 @@ class CommandCompleter(Completer):
         self._contactscompleter = ContactsCompleter(abooks)
         self._pathcompleter = PathCompleter()
         self._accountscompleter = AccountCompleter()
+        self._secretkeyscompleter = CryptoKeyCompleter(private=True)
+        self._publickeyscompleter = CryptoKeyCompleter(private=False)
 
     def complete(self, line, pos):
         # remember how many preceding space characters we see until the command
@@ -421,6 +424,11 @@ class CommandCompleter(Completer):
 
                 elif self.mode == 'envelope' and cmd == 'attach':
                     res = self._pathcompleter.complete(params, localpos)
+                elif self.mode == 'envelope' and cmd in ['sign', 'togglesign']:
+                    res = self._secretkeyscompleter.complete(params, localpos)
+                elif self.mode == 'envelope' and cmd in ['encrypt', 'rmencrypt'
+                                                         'toggleencrypt']:
+                    res = self._publickeyscompleter.complete(params, localpos)
                 # thread
                 elif self.mode == 'thread' and cmd == 'save':
                     res = self._pathcompleter.complete(params, localpos)
@@ -505,3 +513,21 @@ class PathCompleter(Completer):
             return escaped_path, len(escaped_path)
 
         return map(prep, glob.glob(deescape(prefix) + '*'))
+
+
+class CryptoKeyCompleter(StringlistCompleter):
+    """completion for gpg keys"""
+
+    def __init__(self, private=False):
+        """
+        :param private: return private keys
+        :type private: bool
+        """
+        keys = crypto.list_keys(private=private)
+        resultlist = []
+        for k in keys:
+            for s in k.subkeys:
+                resultlist.append(s.keyid)
+            for u in k.uids:
+                resultlist.append(u.email)
+        StringlistCompleter.__init__(self, resultlist)
