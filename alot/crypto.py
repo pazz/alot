@@ -130,6 +130,18 @@ def get_key(keyid):
     return key
 
 
+def list_keys(private=False):
+    """
+    Returns a list of all keys containing keyid. 
+
+    :param keyid: The part we search for
+    :param private: Whether secret keys are listed
+    :rtype: list
+    """
+    ctx = gpgme.Context()
+    return ctx.keylist(None, private)
+
+
 def detached_signature_for(plaintext_str, key=None):
     """
     Signs the given plaintext string and returns the detached signature.
