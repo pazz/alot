@@ -36,7 +36,7 @@
 256_base1 = 'g70'
 256_base2 = 'light gray'
 256_base3 = 'white'
-256_yellow = 'brown'
+256_yellow = 'brown'  #da0 for bold
 256_orange = 'light red'
 256_red = 'dark red'
 256_magenta = 'dark magenta'
@@ -93,12 +93,14 @@
         [[[date]]]
             normal = 'default','default','%(16_base1)s','%(16_base03)s','%(256_base1)s','%(256_base03)s'
             focus = 'standout','default','%(16_base02)s,bold','%(16_yellow)s','%(256_base02)s,bold','%(256_yellow)s'
+            alignment = right
+            width = fit, 9, 9
         [[[mailcount]]]
             normal = 'default','default','%(16_base1)s','%(16_base03)s','%(256_base1)s','%(256_base03)s'
             focus = 'standout','default','%(16_base02)s','%(16_yellow)s','%(256_base02)s','%(256_yellow)s'
         [[[tags]]]
             normal = 'bold','default','%(16_yellow)s','%(16_base03)s','%(256_yellow)s','%(256_base03)s'
-            focus = 'standout','default','%(16_base02)s,bold','%(16_yellow)s','%(256_base02)s,bold','%(256_yellow)s'
+            focus = 'standout','default','%(16_base02)s','%(16_yellow)s','%(256_base02)s','%(256_yellow)s'
         [[[authors]]]
             normal = 'default,underline','default','%(16_cyan)s','%(16_base03)s','%(256_cyan)s','%(256_base03)s'
             focus = 'standout','default','%(16_base02)s','%(16_yellow)s','%(256_base02)s','%(256_yellow)s'
@@ -114,14 +116,14 @@
         normal = 'default','default','%(16_base1)s,bold','%(16_base03)s','%(256_base1)s,bold','%(256_base03)s'
         tagged_with = 'unread'
         [[[date]]]
-            normal = 'default','default','%(16_base1)s,bold','%(16_base03)s','%(256_base1)s,bold','%(256_base03)s'
+            normal = 'default','default','%(16_base2)s,bold','%(16_base03)s','%(256_base2)s,bold','%(256_base03)s'
         [[[mailcount]]]
-            normal = 'default','default','%(16_base1)s,bold','%(16_base03)s','%(256_base1)s,bold','%(256_base03)s'
+            normal = 'default','default','%(16_base2)s,bold','%(16_base03)s','%(256_base2)s,bold','%(256_base03)s'
         [[[tags]]]
-            normal = 'bold','default','%(16_yellow)s,bold','%(16_base03)s','%(256_yellow)s,bold','%(256_base03)s'
+            normal = 'bold','default','%(16_yellow)s','%(16_base03)s','#da0','%(256_base03)s'
         [[[authors]]]
-            normal = 'default,underline','default','%(16_cyan)s','%(16_base03)s','%(256_cyan)s,bold','%(256_base03)s'
+            normal = 'default,underline','default','%(16_cyan)s','%(16_base03)s','#088,bold','%(256_base03)s'
         [[[subject]]]
-            normal = 'default','default','%(16_base0)s,bold','%(16_base03)s','%(256_base0)s,bold','%(256_base03)s'
+            normal = 'default','default','%(16_base2)s,bold','%(16_base03)s','%(256_base2)s,bold','%(256_base03)s'
         [[[content]]]
             normal = 'default','default','%(16_base01)s,bold','%(16_base03)s','%(256_base01)s,bold','%(256_base03)s'

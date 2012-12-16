@@ -303,6 +303,16 @@ class PythonShellCommand(Command):
         ui.mainloop.screen.start()
 
 
+@registerCommand(MODE, 'repeat')
+class RepeatCommand(Command):
+    """Repeats the command executed last time"""
+    def apply(self, ui):
+        if ui.last_commandline is not None:
+            ui.apply_commandline(ui.last_commandline)
+        else:
+            ui.notify('no last command')
+
+
 @registerCommand(MODE, 'call', arguments=[
     (['command'], {'help':'python command string to call'})])
 class CallCommand(Command):
@@ -331,11 +341,13 @@ class CallCommand(Command):
 
 
 @registerCommand(MODE, 'bclose', arguments=[
+    (['--redraw'], {'action': BooleanAction, 'help':'redraw current buffer \
+                     after command has finished'}),
     (['--force'], {'action': 'store_true',
                    'help': 'never ask for confirmation'})])
 class BufferCloseCommand(Command):
     """close a buffer"""
-    def __init__(self, buffer=None, force=False, **kwargs):
+    def __init__(self, buffer=None, force=False, redraw=True, **kwargs):
         """
         :param buffer: the buffer to close or None for current
         :type buffer: `alot.buffers.Buffer`
@@ -344,6 +356,7 @@ class BufferCloseCommand(Command):
         """
         self.buffer = buffer
         self.force = force
+        self.redraw = redraw
         Command.__init__(self, **kwargs)
 
     @inlineCallbacks
@@ -367,7 +380,7 @@ class BufferCloseCommand(Command):
                 logging.info('not closing last remaining buffer as '
                              'global.quit_on_last_bclose is set to False')
         else:
-            ui.buffer_close(self.buffer)
+            ui.buffer_close(self.buffer, self.redraw)
 
 
 @registerCommand(MODE, 'bprevious', forced={'offset': -1},
@@ -765,6 +778,27 @@ class ComposeCommand(Command):
                                             spawn=self.force_spawn,
                                             refocus=False)
         ui.apply_command(cmd)
+
+
+@registerCommand(MODE, 'move', help='move focus in current buffer',
+                 arguments=[(['movement'], {
+                             'nargs':argparse.REMAINDER,
+                             'help':'up, down, page up, page down'})])
+class MoveCommand(Command):
+    """move in widget"""
+    def __init__(self, movement=None, **kwargs):
+        if movement is None:
+            self.movement = ''
+        else:
+            self.movement = ' '.join(movement)
+        Command.__init__(self, **kwargs)
+
+    def apply(self, ui):
+        if self.movement in ['up', 'down', 'page up', 'page down']:
+            ui.mainloop.process_input([self.movement])
+        else:
+            ui.notify('unknown movement: ' + self.movement,
+                      priority='error')
 
 
 class CommandSequenceCommand(Command):

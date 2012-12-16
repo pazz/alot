@@ -239,7 +239,7 @@ class SendCommand(Command):
 
 @registerCommand(MODE, 'edit', arguments=[
     (['--spawn'], {'action': BooleanAction, 'default':None,
-                   'help':'spawn editor in new terminal'}),
+                   'help':'force spawning of editor in a new terminal'}),
     (['--refocus'], {'action': BooleanAction, 'default':True,
                      'help':'refocus envelope after editing'})])
 class EditCommand(Command):
