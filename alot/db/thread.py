@@ -101,7 +101,7 @@ class Thread(object):
                 afterwards()
 
         self._dbman.tag('thread:' + self._id, tags, afterwards=myafterwards,
-                       remove_rest=remove_rest)
+                        remove_rest=remove_rest)
 
     def remove_tags(self, tags, afterwards=None):
         """
@@ -137,11 +137,15 @@ class Thread(object):
 
         :rtype: list of (str, str)
         """
-        if self._authors == None:
+        if self._authors is None:
             self._authors = []
             seen = {}
             msgs = self.get_messages().keys()
-            msgs.sort(lambda a, b: cmp(a, b), lambda m: m.get_date())
+            msgs_with_date = filter(lambda m: m.get_date() is not None, msgs)
+            msgs_without_date = filter(lambda m: m.get_date() is None, msgs)
+            # sort messages with date and append the others
+            msgs_with_date.sort(None, lambda m: m.get_date())
+            msgs = msgs_with_date + msgs_without_date
             for m in msgs:
                 pair = m.get_author()
                 if not pair[1] in seen:
@@ -161,10 +165,10 @@ class Thread(object):
         :type replace_own: bool
         :rtype: str
         """
-        if replace_own == None:
+        if replace_own is None:
             replace_own = settings.get('thread_authors_replace_me')
         if replace_own:
-            if own_addrs == None:
+            if own_addrs is None:
                 own_addrs = settings.get_addresses()
             authorslist = []
             for aname, aaddress in self.get_authors():
