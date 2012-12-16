@@ -28,7 +28,7 @@ DEFAULTSPATH = os.path.join(os.path.dirname(__file__), '..', 'defaults')
 
 class SettingsManager(object):
     """Organizes user settings"""
-    def __init__(self, alot_rc=None, notmuch_rc=None, theme=None):
+    def __init__(self, alot_rc=None, notmuch_rc=None):
         """
         :param alot_rc: path to alot's config file
         :type alot_rc: str
@@ -39,16 +39,16 @@ class SettingsManager(object):
         """
         self.hooks = None
         self._mailcaps = mailcap.getcaps()
-
-        theme_path = theme or os.path.join(DEFAULTSPATH, 'default.theme')
-        self._theme = Theme(theme_path)
-        bindings_path = os.path.join(DEFAULTSPATH, 'default.bindings')
-        self._bindings = ConfigObj(bindings_path)
         self._config = ConfigObj()
+        self._notmuchconfig = None
         self._accounts = None
         self._accountmap = None
-        self.read_config(alot_rc)
-        self.read_notmuch_config(notmuch_rc)
+        bindings_path = os.path.join(DEFAULTSPATH, 'default.bindings')
+        self._bindings = ConfigObj(bindings_path)
+        if alot_rc is not None:
+            self.read_config(alot_rc)
+        if notmuch_rc is not None:
+            self.read_notmuch_config(notmuch_rc)
 
     def read_notmuch_config(self, path):
         """parse notmuch's config file from path"""
@@ -86,6 +86,7 @@ class SettingsManager(object):
             themes_dir = os.path.join(configdir, 'alot', 'themes')
         logging.debug(themes_dir)
 
+        # if config contains theme string use that
         if themestring:
             if not os.path.isdir(themes_dir):
                 err_msg = 'cannot find theme %s: themes_dir %s is missing'
@@ -97,6 +98,11 @@ class SettingsManager(object):
                 except ConfigError as e:
                     err_msg = 'Theme file %s failed validation:\n'
                     raise ConfigError((err_msg % themestring) + e.message)
+
+        # if still no theme is set, resort to default
+        if self._theme is None:
+            theme_path = os.path.join(DEFAULTSPATH, 'default.theme')
+            self._theme = Theme(theme_path)
 
         self._accounts = self._parse_accounts(self._config)
         self._accountmap = self._account_table(self._accounts)
