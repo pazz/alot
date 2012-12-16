@@ -41,6 +41,7 @@ class SettingsManager(object):
         self._mailcaps = mailcap.getcaps()
         self._config = ConfigObj()
         self._notmuchconfig = None
+        self._theme = None
         self._accounts = None
         self._accountmap = None
         bindings_path = os.path.join(DEFAULTSPATH, 'default.bindings')
