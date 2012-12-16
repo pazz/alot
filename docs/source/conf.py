@@ -32,8 +32,8 @@ MOCK_MODULES = ['twisted', 'twisted.internet',
                 'urwid',
                 'magic',
                 'gpgme',
-                'validate',
                 'configobj',
+                'validate',
                 'argparse']
 MOCK_DIRTY = ['notmuch']
 for mod_name in MOCK_MODULES:

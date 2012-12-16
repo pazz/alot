@@ -38,8 +38,10 @@ class ExitCommand(Command):
     """shut down cleanly"""
     @inlineCallbacks
     def apply(self, ui):
-        if settings.get('bug_on_exit'):
-            if (yield ui.choice('realy quit?', select='yes', cancel='no',
+        msg = 'index not fully synced. ' if ui.db_was_locked else ''
+        if settings.get('bug_on_exit') or ui.db_was_locked:
+            msg += 'really quit?'
+            if (yield ui.choice(msg, select='yes', cancel='no',
                                 msg_position='left')) == 'no':
                 return
         for b in ui.buffers:
@@ -483,13 +485,19 @@ class FlushCommand(Command):
             if callable(self.callback):
                 self.callback()
             logging.debug('flush complete')
+            if ui.db_was_locked:
+                ui.notify('changes flushed')
+                ui.db_was_locked = False
+
         except DatabaseLockedError:
             timeout = settings.get('flush_retry_timeout')
 
             def f(*args):
                 self.apply(ui)
             ui.mainloop.set_alarm_in(timeout, f)
-            ui.notify('index locked, will try again in %d secs' % timeout)
+            if not ui.db_was_locked:
+                ui.notify('index locked, will try again in %d secs' % timeout)
+                ui.db_was_locked = True
             ui.update()
             return
 

@@ -29,6 +29,8 @@ class UI(object):
     """points to currently active :class:`~alot.buffers.Buffer`"""
     dbman = None
     """Database Manager (:class:`~alot.db.manager.DBManager`)"""
+    db_was_locked = False
+    """flag used to prevent multiple 'index locked' notifications"""
     mode = 'global'
     """interface mode identifier - type of current buffer"""
     commandprompthistory = []
