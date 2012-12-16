@@ -35,8 +35,7 @@ class Message(object):
         self._thread_id = msg.get_thread_id()
         self._thread = thread
         casts_date = lambda: datetime.fromtimestamp(msg.get_date())
-        self._datetime = helper.safely_get(casts_date,
-                                          ValueError, None)
+        self._datetime = casts_date()
         self._filename = msg.get_filename()
         author = helper.safely_get(lambda: msg.get_header('From'),
                                        NullPointerError)
