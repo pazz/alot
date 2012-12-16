@@ -38,8 +38,10 @@ class ExitCommand(Command):
     """shut down cleanly"""
     @inlineCallbacks
     def apply(self, ui):
-        if settings.get('bug_on_exit'):
-            if (yield ui.choice('realy quit?', select='yes', cancel='no',
+        msg = 'index not fully synced. ' if ui.db_was_locked else ''
+        if settings.get('bug_on_exit') or ui.db_was_locked:
+            msg += 'really quit?'
+            if (yield ui.choice(msg, select='yes', cancel='no',
                                 msg_position='left')) == 'no':
                 return
         for b in ui.buffers:
