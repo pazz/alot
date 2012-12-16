@@ -470,13 +470,19 @@ class FlushCommand(Command):
             if callable(self.callback):
                 self.callback()
             logging.debug('flush complete')
+            if ui.db_was_locked:
+                ui.notify('changes flushed')
+                ui.db_was_locked = False
+
         except DatabaseLockedError:
             timeout = settings.get('flush_retry_timeout')
 
             def f(*args):
                 self.apply(ui)
             ui.mainloop.set_alarm_in(timeout, f)
-            ui.notify('index locked, will try again in %d secs' % timeout)
+            if not ui.db_was_locked:
+                ui.notify('index locked, will try again in %d secs' % timeout)
+                ui.db_was_locked = True
             ui.update()
             return
 
