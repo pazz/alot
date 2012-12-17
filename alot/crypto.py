@@ -66,7 +66,7 @@ def _hash_algo_name(hash_algo):
         return mapping[hash_algo]
     else:
         raise GPGProblem(("Invalid hash_algo passed to hash_algo_name."
-            " Please report this as a bug in alot."))
+                          " Please report this as a bug in alot."))
 
 
 def RFC3156_micalg_from_algo(hash_algo):
@@ -124,7 +124,7 @@ def get_key(keyid):
             # Deferred import to avoid a circular import dependency
             from alot.db.errors import GPGProblem
             raise GPGProblem(("More than one key found matching this filter."
-                " Please be more specific (use a key ID like 4AC8EE1D)."))
+                              " Please be more specific (use a key ID like 4AC8EE1D)."))
         else:
             raise e
     return key
@@ -132,7 +132,7 @@ def get_key(keyid):
 
 def list_keys(private=False):
     """
-    Returns a list of all keys containing keyid. 
+    Returns a list of all keys containing keyid.
 
     :param keyid: The part we search for
     :param private: Whether secret keys are listed
@@ -184,9 +184,10 @@ def encrypt(plaintext_str, keys=None):
     encrypted = encrypted_data.read()
     return encrypted
 
+
 def hash_key(key):
     """
-    Returns a hash of the given key. This is a workaround for 
+    Returns a hash of the given key. This is a workaround for
     https://bugs.launchpad.net/pygpgme/+bug/1089865
     and can be removed if the missing feature is added to pygpgme
 
