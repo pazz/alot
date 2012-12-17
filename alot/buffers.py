@@ -155,7 +155,7 @@ class EnvelopeBuffer(Buffer):
         if self.envelope.encrypt:
             description = 'Yes'
             encrypt_keys = self.envelope.encrypt_keys.values()
-            if  len(encrypt_keys) == 1:
+            if len(encrypt_keys) == 1:
                 description += ', with key '
             elif len(encrypt_keys) > 1:
                 description += ', with keys '
@@ -395,8 +395,8 @@ class ThreadBuffer(Buffer):
                     # let urwid.ListBox focus this widget:
                     # The first parameter is a "size" tuple: that needs only to
                     # be iterable an is *never* used. i is the integer index
-                    # to focus. offset_inset is may be used to shift the visible area
-                    # so that the focus lies at given offset
+                    # to focus. offset_inset is may be used to shift the
+                    # visible area so that the focus lies at given offset
                     self.body.change_focus((0, 0), i,
                                            offset_inset=0,
                                            coming_from='above')
