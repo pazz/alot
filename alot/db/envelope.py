@@ -212,7 +212,6 @@ class Envelope(object):
             plaintext = crypto.email_as_string(unencrypted_msg)
             logging.debug('encrypting plaintext: ' + plaintext)
 
-
             try:
                 encrypted_str = crypto.encrypt(plaintext,
                                                self.encrypt_keys.values())

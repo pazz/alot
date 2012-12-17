@@ -453,16 +453,16 @@ class SignCommand(Command):
 
 
 @registerCommand(MODE, 'encrypt', forced={'action': 'encrypt'}, arguments=[
-    (['keyids'], {'nargs':argparse.REMAINDER, 
-                 'help': 'keyid of the key to encrypt with'})])
+    (['keyids'], {'nargs':argparse.REMAINDER,
+                  'help': 'keyid of the key to encrypt with'})])
 @registerCommand(MODE, 'unencrypt', forced={'action': 'unencrypt'})
 @registerCommand(MODE, 'toggleencrypt', forced={'action': 'toggleencrypt'},
                  arguments=[
-                     (['keyids'], {'nargs': argparse.REMAINDER, 
+                     (['keyids'], {'nargs': argparse.REMAINDER,
                       'help':'keyid of the key to encrypt with'})])
 @registerCommand(MODE, 'rmencrypt', forced={'action': 'rmencrypt'},
                  arguments=[
-                     (['keyids'], {'nargs': argparse.REMAINDER, 
+                     (['keyids'], {'nargs': argparse.REMAINDER,
                       'help':'keyid of the key to encrypt with'})])
 class EncryptCommand(Command):
     def __init__(self, action=None, keyids=None, **kwargs):
@@ -507,7 +507,7 @@ class EncryptCommand(Command):
                         recipient = match.group(0)
                     self.encrypt_keys.append(recipient)
 
-            logging.debug("encryption keys: " + str(self.encrypt_keys)) 
+            logging.debug("encryption keys: " + str(self.encrypt_keys))
             try:
                 # cache all keys before appending to envelope, since otherwise
                 # we get an error message but all earlier keys are added, but
@@ -516,12 +516,12 @@ class EncryptCommand(Command):
                 for keyid in self.encrypt_keys:
                     tmp_key = crypto.get_key(keyid)
                     keys[crypto.hash_key(tmp_key)] = tmp_key
-                        
+
                 envelope.encrypt_keys.update(keys)
             except gpgme.GpgmeError as e:
                 if e.code == gpgme.ERR_INV_VALUE or e.code == gpgme.ERR_EOF:
                     raise GPGProblem("Can not find key to encrypt.")
                 raise GPGProblem(str(e))
-            
+
         #reload buffer
         ui.current_buffer.rebuild()
