@@ -149,7 +149,7 @@ class EnvelopeBuffer(Buffer):
             description = 'Yes'
             sign_key = self.envelope.sign_key
             if sign_key is not None and len(sign_key.subkeys) > 0:
-                description += ', with key ' + sign_key.subkeys[0].keyid
+                description += ', with key ' + sign_key.uids[0].uid
             lines.append(('GPG sign', description))
 
         if self.envelope.encrypt:
@@ -167,7 +167,7 @@ class EnvelopeBuffer(Buffer):
                     else:
                         description += ', '
                     if len(key.subkeys) > 0:
-                        description += key.subkeys[0].keyid
+                        description += key.uids[0].uid
             lines.append(('GPG encrypt', description))
 
         # add header list widget iff header values exists
