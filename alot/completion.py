@@ -530,4 +530,4 @@ class CryptoKeyCompleter(StringlistCompleter):
                 resultlist.append(s.keyid)
             for u in k.uids:
                 resultlist.append(u.email)
-        StringlistCompleter.__init__(self, resultlist)
+        StringlistCompleter.__init__(self, resultlist, match_anywhere=True)
