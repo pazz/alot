@@ -515,13 +515,17 @@ class EncryptCommand(Command):
                 keys = dict()
                 for keyid in self.encrypt_keys:
                     tmp_key = crypto.get_key(keyid)
+                    crypto.validate_key(tmp_key, encrypt=True)
                     keys[crypto.hash_key(tmp_key)] = tmp_key
 
                 envelope.encrypt_keys.update(keys)
             except gpgme.GpgmeError as e:
                 if e.code == gpgme.ERR_INV_VALUE or e.code == gpgme.ERR_EOF:
-                    raise GPGProblem("Can not find key to encrypt.")
+                    ui.notify("Can not find key to encrypt.", priority='error')
                 raise GPGProblem(str(e))
+            except GPGProblem, e:
+                ui.notify(e.message, priority='error')
+                return
 
         #reload buffer
         ui.current_buffer.rebuild()
