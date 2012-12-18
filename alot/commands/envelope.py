@@ -485,9 +485,7 @@ class EncryptCommand(Command):
                     tmp_key = crypto.get_key(keyid)
                     del envelope.encrypt_keys[crypto.hash_key(tmp_key)]
             except gpgme.GpgmeError as e:
-                if e.code == gpgme.ERR_INV_VALUE:
-                    raise GPGProblem("Can not find key to remove.")
-                raise GPGProblem(str(e))
+                ui.notify(e.message, priority='error')
             if not envelope.encrypt_keys:
                 envelope.encrypt = False
             ui.current_buffer.rebuild()
@@ -519,10 +517,6 @@ class EncryptCommand(Command):
                     keys[crypto.hash_key(tmp_key)] = tmp_key
 
                 envelope.encrypt_keys.update(keys)
-            except gpgme.GpgmeError as e:
-                if e.code == gpgme.ERR_INV_VALUE or e.code == gpgme.ERR_EOF:
-                    ui.notify("Can not find key to encrypt.", priority='error')
-                raise GPGProblem(str(e))
             except GPGProblem, e:
                 ui.notify(e.message, priority='error')
                 return
