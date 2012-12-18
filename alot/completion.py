@@ -426,7 +426,8 @@ class CommandCompleter(Completer):
                     res = self._pathcompleter.complete(params, localpos)
                 elif self.mode == 'envelope' and cmd in ['sign', 'togglesign']:
                     res = self._secretkeyscompleter.complete(params, localpos)
-                elif self.mode == 'envelope' and cmd in ['encrypt', 'rmencrypt'
+                elif self.mode == 'envelope' and cmd in ['encrypt', 
+                                                         'rmencrypt',
                                                          'toggleencrypt']:
                     res = self._publickeyscompleter.complete(params, localpos)
                 # thread
