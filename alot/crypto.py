@@ -122,9 +122,10 @@ def get_key(keyid):
     except gpgme.GpgmeError as e:
         if e.code == gpgme.ERR_AMBIGUOUS_NAME:
             # Deferred import to avoid a circular import dependency
-            from alot.db.errors import GPGProblem
             raise GPGProblem(("More than one key found matching this filter."
                               " Please be more specific (use a key ID like 4AC8EE1D)."))
+        elif e.code == gpgme.ERR_INV_VALUE or e.code == gpgme.ERR_EOF:
+            raise GPGProblem("Can not find key for " + keyid)
         else:
             raise e
     return key
