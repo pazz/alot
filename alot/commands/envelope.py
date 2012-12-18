@@ -500,6 +500,8 @@ class EncryptCommand(Command):
         if encrypt:
             if not self.encrypt_keys:
                 for recipient in envelope.headers['To'][0].split(','):
+                    if not recipient:
+                        continue
                     match = re.search("<(.*@.*)>", recipient)
                     if match:
                         recipient = match.group(0)
