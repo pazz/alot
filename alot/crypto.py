@@ -198,3 +198,15 @@ def hash_key(key):
     for tmp_key in key.subkeys:
         hash_str += tmp_key.keyid
     return hash_str
+
+def validate_key(key, sign=False, encrypt=False):
+    if key.revoked:
+        raise GPGProblem("The key \"" + key.uids[0].uid + "\" is revoked.")
+    elif key.expired:
+        raise GPGProblem("The key \"" + key.uids[0].uid + "\" is expired.")
+    elif key.invalid:
+        raise GPGProblem("The key \"" + key.uids[0].uid + "\" is invalid.")
+    if encrypt and not key.can_encrypt:
+        raise GPGProblem("The key \"" + key.uids[0].uid + "\" can not encrypt.")
+    if sign and not key.can_sign:
+        raise GPGProblem("The key \"" + key.uids[0].uid + "\" can not sign.")
