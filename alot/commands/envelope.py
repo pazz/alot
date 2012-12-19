@@ -441,7 +441,7 @@ class SignCommand(Command):
             if len(self.keyid) > 0:
                 keyid = str(' '.join(self.keyid))
                 try:
-                    key = crypto.get_key(keyid)
+                    key = crypto.get_key(keyid, validate=True, sign=True)
                 except GPGProblem, e:
                     envelope.sign = False
                     ui.notify(e.message, priority='error')
