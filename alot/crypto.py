@@ -108,7 +108,7 @@ def RFC3156_canonicalize(text):
     return text
 
 
-def get_key(keyid):
+def get_key(keyid, validate=False, encrypt=False, sign=False):
     """
     Gets a key from the keyring by filtering for the specified keyid, but
     only if the given keyid is specific enough (if it matches multiple
@@ -120,6 +120,8 @@ def get_key(keyid):
     ctx = gpgme.Context()
     try:
         key = ctx.get_key(keyid)
+        if validate:
+            validate_key(key, encrypt=encrypt, sign=sign)
     except gpgme.GpgmeError as e:
         if e.code == gpgme.ERR_AMBIGUOUS_NAME:
             raise GPGProblem(("More than one key found matching this filter." +
@@ -134,7 +136,7 @@ def get_key(keyid):
     return key
 
 
-def list_keys(private=False):
+def list_keys(hint=None, private=False):
     """
     Returns a list of all keys containing keyid.
 
@@ -143,7 +145,7 @@ def list_keys(private=False):
     :rtype: list
     """
     ctx = gpgme.Context()
-    return ctx.keylist(None, private)
+    return ctx.keylist(hint, private)
 
 
 def detached_signature_for(plaintext_str, key=None):
