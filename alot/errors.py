@@ -2,7 +2,21 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 
+class GPGCode:
+    AMBIGUOUS_NAME = 1
+    NOT_FOUND = 2
+    BAD_PASSPHRASE = 3
+    KEY_REVOKED = 4
+    KEY_EXPIRED = 5
+    KEY_INVALID = 6
+    KEY_CANNOT_ENCRYPT = 7
+    KEY_CANNOT_SIGN = 8
+    INVALID_HASHH = 9
+
 
 class GPGProblem(Exception):
     """GPG Error"""
-    pass
+    def __init__(self, message, code):
+        self.code = code
+        self.message = message
+        Exception(message)
