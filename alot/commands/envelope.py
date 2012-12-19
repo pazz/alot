@@ -528,6 +528,7 @@ class EncryptCommand(Command):
                         ui.notify(e.message, priority='error')
                         continue
                 envelope.encrypt_keys[crypto.hash_key(key)] = key
-
+            if not envelope.encrypt_keys:
+                envelope.encrypt = False
         #reload buffer
         ui.current_buffer.rebuild()
