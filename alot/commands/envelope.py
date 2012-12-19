@@ -476,7 +476,8 @@ class EncryptCommand(Command):
         self.encrypt_keys = keyids
         self.action = action
         Command.__init__(self, **kwargs)
-
+    
+    @inlineCallbacks
     def apply(self, ui):
         envelope = ui.current_buffer.envelope
         if self.action == 'rmencrypt':
@@ -508,20 +509,25 @@ class EncryptCommand(Command):
                     self.encrypt_keys.append(recipient)
 
             logging.debug("encryption keys: " + str(self.encrypt_keys))
-            try:
-                # cache all keys before appending to envelope, since otherwise
-                # we get an error message but all earlier keys are added, but
-                # not shown
-                keys = dict()
-                for keyid in self.encrypt_keys:
-                    tmp_key = crypto.get_key(keyid)
-                    crypto.validate_key(tmp_key, encrypt=True)
-                    keys[crypto.hash_key(tmp_key)] = tmp_key
-
-                envelope.encrypt_keys.update(keys)
-            except GPGProblem, e:
-                ui.notify(e.message, priority='error')
-                return
+            for keyid in self.encrypt_keys:
+                try:
+                    key = crypto.get_key(keyid, validate=True, encrypt=True)
+                except GPGProblem as e:
+                    if e.code == GPGCode.AMBIGUOUS_NAME:
+                        possible_keys = crypto.list_keys(hint=keyid)
+                        tmp_choices = [k.uids[0].uid for k in possible_keys]
+                        choices = {str(len(tmp_choices) - x) : tmp_choices[x] 
+                                   for x in range(0, len(tmp_choices))} 
+                        keyid = yield ui.choice("This keyid was ambiguous. " +
+                                        "Which key do you want to use?",
+                                        choices, cancel=None)
+                        if keyid:
+                            self.encrypt_keys.append(keyid)
+                        continue
+                    else:
+                        ui.notify(e.message, priority='error')
+                        continue
+                envelope.encrypt_keys[crypto.hash_key(key)] = key
 
         #reload buffer
         ui.current_buffer.rebuild()
