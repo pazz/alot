@@ -12,7 +12,7 @@ from twisted.internet.defer import inlineCallbacks
 import datetime
 
 from alot.account import SendingMailFailed, StoreMailError
-from alot.errors import GPGProblem
+from alot.errors import GPGProblem, GPGCode
 from alot import buffers
 from alot import commands
 from alot import crypto
@@ -484,7 +484,7 @@ class EncryptCommand(Command):
                 for keyid in self.encrypt_keys:
                     tmp_key = crypto.get_key(keyid)
                     del envelope.encrypt_keys[crypto.hash_key(tmp_key)]
-            except gpgme.GpgmeError as e:
+            except GPGProblem as e:
                 ui.notify(e.message, priority='error')
             if not envelope.encrypt_keys:
                 envelope.encrypt = False
