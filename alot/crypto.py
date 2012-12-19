@@ -6,7 +6,7 @@ import logging
 
 from email.generator import Generator
 from cStringIO import StringIO
-from alot.errors import GPGProblem
+from alot.errors import GPGProblem, GPGCode
 from email.mime.multipart import MIMEMultipart
 import gpgme
 
@@ -66,7 +66,8 @@ def _hash_algo_name(hash_algo):
         return mapping[hash_algo]
     else:
         raise GPGProblem(("Invalid hash_algo passed to hash_algo_name."
-                          " Please report this as a bug in alot."))
+                          " Please report this as a bug in alot."),
+                          code=GPGCode.INVALID_HASH)
 
 
 def RFC3156_micalg_from_algo(hash_algo):
@@ -121,11 +122,13 @@ def get_key(keyid):
         key = ctx.get_key(keyid)
     except gpgme.GpgmeError as e:
         if e.code == gpgme.ERR_AMBIGUOUS_NAME:
-            # Deferred import to avoid a circular import dependency
-            raise GPGProblem(("More than one key found matching this filter."
-                              " Please be more specific (use a key ID like 4AC8EE1D)."))
+            raise GPGProblem(("More than one key found matching this filter." +
+                              " Please be more specific (use a key ID like " +
+                              "4AC8EE1D)."),
+                              code=GPGCode.AMBIGUOUS_NAME)
         elif e.code == gpgme.ERR_INV_VALUE or e.code == gpgme.ERR_EOF:
-            raise GPGProblem("Can not find key for " + keyid)
+            raise GPGProblem("Can not find key for \'" + keyid + "\'.",
+                             code=GPGCode.NOT_FOUND)
         else:
             raise e
     return key
@@ -202,12 +205,17 @@ def hash_key(key):
 
 def validate_key(key, sign=False, encrypt=False):
     if key.revoked:
-        raise GPGProblem("The key \"" + key.uids[0].uid + "\" is revoked.")
+        raise GPGProblem("The key \"" + key.uids[0].uid + "\" is revoked.",
+                         code=GPGCode.KEY_REVOKED)
     elif key.expired:
-        raise GPGProblem("The key \"" + key.uids[0].uid + "\" is expired.")
+        raise GPGProblem("The key \"" + key.uids[0].uid + "\" is expired.",
+                         code=GPGCode.KEY_EXPIRED)
     elif key.invalid:
-        raise GPGProblem("The key \"" + key.uids[0].uid + "\" is invalid.")
+        raise GPGProblem("The key \"" + key.uids[0].uid + "\" is invalid.",
+                         code=GPGCode.KEY_INVALID)
     if encrypt and not key.can_encrypt:
-        raise GPGProblem("The key \"" + key.uids[0].uid + "\" can not encrypt.")
+        raise GPGProblem("The key \"" + key.uids[0].uid + "\" can not " +
+                         "encrypt.", code=GPGCode.KEY_CANNOT_ENCRYPT)
     if sign and not key.can_sign:
-        raise GPGProblem("The key \"" + key.uids[0].uid + "\" can not sign.")
+        raise GPGProblem("The key \"" + key.uids[0].uid + "\" can not sign.",
+                         code=GPGCode.KEY_CANNOT_SIGN)
