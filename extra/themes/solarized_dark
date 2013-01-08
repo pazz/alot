@@ -32,8 +32,8 @@
 256_base02 = 'black'
 256_base01 = 'light green'
 256_base00 = 'yellow'
-256_base0 = 'g66'
-256_base1 = 'g70'
+256_base0 = 'g50'		#808080
+256_base1 = 'g52'		#848484 - approximates #8a8a8a
 256_base2 = 'light gray'
 256_base3 = 'white'
 256_yellow = 'brown'
@@ -42,7 +42,7 @@
 256_magenta = 'dark magenta'
 256_violet = 'light magenta'
 256_blue = 'dark blue'
-256_cyan = '#088'
+256_cyan = '#0aa'		#00afaf
 256_green = 'dark green'
 
 
@@ -114,14 +114,14 @@
         normal = 'default','default','%(16_base1)s,bold','%(16_base03)s','%(256_base1)s,bold','%(256_base03)s'
         tagged_with = 'unread'
         [[[date]]]
-            normal = 'default','default','%(16_base1)s,bold','%(16_base03)s','%(256_base1)s,bold','%(256_base03)s'
+            normal = 'default','default','%(16_base2)s','%(16_base03)s','%(256_base2)s','%(256_base03)s'
         [[[mailcount]]]
-            normal = 'default','default','%(16_base1)s,bold','%(16_base03)s','%(256_base1)s,bold','%(256_base03)s'
+            normal = 'default','default','%(16_base2)s','%(16_base03)s','%(256_base2)s','%(256_base03)s'
         [[[tags]]]
-            normal = 'bold','default','%(16_yellow)s,bold','%(16_base03)s','%(256_yellow)s,bold','%(256_base03)s'
+            normal = 'bold','default','%(16_yellow)s','%(16_base03)s','%(256_yellow)s','%(256_base03)s'
         [[[authors]]]
             normal = 'default,underline','default','%(16_cyan)s','%(16_base03)s','%(256_cyan)s,bold','%(256_base03)s'
         [[[subject]]]
-            normal = 'default','default','%(16_base0)s,bold','%(16_base03)s','%(256_base0)s,bold','%(256_base03)s'
+            normal = 'default','default','%(16_base2)s','%(16_base03)s','%(256_base2)s','%(256_base02)s'
         [[[content]]]
             normal = 'default','default','%(16_base01)s,bold','%(16_base03)s','%(256_base01)s,bold','%(256_base03)s'
