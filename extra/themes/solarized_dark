@@ -32,8 +32,8 @@
 256_base02 = 'black'
 256_base01 = 'light green'
 256_base00 = 'yellow'
-256_base0 = 'g66'
-256_base1 = 'g70'
+256_base0 = 'g50'		#808080
+256_base1 = 'g52'		#848484 - approximates #8a8a8a
 256_base2 = 'light gray'
 256_base3 = 'white'
 256_yellow = 'brown'
@@ -42,7 +42,7 @@
 256_magenta = 'dark magenta'
 256_violet = 'light magenta'
 256_blue = 'dark blue'
-256_cyan = '#088'
+256_cyan = '#0aa'		#00afaf
 256_green = 'dark green'
 
 
