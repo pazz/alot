@@ -114,14 +114,14 @@
         normal = 'default','default','%(16_base1)s,bold','%(16_base03)s','%(256_base1)s,bold','%(256_base03)s'
         tagged_with = 'unread'
         [[[date]]]
-            normal = 'default','default','%(16_base1)s,bold','%(16_base03)s','%(256_base1)s,bold','%(256_base03)s'
+            normal = 'default','default','%(16_base2)s','%(16_base03)s','%(256_base2)s','%(256_base03)s'
         [[[mailcount]]]
-            normal = 'default','default','%(16_base1)s,bold','%(16_base03)s','%(256_base1)s,bold','%(256_base03)s'
+            normal = 'default','default','%(16_base2)s','%(16_base03)s','%(256_base2)s','%(256_base03)s'
         [[[tags]]]
-            normal = 'bold','default','%(16_yellow)s,bold','%(16_base03)s','%(256_yellow)s,bold','%(256_base03)s'
+            normal = 'bold','default','%(16_yellow)s','%(16_base03)s','%(256_yellow)s','%(256_base03)s'
         [[[authors]]]
             normal = 'default,underline','default','%(16_cyan)s','%(16_base03)s','%(256_cyan)s,bold','%(256_base03)s'
         [[[subject]]]
-            normal = 'default','default','%(16_base0)s,bold','%(16_base03)s','%(256_base0)s,bold','%(256_base03)s'
+            normal = 'default','default','%(16_base2)s','%(16_base03)s','%(256_base2)s','%(256_base02)s'
         [[[content]]]
             normal = 'default','default','%(16_base01)s,bold','%(16_base03)s','%(256_base01)s,bold','%(256_base03)s'
