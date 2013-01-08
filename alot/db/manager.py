@@ -5,6 +5,9 @@ from notmuch import Database, NotmuchError, XapianError
 import notmuch
 import multiprocessing
 import logging
+import sys
+import errno
+import signal
 
 from collections import deque
 
@@ -24,10 +27,22 @@ class FillPipeProcess(multiprocessing.Process):
         self.it = it
         self.pipe = pipe[1]
         self.fun = fun
+        self.keep_going = True
+
+    def handle_sigterm(self, signo, frame):
+        self.keep_going = False
+        sys.exit()
 
     def run(self):
+        signal.signal(signal.SIGTERM, self.handle_sigterm)
+
         for a in self.it:
-            self.pipe.send(self.fun(a))
+            try:
+                self.pipe.send(self.fun(a))
+            except IOError as e:
+                if e.errno != errno.EINTR or self.keep_going:
+                    raise
+
         self.pipe.close()
 
 
