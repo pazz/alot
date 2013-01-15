@@ -256,7 +256,7 @@ class SearchBuffer(Buffer):
         except NotmuchError:
             self.ui.notify('malformed query string: %s' % self.querystring,
                            'error')
-            self.listbox = urwid.ListBox(self.threadlist)
+            self.listbox = urwid.ListBox([])
             self.body = self.listbox
             return
 
