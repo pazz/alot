@@ -309,6 +309,12 @@ class SettingsManager(object):
                 return self.hooks.__dict__[key]
         return None
 
+    def get_mapped_input_keysequences(self, mode=None, prefix=u''):
+        candidates = self._bindings.scalars
+        if mode is not None:
+            candidates = candidates + self._bindings[mode].scalars
+        return [s for s in candidates if s.startswith(prefix)]
+
     def get_keybinding(self, mode, key):
         """look up keybinding from `MODE-maps` sections
 
