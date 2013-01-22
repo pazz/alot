@@ -8,9 +8,7 @@ Alot reads a config file in "INI" syntax:
 It consists of key-value pairs that use "=" as separator and '#' is comment-prefixes.
 Sections and subsections are defined using square brackets.
 
-The default location for the config file is :file:`~/.config/alot/config`. If
-upon startup this file is not found, a small default configuration (containing
-mostly standard key bindings) will be copied in its place.
+The default location for the config file is :file:`~/.config/alot/config`.
 
 All configs are optional, but if you want to send mails you need to specify at least one
 :ref:`account <config.accounts>` in your config.
