@@ -8,6 +8,7 @@ import logging
 import sys
 import errno
 import signal
+from twisted.internet import reactor
 
 from collections import deque
 
@@ -312,6 +313,23 @@ class DBManager(object):
         process = FillPipeProcess(cbl(), pipe, fun)
         process.start()
         self.processes.append(process)
+        logging.debug('Worker process {0} spawned'.format(process.pid))
+
+        def threaded_wait():
+            process.join()
+
+            if process.exitcode < 0:
+                msg = 'received signal {0}'.format(-process.exitcode)
+            elif process.exitcode > 0:
+                msg = 'returned error code {0}'.format(process.exitcode)
+            else:
+                msg = 'exited successfully'
+
+            logging.debug('Worker process {0} {1}'.format(process.pid, msg))
+            self.processes.remove(process)
+
+        reactor.callInThread(threaded_wait)
+
         # closing the sending end in this (receiving) process guarantees
         # that here the apropriate EOFError is raised upon .recv in the walker
         sender.close()
