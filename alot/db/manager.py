@@ -6,6 +6,7 @@ import notmuch
 import multiprocessing
 import logging
 import sys
+import os
 import errno
 import signal
 from twisted.internet import reactor
@@ -23,18 +24,22 @@ from alot.db import DB_ENC
 
 
 class FillPipeProcess(multiprocessing.Process):
-    def __init__(self, it, pipe, fun=(lambda x: x)):
+    def __init__(self, it, stdout, stderr, pipe, fun=(lambda x: x)):
         multiprocessing.Process.__init__(self)
         self.it = it
         self.pipe = pipe[1]
         self.fun = fun
         self.keep_going = True
+        self.stdout = stdout
+        self.stderr = stderr
 
     def handle_sigterm(self, signo, frame):
         self.keep_going = False
         sys.exit()
 
     def run(self):
+        os.dup2(self.stdout, 1)
+        os.dup2(self.stderr, 2)
         signal.signal(signal.SIGTERM, self.handle_sigterm)
 
         for a in self.it:
@@ -308,9 +313,11 @@ class DBManager(object):
         :rtype: (:class:`multiprocessing.Pipe`,
                 :class:`multiprocessing.Process`)
         """
+        stdout = os.pipe()
+        stderr = os.pipe()
         pipe = multiprocessing.Pipe(False)
         receiver, sender = pipe
-        process = FillPipeProcess(cbl(), pipe, fun)
+        process = FillPipeProcess(cbl(), stdout[1], stderr[1], pipe, fun)
         process.start()
         self.processes.append(process)
         logging.debug('Worker process {0} spawned'.format(process.pid))
@@ -329,6 +336,17 @@ class DBManager(object):
             self.processes.remove(process)
 
         reactor.callInThread(threaded_wait)
+
+        def threaded_reader(prefix, fd):
+            with os.fdopen(fd) as handle:
+                for line in handle:
+                    logging.debug('Worker process {0} said on {1}: {2}'.format(
+                            process.pid, prefix, line.rstrip()))
+
+        reactor.callInThread(threaded_reader, 'stdout', stdout[0])
+        os.close(stdout[1])
+        reactor.callInThread(threaded_reader, 'stderr', stderr[0])
+        os.close(stderr[1])
 
         # closing the sending end in this (receiving) process guarantees
         # that here the apropriate EOFError is raised upon .recv in the walker
