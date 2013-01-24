@@ -12,7 +12,7 @@ setup(name='alot',
       url=alot.__url__,
       license=alot.__copyright__,
       packages=['alot', 'alot.commands', 'alot.settings', 'alot.db',
-                'alot.utils', 'alot.widgets', 'alot.foreign'],
+                'alot.utils', 'alot.widgets', 'alot.foreign', 'alot.foreign.urwidtrees'],
       package_data={'alot': [
                              'defaults/alot.rc.spec',
                              'defaults/notmuch.rc.spec',
