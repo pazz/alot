@@ -3,6 +3,7 @@
 # For further details see the COPYING file
 import urwid
 import logging
+from alot.foreign.urwidtrees import Tree
 
 
 class PipeWalker(urwid.ListWalker):
@@ -77,3 +78,49 @@ class PipeWalker(urwid.ListWalker):
 
     def get_lines(self):
         return self.lines
+
+
+class ThreadTree(Tree):
+    def __init__(self, thread):
+        self._thread = thread
+        self.root = thread.get_toplevel_messages()[0].get_message_id()
+        self._parent_of = {}
+        self._first_child_of = {}
+        self._last_child_of = {}
+        self._next_sibling_of = {}
+        self._prev_sibling_of = {}
+        self._message = {}
+
+        for parent, childlist in thread.get_messages().items():
+            pid = parent.get_message_id()
+            self._message[pid] = parent
+
+            if childlist:
+                cid = childlist[0].get_message_id()
+                self._first_child_of[pid] = cid
+                self._parent_of[cid] = pid
+                self._prev_sibling_of[cid] = None
+                self._next_sibling_of[cid] = None
+
+                last_cid = cid
+                for child in childlist[1:]:
+                    cid = child.get_message_id()
+                    self._parent_of[cid] = pid
+                    self._prev_sibling_of[cid] = last_cid
+                    self._next_sibling_of[last_cid] = cid
+                self._next_sibling_of[cid] = None
+
+    def parent_position(self, pos):
+        return self._parent_of[pos]
+
+    def first_child_position(self, pos):
+        return self._first_child_of[pos]
+
+    def last_child_position(self, pos):
+        return self._last_child_of[pos]
+
+    def next_sibling_position(self, pos):
+        return self._next_sibling_of(pos)
+
+    def prev_sibling_position(self, pos):
+        return self._prev_sibling_of(pos)
