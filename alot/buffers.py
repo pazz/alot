@@ -16,7 +16,8 @@ from alot.widgets.globals import HeadersList
 from alot.widgets.globals import AttachmentWidget
 from alot.widgets.bufferlist import BufferlineWidget
 from alot.widgets.search import ThreadlineWidget
-from alot.widgets.thread import MessageWidget
+from alot.walker import ThreadTree
+from alot.foreign.urwidtrees import ArrowTree, TreeBox
 
 
 class Buffer(object):
@@ -324,34 +325,8 @@ class ThreadBuffer(Buffer):
             self.body = urwid.SolidFill()
             self.message_count = 0
             return
-        # depth-first traversing the thread-tree, thereby
-        # 1) build a list of tuples (parentmsg, depth, message) in DF order
-        # 2) create a dict that counts no. of direct replies per message
-        messages = list()  # accumulator for 1,
-        childcount = {None: 0}  # accumulator for 2)
-        for msg, replies in self.thread.get_messages().items():
-            childcount[msg] = len(replies)
-        # start with all toplevel msgs, then recursively call _build_pile
-        for msg in self.thread.get_toplevel_messages():
-            self._build_pile(messages, msg, None, 0)
-            childcount[None] += 1
 
-        # go through list from 1) and pile up message widgets for all msgs.
-        # each one will be given its depth, if siblings follow and where to
-        # draw bars (siblings follow at lower depths)
-        msglines = list()
-        bars = []
-        for (num, (p, depth, m)) in enumerate(messages):
-            bars = bars[:depth]
-            childcount[p] -= 1
-
-            bars.append(childcount[p] > 0)
-            mwidget = MessageWidget(m, even=(num % 2 == 0),
-                                    depth=depth,
-                                    bars_at=bars)
-            msglines.append(mwidget)
-
-        self.body = urwid.ListBox(urwid.SimpleListWalker(msglines))
+        self.body = TreeBox(ArrowTree(ThreadTree(self.thread)))
         self.message_count = self.thread.get_total_messages()
 
     def get_selection(self):
