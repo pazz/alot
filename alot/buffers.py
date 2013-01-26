@@ -16,7 +16,7 @@ from alot.widgets.globals import HeadersList
 from alot.widgets.globals import AttachmentWidget
 from alot.widgets.bufferlist import BufferlineWidget
 from alot.widgets.search import ThreadlineWidget
-from alot.walker import ThreadTree
+from alot.widgets.thread import ThreadTree
 from alot.foreign.urwidtrees import ArrowTree, TreeBox
 
 
