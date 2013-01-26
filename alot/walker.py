@@ -107,6 +107,11 @@ class ThreadTree(Tree):
                     self._parent_of[cid] = pid
                     self._prev_sibling_of[cid] = last_cid
                     self._next_sibling_of[last_cid] = cid
+                    last_cid = cid
+                self._last_child_of[pid] = last_cid
+
+    def __getitem__(self, pos):
+        return self._message.get(pos, None)
 
     def parent_position(self, pos):
         return self._parent_of.get(pos, None)
