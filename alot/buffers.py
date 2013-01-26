@@ -313,11 +313,6 @@ class ThreadBuffer(Buffer):
         """returns the displayed :class:`~alot.db.Thread`"""
         return self.thread
 
-    def _build_pile(self, acc, msg, parent, depth):
-        acc.append((parent, depth, msg))
-        for reply in self.thread.get_replies_to(msg):
-            self._build_pile(acc, reply, msg, depth + 1)
-
     def rebuild(self):
         try:
             self.thread.refresh()
@@ -326,7 +321,8 @@ class ThreadBuffer(Buffer):
             self.message_count = 0
             return
 
-        self.body = TreeBox(ArrowTree(ThreadTree(self.thread)))
+        self._tree = ThreadTree(self.thread)
+        self.body = TreeBox(ArrowTree(self._tree))
         self.message_count = self.thread.get_total_messages()
 
     def get_selection(self):
@@ -348,7 +344,8 @@ class ThreadBuffer(Buffer):
         returns all :class:`MessageWidgets <alot.widgets.MessageWidget>`
         displayed in this thread-tree.
         """
-        return self.body.body.contents
+        # TODO, do it properly
+        return self._tree._message.values()
 
     def get_focus(self):
         return self.body.get_focus()
@@ -362,6 +359,8 @@ class ThreadBuffer(Buffer):
         :param focus_first: set the focus to the first matching message
         :type focus_first: bool
         """
+        return
+        # TODO
         i = 0
         for mw in self.get_message_widgets():
             msg = mw.get_message()
