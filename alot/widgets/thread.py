@@ -14,7 +14,8 @@ from alot.helper import tag_cmp
 from alot.widgets.globals import HeadersList
 from alot.widgets.globals import TagWidget
 from alot.widgets.globals import AttachmentWidget
-from alot.foreign.urwidtrees import Tree
+from alot.foreign.urwidtrees import Tree, SimpleTree
+from alot.db.utils import extract_body
 
 
 class MessageWidget(urwid.WidgetWrap):
@@ -308,11 +309,23 @@ class MessageBodyWidget(urwid.AttrMap):
     displays printable parts of an email
     """
 
-    def __init__(self, msg):
-        bodytxt = message.extract_body(msg)
+    def __init__(self, message):
+        self._message = message
+        bodytxt = extract_body(message.get_email())
         att = settings.get_theming_attribute('thread', 'body')
         urwid.AttrMap.__init__(self, urwid.Text(bodytxt), att)
 
+class MessageTree(SimpleTree):
+    def __init__(self, message):
+        self._message = message
+        structure = [
+            (MessageSummaryWidget(message), #None
+             [
+                 (MessageBodyWidget(message), None),
+             ]
+             )
+        ]
+        SimpleTree.__init__(self, structure)
 
 class ThreadTree(Tree):
     def __init__(self, thread):
@@ -325,23 +338,30 @@ class ThreadTree(Tree):
         self._prev_sibling_of = {}
         self._message = {}
 
-        for parent, childlist in thread.get_messages().items():
-            pid = parent.get_message_id()
-            self._message[pid] = MessageWidget(parent)
+        def accumulate(msg):
+            mid = msg.get_message_id()
+            self._message[mid] = MessageTree(msg)
+            last = None
+            self._first_child_of[mid] = None
+            for reply in thread.get_replies_to(msg):
+                rid = reply.get_message_id()
+                if self._first_child_of[mid] is None:
+                    self._first_child_of[mid] = rid
+                self._parent_of[rid] = mid
+                self._prev_sibling_of[rid] = last
+                self._next_sibling_of[last] = rid
+                last = rid
+                accumulate(reply)
+            self._last_child_of[mid] = last
 
-            if childlist:
-                cid = childlist[0].get_message_id()
-                self._first_child_of[pid] = cid
-                self._parent_of[cid] = pid
-
-                last_cid = cid
-                for child in childlist[1:]:
-                    cid = child.get_message_id()
-                    self._parent_of[cid] = pid
-                    self._prev_sibling_of[cid] = last_cid
-                    self._next_sibling_of[last_cid] = cid
-                    last_cid = cid
-                self._last_child_of[pid] = last_cid
+        last = None
+        for msg in thread.get_toplevel_messages():
+            mid = msg.get_message_id()
+            self._prev_sibling_of[mid] = last
+            self._next_sibling_of[last] = mid
+            accumulate(msg)
+            last = mid
+        self._next_sibling_of[last] = None
 
     def __getitem__(self, pos):
         return self._message.get(pos, None)
