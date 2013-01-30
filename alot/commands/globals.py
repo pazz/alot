@@ -243,6 +243,11 @@ class ExternalCommand(Command):
             ui.mainloop.screen.stop()
             ret = thread_code()
             ui.mainloop.screen.start()
+
+            # make sure urwid renders its canvas at the correct size
+            ui.mainloop.screen_size = None
+            ui.mainloop.draw_screen()
+
             afterwards(ret)
 
 
