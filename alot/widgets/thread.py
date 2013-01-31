@@ -14,7 +14,7 @@ from alot.helper import tag_cmp
 from alot.widgets.globals import HeadersList
 from alot.widgets.globals import TagWidget
 from alot.widgets.globals import AttachmentWidget
-from alot.foreign.urwidtrees import Tree, SimpleTree
+from alot.foreign.urwidtrees import Tree, SimpleTree, CollapsibleTree
 from alot.db.utils import extract_body
 
 
@@ -315,17 +315,20 @@ class MessageBodyWidget(urwid.AttrMap):
         att = settings.get_theming_attribute('thread', 'body')
         urwid.AttrMap.__init__(self, urwid.Text(bodytxt), att)
 
-class MessageTree(SimpleTree):
+class MessageTree(CollapsibleTree):
     def __init__(self, message):
         self._message = message
         structure = [
-            (MessageSummaryWidget(message), #None
+            (MessageSummaryWidget(message),
              [
                  (MessageBodyWidget(message), None),
              ]
              )
         ]
-        SimpleTree.__init__(self, structure)
+        CollapsibleTree.__init__(self, SimpleTree(structure))
+
+    def collapse_if_matches(self, querystring):
+        self.set_position_collapsed(self.root,self._message.matches(querystring))
 
 class ThreadTree(Tree):
     def __init__(self, thread):
