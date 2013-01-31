@@ -18,7 +18,7 @@ from alot.widgets.globals import AttachmentWidget
 from alot.widgets.bufferlist import BufferlineWidget
 from alot.widgets.search import ThreadlineWidget
 from alot.widgets.thread import ThreadTree
-from alot.foreign.urwidtrees import ArrowTree, TreeBox, NestedTree, CollapsibleArrowTree
+from alot.foreign.urwidtrees import ArrowTree, TreeBox, NestedTree
 
 
 class Buffer(object):
@@ -323,7 +323,15 @@ class ThreadBuffer(Buffer):
             return
 
         self._tree = ThreadTree(self.thread)
-        A = ArrowTree(self._tree)
+
+        bars_att = settings.get_theming_attribute('thread', 'arrow_bars')
+        heads_att = settings.get_theming_attribute('thread', 'arrow_heads')
+        A = ArrowTree(self._tree,
+                      indent=2,
+                      childbar_offset=0,
+                      arrow_tip_att=heads_att,
+                      arrow_att=bars_att,
+                      )
         self._nested_tree =NestedTree(A, interpret_covered=True)
         self.body = TreeBox(self._nested_tree)
         self.message_count = self.thread.get_total_messages()
