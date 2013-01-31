@@ -419,36 +419,45 @@ class ChangeDisplaymodeCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
+        messagetrees = []
         lines = []
+        tbuffer = ui.current_buffer
         if not self.all:
             lines.append(ui.current_buffer.get_selection())
+            focuspos = tbuffer.get_focus()[1]
+            messagetrees = [tbuffer.messagetree_at_position(focuspos)]
         else:
-            lines = ui.current_buffer.get_message_widgets()
+            messagetrees = tbuffer.messagetrees()
 
-        for widget in lines:
-            msg = widget.get_message()
-
-            # in case the thread is yet unread, remove this tag
-            if self.visible or (self.visible == 'toggle' and widget.folded):
+        for mt in messagetrees:
+            # update collapsed-status
+            if self.visible == 'toggle':
+                self.visible = mt.is_collapsed(mt.root)
+            if self.visible is False:
+                mt.collapse(mt.root)
+            elif self.visible is True:
+                mt.expand(mt.root)
+                # in case the thread is yet unread, remove this tag
+                msg = mt._message
                 if 'unread' in msg.get_tags():
                     msg.remove_tags(['unread'])
                     ui.apply_command(FlushCommand())
+            # if visible == None, we don't touch the messagetree
 
-            if self.visible == 'toggle':
-                self.visible = widget.folded
-            if self.raw == 'toggle':
-                self.raw = not widget.show_raw
-            if self.all_headers == 'toggle':
-                self.all_headers = not widget.show_all_headers
+        tbuffer.refresh()
+            #if self.raw == 'toggle':
+            #    self.raw = not widget.show_raw
+            #if self.all_headers == 'toggle':
+            #    self.all_headers = not widget.show_all_headers
 
-            logging.debug((self.visible, self.raw, self.all_headers))
-            if self.visible is not None:
-                widget.folded = not self.visible
-            if self.raw is not None:
-                widget.show_raw = self.raw
-            if self.all_headers is not None:
-                widget.show_all_headers = self.all_headers
-            widget.rebuild()
+            #logging.debug((self.visible, self.raw, self.all_headers))
+            #if self.visible is not None:
+            #    widget.folded = not self.visible
+            #if self.raw is not None:
+            #    widget.show_raw = self.raw
+            #if self.all_headers is not None:
+            #    widget.show_all_headers = self.all_headers
+            #widget.rebuild()
 
 
 @registerCommand(MODE, 'pipeto', arguments=[

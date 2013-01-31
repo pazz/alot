@@ -4,6 +4,7 @@
 import urwid
 import os
 from notmuch import NotmuchError
+import logging
 
 from settings import settings
 import commands
@@ -17,7 +18,7 @@ from alot.widgets.globals import AttachmentWidget
 from alot.widgets.bufferlist import BufferlineWidget
 from alot.widgets.search import ThreadlineWidget
 from alot.widgets.thread import ThreadTree
-from alot.foreign.urwidtrees import ArrowTree, TreeBox, NestedTree
+from alot.foreign.urwidtrees import ArrowTree, TreeBox, NestedTree, CollapsibleArrowTree
 
 
 class Buffer(object):
@@ -322,7 +323,9 @@ class ThreadBuffer(Buffer):
             return
 
         self._tree = ThreadTree(self.thread)
-        self.body = TreeBox(NestedTree(ArrowTree(self._tree)))
+        A = ArrowTree(self._tree)
+        self._nested_tree =NestedTree(A, interpret_covered=True)
+        self.body = TreeBox(self._nested_tree)
         self.message_count = self.thread.get_total_messages()
 
     def get_selection(self):
@@ -339,16 +342,47 @@ class ThreadBuffer(Buffer):
         messagewidget = self.get_selection()
         return messagewidget.get_message()
 
-    def get_message_widgets(self):
+    def get_messagetree_positions(self):
         """
-        returns all :class:`MessageWidgets <alot.widgets.MessageWidget>`
-        displayed in this thread-tree.
         """
-        # TODO, do it properly
-        return self._tree._message.values()
+        return [(pos,) for pos in self._tree.positions()]
+
+    def refresh(self):
+        self.body.refresh()
+
+    def messagetrees(self):
+        for pos in self._tree.positions():
+            yield self._tree[pos]
 
     def get_focus(self):
         return self.body.get_focus()
+
+    def expand(self, msgpos):
+        MT = self._tree[msgpos]
+        MT.expand(MT.root)
+
+    def messagetree_at_position(self, pos):
+        return self._tree[pos[0]]
+
+    def expand_and_remove_unread(self, pos):
+        messagetree = self.messagetree_at_position(pos)
+        msg = messagetree._message
+        messagetree.expand(messagetree.root)
+        if 'unread' in msg.get_tags():
+            msg.remove_tags(['unread'])
+            self.ui.apply_command(commands.globals.FlushCommand())
+
+    def expand_all(self):
+        for MT in self.messagetrees():
+            MT.expand(MT.root)
+
+    def collapse(self, msgpos):
+        MT = self._tree[msgpos]
+        MT.collapse(MT.root)
+
+    def collapse_all(self):
+        for MT in self.messagetrees():
+            MT.collapse(MT.root)
 
     def unfold_matching(self, querystring, focus_first=True):
         """
@@ -360,27 +394,19 @@ class ThreadBuffer(Buffer):
         :type focus_first: bool
         """
         return
-        # TODO
-        i = 0
-        for mw in self.get_message_widgets():
-            msg = mw.get_message()
+        first = None
+        for MT in self.messagetrees():
+            msg = MT._message
             if msg.matches(querystring):
-                if focus_first:
-                    # let urwid.ListBox focus this widget:
-                    # The first parameter is a "size" tuple: that needs only to
-                    # be iterable an is *never* used. i is the integer index
-                    # to focus. offset_inset is may be used to shift the
-                    # visible area so that the focus lies at given offset
-                    self.body.change_focus((0, 0), i,
-                                           offset_inset=0,
-                                           coming_from='above')
-                    focus_first = False
-                mw.folded = False
+                MT.expand(MT.root)
+                if first is None:
+                    logging.debug('BODY %s' % self.body)
+                    self.body.set_focus((pos, MT.root))
                 if 'unread' in msg.get_tags():
                     msg.remove_tags(['unread'])
                     self.ui.apply_command(commands.globals.FlushCommand())
-                mw.rebuild()
-            i = i + 1
+            else:
+                MT.collapse(MT.root)
 
 
 class TagListBuffer(Buffer):
