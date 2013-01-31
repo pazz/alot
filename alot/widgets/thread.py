@@ -9,7 +9,6 @@ import logging
 
 from alot.settings import settings
 from alot.db.utils import decode_header
-import alot.db.message as message
 from alot.helper import tag_cmp
 from alot.widgets.globals import HeadersList
 from alot.widgets.globals import TagWidget
@@ -315,11 +314,12 @@ class MessageBodyWidget(urwid.AttrMap):
         att = settings.get_theming_attribute('thread', 'body')
         urwid.AttrMap.__init__(self, urwid.Text(bodytxt), att)
 
+
 class MessageTree(CollapsibleTree):
-    def __init__(self, message):
+    def __init__(self, message, odd=True):
         self._message = message
         structure = [
-            (MessageSummaryWidget(message),
+            (MessageSummaryWidget(message, even=(not odd)),
              [
                  (MessageBodyWidget(message), None),
              ]
@@ -328,7 +328,9 @@ class MessageTree(CollapsibleTree):
         CollapsibleTree.__init__(self, SimpleTree(structure))
 
     def collapse_if_matches(self, querystring):
-        self.set_position_collapsed(self.root,self._message.matches(querystring))
+        self.set_position_collapsed(
+            self.root, self._message.matches(querystring))
+
 
 class ThreadTree(Tree):
     def __init__(self, thread):
@@ -341,9 +343,10 @@ class ThreadTree(Tree):
         self._prev_sibling_of = {}
         self._message = {}
 
-        def accumulate(msg):
+        def accumulate(msg, odd=True):
             mid = msg.get_message_id()
-            self._message[mid] = MessageTree(msg)
+            self._message[mid] = MessageTree(msg, odd)
+            odd = not odd
             last = None
             self._first_child_of[mid] = None
             for reply in thread.get_replies_to(msg):
@@ -354,8 +357,9 @@ class ThreadTree(Tree):
                 self._prev_sibling_of[rid] = last
                 self._next_sibling_of[last] = rid
                 last = rid
-                accumulate(reply)
+                odd = accumulate(reply, odd)
             self._last_child_of[mid] = last
+            return odd
 
         last = None
         for msg in thread.get_toplevel_messages():
