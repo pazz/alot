@@ -387,3 +387,6 @@ class ThreadTree(Tree):
 
     def prev_sibling_position(self, pos):
         return self._prev_sibling_of.get(pos, None)
+
+    def position_of_messagetree(self, mt):
+        return mt._message.get_message_id()

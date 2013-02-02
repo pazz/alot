@@ -853,6 +853,8 @@ class MoveFocusCommand(Command):
             tbox.focus_next()
         elif self._direction == 'previous':
             tbox.focus_prev()
+        # TODO add 'next matching' if threadbuffer stores the original query string
+        # TODO: add next by date..
         tbox.refresh()
 
 @registerCommand(MODE, 'select')

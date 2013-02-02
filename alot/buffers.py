@@ -332,7 +332,7 @@ class ThreadBuffer(Buffer):
                       arrow_tip_att=heads_att,
                       arrow_att=bars_att,
                       )
-        self._nested_tree =NestedTree(A, interpret_covered=True)
+        self._nested_tree = NestedTree(A, interpret_covered=True)
         self.body = TreeBox(self._nested_tree)
         self.message_count = self.thread.get_total_messages()
 
@@ -401,20 +401,20 @@ class ThreadBuffer(Buffer):
         :param focus_first: set the focus to the first matching message
         :type focus_first: bool
         """
-        return
         first = None
         for MT in self.messagetrees():
             msg = MT._message
             if msg.matches(querystring):
                 MT.expand(MT.root)
                 if first is None:
-                    logging.debug('BODY %s' % self.body)
-                    self.body.set_focus((pos, MT.root))
+                    first = (self._tree.position_of_messagetree(MT), MT.root)
+                    self.body.set_focus(first)
                 if 'unread' in msg.get_tags():
                     msg.remove_tags(['unread'])
                     self.ui.apply_command(commands.globals.FlushCommand())
             else:
                 MT.collapse(MT.root)
+        self.body.refresh()
 
 
 class TagListBuffer(Buffer):
