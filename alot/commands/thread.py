@@ -423,7 +423,7 @@ class ChangeDisplaymodeCommand(Command):
         lines = []
         tbuffer = ui.current_buffer
         if not self.all:
-            lines.append(ui.current_buffer.get_selection())
+            lines.append(ui.current_buffer.get_selected_messagetree())
             focuspos = tbuffer.get_focus()[1]
             messagetrees = [tbuffer.messagetree_at_position(focuspos)]
         else:
