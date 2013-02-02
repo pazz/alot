@@ -336,22 +336,18 @@ class ThreadBuffer(Buffer):
         self.body = TreeBox(self._nested_tree)
         self.message_count = self.thread.get_total_messages()
 
-    def get_selection(self):
-        """returns focussed :class:`~alot.widgets.MessageWidget`"""
-        (messagewidget, size) = self.body.get_focus()
-        return messagewidget
-
-    def get_messagewidgets(self):
-        """returns all message widgets contained in this list"""
-        return self.body.body.contents
+    def get_selected_messagetree(self):
+        """returns currently focussed :class:`MessageTree`"""
+        return self._nested_tree[self.body.get_focus()[1][:1]]
 
     def get_selected_message(self):
         """returns focussed :class:`~alot.db.message.Message`"""
-        messagewidget = self.get_selection()
-        return messagewidget.get_message()
+        return self.get_selected_messagetree()._message
 
     def get_messagetree_positions(self):
         """
+        returns a Generator to walk through all positions of
+        :class:`MessageTree` in the :class:`ThreadTree` of this buffer.
         """
         return [(pos,) for pos in self._tree.positions()]
 
