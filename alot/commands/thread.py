@@ -828,6 +828,32 @@ class OpenAttachmentCommand(Command):
         else:
             ui.notify('unknown mime type')
 
+@registerCommand(MODE, 'focus', arguments=[
+    (['direction'], {'help':'direction','nargs': '+'})],
+    help='move focus depending on the thread tree structure',
+)
+class MoveFocusCommand(Command):
+    def __init__(self, direction=None):
+        self._direction = ' '.join(direction)
+
+    def apply(self, ui):
+        logging.debug(self._direction)
+        tbox = ui.current_buffer.body
+        if self._direction == 'parent':
+            tbox.focus_parent()
+        elif self._direction == 'first child':
+            tbox.focus_first_child()
+        elif self._direction == 'last child':
+            tbox.focus_last_child()
+        elif self._direction == 'next sibling':
+            tbox.focus_next_sibling()
+        elif self._direction == 'previous sibling':
+            tbox.focus_prev_sibling()
+        elif self._direction == 'next':
+            tbox.focus_next()
+        elif self._direction == 'previous':
+            tbox.focus_prev()
+        tbox.refresh()
 
 @registerCommand(MODE, 'select')
 class ThreadSelectCommand(Command):
