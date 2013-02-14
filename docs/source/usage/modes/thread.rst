@@ -21,7 +21,7 @@ The following commands are available in thread mode
         :---background: don't stop the interface.
         :---add_tags: add 'Tags' header to the message.
         :---shell: let the shell interpret the command.
-        :---notify_stdout: display command's stdout as notification message.
+        :---notify_stdout: display cmd's stdout as notification.
 
 .. _cmd.thread.editnew:
 
@@ -31,6 +31,19 @@ The following commands are available in thread mode
 
     optional arguments
         :---spawn: open editor in new window.
+
+.. _cmd.thread.untag:
+
+.. describe:: untag
+
+    remove tags from message(s)
+
+    argument
+        comma separated list of tags
+
+    optional arguments
+        :---all: tag all messages in thread.
+        :---no-flush: postpone a writeout to the index (Defaults to: 'True').
 
 .. _cmd.thread.toggleheaders:
 
@@ -53,14 +66,12 @@ The following commands are available in thread mode
         :---separately: call print command once for each message.
         :---add_tags: add 'Tags' header to the message.
 
-.. _cmd.thread.remove:
+.. _cmd.thread.bounce:
 
-.. describe:: remove
+.. describe:: bounce
 
-    remove message(s) from the index
+    directly re-send selected message
 
-    optional arguments
-        :---all: remove whole thread.
 
 .. _cmd.thread.togglesource:
 
@@ -106,18 +117,14 @@ The following commands are available in thread mode
         :---all: tag all messages in thread.
         :---no-flush: postpone a writeout to the index (Defaults to: 'True').
 
-.. _cmd.thread.untag:
+.. _cmd.thread.remove:
 
-.. describe:: untag
+.. describe:: remove
 
-    remove tags from message(s)
-
-    argument
-        comma separated list of tags
+    remove message(s) from the index
 
     optional arguments
-        :---all: tag all messages in thread.
-        :---no-flush: postpone a writeout to the index (Defaults to: 'True').
+        :---all: remove whole thread.
 
 .. _cmd.thread.unfold:
 

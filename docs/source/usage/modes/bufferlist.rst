@@ -12,9 +12,9 @@ The following commands are available in bufferlist mode
     close focussed buffer
 
 
-.. _cmd.bufferlist.select:
+.. _cmd.bufferlist.open:
 
-.. describe:: select
+.. describe:: open
 
     focus selected buffer
 

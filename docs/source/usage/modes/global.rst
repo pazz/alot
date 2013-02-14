@@ -11,6 +11,8 @@ The following commands are available globally
 
     close a buffer
 
+    optional arguments
+        :---force: never ask for confirmation.
 
 .. _cmd.global.bprevious:
 
@@ -71,14 +73,14 @@ The following commands are available globally
         command or 'bindings'
 
 
-.. _cmd.global.move:
+.. _cmd.global.buffer:
 
-.. describe:: move
+.. describe:: buffer
 
-    move focus
+    focus buffer with given index
 
     argument
-        direction
+        buffer index to focus
 
 
 .. _cmd.global.shellescape:
@@ -100,13 +102,6 @@ The following commands are available globally
 .. describe:: refresh
 
     refresh the current buffer
-
-
-.. _cmd.global.cancel:
-
-.. describe:: cancel
-
-    send cancel event
 
 
 .. _cmd.global.pyshell:
@@ -152,13 +147,6 @@ The following commands are available globally
 .. describe:: bnext
 
     focus next buffer
-
-
-.. _cmd.global.select:
-
-.. describe:: select
-
-    send select event
 
 
 .. _cmd.global.taglist:
