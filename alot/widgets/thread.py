@@ -314,6 +314,34 @@ class MessageBodyWidget(urwid.AttrMap):
         att = settings.get_theming_attribute('thread', 'body')
         urwid.AttrMap.__init__(self, urwid.Text(bodytxt), att)
 
+class DictList(SimpleTree):
+    def __init__(self, content, key_attr, value_attr, gaps_attr=None):
+        """
+        :param headerslist: list of key/value pairs to display
+        :type headerslist: list of (str, str)
+        :param key_attr: theming attribute to use for keys
+        :type key_attr: urwid.AttrSpec
+        :param value_attr: theming attribute to use for values
+        :type value_attr: urwid.AttrSpec
+        :param gaps_attr: theming attribute to wrap lines in
+        :type gaps_attr: urwid.AttrSpec
+        """
+        max_key_len = 1
+        structure = []
+        #calc max length of key-string
+        for key, value in content:
+            if len(key) > max_key_len:
+                max_key_len = len(key)
+        for key, value in content:
+            ##todo : even/odd
+            keyw = ('fixed', max_key_len + 1,
+                    urwid.Text((key_attr, key)))
+            valuew = urwid.Text((value_attr, value))
+            line = urwid.Columns([keyw, valuew])
+            if gaps_attr is not None:
+                line = urwid.AttrMap(line, gaps_attr)
+            structure.append((line,None))
+        SimpleTree.__init__(self, structure)
 
 class MessageTree(CollapsibleTree):
     def __init__(self, message, odd=True):
@@ -364,7 +392,7 @@ class MessageTree(CollapsibleTree):
         key_att = settings.get_theming_attribute('thread', 'header_key')
         value_att = settings.get_theming_attribute('thread', 'header_value')
         gaps_att = settings.get_theming_attribute('thread', 'header')
-        return HeadersList(lines, key_att, value_att, gaps_att)
+        return DictList(lines, key_att, value_att, gaps_att)
 
 
 class ThreadTree(Tree):
