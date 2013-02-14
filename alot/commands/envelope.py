@@ -454,16 +454,20 @@ class SignCommand(Command):
 
 @registerCommand(MODE, 'encrypt', forced={'action': 'encrypt'}, arguments=[
     (['keyids'], {'nargs':argparse.REMAINDER,
-                  'help': 'keyid of the key to encrypt with'})])
-@registerCommand(MODE, 'unencrypt', forced={'action': 'unencrypt'})
+                  'help': 'keyid of the key to encrypt with'})],
+    help='request encryption of message before sendout')
+@registerCommand(MODE, 'unencrypt', forced={'action': 'unencrypt'},
+                 help='remove request to encrypt message before sending')
 @registerCommand(MODE, 'toggleencrypt', forced={'action': 'toggleencrypt'},
                  arguments=[
                      (['keyids'], {'nargs': argparse.REMAINDER,
-                      'help':'keyid of the key to encrypt with'})])
+                      'help':'keyid of the key to encrypt with'})],
+                 help='toggle whether message should be encrypted before sendout')
 @registerCommand(MODE, 'rmencrypt', forced={'action': 'rmencrypt'},
                  arguments=[
                      (['keyids'], {'nargs': argparse.REMAINDER,
-                      'help':'keyid of the key to encrypt with'})])
+                      'help':'keyid of the key to encrypt with'})],
+                 help='do not encrypt to given recipient key')
 class EncryptCommand(Command):
     def __init__(self, action=None, keyids=None, **kwargs):
         """
@@ -476,7 +480,7 @@ class EncryptCommand(Command):
         self.encrypt_keys = keyids
         self.action = action
         Command.__init__(self, **kwargs)
-    
+
     @inlineCallbacks
     def apply(self, ui):
         envelope = ui.current_buffer.envelope
@@ -516,8 +520,8 @@ class EncryptCommand(Command):
                     if e.code == GPGCode.AMBIGUOUS_NAME:
                         possible_keys = crypto.list_keys(hint=keyid)
                         tmp_choices = [k.uids[0].uid for k in possible_keys]
-                        choices = {str(len(tmp_choices) - x) : tmp_choices[x] 
-                                   for x in range(0, len(tmp_choices))} 
+                        choices = {str(len(tmp_choices) - x) : tmp_choices[x]
+                                   for x in range(0, len(tmp_choices))}
                         keyid = yield ui.choice("This keyid was ambiguous. " +
                                         "Which key do you want to use?",
                                         choices, cancel=None)
