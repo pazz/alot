@@ -346,15 +346,33 @@ class DictList(SimpleTree):
 class MessageTree(CollapsibleTree):
     def __init__(self, message, odd=True):
         self._message = message
+
+        self.all_headers_tree = self.construct_header_pile()
+        headers = settings.get('displayed_headers')
+        self.selected_headers_tree = self.construct_header_pile(headers)
+
         structure = [
             (MessageSummaryWidget(message, even=(not odd)),
              [
-                 (self.construct_header_pile(), None),
+                 (self.selected_headers_tree, None),
                  (MessageBodyWidget(message), None),
              ]
              )
         ]
         CollapsibleTree.__init__(self, SimpleTree(structure))
+
+    def display_headers(self, headers):
+        if headers == 'all':
+            htree = self.all_headers_tree
+        elif headers == 'default':
+            htree = self.selected_headers_tree
+        elif headers is not None:
+            keys = [k.strip() for k in ' , '.split(',') if k.strip()]
+            htree = self.construct_header_pile(keys)
+
+        self.treelist[0][1].pop(0)
+        if htree:
+            self.treelist[0][1].insert(0, htree)
 
     def collapse_if_matches(self, querystring):
         self.set_position_collapsed(
@@ -363,7 +381,7 @@ class MessageTree(CollapsibleTree):
     def construct_header_pile(self, headers=None, normalize=True):
         mail = self._message.get_email()
         if headers is None:
-            headers = settings.get('displayed_headers')
+            headers = mail.keys()
         else:
             headers = [k for k in headers if
                        k.lower() == 'tags' or k in mail]
