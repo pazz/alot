@@ -262,6 +262,12 @@ class UI(object):
 
     def buffer_open(self, buf):
         """register and focus new :class:`~alot.buffers.Buffer`."""
+
+        # call pre_buffer_open hook
+        prehook = settings.get_hook('pre_buffer_open')
+        if prehook is not None:
+            prehook(ui=self, dbm=self.dbman, buf=buf)
+
         if self.current_buffer is not None:
             offset = settings.get('bufferclose_focus_offset') * -1
             currentindex = self.buffers.index(self.current_buffer)
@@ -270,14 +276,25 @@ class UI(object):
             self.buffers.append(buf)
         self.buffer_focus(buf)
 
-    def buffer_close(self, buf, redraw=True):
+        # call post_buffer_open hook
+        posthook = settings.get_hook('post_buffer_open')
+        if posthook is not None:
+            posthook(ui=self, dbm=self.dbman)
+
+    def buffer_close(self, buf):
         """
         closes given :class:`~alot.buffers.Buffer`.
 
         This it removes it from the bufferlist and calls its cleanup() method.
         """
 
+        # call pre_buffer_close hook
+        prehook = settings.get_hook('pre_buffer_close')
+        if prehook is not None:
+            prehook(ui=self, dbm=self.dbman, buf=buf)
+
         buffers = self.buffers
+        success = False
         if buf not in buffers:
             string = 'tried to close unknown buffer: %s. \n\ni have:%s'
             logging.error(string % (buf, self.buffers))
@@ -289,14 +306,25 @@ class UI(object):
             nextbuffer = buffers[(index + offset) % len(buffers)]
             self.buffer_focus(nextbuffer, redraw)
             buf.cleanup()
+            success = True
         else:
             string = 'closing buffer %d:%s'
-            logging.info(string % (buffers.index(buf), buf))
-            buffers.remove(buf)
-            buf.cleanup()
+            success = True
+
+        # call post_buffer_closed hook
+        posthook = settings.get_hook('post_buffer_closed')
+        if posthook is not None:
+            posthook(ui=self, dbm=self.dbman, buf=buf, success=success)
 
     def buffer_focus(self, buf, redraw=True):
         """focus given :class:`~alot.buffers.Buffer`."""
+
+        # call pre_buffer_focus hook
+        prehook = settings.get_hook('pre_buffer_focus')
+        if prehook is not None:
+            prehook(ui=self, dbm=self.dbman, buf=buf)
+
+        success = False
         if buf not in self.buffers:
             logging.error('tried to focus unknown buffer')
         else:
@@ -305,7 +333,13 @@ class UI(object):
             self.mode = buf.modename
             if isinstance(self.current_buffer, BufferlistBuffer):
                 self.current_buffer.rebuild()
-            self.update(redraw)
+            self.update()
+            success = True
+
+        # call post_buffer_focus hook
+        posthook = settings.get_hook('post_buffer_focus')
+        if posthook is not None:
+            posthook(ui=self, dbm=self.dbman, buf=buf, success=success)
 
     def get_deep_focus(self, startfrom=None):
         """return the bottom most focussed widget of the widget tree"""
