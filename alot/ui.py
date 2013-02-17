@@ -279,7 +279,7 @@ class UI(object):
         # call post_buffer_open hook
         posthook = settings.get_hook('post_buffer_open')
         if posthook is not None:
-            posthook(ui=self, dbm=self.dbman)
+            posthook(ui=self, dbm=self.dbman, buf=buf)
 
     def buffer_close(self, buf):
         """
