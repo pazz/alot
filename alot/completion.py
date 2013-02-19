@@ -433,6 +433,9 @@ class CommandCompleter(Completer):
                 # thread
                 elif self.mode == 'thread' and cmd == 'save':
                     res = self._pathcompleter.complete(params, localpos)
+                elif self.mode == 'thread' and cmd in ['fold', 'unfold', 'togglesource',
+                                                       'toggleheaders']:
+                    res = self._querycompleter.complete(params, localpos)
                 elif self.mode == 'thread' and cmd in ['tag', 'retag', 'untag',
                                                        'toggletags']:
                     localcomp = MultipleSelectionCompleter(self._tagcompleter,
