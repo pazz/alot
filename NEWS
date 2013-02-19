@@ -1,3 +1,21 @@
+0.3.4:
+* extra: zsh completion file
+* thread mode: add "tags" pseudo header to message display
+* case insensitive matching in Addressbook completion
+* compose: interpret "attach" pseudo header
+* compose: set initial message tags
+* envelope: completion for 'From'
+* reply/forward: more flexible construction of "From" headers (hello plussing!)
+* thread mode: added bounce command for direct redirection w/o an envelope buffer
+* thread mode: more robust "pipeto" command
+* add config option "prefer_plaintext"
+* prevent multiple 'index locked' notifications
+* kill some zombies! (#325)
+* search mode: bulk tagging
+* less annoying multi-key bindings
+* add global "move" command for scriptable cursor movement
+* support for encrypted outgoing mails using PGP/MIME
+
 0.3.3:
 * interpret (semicolon separated) sequences of commands
 * new input handling: allow for binding sequences of keypresses
