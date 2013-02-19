@@ -12,8 +12,8 @@ The following commands are available globally
     close a buffer
 
     optional arguments
+        :---redraw: redraw current buffer                      after command has finished.
         :---force: never ask for confirmation.
-        :---redraw: redraw display after closing current buffer.
 
 .. _cmd.global.bprevious:
 
@@ -82,6 +82,16 @@ The following commands are available globally
 
     argument
         buffer index to focus
+
+
+.. _cmd.global.move:
+
+.. describe:: move
+
+    move focus in current buffer
+
+    argument
+        up, down, page up, page down
 
 
 .. _cmd.global.shellescape:

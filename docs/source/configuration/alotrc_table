@@ -24,6 +24,28 @@
     :default: "~"
 
 
+.. _bounce-force-address:
+
+.. describe:: bounce_force_address
+
+     Always use the accounts main address when constructing "Resent-From" headers for bounces.
+     Set this to False to use the address string as received in the original message.
+
+    :type: boolean
+    :default: False
+
+
+.. _bounce-force-realname:
+
+.. describe:: bounce_force_realname
+
+     Always use the proper realname when constructing "Resent-From" headers for bounces.
+     Set this to False to use the realname string as received in the original message.
+
+    :type: boolean
+    :default: True
+
+
 .. _bufferclose-focus-offset:
 
 .. describe:: bufferclose_focus_offset
@@ -110,8 +132,6 @@
     :type: string list
     :default: From, To, Cc, Bcc, Subject
 
-
-     The pseudo-header "Tags" displays message tags.
 
 .. _edit-headers-blacklist:
 
@@ -212,6 +232,28 @@
 
     :type: integer
     :default: 5
+
+
+.. _forward-force-address:
+
+.. describe:: forward_force_address
+
+     Always use the accounts main address when constructing "From" headers for forwards.
+     Set this to False to use the address string as received in the original message.
+
+    :type: boolean
+    :default: False
+
+
+.. _forward-force-realname:
+
+.. describe:: forward_force_realname
+
+     Always use the proper realname when constructing "From" headers for forwards.
+     Set this to False to use the realname string as received in the original message.
+
+    :type: boolean
+    :default: True
 
 
 .. _forward-subject-prefix:
@@ -322,9 +364,8 @@
 
 .. describe:: reply_force_address
 
-     Always use the accounts main address when constructing "From" headers
-     for replies/forwards. Set this to False to use the address string
-     as received in the original message.
+     Always use the accounts main address when constructing "From" headers for replies.
+     Set this to False to use the address string as received in the original message.
 
     :type: boolean
     :default: False
@@ -334,9 +375,8 @@
 
 .. describe:: reply_force_realname
 
-     Always use the proper realname when constructing "From" headers
-     for replies/forwards. Set this to False to use the realname string
-     as received in the original message.
+     Always use the proper realname when constructing "From" headers for replies.
+     Set this to False to use the realname string as received in the original message.
 
     :type: boolean
     :default: True
