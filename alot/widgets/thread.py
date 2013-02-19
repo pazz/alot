@@ -152,6 +152,9 @@ class MessageTree(CollapsibleTree):
         self._maintree = SimpleTree(self._assemble_structure())
         CollapsibleTree.__init__(self, self._maintree)
 
+    def get_message(self):
+        return self._message
+
     def reassemble(self):
         self._maintree._treelist = self._assemble_structure()
 
