@@ -5,6 +5,13 @@ Commands in `envelope` mode
 ---------------------------
 The following commands are available in envelope mode
 
+.. _cmd.envelope.unencrypt:
+
+.. describe:: unencrypt
+
+    remove request to encrypt message before sending
+
+
 .. _cmd.envelope.set:
 
 .. describe:: set
@@ -18,6 +25,16 @@ The following commands are available in envelope mode
 
     optional arguments
         :---append: keep previous values.
+
+.. _cmd.envelope.encrypt:
+
+.. describe:: encrypt
+
+    request encryption of message before sendout
+
+    argument
+        keyid of the key to encrypt with
+
 
 .. _cmd.envelope.togglesign:
 
@@ -73,6 +90,16 @@ The following commands are available in envelope mode
         file(s) to attach (accepts wildcads)
 
 
+.. _cmd.envelope.rmencrypt:
+
+.. describe:: rmencrypt
+
+    do not encrypt to given recipient key
+
+    argument
+        keyid of the key to encrypt with
+
+
 .. _cmd.envelope.refine:
 
 .. describe:: refine
@@ -81,6 +108,16 @@ The following commands are available in envelope mode
 
     argument
         header to refine
+
+
+.. _cmd.envelope.toggleencrypt:
+
+.. describe:: toggleencrypt
+
+    toggle whether message should be encrypted before sendout
+
+    argument
+        keyid of the key to encrypt with
 
 
 .. _cmd.envelope.save:

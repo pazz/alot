@@ -149,8 +149,26 @@ class EnvelopeBuffer(Buffer):
             description = 'Yes'
             sign_key = self.envelope.sign_key
             if sign_key is not None and len(sign_key.subkeys) > 0:
-                description += ', with key ' + sign_key.subkeys[0].keyid
+                description += ', with key ' + sign_key.uids[0].uid
             lines.append(('GPG sign', description))
+
+        if self.envelope.encrypt:
+            description = 'Yes'
+            encrypt_keys = self.envelope.encrypt_keys.values()
+            if len(encrypt_keys) == 1:
+                description += ', with key '
+            elif len(encrypt_keys) > 1:
+                description += ', with keys '
+            first_key = True
+            for key in encrypt_keys:
+                if key is not None:
+                    if first_key:
+                        first_key = False
+                    else:
+                        description += ', '
+                    if len(key.subkeys) > 0:
+                        description += key.uids[0].uid
+            lines.append(('GPG encrypt', description))
 
         # add header list widget iff header values exists
         if lines:
@@ -377,8 +395,8 @@ class ThreadBuffer(Buffer):
                     # let urwid.ListBox focus this widget:
                     # The first parameter is a "size" tuple: that needs only to
                     # be iterable an is *never* used. i is the integer index
-                    # to focus. offset_inset is may be used to shift the visible area
-                    # so that the focus lies at given offset
+                    # to focus. offset_inset is may be used to shift the
+                    # visible area so that the focus lies at given offset
                     self.body.change_focus((0, 0), i,
                                            offset_inset=0,
                                            coming_from='above')
