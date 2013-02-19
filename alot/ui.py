@@ -281,7 +281,7 @@ class UI(object):
         if posthook is not None:
             posthook(ui=self, dbm=self.dbman, buf=buf)
 
-    def buffer_close(self, buf):
+    def buffer_close(self, buf, redraw=True):
         """
         closes given :class:`~alot.buffers.Buffer`.
 
