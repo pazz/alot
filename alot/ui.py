@@ -563,34 +563,28 @@ class UI(object):
         :type cmd: :class:`~alot.commands.Command`
         """
         if cmd:
-            # call pre- hook
-            if cmd.prehook:
-                logging.info('calling pre-hook')
-                try:
-                    cmd.prehook(ui=self, dbm=self.dbman)
-                except:
-                    logging.exception('prehook failed')
-                    return False
-
             # define (callback) function that invokes post-hook
             def call_posthook(retval_from_apply):
                 if cmd.posthook:
                     logging.info('calling post-hook')
-                    try:
-                        cmd.posthook(ui=self, dbm=self.dbman)
-                    except:
-                        logging.exception('posthook failed')
+                    return defer.maybeDeferred(cmd.posthook, ui=self, dbm=self.dbman)
 
             # define error handler for Failures/Exceptions
             # raised in cmd.apply()
             def errorHandler(failure):
                 logging.error(failure.getTraceback())
-                msg = "Error: %s,\n(check the log for details)"
-                self.notify(msg % failure.getErrorMessage(), priority='error')
+                errmsg = failure.getErrorMessage()
+                if errmsg:
+                    msg = "%s\n(check the log for details)"
+                    self.notify(msg % failure.getErrorMessage(), priority='error')
 
             # call cmd.apply
-            logging.info('apply command: %s' % cmd)
-            d = defer.maybeDeferred(cmd.apply, self)
-            d.addErrback(errorHandler)
+            def call_apply(ignored):
+                return defer.maybeDeferred(cmd.apply, self)
+
+            prehook = cmd.prehook or (lambda **kwargs: None)
+            d = defer.maybeDeferred(prehook, ui=self, dbm=self.dbman)
+            d.addCallback(call_apply)
             d.addCallback(call_posthook)
+            d.addErrback(errorHandler)
             return d
