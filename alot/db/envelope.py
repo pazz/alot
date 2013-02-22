@@ -25,7 +25,24 @@ from utils import encode_header
 
 
 class Envelope(object):
-    """a message that is not yet sent and still editable"""
+    """a message that is not yet sent and still editable.
+    It holds references to unencoded! body text and mail headers among other things.
+    Envelope implements the python container API for easy access of header values.
+    So `e['To']`, `e['To'] = 'foo@bar.baz'` and 'e.get_all('To')' would work for
+    an envelope `e`..
+    """
+
+    headers = {}
+    """dict containing the mail headers (a list of strings for each header key)"""
+    body = None
+    """mail body as unicode string"""
+    tmpfile = None
+    """template text for initial content"""
+    attachments = None
+    """list of :class:`~alot.db.attachment.Attachment`s"""
+    tags = []
+    """tags  # tags to add after successful sendout"""
+
     def __init__(self, template=None, bodytext=u'', headers={}, attachments=[],
                  sign=False, sign_key=None, encrypt=False, tags=[]):
         """
@@ -36,16 +53,13 @@ class Envelope(object):
         :param bodytext: text used as body part
         :type bodytext: str
         :param headers: unencoded header values
-        :type headers: dict (str -> unicode)
+        :type headers: dict (str -> [unicode])
         :param attachments: file attachments to include
         :type attachments: list of :class:`~alot.db.attachment.Attachment`
         :param tags: tags to add after successful sendout and saving this message
         :type tags: list of str
         """
         assert isinstance(bodytext, unicode)
-        self.headers = {}
-        self.body = None
-        self.tmpfile = None
         logging.debug('TEMPLATE: %s' % template)
         if template:
             self.parse_template(template)
