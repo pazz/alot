@@ -86,7 +86,9 @@ class Envelope(object):
 
         >>> envelope['Subject'] = u'sm\xf8rebr\xf8d'
         """
-        self.headers[name] = val
+        if name not in self.headers:
+            self.headers[name] = []
+        self.headers[name].append(val)
 
         if self.sent_time:
             self.modified_since_sent = True
@@ -95,7 +97,7 @@ class Envelope(object):
         """getter for header values.
         :raises: KeyError if undefined
         """
-        return self.headers[name]
+        return self.headers[name][0]
 
     def __delitem__(self, name):
         del(self.headers[name])
