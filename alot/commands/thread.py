@@ -7,7 +7,7 @@ import logging
 import tempfile
 from twisted.internet.defer import inlineCallbacks
 import subprocess
-from email.Utils import parseaddr
+from email.Utils import getaddresses
 import mailcap
 from cStringIO import StringIO
 
@@ -55,12 +55,9 @@ def determine_sender(mail, action='reply'):
     assert my_accounts, 'no accounts set!'
 
     # extract list of recipients to check for my address
-    rec_to = filter(lambda x: x, mail.get('To', '').split(','))
-    rec_cc = filter(lambda x: x, mail.get('Cc', '').split(','))
-    delivered_to = mail.get('Delivered-To', None)
-    recipients = rec_to + rec_cc
-    if delivered_to is not None:
-        recipients.append(delivered_to)
+    recipients = getaddresses(mail.get_all('To', [])
+            + mail.get_all('Cc', [])
+            + mail.get_all('Delivered-To', []))
 
     logging.debug('recipients: %s' % recipients)
     # pick the most important account that has an address in recipients
@@ -71,8 +68,7 @@ def determine_sender(mail, action='reply'):
             if realname is not None:
                 break
             regex = re.compile(alias)
-            for rec in recipients:
-                seen_name, seen_address = parseaddr(rec)
+            for seen_name, seen_address in recipients:
                 if regex.match(seen_address):
                     logging.debug("match!: '%s' '%s'" % (seen_address, alias))
                     if settings.get(action + '_force_realname'):
