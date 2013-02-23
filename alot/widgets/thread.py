@@ -314,6 +314,7 @@ class MessageBodyWidget(urwid.AttrMap):
         att = settings.get_theming_attribute('thread', 'body')
         urwid.AttrMap.__init__(self, urwid.Text(bodytxt), att)
 
+
 class DictList(SimpleTree):
     def __init__(self, content, key_attr, value_attr, gaps_attr=None):
         """
@@ -340,8 +341,9 @@ class DictList(SimpleTree):
             line = urwid.Columns([keyw, valuew])
             if gaps_attr is not None:
                 line = urwid.AttrMap(line, gaps_attr)
-            structure.append((line,None))
+            structure.append((line, None))
         SimpleTree.__init__(self, structure)
+
 
 class MessageTree(CollapsibleTree):
     def __init__(self, message, odd=True):
@@ -351,12 +353,15 @@ class MessageTree(CollapsibleTree):
         headers = settings.get('displayed_headers')
         self.selected_headers_tree = self.construct_header_pile(headers)
 
+        mainstruct = [
+            (self.selected_headers_tree, None),
+            (MessageBodyWidget(message), None),
+        ]
+        for a in self._message.get_attachments():
+            mainstruct.insert(1, (AttachmentWidget(a), None))
         structure = [
             (MessageSummaryWidget(message, even=(not odd)),
-             [
-                 (self.selected_headers_tree, None),
-                 (MessageBodyWidget(message), None),
-             ]
+             mainstruct
              )
         ]
         CollapsibleTree.__init__(self, SimpleTree(structure))
@@ -391,7 +396,8 @@ class MessageTree(CollapsibleTree):
             if key in mail:
                 if key.lower() in ['cc', 'bcc', 'to']:
                     values = mail.get_all(key)
-                    values = [decode_header(v, normalize=normalize) for v in values]
+                    values = [decode_header(
+                        v, normalize=normalize) for v in values]
                     lines.append((key, ', '.join(values)))
                 else:
                     for value in mail.get_all(key):
