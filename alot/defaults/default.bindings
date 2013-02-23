@@ -4,6 +4,7 @@ page up = move page up
 page down = move page down
 j = move down
 k = move up
+'g g' = move first
 ' ' = move page down
 @ = refresh
 ? = help bindings
