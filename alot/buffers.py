@@ -110,6 +110,9 @@ class BufferlistBuffer(Buffer):
         bufferlinewidget = linewidget.get_focus().original_widget
         return bufferlinewidget.get_buffer()
 
+    def focus_first(self):
+        self.body.set_focus(0)
+
 
 class EnvelopeBuffer(Buffer):
     """message composition mode"""
@@ -285,6 +288,9 @@ class SearchBuffer(Buffer):
             thread = threadlinewidget.get_thread()
         return thread
 
+    def focus_first(self):
+        self.body.set_focus(0)
+
 
 class ThreadBuffer(Buffer):
     """displays a thread as a tree of messages"""
@@ -360,6 +366,9 @@ class ThreadBuffer(Buffer):
 
     def get_focus(self):
         return self.body.get_focus()
+
+    def focus_first(self):
+        self.body.set_focus(self._nested_tree.root)
 
     def expand(self, msgpos):
         MT = self._tree[msgpos]
@@ -457,6 +466,9 @@ class TagListBuffer(Buffer):
         self.body = self.taglist
 
         self.taglist.set_focus(focusposition % len(displayedtags))
+
+    def focus_first(self):
+        self.body.set_focus(0)
 
     def get_selected_tag(self):
         """returns selected tagstring"""
