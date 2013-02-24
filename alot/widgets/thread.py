@@ -348,40 +348,46 @@ class DictList(SimpleTree):
 class MessageTree(CollapsibleTree):
     def __init__(self, message, odd=True):
         self._message = message
+        self._summaryw = MessageSummaryWidget(message, even=(not odd))
 
-        self.all_headers_tree = self.construct_header_pile()
-        headers = settings.get('displayed_headers')
-        self.selected_headers_tree = self.construct_header_pile(headers)
+        self.display_headers = 'default'
+        self._all_headers_tree = None
+        self._default_headers_tree = None
+        self.display_attachments = True
 
+        CollapsibleTree.__init__(self, SimpleTree(self._assemble_structure()))
+
+    def _assemble_structure(self):
         mainstruct = [
-            (self.selected_headers_tree, None),
-            (MessageBodyWidget(message), None),
+            (self._get_headers(), None),
+            (self._get_body(), None),
         ]
-        for a in self._message.get_attachments():
-            mainstruct.insert(1, (AttachmentWidget(a), None))
+        if self.display_attachments:
+            for a in self._message.get_attachments():
+                mainstruct.insert(1, (AttachmentWidget(a), None))
         structure = [
-            (MessageSummaryWidget(message, even=(not odd)),
-             mainstruct
-             )
+            (self._summaryw, mainstruct)
         ]
-        CollapsibleTree.__init__(self, SimpleTree(structure))
-
-    def display_headers(self, headers):
-        if headers == 'all':
-            htree = self.all_headers_tree
-        elif headers == 'default':
-            htree = self.selected_headers_tree
-        elif headers is not None:
-            keys = [k.strip() for k in ' , '.split(',') if k.strip()]
-            htree = self.construct_header_pile(keys)
-
-        self.treelist[0][1].pop(0)
-        if htree:
-            self.treelist[0][1].insert(0, htree)
+        return structure
 
     def collapse_if_matches(self, querystring):
         self.set_position_collapsed(
             self.root, self._message.matches(querystring))
+
+    def _get_body(self):
+        return MessageBodyWidget(self._message)
+
+    def _get_headers(self):
+        if self.display_headers == 'all':
+            if self._all_headers_tree is None:
+                self._all_headers_tree = self.construct_header_pile()
+            ret = self._all_headers_tree
+        elif self.display_headers == 'default':
+            if self._default_headers_tree is None:
+                headers = settings.get('displayed_headers')
+                self._default_headers_tree = self.construct_header_pile(headers)
+            ret = self._default_headers_tree
+        return ret
 
     def construct_header_pile(self, headers=None, normalize=True):
         mail = self._message.get_email()
