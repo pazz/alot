@@ -313,7 +313,13 @@ class SettingsManager(object):
         candidates = self._bindings.scalars
         if mode != 'global':
             candidates = candidates + self._bindings[mode].scalars
-        return [s for s in candidates if s.startswith(prefix)]
+        if prefix is not None:
+            prefixs = prefix + ' '
+            cand = filter(lambda x: x.startswith(prefixs), candidates)
+            if prefix in candidates:
+                candidates = cand + [prefix]
+            else: candidates = cand
+        return candidates
 
     def get_keybinding(self, mode, key):
         """look up keybinding from `MODE-maps` sections

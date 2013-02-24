@@ -117,6 +117,16 @@ class UI(object):
                 self.input_queue = []
                 self.update()
 
+            def fire(ignored, cmdline):
+                clear()
+                logging.debug("cmdline: '%s'" % cmdline)
+                # move keys are always passed
+                if cmdline.startswith('move ') or not self._locked:
+                    try:
+                        self.apply_commandline(cmdline)
+                    except CommandParseError, e:
+                        self.notify(e.message, priority='error')
+
             key = keys[0]
             self.input_queue.append(key)
             keyseq = ' '.join(self.input_queue)
@@ -127,19 +137,14 @@ class UI(object):
                 # get binding and interpret it if non-null
                 cmdline = settings.get_keybinding(self.mode, keyseq)
                 if cmdline:
-                    clear()
-                    logging.debug("cmdline: '%s'" % cmdline)
-                    # move keys are always passed
-                    if cmdline.startswith('move '):
-                        movecmd = cmdline[5:].strip()
-                        logging.debug("GOT MOVE: '%s'" % movecmd)
-                        if movecmd in ['up', 'down', 'page up', 'page down']:
-                            return [movecmd]
-                    elif not self._locked:
-                        try:
-                            self.apply_commandline(cmdline)
-                        except CommandParseError, e:
-                            self.notify(e.message, priority='error')
+                    if len(candidates) > 1:
+                        timeout = float(settings.get('input_timeout'))
+                        if self._alarm is not None:
+                            self.mainloop.remove_alarm(self._alarm)
+                        self._alarm = self.mainloop.set_alarm_in(timeout, fire, cmdline)
+                    else:
+                        fire(self.mainloop, cmdline)
+
             elif not candidates:
                 # case: no sequence with prefix keyseq is mapped
                 # just clear the input queue
