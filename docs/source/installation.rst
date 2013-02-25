@@ -18,6 +18,10 @@ On debian/ubuntu these are packaged as::
 
   python-magic python-configobj python-twisted python-notmuch python-urwid python-gpgme
 
+On fedora/redhat these are packaged as::
+
+  python-magic python-configobj python-twisted python-notmuch python-urwid pygpgme
+
 Alot uses `mailcap <http://en.wikipedia.org/wiki/Mailcap>`_ to look up mime-handler for inline
 rendering and opening of attachments.  For a full description of the maicap protocol consider the
 manpage :manpage:`mailcap(5)` or :rfc:`1524`. To avoid surprises you should at least have an inline
