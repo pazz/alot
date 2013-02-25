@@ -309,9 +309,9 @@ class SettingsManager(object):
                 return self.hooks.__dict__[key]
         return None
 
-    def get_mapped_input_keysequences(self, mode=None, prefix=u''):
+    def get_mapped_input_keysequences(self, mode='global', prefix=u''):
         candidates = self._bindings.scalars
-        if mode is not None:
+        if mode != 'global':
             candidates = candidates + self._bindings[mode].scalars
         return [s for s in candidates if s.startswith(prefix)]
 
