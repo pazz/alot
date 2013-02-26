@@ -5,6 +5,7 @@ import os
 import re
 import logging
 import tempfile
+import argparse
 from twisted.internet.defer import inlineCallbacks
 import subprocess
 from email.Utils import getaddresses
@@ -15,6 +16,7 @@ from alot.commands import Command, registerCommand
 from alot.commands.globals import ExternalCommand
 from alot.commands.globals import FlushCommand
 from alot.commands.globals import ComposeCommand
+from alot.commands.globals import MoveCommand
 from alot.commands.envelope import SendCommand
 from alot import completion
 from alot.db.utils import decode_header
@@ -828,31 +830,36 @@ class OpenAttachmentCommand(Command):
         else:
             ui.notify('unknown mime type')
 
-@registerCommand(MODE, 'focus', arguments=[
-    (['direction'], {'help':'direction','nargs': '+'})],
-    help='move focus depending on the thread tree structure',
-)
-class MoveFocusCommand(Command):
-    def __init__(self, direction=None):
-        self._direction = ' '.join(direction)
 
+
+
+
+
+
+@registerCommand(MODE, 'move', help='move focus in current buffer',
+                 arguments=[(['movement'], {
+                             'nargs':argparse.REMAINDER,
+                             'help':'up, down, page up, page down, first'})])
+class MoveFocusCommand(MoveCommand):
     def apply(self, ui):
-        logging.debug(self._direction)
+        logging.debug(self.movement)
         tbox = ui.current_buffer.body
-        if self._direction == 'parent':
+        if self.movement == 'parent':
             tbox.focus_parent()
-        elif self._direction == 'first child':
+        elif self.movement == 'first reply':
             tbox.focus_first_child()
-        elif self._direction == 'last child':
+        elif self.movement == 'last reply':
             tbox.focus_last_child()
-        elif self._direction == 'next sibling':
+        elif self.movement == 'next sibling':
             tbox.focus_next_sibling()
-        elif self._direction == 'previous sibling':
+        elif self.movement == 'previous sibling':
             tbox.focus_prev_sibling()
-        elif self._direction == 'next':
+        elif self.movement == 'next':
             tbox.focus_next()
-        elif self._direction == 'previous':
+        elif self.movement == 'previous':
             tbox.focus_prev()
+        else:
+            MoveCommand.apply(self, ui)
         # TODO add 'next matching' if threadbuffer stores the original query string
         # TODO: add next by date..
         tbox.refresh()
