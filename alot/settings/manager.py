@@ -98,7 +98,7 @@ class SettingsManager(object):
                     self._theme = Theme(theme_path)
                 except ConfigError as e:
                     err_msg = 'Theme file %s failed validation:\n'
-                    raise ConfigError((err_msg % themestring) + e.message)
+                    raise ConfigError((err_msg % themestring) + str(e.message))
 
         # if still no theme is set, resort to default
         if self._theme is None:
