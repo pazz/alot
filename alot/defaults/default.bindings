@@ -47,7 +47,7 @@ q = exit
     c = 'refine Cc'
     S = togglesign
     enter = edit
-    H = toggleheaders
+    'g f' = toggleheaders
 
 [taglist]
     enter = select
@@ -60,7 +60,7 @@ q = exit
     e = unfold
     < = fold
     > = unfold
-    #H = toggleheaders
+    'g f' = toggleheaders
     h = togglesource
     P = print --all --separately --add_tags
     S = save --all
@@ -72,7 +72,9 @@ q = exit
     s = save
     r = reply
     | = prompt 'pipeto '
-    J = focus next sibling
-    K = focus previous sibling
-    H = focus parent
-    L = focus first child
+
+    'g j' = move next sibling
+    'g k' = move previous sibling
+    'g h' = move parent
+    'g l' = move first reply
+    ' ' = move next
