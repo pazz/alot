@@ -32,7 +32,7 @@ class Envelope(object):
     an envelope `e`..
     """
 
-    headers = {}
+    headers = None
     """dict containing the mail headers (a list of strings for each header key)"""
     body = None
     """mail body as unicode string"""
@@ -43,7 +43,7 @@ class Envelope(object):
     tags = []
     """tags  # tags to add after successful sendout"""
 
-    def __init__(self, template=None, bodytext=u'', headers={}, attachments=[],
+    def __init__(self, template=None, bodytext=u'', headers=None, attachments=[],
                  sign=False, sign_key=None, encrypt=False, tags=[]):
         """
         :param template: if not None, the envelope will be initialised by
@@ -67,7 +67,7 @@ class Envelope(object):
             logging.debug('BODY: %s' % self.body)
         if self.body is None:
             self.body = bodytext
-        self.headers.update(headers)
+        self.headers = headers or {}
         self.attachments = list(attachments)
         self.sign = sign
         self.sign_key = sign_key
