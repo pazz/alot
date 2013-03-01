@@ -354,17 +354,20 @@ class MessageTree(CollapsibleTree):
         self._all_headers_tree = None
         self._default_headers_tree = None
         self.display_attachments = True
+        self._attachments = None
 
         CollapsibleTree.__init__(self, SimpleTree(self._assemble_structure()))
 
     def _assemble_structure(self):
         mainstruct = [
             (self._get_headers(), None),
-            (self._get_body(), None),
         ]
-        if self.display_attachments:
-            for a in self._message.get_attachments():
-                mainstruct.insert(1, (AttachmentWidget(a), None))
+
+        attachmenttree = self._get_attachments()
+        if attachmenttree is not None:
+            mainstruct.append((attachmenttree, None))
+
+        mainstruct.append((self._get_body(), None))
         structure = [
             (self._summaryw, mainstruct)
         ]
@@ -385,9 +388,19 @@ class MessageTree(CollapsibleTree):
         elif self.display_headers == 'default':
             if self._default_headers_tree is None:
                 headers = settings.get('displayed_headers')
-                self._default_headers_tree = self.construct_header_pile(headers)
+                self._default_headers_tree = self.construct_header_pile(
+                    headers)
             ret = self._default_headers_tree
         return ret
+
+    def _get_attachments(self):
+        if self._attachments is None:
+            alist = []
+            for a in self._message.get_attachments():
+                alist.append((AttachmentWidget(a), None))
+            if alist:
+                self._attachments = SimpleTree(alist)
+        return self._attachments
 
     def construct_header_pile(self, headers=None, normalize=True):
         mail = self._message.get_email()
