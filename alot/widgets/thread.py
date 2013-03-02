@@ -314,16 +314,28 @@ class MessageBodyWidget(urwid.AttrMap):
         att = settings.get_theming_attribute('thread', 'body')
         urwid.AttrMap.__init__(self, urwid.Text(bodytxt), att)
 
+class FocusableText(urwid.WidgetWrap):
+    """Selectable Text used for nodes in our example"""
+    def __init__(self, txt, att, att_focus):
+        t = urwid.Text(txt)
+        w = urwid.AttrMap(t, att, att_focus)
+        urwid.WidgetWrap.__init__(self, w)
+
+    def selectable(self):
+        return True
+
+    def keypress(self, size, key):
+        return key
 
 class TextlinesList(SimpleTree):
-    def __init__(self, content, attr):
+    def __init__(self, content, attr=None, attr_focus=None):
         """
         Simpletree that contains a list of all-level-0 Text widgets
         for each line in content.
         """
         structure = []
         for line in content.splitlines():
-            structure.append((urwid.Text((attr, line)) , None))
+            structure.append((FocusableText(line, attr, attr_focus) , None))
         SimpleTree.__init__(self, structure)
 
 
@@ -411,14 +423,16 @@ class MessageTree(CollapsibleTree):
         if self._sourcetree is None:
             sourcetxt = self._message.get_email().as_string()
             att = settings.get_theming_attribute('thread', 'body')
-            self._sourcetree = TextlinesList(sourcetxt, att)
+            att_focus = settings.get_theming_attribute('thread', 'body_focus')
+            self._sourcetree = TextlinesList(sourcetxt, att, att_focus)
         return self._sourcetree
 
     def _get_body(self):
         if self._bodytree is None:
             bodytxt = extract_body(self._message.get_email())
             att = settings.get_theming_attribute('thread', 'body')
-            self._bodytree = TextlinesList(bodytxt, att)
+            att_focus = settings.get_theming_attribute('thread', 'body_focus')
+            self._bodytree = TextlinesList(bodytxt, att, att_focus)
         return self._bodytree
 
     def _get_headers(self):
