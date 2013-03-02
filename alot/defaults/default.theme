@@ -30,6 +30,7 @@
     attachment = 'default','','light gray','dark gray','light gray','dark gray'
     attachment_focus = 'underline','','light gray','light green','light gray','light green'
     body = 'default','','light gray','default','light gray','default'
+    body_focus = 'default','','light gray','default','white','default'
     header = 'default','','white','dark gray','white','dark gray'
     header_key = 'default','','white','dark gray','white','dark gray'
     header_value = 'default','','light gray','dark gray','light gray','dark gray'

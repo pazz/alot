@@ -11,7 +11,7 @@ from checks import force_list
 from errors import ConfigError
 
 DEFAULTSPATH = os.path.join(os.path.dirname(__file__), '..', 'defaults')
-
+DUMMYDEFAULT = ('default',) * 6
 
 class Theme(object):
     """Colour theme"""
@@ -57,6 +57,7 @@ class Theme(object):
         thmble = self._config[mode][name]
         if part is not None:
             thmble = thmble[part]
+        thmble = thmble or DUMMYDEFAULT
         return thmble[self._colours.index(colourmode)]
 
     def get_threadline_theming(self, thread, colourmode):

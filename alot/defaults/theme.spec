@@ -51,6 +51,7 @@
     attachment = attrtriple
     attachment_focus = attrtriple
     body = attrtriple
+    body_focus = attrtriple(default=None)
     header = attrtriple
     header_key = attrtriple
     header_value = attrtriple
