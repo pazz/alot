@@ -70,6 +70,7 @@
     attachment = 'default','default','%(16_base00)s','%(16_base3)s','%(256_base00)s','%(256_base3)s'
     attachment_focus = 'underline','default','%(16_base2)s','%(16_yellow)s','%(256_base2)s','%(256_yellow)s'
     body = 'default','default','%(16_base00)s','%(16_base3)s','%(256_base00)s','%(256_base3)s'
+    body_focus = 'default','default','%(16_base00)s','%(16_base3)s','%(256_base00)s','%(256_base2)s'
     arrow_bars = 'default','default','%(16_yellow)s','%(16_base3)s','%(256_yellow)s','%(256_base3)s'
     arrow_heads = 'default','default','%(16_yellow)s','%(16_base3)s','%(256_yellow)s','%(256_base3)s'
     header = 'default','default','%(16_base00)s','%(16_base2)s','%(256_base00)s','%(256_base2)s'
