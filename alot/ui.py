@@ -121,7 +121,9 @@ class UI(object):
                 clear()
                 logging.debug("cmdline: '%s'" % cmdline)
                 # move keys are always passed
-                if cmdline.startswith('move ') or not self._locked:
+                if cmdline in ['move up', 'move down', 'move page up', 'move page down']:
+                    return [cmdline[5:]]
+                elif not self._locked:
                     try:
                         self.apply_commandline(cmdline)
                     except CommandParseError, e:
