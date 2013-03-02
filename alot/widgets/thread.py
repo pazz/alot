@@ -314,6 +314,7 @@ class MessageBodyWidget(urwid.AttrMap):
         att = settings.get_theming_attribute('thread', 'body')
         urwid.AttrMap.__init__(self, urwid.Text(bodytxt), att)
 
+
 class FocusableText(urwid.WidgetWrap):
     """Selectable Text used for nodes in our example"""
     def __init__(self, txt, att, att_focus):
@@ -327,6 +328,7 @@ class FocusableText(urwid.WidgetWrap):
     def keypress(self, size, key):
         return key
 
+
 class TextlinesList(SimpleTree):
     def __init__(self, content, attr=None, attr_focus=None):
         """
@@ -335,7 +337,7 @@ class TextlinesList(SimpleTree):
         """
         structure = []
         for line in content.splitlines():
-            structure.append((FocusableText(line, attr, attr_focus) , None))
+            structure.append((FocusableText(line, attr, attr_focus), None))
         SimpleTree.__init__(self, structure)
 
 
@@ -408,7 +410,9 @@ class MessageTree(CollapsibleTree):
             if attachmenttree is not None:
                 mainstruct.append((attachmenttree, None))
 
-            mainstruct.append((self._get_body(), None))
+            bodytree = self._get_body()
+            if bodytree is not None:
+                mainstruct.append((self._get_body(), None))
 
         structure = [
             (self._summaryw, mainstruct)
@@ -430,9 +434,11 @@ class MessageTree(CollapsibleTree):
     def _get_body(self):
         if self._bodytree is None:
             bodytxt = extract_body(self._message.get_email())
-            att = settings.get_theming_attribute('thread', 'body')
-            att_focus = settings.get_theming_attribute('thread', 'body_focus')
-            self._bodytree = TextlinesList(bodytxt, att, att_focus)
+            if bodytxt:
+                att = settings.get_theming_attribute('thread', 'body')
+                att_focus = settings.get_theming_attribute(
+                    'thread', 'body_focus')
+                self._bodytree = TextlinesList(bodytxt, att, att_focus)
         return self._bodytree
 
     def _get_headers(self):
