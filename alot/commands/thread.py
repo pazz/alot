@@ -834,10 +834,11 @@ class OpenAttachmentCommand(Command):
                              'help':'up, down, page up, page down, first'})])
 class MoveFocusCommand(MoveCommand):
     def apply(self, ui):
+        # TODO: use thread here to move in topmost message subtree only
         logging.debug(self.movement)
         tbox = ui.current_buffer.body
         if self.movement == 'parent':
-            tbox.focus_parent()
+            ui.current_buffer.focus_parent()
         elif self.movement == 'first reply':
             tbox.focus_first_child()
         elif self.movement == 'last reply':

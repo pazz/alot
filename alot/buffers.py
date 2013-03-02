@@ -342,6 +342,9 @@ class ThreadBuffer(Buffer):
         self.body = TreeBox(self._nested_tree)
         self.message_count = self.thread.get_total_messages()
 
+    def get_selected_mid(self):
+        return self.body.get_focus()[1][0]
+
     def get_selected_messagetree(self):
         """returns currently focussed :class:`MessageTree`"""
         return self._nested_tree[self.body.get_focus()[1][:1]]
@@ -367,8 +370,19 @@ class ThreadBuffer(Buffer):
     def get_focus(self):
         return self.body.get_focus()
 
+    def get_focus_position(self):
+            return self._sanitize_position((self.get_selected_mid(),))
+
     def focus_first(self):
         self.body.set_focus(self._nested_tree.root)
+
+    def _sanitize_position(self, pos):
+         return self._nested_tree._sanitize_position(pos, self._nested_tree._tree)
+
+    def focus_parent(self):
+        mid = self.get_selected_mid()
+        newpos = self._tree.parent_position(mid)
+        self.body.set_focus(self._sanitize_position((newpos,)))
 
     def expand(self, msgpos):
         MT = self._tree[msgpos]
