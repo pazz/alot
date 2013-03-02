@@ -47,7 +47,7 @@ q = exit
     c = 'refine Cc'
     S = togglesign
     enter = edit
-    'g f' = toggleheaders
+    'g f' = togglesource
 
 [taglist]
     enter = select
@@ -60,8 +60,8 @@ q = exit
     e = unfold
     < = fold
     > = unfold
-    'g f' = toggleheaders
-    h = togglesource
+    'g f' = togglesource
+    H = toggleheaders
     P = print --all --separately --add_tags
     S = save --all
     g = reply --all
