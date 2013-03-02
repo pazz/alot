@@ -58,8 +58,8 @@ def determine_sender(mail, action='reply'):
 
     # extract list of recipients to check for my address
     recipients = getaddresses(mail.get_all('To', [])
-            + mail.get_all('Cc', [])
-            + mail.get_all('Delivered-To', []))
+                              + mail.get_all('Cc', [])
+                              + mail.get_all('Delivered-To', []))
 
     logging.debug('recipients: %s' % recipients)
     # pick the most important account that has an address in recipients
@@ -432,34 +432,31 @@ class ChangeDisplaymodeCommand(Command):
             messagetrees = tbuffer.messagetrees()
 
         for mt in messagetrees:
-            # update collapsed-status
+            # determine new display values for this message
             if self.visible == 'toggle':
-                self.visible = mt.is_collapsed(mt.root)
-            if self.visible is False:
+                visible = mt.is_collapsed(mt.root)
+            else:
+                visible = self.visible
+            raw = not mt.display_source if self.raw == 'toggle' else self.raw
+            all_headers = not mt.display_all_headers if self.all_headers == 'toggle' else self.all_headers
+
+            # collapse/expand depending on new 'visible' value
+            if visible is False:
                 mt.collapse(mt.root)
-            elif self.visible is True:
+            elif visible is True:  # could be None
                 mt.expand(mt.root)
                 # in case the thread is yet unread, remove this tag
                 msg = mt._message
                 if 'unread' in msg.get_tags():
                     msg.remove_tags(['unread'])
                     ui.apply_command(FlushCommand())
-            # if visible == None, we don't touch the messagetree
-
+            # set new values in messagetree obj
+            mt.display_source = raw
+            mt.display_all_headers = all_headers
+            # let the messagetree reassemble itself
+            mt.reassemble()
+        # refresh the buffer (clears Tree caches etc)
         tbuffer.refresh()
-            #if self.raw == 'toggle':
-            #    self.raw = not widget.show_raw
-            #if self.all_headers == 'toggle':
-            #    self.all_headers = not widget.show_all_headers
-
-            #logging.debug((self.visible, self.raw, self.all_headers))
-            #if self.visible is not None:
-            #    widget.folded = not self.visible
-            #if self.raw is not None:
-            #    widget.show_raw = self.raw
-            #if self.all_headers is not None:
-            #    widget.show_all_headers = self.all_headers
-            #widget.rebuild()
 
 
 @registerCommand(MODE, 'pipeto', arguments=[
@@ -831,11 +828,6 @@ class OpenAttachmentCommand(Command):
             ui.notify('unknown mime type')
 
 
-
-
-
-
-
 @registerCommand(MODE, 'move', help='move focus in current buffer',
                  arguments=[(['movement'], {
                              'nargs':argparse.REMAINDER,
@@ -863,6 +855,7 @@ class MoveFocusCommand(MoveCommand):
         # TODO add 'next matching' if threadbuffer stores the original query string
         # TODO: add next by date..
         tbox.refresh()
+
 
 @registerCommand(MODE, 'select')
 class ThreadSelectCommand(Command):

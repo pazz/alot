@@ -350,13 +350,26 @@ class MessageTree(CollapsibleTree):
         self._message = message
         self._summaryw = MessageSummaryWidget(message, even=(not odd))
 
-        self.display_headers = 'default'
+        self.display_all_headers = False
+        self.display_source = False
         self._all_headers_tree = None
         self._default_headers_tree = None
         self.display_attachments = True
         self._attachments = None
+        self._maintree = SimpleTree(self._assemble_structure())
+        CollapsibleTree.__init__(self, self._maintree)
 
-        CollapsibleTree.__init__(self, SimpleTree(self._assemble_structure()))
+    def reassemble(self):
+        self._maintree._treelist = self._assemble_structure()
+
+    def debug(self):
+        logging.debug('collapsed %s' % self.is_collapsed(self.root))
+        logging.debug('display_source %s' % self.display_source)
+        logging.debug('display_all_headers %s' % self.display_all_headers)
+        logging.debug('display_attachements %s' % self.display_attachments)
+        logging.debug('AHT %s' % str(self._all_headers_tree))
+        logging.debug('DHT %s' % str(self._default_headers_tree))
+        logging.debug('MAINTREE %s' % str(self._maintree._treelist))
 
     def _assemble_structure(self):
         mainstruct = [
@@ -367,6 +380,7 @@ class MessageTree(CollapsibleTree):
         if attachmenttree is not None:
             mainstruct.append((attachmenttree, None))
 
+        # use self.display_source
         mainstruct.append((self._get_body(), None))
         structure = [
             (self._summaryw, mainstruct)
@@ -381,11 +395,11 @@ class MessageTree(CollapsibleTree):
         return MessageBodyWidget(self._message)
 
     def _get_headers(self):
-        if self.display_headers == 'all':
+        if self.display_all_headers is True:
             if self._all_headers_tree is None:
                 self._all_headers_tree = self.construct_header_pile()
             ret = self._all_headers_tree
-        elif self.display_headers == 'default':
+        else:
             if self._default_headers_tree is None:
                 headers = settings.get('displayed_headers')
                 self._default_headers_tree = self.construct_header_pile(
