@@ -315,6 +315,18 @@ class MessageBodyWidget(urwid.AttrMap):
         urwid.AttrMap.__init__(self, urwid.Text(bodytxt), att)
 
 
+class TextlinesList(SimpleTree):
+    def __init__(self, content, attr):
+        """
+        Simpletree that contains a list of all-level-0 Text widgets
+        for each line in content.
+        """
+        structure = []
+        for line in content.splitlines():
+            structure.append((urwid.Text((attr, line)) , None))
+        SimpleTree.__init__(self, structure)
+
+
 class DictList(SimpleTree):
     def __init__(self, content, key_attr, value_attr, gaps_attr=None):
         """
@@ -350,8 +362,10 @@ class MessageTree(CollapsibleTree):
         self._message = message
         self._summaryw = MessageSummaryWidget(message, even=(not odd))
 
-        self.display_all_headers = False
         self.display_source = False
+        self._bodytree = None
+        self._sourcetree = None
+        self.display_all_headers = False
         self._all_headers_tree = None
         self._default_headers_tree = None
         self.display_attachments = True
@@ -372,16 +386,18 @@ class MessageTree(CollapsibleTree):
         logging.debug('MAINTREE %s' % str(self._maintree._treelist))
 
     def _assemble_structure(self):
-        mainstruct = [
-            (self._get_headers(), None),
-        ]
+        mainstruct = []
+        if self.display_source:
+            mainstruct.append((self._get_source(), None))
+        else:
+            mainstruct.append((self._get_headers(), None))
 
-        attachmenttree = self._get_attachments()
-        if attachmenttree is not None:
-            mainstruct.append((attachmenttree, None))
+            attachmenttree = self._get_attachments()
+            if attachmenttree is not None:
+                mainstruct.append((attachmenttree, None))
 
-        # use self.display_source
-        mainstruct.append((self._get_body(), None))
+            mainstruct.append((self._get_body(), None))
+
         structure = [
             (self._summaryw, mainstruct)
         ]
@@ -391,8 +407,19 @@ class MessageTree(CollapsibleTree):
         self.set_position_collapsed(
             self.root, self._message.matches(querystring))
 
+    def _get_source(self):
+        if self._sourcetree is None:
+            sourcetxt = self._message.get_email().as_string()
+            att = settings.get_theming_attribute('thread', 'body')
+            self._sourcetree = TextlinesList(sourcetxt, att)
+        return self._sourcetree
+
     def _get_body(self):
-        return MessageBodyWidget(self._message)
+        if self._bodytree is None:
+            bodytxt = extract_body(self._message.get_email())
+            att = settings.get_theming_attribute('thread', 'body')
+            self._bodytree = TextlinesList(bodytxt, att)
+        return self._bodytree
 
     def _get_headers(self):
         if self.display_all_headers is True:
