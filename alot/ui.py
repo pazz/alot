@@ -281,6 +281,12 @@ class UI(object):
 
     def buffer_open(self, buf):
         """register and focus new :class:`~alot.buffers.Buffer`."""
+
+        # call pre_buffer_open hook
+        prehook = settings.get_hook('pre_buffer_open')
+        if prehook is not None:
+            prehook(ui=self, dbm=self.dbman, buf=buf)
+
         if self.current_buffer is not None:
             offset = settings.get('bufferclose_focus_offset') * -1
             currentindex = self.buffers.index(self.current_buffer)
@@ -289,6 +295,11 @@ class UI(object):
             self.buffers.append(buf)
         self.buffer_focus(buf)
 
+        # call post_buffer_open hook
+        posthook = settings.get_hook('post_buffer_open')
+        if posthook is not None:
+            posthook(ui=self, dbm=self.dbman, buf=buf)
+
     def buffer_close(self, buf, redraw=True):
         """
         closes given :class:`~alot.buffers.Buffer`.
@@ -296,7 +307,13 @@ class UI(object):
         This it removes it from the bufferlist and calls its cleanup() method.
         """
 
+        # call pre_buffer_close hook
+        prehook = settings.get_hook('pre_buffer_close')
+        if prehook is not None:
+            prehook(ui=self, dbm=self.dbman, buf=buf)
+
         buffers = self.buffers
+        success = False
         if buf not in buffers:
             string = 'tried to close unknown buffer: %s. \n\ni have:%s'
             logging.error(string % (buf, self.buffers))
@@ -308,14 +325,25 @@ class UI(object):
             nextbuffer = buffers[(index + offset) % len(buffers)]
             self.buffer_focus(nextbuffer, redraw)
             buf.cleanup()
+            success = True
         else:
             string = 'closing buffer %d:%s'
-            logging.info(string % (buffers.index(buf), buf))
-            buffers.remove(buf)
-            buf.cleanup()
+            success = True
+
+        # call post_buffer_closed hook
+        posthook = settings.get_hook('post_buffer_closed')
+        if posthook is not None:
+            posthook(ui=self, dbm=self.dbman, buf=buf, success=success)
 
     def buffer_focus(self, buf, redraw=True):
         """focus given :class:`~alot.buffers.Buffer`."""
+
+        # call pre_buffer_focus hook
+        prehook = settings.get_hook('pre_buffer_focus')
+        if prehook is not None:
+            prehook(ui=self, dbm=self.dbman, buf=buf)
+
+        success = False
         if buf not in self.buffers:
             logging.error('tried to focus unknown buffer')
         else:
@@ -324,7 +352,13 @@ class UI(object):
             self.mode = buf.modename
             if isinstance(self.current_buffer, BufferlistBuffer):
                 self.current_buffer.rebuild()
-            self.update(redraw)
+            self.update()
+            success = True
+
+        # call post_buffer_focus hook
+        posthook = settings.get_hook('post_buffer_focus')
+        if posthook is not None:
+            posthook(ui=self, dbm=self.dbman, buf=buf, success=success)
 
     def get_deep_focus(self, startfrom=None):
         """return the bottom most focussed widget of the widget tree"""
@@ -548,34 +582,28 @@ class UI(object):
         :type cmd: :class:`~alot.commands.Command`
         """
         if cmd:
-            # call pre- hook
-            if cmd.prehook:
-                logging.info('calling pre-hook')
-                try:
-                    cmd.prehook(ui=self, dbm=self.dbman)
-                except:
-                    logging.exception('prehook failed')
-                    return False
-
             # define (callback) function that invokes post-hook
             def call_posthook(retval_from_apply):
                 if cmd.posthook:
                     logging.info('calling post-hook')
-                    try:
-                        cmd.posthook(ui=self, dbm=self.dbman)
-                    except:
-                        logging.exception('posthook failed')
+                    return defer.maybeDeferred(cmd.posthook, ui=self, dbm=self.dbman)
 
             # define error handler for Failures/Exceptions
             # raised in cmd.apply()
             def errorHandler(failure):
                 logging.error(failure.getTraceback())
-                msg = "Error: %s,\n(check the log for details)"
-                self.notify(msg % failure.getErrorMessage(), priority='error')
+                errmsg = failure.getErrorMessage()
+                if errmsg:
+                    msg = "%s\n(check the log for details)"
+                    self.notify(msg % failure.getErrorMessage(), priority='error')
 
             # call cmd.apply
-            logging.info('apply command: %s' % cmd)
-            d = defer.maybeDeferred(cmd.apply, self)
-            d.addErrback(errorHandler)
+            def call_apply(ignored):
+                return defer.maybeDeferred(cmd.apply, self)
+
+            prehook = cmd.prehook or (lambda **kwargs: None)
+            d = defer.maybeDeferred(prehook, ui=self, dbm=self.dbman)
+            d.addCallback(call_apply)
             d.addCallback(call_posthook)
+            d.addErrback(errorHandler)
             return d
