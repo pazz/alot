@@ -443,6 +443,7 @@ class ChangeDisplaymodeCommand(Command):
             # collapse/expand depending on new 'visible' value
             if visible is False:
                 mt.collapse(mt.root)
+                tbuffer.focus_selected_message()
             elif visible is True:  # could be None
                 mt.expand(mt.root)
                 # in case the thread is yet unread, remove this tag
@@ -495,7 +496,7 @@ class PipeCommand(Command):
         :type notify_stdout: bool
         :param shell: let the shell interpret the command
         :type shell: bool
-        :param format: what to pipe to the processes stdin. one of:
+
                        'raw': message content as is,
                        'decoded': message content, decoded quoted printable,
                        'id': message ids, separated by newlines,

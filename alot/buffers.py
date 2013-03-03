@@ -345,6 +345,9 @@ class ThreadBuffer(Buffer):
     def get_selected_mid(self):
         return self.body.get_focus()[1][0]
 
+    def get_selected_message_position(self):
+        return self._sanitize_position((self.get_selected_mid(),))
+
     def get_selected_messagetree(self):
         """returns currently focussed :class:`MessageTree`"""
         return self._nested_tree[self.body.get_focus()[1][:1]]
@@ -371,14 +374,19 @@ class ThreadBuffer(Buffer):
     def get_focus(self):
         return self.body.get_focus()
 
-    def get_focus_position(self):
-        return self._sanitize_position((self.get_selected_mid(),))
+    def set_focus(self, pos):
+        logging.debug('setting focus to %s ' % str(pos))
+        self.body.set_focus(pos)
 
     def focus_first(self):
         self.body.set_focus(self._nested_tree.root)
 
     def _sanitize_position(self, pos):
         return self._nested_tree._sanitize_position(pos, self._nested_tree._tree)
+
+    def focus_selected_message(self):
+        # move focus to summary (root of current MessageTree)
+        self.set_focus(self.get_selected_message_position())
 
     def focus_parent(self):
         mid = self.get_selected_mid()
@@ -461,10 +469,12 @@ class ThreadBuffer(Buffer):
     def collapse(self, msgpos):
         MT = self._tree[msgpos]
         MT.collapse(MT.root)
+        self.focus_selected_message()
 
     def collapse_all(self):
         for MT in self.messagetrees():
             MT.collapse(MT.root)
+        self.focus_selected_message()
 
     def unfold_matching(self, querystring, focus_first=True):
         """
