@@ -44,7 +44,7 @@ class Buffer(object):
         pass
 
     def keypress(self, size, key):
-            return self.body.keypress(size, key)
+        return self.body.keypress(size, key)
 
     def cleanup(self):
         """called before buffer is closed"""
@@ -367,22 +367,77 @@ class ThreadBuffer(Buffer):
         for pos in self._tree.positions():
             yield self._tree[pos]
 
+    # needed for ui.get_deep_focus..
     def get_focus(self):
         return self.body.get_focus()
 
     def get_focus_position(self):
-            return self._sanitize_position((self.get_selected_mid(),))
+        return self._sanitize_position((self.get_selected_mid(),))
 
     def focus_first(self):
         self.body.set_focus(self._nested_tree.root)
 
     def _sanitize_position(self, pos):
-         return self._nested_tree._sanitize_position(pos, self._nested_tree._tree)
+        return self._nested_tree._sanitize_position(pos, self._nested_tree._tree)
 
     def focus_parent(self):
         mid = self.get_selected_mid()
         newpos = self._tree.parent_position(mid)
-        self.body.set_focus(self._sanitize_position((newpos,)))
+        if newpos is not None:
+            newpos = self._sanitize_position((newpos,))
+            self.body.set_focus(newpos)
+
+    def focus_first_reply(self):
+        mid = self.get_selected_mid()
+        newpos = self._tree.first_child_position(mid)
+        if newpos is not None:
+            newpos = self._sanitize_position((newpos,))
+            self.body.set_focus(newpos)
+
+    def focus_last_reply(self):
+        mid = self.get_selected_mid()
+        newpos = self._tree.last_child_position(mid)
+        if newpos is not None:
+            newpos = self._sanitize_position((newpos,))
+            self.body.set_focus(newpos)
+
+    def focus_next_sibling(self):
+        mid = self.get_selected_mid()
+        newpos = self._tree.next_sibling_position(mid)
+        if newpos is not None:
+            newpos = self._sanitize_position((newpos,))
+            self.body.set_focus(newpos)
+
+    def focus_prev_sibling(self):
+        mid = self.get_selected_mid()
+        localroot = self._sanitize_position((mid,))
+        if localroot == self.get_focus()[1]:
+            newpos = self._tree.prev_sibling_position(mid)
+            if newpos is not None:
+                newpos = self._sanitize_position((newpos,))
+        else:
+            newpos = localroot
+        if newpos is not None:
+            self.body.set_focus(newpos)
+
+    def focus_next(self):
+        mid = self.get_selected_mid()
+        newpos = self._tree.next_position(mid)
+        if newpos is not None:
+            newpos = self._sanitize_position((newpos,))
+            self.body.set_focus(newpos)
+
+    def focus_prev(self):
+        mid = self.get_selected_mid()
+        localroot = self._sanitize_position((mid,))
+        if localroot == self.get_focus()[1]:
+            newpos = self._tree.prev_position(mid)
+            if newpos is not None:
+                newpos = self._sanitize_position((newpos,))
+        else:
+            newpos = localroot
+        if newpos is not None:
+            self.body.set_focus(newpos)
 
     def expand(self, msgpos):
         MT = self._tree[msgpos]

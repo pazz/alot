@@ -834,28 +834,27 @@ class OpenAttachmentCommand(Command):
                              'help':'up, down, page up, page down, first'})])
 class MoveFocusCommand(MoveCommand):
     def apply(self, ui):
-        # TODO: use thread here to move in topmost message subtree only
         logging.debug(self.movement)
-        tbox = ui.current_buffer.body
+        tbuffer = ui.current_buffer
         if self.movement == 'parent':
-            ui.current_buffer.focus_parent()
+            tbuffer.focus_parent()
         elif self.movement == 'first reply':
-            tbox.focus_first_child()
+            tbuffer.focus_first_child()
         elif self.movement == 'last reply':
-            tbox.focus_last_child()
+            tbuffer.focus_last_child()
         elif self.movement == 'next sibling':
-            tbox.focus_next_sibling()
+            tbuffer.focus_next_sibling()
         elif self.movement == 'previous sibling':
-            tbox.focus_prev_sibling()
+            tbuffer.focus_prev_sibling()
         elif self.movement == 'next':
-            tbox.focus_next()
+            tbuffer.focus_next()
         elif self.movement == 'previous':
-            tbox.focus_prev()
+            tbuffer.focus_prev()
         else:
             MoveCommand.apply(self, ui)
         # TODO add 'next matching' if threadbuffer stores the original query string
         # TODO: add next by date..
-        tbox.refresh()
+        tbuffer.body.refresh()
 
 
 @registerCommand(MODE, 'select')
