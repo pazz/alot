@@ -865,13 +865,11 @@ class ThreadSelectCommand(Command):
         - if attachment line, this opens the attachment"""
     def apply(self, ui):
         focus = ui.get_deep_focus()
-        if isinstance(focus, MessageSummaryWidget):
-            ui.apply_command(ChangeDisplaymodeCommand(visible='toggle'))
-        elif isinstance(focus, AttachmentWidget):
+        if isinstance(focus, AttachmentWidget):
             logging.info('open attachment')
             ui.apply_command(OpenAttachmentCommand(focus.get_attachment()))
         else:
-            logging.info('unknown widget %s' % focus)
+            ui.apply_command(ChangeDisplaymodeCommand(visible='toggle'))
 
 
 @registerCommand(MODE, 'tag', forced={'action': 'add'}, arguments=[
