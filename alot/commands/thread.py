@@ -33,7 +33,6 @@ from alot.utils.booleanaction import BooleanAction
 from alot.completion import ContactsCompleter
 
 from alot.widgets.globals import AttachmentWidget
-from alot.widgets.thread import MessageSummaryWidget
 
 MODE = 'thread'
 
