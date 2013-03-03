@@ -37,6 +37,8 @@ class UI(object):
     """history of the command line prompt"""
     input_queue = []
     """stores partial keyboard input"""
+    last_commandline = None
+    """saves the last executed commandline"""
 
     def __init__(self, dbman, initialcmd):
         """
@@ -181,6 +183,11 @@ class UI(object):
         else:
             cmd = CommandSequenceCommand(cmdlist)
         self.apply_command(cmd)
+
+        # store cmdline for use with 'repeat' command
+        cmdline = cmdline.lstrip()
+        if not cmdline.startswith('prompt') and not cmdline.startswith('repeat'):
+            self.last_commandline = cmdline
 
     def _unhandeled_input(self, key):
         """

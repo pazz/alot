@@ -21,6 +21,7 @@ o = prompt 'search '
 q = exit
 ';' = bufferlist
 ':' = prompt
+. = repeat
 
 [bufferlist]
     x = close
