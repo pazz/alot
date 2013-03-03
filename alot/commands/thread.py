@@ -387,25 +387,31 @@ class EditNewCommand(Command):
 
 
 @registerCommand(MODE, 'fold', forced={'visible': False}, arguments=[
-    (['--all'], {'action': 'store_true', 'help':'fold all messages'})],
+    (
+        ['query'], {'help':'query used to filter messages to affect', 'nargs': '*'}), ],
     help='fold message(s)')
 @registerCommand(MODE, 'unfold', forced={'visible': True}, arguments=[
-    (['--all'], {'action': 'store_true', 'help':'unfold all messages'})],
+    (
+        ['query'], {'help':'query used to filter messages to affect', 'nargs': '*'}), ],
     help='unfold message(s)')
 @registerCommand(MODE, 'togglesource', forced={'raw': 'toggle'}, arguments=[
-    (['--all'], {'action': 'store_true', 'help':'affect all messages'})],
+    (
+        ['query'], {'help':'query used to filter messages to affect', 'nargs': '*'}), ],
     help='display message source')
 @registerCommand(MODE, 'toggleheaders', forced={'all_headers': 'toggle'},
-                 arguments=[(['--all'], {'action': 'store_true',
-                            'help':'affect all messages'})],
+                 arguments=[
+                     (['query'], {
+                         'help':'query used to filter messages to affect',
+                         'nargs': '*'}),
+                 ],
                  help='display all headers')
 class ChangeDisplaymodeCommand(Command):
     """fold or unfold messages"""
-    def __init__(self, all=False, visible=None, raw=None, all_headers=None,
+    def __init__(self, query=None, visible=None, raw=None, all_headers=None,
                  **kwargs):
         """
-        :param all: toggle all, not only selected message
-        :type all: bool
+        :param query: notmuch query string used to filter messages to affect
+        :type query: str
         :param visible: unfold if `True`, fold if `False`, ignore if `None`
         :type visible: True, False, 'toggle' or None
         :param raw: display raw message text.
@@ -413,22 +419,28 @@ class ChangeDisplaymodeCommand(Command):
         :param all_headers: show all headers (only visible if not in raw mode)
         :type all_headers: True, False, 'toggle' or None
         """
-        self.all = all
+        self.query = None
+        if query:
+            self.query = ' '.join(query)
         self.visible = visible
         self.raw = raw
         self.all_headers = all_headers
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        messagetrees = []
-        lines = []
         tbuffer = ui.current_buffer
-        if not self.all:
-            lines.append(ui.current_buffer.get_selected_messagetree())
-            focuspos = tbuffer.get_focus()[1]
-            messagetrees = [tbuffer.messagetree_at_position(focuspos)]
+        logging.debug('matching lines %s...' % (self.query))
+        if self.query is None:
+            messagetrees = [tbuffer.get_selected_messagetree()]
         else:
             messagetrees = tbuffer.messagetrees()
+            if self.query != '*':
+
+                def matches(msgt):
+                    msg = msgt.get_message()
+                    return msg.matches(self.query)
+
+                messagetrees = filter(matches, messagetrees)
 
         for mt in messagetrees:
             # determine new display values for this message

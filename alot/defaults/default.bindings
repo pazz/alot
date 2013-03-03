@@ -54,8 +54,8 @@ q = exit
 
 [thread]
     enter = select
-    C = fold --all
-    E = unfold --all
+    C = fold *
+    E = unfold *
     c = fold
     e = unfold
     < = fold
