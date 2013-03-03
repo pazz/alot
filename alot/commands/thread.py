@@ -468,7 +468,7 @@ class ChangeDisplaymodeCommand(Command):
             if raw is not None:
                 mt.display_source = raw
             if all_headers is not None:
-                mt.display_all_headers = all_headers or mt.display_all_headers
+                mt.display_all_headers = all_headers
             mt.debug()
             # let the messagetree reassemble itself
             mt.reassemble()
