@@ -145,7 +145,7 @@ class UI(object):
                             self.mainloop.remove_alarm(self._alarm)
                         self._alarm = self.mainloop.set_alarm_in(timeout, fire, cmdline)
                     else:
-                        fire(self.mainloop, cmdline)
+                        return fire(self.mainloop, cmdline)
 
             elif not candidates:
                 # case: no sequence with prefix keyseq is mapped
