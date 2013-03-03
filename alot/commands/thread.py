@@ -840,9 +840,9 @@ class MoveFocusCommand(MoveCommand):
         if self.movement == 'parent':
             tbuffer.focus_parent()
         elif self.movement == 'first reply':
-            tbuffer.focus_first_child()
+            tbuffer.focus_first_reply()
         elif self.movement == 'last reply':
-            tbuffer.focus_last_child()
+            tbuffer.focus_last_reply()
         elif self.movement == 'next sibling':
             tbuffer.focus_next_sibling()
         elif self.movement == 'previous sibling':
