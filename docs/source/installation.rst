@@ -4,7 +4,7 @@ Installation
 .. rubric:: dependencies
 
 Alot depends on recent versions of notmuch and urwid. Note that due to restrictions
-on argparse and subprocess, you need to run *python ≥ `2.7`*.
+on argparse and subprocess, you need to run *`3.0` > python ≥ `2.7`* (see :ref:`faq <faq_7>`).
 A full list of dependencies is below:
 
 * `libmagic and python bindings <http://darwinsys.com/file/>`_, ≥ `5.04`:
