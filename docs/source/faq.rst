@@ -77,5 +77,5 @@ FAQ
     * `twisted <http://twistedmatrix.com/trac/milestone/Python-3.x>`_
 
    Alot itself can be converted to py3k syntax automatically using
-   `2to3 <http://docs.python.org/2/library/2to3.html>` and I will push those changes as soon
+   `2to3 <http://docs.python.org/2/library/2to3.html>`_ and I will push those changes as soon
    as the libs are ready.
