@@ -12,6 +12,8 @@ FAQ
     Rebuilding an interface from scratch using `friendly and extensible tools <http://www.python.org/>`_
     seemed easier and more promising.
 
+    Update: see `mutt-kz <https://github.com/karelzak/mutt-kz>` for a fork of mutt..
+
 2. What's with the snotty name?
 
     It's not meant to be presumptuous. I like the dichotomy; I like to picture the look on
@@ -64,3 +66,16 @@ FAQ
       notmuch's library but is a feature of the CLI. This means we would have to call the notmuch
       binary, something that is avoided where possible. 2. As there is no `notmuch forward` equivalent,
       this (very similar) functionality would have to be re-implemented anyway.
+
+.. _faq_7:
+
+7. Why doesn't alot run on python3?
+
+   Because it builds on libraries that don't (yet):
+
+    * `configobj <http://www.voidspace.org.uk/python/weblog/arch_d7_2010_12_11.shtml>`_
+    * `twisted <http://twistedmatrix.com/trac/milestone/Python-3.x>`_
+
+   Alot itself can be converted to py3k syntax automatically using
+   `2to3 <http://docs.python.org/2/library/2to3.html>` and I will push those changes as soon
+   as the libs are ready.
