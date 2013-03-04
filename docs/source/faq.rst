@@ -12,7 +12,7 @@ FAQ
     Rebuilding an interface from scratch using `friendly and extensible tools <http://www.python.org/>`_
     seemed easier and more promising.
 
-    Update: see `mutt-kz <https://github.com/karelzak/mutt-kz>` for a fork of mutt..
+    Update: see `mutt-kz <https://github.com/karelzak/mutt-kz>`_ for a fork of mutt..
 
 2. What's with the snotty name?
 
