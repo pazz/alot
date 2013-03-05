@@ -26,7 +26,7 @@ setup(name='alot',
       requires=[
         'notmuch (>=0.13)',
         'argparse (>=2.7)',
-        'urwid (>=1.0)',
+        'urwid (>=1.1.0)',
         'twisted (>=10.2.0)',
         'magic',
         'configobj (>=4.6.0)',
