@@ -328,6 +328,8 @@ class UI(object):
             success = True
         else:
             string = 'closing buffer %d:%s'
+            buffers.remove(buf)
+            buf.cleanup()
             success = True
 
         # call post_buffer_closed hook
