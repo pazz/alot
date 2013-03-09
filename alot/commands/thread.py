@@ -195,10 +195,16 @@ class ReplyCommand(Command):
                                         spawn=self.force_spawn))
 
     def clear_my_address(self, my_addresses, value):
-        # return recipient header without the addresses in my_addresses
-        return ', '.join(['"%s" <%s>'%(name,address)
-                for name, address in getaddresses(value)
-                if address not in my_addresses])
+        """return recipient header without the addresses in my_addresses"""
+        new_value = []
+        for name, address in getaddresses(value):
+            if address not in my_addresses:
+                if name != '':
+                    new_value.append('"%s" <%s>' % (name, address))
+                else:
+                    new_value.append(address)
+        return ', '.join(new_value)
+
 
 @registerCommand(MODE, 'forward', arguments=[
     (['--attach'], {'action':'store_true', 'help':'attach original mail'}),
