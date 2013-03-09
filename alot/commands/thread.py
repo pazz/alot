@@ -164,12 +164,14 @@ class ReplyCommand(Command):
         if self.groupreply:
             if sender != mail['From']:
                 recipients.append(mail['From'])
-            cleared = self.clear_my_address(my_addresses, mail.get_all('To', []))
+            cleared = self.clear_my_address(
+                my_addresses, mail.get_all('To', []))
             recipients.append(cleared)
 
             # copy cc for group-replies
             if 'Cc' in mail:
-                cc = self.clear_my_address(my_addresses, mail.get_all('Cc', []))
+                cc = self.clear_my_address(
+                    my_addresses, mail.get_all('Cc', []))
                 envelope.add('Cc', decode_header(cc))
 
         to = ', '.join(recipients)
