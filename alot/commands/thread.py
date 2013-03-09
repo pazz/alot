@@ -163,12 +163,12 @@ class ReplyCommand(Command):
         if self.groupreply:
             if sender != mail['From']:
                 recipients.append(mail['From'])
-            cleared = self.clear_my_address(my_addresses, mail.get('To', ''))
+            cleared = self.clear_my_address(my_addresses, mail.get_all('To', []))
             recipients.append(cleared)
 
             # copy cc for group-replies
             if 'Cc' in mail:
-                cc = self.clear_my_address(my_addresses, mail['Cc'])
+                cc = self.clear_my_address(my_addresses, mail.get_all('Cc', []))
                 envelope.add('Cc', decode_header(cc))
 
         to = ', '.join(recipients)
@@ -195,12 +195,10 @@ class ReplyCommand(Command):
                                         spawn=self.force_spawn))
 
     def clear_my_address(self, my_addresses, value):
-        new_value = []
-        for entry in value.split(','):
-            if not [a for a in my_addresses if a in entry]:
-                new_value.append(entry.strip())
-        return ', '.join(new_value)
-
+        # return recipient header without the addresses in my_addresses
+        return ', '.join(['"%s" <%s>'%(name,address)
+                for name, address in getaddresses(value)
+                if address not in my_addresses])
 
 @registerCommand(MODE, 'forward', arguments=[
     (['--attach'], {'action':'store_true', 'help':'attach original mail'}),
