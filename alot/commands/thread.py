@@ -56,8 +56,8 @@ def determine_sender(mail, action='reply'):
 
     # extract list of recipients to check for my address
     recipients = getaddresses(mail.get_all('To', [])
-            + mail.get_all('Cc', [])
-            + mail.get_all('Delivered-To', []))
+                              + mail.get_all('Cc', [])
+                              + mail.get_all('Delivered-To', []))
 
     logging.debug('recipients: %s' % recipients)
     # pick the most important account that has an address in recipients
@@ -163,12 +163,14 @@ class ReplyCommand(Command):
         if self.groupreply:
             if sender != mail['From']:
                 recipients.append(mail['From'])
-            cleared = self.clear_my_address(my_addresses, mail.get_all('To', []))
+            cleared = self.clear_my_address(
+                my_addresses, mail.get_all('To', []))
             recipients.append(cleared)
 
             # copy cc for group-replies
             if 'Cc' in mail:
-                cc = self.clear_my_address(my_addresses, mail.get_all('Cc', []))
+                cc = self.clear_my_address(
+                    my_addresses, mail.get_all('Cc', []))
                 envelope.add('Cc', decode_header(cc))
 
         to = ', '.join(recipients)
