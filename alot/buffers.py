@@ -298,6 +298,12 @@ class ThreadBuffer(Buffer):
     modename = 'thread'
 
     def __init__(self, ui, thread):
+        """
+        :param ui: main UI
+        :type ui: :class:`~alot.ui.UI`
+        :param thread: thread to display
+        :type thread: :class:`~alot.db.Thread`
+        """
         self.message_count = thread.get_total_messages()
         self.thread = thread
         self.rebuild()
@@ -343,9 +349,11 @@ class ThreadBuffer(Buffer):
         self.message_count = self.thread.get_total_messages()
 
     def get_selected_mid(self):
+        """returns Message ID of focussed message"""
         return self.body.get_focus()[1][0]
 
     def get_selected_message_position(self):
+        """returns position of focussed message in the thread tree"""
         return self._sanitize_position((self.get_selected_mid(),))
 
     def get_selected_messagetree(self):
@@ -363,12 +371,18 @@ class ThreadBuffer(Buffer):
         """
         return [(pos,) for pos in self._tree.positions()]
 
-    def refresh(self):
-        self.body.refresh()
-
     def messagetrees(self):
+        """
+        returns a Generator of all :class:`MessageTree` in the
+        :class:`ThreadTree` of this buffer.
+        """
         for pos in self._tree.positions():
             yield self._tree[pos]
+
+
+    def refresh(self):
+        """refresh and flushe caches or Thread tree"""
+        self.body.refresh()
 
     # needed for ui.get_deep_focus..
     def get_focus(self):
@@ -379,16 +393,19 @@ class ThreadBuffer(Buffer):
         self.body.set_focus(pos)
 
     def focus_first(self):
+        """set focus to first message of thread"""
         self.body.set_focus(self._nested_tree.root)
 
     def _sanitize_position(self, pos):
         return self._nested_tree._sanitize_position(pos, self._nested_tree._tree)
 
     def focus_selected_message(self):
+        """focus the summary line of currently focussed message"""
         # move focus to summary (root of current MessageTree)
         self.set_focus(self.get_selected_message_position())
 
     def focus_parent(self):
+        """move focus to parent of currently focussed message"""
         mid = self.get_selected_mid()
         newpos = self._tree.parent_position(mid)
         if newpos is not None:
@@ -396,6 +413,7 @@ class ThreadBuffer(Buffer):
             self.body.set_focus(newpos)
 
     def focus_first_reply(self):
+        """move focus to first reply to currently focussed message"""
         mid = self.get_selected_mid()
         newpos = self._tree.first_child_position(mid)
         if newpos is not None:
@@ -403,6 +421,7 @@ class ThreadBuffer(Buffer):
             self.body.set_focus(newpos)
 
     def focus_last_reply(self):
+        """move focus to last reply to currently focussed message"""
         mid = self.get_selected_mid()
         newpos = self._tree.last_child_position(mid)
         if newpos is not None:
@@ -410,6 +429,7 @@ class ThreadBuffer(Buffer):
             self.body.set_focus(newpos)
 
     def focus_next_sibling(self):
+        """focus next sibling of currently focussed message in thread tree"""
         mid = self.get_selected_mid()
         newpos = self._tree.next_sibling_position(mid)
         if newpos is not None:
@@ -417,6 +437,9 @@ class ThreadBuffer(Buffer):
             self.body.set_focus(newpos)
 
     def focus_prev_sibling(self):
+        """
+        focus previous sibling of currently focussed message in thread tree
+        """
         mid = self.get_selected_mid()
         localroot = self._sanitize_position((mid,))
         if localroot == self.get_focus()[1]:
@@ -429,6 +452,7 @@ class ThreadBuffer(Buffer):
             self.body.set_focus(newpos)
 
     def focus_next(self):
+        """focus next message in depth first order"""
         mid = self.get_selected_mid()
         newpos = self._tree.next_position(mid)
         if newpos is not None:
@@ -436,6 +460,7 @@ class ThreadBuffer(Buffer):
             self.body.set_focus(newpos)
 
     def focus_prev(self):
+        """focus previous message in depth first order"""
         mid = self.get_selected_mid()
         localroot = self._sanitize_position((mid,))
         if localroot == self.get_focus()[1]:
@@ -448,10 +473,12 @@ class ThreadBuffer(Buffer):
             self.body.set_focus(newpos)
 
     def expand(self, msgpos):
+        """expand message at given position"""
         MT = self._tree[msgpos]
         MT.expand(MT.root)
 
     def messagetree_at_position(self, pos):
+        """get :class:`MessageTree` for given position"""
         return self._tree[pos[0]]
 
     def expand_and_remove_unread(self, pos):
@@ -463,22 +490,25 @@ class ThreadBuffer(Buffer):
             self.ui.apply_command(commands.globals.FlushCommand())
 
     def expand_all(self):
+        """expand all messages in thread"""
         for MT in self.messagetrees():
             MT.expand(MT.root)
 
     def collapse(self, msgpos):
+        """collapse message at given position"""
         MT = self._tree[msgpos]
         MT.collapse(MT.root)
         self.focus_selected_message()
 
     def collapse_all(self):
+        """collapse all messages in thread"""
         for MT in self.messagetrees():
             MT.collapse(MT.root)
         self.focus_selected_message()
 
     def unfold_matching(self, querystring, focus_first=True):
         """
-        unfolds messages that match a given querystring.
+        expand all messages that match a given querystring.
 
         :param querystring: query to match
         :type querystring: str
