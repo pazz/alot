@@ -97,7 +97,7 @@ class FocusableText(urwid.WidgetWrap):
 class TextlinesList(SimpleTree):
     def __init__(self, content, attr=None, attr_focus=None):
         """
-        Simpletree that contains a list of all-level-0 Text widgets
+        :class:`SimpleTree` that contains a list of all-level-0 Text widgets
         for each line in content.
         """
         structure = []
@@ -107,6 +107,15 @@ class TextlinesList(SimpleTree):
 
 
 class DictList(SimpleTree):
+    """
+    :class:`SimpleTree` that displays key-value pairs.
+
+    The structure will obey the Tree API but will not actually be a tree
+    but a flat list: It contains one top-level node (displaying the k/v pair in
+    Columns) per pair. That is, the root will be the first pair,
+    its sibblings will be the other pairs and first|last_child will always
+    be None.
+    """
     def __init__(self, content, key_attr, value_attr, gaps_attr=None):
         """
         :param headerslist: list of key/value pairs to display
@@ -137,7 +146,21 @@ class DictList(SimpleTree):
 
 
 class MessageTree(CollapsibleTree):
+    """
+    :class:`Tree` that displays contents of a single :class:`alot.db.Message`.
+
+    Its root node is a :class:`MessageSummaryWidget`, and its child nodes
+    reflect the messages content (parts for headers/attachments etc).
+
+    Collapsing this message corresponds to showing the summary only.
+    """
     def __init__(self, message, odd=True):
+        """
+        :param message: Messag to display
+        :type message: alot.db.Message
+        :param odd: theme summary widget as if this is an odd line (in the message-pile)
+        :type odd: bool
+        """
         self._message = message
         self._odd = odd
         self.display_source = False
@@ -192,6 +215,10 @@ class MessageTree(CollapsibleTree):
         return structure
 
     def collapse_if_matches(self, querystring):
+        """
+        collapse (and show summary only) if the :class:`alot.db.Message`
+        matches given `querystring`
+        """
         self.set_position_collapsed(
             self.root, self._message.matches(querystring))
 
@@ -277,6 +304,12 @@ class MessageTree(CollapsibleTree):
 
 
 class ThreadTree(Tree):
+    """
+    :class:`Tree` that parses a given :class:`alot.db.Thread` into a tree of
+    :class:`MessageTrees <MessageTree>` that display this threads individual messages.
+    As MessageTreess are *not* urwid widgets themself this is to be used in combination
+    with :class:`NestedTree` only.
+    """
     def __init__(self, thread):
         self._thread = thread
         self.root = thread.get_toplevel_messages()[0].get_message_id()
@@ -288,6 +321,7 @@ class ThreadTree(Tree):
         self._message = {}
 
         def accumulate(msg, odd=True):
+            """recursively read msg and its replies"""
             mid = msg.get_message_id()
             self._message[mid] = MessageTree(msg, odd)
             odd = not odd
@@ -314,6 +348,7 @@ class ThreadTree(Tree):
             last = mid
         self._next_sibling_of[last] = None
 
+    # Tree API
     def __getitem__(self, pos):
         return self._message.get(pos, None)
 
