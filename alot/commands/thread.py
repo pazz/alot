@@ -945,21 +945,21 @@ class TagCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        all_message_widgets = ui.current_buffer.get_messagewidgets()
+        tbuffer = ui.current_buffer
         if self.all:
-            mwidgets = all_message_widgets
+            messagetrees = tbuffer.messagetrees()
         else:
-            mwidgets = [ui.current_buffer.get_selection()]
-        messages = [mw.get_message() for mw in mwidgets]
-        logging.debug('TAG %s' % str(messages))
+            messagetrees = [tbuffer.get_selected_messagetree()]
 
         def refresh_widgets():
-            for mw in all_message_widgets:
-                mw.rebuild()
+            for mt in messagetrees:
+                mt.refresh()
+            tbuffer.refresh()
 
         tags = filter(lambda x: x, self.tagsstring.split(','))
         try:
-            for m in messages:
+            for mt in messagetrees:
+                m = mt.get_message()
                 if self.action == 'add':
                     m.add_tags(tags, afterwards=refresh_widgets)
                 if self.action == 'set':
@@ -977,6 +977,7 @@ class TagCommand(Command):
                             to_add.append(t)
                     m.remove_tags(to_remove)
                     m.add_tags(to_add, afterwards=refresh_widgets)
+
         except DatabaseROError:
             ui.notify('index in read-only mode', priority='error')
             return

@@ -381,7 +381,7 @@ class ThreadBuffer(Buffer):
 
 
     def refresh(self):
-        """refresh and flushe caches or Thread tree"""
+        """refresh and flushe caches of Thread tree"""
         self.body.refresh()
 
     # needed for ui.get_deep_focus..

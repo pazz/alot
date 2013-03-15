@@ -139,9 +139,9 @@ class DictList(SimpleTree):
 class MessageTree(CollapsibleTree):
     def __init__(self, message, odd=True):
         self._message = message
-        self._summaryw = MessageSummaryWidget(message, even=(not odd))
-
+        self._odd = odd
         self.display_source = False
+        self._summaryw = None
         self._bodytree = None
         self._sourcetree = None
         self.display_all_headers = False
@@ -157,6 +157,10 @@ class MessageTree(CollapsibleTree):
 
     def reassemble(self):
         self._maintree._treelist = self._assemble_structure()
+
+    def refresh(self):
+        self._summaryw = None
+        self.reassemble()
 
     def debug(self):
         logging.debug('collapsed %s' % self.is_collapsed(self.root))
@@ -183,13 +187,18 @@ class MessageTree(CollapsibleTree):
                 mainstruct.append((self._get_body(), None))
 
         structure = [
-            (self._summaryw, mainstruct)
+            (self._get_summary(), mainstruct)
         ]
         return structure
 
     def collapse_if_matches(self, querystring):
         self.set_position_collapsed(
             self.root, self._message.matches(querystring))
+
+    def _get_summary(self):
+        if self._summaryw is None:
+            self._summaryw = MessageSummaryWidget(self._message, even=(not self._odd))
+        return self._summaryw
 
     def _get_source(self):
         if self._sourcetree is None:
