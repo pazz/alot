@@ -5,6 +5,7 @@ import os
 import re
 import logging
 import tempfile
+import argparse
 from twisted.internet.defer import inlineCallbacks
 import subprocess
 from email.Utils import getaddresses
@@ -15,6 +16,7 @@ from alot.commands import Command, registerCommand
 from alot.commands.globals import ExternalCommand
 from alot.commands.globals import FlushCommand
 from alot.commands.globals import ComposeCommand
+from alot.commands.globals import MoveCommand
 from alot.commands.envelope import SendCommand
 from alot import completion
 from alot.db.utils import decode_header
@@ -31,7 +33,6 @@ from alot.utils.booleanaction import BooleanAction
 from alot.completion import ContactsCompleter
 
 from alot.widgets.globals import AttachmentWidget
-from alot.widgets.thread import MessageSummaryWidget
 
 MODE = 'thread'
 
@@ -392,25 +393,31 @@ class EditNewCommand(Command):
 
 
 @registerCommand(MODE, 'fold', forced={'visible': False}, arguments=[
-    (['--all'], {'action': 'store_true', 'help':'fold all messages'})],
+    (
+        ['query'], {'help':'query used to filter messages to affect', 'nargs': '*'}), ],
     help='fold message(s)')
 @registerCommand(MODE, 'unfold', forced={'visible': True}, arguments=[
-    (['--all'], {'action': 'store_true', 'help':'unfold all messages'})],
+    (
+        ['query'], {'help':'query used to filter messages to affect', 'nargs': '*'}), ],
     help='unfold message(s)')
 @registerCommand(MODE, 'togglesource', forced={'raw': 'toggle'}, arguments=[
-    (['--all'], {'action': 'store_true', 'help':'affect all messages'})],
+    (
+        ['query'], {'help':'query used to filter messages to affect', 'nargs': '*'}), ],
     help='display message source')
 @registerCommand(MODE, 'toggleheaders', forced={'all_headers': 'toggle'},
-                 arguments=[(['--all'], {'action': 'store_true',
-                            'help':'affect all messages'})],
+                 arguments=[
+                     (['query'], {
+                         'help':'query used to filter messages to affect',
+                         'nargs': '*'}),
+                 ],
                  help='display all headers')
 class ChangeDisplaymodeCommand(Command):
     """fold or unfold messages"""
-    def __init__(self, all=False, visible=None, raw=None, all_headers=None,
+    def __init__(self, query=None, visible=None, raw=None, all_headers=None,
                  **kwargs):
         """
-        :param all: toggle all, not only selected message
-        :type all: bool
+        :param query: notmuch query string used to filter messages to affect
+        :type query: str
         :param visible: unfold if `True`, fold if `False`, ignore if `None`
         :type visible: True, False, 'toggle' or None
         :param raw: display raw message text.
@@ -418,43 +425,61 @@ class ChangeDisplaymodeCommand(Command):
         :param all_headers: show all headers (only visible if not in raw mode)
         :type all_headers: True, False, 'toggle' or None
         """
-        self.all = all
+        self.query = None
+        if query:
+            self.query = ' '.join(query)
         self.visible = visible
         self.raw = raw
         self.all_headers = all_headers
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        lines = []
-        if not self.all:
-            lines.append(ui.current_buffer.get_selection())
+        tbuffer = ui.current_buffer
+        logging.debug('matching lines %s...' % (self.query))
+        if self.query is None:
+            messagetrees = [tbuffer.get_selected_messagetree()]
         else:
-            lines = ui.current_buffer.get_message_widgets()
+            messagetrees = tbuffer.messagetrees()
+            if self.query != '*':
 
-        for widget in lines:
-            msg = widget.get_message()
+                def matches(msgt):
+                    msg = msgt.get_message()
+                    return msg.matches(self.query)
 
-            # in case the thread is yet unread, remove this tag
-            if self.visible or (self.visible == 'toggle' and widget.folded):
+                messagetrees = filter(matches, messagetrees)
+
+        for mt in messagetrees:
+            # determine new display values for this message
+            if self.visible == 'toggle':
+                visible = mt.is_collapsed(mt.root)
+            else:
+                visible = self.visible
+            if self.raw == 'toggle':
+                tbuffer.focus_selected_message()
+            raw = not mt.display_source if self.raw == 'toggle' else self.raw
+            all_headers = not mt.display_all_headers if self.all_headers == 'toggle' else self.all_headers
+
+            # collapse/expand depending on new 'visible' value
+            if visible is False:
+                mt.collapse(mt.root)
+            elif visible is True:  # could be None
+                mt.expand(mt.root)
+                # in case the thread is yet unread, remove this tag
+                msg = mt._message
                 if 'unread' in msg.get_tags():
                     msg.remove_tags(['unread'])
                     ui.apply_command(FlushCommand())
-
-            if self.visible == 'toggle':
-                self.visible = widget.folded
-            if self.raw == 'toggle':
-                self.raw = not widget.show_raw
-            if self.all_headers == 'toggle':
-                self.all_headers = not widget.show_all_headers
-
-            logging.debug((self.visible, self.raw, self.all_headers))
-            if self.visible is not None:
-                widget.folded = not self.visible
-            if self.raw is not None:
-                widget.show_raw = self.raw
-            if self.all_headers is not None:
-                widget.show_all_headers = self.all_headers
-            widget.rebuild()
+            tbuffer.focus_selected_message()
+            # set new values in messagetree obj
+            if raw is not None:
+                mt.display_source = raw
+            if all_headers is not None:
+                mt.display_all_headers = all_headers
+            mt.debug()
+            # let the messagetree reassemble itself
+            mt.reassemble()
+        # refresh the buffer (clears Tree caches etc)
+        tbuffer.refresh()
 
 
 @registerCommand(MODE, 'pipeto', arguments=[
@@ -493,7 +518,7 @@ class PipeCommand(Command):
         :type notify_stdout: bool
         :param shell: let the shell interpret the command
         :type shell: bool
-        :param format: what to pipe to the processes stdin. one of:
+
                        'raw': message content as is,
                        'decoded': message content, decoded quoted printable,
                        'id': message ids, separated by newlines,
@@ -826,6 +851,35 @@ class OpenAttachmentCommand(Command):
             ui.notify('unknown mime type')
 
 
+@registerCommand(MODE, 'move', help='move focus in current buffer',
+                 arguments=[(['movement'], {
+                             'nargs':argparse.REMAINDER,
+                             'help':'up, down, page up, page down, first'})])
+class MoveFocusCommand(MoveCommand):
+    def apply(self, ui):
+        logging.debug(self.movement)
+        tbuffer = ui.current_buffer
+        if self.movement == 'parent':
+            tbuffer.focus_parent()
+        elif self.movement == 'first reply':
+            tbuffer.focus_first_reply()
+        elif self.movement == 'last reply':
+            tbuffer.focus_last_reply()
+        elif self.movement == 'next sibling':
+            tbuffer.focus_next_sibling()
+        elif self.movement == 'previous sibling':
+            tbuffer.focus_prev_sibling()
+        elif self.movement == 'next':
+            tbuffer.focus_next()
+        elif self.movement == 'previous':
+            tbuffer.focus_prev()
+        else:
+            MoveCommand.apply(self, ui)
+        # TODO add 'next matching' if threadbuffer stores the original query string
+        # TODO: add next by date..
+        tbuffer.body.refresh()
+
+
 @registerCommand(MODE, 'select')
 class ThreadSelectCommand(Command):
     """select focussed element. The fired action depends on the focus:
@@ -833,13 +887,11 @@ class ThreadSelectCommand(Command):
         - if attachment line, this opens the attachment"""
     def apply(self, ui):
         focus = ui.get_deep_focus()
-        if isinstance(focus, MessageSummaryWidget):
-            ui.apply_command(ChangeDisplaymodeCommand(visible='toggle'))
-        elif isinstance(focus, AttachmentWidget):
+        if isinstance(focus, AttachmentWidget):
             logging.info('open attachment')
             ui.apply_command(OpenAttachmentCommand(focus.get_attachment()))
         else:
-            logging.info('unknown widget %s' % focus)
+            ui.apply_command(ChangeDisplaymodeCommand(visible='toggle'))
 
 
 @registerCommand(MODE, 'tag', forced={'action': 'add'}, arguments=[
@@ -893,21 +945,21 @@ class TagCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        all_message_widgets = ui.current_buffer.get_messagewidgets()
+        tbuffer = ui.current_buffer
         if self.all:
-            mwidgets = all_message_widgets
+            messagetrees = tbuffer.messagetrees()
         else:
-            mwidgets = [ui.current_buffer.get_selection()]
-        messages = [mw.get_message() for mw in mwidgets]
-        logging.debug('TAG %s' % str(messages))
+            messagetrees = [tbuffer.get_selected_messagetree()]
 
         def refresh_widgets():
-            for mw in all_message_widgets:
-                mw.rebuild()
+            for mt in messagetrees:
+                mt.refresh()
+            tbuffer.refresh()
 
         tags = filter(lambda x: x, self.tagsstring.split(','))
         try:
-            for m in messages:
+            for mt in messagetrees:
+                m = mt.get_message()
                 if self.action == 'add':
                     m.add_tags(tags, afterwards=refresh_widgets)
                 if self.action == 'set':
@@ -925,6 +977,7 @@ class TagCommand(Command):
                             to_add.append(t)
                     m.remove_tags(to_remove)
                     m.add_tags(to_add, afterwards=refresh_widgets)
+
         except DatabaseROError:
             ui.notify('index in read-only mode', priority='error')
             return

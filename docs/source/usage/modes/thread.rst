@@ -32,6 +32,16 @@ The following commands are available in thread mode
     optional arguments
         :---spawn: open editor in new window.
 
+.. _cmd.thread.move:
+
+.. describe:: move
+
+    move focus in current buffer
+
+    argument
+        up, down, page up, page down, first
+
+
 .. _cmd.thread.untag:
 
 .. describe:: untag
@@ -51,8 +61,9 @@ The following commands are available in thread mode
 
     display all headers
 
-    optional arguments
-        :---all: affect all messages.
+    argument
+        query used to filter messages to affect
+
 
 .. _cmd.thread.print:
 
@@ -79,8 +90,9 @@ The following commands are available in thread mode
 
     display message source
 
-    optional arguments
-        :---all: affect all messages.
+    argument
+        query used to filter messages to affect
+
 
 .. _cmd.thread.retag:
 
@@ -101,8 +113,9 @@ The following commands are available in thread mode
 
     fold message(s)
 
-    optional arguments
-        :---all: fold all messages.
+    argument
+        query used to filter messages to affect
+
 
 .. _cmd.thread.tag:
 
@@ -132,8 +145,9 @@ The following commands are available in thread mode
 
     unfold message(s)
 
-    optional arguments
-        :---all: unfold all messages.
+    argument
+        query used to filter messages to affect
+
 
 .. _cmd.thread.forward:
 

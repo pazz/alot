@@ -4,11 +4,12 @@ page up = move page up
 page down = move page down
 j = move down
 k = move up
+'g g' = move first
 ' ' = move page down
 @ = refresh
 ? = help bindings
 I = search tag:inbox AND NOT tag:killed
-L = taglist
+'#' = taglist
 shift tab = bprevious
 U = search tag:unread
 tab = bnext
@@ -20,6 +21,7 @@ o = prompt 'search '
 q = exit
 ';' = bufferlist
 ':' = prompt
+. = repeat
 
 [bufferlist]
     x = close
@@ -46,21 +48,21 @@ q = exit
     c = 'refine Cc'
     S = togglesign
     enter = edit
-    H = toggleheaders
+    'g f' = togglesource
 
 [taglist]
     enter = select
 
 [thread]
     enter = select
-    C = fold --all
-    E = unfold --all
+    C = fold *
+    E = unfold *
     c = fold
     e = unfold
     < = fold
     > = unfold
+    'g f' = togglesource
     H = toggleheaders
-    h = togglesource
     P = print --all --separately --add_tags
     S = save --all
     g = reply --all
@@ -71,3 +73,9 @@ q = exit
     s = save
     r = reply
     | = prompt 'pipeto '
+
+    'g j' = move next sibling
+    'g k' = move previous sibling
+    'g h' = move parent
+    'g l' = move first reply
+    ' ' = move next

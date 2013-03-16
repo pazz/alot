@@ -310,6 +310,16 @@ class PythonShellCommand(Command):
         ui.mainloop.screen.start()
 
 
+@registerCommand(MODE, 'repeat')
+class RepeatCommand(Command):
+    """Repeats the command executed last time"""
+    def apply(self, ui):
+        if ui.last_commandline is not None:
+            ui.apply_commandline(ui.last_commandline)
+        else:
+            ui.notify('no last command')
+
+
 @registerCommand(MODE, 'call', arguments=[
     (['command'], {'help':'python command string to call'})])
 class CallCommand(Command):
@@ -786,7 +796,7 @@ class ComposeCommand(Command):
 @registerCommand(MODE, 'move', help='move focus in current buffer',
                  arguments=[(['movement'], {
                              'nargs':argparse.REMAINDER,
-                             'help':'up, down, page up, page down'})])
+                             'help':'up, down, page up, page down, first'})])
 class MoveCommand(Command):
     """move in widget"""
     def __init__(self, movement=None, **kwargs):
@@ -799,6 +809,8 @@ class MoveCommand(Command):
     def apply(self, ui):
         if self.movement in ['up', 'down', 'page up', 'page down']:
             ui.mainloop.process_input([self.movement])
+        elif self.movement == 'first':
+            ui.current_buffer.focus_first()
         else:
             ui.notify('unknown movement: ' + self.movement,
                       priority='error')

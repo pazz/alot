@@ -123,3 +123,48 @@ Apart from command pre- and posthooks, the following hooks will be interpreted:
     :type subject: str
     :rtype: str
 
+.. py:function:: pre_buffer_open(ui= None, dbm=None, buf=buf)
+
+    run before a new buffer is opened
+
+    :param buf: buffer to open
+    :type buf: alot.buffer.Buffer
+
+.. py:function:: post_buffer_open(ui=None, dbm=None, buf=buf)
+
+    run after a new buffer is opened
+
+    :param buf: buffer to open
+    :type buf: alot.buffer.Buffer
+
+.. py:function:: pre_buffer_close(ui=None, dbm=None, buf=buf)
+
+    run before a buffer is closed
+
+    :param buf: buffer to open
+    :type buf: alot.buffer.Buffer
+
+.. py:function:: post_buffer_close(ui=None, dbm=None, buf=buf, success=success)
+
+    run after a buffer is closed
+
+    :param buf: buffer to open
+    :type buf: alot.buffer.Buffer
+    :param success: true if successfully closed buffer
+    :type success: boolean
+
+.. py:function:: pre_buffer_focus(ui=None, dbm=None, buf=buf)
+
+    run before a buffer is focused
+
+    :param buf: buffer to open
+    :type buf: alot.buffer.Buffer
+
+.. py:function:: post_buffer_focus(ui=None, dbm=None, buf=buf, success=success)
+
+    run after a buffer is focused
+
+    :param buf: buffer to open
+    :type buf: alot.buffer.Buffer
+    :param success: true if successfully focused buffer
+    :type success: boolean

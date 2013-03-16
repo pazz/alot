@@ -34,22 +34,12 @@ The following commands are available globally
     optional arguments
         :---sort: sort order. Valid choices are: \`oldest_first\`,\`newest_first\`,\`message_id\`,\`unsorted\`.
 
-.. _cmd.global.compose:
+.. _cmd.global.repeat:
 
-.. describe:: compose
+.. describe:: repeat
 
-    compose a new email
+    Repeats the command executed last time
 
-    optional arguments
-        :---sender: sender.
-        :---template: path to a template message file.
-        :---subject: subject line.
-        :---to: recipients.
-        :---cc: copy to.
-        :---bcc: blind copy to.
-        :---attach: attach files.
-        :---omit_signature: do not add signature.
-        :---spawn: spawn editor in new terminal.
 
 .. _cmd.global.prompt:
 
@@ -91,7 +81,7 @@ The following commands are available globally
     move focus in current buffer
 
     argument
-        up, down, page up, page down
+        up, down, page up, page down, first
 
 
 .. _cmd.global.shellescape:
@@ -121,6 +111,23 @@ The following commands are available globally
 
     open an interactive python shell for introspection
 
+
+.. _cmd.global.compose:
+
+.. describe:: compose
+
+    compose a new email
+
+    optional arguments
+        :---sender: sender.
+        :---template: path to a template message file.
+        :---subject: subject line.
+        :---to: recipients.
+        :---cc: copy to.
+        :---bcc: blind copy to.
+        :---attach: attach files.
+        :---omit_signature: do not add signature.
+        :---spawn: spawn editor in new terminal.
 
 .. _cmd.global.exit:
 

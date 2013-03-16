@@ -73,6 +73,7 @@
     arrow_bars = 'default','default','%(16_yellow)s','%(16_base03)s','%(256_yellow)s','%(256_base03)s'
     arrow_heads = 'default','default','%(16_yellow)s','%(16_base03)s','%(256_yellow)s','%(256_base03)s'
     body = 'default','default','%(16_base0)s','%(16_base03)s','%(256_base0)s','%(256_base03)s'
+    body_focus = 'default','default','%(16_base0)s','%(16_base03)s','%(256_base0)s','%(256_base02)s'
     header = 'default','default','%(16_base0)s','%(16_base02)s','%(256_base0)s','%(256_base02)s'
     header_key = 'default','default','%(16_magenta)s','%(16_base02)s','%(256_magenta)s','%(256_base02)s'
     header_value = 'default','default','%(16_blue)s','%(16_base02)s','%(256_blue)s','%(256_base02)s'

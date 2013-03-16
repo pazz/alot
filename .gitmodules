@@ -1,0 +1,6 @@
+[submodule "urwidtrees-V2"]
+	path = urwidtrees-V2
+	url = git@github.com:pazz/urwidtrees-V2.git
+[submodule "alot/foreign/urwidtrees"]
+	path = alot/foreign/urwidtrees
+	url = git@github.com:pazz/urwidtrees-V2.git
