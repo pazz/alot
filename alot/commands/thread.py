@@ -467,11 +467,6 @@ class ChangeDisplaymodeCommand(Command):
                 mt.collapse(mt.root)
             elif visible is True:  # could be None
                 mt.expand(mt.root)
-                # in case the thread is yet unread, remove this tag
-                msg = mt._message
-                if 'unread' in msg.get_tags():
-                    msg.remove_tags(['unread'])
-                    ui.apply_command(FlushCommand())
             tbuffer.focus_selected_message()
             # set new values in messagetree obj
             if raw is not None:

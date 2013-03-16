@@ -484,13 +484,6 @@ class ThreadBuffer(Buffer):
         """get :class:`MessageTree` for given position"""
         return self._tree[pos[0]]
 
-    def expand_and_remove_unread(self, pos):
-        messagetree = self.messagetree_at_position(pos)
-        msg = messagetree._message
-        messagetree.expand(messagetree.root)
-        if 'unread' in msg.get_tags():
-            msg.remove_tags(['unread'])
-            self.ui.apply_command(commands.globals.FlushCommand())
 
     def expand_all(self):
         """expand all messages in thread"""
@@ -526,9 +519,6 @@ class ThreadBuffer(Buffer):
                 if first is None:
                     first = (self._tree.position_of_messagetree(MT), MT.root)
                     self.body.set_focus(first)
-                if 'unread' in msg.get_tags():
-                    msg.remove_tags(['unread'])
-                    self.ui.apply_command(commands.globals.FlushCommand())
             else:
                 MT.collapse(MT.root)
         self.body.refresh()
