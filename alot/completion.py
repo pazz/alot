@@ -281,7 +281,7 @@ class CommandNameCompleter(Completer):
         self.mode = mode
 
     def complete(self, original, pos):
-        #TODO refine <tab> should get current querystring
+        # TODO refine <tab> should get current querystring
         commandprefix = original[:pos]
         logging.debug('original="%s" prefix="%s"' % (original, commandprefix))
         cmdlist = commands.COMMANDS['global'].copy()
@@ -349,7 +349,7 @@ class CommandCompleter(Completer):
                     if a and not a.startswith('-'):
                         all_optionals = False
                 # complete optional parameter if
-                # 1. all arguments prior to current position are optional parameter
+                # 1. all arguments prior to current position are optional
                 # 2. the parameter starts with '-' or we are at its beginning
                 if all_optionals:
                     myarg = arguments_until_now[-1]
@@ -433,7 +433,8 @@ class CommandCompleter(Completer):
                 # thread
                 elif self.mode == 'thread' and cmd == 'save':
                     res = self._pathcompleter.complete(params, localpos)
-                elif self.mode == 'thread' and cmd in ['fold', 'unfold', 'togglesource',
+                elif self.mode == 'thread' and cmd in ['fold', 'unfold',
+                                                       'togglesource',
                                                        'toggleheaders']:
                     res = self._querycompleter.complete(params, localpos)
                 elif self.mode == 'thread' and cmd in ['tag', 'retag', 'untag',
@@ -446,7 +447,7 @@ class CommandCompleter(Completer):
                     if self.mode == 'thread':
                         directions += ['first', 'next', 'previous',
                                        'last reply', 'first reply', 'parent',
-                                       'next sibling','previous sibling']
+                                       'next sibling', 'previous sibling']
                     localcompleter = StringlistCompleter(directions)
                     res = localcompleter.complete(params, localpos)
 

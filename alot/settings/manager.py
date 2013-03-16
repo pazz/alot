@@ -137,7 +137,8 @@ class SettingsManager(object):
                         raise ConfigError(msg)
                 elif abook['type'] == 'abook':
                     contacts_path = abook['abook_contacts_file']
-                    args['abook'] = AbookAddressBook(contacts_path, ignorecase=abook['ignorecase'])
+                    args['abook'] = AbookAddressBook(
+                        contacts_path, ignorecase=abook['ignorecase'])
                 else:
                     del(args['abook'])
 
@@ -318,7 +319,8 @@ class SettingsManager(object):
             cand = filter(lambda x: x.startswith(prefixs), candidates)
             if prefix in candidates:
                 candidates = cand + [prefix]
-            else: candidates = cand
+            else:
+                candidates = cand
         return candidates
 
     def get_keybinding(self, mode, key):

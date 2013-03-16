@@ -13,6 +13,7 @@ from errors import ConfigError
 DEFAULTSPATH = os.path.join(os.path.dirname(__file__), '..', 'defaults')
 DUMMYDEFAULT = ('default',) * 6
 
+
 class Theme(object):
     """Colour theme"""
     def __init__(self, path):
