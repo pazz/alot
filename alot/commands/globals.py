@@ -476,13 +476,14 @@ class TagListCommand(Command):
 @registerCommand(MODE, 'flush')
 class FlushCommand(Command):
     """flush write operations or retry until committed"""
-    def __init__(self, callback=None, **kwargs):
+    def __init__(self, callback=None, silent=False, **kwargs):
         """
         :param callback: function to call after successful writeout
         :type callback: callable
         """
         Command.__init__(self, **kwargs)
         self.callback = callback
+        self.silent = silent
 
     def apply(self, ui):
         try:
@@ -491,8 +492,10 @@ class FlushCommand(Command):
                 self.callback()
             logging.debug('flush complete')
             if ui.db_was_locked:
-                ui.notify('changes flushed')
+                if not self.silent:
+                    ui.notify('changes flushed')
                 ui.db_was_locked = False
+            ui.update()
 
         except DatabaseLockedError:
             timeout = settings.get('flush_retry_timeout')
@@ -501,7 +504,8 @@ class FlushCommand(Command):
                 self.apply(ui)
             ui.mainloop.set_alarm_in(timeout, f)
             if not ui.db_was_locked:
-                ui.notify('index locked, will try again in %d secs' % timeout)
+                if not self.silent:
+                    ui.notify('index locked, will try again in %d secs' % timeout)
                 ui.db_was_locked = True
             ui.update()
             return
