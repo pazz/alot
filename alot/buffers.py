@@ -142,7 +142,7 @@ class EnvelopeBuffer(Buffer):
     def rebuild(self):
         displayed_widgets = []
         hidden = settings.get('envelope_headers_blacklist')
-        #build lines
+        # build lines
         lines = []
         for (k, vlist) in self.envelope.headers.items():
             if (k not in hidden) or self.all_headers:
@@ -184,7 +184,7 @@ class EnvelopeBuffer(Buffer):
             self.header_wgt = HeadersList(lines, key_att, value_att, gaps_att)
             displayed_widgets.append(self.header_wgt)
 
-        #display attachments
+        # display attachments
         lines = []
         for a in self.envelope.attachments:
             lines.append(AttachmentWidget(a, selectable=False))
@@ -247,9 +247,9 @@ class SearchBuffer(Buffer):
     def rebuild(self):
         if self.isinitialized:
             pass
-            #focusposition = self.threadlist.get_focus()[1]
+            # focusposition = self.threadlist.get_focus()[1]
         else:
-            #focusposition = 0
+            # focusposition = 0
             self.isinitialized = True
 
         self.kill_filler_process()
@@ -269,7 +269,7 @@ class SearchBuffer(Buffer):
                                      dbman=self.dbman)
 
         self.listbox = urwid.ListBox(self.threadlist)
-        #self.threadlist.set_focus(focusposition)
+        # self.threadlist.set_focus(focusposition)
         self.body = self.listbox
 
     def get_selected_threadline(self):
@@ -348,13 +348,12 @@ class ThreadBuffer(Buffer):
         self.body = TreeBox(self._nested_tree)
         self.message_count = self.thread.get_total_messages()
 
-
-    def render(self,size, focus=False):
+    def render(self, size, focus=False):
         if settings.get('auto_remove_unread'):
             logging.debug('Tbuffer: autorm unread?')
             msg = self.get_selected_message()
             focus_pos = self.body.get_focus()[1]
-            summary_pos = (self.body.get_focus()[1][0],(0,))
+            summary_pos = (self.body.get_focus()[1][0], (0,))
             cursor_on_non_summary = (focus_pos != summary_pos)
             if cursor_on_non_summary:
                 if 'unread' in msg.get_tags():
@@ -366,7 +365,6 @@ class ThreadBuffer(Buffer):
             else:
                 logging.debug('Tbuffer: nope, cursor still on summary')
         return self.body.render(size, focus)
-
 
     def get_selected_mid(self):
         """returns Message ID of focussed message"""
@@ -398,7 +396,6 @@ class ThreadBuffer(Buffer):
         """
         for pos in self._tree.positions():
             yield self._tree[pos]
-
 
     def refresh(self):
         """refresh and flushe caches of Thread tree"""
@@ -500,7 +497,6 @@ class ThreadBuffer(Buffer):
     def messagetree_at_position(self, pos):
         """get :class:`MessageTree` for given position"""
         return self._tree[pos[0]]
-
 
     def expand_all(self):
         """expand all messages in thread"""
