@@ -301,6 +301,7 @@ class ThreadBuffer(Buffer):
         self.message_count = thread.get_total_messages()
         self.thread = thread
         self.rebuild()
+        self._nowrite = False
         Buffer.__init__(self, ui, self.body)
 
     def __str__(self):
@@ -349,11 +350,14 @@ class ThreadBuffer(Buffer):
             focus_pos = self.body.get_focus()[1]
             summary_pos = (self.body.get_focus()[1][0], (0,))
             cursor_on_non_summary = (focus_pos != summary_pos)
-            if cursor_on_non_summary:
+            if cursor_on_non_summary and not self._nowrite:
                 if 'unread' in msg.get_tags():
                     logging.debug('Tbuffer: removing unread')
-                    msg.remove_tags(['unread'])
-                    self.ui.apply_command(commands.globals.FlushCommand())
+                    def clear():
+                        self._nowrite = False
+                    self._nowrite = True
+                    msg.remove_tags(['unread'], afterwards=clear)
+                    self.ui.apply_command(commands.globals.FlushCommand(silent=True))
                 else:
                     logging.debug('Tbuffer: nope, already read')
             else:
