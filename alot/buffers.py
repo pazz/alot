@@ -342,13 +342,12 @@ class ThreadBuffer(Buffer):
         self.body = TreeBox(self._nested_tree)
         self.message_count = self.thread.get_total_messages()
 
-
-    def render(self,size, focus=False):
+    def render(self, size, focus=False):
         if settings.get('auto_remove_unread'):
             logging.debug('Tbuffer: autorm unread?')
             msg = self.get_selected_message()
             focus_pos = self.body.get_focus()[1]
-            summary_pos = (self.body.get_focus()[1][0],(0,))
+            summary_pos = (self.body.get_focus()[1][0], (0,))
             cursor_on_non_summary = (focus_pos != summary_pos)
             if cursor_on_non_summary:
                 if 'unread' in msg.get_tags():
@@ -360,7 +359,6 @@ class ThreadBuffer(Buffer):
             else:
                 logging.debug('Tbuffer: nope, cursor still on summary')
         return self.body.render(size, focus)
-
 
     def get_selected_mid(self):
         """returns Message ID of focussed message"""
@@ -494,7 +492,6 @@ class ThreadBuffer(Buffer):
     def messagetree_at_position(self, pos):
         """get :class:`MessageTree` for given position"""
         return self._tree[pos[0]]
-
 
     def expand_all(self):
         """expand all messages in thread"""
