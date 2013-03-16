@@ -24,6 +24,16 @@
     :default: "~"
 
 
+.. _auto-remove-unread:
+
+.. describe:: auto_remove_unread
+
+     automatically remove 'unread' tag when focussing messages in thread mode
+
+    :type: boolean
+    :default: True
+
+
 .. _bounce-force-address:
 
 .. describe:: bounce_force_address
