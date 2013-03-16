@@ -67,7 +67,7 @@ def _hash_algo_name(hash_algo):
     else:
         raise GPGProblem(("Invalid hash_algo passed to hash_algo_name."
                           " Please report this as a bug in alot."),
-                          code=GPGCode.INVALID_HASH)
+                         code=GPGCode.INVALID_HASH)
 
 
 def RFC3156_micalg_from_algo(hash_algo):
@@ -127,7 +127,7 @@ def get_key(keyid, validate=False, encrypt=False, sign=False):
             raise GPGProblem(("More than one key found matching this filter." +
                               " Please be more specific (use a key ID like " +
                               "4AC8EE1D)."),
-                              code=GPGCode.AMBIGUOUS_NAME)
+                             code=GPGCode.AMBIGUOUS_NAME)
         elif e.code == gpgme.ERR_INV_VALUE or e.code == gpgme.ERR_EOF:
             raise GPGProblem("Can not find key for \'" + keyid + "\'.",
                              code=GPGCode.NOT_FOUND)
@@ -204,6 +204,7 @@ def hash_key(key):
     for tmp_key in key.subkeys:
         hash_str += tmp_key.keyid
     return hash_str
+
 
 def validate_key(key, sign=False, encrypt=False):
     if key.revoked:

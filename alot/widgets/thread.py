@@ -129,12 +129,12 @@ class DictList(SimpleTree):
         """
         max_key_len = 1
         structure = []
-        #calc max length of key-string
+        # calc max length of key-string
         for key, value in content:
             if len(key) > max_key_len:
                 max_key_len = len(key)
         for key, value in content:
-            ##todo : even/odd
+            # todo : even/odd
             keyw = ('fixed', max_key_len + 1,
                     urwid.Text((key_attr, key)))
             valuew = urwid.Text((value_attr, value))
@@ -158,7 +158,8 @@ class MessageTree(CollapsibleTree):
         """
         :param message: Messag to display
         :type message: alot.db.Message
-        :param odd: theme summary widget as if this is an odd line (in the message-pile)
+        :param odd: theme summary widget as if this is an odd line
+                    (in the message-pile)
         :type odd: bool
         """
         self._message = message
@@ -224,7 +225,8 @@ class MessageTree(CollapsibleTree):
 
     def _get_summary(self):
         if self._summaryw is None:
-            self._summaryw = MessageSummaryWidget(self._message, even=(not self._odd))
+            self._summaryw = MessageSummaryWidget(
+                self._message, even=(not self._odd))
         return self._summaryw
 
     def _get_source(self):
@@ -306,9 +308,9 @@ class MessageTree(CollapsibleTree):
 class ThreadTree(Tree):
     """
     :class:`Tree` that parses a given :class:`alot.db.Thread` into a tree of
-    :class:`MessageTrees <MessageTree>` that display this threads individual messages.
-    As MessageTreess are *not* urwid widgets themself this is to be used in combination
-    with :class:`NestedTree` only.
+    :class:`MessageTrees <MessageTree>` that display this threads individual
+    messages. As MessageTreess are *not* urwid widgets themself this is to be
+    used in combination with :class:`NestedTree` only.
     """
     def __init__(self, thread):
         self._thread = thread

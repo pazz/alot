@@ -26,14 +26,16 @@ from utils import encode_header
 
 class Envelope(object):
     """a message that is not yet sent and still editable.
-    It holds references to unencoded! body text and mail headers among other things.
-    Envelope implements the python container API for easy access of header values.
-    So `e['To']`, `e['To'] = 'foo@bar.baz'` and 'e.get_all('To')' would work for
-    an envelope `e`..
+    It holds references to unencoded! body text and mail headers among other
+    things.  Envelope implements the python container API for easy access of
+    header values.  So `e['To']`, `e['To'] = 'foo@bar.baz'` and
+    'e.get_all('To')' would work for an envelope `e`..
     """
 
     headers = None
-    """dict containing the mail headers (a list of strings for each header key)"""
+    """
+    dict containing the mail headers (a list of strings for each header key)
+    """
     body = None
     """mail body as unicode string"""
     tmpfile = None
@@ -43,8 +45,9 @@ class Envelope(object):
     tags = []
     """tags  # tags to add after successful sendout"""
 
-    def __init__(self, template=None, bodytext=u'', headers=None, attachments=[],
-                 sign=False, sign_key=None, encrypt=False, tags=[]):
+    def __init__(
+        self, template=None, bodytext=u'', headers=None, attachments=[],
+            sign=False, sign_key=None, encrypt=False, tags=[]):
         """
         :param template: if not None, the envelope will be initialised by
                          :meth:`parsing <parse_template>` this string before
@@ -56,7 +59,7 @@ class Envelope(object):
         :type headers: dict (str -> [unicode])
         :param attachments: file attachments to include
         :type attachments: list of :class:`~alot.db.attachment.Attachment`
-        :param tags: tags to add after successful sendout and saving this message
+        :param tags: tags to add after successful sendout and saving this msg
         :type tags: list of str
         """
         assert isinstance(bodytext, unicode)

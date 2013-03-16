@@ -142,7 +142,7 @@ class EnvelopeBuffer(Buffer):
     def rebuild(self):
         displayed_widgets = []
         hidden = settings.get('envelope_headers_blacklist')
-        #build lines
+        # build lines
         lines = []
         for (k, vlist) in self.envelope.headers.items():
             if (k not in hidden) or self.all_headers:
@@ -184,7 +184,7 @@ class EnvelopeBuffer(Buffer):
             self.header_wgt = HeadersList(lines, key_att, value_att, gaps_att)
             displayed_widgets.append(self.header_wgt)
 
-        #display attachments
+        # display attachments
         lines = []
         for a in self.envelope.attachments:
             lines.append(AttachmentWidget(a, selectable=False))
@@ -245,12 +245,7 @@ class SearchBuffer(Buffer):
                 self.proc.terminate()
 
     def rebuild(self):
-        if self.isinitialized:
-            pass
-            #focusposition = self.threadlist.get_focus()[1]
-        else:
-            #focusposition = 0
-            self.isinitialized = True
+        self.isinitialized = True
 
         self.kill_filler_process()
 
@@ -269,7 +264,6 @@ class SearchBuffer(Buffer):
                                      dbman=self.dbman)
 
         self.listbox = urwid.ListBox(self.threadlist)
-        #self.threadlist.set_focus(focusposition)
         self.body = self.listbox
 
     def get_selected_threadline(self):
@@ -379,7 +373,6 @@ class ThreadBuffer(Buffer):
         for pos in self._tree.positions():
             yield self._tree[pos]
 
-
     def refresh(self):
         """refresh and flushe caches of Thread tree"""
         self.body.refresh()
@@ -397,7 +390,8 @@ class ThreadBuffer(Buffer):
         self.body.set_focus(self._nested_tree.root)
 
     def _sanitize_position(self, pos):
-        return self._nested_tree._sanitize_position(pos, self._nested_tree._tree)
+        return self._nested_tree._sanitize_position(pos,
+                                                    self._nested_tree._tree)
 
     def focus_selected_message(self):
         """focus the summary line of currently focussed message"""

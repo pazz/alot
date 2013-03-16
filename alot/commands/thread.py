@@ -94,9 +94,9 @@ def determine_sender(mail, action='reply'):
 
 
 @registerCommand(MODE, 'reply', arguments=[
-    (['--all'], {'action':'store_true', 'help':'reply to all'}),
-    (['--spawn'], {'action': BooleanAction, 'default':None,
-                   'help':'open editor in new window'})])
+    (['--all'], {'action': 'store_true', 'help': 'reply to all'}),
+    (['--spawn'], {'action': BooleanAction, 'default': None,
+                   'help': 'open editor in new window'})])
 class ReplyCommand(Command):
     """reply to message"""
     def __init__(self, message=None, all=False, spawn=None, **kwargs):
@@ -210,9 +210,9 @@ class ReplyCommand(Command):
 
 
 @registerCommand(MODE, 'forward', arguments=[
-    (['--attach'], {'action':'store_true', 'help':'attach original mail'}),
-    (['--spawn'], {'action': BooleanAction, 'default':None,
-                   'help':'open editor in new window'})])
+    (['--attach'], {'action': 'store_true', 'help': 'attach original mail'}),
+    (['--spawn'], {'action': BooleanAction, 'default': None,
+                   'help': 'open editor in new window'})])
 class ForwardCommand(Command):
     """forward message"""
     def __init__(self, message=None, attach=True, spawn=None, **kwargs):
@@ -351,8 +351,8 @@ class BounceMailCommand(Command):
 
 
 @registerCommand(MODE, 'editnew', arguments=[
-    (['--spawn'], {'action': BooleanAction, 'default':None,
-                   'help':'open editor in new window'})])
+    (['--spawn'], {'action': BooleanAction, 'default': None,
+                   'help': 'open editor in new window'})])
 class EditNewCommand(Command):
     """edit message in as new"""
     def __init__(self, message=None, spawn=None, **kwargs):
@@ -394,20 +394,22 @@ class EditNewCommand(Command):
 
 @registerCommand(MODE, 'fold', forced={'visible': False}, arguments=[
     (
-        ['query'], {'help':'query used to filter messages to affect', 'nargs': '*'}), ],
+        ['query'], {'help': 'query used to filter messages to affect',
+                    'nargs': '*'}),
+],
     help='fold message(s)')
 @registerCommand(MODE, 'unfold', forced={'visible': True}, arguments=[
-    (
-        ['query'], {'help':'query used to filter messages to affect', 'nargs': '*'}), ],
-    help='unfold message(s)')
+    (['query'], {'help': 'query used to filter messages to affect',
+                 'nargs': '*'}),
+], help='unfold message(s)')
 @registerCommand(MODE, 'togglesource', forced={'raw': 'toggle'}, arguments=[
-    (
-        ['query'], {'help':'query used to filter messages to affect', 'nargs': '*'}), ],
-    help='display message source')
+    (['query'], {'help': 'query used to filter messages to affect',
+                 'nargs': '*'}),
+], help='display message source')
 @registerCommand(MODE, 'toggleheaders', forced={'all_headers': 'toggle'},
                  arguments=[
                      (['query'], {
-                         'help':'query used to filter messages to affect',
+                         'help': 'query used to filter messages to affect',
                          'nargs': '*'}),
                  ],
                  help='display all headers')
@@ -457,7 +459,8 @@ class ChangeDisplaymodeCommand(Command):
             if self.raw == 'toggle':
                 tbuffer.focus_selected_message()
             raw = not mt.display_source if self.raw == 'toggle' else self.raw
-            all_headers = not mt.display_all_headers if self.all_headers == 'toggle' else self.all_headers
+            all_headers = not mt.display_all_headers \
+                if self.all_headers == 'toggle' else self.all_headers
 
             # collapse/expand depending on new 'visible' value
             if visible is False:
@@ -483,20 +486,20 @@ class ChangeDisplaymodeCommand(Command):
 
 
 @registerCommand(MODE, 'pipeto', arguments=[
-    (['cmd'], {'help':'shellcommand to pipe to', 'nargs': '+'}),
-    (['--all'], {'action': 'store_true', 'help':'pass all messages'}),
-    (['--format'], {'help':'output format', 'default':'raw',
-                    'choices':['raw', 'decoded', 'id', 'filepath']}),
+    (['cmd'], {'help': 'shellcommand to pipe to', 'nargs': '+'}),
+    (['--all'], {'action': 'store_true', 'help': 'pass all messages'}),
+    (['--format'], {'help': 'output format', 'default': 'raw',
+                    'choices': ['raw', 'decoded', 'id', 'filepath']}),
     (['--separately'], {'action': 'store_true',
-                        'help':'call command once for each message'}),
+                        'help': 'call command once for each message'}),
     (['--background'], {'action': 'store_true',
-                        'help':'don\'t stop the interface'}),
+                        'help': 'don\'t stop the interface'}),
     (['--add_tags'], {'action': 'store_true',
-                      'help':'add \'Tags\' header to the message'}),
+                      'help': 'add \'Tags\' header to the message'}),
     (['--shell'], {'action': 'store_true',
-                   'help':'let the shell interpret the command'}),
+                   'help': 'let the shell interpret the command'}),
     (['--notify_stdout'], {'action': 'store_true',
-                           'help':'display cmd\'s stdout as notification'}),
+                           'help': 'display cmd\'s stdout as notification'}),
 ],
 )
 class PipeCommand(Command):
@@ -621,7 +624,7 @@ class PipeCommand(Command):
                 # seem to be non-blocking!
                 proc = subprocess.Popen(self.cmd, shell=True,
                                         stdin=subprocess.PIPE,
-                                        #stdout=subprocess.PIPE,
+                                        # stdout=subprocess.PIPE,
                                         stderr=subprocess.PIPE)
                 out, err = proc.communicate(mail)
                 logging.debug('start urwid screen')
@@ -636,7 +639,7 @@ class PipeCommand(Command):
 
 
 @registerCommand(MODE, 'remove', arguments=[
-    (['--all'], {'action': 'store_true', 'help':'remove whole thread'})])
+    (['--all'], {'action': 'store_true', 'help': 'remove whole thread'})])
 class RemoveCommand(Command):
     """remove message(s) from the index"""
     def __init__(self, all=False, **kwargs):
@@ -680,12 +683,12 @@ class RemoveCommand(Command):
 
 
 @registerCommand(MODE, 'print', arguments=[
-    (['--all'], {'action': 'store_true', 'help':'print all messages'}),
-    (['--raw'], {'action': 'store_true', 'help':'pass raw mail string'}),
+    (['--all'], {'action': 'store_true', 'help': 'print all messages'}),
+    (['--raw'], {'action': 'store_true', 'help': 'pass raw mail string'}),
     (['--separately'], {'action': 'store_true',
-                        'help':'call print command once for each message'}),
+                        'help': 'call print command once for each message'}),
     (['--add_tags'], {'action': 'store_true',
-                      'help':'add \'Tags\' header to the message'}),
+                      'help': 'add \'Tags\' header to the message'}),
 ],
 )
 class PrintCommand(PipeCommand):
@@ -727,8 +730,8 @@ class PrintCommand(PipeCommand):
 
 
 @registerCommand(MODE, 'save', arguments=[
-    (['--all'], {'action': 'store_true', 'help':'save all attachments'}),
-    (['path'], {'nargs':'?', 'help':'path to save to'})])
+    (['--all'], {'action': 'store_true', 'help': 'save all attachments'}),
+    (['path'], {'nargs': '?', 'help': 'path to save to'})])
 class SaveAttachmentCommand(Command):
     """save attachment(s)"""
     def __init__(self, all=False, path=None, **kwargs):
@@ -853,8 +856,8 @@ class OpenAttachmentCommand(Command):
 
 @registerCommand(MODE, 'move', help='move focus in current buffer',
                  arguments=[(['movement'], {
-                             'nargs':argparse.REMAINDER,
-                             'help':'up, down, page up, page down, first'})])
+                             'nargs': argparse.REMAINDER,
+                             'help': 'up, down, page up, page down, first'})])
 class MoveFocusCommand(MoveCommand):
     def apply(self, ui):
         logging.debug(self.movement)
@@ -875,7 +878,7 @@ class MoveFocusCommand(MoveCommand):
             tbuffer.focus_prev()
         else:
             MoveCommand.apply(self, ui)
-        # TODO add 'next matching' if threadbuffer stores the original query string
+        # TODO add 'next matching' if threadbuffer stores the original query
         # TODO: add next by date..
         tbuffer.body.refresh()
 
@@ -895,31 +898,35 @@ class ThreadSelectCommand(Command):
 
 
 @registerCommand(MODE, 'tag', forced={'action': 'add'}, arguments=[
-    (['--all'], {'action': 'store_true', 'help':'tag all messages in thread'}),
+    (['--all'], {'action': 'store_true',
+     'help': 'tag all messages in thread'}),
     (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
                       'help': 'postpone a writeout to the index'}),
-    (['tags'], {'help':'comma separated list of tags'})],
+    (['tags'], {'help': 'comma separated list of tags'})],
     help='add tags to message(s)',
 )
 @registerCommand(MODE, 'retag', forced={'action': 'set'}, arguments=[
-    (['--all'], {'action': 'store_true', 'help':'tag all messages in thread'}),
+    (['--all'], {'action': 'store_true',
+     'help': 'tag all messages in thread'}),
     (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
                       'help': 'postpone a writeout to the index'}),
-    (['tags'], {'help':'comma separated list of tags'})],
+    (['tags'], {'help': 'comma separated list of tags'})],
     help='set message(s) tags.',
 )
 @registerCommand(MODE, 'untag', forced={'action': 'remove'}, arguments=[
-    (['--all'], {'action': 'store_true', 'help':'tag all messages in thread'}),
+    (['--all'], {'action': 'store_true',
+     'help': 'tag all messages in thread'}),
     (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
                       'help': 'postpone a writeout to the index'}),
-    (['tags'], {'help':'comma separated list of tags'})],
+    (['tags'], {'help': 'comma separated list of tags'})],
     help='remove tags from message(s)',
 )
 @registerCommand(MODE, 'toggletags', forced={'action': 'toggle'}, arguments=[
-    (['--all'], {'action': 'store_true', 'help':'tag all messages in thread'}),
+    (['--all'], {'action': 'store_true',
+     'help': 'tag all messages in thread'}),
     (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
                       'help': 'postpone a writeout to the index'}),
-    (['tags'], {'help':'comma separated list of tags'})],
+    (['tags'], {'help': 'comma separated list of tags'})],
     help='flip presence of tags on message(s)',
 )
 class TagCommand(Command):

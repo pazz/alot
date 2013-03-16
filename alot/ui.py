@@ -123,7 +123,8 @@ class UI(object):
                 clear()
                 logging.debug("cmdline: '%s'" % cmdline)
                 # move keys are always passed
-                if cmdline in ['move up', 'move down', 'move page up', 'move page down']:
+                if cmdline in ['move up', 'move down', 'move page up',
+                               'move page down']:
                     return [cmdline[5:]]
                 elif not self._locked:
                     try:
@@ -145,7 +146,8 @@ class UI(object):
                         timeout = float(settings.get('input_timeout'))
                         if self._alarm is not None:
                             self.mainloop.remove_alarm(self._alarm)
-                        self._alarm = self.mainloop.set_alarm_in(timeout, fire, cmdline)
+                        self._alarm = self.mainloop.set_alarm_in(
+                            timeout, fire, cmdline)
                     else:
                         return fire(self.mainloop, cmdline)
 
@@ -186,7 +188,8 @@ class UI(object):
 
         # store cmdline for use with 'repeat' command
         cmdline = cmdline.lstrip()
-        if not cmdline.startswith('prompt') and not cmdline.startswith('repeat'):
+        if not cmdline.startswith('prompt') and \
+           not cmdline.startswith('repeat'):
             self.last_commandline = cmdline
 
     def _unhandeled_input(self, key):
@@ -240,7 +243,7 @@ class UI(object):
 
         prefix = prefix + settings.get('prompt_suffix')
 
-        #set up widgets
+        # set up widgets
         leftpart = urwid.Text(prefix, align='left')
         editpart = CompleteEdit(completer, on_exit=select_or_cancel,
                                 edit_text=text, history=history)
@@ -435,7 +438,7 @@ class UI(object):
             self._passall = False
             d.callback(text)
 
-        #set up widgets
+        # set up widgets
         msgpart = urwid.Text(message)
         choicespart = ChoiceWidget(choices, callback=select_or_cancel,
                                    select=select, cancel=cancel)
@@ -588,7 +591,8 @@ class UI(object):
             def call_posthook(retval_from_apply):
                 if cmd.posthook:
                     logging.info('calling post-hook')
-                    return defer.maybeDeferred(cmd.posthook, ui=self, dbm=self.dbman)
+                    return defer.maybeDeferred(cmd.posthook, ui=self,
+                                               dbm=self.dbman)
 
             # define error handler for Failures/Exceptions
             # raised in cmd.apply()
@@ -597,7 +601,8 @@ class UI(object):
                 errmsg = failure.getErrorMessage()
                 if errmsg:
                     msg = "%s\n(check the log for details)"
-                    self.notify(msg % failure.getErrorMessage(), priority='error')
+                    self.notify(
+                        msg % failure.getErrorMessage(), priority='error')
 
             # call cmd.apply
             def call_apply(ignored):
