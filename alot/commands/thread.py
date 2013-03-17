@@ -956,6 +956,14 @@ class TagCommand(Command):
         def refresh_widgets():
             for mt in messagetrees:
                 mt.refresh()
+
+            # put currently selected message id on a block list for the
+            # auto-remove-unread feature. This makes sure that explicit
+            # tag-unread commands for the current message are not undone on the
+            # next keypress (triggering the autorm again)...
+            mid = tbuffer.get_selected_mid()
+            tbuffer._auto_unread_dont_touch_mids.add(mid)
+
             tbuffer.refresh()
 
         tags = filter(lambda x: x, self.tagsstring.split(','))
