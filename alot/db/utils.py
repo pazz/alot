@@ -86,31 +86,43 @@ def extract_body(mail, types=None):
             #get mime handler
             key = 'copiousoutput'
             handler, entry = settings.mailcap_find_match(ctype, key=key)
+            tempfile_name = None
+            stdin = None
 
             if entry:
-                # open tempfile, respect mailcaps nametemplate
-                nametemplate = entry.get('nametemplate', '%s')
-                prefix, suffix = parse_mailcap_nametemplate(nametemplate)
-                tmpfile = tempfile.NamedTemporaryFile(delete=False,
-                                                      prefix=prefix,
-                                                      suffix=suffix)
-                # write payload to tmpfile
-                tmpfile.write(raw_payload)
-                tmpfile.close()
+                handler_raw_commandstring = entry['view']
+                # in case the mailcap defined command contains no '%s',
+                # we pipe the files content to the handling command via stdin
+                if '%s' in handler_raw_commandstring:
+                    # open tempfile, respect mailcaps nametemplate
+                    nametemplate = entry.get('nametemplate', '%s')
+                    prefix, suffix = parse_mailcap_nametemplate(nametemplate)
+                    tmpfile = tempfile.NamedTemporaryFile(delete=False,
+                                                        prefix=prefix,
+                                                        suffix=suffix)
+                    # write payload to tmpfile
+                    tmpfile.write(raw_payload)
+                    tmpfile.close()
+                    tempfile_name = tmpfile.name
+                else:
+                    stdin = raw_payload
 
                 # read parameter, create handler command
                 parms = tuple(map('='.join, part.get_params()))
 
                 # create and call external command
                 cmd = mailcap.subst(entry['view'], ctype,
-                                    filename=tmpfile.name, plist=parms)
+                                    filename=tempfile_name, plist=parms)
                 logging.debug('command: %s' % cmd)
                 logging.debug('parms: %s' % str(parms))
                 cmdlist = split_commandstring(cmd)
                 # call handler
-                rendered_payload, errmsg, retval = helper.call_cmd(cmdlist)
+                rendered_payload, errmsg, retval = helper.call_cmd(cmdlist, stdin=stdin)
+
                 # remove tempfile
-                os.unlink(tmpfile.name)
+                if tempfile_name:
+                    os.unlink(tempfile_name)
+
                 if rendered_payload:  # handler had output
                     body_parts.append(string_sanitize(rendered_payload))
     return u'\n\n'.join(body_parts)
