@@ -356,3 +356,11 @@ class NestedTree(Tree):
     def prev_sibling_position(self, pos):
         candidate = self._prev_sibling_position(self._tree, pos)
         return self._sanitize_position(candidate, self._tree)
+
+    def last_decendant(self, pos):
+        def lastd(pos):
+            c = self.last_child_position(pos)
+            if c is not None:
+                c = self.last_sibling_position(c)
+            return c
+        return self._last_in_direction(pos, lastd)
