@@ -324,7 +324,7 @@ class Envelope(object):
             # interpret 'Attach' pseudo header
             if 'Attach' in self:
                 to_attach = []
-                for line in self['Attach']:
+                for line in self.get_all('Attach'):
                     gpath = os.path.expanduser(line.strip())
                     to_attach += filter(os.path.isfile, glob.glob(gpath))
                 logging.debug('Attaching: %s' % to_attach)
