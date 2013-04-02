@@ -391,9 +391,14 @@ def guess_encoding(blob):
     :returns: encoding
     :rtype: str
     """
-    m = magic.open(magic.MAGIC_MIME_ENCODING)
-    m.load()
-    return m.buffer(blob)
+    if hasattr(magic, 'open'):
+        m = magic.open(magic.MAGIC_MIME_TYPE)
+        m.load()
+        return m.buffer(blob)
+    elif hasattr(magic, 'from_buffer'):
+        return magic.from_buffer(blob, mime=True)
+    else:
+        raise Exception('Unknown magic API')
 
 
 # TODO: make this work on blobs, not paths
