@@ -375,9 +375,7 @@ def guess_mimetype(blob):
     :rtype: str
     """
     mimetype = 'application/octet-stream'
-    m = magic.open(magic.MAGIC_MIME_TYPE)
-    m.load()
-    magictype = m.buffer(blob)
+    magictype = guess_encoding(blob)
     # libmagic does not always return proper mimetype strings, cf. issue #459
     if re.match(r'\w+\/\w+', magictype):
         mimetype = magictype
@@ -393,9 +391,25 @@ def guess_encoding(blob):
     :returns: encoding
     :rtype: str
     """
-    m = magic.open(magic.MAGIC_MIME_ENCODING)
-    m.load()
-    return m.buffer(blob)
+    # this is a bit of a hack to support different versions of python magic.
+    # Hopefully at some point this will no longer be necessary
+    #
+    # the version with open() is the bindings shipped with the file source from
+    # http://darwinsys.com/file/ - this is what is used by the python-magic
+    # package on Debian/Ubuntu.  However it is not available on pypi/via pip.
+    #
+    # the version with from_buffer() is from https://github.com/ahupp/python-magic
+    # which is installable via pip.
+    #
+    # for more detail see https://github.com/pazz/alot/pull/588
+    if hasattr(magic, 'open'):
+        m = magic.open(magic.MAGIC_MIME_TYPE)
+        m.load()
+        return m.buffer(blob)
+    elif hasattr(magic, 'from_buffer'):
+        return magic.from_buffer(blob, mime=True)
+    else:
+        raise Exception('Unknown magic API')
 
 
 # TODO: make this work on blobs, not paths
