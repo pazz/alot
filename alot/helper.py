@@ -391,6 +391,17 @@ def guess_encoding(blob):
     :returns: encoding
     :rtype: str
     """
+    # this is a bit of a hack to support different versions of python magic.
+    # Hopefully at some point this will no longer be necessary
+    #
+    # the version with open() is the bindings shipped with the file source from
+    # http://darwinsys.com/file/ - this is what is used by the python-magic
+    # package on Debian/Ubuntu.  However it is not available on pypi/via pip.
+    #
+    # the version with from_buffer() is from https://github.com/ahupp/python-magic
+    # which is installable via pip.
+    #
+    # for more detail see https://github.com/pazz/alot/pull/588
     if hasattr(magic, 'open'):
         m = magic.open(magic.MAGIC_MIME_TYPE)
         m.load()
