@@ -18,7 +18,7 @@ import alot.helper as helper
 import alot.crypto as crypto
 import gpgme
 from alot.settings import settings
-from alot.errors import GPGProblem
+from alot.errors import GPGProblem, GPGCode
 
 from attachment import Attachment
 from utils import encode_header
@@ -192,8 +192,9 @@ class Envelope(object):
                 signatures, signature_str = crypto.detached_signature_for(
                     plaintext, self.sign_key)
                 if len(signatures) != 1:
-                    raise GPGProblem(("Could not sign message "
-                                      "(GPGME did not return a signature)"))
+                    raise GPGProblem("Could not sign message (GPGME "
+                                     "did not return a signature)",
+                                     code=GPGCode.KEY_CANNOT_SIGN)
             except gpgme.GpgmeError as e:
                 if e.code == gpgme.ERR_BAD_PASSPHRASE:
                     # If GPG_AGENT_INFO is unset or empty, the user just does
@@ -201,11 +202,12 @@ class Envelope(object):
                     if os.environ.get('GPG_AGENT_INFO', '').strip() == '':
                         msg = "Got invalid passphrase and GPG_AGENT_INFO\
                                 not set. Please set up gpg-agent."
-                        raise GPGProblem(msg)
+                        raise GPGProblem(msg, code=GPGCode.BAD_PASSPHRASE)
                     else:
-                        raise GPGProblem(("Bad passphrase. Is "
-                                          "gpg-agent running?"))
-                raise GPGProblem(str(e))
+                        raise GPGProblem("Bad passphrase. Is gpg-agent "
+                                         "running?",
+                                         code=GPGCode.BAD_PASSPHRASE)
+                raise GPGProblem(str(e), code=GPGCode.KEY_CANNOT_SIGN)
 
             micalg = crypto.RFC3156_micalg_from_algo(signatures[0].hash_algo)
             unencrypted_msg = MIMEMultipart('signed', micalg=micalg,
@@ -235,7 +237,7 @@ class Envelope(object):
                 encrypted_str = crypto.encrypt(plaintext,
                                                self.encrypt_keys.values())
             except gpgme.GpgmeError as e:
-                raise GPGProblem(str(e))
+                raise GPGProblem(str(e), code=GPGCode.KEY_CANNOT_ENCRYPT)
 
             outer_msg = MIMEMultipart('encrypted',
                                       protocol='application/pgp-encrypted')
