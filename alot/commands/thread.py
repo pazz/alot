@@ -8,7 +8,7 @@ import tempfile
 import argparse
 from twisted.internet.defer import inlineCallbacks
 import subprocess
-from email.Utils import getaddresses
+from email.Utils import getaddresses, parseaddr
 import mailcap
 from cStringIO import StringIO
 
@@ -159,14 +159,26 @@ class ReplyCommand(Command):
 
         # set To
         sender = mail['Reply-To'] or mail['From']
-        recipients = [sender]
         my_addresses = settings.get_addresses()
+        sender_address = parseaddr(sender)[1]
+
+        # check if reply is to self sent message
+        if sender_address in my_addresses:
+            recipients = [mail['To']]
+            logging.debug('Replying to own message, set recipients to: %s' 
+                % recipients)
+        else:
+            recipients = [sender]
+
         if self.groupreply:
             if sender != mail['From']:
                 recipients.append(mail['From'])
-            cleared = self.clear_my_address(
-                my_addresses, mail.get_all('To', []))
-            recipients.append(cleared)
+
+            # append To addresses if not replying to self sent message
+            if sender_address not in my_addresses:
+                cleared = self.clear_my_address(
+                    my_addresses, mail.get_all('To', []))
+                recipients.append(cleared)
 
             # copy cc for group-replies
             if 'Cc' in mail:
