@@ -282,8 +282,17 @@ class SearchBuffer(Buffer):
             thread = threadlinewidget.get_thread()
         return thread
 
+    def consume_pipe(self):
+        while not self.threadlist.empty:
+            self.threadlist._get_next_item()
+
     def focus_first(self):
         self.body.set_focus(0)
+
+    def focus_last(self):
+        self.consume_pipe()
+        num_lines = len(self.threadlist.get_lines())
+        self.body.set_focus(num_lines-1)
 
 
 class ThreadBuffer(Buffer):

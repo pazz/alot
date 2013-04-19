@@ -800,7 +800,7 @@ class ComposeCommand(Command):
 @registerCommand(MODE, 'move', help='move focus in current buffer',
                  arguments=[(['movement'], {
                              'nargs':argparse.REMAINDER,
-                             'help':'up, down, page up, page down, first'})])
+                             'help':'up, down, [half]page up, [half]page down, first'})])
 class MoveCommand(Command):
     """move in widget"""
     def __init__(self, movement=None, **kwargs):
@@ -813,6 +813,9 @@ class MoveCommand(Command):
     def apply(self, ui):
         if self.movement in ['up', 'down', 'page up', 'page down']:
             ui.mainloop.process_input([self.movement])
+        elif self.movement in [ 'halfpage down', 'halfpage up']:
+            ui.mainloop.process_input(
+                    ui.mainloop.screen_size[1]/2 * [self.movement.split()[-1]])
         elif self.movement == 'first':
             ui.current_buffer.focus_first()
         else:
