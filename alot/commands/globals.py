@@ -100,6 +100,7 @@ class PromptCommand(Command):
         """
         self.startwith = startwith
         Command.__init__(self, **kwargs)
+        self.repeatable = False
 
     @inlineCallbacks
     def apply(self, ui):
@@ -313,6 +314,10 @@ class PythonShellCommand(Command):
 @registerCommand(MODE, 'repeat')
 class RepeatCommand(Command):
     """Repeats the command executed last time"""
+    def __init__(self, **kwargs):
+        Command.__init__(self, **kwargs)
+        self.repeatable = False
+
     def apply(self, ui):
         if ui.last_commandline is not None:
             ui.apply_commandline(ui.last_commandline)
@@ -809,6 +814,7 @@ class MoveCommand(Command):
         else:
             self.movement = ' '.join(movement)
         Command.__init__(self, **kwargs)
+        self.repeatable = False
 
     def apply(self, ui):
         if self.movement in ['up', 'down', 'page up', 'page down']:

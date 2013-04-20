@@ -187,8 +187,7 @@ class UI(object):
 
         # store cmdline for use with 'repeat' command
         cmdline = cmdline.lstrip()
-        if not cmdline.startswith('prompt') and \
-           not cmdline.startswith('repeat'):
+        if cmd.repeatable:
             self.last_commandline = cmdline
 
     def _unhandeled_input(self, key):
