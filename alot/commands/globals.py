@@ -27,7 +27,7 @@ from alot.completion import TagsCompleter
 from alot.db.envelope import Envelope
 from alot import commands
 from alot.settings import settings
-from alot.helper import split_commandstring
+from alot.helper import split_commandstring, split_commandline
 from alot.utils.booleanaction import BooleanAction
 
 MODE = 'global'
@@ -832,14 +832,22 @@ class MoveCommand(Command):
 class CommandSequenceCommand(Command):
     """Meta-Command that just applies a sequence of given Commands in order"""
 
-    def __init__(self, commandlist=[], **kwargs):
+    def __init__(self, cmdline='', **kwargs):
         Command.__init__(self, **kwargs)
-        self.commandlist = commandlist
+        self.cmdline = cmdline
 
     @inlineCallbacks
     def apply(self, ui):
-        for cmdstring in self.commandlist:
+        # split commandline if necessary
+        for cmdstring in split_commandline(self.cmdline):
             logging.debug('CMDSEQ: apply %s' % str(cmdstring))
             # translate cmdstring into :class:`Command`
-            cmd = commandfactory(cmdstring, ui.mode)
+            try:
+                cmd = commandfactory(cmdstring, ui.mode)
+                # store cmdline for use with 'repeat' command
+                if cmd.repeatable:
+                    ui.last_commandline = self.cmdline.lstrip()
+            except CommandParseError, e:
+                ui.notify(e.message, priority='error')
+                return
             yield ui.apply_command(cmd)
