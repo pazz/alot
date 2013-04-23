@@ -26,6 +26,7 @@ class OpenThreadCommand(Command):
         """
         self.thread = thread
         Command.__init__(self, **kwargs)
+        self.repeatable = False
 
     def apply(self, ui):
         if not self.thread:
