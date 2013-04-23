@@ -244,6 +244,17 @@
     :default: 5
 
 
+.. _followup-to:
+
+.. describe:: followup_to
+
+     When one of the recipients of an email is a subscribed mailing list, set the
+     "Mail-Followup-To" header to the list of recipients without yourself
+
+    :type: boolean
+    :default: False
+
+
 .. _forward-force-address:
 
 .. describe:: forward_force_address
@@ -277,6 +288,18 @@
     :default: "Fwd: "
 
 
+.. _honor-followup-to:
+
+.. describe:: honor_followup_to
+
+     When group-reply-ing to an email that has the "Mail-Followup-To" header set,
+     use the content of this header as the new "To" header and leave the "Cc"
+     header empty
+
+    :type: boolean
+    :default: False
+
+
 .. _hooksfile:
 
 .. describe:: hooksfile
@@ -305,6 +328,16 @@
 
     :type: float
     :default: 1.0
+
+
+.. _mailinglists:
+
+.. describe:: mailinglists
+
+     The list of addresses associated to the mailinglists you are subscribed to
+
+    :type: string list
+    :default: ,
 
 
 .. _notify-timeout:
