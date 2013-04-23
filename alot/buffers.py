@@ -246,7 +246,6 @@ class SearchBuffer(Buffer):
 
     def rebuild(self):
         self.isinitialized = True
-
         self.kill_filler_process()
 
         self.result_count = self.dbman.count_messages(self.querystring)
