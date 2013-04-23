@@ -114,7 +114,7 @@ The following commands are available in envelope mode
 
 .. describe:: toggleencrypt
 
-    toggle whether message should be encrypted before sendout
+    toggle if message should be encrypted before sendout
 
     argument
         keyid of the key to encrypt with
