@@ -10,9 +10,7 @@ MODE = 'taglist'
 @registerCommand(MODE, 'select')
 class TaglistSelectCommand(Command):
     """search for messages with selected tag"""
-    def __init__(self, **kwargs):
-        Command.__init__(self, **kwargs)
-        self.repeatable = False
+    repeatable = False
 
     def apply(self, ui):
         tagstring = ui.current_buffer.get_selected_tag()
