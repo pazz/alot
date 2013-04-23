@@ -16,6 +16,7 @@ from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
 import urwid
 import magic
+import chardet
 from twisted.internet import reactor
 from twisted.internet.protocol import ProcessProtocol
 from twisted.internet.defer import Deferred
@@ -374,23 +375,6 @@ def guess_mimetype(blob):
     :returns: mime-type, falls back to 'application/octet-stream'
     :rtype: str
     """
-    mimetype = 'application/octet-stream'
-    magictype = guess_encoding(blob)
-    # libmagic does not always return proper mimetype strings, cf. issue #459
-    if re.match(r'\w+\/\w+', magictype):
-        mimetype = magictype
-    return mimetype
-
-
-def guess_encoding(blob):
-    """
-    uses file magic to determine the encoding of the given data blob.
-
-    :param blob: file content as read by file.read()
-    :type blob: data
-    :returns: encoding
-    :rtype: str
-    """
     # this is a bit of a hack to support different versions of python magic.
     # Hopefully at some point this will no longer be necessary
     #
@@ -402,14 +386,32 @@ def guess_encoding(blob):
     # which is installable via pip.
     #
     # for more detail see https://github.com/pazz/alot/pull/588
+    # libmagic does not always return proper mimetype strings, cf. issue #459
+    mimetype = ''
     if hasattr(magic, 'open'):
         m = magic.open(magic.MAGIC_MIME_TYPE)
         m.load()
-        return m.buffer(blob)
+        mimetype = m.buffer(blob)
     elif hasattr(magic, 'from_buffer'):
-        return magic.from_buffer(blob, mime=True)
+        mimetype = magic.from_buffer(blob, mime=True)
     else:
         raise Exception('Unknown magic API')
+
+    if re.match(r'\w+\/\w+', mimetype):
+        return mimetype
+    return 'application/octet-stream'
+
+
+def guess_encoding(blob):
+    """
+    uses file chardet to determine the encoding of the given data blob.
+
+    :param blob: file content as read by file.read()
+    :type blob: data
+    :returns: encoding
+    :rtype: str
+    """
+    return chardet.detect(blob)['encoding']
 
 
 # TODO: make this work on blobs, not paths
