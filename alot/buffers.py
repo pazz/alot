@@ -564,10 +564,10 @@ class TagListBuffer(Buffer):
 
     modename = 'taglist'
 
-    def __init__(self, ui, alltags=[], filtfun=None):
+    def __init__(self, ui, alltags_with_counts={}, filtfun=None):
         self.filtfun = filtfun
         self.ui = ui
-        self.tags = alltags
+        self.tags_with_counts = alltags_with_counts
         self.isinitialized = False
         self.rebuild()
         Buffer.__init__(self, ui, self.body)
@@ -580,7 +580,8 @@ class TagListBuffer(Buffer):
             self.isinitialized = True
 
         lines = list()
-        displayedtags = sorted(filter(self.filtfun, self.tags),
+        displayedtags = sorted(filter(self.filtfun,
+                                      self.tags_with_counts.keys()),
                                key=unicode.lower)
         for (num, b) in enumerate(displayedtags):
             if (num % 2) == 0:
@@ -595,6 +596,12 @@ class TagListBuffer(Buffer):
                 rows.append(urwid.Text(b + ' [hidden]'))
             elif tw.translated is not b:
                 rows.append(urwid.Text('(%s)' % b))
+            # print counts if enabled
+            if self.tags_with_counts[b]:
+                threads_count = self.tags_with_counts[b][0]
+                unread_count = self.tags_with_counts[b][1]
+                rows.append(urwid.Text(' (%d / %d)' % (unread_count,
+                                                   threads_count)))
             line = urwid.Columns(rows, dividechars=1)
             line = urwid.AttrMap(line, attr, focus_att)
             lines.append(line)

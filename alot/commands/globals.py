@@ -462,15 +462,30 @@ class TagListCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
+        tags_with_count = {}
         tags = ui.dbman.get_all_tags()
+        for tag in tags:
+            if settings.get('show_count_in_tag_list') == 'threads':
+                threads_count = ui.dbman.count_threads("tag:%s" % tag)
+                unread_count = ui.dbman.count_threads(
+                    "tag:%s AND tag:unread" % tag)
+                tags_with_count[tag] = [threads_count, unread_count]
+            elif settings.get('show_count_in_tag_list') == 'messages':
+                messages_count = ui.dbman.count_messages("tag:%s" % tag)
+                unread_count = ui.dbman.count_messages(
+                    "tag:%s AND tag:unread" % tag)
+                tags_with_count[tag] = [messages_count, unread_count]
+            else:
+                tags_with_count[tag] = []
         blists = ui.get_buffers_of_type(buffers.TagListBuffer)
         if blists:
             buf = blists[0]
-            buf.tags = tags
+            buf.tags_with_count = tags_with_count
             buf.rebuild()
             ui.buffer_focus(buf)
         else:
-            ui.buffer_open(buffers.TagListBuffer(ui, tags, self.filtfun))
+            ui.buffer_open(buffers.TagListBuffer(ui, tags_with_count,
+                                                 self.filtfun))
 
 
 @registerCommand(MODE, 'flush')

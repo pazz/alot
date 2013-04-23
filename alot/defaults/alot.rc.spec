@@ -22,6 +22,13 @@ bufferclose_focus_offset = integer(default=-1)
 # number of colours to use
 colourmode = option(1, 16, 256, default=256)
 
+# Show the number of threads or messages besides the tag in the tag list
+# widget along with the number of unread items within it.
+# Calculation of the number of threads is much more expensive than the number
+# of messages and may result in severely longer loading times for the tag list
+# widget.
+show_count_in_tag_list = option('threads', 'messages', 'none', default='none')
+
 # number of spaces used to replace tab characters
 tabwidth = integer(default=8)
 
