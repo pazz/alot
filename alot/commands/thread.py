@@ -55,21 +55,22 @@ def determine_sender(mail, action='reply'):
     my_accounts = settings.get_accounts()
     assert my_accounts, 'no accounts set!'
 
-    # extract list of recipients to check for my address
-    recipients = getaddresses(mail.get_all('To', [])
-                              + mail.get_all('Cc', [])
-                              + mail.get_all('Delivered-To', []))
+    # extract list of addresses to check for my address
+    candidate_addresses = getaddresses(mail.get_all('To', []) +
+                                       mail.get_all('Cc', []) +
+                                       mail.get_all('Delivered-To', []) +
+                                       mail.get_all('From', []))
 
-    logging.debug('recipients: %s' % recipients)
-    # pick the most important account that has an address in recipients
-    # and use that accounts realname and the found recipient address
+    logging.debug('candidate addresses: %s' % candidate_addresses)
+    # pick the most important account that has an address in candidates
+    # and use that accounts realname and the address found here
     for account in my_accounts:
         acc_addresses = account.get_addresses()
         for alias in acc_addresses:
             if realname is not None:
                 break
             regex = re.compile(alias)
-            for seen_name, seen_address in recipients:
+            for seen_name, seen_address in candidate_addresses:
                 if regex.match(seen_address):
                     logging.debug("match!: '%s' '%s'" % (seen_address, alias))
                     if settings.get(action + '_force_realname'):
@@ -166,16 +167,17 @@ class ReplyCommand(Command):
         # check if reply is to self sent message
         if sender_address in my_addresses:
             recipients = [mail['To']]
-            logging.debug('Replying to own message, set recipients to: %s'
-                % recipients)
+            emsg = 'Replying to own message, set recipients to: %s' \
+                % recipients
+            logging.debug(emsg)
         else:
             recipients = [sender]
 
         if self.groupreply:
             # make sure that our own address is not included
-            # if the message was self-sent, then our address is not included anyways
-            followupto = self.clear_my_address(
-                    my_addresses, mail.get_all('Mail-Followup-To', []))
+            # if the message was self-sent, then our address is not included
+            MFT = mail.get_all('Mail-Followup-To', [])
+            followupto = self.clear_my_address(my_addresses, MFT)
             if followupto and settings.get('honor_followup_to'):
                 logging.debug('honor followup to: %s', followupto)
                 recipients = [followupto]
@@ -204,10 +206,10 @@ class ReplyCommand(Command):
         # set Mail-Followup-To header so that duplicates are avoided
         if settings.get('followup_to'):
             # to and cc are already cleared of our own address
-            allrecipients = [to]+[cc]
+            allrecipients = [to] + [cc]
             lists = settings.get('mailinglists')
-            # check if any address in the recipients matches a known mailing list
-            if any([addr in lists for n,addr in getaddresses(allrecipients)]):
+            # check if any recipient address matches a known mailing list
+            if any([addr in lists for n, addr in getaddresses(allrecipients)]):
                 followupto = ', '.join(allrecipients)
                 logging.debug('mail followup to: %s' % followupto)
                 envelope.add('Mail-Followup-To', decode_header(followupto))
