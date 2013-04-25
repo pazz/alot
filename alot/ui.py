@@ -122,15 +122,15 @@ class UI(object):
             def fire(ignored, cmdline):
                 clear()
                 logging.debug("cmdline: '%s'" % cmdline)
-                # move keys are always passed
-                if cmdline in ['move up', 'move down', 'move page up',
-                               'move page down']:
-                    return [cmdline[5:]]
-                elif not self._locked:
+                if not self._locked:
                     try:
                         self.apply_commandline(cmdline)
                     except CommandParseError, e:
                         self.notify(e.message, priority='error')
+                # move keys are always passed
+                elif cmdline in ['move up', 'move down', 'move page up',
+                               'move page down']:
+                    return [cmdline[5:]]
 
             key = keys[0]
             self.input_queue.append(key)
