@@ -20,7 +20,6 @@ class Command(object):
         self.prehook = None
         self.posthook = None
         self.undoable = False
-        self.repeatable = True
         self.help = self.__doc__
 
     def apply(self, caller):
