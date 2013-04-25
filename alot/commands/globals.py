@@ -848,7 +848,7 @@ class CommandSequenceCommand(Command):
             try:
                 cmd = commandfactory(cmdstring, ui.mode)
                 # store cmdline for use with 'repeat' command
-                if type(cmd).repeatable:
+                if cmd.repeatable:
                     ui.last_commandline = self.cmdline.lstrip()
             except CommandParseError, e:
                 ui.notify(e.message, priority='error')
