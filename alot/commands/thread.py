@@ -919,6 +919,8 @@ class ThreadSelectCommand(Command):
     """select focussed element. The fired action depends on the focus:
         - if message summary, this toggles visibility of the message,
         - if attachment line, this opens the attachment"""
+    repeatable = False
+
     def apply(self, ui):
         focus = ui.get_deep_focus()
         if isinstance(focus, AttachmentWidget):

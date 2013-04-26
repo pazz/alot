@@ -27,7 +27,7 @@ from alot.completion import TagsCompleter
 from alot.db.envelope import Envelope
 from alot import commands
 from alot.settings import settings
-from alot.helper import split_commandstring
+from alot.helper import split_commandstring, split_commandline
 from alot.utils.booleanaction import BooleanAction
 
 MODE = 'global'
@@ -93,6 +93,8 @@ class SearchCommand(Command):
     (['startwith'], {'nargs':'?', 'default':'', 'help':'initial content'})])
 class PromptCommand(Command):
     """prompts for commandline and interprets it upon select"""
+    repeatable = False
+
     def __init__(self, startwith='', **kwargs):
         """
         :param startwith: initial content of the prompt widget
@@ -313,6 +315,11 @@ class PythonShellCommand(Command):
 @registerCommand(MODE, 'repeat')
 class RepeatCommand(Command):
     """Repeats the command executed last time"""
+    repeatable = False
+
+    def __init__(self, **kwargs):
+        Command.__init__(self, **kwargs)
+
     def apply(self, ui):
         if ui.last_commandline is not None:
             ui.apply_commandline(ui.last_commandline)
@@ -803,6 +810,8 @@ class ComposeCommand(Command):
                              'help':'up, down, [half]page up, [half]page down, first'})])
 class MoveCommand(Command):
     """move in widget"""
+    repeatable = False
+
     def __init__(self, movement=None, **kwargs):
         if movement is None:
             self.movement = ''
@@ -826,14 +835,22 @@ class MoveCommand(Command):
 class CommandSequenceCommand(Command):
     """Meta-Command that just applies a sequence of given Commands in order"""
 
-    def __init__(self, commandlist=[], **kwargs):
+    def __init__(self, cmdline='', **kwargs):
         Command.__init__(self, **kwargs)
-        self.commandlist = commandlist
+        self.cmdline = cmdline
 
     @inlineCallbacks
     def apply(self, ui):
-        for cmdstring in self.commandlist:
+        # split commandline if necessary
+        for cmdstring in split_commandline(self.cmdline):
             logging.debug('CMDSEQ: apply %s' % str(cmdstring))
             # translate cmdstring into :class:`Command`
-            cmd = commandfactory(cmdstring, ui.mode)
+            try:
+                cmd = commandfactory(cmdstring, ui.mode)
+                # store cmdline for use with 'repeat' command
+                if cmd.repeatable:
+                    ui.last_commandline = self.cmdline.lstrip()
+            except CommandParseError, e:
+                ui.notify(e.message, priority='error')
+                return
             yield ui.apply_command(cmd)
