@@ -32,21 +32,21 @@ class UI(object):
         :param colourmode: determines which theme to chose
         :type colourmode: int in [1,16,256]
         """
-        # Database Manager (:class:`~alot.db.manager.DBManager`)
+        #: Database Manager (:class:`~alot.db.manager.DBManager`)
         self.dbman = dbman
-        # list of active buffers
+        #: list of active buffers
         self.buffers = []
-        # points to currently active :class:`~alot.buffers.Buffer`
+        #: points to currently active :class:`~alot.buffers.Buffer`
         self.current_buffer = None
-        # flag used to prevent multiple 'index locked' notifications
+        #: flag used to prevent multiple 'index locked' notifications
         self.db_was_locked = False
-        # interface mode identifier - type of current buffer
+        #: interface mode identifier - type of current buffer
         self.mode = 'global'
-        # history of the command line prompt
+        #: history of the command line prompt
         self.commandprompthistory = []
-        # stores partial keyboard input
+        #: stores partial keyboard input
         self.input_queue = []
-        # saves the last executed commandline"""
+        #: saves the last executed commandline
         self.last_commandline = None
         # define empty notification pile
         self._notificationbar = None
