@@ -55,21 +55,22 @@ def determine_sender(mail, action='reply'):
     my_accounts = settings.get_accounts()
     assert my_accounts, 'no accounts set!'
 
-    # extract list of recipients to check for my address
-    recipients = getaddresses(mail.get_all('To', [])
-                              + mail.get_all('Cc', [])
-                              + mail.get_all('Delivered-To', []))
+    # extract list of addresses to check for my address
+    candidate_addresses = getaddresses(mail.get_all('To', []) +
+                                       mail.get_all('Cc', []) +
+                                       mail.get_all('Delivered-To', []) +
+                                       mail.get_all('From', []))
 
-    logging.debug('recipients: %s' % recipients)
-    # pick the most important account that has an address in recipients
-    # and use that accounts realname and the found recipient address
+    logging.debug('candidate addresses: %s' % candidate_addresses)
+    # pick the most important account that has an address in candidates
+    # and use that accounts realname and the address found here
     for account in my_accounts:
         acc_addresses = account.get_addresses()
         for alias in acc_addresses:
             if realname is not None:
                 break
             regex = re.compile(alias)
-            for seen_name, seen_address in recipients:
+            for seen_name, seen_address in candidate_addresses:
                 if regex.match(seen_address):
                     logging.debug("match!: '%s' '%s'" % (seen_address, alias))
                     if settings.get(action + '_force_realname'):
@@ -161,34 +162,57 @@ class ReplyCommand(Command):
         sender = mail['Reply-To'] or mail['From']
         my_addresses = settings.get_addresses()
         sender_address = parseaddr(sender)[1]
+        cc = ''
 
         # check if reply is to self sent message
         if sender_address in my_addresses:
             recipients = [mail['To']]
-            logging.debug('Replying to own message, set recipients to: %s' 
-                % recipients)
+            emsg = 'Replying to own message, set recipients to: %s' \
+                % recipients
+            logging.debug(emsg)
         else:
             recipients = [sender]
 
         if self.groupreply:
-            if sender != mail['From']:
-                recipients.append(mail['From'])
+            # make sure that our own address is not included
+            # if the message was self-sent, then our address is not included
+            MFT = mail.get_all('Mail-Followup-To', [])
+            followupto = self.clear_my_address(my_addresses, MFT)
+            if followupto and settings.get('honor_followup_to'):
+                logging.debug('honor followup to: %s', followupto)
+                recipients = [followupto]
+                # since Mail-Followup-To was set, ignore the Cc header
+            else:
+                if sender != mail['From']:
+                    recipients.append(mail['From'])
 
-            # append To addresses if not replying to self sent message
-            if sender_address not in my_addresses:
-                cleared = self.clear_my_address(
-                    my_addresses, mail.get_all('To', []))
-                recipients.append(cleared)
+                # append To addresses if not replying to self sent message
+                if sender_address not in my_addresses:
+                    cleared = self.clear_my_address(
+                        my_addresses, mail.get_all('To', []))
+                    recipients.append(cleared)
 
-            # copy cc for group-replies
-            if 'Cc' in mail:
-                cc = self.clear_my_address(
-                    my_addresses, mail.get_all('Cc', []))
-                envelope.add('Cc', decode_header(cc))
+                # copy cc for group-replies
+                if 'Cc' in mail:
+                    cc = self.clear_my_address(
+                        my_addresses, mail.get_all('Cc', []))
+                    envelope.add('Cc', decode_header(cc))
 
         to = ', '.join(recipients)
         logging.debug('reply to: %s' % to)
         envelope.add('To', decode_header(to))
+
+        # if any of the recipients is a mailinglist that we are subscribed to,
+        # set Mail-Followup-To header so that duplicates are avoided
+        if settings.get('followup_to'):
+            # to and cc are already cleared of our own address
+            allrecipients = [to] + [cc]
+            lists = settings.get('mailinglists')
+            # check if any recipient address matches a known mailing list
+            if any([addr in lists for n, addr in getaddresses(allrecipients)]):
+                followupto = ', '.join(allrecipients)
+                logging.debug('mail followup to: %s' % followupto)
+                envelope.add('Mail-Followup-To', decode_header(followupto))
 
         # set In-Reply-To header
         envelope.add('In-Reply-To', '<%s>' % self.message.get_message_id())
