@@ -287,7 +287,7 @@ def call_cmd(cmdlist, stdin=None):
 
     .. warning::
 
-        This returns with the first screen content for interctive commands.
+        This returns with the first screen content for interactive commands.
 
     :param cmdlist: shellcommand to call, already splitted into a list accepted
                     by :meth:`subprocess.Popen`
