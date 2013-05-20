@@ -100,6 +100,7 @@ class TextlinesList(SimpleTree):
         :class:`SimpleTree` that contains a list of all-level-0 Text widgets
         for each line in content.
         """
+        """ TODO: text comes with ANSI escapes """
         structure = []
         for line in content.splitlines():
             structure.append((FocusableText(line, attr, attr_focus), None))
@@ -232,6 +233,7 @@ class MessageTree(CollapsibleTree):
     def _get_source(self):
         if self._sourcetree is None:
             sourcetxt = self._message.get_email().as_string()
+            """TODO: Apply syntax to source"""
             att = settings.get_theming_attribute('thread', 'body')
             att_focus = settings.get_theming_attribute('thread', 'body_focus')
             self._sourcetree = TextlinesList(sourcetxt, att, att_focus)
@@ -241,6 +243,7 @@ class MessageTree(CollapsibleTree):
         if self._bodytree is None:
             bodytxt = extract_body(self._message.get_email())
             if bodytxt:
+                """TODO: Apply syntax to bodytxt"""
                 att = settings.get_theming_attribute('thread', 'body')
                 att_focus = settings.get_theming_attribute(
                     'thread', 'body_focus')
