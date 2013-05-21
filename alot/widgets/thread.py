@@ -10,6 +10,7 @@ import logging
 from alot.settings import settings
 from alot.db.utils import decode_header
 from alot.helper import tag_cmp
+from alot.helper import parse_escapes_to_urwid
 from alot.widgets.globals import TagWidget
 from alot.widgets.globals import AttachmentWidget
 from alot.foreign.urwidtrees import Tree, SimpleTree, CollapsibleTree
@@ -93,16 +94,15 @@ class FocusableText(urwid.WidgetWrap):
     def keypress(self, size, key):
         return key
 
-
 class TextlinesList(SimpleTree):
     def __init__(self, content, attr=None, attr_focus=None):
         """
         :class:`SimpleTree` that contains a list of all-level-0 Text widgets
         for each line in content.
         """
-        """ TODO: text comes with ANSI escapes """
         structure = []
         for line in content.splitlines():
+            line = parse_escapes_to_urwid(line)
             structure.append((FocusableText(line, attr, attr_focus), None))
         SimpleTree.__init__(self, structure)
 
