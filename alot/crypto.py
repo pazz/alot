@@ -191,6 +191,24 @@ def encrypt(plaintext_str, keys=None):
     return encrypted
 
 
+def verify_detached(message, signature):
+    '''Verifies whether the message is authentic by checking the
+    signature.
+
+    :param message: the message as `str`
+    :param signature: a `str` containing an OpenPGP signature
+    :returns: a list of :class:`gpgme.Signature`
+    :raises: :class:`~alot.errors.GPGProblem` if the verification fails
+    '''
+    message_data = StringIO(message)
+    signature_data = StringIO(signature)
+    ctx = gpgme.Context()
+    try:
+        return ctx.verify(signature_data, message_data, None)
+    except gpgme.GpgmeError as e:
+        raise GPGProblem(e.message, code=e.code)
+
+
 def hash_key(key):
     """
     Returns a hash of the given key. This is a workaround for
