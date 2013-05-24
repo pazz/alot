@@ -12,12 +12,106 @@ from email.iterators import typed_subpart_iterator
 import logging
 import mailcap
 
+import alot.crypto as crypto
 import alot.helper as helper
+from alot.errors import GPGProblem
 from alot.settings import settings
 from alot.helper import string_sanitize
 from alot.helper import string_decode
 from alot.helper import parse_mailcap_nametemplate
 from alot.helper import split_commandstring
+
+X_SIGNATURE_VALID_HEADER = 'X-Alot-OpenPGP-Signature-Valid'
+X_SIGNATURE_MESSAGE_HEADER = 'X-Alot-OpenPGP-Signature-Message'
+
+
+def add_signature_headers(mail, sigs, error_msg):
+    '''Add pseudo headers to the mail indicating whether the signature
+    verification was successful.
+
+    :param mail: :class:`email.message.Message` the message to entitle
+    :param sigs: list of :class:`gpgme.Signature`
+    :param error_msg: `str` containing an error message, the empty
+                      string indicating no error
+    '''
+    sig_from = ''
+
+    if len(sigs) == 0:
+        error_msg = error_msg or 'no signature found'
+    else:
+        try:
+            sig_from = crypto.get_key(sigs[0].fpr).uids[0].uid
+        except:
+            sig_from = sigs[0].fpr
+
+    mail.add_header(
+        X_SIGNATURE_VALID_HEADER,
+        'False' if error_msg else 'True',
+    )
+    mail.add_header(
+        X_SIGNATURE_MESSAGE_HEADER,
+        'Invalid: {0}'.format(error_msg)
+        if error_msg else
+        'Valid: {0}'.format(sig_from),
+    )
+
+
+def message_from_file(handle):
+    '''Reads a mail from the given file-like object and returns an email
+    object, very much like email.message_from_file. In addition to
+    that OpenPGP encrypted data is detected and decrypted. If this
+    succeeds, any mime messages found in the recovered plaintext
+    message are added to the returned message object.
+
+    :param handle: a file-like object
+    :returns: :class:`email.message.Message` possibly augmented with decrypted data
+    '''
+    m = email.message_from_file(handle)
+
+    # make sure noone smuggles a token in (data from m is untrusted)
+    del m[X_SIGNATURE_VALID_HEADER]
+    del m[X_SIGNATURE_MESSAGE_HEADER]
+
+    # handle OpenPGP signed data
+    if m.is_multipart() and m.get_content_subtype() == 'signed':
+        # RFC 3156 is quite strict:
+        # * exactly two messages
+        # * the second is of type 'application/pgp-signature'
+        # * the second contains the detached signature
+
+        malformed = False
+        if len(m.get_payload()) != 2:
+            malformed = 'expected exactly two messages, got {0}'.format(
+                len(m.get_payload()))
+
+        want = 'application/pgp-signature'
+        ct = m.get_payload(1).get_content_type()
+        if ct != want:
+            malformed = 'expected Content-Type: {0}, got: {1}'.format(
+                want, ct)
+
+        p = {k:v for k, v in m.get_params()}
+        if p['protocol'] != want:
+            malformed = 'expected protocol={0}, got: {1}'.format(
+                want, p['protocol'])
+
+        # TODO: RFC 3156 says the alg has to be lower case, but I've
+        # seen a message with 'PGP-'. maybe we should be more
+        # permissive here, or maybe not, this is crypto stuff...
+        if not p['micalg'].startswith('pgp-'):
+            malformed = 'expected micalg=pgp-..., got: {0}'.format(p['micalg'])
+
+        sigs = []
+        if not malformed:
+            try:
+                sigs = crypto.verify_detached(m.get_payload(0).as_string(),
+                                              m.get_payload(1).get_payload())
+            except GPGProblem as e:
+                malformed = str(e)
+
+        add_signature_headers(m, sigs, malformed)
+
+    return m
 
 
 def extract_headers(mail, headers=None):
