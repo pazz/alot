@@ -511,6 +511,43 @@ class ThreadBuffer(Buffer):
         if newpos is not None:
             self.body.set_focus(newpos)
 
+    def focus_property(self, prop, direction):
+        """does a walk in the given direction and focuses the
+        first message tree that matches the given property"""
+        newpos = self.get_selected_mid()
+        newpos = direction(newpos)
+        while newpos is not None:
+            MT = self._tree[newpos]
+            if prop(MT):
+                newpos = self._sanitize_position((newpos,))
+                self.body.set_focus(newpos)
+                break
+            newpos = direction(newpos)
+
+    def focus_next_matching(self, querystring):
+        """focus next matching message in depth first order"""
+        self.focus_property(
+                lambda x: x._message.matches(querystring),
+                self._tree.next_position)
+
+    def focus_prev_matching(self, querystring):
+        """focus previous matching message in depth first order"""
+        self.focus_property(
+                lambda x: x._message.matches(querystring),
+                self._tree.prev_position)
+
+    def focus_next_unfolded(self):
+        """focus next unfolded message in depth first order"""
+        self.focus_property(
+                lambda x: not x.is_collapsed(x.root),
+                self._tree.next_position)
+
+    def focus_prev_unfolded(self):
+        """focus previous unfolded message in depth first order"""
+        self.focus_property(
+                lambda x: not x.is_collapsed(x.root),
+                self._tree.prev_position)
+
     def expand(self, msgpos):
         """expand message at given position"""
         MT = self._tree[msgpos]
