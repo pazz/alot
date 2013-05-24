@@ -11,6 +11,7 @@ charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 from email.iterators import typed_subpart_iterator
 import logging
 import mailcap
+from cStringIO import StringIO
 
 import alot.crypto as crypto
 import alot.helper as helper
@@ -111,7 +112,87 @@ def message_from_file(handle):
 
         add_signature_headers(m, sigs, malformed)
 
+    # handle OpenPGP encrypted data
+    elif (m.is_multipart() and
+        m.get_payload(0).get_content_type() == 'application/pgp-encrypted' and
+        m.get_payload(0).get_payload() == 'Version: 1'):
+        # RFC 3156 is quite strict:
+        # * exactly two messages
+        # * the first is of type 'application/pgp-encrypted'
+        # * the first contains 'Version: 1'
+        # * the second is of type 'application/octet-stream'
+        # * the second contains the encrypted and possibly signed data
+        malformed = False
+
+        want = 'application/octet-stream'
+        ct = m.get_payload(1).get_content_type()
+        if ct != want:
+            malformed = 'expected Content-Type: {0}, got: {1}'.format(want, ct)
+
+        if not malformed:
+            try:
+                sigs, d = crypto.decrypt_verify(m.get_payload(1).get_payload())
+            except GPGProblem as e:
+                # signature verification failures end up here too if
+                # the combined method is used, currently this prevents
+                # the interpretation of the recovered plain text
+                # mail. maybe that's a feature.
+                malformed = str(e)
+            else:
+                # parse decrypted message
+                n = message_from_string(d)
+
+                # add the decrypted message to m. note that n contains
+                # all the attachments, no need to walk over n here.
+                m.attach(n)
+
+                # add any defects found
+                m.defects.extend(n.defects)
+
+                # there are two methods for both signed and encrypted
+                # data, one is called 'RFC 1847 Encapsulation' by
+                # RFC 3156, and one is the 'Combined method'.
+                if len(sigs) == 0:
+                    # 'RFC 1847 Encapsulation', the signature is a
+                    # detached signature found in the recovered mime
+                    # message of type multipart/signed.
+                    if X_SIGNATURE_VALID_HEADER in n:
+                        for k in (X_SIGNATURE_VALID_HEADER,
+                                  X_SIGNATURE_MESSAGE_HEADER):
+                            m[k] = n[k]
+                    else:
+                        # an encrypted message without signatures
+                        # should arouse some suspicion, better warn
+                        # the user
+                        add_signature_headers(m, [], 'no signature found')
+                else:
+                    # 'Combined method', the signatures are returned
+                    # by the decrypt_verify function.
+
+                    # note that if we reached this point, we know the
+                    # signatures are valid. if they were not valid,
+                    # the else block of the current try would not have
+                    # been executed
+                    add_signature_headers(m, sigs, '')
+
+        if malformed:
+            msg = 'Malformed OpenPGP message: {0}'.format(malformed)
+            m.attach(email.message_from_string(msg))
+
     return m
+
+
+def message_from_string(s):
+    '''Reads a mail from the given string. This is the equivalent of
+    :func:`email.message_from_string` which does nothing but to wrap
+    the given string in a StringIO object and to call
+    :func:`email.message_from_file`.
+
+    Please refer to the documentation of :func:`message_from_file` for
+    details.
+
+    '''
+    return message_from_file(StringIO(s))
 
 
 def extract_headers(mail, headers=None):
