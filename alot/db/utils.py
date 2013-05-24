@@ -66,11 +66,12 @@ def message_from_file(handle):
             except GPGProblem as e:
                 malformed = str(e)
             else:
-                # parse decrypted message and add any enclosed
-                # messages to m
+                # parse decrypted message
                 n = email.message_from_string(d)
-                for p in n.walk():
-                    m.attach(p)
+
+                # add the decrypted message to m. note that n contains
+                # all the attachments, no need to walk over n here.
+                m.attach(n)
 
                 # add any defects found
                 m.defects.extend(n.defects)
