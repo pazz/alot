@@ -12,12 +12,75 @@ from email.iterators import typed_subpart_iterator
 import logging
 import mailcap
 
+import alot.crypto as crypto
 import alot.helper as helper
+from alot.errors import GPGProblem
 from alot.settings import settings
 from alot.helper import string_sanitize
 from alot.helper import string_decode
 from alot.helper import parse_mailcap_nametemplate
 from alot.helper import split_commandstring
+
+def message_from_file(handle):
+    '''Reads a mail from the given file-like object and returns an email
+    object, very much like email.message_from_file. In addition to
+    that OpenPGP encrypted data is detected and decrypted. If this
+    succeeds, any mime messages found in the recovered plaintext
+    message are added to the returned message object.
+
+    :param handle: a file-like object
+    :returns: :class:`email.message.Message` possibly augmented with decrypted data
+    '''
+    m = email.message_from_file(handle)
+
+    # handle OpenPGP encrypted data
+    if (m.is_multipart() and
+        m.get_payload(0).get_content_type() == 'application/pgp-encrypted' and
+        m.get_payload(0).get_payload() == 'Version: 1'):
+        # rfc3156 is quite strict:
+        # * exactly two messages
+        # * the first is of type 'application/pgp-encrypted'
+        # * the first contains 'Version: 1'
+        # * the second is of type 'application/octet-stream'
+        # * the second contains the encrypted data
+
+        malformed = False
+        try:
+            want = 'application/octet-stream'
+            ct = m.get_payload(1).get_content_type()
+            if ct != want:
+                malformed = 'expected Content-Type: {0}, got: {1}'.format(want, ct)
+        except IndexError:
+            malformed = 'expected exactly two messages, got one'
+
+        try:
+            m.get_payload(2)
+        except IndexError:
+            pass
+        else:
+            malformed = 'expected exactly two messages, got more'
+
+        if not malformed:
+            try:
+                d = crypto.decrypt(m.get_payload(1).get_payload())
+            except GPGProblem as e:
+                malformed = str(e)
+            else:
+                # parse decrypted message
+                n = email.message_from_string(d)
+
+                # add the decrypted message to m. note that n contains
+                # all the attachments, no need to walk over n here.
+                m.attach(n)
+
+                # add any defects found
+                m.defects.extend(n.defects)
+
+        if malformed:
+            msg = 'Malformed OpenPGP message: {0}'.format(malformed)
+            m.attach(email.message_from_string(msg))
+
+    return m
 
 
 def extract_headers(mail, headers=None):
