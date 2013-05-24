@@ -447,6 +447,7 @@ class CommandCompleter(Completer):
                     if self.mode == 'thread':
                         directions += ['first', 'next', 'previous',
                                        'last reply', 'first reply', 'parent',
+                                       'next unfolded', 'previous unfolded',
                                        'next sibling', 'previous sibling']
                     localcompleter = StringlistCompleter(directions)
                     res = localcompleter.complete(params, localpos)
