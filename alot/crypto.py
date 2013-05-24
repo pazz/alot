@@ -2,6 +2,7 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 import re
+import os
 import logging
 
 from email.generator import Generator
@@ -207,6 +208,28 @@ def verify_detached(message, signature):
         return ctx.verify(signature_data, message_data, None)
     except gpgme.GpgmeError as e:
         raise GPGProblem(e.message, code=e.code)
+
+
+def decrypt_verify(encrypted):
+    '''Decrypts the given ciphertext string and returns both the
+    signatures (if any) and the plaintext.
+
+    :param encrypted: the mail to decrypt
+    :returns: a tuple (sigs, plaintext) with sigs being a list of a
+              :class:`gpgme.Signature` and plaintext is a `str` holding
+              the decrypted mail
+    :raises: :class:`~alot.errors.GPGProblem` if the decryption fails
+    '''
+    encrypted_data = StringIO(encrypted)
+    plaintext_data = StringIO()
+    ctx = gpgme.Context()
+    try:
+        sigs = ctx.decrypt_verify(encrypted_data, plaintext_data)
+    except gpgme.GpgmeError as e:
+        raise GPGProblem(e.message, code=e.code)
+
+    plaintext_data.seek(0, os.SEEK_SET)
+    return sigs, plaintext_data.read()
 
 
 def hash_key(key):
