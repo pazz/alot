@@ -69,7 +69,7 @@ def determine_sender(mail, action='reply'):
         for alias in acc_addresses:
             if realname is not None:
                 break
-            regex = re.compile(alias)
+            regex = re.compile(re.escape(alias))
             for seen_name, seen_address in candidate_addresses:
                 if regex.match(seen_address):
                     logging.debug("match!: '%s' '%s'" % (seen_address, alias))
