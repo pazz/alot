@@ -2,6 +2,7 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 import re
+import os
 import logging
 
 from email.generator import Generator
@@ -169,6 +170,26 @@ def detached_signature_for(plaintext_str, key=None):
     signature_data.seek(0, 0)
     signature = signature_data.read()
     return sigs, signature
+
+
+def decrypt(encrypted_str):
+    """
+    Decrypts the given ciphertext string and returns the plaintext.
+
+    :param encrypted_str: the mail to decrypt
+    :rtype: a string holding the decrypted mail
+    :raises: :class:`~alot.errors.GPGProblem` if the decryption fails
+    """
+    encrypted_data = StringIO(encrypted_str)
+    plaintext_data = StringIO()
+    ctx = gpgme.Context()
+    try:
+        ctx.decrypt(encrypted_data, plaintext_data)
+    except gpgme.GpgmeError as e:
+        raise GPGProblem(e.message, code=e.code)
+
+    plaintext_data.seek(0, os.SEEK_SET)
+    return plaintext_data.read()
 
 
 def encrypt(plaintext_str, keys=None):
