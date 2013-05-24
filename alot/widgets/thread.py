@@ -10,6 +10,7 @@ import logging
 from alot.settings import settings
 from alot.db.utils import decode_header
 from alot.helper import tag_cmp
+from alot.helper import parse_escapes_to_urwid
 from alot.widgets.globals import TagWidget
 from alot.widgets.globals import AttachmentWidget
 from alot.foreign.urwidtrees import Tree, SimpleTree, CollapsibleTree
@@ -93,7 +94,6 @@ class FocusableText(urwid.WidgetWrap):
     def keypress(self, size, key):
         return key
 
-
 class TextlinesList(SimpleTree):
     def __init__(self, content, attr=None, attr_focus=None):
         """
@@ -102,6 +102,7 @@ class TextlinesList(SimpleTree):
         """
         structure = []
         for line in content.splitlines():
+            line = parse_escapes_to_urwid(line)
             structure.append((FocusableText(line, attr, attr_focus), None))
         SimpleTree.__init__(self, structure)
 
@@ -232,6 +233,7 @@ class MessageTree(CollapsibleTree):
     def _get_source(self):
         if self._sourcetree is None:
             sourcetxt = self._message.get_email().as_string()
+            """TODO: Apply syntax to source"""
             att = settings.get_theming_attribute('thread', 'body')
             att_focus = settings.get_theming_attribute('thread', 'body_focus')
             self._sourcetree = TextlinesList(sourcetxt, att, att_focus)
@@ -241,6 +243,7 @@ class MessageTree(CollapsibleTree):
         if self._bodytree is None:
             bodytxt = extract_body(self._message.get_email())
             if bodytxt:
+                """TODO: Apply syntax to bodytxt"""
                 att = settings.get_theming_attribute('thread', 'body')
                 att_focus = settings.get_theming_attribute(
                     'thread', 'body_focus')

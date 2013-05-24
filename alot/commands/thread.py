@@ -627,7 +627,8 @@ class PipeCommand(Command):
                     pipestrings.append(mail.as_string())
                 elif self.output_format == 'decoded':
                     headertext = extract_headers(mail)
-                    bodytext = extract_body(mail)
+                    # Get bodytext from accumulate_body which strips ANSI esc
+                    bodytext = msg.accumulate_body()
                     msgtext = '%s\n\n%s' % (headertext, bodytext)
                     pipestrings.append(msgtext.encode('utf-8'))
 

@@ -244,7 +244,13 @@ class Message(object):
         returns bodystring extracted from this mail
         """
         #TODO: allow toggle commands to decide which part is considered body
-        return extract_body(self.get_email())
+        # Strip ANSI escapes from message
+        body = extract_body(self.get_email())
+        body = body.split('\033[')
+        stripped = body[0]
+        for part in body[1:]:
+            stripped += part.split('m',1)[1]
+        return stripped
 
     def get_text_content(self):
         return extract_body(self.get_email(), types=['text/plain'])
