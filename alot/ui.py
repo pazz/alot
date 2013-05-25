@@ -22,22 +22,6 @@ class UI(object):
     It handles the urwid widget tree and mainloop (we use twisted) and is
     responsible for opening, closing and focussing buffers.
     """
-    buffers = []
-    """list of active buffers"""
-    current_buffer = None
-    """points to currently active :class:`~alot.buffers.Buffer`"""
-    dbman = None
-    """Database Manager (:class:`~alot.db.manager.DBManager`)"""
-    db_was_locked = False
-    """flag used to prevent multiple 'index locked' notifications"""
-    mode = 'global'
-    """interface mode identifier - type of current buffer"""
-    commandprompthistory = []
-    """history of the command line prompt"""
-    input_queue = []
-    """stores partial keyboard input"""
-    last_commandline = None
-    """saves the last executed commandline"""
 
     def __init__(self, dbman, initialcmd):
         """
@@ -47,8 +31,22 @@ class UI(object):
         :param colourmode: determines which theme to chose
         :type colourmode: int in [1,16,256]
         """
-        # store database manager
+        #: Database Manager (:class:`~alot.db.manager.DBManager`)
         self.dbman = dbman
+        #: list of active buffers
+        self.buffers = []
+        #: points to currently active :class:`~alot.buffers.Buffer`
+        self.current_buffer = None
+        #: flag used to prevent multiple 'index locked' notifications
+        self.db_was_locked = False
+        #: interface mode identifier - type of current buffer
+        self.mode = 'global'
+        #: history of the command line prompt
+        self.commandprompthistory = []
+        #: stores partial keyboard input
+        self.input_queue = []
+        #: saves the last executed commandline
+        self.last_commandline = None
         # define empty notification pile
         self._notificationbar = None
         # should we show a status bar?
