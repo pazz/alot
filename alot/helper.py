@@ -518,88 +518,69 @@ def parse_escapes_to_urwid(text):
     attributes and returns a list containing each part of text and its
     corresponding Urwid Attributes object.
     """
+    ECODES = {
+         '0': { 'bold': False, 'underline': False, 'standout': False },
+         '1': { 'bold': True },
+         '4': { 'underline': True },
+         '7': { 'standout': True },
+        '30': { 'fg': 'black' },
+        '31': { 'fg': 'dark red' },
+        '32': { 'fg': 'dark green' },
+        '33': { 'fg': 'brown' },
+        '34': { 'fg': 'dark blue' },
+        '35': { 'fg': 'dark magenta' },
+        '36': { 'fg': 'dark cyan' },
+        '37': { 'fg': 'light gray' },
+        '40': { 'bg': 'black' },
+        '41': { 'bg': 'dark red' },
+        '42': { 'bg': 'dark green' },
+        '43': { 'bg': 'brown' },
+        '44': { 'bg': 'dark blue' },
+        '45': { 'bg': 'dark magenta' },
+        '46': { 'bg': 'dark cyan' },
+        '47': { 'bg': 'light gray' },
+    }
+
     text = text.split("\033[")
     urwid_text = []
     urwid_text.append((urwid.AttrSpec('default','default'),text[0]))
 
     # Escapes are cumulative so we always keep previous values until it's
     # changed by another escape.
-    fg,bg = 'default','default'
-    bold,underline,standout = False,False,False
+    attr = dict(fg='default', bg='default',
+                bold=False, underline=False, standout=False)
     for part in text[1:]:
         esc_code, esc_substr = part.split('m',1)
         esc_code = esc_code.split(';')
 
         if len(esc_code) == 0:
-            fg = 'default'
-            bg = 'default'
-            bold,underline,standout = False,False,False
+            attr.update(fg='default', bg='default',
+                        bold=False, underline=False, standout=False)
         else:
             i=0
             while i<len(esc_code):
                 code = esc_code[i]
-                # Attributes
-                if code == '0':
-                    bold,underline,standout = False,False,False
-                elif code == '1':
-                    bold = True
-                elif code == '4':
-                    underline = True
-                elif code == '7':
-                    standout = True
-                # Foreground Colors
-                elif code == '30':
-                    fg = 'black'
-                elif code == '31':
-                    fg = 'dark red'
-                elif code == '32':
-                    fg = 'dark green'
-                elif code == '33':
-                    fg = 'brown'
-                elif code == '34':
-                    fg = 'dark blue'
-                elif code == '35':
-                    fg = 'dark magenta'
-                elif code == '36':
-                    fg = 'dark cyan'
-                elif code == '37':
-                    fg = 'light gray'
+                if code in ECODES:
+                    attr.update(ECODES[code])
+                # 256 codes
                 elif code == '38':
-                    fg = 'h'+esc_code[i+2]
+                    attr.update(fg='h'+esc_code[i+2])
                     i += 2
-                # Background Colors
-                elif code == '40':
-                    bg = 'black'
-                elif code == '41':
-                    bg = 'dark red'
-                elif code == '42':
-                    bg = 'dark green'
-                elif code == '44':
-                    bg = 'brown'
-                elif code == '44':
-                    bg = 'dark blue'
-                elif code == '45':
-                    bg = 'dark magenta'
-                elif code == '46':
-                    bg = 'dark cyan'
-                elif code == '47':
-                    bg = 'light gray'
                 elif code == '48':
-                    bg = 'h'+esc_code[i+2]
+                    attr.update(bg='h'+esc_code[i+2])
                     i += 2
-                # Everything else is just ignored
                 i += 1
 
         # If there is no string in esc_substr we skip it, the above
         # attributes will accumulate to the next escapes.
         if esc_substr != '':
             # Construct Urwid Foreground attr
-            urwid_fg = fg
-            if bold:
+            urwid_fg = attr['fg']
+            if attr['bold']:
                 urwid_fg += ',bold'
-            if underline:
+            if attr['underline']:
                 urwid_fg += ',underline'
-            if standout:
+            if attr['standout']:
                 urwid_fg += ',standout'
-            urwid_text.append((urwid.AttrSpec(urwid_fg,bg),esc_substr))
+            urwid_text.append((urwid.AttrSpec(urwid_fg,attr['bg']),esc_substr))
     return urwid_text
