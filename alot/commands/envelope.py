@@ -30,6 +30,8 @@ MODE = 'envelope'
     (['path'], {'help': 'file(s) to attach (accepts wildcads)'})])
 class AttachCommand(Command):
     """attach files to the mail"""
+    repeatable = True
+
     def __init__(self, path=None, **kwargs):
         """
         :param path: files to attach (globable string)
@@ -61,8 +63,6 @@ class AttachCommand(Command):
     (['key'], {'help': 'header to refine'})])
 class RefineCommand(Command):
     """prompt to change the value of a header"""
-    repeatable = False
-
     def __init__(self, key='', **kwargs):
         """
         :param key: key of the header to change
@@ -80,8 +80,6 @@ class RefineCommand(Command):
 @registerCommand(MODE, 'save')
 class SaveCommand(Command):
     """save draft"""
-    repeatable = False
-
     def apply(self, ui):
         envelope = ui.current_buffer.envelope
 
@@ -118,8 +116,6 @@ class SaveCommand(Command):
 @registerCommand(MODE, 'send')
 class SendCommand(Command):
     """send mail"""
-    repeatable = False
-
     def __init__(self, mail=None, envelope=None, **kwargs):
         """
         :param mail: email to send
@@ -250,8 +246,6 @@ class SendCommand(Command):
                      'help': 'refocus envelope after editing'})])
 class EditCommand(Command):
     """edit mail"""
-    repeatable = False
-
     def __init__(self, envelope=None, spawn=None, refocus=True, **kwargs):
         """
         :param envelope: email to edit
@@ -363,8 +357,6 @@ class EditCommand(Command):
     (['value'], {'nargs': '+', 'help': 'value'})])
 class SetCommand(Command):
     """set header value"""
-    repeatable = False
-
     def __init__(self, key, value, append=False, **kwargs):
         """
         :param key: key of the header to change
@@ -390,8 +382,6 @@ class SetCommand(Command):
     (['key'], {'help': 'header to refine'})])
 class UnsetCommand(Command):
     """remove header field"""
-    repeatable = False
-
     def __init__(self, key, **kwargs):
         """
         :param key: key of the header to remove
@@ -408,6 +398,8 @@ class UnsetCommand(Command):
 @registerCommand(MODE, 'toggleheaders')
 class ToggleHeaderCommand(Command):
     """toggle display of all headers"""
+    repeatable = True
+
     def apply(self, ui):
         ui.current_buffer.toggle_all_headers()
 
@@ -422,6 +414,8 @@ class ToggleHeaderCommand(Command):
     help='toggle sign status')
 class SignCommand(Command):
     """toggle signing this email"""
+    repeatable = True
+
     def __init__(self, action=None, keyid=None, **kwargs):
         """
         :param action: whether to sign/unsign/toggle

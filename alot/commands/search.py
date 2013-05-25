@@ -19,8 +19,6 @@ MODE = 'search'
 @registerCommand(MODE, 'select')
 class OpenThreadCommand(Command):
     """open thread in a new buffer"""
-    repeatable = False
-
     def __init__(self, thread=None, **kwargs):
         """
         :param thread: thread to open (Uses focussed thread if unset)
@@ -82,7 +80,7 @@ class RefineCommand(Command):
 @registerCommand(MODE, 'refineprompt')
 class RefinePromptCommand(Command):
     """prompt to change this buffers querystring"""
-    repeatable = False
+    repeatable = True
 
     def apply(self, ui):
         sbuffer = ui.current_buffer
@@ -93,8 +91,6 @@ class RefinePromptCommand(Command):
 @registerCommand(MODE, 'retagprompt')
 class RetagPromptCommand(Command):
     """prompt to retag selected threads\' tags"""
-    repeatable = False
-
     def apply(self, ui):
         thread = ui.current_buffer.get_selected_thread()
         if not thread:
@@ -148,6 +144,8 @@ class RetagPromptCommand(Command):
     """)
 class TagCommand(Command):
     """manipulate message tags"""
+    repeatable = True
+
     def __init__(self, tags=u'', action='add', allmessages=False, flush=True,
                  **kwargs):
         """

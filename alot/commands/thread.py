@@ -100,6 +100,8 @@ def determine_sender(mail, action='reply'):
                    'help': 'open editor in new window'})])
 class ReplyCommand(Command):
     """reply to message"""
+    repeatable = True
+
     def __init__(self, message=None, all=False, spawn=None, **kwargs):
         """
         :param message: message to reply to (defaults to selected message)
@@ -251,6 +253,8 @@ class ReplyCommand(Command):
                    'help': 'open editor in new window'})])
 class ForwardCommand(Command):
     """forward message"""
+    repeatable = True
+
     def __init__(self, message=None, attach=True, spawn=None, **kwargs):
         """
         :param message: message to forward (defaults to selected message)
@@ -328,6 +332,8 @@ class ForwardCommand(Command):
 @registerCommand(MODE, 'bounce')
 class BounceMailCommand(Command):
     """directly re-send selected message"""
+    repeatable = True
+
     def __init__(self, message=None, **kwargs):
         """
         :param message: message to bounce (defaults to selected message)
@@ -451,6 +457,8 @@ class EditNewCommand(Command):
                  help='display all headers')
 class ChangeDisplaymodeCommand(Command):
     """fold or unfold messages"""
+    repeatable = True
+
     def __init__(self, query=None, visible=None, raw=None, all_headers=None,
                  **kwargs):
         """
@@ -535,6 +543,8 @@ class ChangeDisplaymodeCommand(Command):
 )
 class PipeCommand(Command):
     """pipe message(s) to stdin of a shellcommand"""
+    repeatable = True
+
     def __init__(self, cmd, all=False, separately=False, background=False,
                  shell=False, notify_stdout=False, format='raw',
                  add_tags=False, noop_msg='no command specified',
@@ -673,6 +683,8 @@ class PipeCommand(Command):
     (['--all'], {'action': 'store_true', 'help': 'remove whole thread'})])
 class RemoveCommand(Command):
     """remove message(s) from the index"""
+    repeatable = True
+
     def __init__(self, all=False, **kwargs):
         """
         :param all: remove all messages from thread, not just selected one
@@ -724,6 +736,8 @@ class RemoveCommand(Command):
 )
 class PrintCommand(PipeCommand):
     """print message(s)"""
+    repeatable = True
+
     def __init__(self, all=False, separately=False, raw=False, add_tags=False,
                  **kwargs):
         """
@@ -923,8 +937,6 @@ class ThreadSelectCommand(Command):
     """select focussed element. The fired action depends on the focus:
         - if message summary, this toggles visibility of the message,
         - if attachment line, this opens the attachment"""
-    repeatable = False
-
     def apply(self, ui):
         focus = ui.get_deep_focus()
         if isinstance(focus, AttachmentWidget):
@@ -968,6 +980,8 @@ class ThreadSelectCommand(Command):
 )
 class TagCommand(Command):
     """manipulate message tags"""
+    repeatable = True
+
     def __init__(self, tags=u'', action='add', all=False, flush=True,
                  **kwargs):
         """
