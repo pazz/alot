@@ -3,45 +3,39 @@ import subprocess
 import sys
 import textwrap
 
+from setuptools import setup
+
 import alot
 
+
+# Install deps automagically if they're not already installed.  If you're 
+# queezy, imagine that instead of this nasty block there was a pretty ASCII art
+# picture of a kitty here.
+
+# Use install_requires, which will automatically install deps from PyPI
+# when setup.py is run
+install_requires = [
+    "ConfigObj>=4.6.0",
+    "PyGPGME",
+    "python-magic",
+    "Twisted>=10.2.0",
+    "urwid>=1.1.0",
+]
+
+# libnotmuch must have its Python bindings match the version of libnotmuch
+# that's installed. So check the version of libnotmuch by running
+# `notmuch --version` and grab that version of the bindings.
 try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
-    more_setup_args = {}
+    notmuch = subprocess.check_output(["notmuch", "--version"])
+except OSError:
+    msg = textwrap.dedent("""
+        Installing alot requires notmuch. See the installation instructions at 
+        http://alot.readthedocs.org/en/latest/installation.html for details.
+    """)
+    sys.exit(msg)
 else:
-    # Install deps automagically if they're not already installed.
-    # If you're queezy, imagine that instead of this nasty block there was a
-    # pretty ASCII art picture of a kitty here.
-
-    # Use install_requires, which will automatically install deps from PyPI
-    # when setup.py is run
-    install_requires = [
-        "ConfigObj>=4.6.0",
-        "PyGPGME",
-        "python-magic",
-        "Twisted>=10.2.0",
-        "urwid>=1.1.0",
-    ]
-
-    # libnotmuch must have its Python bindings match the version of libnotmuch
-    # that's installed. So check the version of libnotmuch by running
-    # `notmuch --version` and grab that version of the bindings.
-    try:
-        notmuch = subprocess.check_output(["notmuch", "--version"])
-    except OSError:
-        msg = textwrap.dedent("""
-            Installing alot requires notmuch. See the installation instructions
-            at http://alot.readthedocs.org/en/latest/installation.html for
-            details.
-        """)
-        sys.exit(msg)
-    else:
-        _, _, notmuch_version = notmuch.stdout.read().rpartition(" ")
-        install_requires.append("notmuch==%s" % (notmuch_version,))
-
-    more_setup_args = {"install_requires" : install_requires}
+    _, _, notmuch_version = notmuch.stdout.read().rpartition(" ")
+    install_requires.append("notmuch==%s" % (notmuch_version,))
 
 
 setup(name='alot',
@@ -63,6 +57,7 @@ setup(name='alot',
                              'defaults/theme.spec',
                             ]},
       scripts=['bin/alot'],
+      install_requires=install_requires,
       requires=[
         'notmuch (>=0.13)',
         'argparse (>=2.7)',
@@ -73,5 +68,4 @@ setup(name='alot',
         'subprocess (>=2.7)',
         'gpgme (>=0.2)'],
       provides=['alot'],
-      **more_setup_args
 )
