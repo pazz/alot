@@ -51,6 +51,8 @@ should be installable by using ``pip`` to install from `PyPI
 
    pip install --user alot
 
+Note that installation via PyPI is not officially supported.
+
 .. rubric:: generate manual and manpage
 
 To generate the documentation you need `sphinx <http://sphinx.pocoo.org/>`_, ≥ `1.07` installed.
