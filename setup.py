@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 import subprocess
+import sys
+import textwrap
 
 import alot
 
@@ -23,24 +25,18 @@ else:
         "urwid>=1.1.0",
     ]
 
-    try:
-        import argparse
-    except ImportError:
-        install_requires.append("argparse")  # Python 2.6
-
     # libnotmuch must have its Python bindings match the version of libnotmuch
     # that's installed. So check the version of libnotmuch by running
     # `notmuch --version` and grab that version of the bindings.
     try:
-        notmuch = subprocess.Popen(
-            ["notmuch", "--version"], stdout=subprocess.PIPE,
-        )
+        notmuch = subprocess.check_output(["notmuch", "--version"])
     except OSError:
-        # notmuch (the command, and so probably the lib) wasn't found, so do
-        # nothing to install its Python deps. Maybe the user wants to install
-        # notmuch later, in which case it'll be up to them to grab the bindings
-        # as well.
-        pass
+        msg = textwrap.dedent("""
+            Installing alot requires notmuch. See the installation instructions
+            at http://alot.readthedocs.org/en/latest/installation.html for
+            details.
+        """)
+        sys.exit(msg)
     else:
         _, _, notmuch_version = notmuch.stdout.read().rpartition(" ")
         install_requires.append("notmuch==%s" % (notmuch_version,))
