@@ -12,7 +12,12 @@ import alot
 
 more_setup_args = {}
 
+# Install deps automagically if they're not already installed.
+# If you're queezy, imagine that instead of this nasty block there was a pretty
+# ASCII art picture of a kitty here.
 if has_setuptools:
+    # Use install_requires, which will automatically install deps from PyPI
+    # when setup.py is run
     more_setup_args["install_requires"] = [
         "ConfigObj>=4.6.0",
         "PyGPGME",
@@ -24,16 +29,22 @@ if has_setuptools:
     try:
         import argparse
     except ImportError:
+        # Python 2.6
         more_setup_args["install_requires"].append("argparse")
 
+    # libnotmuch must have its Python bindings match the version of libnotmuch
+    # that's installed. So check the version of libnotmuch by running
+    # `notmuch --version` and grab that version of the bindings.
     import subprocess
     try:
         notmuch = subprocess.Popen(
             ["notmuch", "--version"], stdout=subprocess.PIPE,
         )
     except OSError:
-        # notmuch wasn't found, so do nothing. Maybe the user wants to install
-        # it later
+        # notmuch (the command, and so probably the lib) wasn't found, so do
+        # nothing to install its Python deps. Maybe the user wants to install
+        # notmuch later, in which case it'll be up to them to grab the bindings
+        # as well.
         pass
     else:
         _, _, notmuch_version = notmuch.stdout.read().rpartition(" ")
