@@ -1,7 +1,45 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
+try:
+    from setuptools import setup
+    has_setuptools = True
+except ImportError
+    from distutils.core import setup
+    has_setuptools = False
+
 import alot
+
+
+more_setup_args = {}
+
+if has_setuptools:
+    more_setup_args["install_requires"] = [
+        "ConfigObj>=4.6.0",
+        "PyGPGME",
+        "python-magic",
+        "Twisted>=10.2.0",
+        "urwid>=1.1.0",
+    ]
+
+    try:
+        import argparse
+    except ImportError:
+        more_setup_args["install_requires"].append("argparse")
+
+    import subprocess
+    try:
+        notmuch = subprocess.Popen(
+            ["notmuch", "--version"], stdout=subprocess.PIPE,
+        )
+    except OSError:
+        # notmuch wasn't found, so do nothing. Maybe the user wants to install
+        # it later
+        pass
+    else:
+        _, _, notmuch_version = notmuch.stdout.read().rpartition(" ")
+        more_setup_args["install_requires"].append(
+            "notmuch==%s" % (notmuch_version,)
+        )
 
 
 setup(name='alot',
@@ -33,4 +71,5 @@ setup(name='alot',
         'subprocess (>=2.7)',
         'gpgme (>=0.2)'],
       provides=['alot'],
+      **more_setup_args
 )
