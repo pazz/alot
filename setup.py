@@ -32,5 +32,5 @@ setup(name='alot',
         'configobj (>=4.6.0)',
         'subprocess (>=2.7)',
         'gpgme (>=0.2)'],
-      provides='alot',
+      provides=['alot'],
 )
