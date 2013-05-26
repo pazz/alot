@@ -59,6 +59,33 @@ class AttachCommand(Command):
         ui.current_buffer.rebuild()
 
 
+@registerCommand(MODE, 'unattach', arguments=[
+    (['hint'], {'nargs': '?', 'help': 'which attached file to remove'}),
+])
+class UnattachCommand(Command):
+    """remove attachments from current envelope"""
+    repeatable = True
+
+    def __init__(self, hint=None, **kwargs):
+        """
+        :param hint: which attached file to remove
+        :type hint: str
+        """
+        Command.__init__(self, **kwargs)
+        self.hint = hint
+
+    def apply(self, ui):
+        envelope = ui.current_buffer.envelope
+
+        if self.hint is not None:
+            for a in envelope.attachments:
+                if self.hint in a.get_filename():
+                    envelope.attachments.remove(a)
+        else:
+            envelope.attachments = []
+        ui.current_buffer.rebuild()
+
+
 @registerCommand(MODE, 'refine', arguments=[
     (['key'], {'help': 'header to refine'})])
 class RefineCommand(Command):
