@@ -14,6 +14,8 @@ from alot.helper import split_commandstring
 
 class Command(object):
     """base class for commands"""
+    repeatable = False
+
     def __init__(self):
         self.prehook = None
         self.posthook = None

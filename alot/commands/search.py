@@ -80,6 +80,8 @@ class RefineCommand(Command):
 @registerCommand(MODE, 'refineprompt')
 class RefinePromptCommand(Command):
     """prompt to change this buffers querystring"""
+    repeatable = True
+
     def apply(self, ui):
         sbuffer = ui.current_buffer
         oldquery = sbuffer.querystring
@@ -142,6 +144,8 @@ class RetagPromptCommand(Command):
     """)
 class TagCommand(Command):
     """manipulate message tags"""
+    repeatable = True
+
     def __init__(self, tags=u'', action='add', allmessages=False, flush=True,
                  **kwargs):
         """

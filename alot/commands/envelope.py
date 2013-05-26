@@ -30,6 +30,8 @@ MODE = 'envelope'
     (['path'], {'help': 'file(s) to attach (accepts wildcads)'})])
 class AttachCommand(Command):
     """attach files to the mail"""
+    repeatable = True
+
     def __init__(self, path=None, **kwargs):
         """
         :param path: files to attach (globable string)
@@ -396,6 +398,8 @@ class UnsetCommand(Command):
 @registerCommand(MODE, 'toggleheaders')
 class ToggleHeaderCommand(Command):
     """toggle display of all headers"""
+    repeatable = True
+
     def apply(self, ui):
         ui.current_buffer.toggle_all_headers()
 
@@ -410,6 +414,8 @@ class ToggleHeaderCommand(Command):
     help='toggle sign status')
 class SignCommand(Command):
     """toggle signing this email"""
+    repeatable = True
+
     def __init__(self, action=None, keyid=None, **kwargs):
         """
         :param action: whether to sign/unsign/toggle
