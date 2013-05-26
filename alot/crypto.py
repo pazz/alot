@@ -166,7 +166,7 @@ def detached_signature_for(plaintext_str, key=None):
     plaintext_data = StringIO(plaintext_str)
     signature_data = StringIO()
     sigs = ctx.sign(plaintext_data, signature_data, gpgme.SIG_MODE_DETACH)
-    signature_data.seek(0, 0)
+    signature_data.seek(0, os.SEEK_SET)
     signature = signature_data.read()
     return sigs, signature
 
@@ -186,7 +186,7 @@ def encrypt(plaintext_str, keys=None):
     ctx.armor = True
     ctx.encrypt(keys, gpgme.ENCRYPT_ALWAYS_TRUST, plaintext_data,
                 encrypted_data)
-    encrypted_data.seek(0, 0)
+    encrypted_data.seek(0, os.SEEK_SET)
     encrypted = encrypted_data.read()
     return encrypted
 
