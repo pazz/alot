@@ -102,7 +102,7 @@ class TextlinesList(SimpleTree):
         """
         structure = []
         for line in content.splitlines():
-            line = parse_escapes_to_urwid(line)
+            line = parse_escapes_to_urwid(line,attr,attr_focus)
             structure.append((FocusableText(line, attr, attr_focus), None))
         SimpleTree.__init__(self, structure)
 

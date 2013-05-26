@@ -513,13 +513,15 @@ def parse_mailcap_nametemplate(tmplate='%s'):
         template_suffix = tmplate
     return (template_prefix, template_suffix)
 
-def parse_escapes_to_urwid(text):
+def parse_escapes_to_urwid(text, default_attr=None, default_attr_focus=None):
     """This function converts a text with ANSI escape for terminal
     attributes and returns a list containing each part of text and its
     corresponding Urwid Attributes object.
     """
     ECODES = {
-         '0': { 'bold': False, 'underline': False, 'standout': False },
+         '0': { 'bold': default_attr.bold,
+                'underline': default_attr.underline,
+                'standout': default_attr.standout },
          '1': { 'bold': True },
          '4': { 'underline': True },
          '7': { 'standout': True },
@@ -543,19 +545,21 @@ def parse_escapes_to_urwid(text):
 
     text = text.split("\033[")
     urwid_text = []
-    urwid_text.append((urwid.AttrSpec('default','default'),text[0]))
+    urwid_text.append(text[0])
 
     # Escapes are cumulative so we always keep previous values until it's
     # changed by another escape.
-    attr = dict(fg='default', bg='default',
-                bold=False, underline=False, standout=False)
+    attr = dict(fg=default_attr._foreground_color, bg=default_attr.background,
+                bold=default_attr.bold, underline=default_attr.underline,
+                standout=default_attr.underline)
     for part in text[1:]:
         esc_code, esc_substr = part.split('m',1)
         esc_code = esc_code.split(';')
 
         if len(esc_code) == 0:
-            attr.update(fg='default', bg='default',
-                        bold=False, underline=False, standout=False)
+            attr.update(fg=default_attr._foreground_color, bg=default_attr.background,
+                        bold=default_attr.bold, underline=default_attr.underline,
+                        standout=default_attr.underline)
         else:
             i=0
             while i<len(esc_code):
