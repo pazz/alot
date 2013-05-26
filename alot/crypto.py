@@ -3,7 +3,6 @@
 # For further details see the COPYING file
 import re
 import os
-import logging
 
 from email.generator import Generator
 from cStringIO import StringIO
