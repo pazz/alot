@@ -34,7 +34,7 @@ except OSError:
     """)
     sys.exit(msg)
 else:
-    _, _, notmuch_version = notmuch.stdout.read().rpartition(" ")
+    _, _, notmuch_version = notmuch.rpartition(" ")
     install_requires.append("notmuch==%s" % (notmuch_version,))
 
 
