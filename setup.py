@@ -1,24 +1,21 @@
 #!/usr/bin/env python
-
-try:
-    from setuptools import setup
-    has_setuptools = True
-except ImportError
-    from distutils.core import setup
-    has_setuptools = False
+import subprocess
 
 import alot
 
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
+    more_setup_args = {}
+else:
+    # Install deps automagically if they're not already installed.
+    # If you're queezy, imagine that instead of this nasty block there was a
+    # pretty ASCII art picture of a kitty here.
 
-more_setup_args = {}
-
-# Install deps automagically if they're not already installed.
-# If you're queezy, imagine that instead of this nasty block there was a pretty
-# ASCII art picture of a kitty here.
-if has_setuptools:
     # Use install_requires, which will automatically install deps from PyPI
     # when setup.py is run
-    more_setup_args["install_requires"] = [
+    install_requires = [
         "ConfigObj>=4.6.0",
         "PyGPGME",
         "python-magic",
@@ -29,13 +26,11 @@ if has_setuptools:
     try:
         import argparse
     except ImportError:
-        # Python 2.6
-        more_setup_args["install_requires"].append("argparse")
+        install_requires.append("argparse")  # Python 2.6
 
     # libnotmuch must have its Python bindings match the version of libnotmuch
     # that's installed. So check the version of libnotmuch by running
     # `notmuch --version` and grab that version of the bindings.
-    import subprocess
     try:
         notmuch = subprocess.Popen(
             ["notmuch", "--version"], stdout=subprocess.PIPE,
@@ -48,9 +43,9 @@ if has_setuptools:
         pass
     else:
         _, _, notmuch_version = notmuch.stdout.read().rpartition(" ")
-        more_setup_args["install_requires"].append(
-            "notmuch==%s" % (notmuch_version,)
-        )
+        install_requires.append("notmuch==%s" % (notmuch_version,))
+
+    more_setup_args = {"install_requires" : install_requires}
 
 
 setup(name='alot',
