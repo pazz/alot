@@ -31,22 +31,23 @@ class UI(object):
         :param colourmode: determines which theme to chose
         :type colourmode: int in [1,16,256]
         """
-        #: Database Manager (:class:`~alot.db.manager.DBManager`)
         self.dbman = dbman
-        #: list of active buffers
+        """Database Manager (:class:`~alot.db.manager.DBManager`)"""
         self.buffers = []
-        #: points to currently active :class:`~alot.buffers.Buffer`
+        """list of active buffers"""
         self.current_buffer = None
-        #: flag used to prevent multiple 'index locked' notifications
+        """points to currently active :class:`~alot.buffers.Buffer`"""
         self.db_was_locked = False
-        #: interface mode identifier - type of current buffer
+        """flag used to prevent multiple 'index locked' notifications"""
         self.mode = 'global'
-        #: history of the command line prompt
+        """interface mode identifier - type of current buffer"""
         self.commandprompthistory = []
-        #: stores partial keyboard input
+        """history of the command line prompt"""
         self.input_queue = []
-        #: saves the last executed commandline
+        """stores partial keyboard input"""
         self.last_commandline = None
+        """saves the last executed commandline"""
+
         # define empty notification pile
         self._notificationbar = None
         # should we show a status bar?

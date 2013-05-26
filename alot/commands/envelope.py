@@ -30,6 +30,8 @@ MODE = 'envelope'
     (['path'], {'help': 'file(s) to attach (accepts wildcads)'})])
 class AttachCommand(Command):
     """attach files to the mail"""
+    repeatable = True
+
     def __init__(self, path=None, **kwargs):
         """
         :param path: files to attach (globable string)
@@ -54,6 +56,33 @@ class AttachCommand(Command):
         logging.info("attaching: %s" % files)
         for path in files:
             envelope.attach(path)
+        ui.current_buffer.rebuild()
+
+
+@registerCommand(MODE, 'unattach', arguments=[
+    (['hint'], {'nargs': '?', 'help': 'which attached file to remove'}),
+])
+class UnattachCommand(Command):
+    """remove attachments from current envelope"""
+    repeatable = True
+
+    def __init__(self, hint=None, **kwargs):
+        """
+        :param hint: which attached file to remove
+        :type hint: str
+        """
+        Command.__init__(self, **kwargs)
+        self.hint = hint
+
+    def apply(self, ui):
+        envelope = ui.current_buffer.envelope
+
+        if self.hint is not None:
+            for a in envelope.attachments:
+                if self.hint in a.get_filename():
+                    envelope.attachments.remove(a)
+        else:
+            envelope.attachments = []
         ui.current_buffer.rebuild()
 
 
@@ -408,6 +437,8 @@ class UnsetCommand(Command):
 @registerCommand(MODE, 'toggleheaders')
 class ToggleHeaderCommand(Command):
     """toggle display of all headers"""
+    repeatable = True
+
     def apply(self, ui):
         ui.current_buffer.toggle_all_headers()
 
@@ -422,6 +453,8 @@ class ToggleHeaderCommand(Command):
     help='toggle sign status')
 class SignCommand(Command):
     """toggle signing this email"""
+    repeatable = True
+
     def __init__(self, action=None, keyid=None, **kwargs):
         """
         :param action: whether to sign/unsign/toggle
