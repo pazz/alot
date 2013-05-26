@@ -28,6 +28,16 @@ The following commands are available in search mode
         :---no-flush: postpone a writeout to the index (Defaults to: 'True').
         :---all: retag all messages in search result.
 
+.. _cmd.search.move:
+
+.. describe:: move
+
+    move focus in search buffer
+
+    argument
+        last
+
+
 .. _cmd.search.retag:
 
 .. describe:: retag
