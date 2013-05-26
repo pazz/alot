@@ -27,7 +27,7 @@ from alot.completion import TagsCompleter
 from alot.db.envelope import Envelope
 from alot import commands
 from alot.settings import settings
-from alot.helper import split_commandstring
+from alot.helper import split_commandstring, split_commandline
 from alot.utils.booleanaction import BooleanAction
 
 MODE = 'global'
@@ -55,6 +55,8 @@ class ExitCommand(Command):
     (['query'], {'nargs':argparse.REMAINDER, 'help':'search string'})])
 class SearchCommand(Command):
     """open a new search buffer"""
+    repeatable = True
+
     def __init__(self, query, sort=None, **kwargs):
         """
         :param query: notmuch querystring
@@ -123,6 +125,8 @@ class PromptCommand(Command):
 @registerCommand(MODE, 'refresh')
 class RefreshCommand(Command):
     """refresh the current buffer"""
+    repeatable = True
+
     def apply(self, ui):
         ui.current_buffer.rebuild()
         ui.update()
@@ -140,6 +144,8 @@ class RefreshCommand(Command):
 )
 class ExternalCommand(Command):
     """run external command"""
+    repeatable = True
+
     def __init__(self, cmd, stdin=None, shell=False, spawn=False,
                  refocus=True, thread=False, on_success=None, **kwargs):
         """
@@ -304,6 +310,8 @@ class EditCommand(ExternalCommand):
 @registerCommand(MODE, 'pyshell')
 class PythonShellCommand(Command):
     """open an interactive python shell for introspection"""
+    repeatable = True
+
     def apply(self, ui):
         ui.mainloop.screen.stop()
         code.interact(local=locals())
@@ -313,6 +321,9 @@ class PythonShellCommand(Command):
 @registerCommand(MODE, 'repeat')
 class RepeatCommand(Command):
     """Repeats the command executed last time"""
+    def __init__(self, **kwargs):
+        Command.__init__(self, **kwargs)
+
     def apply(self, ui):
         if ui.last_commandline is not None:
             ui.apply_commandline(ui.last_commandline)
@@ -324,6 +335,8 @@ class RepeatCommand(Command):
     (['command'], {'help':'python command string to call'})])
 class CallCommand(Command):
     """ Executes python code """
+    repeatable = True
+
     def __init__(self, command, **kwargs):
         """
         :param command: python command string to call
@@ -354,6 +367,8 @@ class CallCommand(Command):
                    'help': 'never ask for confirmation'})])
 class BufferCloseCommand(Command):
     """close a buffer"""
+    repeatable = True
+
     def __init__(self, buffer=None, force=False, redraw=True, **kwargs):
         """
         :param buffer: the buffer to close or None for current
@@ -399,6 +414,8 @@ class BufferCloseCommand(Command):
     help='focus buffer with given index')
 class BufferFocusCommand(Command):
     """focus a :class:`~alot.buffers.Buffer`"""
+    repeatable = True
+
     def __init__(self, buffer=None, index=None, offset=0, **kwargs):
         """
         :param buffer: the buffer to focus or None
@@ -476,6 +493,8 @@ class TagListCommand(Command):
 @registerCommand(MODE, 'flush')
 class FlushCommand(Command):
     """flush write operations or retry until committed"""
+    repeatable = True
+
     def __init__(self, callback=None, silent=False, **kwargs):
         """
         :param callback: function to call after successful writeout
@@ -826,14 +845,22 @@ class MoveCommand(Command):
 class CommandSequenceCommand(Command):
     """Meta-Command that just applies a sequence of given Commands in order"""
 
-    def __init__(self, commandlist=[], **kwargs):
+    def __init__(self, cmdline='', **kwargs):
         Command.__init__(self, **kwargs)
-        self.commandlist = commandlist
+        self.cmdline = cmdline
 
     @inlineCallbacks
     def apply(self, ui):
-        for cmdstring in self.commandlist:
+        # split commandline if necessary
+        for cmdstring in split_commandline(self.cmdline):
             logging.debug('CMDSEQ: apply %s' % str(cmdstring))
             # translate cmdstring into :class:`Command`
-            cmd = commandfactory(cmdstring, ui.mode)
+            try:
+                cmd = commandfactory(cmdstring, ui.mode)
+                # store cmdline for use with 'repeat' command
+                if cmd.repeatable:
+                    ui.last_commandline = self.cmdline.lstrip()
+            except CommandParseError, e:
+                ui.notify(e.message, priority='error')
+                return
             yield ui.apply_command(cmd)

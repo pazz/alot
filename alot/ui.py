@@ -11,7 +11,6 @@ from commands import commandfactory
 from alot.commands import CommandParseError
 from alot.commands.globals import CommandSequenceCommand
 from alot.helper import string_decode
-from alot.helper import split_commandline
 from alot.widgets.globals import CompleteEdit
 from alot.widgets.globals import ChoiceWidget
 
@@ -121,15 +120,15 @@ class UI(object):
             def fire(ignored, cmdline):
                 clear()
                 logging.debug("cmdline: '%s'" % cmdline)
-                # move keys are always passed
-                if cmdline in ['move up', 'move down', 'move page up',
-                               'move page down']:
-                    return [cmdline[5:]]
-                elif not self._locked:
+                if not self._locked:
                     try:
                         self.apply_commandline(cmdline)
                     except CommandParseError, e:
                         self.notify(e.message, priority='error')
+                # move keys are always passed
+                elif cmdline in ['move up', 'move down', 'move page up',
+                               'move page down']:
+                    return [cmdline[5:]]
 
             key = keys[0]
             self.input_queue.append(key)
@@ -165,31 +164,14 @@ class UI(object):
 
     def apply_commandline(self, cmdline):
         """
-        Interprets a command line string and applies the resulting
-        (sequence of) :class:`Commands <alot.commands.Command>`.
+        Dispatches the interpretation of the command line string to
+        :class:`CommandSequenceCommand <alot.commands.globals.CommandSequenceCommand>`.
 
         :param cmdline: command line to interpret
         :type cmdline: str
         """
-        # split commandline if necessary
-        cmd = None
-        cmdlist = split_commandline(cmdline)
-        if len(cmdlist) == 1:
-            try:
-                # translate cmdstring into :class:`Command`
-                cmd = commandfactory(cmdlist[0], self.mode)
-            except CommandParseError, e:
-                self.notify(e.message, priority='error')
-                return
-        else:
-            cmd = CommandSequenceCommand(cmdlist)
+        cmd = CommandSequenceCommand(cmdline)
         self.apply_command(cmd)
-
-        # store cmdline for use with 'repeat' command
-        cmdline = cmdline.lstrip()
-        if not cmdline.startswith('prompt') and \
-           not cmdline.startswith('repeat'):
-            self.last_commandline = cmdline
 
     def _unhandeled_input(self, key):
         """
