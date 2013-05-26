@@ -35,7 +35,7 @@ except OSError:
     sys.exit(msg)
 else:
     _, _, notmuch_version = notmuch.rpartition(" ")
-    install_requires.append("notmuch==%s" % (notmuch_version,))
+    install_requires.append("notmuch==%s" % (notmuch_version.strip(),))
 
 
 setup(name='alot',
