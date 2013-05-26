@@ -7,6 +7,7 @@ import logging
 from alot.commands import Command, registerCommand
 from alot.commands.globals import PromptCommand
 from alot.commands.globals import MoveCommand
+from alot.commands.thread import UndoTagCommand
 
 from alot.db.errors import DatabaseROError
 from alot import commands
@@ -205,6 +206,8 @@ class TagCommand(Command):
         tags = filter(lambda x: x, self.tagsstring.split(','))
 
         try:
+            UndoTagCommand.stack.append([thread, thread.get_tags().copy()])
+
             if self.action == 'add':
                 ui.dbman.tag(testquery, tags, remove_rest=False)
             if self.action == 'set':
