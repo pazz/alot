@@ -516,7 +516,8 @@ def parse_mailcap_nametemplate(tmplate='%s'):
 def parse_escapes_to_urwid(text, default_attr=None, default_attr_focus=None):
     """This function converts a text with ANSI escape for terminal
     attributes and returns a list containing each part of text and its
-    corresponding Urwid Attributes object.
+    corresponding Urwid Attributes object, it also returns a dictionary which
+    maps all attributes applied here to focused attribute.
     """
     ECODES = {
          '0': { 'bold': default_attr.bold,
@@ -544,8 +545,8 @@ def parse_escapes_to_urwid(text, default_attr=None, default_attr_focus=None):
     }
 
     text = text.split("\033[")
-    urwid_text = []
-    urwid_text.append(text[0])
+    urwid_text = [ text[0] ]
+    urwid_focus = { None: default_attr_focus }
 
     # Escapes are cumulative so we always keep previous values until it's
     # changed by another escape.
@@ -557,8 +558,9 @@ def parse_escapes_to_urwid(text, default_attr=None, default_attr_focus=None):
         esc_code = esc_code.split(';')
 
         if len(esc_code) == 0:
-            attr.update(fg=default_attr._foreground_color, bg=default_attr.background,
-                        bold=default_attr.bold, underline=default_attr.underline,
+            attr.update(fg=default_attr._foreground_color,
+                        bg=default_attr.background, bold=default_attr.bold,
+                        underline=default_attr.underline,
                         standout=default_attr.underline)
         else:
             i=0
@@ -586,5 +588,7 @@ def parse_escapes_to_urwid(text, default_attr=None, default_attr_focus=None):
                 urwid_fg += ',underline'
             if attr['standout']:
                 urwid_fg += ',standout'
-            urwid_text.append((urwid.AttrSpec(urwid_fg,attr['bg']),esc_substr))
-    return urwid_text
+            urwid_attr = urwid.AttrSpec(urwid_fg,attr['bg'])
+            urwid_focus[urwid_attr] = default_attr_focus
+            urwid_text.append((urwid_attr,esc_substr))
+    return urwid_text,urwid_focus

@@ -84,6 +84,7 @@ class MessageBodyWidget(urwid.AttrMap):
 class FocusableText(urwid.WidgetWrap):
     """Selectable Text used for nodes in our example"""
     def __init__(self, txt, att, att_focus):
+        txt,att_focus = parse_escapes_to_urwid(txt,att,att_focus)
         t = urwid.Text(txt)
         w = urwid.AttrMap(t, att, att_focus)
         urwid.WidgetWrap.__init__(self, w)
@@ -102,7 +103,6 @@ class TextlinesList(SimpleTree):
         """
         structure = []
         for line in content.splitlines():
-            line = parse_escapes_to_urwid(line,attr,attr_focus)
             structure.append((FocusableText(line, attr, attr_focus), None))
         SimpleTree.__init__(self, structure)
 
