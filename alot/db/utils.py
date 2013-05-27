@@ -91,7 +91,11 @@ def message_from_file(handle):
             malformed = 'expected Content-Type: {0}, got: {1}'.format(
                 want, ct)
 
-        p = {k:v for k, v in m.get_params()}
+        # Get Content-Type parameters as dict. RFC 2045 specifies that
+        # parameter names are case-insensitive, so we normalize them
+        # here.
+        p = {k.lower():v for k, v in m.get_params()}
+
         if p.get('protocol', 'nothing') != want:
             malformed = 'expected protocol={0}, got: {1}'.format(
                 want, p.get('protocol', 'nothing'))
