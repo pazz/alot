@@ -92,15 +92,16 @@ def message_from_file(handle):
                 want, ct)
 
         p = {k:v for k, v in m.get_params()}
-        if p['protocol'] != want:
+        if p.get('protocol', 'nothing') != want:
             malformed = 'expected protocol={0}, got: {1}'.format(
-                want, p['protocol'])
+                want, p.get('protocol', 'nothing'))
 
         # TODO: RFC 3156 says the alg has to be lower case, but I've
         # seen a message with 'PGP-'. maybe we should be more
         # permissive here, or maybe not, this is crypto stuff...
-        if not p['micalg'].startswith('pgp-'):
-            malformed = 'expected micalg=pgp-..., got: {0}'.format(p['micalg'])
+        if not p.get('micalg', 'nothing').startswith('pgp-'):
+            malformed = 'expected micalg=pgp-..., got: {0}'.format(
+                p.get('micalg', 'nothing'))
 
         sigs = []
         if not malformed:
