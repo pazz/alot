@@ -130,9 +130,9 @@ def message_from_file(handle):
         add_signature_headers(m, sigs, malformed)
 
     # handle OpenPGP encrypted data
-    elif (m.is_multipart() and
+    elif (m.is_multipart() and m.get_content_subtype() == 'encrypted' and
         m.get_payload(0).get_content_type() == 'application/pgp-encrypted' and
-        m.get_payload(0).get_payload() == 'Version: 1'):
+        'Version: 1' in m.get_payload(0).get_payload()):
         # RFC 3156 is quite strict:
         # * exactly two messages
         # * the first is of type 'application/pgp-encrypted'
@@ -140,6 +140,13 @@ def message_from_file(handle):
         # * the second is of type 'application/octet-stream'
         # * the second contains the encrypted and possibly signed data
         malformed = False
+
+        p = get_params(m)
+
+        want = 'application/pgp-encrypted'
+        if p.get('protocol', 'nothing') != want:
+            malformed = 'expected protocol={0}, got: {1}'.format(
+                want, p.get('protocol', 'nothing'))
 
         want = 'application/octet-stream'
         ct = m.get_payload(1).get_content_type()
