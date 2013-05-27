@@ -57,6 +57,21 @@ def add_signature_headers(mail, sigs, error_msg):
     )
 
 
+def get_params(mail, failobj=None, header='content-type', unquote=True):
+    '''Get Content-Type parameters as dict.
+
+    RFC 2045 specifies that parameter names are case-insensitive, so
+    we normalize them here.
+
+    :param mail: :class:`email.message.Message`
+    :param failobj: object to return if no such header is found
+    :param header: the header to search for parameters, default
+    :param unquote: unquote the values
+    :returns: a `dict` containing the parameters
+    '''
+    return {k.lower():v for k, v in mail.get_params(failobj, header, unquote)}
+
+
 def message_from_file(handle):
     '''Reads a mail from the given file-like object and returns an email
     object, very much like email.message_from_file. In addition to
@@ -91,10 +106,7 @@ def message_from_file(handle):
             malformed = 'expected Content-Type: {0}, got: {1}'.format(
                 want, ct)
 
-        # Get Content-Type parameters as dict. RFC 2045 specifies that
-        # parameter names are case-insensitive, so we normalize them
-        # here.
-        p = {k.lower():v for k, v in m.get_params()}
+        p = get_params(m)
 
         if p.get('protocol', 'nothing') != want:
             malformed = 'expected protocol={0}, got: {1}'.format(
