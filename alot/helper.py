@@ -22,7 +22,6 @@ from twisted.internet.defer import Deferred
 import StringIO
 import logging
 
-
 def split_commandline(s, comments=False, posix=True):
     """
     splits semi-colon separated commandlines
@@ -513,7 +512,8 @@ def parse_mailcap_nametemplate(tmplate='%s'):
         template_suffix = tmplate
     return (template_prefix, template_suffix)
 
-def parse_escapes_to_urwid(text, default_attr=None, default_attr_focus=None):
+def parse_escapes_to_urwid(text, default_attr=None, default_attr_focus=None,
+                           parse_background=True):
     """This function converts a text with ANSI escape for terminal
     attributes and returns a list containing each part of text and its
     corresponding Urwid Attributes object, it also returns a dictionary which
@@ -580,15 +580,18 @@ def parse_escapes_to_urwid(text, default_attr=None, default_attr_focus=None):
         # If there is no string in esc_substr we skip it, the above
         # attributes will accumulate to the next escapes.
         if esc_substr != '':
-            # Construct Urwid Foreground attr
+            # Construct Urwid attributes
             urwid_fg = attr['fg']
+            urwid_bg = default_attr.background
             if attr['bold']:
                 urwid_fg += ',bold'
             if attr['underline']:
                 urwid_fg += ',underline'
             if attr['standout']:
                 urwid_fg += ',standout'
-            urwid_attr = urwid.AttrSpec(urwid_fg,attr['bg'])
+            if parse_background:
+                urwid_bg = attr['bg']
+            urwid_attr = urwid.AttrSpec(urwid_fg,urwid_bg)
             urwid_focus[urwid_attr] = default_attr_focus
             urwid_text.append((urwid_attr,esc_substr))
     return urwid_text,urwid_focus

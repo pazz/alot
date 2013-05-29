@@ -1,4 +1,3 @@
-
 ask_subject = boolean(default=True) # ask for subject when compose
 
 # automatically remove 'unread' tag when focussing messages in thread mode
@@ -34,6 +33,9 @@ themes_dir = string(default=None)
 
 # name of the theme to use
 theme = string(default=None)
+
+# apply background colors from ANSI character escapes
+ansi_background = boolean(default=True)
 
 # fill threadline with message content
 display_content_in_threadline = boolean(default=False)
