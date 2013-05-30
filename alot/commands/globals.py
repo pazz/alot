@@ -836,7 +836,11 @@ class MoveCommand(Command):
             ui.mainloop.process_input(
                     ui.mainloop.screen_size[1]/2 * [self.movement.split()[-1]])
         elif self.movement == 'first':
-            ui.current_buffer.focus_first()
+            if hasattr(ui.current_buffer, "focus_first"):
+                ui.current_buffer.focus_first()
+        elif self.movement == 'last':
+            if hasattr(ui.current_buffer, "focus_last"):
+                ui.current_buffer.focus_last()
         else:
             ui.notify('unknown movement: ' + self.movement,
                       priority='error')
