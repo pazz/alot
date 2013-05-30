@@ -90,6 +90,16 @@ The following commands are available in envelope mode
         file(s) to attach (accepts wildcads)
 
 
+.. _cmd.envelope.unattach:
+
+.. describe:: unattach
+
+    remove attachments from current envelope
+
+    argument
+        which attached file to remove
+
+
 .. _cmd.envelope.rmencrypt:
 
 .. describe:: rmencrypt

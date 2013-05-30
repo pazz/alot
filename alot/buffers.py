@@ -434,6 +434,9 @@ class ThreadBuffer(Buffer):
         """set focus to first message of thread"""
         self.body.set_focus(self._nested_tree.root)
 
+    def focus_last(self):
+        self.body.set_focus(next(self._nested_tree.positions(reverse=True)))
+
     def _sanitize_position(self, pos):
         return self._nested_tree._sanitize_position(pos,
                                                     self._nested_tree._tree)
@@ -643,6 +646,12 @@ class TagListBuffer(Buffer):
 
     def focus_first(self):
         self.body.set_focus(0)
+
+    def focus_last(self):
+        allpos = self.taglist.body.positions(reverse=True)
+        if allpos:
+            lastpos = allpos[0]
+            self.body.set_focus(lastpos)
 
     def get_selected_tag(self):
         """returns selected tagstring"""
