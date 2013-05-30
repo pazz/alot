@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import subprocess
+import re
 import sys
 import textwrap
 
@@ -34,8 +35,10 @@ except OSError:
     """)
     sys.exit(msg)
 else:
-    _, _, notmuch_version = notmuch.rpartition(" ")
-    install_requires.append("notmuch==%s" % (notmuch_version.strip(),))
+    # output looks like notmuch X.Y.Z, possibly with a dev version tacked on
+    notmuch_version = re.search(r"\d+\.\d+(\.\d+)?", notmuch)
+    if notmuch_version is not None:
+        install_requires.append("notmuch==%s" % notmuch_version.group(0))
 
 
 setup(name='alot',
