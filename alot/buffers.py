@@ -434,6 +434,9 @@ class ThreadBuffer(Buffer):
         """set focus to first message of thread"""
         self.body.set_focus(self._nested_tree.root)
 
+    def focus_last(self):
+        self.body.set_focus(next(self._nested_tree.positions(reverse=True)))
+
     def _sanitize_position(self, pos):
         return self._nested_tree._sanitize_position(pos,
                                                     self._nested_tree._tree)
