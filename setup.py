@@ -18,10 +18,18 @@ import alot
 install_requires = [
     "ConfigObj>=4.6.0",
     "PyGPGME",
-    "python-magic",
     "Twisted>=10.2.0",
     "urwid>=1.1.0",
 ]
+
+# There is an unofficial and an official set of bindings for libmagic, and they
+# are not 100% API compatiple. We depend on the official ones, but the
+# unofficial ones are the ones currently on PyPI. So if `magic` (which might be
+# the official) is present already, skip installing python-magic
+try:
+    import magic
+except ImportError:
+    install_requires.append("python-magic")
 
 # libnotmuch must have its Python bindings match the version of libnotmuch
 # that's installed. So check the version of libnotmuch by running
