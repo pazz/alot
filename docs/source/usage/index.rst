@@ -12,8 +12,13 @@ First Steps
 .. _usage.first_steps:
 .. include:: first_steps.rst
 
+
 .. _usage.commands:
 .. include:: commands.rst
+
+
+.. _usage.crypto:
+.. include:: crypto.rst
 
 .. toctree::
    :hidden:
@@ -21,4 +26,5 @@ First Steps
    commands
    first_steps
    synopsis
+   crypto
 

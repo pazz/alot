@@ -34,8 +34,6 @@ class SettingsManager(object):
         :type alot_rc: str
         :param notmuch_rc: path to notmuch's config file
         :type notmuch_rc: str
-        :theme: path to initially used theme file
-        :type theme: str
         """
         self.hooks = None
         self._mailcaps = mailcap.getcaps()

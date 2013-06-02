@@ -41,9 +41,9 @@ class Envelope(object):
     tmpfile = None
     """template text for initial content"""
     attachments = None
-    """list of :class:`~alot.db.attachment.Attachment`s"""
+    """list of :class:`Attachments <alot.db.attachment.Attachment>`"""
     tags = []
-    """tags  # tags to add after successful sendout"""
+    """tags to add after successful sendout"""
 
     def __init__(
         self, template=None, bodytext=u'', headers=None, attachments=[],
