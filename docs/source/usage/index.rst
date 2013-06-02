@@ -13,15 +13,9 @@ First Steps
 .. include:: first_steps.rst
 
 
-Commands
-========
-
 .. _usage.commands:
 .. include:: commands.rst
 
-
-Cryptography
-============
 
 .. _usage.crypto:
 .. include:: crypto.rst

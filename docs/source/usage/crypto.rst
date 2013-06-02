@@ -1,3 +1,6 @@
+Cryptography
+============
+
 Alot has built in support for constructing signed and/or encrypted mails
 according to PGP/MIME (:rfc:`3156`, :rfc:`3156`) via gnupg.
 It does however rely on a running `gpg-agent` to handle password entries.
