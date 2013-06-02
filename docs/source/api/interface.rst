@@ -1,7 +1,7 @@
 User Interface
 ==================
 
-Alot sets up a widget tree and an :class:`mainloop <urwid.main_loop.TwistedEventLoop>`
+Alot sets up a widget tree and a :class:`mainloop <urwid.main_loop.TwistedEventLoop>`
 in the constructor of :class:`alot.ui.UI`. The visible area is
 a :class:`urwid.Frame`, where the footer is used as a status line and the body part
 displays the currently active :class:`alot.buffers.Buffer`.
@@ -14,7 +14,8 @@ customary in urwid. Instead, the root widget given to urwids mainloop is a custo
 key presses to the wrapped root widget and thereby accessing standard urwid
 behaviour.
 
-In order to keep the interface non-blocking, alot makes use of twisted's deferred_ - a
+In order to keep the interface non-blocking and react to events like
+terminal size changes, alot makes use of twisted's deferred_ - a
 framework that makes it easy to deal with callbacks. Many commands in alot make use of
 `inline callbacks`_, which allow you to treat deferred-returning functions almost like
 syncronous functions. Consider the following example of a function that prompts for some

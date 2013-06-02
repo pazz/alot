@@ -3,6 +3,7 @@
 
 Global Commands
 ---------------
+
 The following commands are available globally
 
 .. _cmd.global.bclose:

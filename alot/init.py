@@ -111,8 +111,8 @@ def main():
     try:
         args.parseOptions()  # When given no argument, parses sys.argv[1:]
     except usage.UsageError, errortext:
-        print '%s: %s' % (sys.argv[0], errortext)
-        print '%s: Try --help for usage details.' % (sys.argv[0])
+        print '%s' % errortext
+        print 'Try --help for usage details.'
         sys.exit(1)
 
     # logging
