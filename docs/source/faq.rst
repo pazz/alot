@@ -17,7 +17,7 @@ FAQ
 2. What's with the snotty name?
 
     It's not meant to be presumptuous. I like the dichotomy; I like to picture the look on
-    someone's face who reads the :mailheader:`X-MAILER` flag "notmuch/alot"; I like cookies; I like
+    someone's face who reads the :mailheader:`User-Agent` header "notmuch/alot"; I like cookies; I like
     `this comic strip <http://hyperboleandahalf.blogspot.com/2010/04/alot-is-better-than-you-at-everything.html>`_.
 
 3. I want feature X!
