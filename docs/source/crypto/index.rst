@@ -2,20 +2,23 @@
 Cryptography
 ************
 
-At the moment alot only supports signing of outgoing mails via PGP/MIME (:rfc:`3156`).
-Encryption via PGP/MIME (:rfc:`3156`) is in an experimental stadium.
+Alot has built in support for constructing signed and/or encrypted mails
+according to PGP/MIME (:rfc:`3156`, :rfc:`3156`) via gnupg.
+It does however rely on a running `gpg-agent` to handle password entries.
 
-.. note:: To use GPG with alot, you need to have `gpg-agent` running.
+.. note:: You need to have `gpg-agent` running to use GPG with alot!
 
-  `gpg-agent` will handle passphrase entry in a secure and configurable way, and it will cache your passphrase for some
-  amount of time so you don’t have to enter it over and over again. For details on how to set this up we refer to
-  `gnupg's manual <http://www.gnupg.org/documentation/manuals/gnupg/>`_.
+  `gpg-agent` will handle passphrase entry in a secure and configurable way, and it will cache your
+  passphrase for some time so you don’t have to enter it over and over again. For details on how to
+  set this up we refer to `gnupg's manual <http://www.gnupg.org/documentation/manuals/gnupg/>`_.
 
 .. rubric:: Signing outgoing emails
 
-You can use the commands `sign`, `unsign` and `togglesign` in envelope mode
+You can use the commands :ref:`sign <cmd.envelope.sign>`,
+:ref:`unsign <cmd.envelope.unsign>` and
+:ref:`togglesign <cmd.envelope.togglesign>` in envelope mode
 to determine if you want this mail signed and if so, which key to use.
-To specify the key to use you can pass a hint string as argument to
+To specify the key to use you may pass a hint string as argument to
 the `sign` or `togglesign` command. This hint would typically
 be a fingerprint or an email address associated (by gnupg) with a key.
 
@@ -29,19 +32,11 @@ accordingly.
 You can set the default to-sign bit and the key to use for each :ref:`account <config.accounts>`
 individually using the options :ref:`sign_by_default <sign-by-default>` and :ref:`gpg_key <gpg-key>`.
 
-
-.. rubric:: Tips
-
-In case you are using alot via SSH, we recommend to use `pinentry-curses`
-instead of the default graphical pinentry. You can do that by setting up your
-:file:`~/.gnupg/gpg-agent.conf` like this::
-
-    pinentry-program /usr/bin/pinentry-curses
-
 .. rubric:: Encrypt outgoing emails
 
-You can use the commands `encrypt` and `unencrypt` in envelope mode to
-encrypt the mail. You have to give a hint string as argument to the `encrypt`
-command. This hint would normally be a fingerprint of the key.
-
-Encryption is done after signing (if signing is enabled) the email.
+You can use the commands :ref:`encrypt <cmd.envelope.encrypt>`,
+:ref:`unencrypt <cmd.envelope.unencrypt>` and
+and :ref:`toggleencrypt <cmd.envelope.toggleencrypt>` and
+in envelope mode to ask alot to encrypt the mail before sending.
+The :ref:`encrypt <cmd.envelope.encrypt>` command accepts an optional
+hint string as argument to determine the key of the recipient.
