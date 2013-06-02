@@ -1,6 +1,3 @@
-Commands
-========
-
 Alot interprets user input as command line strings given via its prompt
 or :ref:`bound to keys <config.key_bindings>` in the config.
 Command lines are semi-colon separated command strings, each of which
