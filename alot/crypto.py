@@ -2,7 +2,7 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 import re
-import logging
+import os
 
 from email.generator import Generator
 from cStringIO import StringIO
@@ -166,7 +166,7 @@ def detached_signature_for(plaintext_str, key=None):
     plaintext_data = StringIO(plaintext_str)
     signature_data = StringIO()
     sigs = ctx.sign(plaintext_data, signature_data, gpgme.SIG_MODE_DETACH)
-    signature_data.seek(0, 0)
+    signature_data.seek(0, os.SEEK_SET)
     signature = signature_data.read()
     return sigs, signature
 
@@ -186,9 +186,49 @@ def encrypt(plaintext_str, keys=None):
     ctx.armor = True
     ctx.encrypt(keys, gpgme.ENCRYPT_ALWAYS_TRUST, plaintext_data,
                 encrypted_data)
-    encrypted_data.seek(0, 0)
+    encrypted_data.seek(0, os.SEEK_SET)
     encrypted = encrypted_data.read()
     return encrypted
+
+
+def verify_detached(message, signature):
+    '''Verifies whether the message is authentic by checking the
+    signature.
+
+    :param message: the message as `str`
+    :param signature: a `str` containing an OpenPGP signature
+    :returns: a list of :class:`gpgme.Signature`
+    :raises: :class:`~alot.errors.GPGProblem` if the verification fails
+    '''
+    message_data = StringIO(message)
+    signature_data = StringIO(signature)
+    ctx = gpgme.Context()
+    try:
+        return ctx.verify(signature_data, message_data, None)
+    except gpgme.GpgmeError as e:
+        raise GPGProblem(e.message, code=e.code)
+
+
+def decrypt_verify(encrypted):
+    '''Decrypts the given ciphertext string and returns both the
+    signatures (if any) and the plaintext.
+
+    :param encrypted: the mail to decrypt
+    :returns: a tuple (sigs, plaintext) with sigs being a list of a
+              :class:`gpgme.Signature` and plaintext is a `str` holding
+              the decrypted mail
+    :raises: :class:`~alot.errors.GPGProblem` if the decryption fails
+    '''
+    encrypted_data = StringIO(encrypted)
+    plaintext_data = StringIO()
+    ctx = gpgme.Context()
+    try:
+        sigs = ctx.decrypt_verify(encrypted_data, plaintext_data)
+    except gpgme.GpgmeError as e:
+        raise GPGProblem(e.message, code=e.code)
+
+    plaintext_data.seek(0, os.SEEK_SET)
+    return sigs, plaintext_data.read()
 
 
 def hash_key(key):
