@@ -5,6 +5,7 @@ page down = move page down
 j = move down
 k = move up
 'g g' = move first
+G = move last
 ' ' = move page down
 'ctrl d' = move halfpage down
 'ctrl u' = move halfpage up
@@ -38,7 +39,6 @@ q = exit
     l = retagprompt
     O = refineprompt
     | = refineprompt
-    G = move last
 
 [envelope]
     a = prompt 'attach ~/'
