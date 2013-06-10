@@ -8,7 +8,7 @@ import urwid
 import logging
 
 from alot.settings import settings
-from alot.db.utils import decode_header
+from alot.db.utils import decode_header, X_SIGNATURE_MESSAGE_HEADER
 from alot.helper import tag_cmp
 from alot.widgets.globals import TagWidget
 from alot.widgets.globals import AttachmentWidget
@@ -302,6 +302,10 @@ class MessageTree(CollapsibleTree):
                             t = '%s (%s)' % (tagrep['translated'], t)
                         values.append(t)
                     lines.append((key, ', '.join(values)))
+
+        # OpenPGP pseudo headers
+        if mail[X_SIGNATURE_MESSAGE_HEADER]:
+            lines.append(('PGP-Signature', mail[X_SIGNATURE_MESSAGE_HEADER]))
 
         key_att = settings.get_theming_attribute('thread', 'header_key')
         value_att = settings.get_theming_attribute('thread', 'header_value')

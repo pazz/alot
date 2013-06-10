@@ -10,7 +10,7 @@ from notmuch import NullPointerError
 import alot.helper as helper
 from alot.settings import settings
 
-from utils import extract_headers, extract_body
+from utils import extract_headers, extract_body, message_from_file
 from alot.db.utils import decode_header
 from attachment import Attachment
 
@@ -69,7 +69,7 @@ class Message(object):
         if not self._email:
             try:
                 f_mail = open(path)
-                self._email = email.message_from_file(f_mail)
+                self._email = message_from_file(f_mail)
                 f_mail.close()
             except IOError:
                 self._email = email.message_from_string(warning)
