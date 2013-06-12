@@ -88,8 +88,14 @@ def message_from_file(handle):
     del m[X_SIGNATURE_VALID_HEADER]
     del m[X_SIGNATURE_MESSAGE_HEADER]
 
+    p = get_params(m)
+    app_pgp_sig = 'application/pgp-signature'
+    app_pgp_enc = 'application/pgp-encrypted'
+
     # handle OpenPGP signed data
-    if m.is_multipart() and m.get_content_subtype() == 'signed':
+    if (m.is_multipart() and
+        m.get_content_subtype() == 'signed' and
+        p.get('protocol', None) == app_pgp_sig):
         # RFC 3156 is quite strict:
         # * exactly two messages
         # * the second is of type 'application/pgp-signature'
@@ -100,17 +106,10 @@ def message_from_file(handle):
             malformed = 'expected exactly two messages, got {0}'.format(
                 len(m.get_payload()))
 
-        want = 'application/pgp-signature'
         ct = m.get_payload(1).get_content_type()
-        if ct != want:
+        if ct != app_pgp_sig:
             malformed = 'expected Content-Type: {0}, got: {1}'.format(
-                want, ct)
-
-        p = get_params(m)
-
-        if p.get('protocol', 'nothing') != want:
-            malformed = 'expected protocol={0}, got: {1}'.format(
-                want, p.get('protocol', 'nothing'))
+                app_pgp_sig, ct)
 
         # TODO: RFC 3156 says the alg has to be lower case, but I've
         # seen a message with 'PGP-'. maybe we should be more
@@ -130,9 +129,10 @@ def message_from_file(handle):
         add_signature_headers(m, sigs, malformed)
 
     # handle OpenPGP encrypted data
-    elif (m.is_multipart() and m.get_content_subtype() == 'encrypted' and
-        m.get_payload(0).get_content_type() == 'application/pgp-encrypted' and
-        'Version: 1' in m.get_payload(0).get_payload()):
+    elif (m.is_multipart() and
+          m.get_content_subtype() == 'encrypted' and
+          p.get('protocol', None) == app_pgp_enc and
+         'Version: 1' in m.get_payload(0).get_payload()):
         # RFC 3156 is quite strict:
         # * exactly two messages
         # * the first is of type 'application/pgp-encrypted'
@@ -141,12 +141,9 @@ def message_from_file(handle):
         # * the second contains the encrypted and possibly signed data
         malformed = False
 
-        p = get_params(m)
-
-        want = 'application/pgp-encrypted'
-        if p.get('protocol', 'nothing') != want:
-            malformed = 'expected protocol={0}, got: {1}'.format(
-                want, p.get('protocol', 'nothing'))
+        ct = m.get_payload(0).get_content_type()
+        if ct != app_pgp_enc:
+            malformed = 'expected Content-Type: {0}, got: {1}'.format(app_pgp_enc, ct)
 
         want = 'application/octet-stream'
         ct = m.get_payload(1).get_content_type()
