@@ -19,5 +19,4 @@ class GPGProblem(Exception):
     """GPG Error"""
     def __init__(self, message, code):
         self.code = code
-        self.message = message
-        Exception(message)
+        super(GPGProblem, self).__init__(message)

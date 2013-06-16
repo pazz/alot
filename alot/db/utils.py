@@ -11,13 +11,209 @@ charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 from email.iterators import typed_subpart_iterator
 import logging
 import mailcap
+from cStringIO import StringIO
 
+import alot.crypto as crypto
 import alot.helper as helper
+from alot.errors import GPGProblem
 from alot.settings import settings
 from alot.helper import string_sanitize
 from alot.helper import string_decode
 from alot.helper import parse_mailcap_nametemplate
 from alot.helper import split_commandstring
+
+X_SIGNATURE_VALID_HEADER = 'X-Alot-OpenPGP-Signature-Valid'
+X_SIGNATURE_MESSAGE_HEADER = 'X-Alot-OpenPGP-Signature-Message'
+
+
+def add_signature_headers(mail, sigs, error_msg):
+    '''Add pseudo headers to the mail indicating whether the signature
+    verification was successful.
+
+    :param mail: :class:`email.message.Message` the message to entitle
+    :param sigs: list of :class:`gpgme.Signature`
+    :param error_msg: `str` containing an error message, the empty
+                      string indicating no error
+    '''
+    sig_from = ''
+
+    if len(sigs) == 0:
+        error_msg = error_msg or 'no signature found'
+    else:
+        try:
+            sig_from = crypto.get_key(sigs[0].fpr).uids[0].uid
+        except:
+            sig_from = sigs[0].fpr
+
+    mail.add_header(
+        X_SIGNATURE_VALID_HEADER,
+        'False' if error_msg else 'True',
+    )
+    mail.add_header(
+        X_SIGNATURE_MESSAGE_HEADER,
+        'Invalid: {0}'.format(error_msg)
+        if error_msg else
+        'Valid: {0}'.format(sig_from),
+    )
+
+
+def get_params(mail, failobj=None, header='content-type', unquote=True):
+    '''Get Content-Type parameters as dict.
+
+    RFC 2045 specifies that parameter names are case-insensitive, so
+    we normalize them here.
+
+    :param mail: :class:`email.message.Message`
+    :param failobj: object to return if no such header is found
+    :param header: the header to search for parameters, default
+    :param unquote: unquote the values
+    :returns: a `dict` containing the parameters
+    '''
+    return {k.lower():v for k, v in mail.get_params(failobj, header, unquote)}
+
+
+def message_from_file(handle):
+    '''Reads a mail from the given file-like object and returns an email
+    object, very much like email.message_from_file. In addition to
+    that OpenPGP encrypted data is detected and decrypted. If this
+    succeeds, any mime messages found in the recovered plaintext
+    message are added to the returned message object.
+
+    :param handle: a file-like object
+    :returns: :class:`email.message.Message` possibly augmented with decrypted data
+    '''
+    m = email.message_from_file(handle)
+
+    # make sure noone smuggles a token in (data from m is untrusted)
+    del m[X_SIGNATURE_VALID_HEADER]
+    del m[X_SIGNATURE_MESSAGE_HEADER]
+
+    p = get_params(m)
+    app_pgp_sig = 'application/pgp-signature'
+    app_pgp_enc = 'application/pgp-encrypted'
+
+    # handle OpenPGP signed data
+    if (m.is_multipart() and
+        m.get_content_subtype() == 'signed' and
+        p.get('protocol', None) == app_pgp_sig):
+        # RFC 3156 is quite strict:
+        # * exactly two messages
+        # * the second is of type 'application/pgp-signature'
+        # * the second contains the detached signature
+
+        malformed = False
+        if len(m.get_payload()) != 2:
+            malformed = 'expected exactly two messages, got {0}'.format(
+                len(m.get_payload()))
+
+        ct = m.get_payload(1).get_content_type()
+        if ct != app_pgp_sig:
+            malformed = 'expected Content-Type: {0}, got: {1}'.format(
+                app_pgp_sig, ct)
+
+        # TODO: RFC 3156 says the alg has to be lower case, but I've
+        # seen a message with 'PGP-'. maybe we should be more
+        # permissive here, or maybe not, this is crypto stuff...
+        if not p.get('micalg', 'nothing').startswith('pgp-'):
+            malformed = 'expected micalg=pgp-..., got: {0}'.format(
+                p.get('micalg', 'nothing'))
+
+        sigs = []
+        if not malformed:
+            try:
+                sigs = crypto.verify_detached(m.get_payload(0).as_string(),
+                                              m.get_payload(1).get_payload())
+            except GPGProblem as e:
+                malformed = str(e)
+
+        add_signature_headers(m, sigs, malformed)
+
+    # handle OpenPGP encrypted data
+    elif (m.is_multipart() and
+          m.get_content_subtype() == 'encrypted' and
+          p.get('protocol', None) == app_pgp_enc and
+         'Version: 1' in m.get_payload(0).get_payload()):
+        # RFC 3156 is quite strict:
+        # * exactly two messages
+        # * the first is of type 'application/pgp-encrypted'
+        # * the first contains 'Version: 1'
+        # * the second is of type 'application/octet-stream'
+        # * the second contains the encrypted and possibly signed data
+        malformed = False
+
+        ct = m.get_payload(0).get_content_type()
+        if ct != app_pgp_enc:
+            malformed = 'expected Content-Type: {0}, got: {1}'.format(app_pgp_enc, ct)
+
+        want = 'application/octet-stream'
+        ct = m.get_payload(1).get_content_type()
+        if ct != want:
+            malformed = 'expected Content-Type: {0}, got: {1}'.format(want, ct)
+
+        if not malformed:
+            try:
+                sigs, d = crypto.decrypt_verify(m.get_payload(1).get_payload())
+            except GPGProblem as e:
+                # signature verification failures end up here too if
+                # the combined method is used, currently this prevents
+                # the interpretation of the recovered plain text
+                # mail. maybe that's a feature.
+                malformed = str(e)
+            else:
+                # parse decrypted message
+                n = message_from_string(d)
+
+                # add the decrypted message to m. note that n contains
+                # all the attachments, no need to walk over n here.
+                m.attach(n)
+
+                # add any defects found
+                m.defects.extend(n.defects)
+
+                # there are two methods for both signed and encrypted
+                # data, one is called 'RFC 1847 Encapsulation' by
+                # RFC 3156, and one is the 'Combined method'.
+                if len(sigs) == 0:
+                    # 'RFC 1847 Encapsulation', the signature is a
+                    # detached signature found in the recovered mime
+                    # message of type multipart/signed.
+                    if X_SIGNATURE_VALID_HEADER in n:
+                        for k in (X_SIGNATURE_VALID_HEADER,
+                                  X_SIGNATURE_MESSAGE_HEADER):
+                            m[k] = n[k]
+                    else:
+                        # an encrypted message without signatures
+                        # should arouse some suspicion, better warn
+                        # the user
+                        add_signature_headers(m, [], 'no signature found')
+                else:
+                    # 'Combined method', the signatures are returned
+                    # by the decrypt_verify function.
+
+                    # note that if we reached this point, we know the
+                    # signatures are valid. if they were not valid,
+                    # the else block of the current try would not have
+                    # been executed
+                    add_signature_headers(m, sigs, '')
+
+        if malformed:
+            msg = 'Malformed OpenPGP message: {0}'.format(malformed)
+            m.attach(email.message_from_string(msg))
+
+    return m
+
+
+def message_from_string(s):
+    '''Reads a mail from the given string. This is the equivalent of
+    :func:`email.message_from_string` which does nothing but to wrap
+    the given string in a StringIO object and to call
+    :func:`email.message_from_file`.
+
+    Please refer to the documentation of :func:`message_from_file` for
+    details.
+
+    '''
+    return message_from_file(StringIO(s))
 
 
 def extract_headers(mail, headers=None):
