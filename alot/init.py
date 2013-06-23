@@ -163,7 +163,9 @@ def main():
         settings.set('colourmode', args['colour-mode'])
 
     # get ourselves a database manager
-    dbman = DBManager(path=args['mailindex-path'], ro=args['read-only'])
+    indexpath = settings.get_notmuch_setting('database', 'path')
+    indexpath = args['mailindex-path'] or indexpath
+    dbman = DBManager(path=indexpath, ro=args['read-only'])
 
     # determine what to do
     try:
