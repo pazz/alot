@@ -421,8 +421,8 @@ class DBManager(object):
         if self.ro:
             raise DatabaseROError()
         if not is_subdir_of(path,self.path):
-            msg = 'cannot add message in %s ' % path
-            msg += 'as it\'s not below notmuchs '
+            msg = 'message path %s ' % path
+            msg += ' is not below notmuchs '
             msg += 'root path (%s)' % self.path
             raise DatabaseError(msg)
         else:
