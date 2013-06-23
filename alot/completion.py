@@ -445,7 +445,7 @@ class CommandCompleter(Completer):
                 elif cmd == 'move':
                     directions = ['up', 'down', 'page up', 'page down']
                     if self.mode == 'thread':
-                        directions += ['first', 'next', 'previous',
+                        directions += ['first', 'last', 'next', 'previous',
                                        'last reply', 'first reply', 'parent',
                                        'next unfolded', 'previous unfolded',
                                        'next sibling', 'previous sibling']

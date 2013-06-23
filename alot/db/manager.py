@@ -21,6 +21,8 @@ from errors import DatabaseLockedError
 from errors import DatabaseROError
 from errors import NonexistantObjectError
 from alot.db import DB_ENC
+from alot.db.utils import is_subdir_of
+
 
 
 class FillPipeProcess(multiprocessing.Process):
@@ -418,7 +420,13 @@ class DBManager(object):
         """
         if self.ro:
             raise DatabaseROError()
-        self.writequeue.append(('add', afterwards, path, tags))
+        if not is_subdir_of(path,self.path):
+            msg = 'message path %s ' % path
+            msg += ' is not below notmuchs '
+            msg += 'root path (%s)' % self.path
+            raise DatabaseError(msg)
+        else:
+            self.writequeue.append(('add', afterwards, path, tags))
 
     def remove_message(self, message, afterwards=None):
         """

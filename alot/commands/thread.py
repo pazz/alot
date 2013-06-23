@@ -902,7 +902,7 @@ class OpenAttachmentCommand(Command):
 @registerCommand(MODE, 'move', help='move focus in current buffer',
                  arguments=[(['movement'], {
                              'nargs': argparse.REMAINDER,
-                             'help': 'up, down, page up, page down, first'})])
+                             'help': 'up, down, page up, page down, first, last'})])
 class MoveFocusCommand(MoveCommand):
     def apply(self, ui):
         logging.debug(self.movement)
