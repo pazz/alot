@@ -137,12 +137,6 @@ class DBManager(object):
                     if cmd == 'add':
                         logging.debug('add')
                         path, tags = current_item[2:]
-                        if not is_subdir_of(path,self.path):
-                            msg = 'cannot add message in %s ' % path
-                            msg += 'as it\'s not below notmuchs '
-                            msg += 'root path (%s)' % self.path
-                            raise DatabaseError(msg)
-
                         msg, status = db.add_message(path,
                                                      sync_maildir_flags=sync)
                         logging.debug('added msg')
@@ -426,7 +420,13 @@ class DBManager(object):
         """
         if self.ro:
             raise DatabaseROError()
-        self.writequeue.append(('add', afterwards, path, tags))
+        if not is_subdir_of(path,self.path):
+            msg = 'cannot add message in %s ' % path
+            msg += 'as it\'s not below notmuchs '
+            msg += 'root path (%s)' % self.path
+            raise DatabaseError(msg)
+        else:
+            self.writequeue.append(('add', afterwards, path, tags))
 
     def remove_message(self, message, afterwards=None):
         """
