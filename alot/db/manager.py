@@ -21,6 +21,8 @@ from errors import DatabaseLockedError
 from errors import DatabaseROError
 from errors import NonexistantObjectError
 from alot.db import DB_ENC
+from alot.db.utils import is_subdir_of
+
 
 
 class FillPipeProcess(multiprocessing.Process):
@@ -135,6 +137,12 @@ class DBManager(object):
                     if cmd == 'add':
                         logging.debug('add')
                         path, tags = current_item[2:]
+                        if not is_subdir_of(path,self.path):
+                            msg = 'cannot add message in %s ' % path
+                            msg += 'as it\'s not below notmuchs '
+                            msg += 'root path (%s)' % self.path
+                            raise DatabaseError(msg)
+
                         msg, status = db.add_message(path,
                                                      sync_maildir_flags=sync)
                         logging.debug('added msg')
