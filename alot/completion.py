@@ -29,6 +29,7 @@ class Completer(object):
         :returns: pairs of completed string and cursor position in the
                   new string
         :rtype: list of (str, int)
+        :raises: :exc:`CompletionError`
         """
         return list()
 
