@@ -111,9 +111,6 @@ class CompleteEdit(urwid.Edit):
                 self.set_edit_text(ctext)
                 self.set_edit_pos(cpos)
             else:
-                self.edit_pos += 1
-                if self.edit_pos >= len(self.edit_text):
-                    self.edit_text += ' '
                 self.completions = None
         elif key in ['up', 'down']:
             if self.history:
