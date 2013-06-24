@@ -13,7 +13,8 @@ from alot.buffers import EnvelopeBuffer
 from alot.settings import settings
 from alot.utils.booleanaction import BooleanAction
 from alot.helper import split_commandline
-
+from alot.addressbooks import AddressbookError
+from errors import CompletionError
 
 class Completer(object):
     """base class for completers"""
@@ -28,6 +29,7 @@ class Completer(object):
         :returns: pairs of completed string and cursor position in the
                   new string
         :rtype: list of (str, int)
+        :raises: :exc:`CompletionError`
         """
         return list()
 
@@ -212,7 +214,10 @@ class AbooksCompleter(Completer):
         prefix = original[:pos]
         res = []
         for abook in self.abooks:
-            res = res + abook.lookup(prefix)
+            try:
+                res = res + abook.lookup(prefix)
+            except AddressbookError as e:
+                raise CompletionError(e)
         if self.addressesonly:
             returnlist = [(email, len(email)) for (name, email) in res]
         else:

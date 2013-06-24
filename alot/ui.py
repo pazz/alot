@@ -222,12 +222,19 @@ class UI(object):
             self._passall = False
             d.callback(text)
 
+        def cerror(e):
+            logging.error(e)
+            self.notify('completion error: %s' % e.message,
+                        priority='error')
+            self.update()
+
         prefix = prefix + settings.get('prompt_suffix')
 
         # set up widgets
         leftpart = urwid.Text(prefix, align='left')
         editpart = CompleteEdit(completer, on_exit=select_or_cancel,
-                                edit_text=text, history=history)
+                                edit_text=text, history=history,
+                                on_error=cerror)
 
         for i in range(tab):  # hit some tabs
             editpart.keypress((0,), 'tab')

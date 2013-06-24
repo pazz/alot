@@ -10,6 +10,7 @@ import urwid
 from alot.helper import string_decode
 from alot.settings import settings
 from alot.db.attachment import Attachment
+from alot.errors import CompletionError
 
 
 class AttachmentWidget(urwid.WidgetWrap):
@@ -71,10 +72,43 @@ class ChoiceWidget(urwid.Text):
 
 
 class CompleteEdit(urwid.Edit):
-    def __init__(self, completer, on_exit, edit_text=u'',
-                 history=None, **kwargs):
+    """
+    This is a vamped-up :class:`urwid.Edit` widget that allows for
+    tab-completion using :class:`~alot.completion.Completer` objects
+
+    These widgets are meant to be used as user input prompts and hence
+    react to 'return' key presses by calling a 'on_exit' callback
+    that processes the current text value.
+
+    The interpretation of some keypresses is hard-wired:
+        :enter: calls 'on_exit' callback with current value
+        :esc: calls 'on_exit' with value `None`, which can be interpreted
+              as cancelation
+        :tab: calls the completer and tabs forward in the result list
+        :shift tab: tabs backward in the result list
+        :up/down: move in the local input history
+        :ctrl a/e: moves curser to the beginning/end of the input
+    """
+    def __init__(self, completer, on_exit,
+                 on_error=None,
+                 edit_text=u'',
+                 history=None,
+                 **kwargs):
+        """
+        :param completer: completer to use
+        :type completer: alot.completion.Completer
+        :param on_exit: "enter"-callback that interprets the input (str)
+        :type on_exit: callable
+        :param on_error: callback that handles :class:`completion errors <alot.errors.CompletionErrors>`
+        :type on_error: callback
+        :param edit_text: initial text
+        :type edit_text: str
+        :param history: initial command history
+        :type history: list or str
+        """
         self.completer = completer
         self.on_exit = on_exit
+        self.on_error = on_error
         self.history = list(history)  # we temporarily add stuff here
         self.historypos = None
 
@@ -88,10 +122,16 @@ class CompleteEdit(urwid.Edit):
         # if we tabcomplete
         if key in ['tab', 'shift tab'] and self.completer:
             # if not already in completion mode
-            if not self.completions:
-                self.completions = [(self.edit_text, self.edit_pos)] + \
-                    self.completer.complete(self.edit_text, self.edit_pos)
-                self.focus_in_clist = 1
+            if self.completions is None:
+                self.completions = [(self.edit_text, self.edit_pos)]
+                try:
+                    self.completions += self.completer.complete(self.edit_text,
+                                                                self.edit_pos)
+                    self.focus_in_clist = 1
+                except CompletionError, e:
+                    if self.on_error is not None:
+                        self.on_error(e)
+
             else:  # otherwise tab through results
                 if key == 'tab':
                     self.focus_in_clist += 1
@@ -103,9 +143,6 @@ class CompleteEdit(urwid.Edit):
                 self.set_edit_text(ctext)
                 self.set_edit_pos(cpos)
             else:
-                self.edit_pos += 1
-                if self.edit_pos >= len(self.edit_text):
-                    self.edit_text += ' '
                 self.completions = None
         elif key in ['up', 'down']:
             if self.history:
