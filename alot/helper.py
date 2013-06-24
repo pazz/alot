@@ -312,7 +312,7 @@ def call_cmd(cmdlist, stdin=None):
                 out = subprocess.check_output(cmdlist)
             except subprocess.CalledProcessError as e:
                 err = e.output
-                ret = -1
+                ret = e.returncode
     except OSError as e:
         err = e.strerror
         ret = e.errno
