@@ -10,6 +10,7 @@ import urwid
 from alot.helper import string_decode
 from alot.settings import settings
 from alot.db.attachment import Attachment
+from alot.errors import CompletionError
 
 
 class AttachmentWidget(urwid.WidgetWrap):
@@ -71,10 +72,11 @@ class ChoiceWidget(urwid.Text):
 
 
 class CompleteEdit(urwid.Edit):
-    def __init__(self, completer, on_exit, edit_text=u'',
-                 history=None, **kwargs):
+    def __init__(self, completer, on_exit, edit_text=u'', history=None,
+                 on_error=None, **kwargs):
         self.completer = completer
         self.on_exit = on_exit
+        self.on_error = on_error
         self.history = list(history)  # we temporarily add stuff here
         self.historypos = None
 
@@ -88,10 +90,16 @@ class CompleteEdit(urwid.Edit):
         # if we tabcomplete
         if key in ['tab', 'shift tab'] and self.completer:
             # if not already in completion mode
-            if not self.completions:
-                self.completions = [(self.edit_text, self.edit_pos)] + \
-                    self.completer.complete(self.edit_text, self.edit_pos)
-                self.focus_in_clist = 1
+            if self.completions is None:
+                self.completions = [(self.edit_text, self.edit_pos)]
+                try:
+                    self.completions += self.completer.complete(self.edit_text,
+                                                                self.edit_pos)
+                    self.focus_in_clist = 1
+                except CompletionError, e:
+                    if self.on_error is not None:
+                        self.on_error(e)
+
             else:  # otherwise tab through results
                 if key == 'tab':
                     self.focus_in_clist += 1
