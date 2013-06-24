@@ -295,7 +295,7 @@ def call_cmd(cmdlist, stdin=None):
     :type cmdlist: list of str
     :param stdin: string to pipe to the process
     :type stdin: str
-    :return: triple of stdout, error msg, return value of the shell command
+    :return: triple of stdout, stderr, return value of the shell command
     :rtype: str, str, int
     """
 
@@ -308,11 +308,14 @@ def call_cmd(cmdlist, stdin=None):
             out, err = proc.communicate(stdin)
             ret = proc.poll()
         else:
-            out = subprocess.check_output(cmdlist)
-            # todo: get error msg. rval
-    except (subprocess.CalledProcessError, OSError), e:
-        err = str(e)
-        ret = -1
+            try:
+                out = subprocess.check_output(cmdlist)
+            except subprocess.CalledProcessError as e:
+                err = e.output
+                ret = -1
+    except OSError as e:
+        err = e.strerror
+        ret = e.errno
 
     out = string_decode(out, urwid.util.detected_encoding)
     err = string_decode(err, urwid.util.detected_encoding)
