@@ -72,8 +72,40 @@ class ChoiceWidget(urwid.Text):
 
 
 class CompleteEdit(urwid.Edit):
-    def __init__(self, completer, on_exit, edit_text=u'', history=None,
-                 on_error=None, **kwargs):
+    """
+    This is a vamped-up :class:`urwid.Edit` widget that allows for
+    tab-completion using :class:`~alot.completion.Completer` objects
+
+    These widgets are meant to be used as user input prompts and hence
+    react to 'return' key presses by calling a 'on_exit' callback
+    that processes the current text value.
+
+    The interpretation of some keypresses is hard-wired:
+        :enter: calls 'on_exit' callback with current value
+        :esc: calls 'on_exit' with value `None`, which can be interpreted
+              as cancelation
+        :tab: calls the completer and tabs forward in the result list
+        :shift tab: tabs backward in the result list
+        :up/down: move in the local input history
+        :ctrl a/e: moves curser to the beginning/end of the input
+    """
+    def __init__(self, completer, on_exit,
+                 on_error=None,
+                 edit_text=u'',
+                 history=None,
+                 **kwargs):
+        """
+        :param completer: completer to use
+        :type completer: alot.completion.Completer
+        :param on_exit: "enter"-callback that interprets the input (str)
+        :type on_exit: callable
+        :param on_error: callback that handles :class:`completion errors <alot.errors.CompletionErrors>`
+        :type on_error: callback
+        :param edit_text: initial text
+        :type edit_text: str
+        :param history: initial command history
+        :type history: list or str
+        """
         self.completer = completer
         self.on_exit = on_exit
         self.on_error = on_error
