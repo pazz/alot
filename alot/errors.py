@@ -20,3 +20,7 @@ class GPGProblem(Exception):
     def __init__(self, message, code):
         self.code = code
         super(GPGProblem, self).__init__(message)
+
+
+class CompletionError(Exception):
+    pass
