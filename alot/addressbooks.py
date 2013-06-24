@@ -9,6 +9,10 @@ from helper import call_cmd
 from alot.helper import split_commandstring
 
 
+class AddressbookError(Exception):
+    pass
+
+
 class AddressBook(object):
     """can look up email addresses and realnames for contacts.
 
@@ -89,6 +93,13 @@ class MatchSdtoutAddressbook(AddressBook):
     def lookup(self, prefix):
         cmdlist = split_commandstring(self.command)
         resultstring, errmsg, retval = call_cmd(cmdlist + [prefix])
+        if retval != 0:
+            msg = 'abook command "%s" returned with ' % self.command
+            msg += 'return code %d' % retval
+            if errmsg:
+                msg += ':\n%s' % errmsg
+            raise AddressbookError(msg)
+
         if not resultstring:
             return []
         lines = resultstring.splitlines()
