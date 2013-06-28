@@ -4,6 +4,7 @@
 import os
 import code
 from twisted.internet import threads
+from twisted.internet import defer
 import subprocess
 import email
 import urwid
@@ -17,6 +18,7 @@ from alot.commands import Command, registerCommand
 from alot.completion import CommandLineCompleter
 from alot.commands import CommandParseError
 from alot.commands import commandfactory
+from alot.commands import CommandCanceled
 from alot import buffers
 from alot.widgets.utils import DialogBox
 from alot import helper
@@ -120,6 +122,8 @@ class PromptCommand(Command):
             # save into prompt history
             ui.commandprompthistory.append(cmdline)
             ui.apply_commandline(cmdline)
+        else:
+            raise CommandCanceled()
 
 
 @registerCommand(MODE, 'refresh')
@@ -726,8 +730,8 @@ class ComposeCommand(Command):
                 fromaddress = yield ui.prompt('From', completer=cmpl,
                                               tab=1)
                 if fromaddress is None:
-                    ui.notify('canceled')
-                    return
+                    raise CommandCanceled()
+
                 self.envelope.add('From', fromaddress)
 
         # add signature
@@ -782,8 +786,8 @@ class ComposeCommand(Command):
             to = yield ui.prompt('To',
                                  completer=completer)
             if to is None:
-                ui.notify('canceled')
-                return
+                raise CommandCanceled()
+
             self.envelope.add('To', to.strip(' \t\n,'))
 
         if settings.get('ask_subject') and \
@@ -791,8 +795,8 @@ class ComposeCommand(Command):
             subject = yield ui.prompt('Subject')
             logging.debug('SUBJECT: "%s"' % subject)
             if subject is None:
-                ui.notify('canceled')
-                return
+                raise CommandCanceled()
+
             self.envelope.add('Subject', subject)
 
         if settings.get('compose_ask_tags'):
@@ -800,8 +804,8 @@ class ComposeCommand(Command):
             tagsstring = yield ui.prompt('Tags', completer=comp)
             tags = filter(lambda x: x, tagsstring.split(','))
             if tags is None:
-                ui.notify('canceled')
-                return
+                raise CommandCanceled()
+
             self.envelope.tags = tags
 
         if self.attach:
@@ -853,18 +857,29 @@ class CommandSequenceCommand(Command):
         Command.__init__(self, **kwargs)
         self.cmdline = cmdline
 
-    @inlineCallbacks
     def apply(self, ui):
+
+        def apply_command(ignored, cmdstring, cmd):
+            logging.debug('CMDSEQ: apply %s' % str(cmdstring))
+            # store cmdline for use with 'repeat' command
+            if cmd.repeatable:
+                ui.last_commandline = self.cmdline.lstrip()
+            return ui.apply_command(cmd, handle_error=False)
+
+        # we initialize a deferred which is already triggered 
+        # so that our callbacks will start to be called 
+        # immediately as possible
+        d = defer.succeed(None)
+
         # split commandline if necessary
         for cmdstring in split_commandline(self.cmdline):
-            logging.debug('CMDSEQ: apply %s' % str(cmdstring))
             # translate cmdstring into :class:`Command`
             try:
                 cmd = commandfactory(cmdstring, ui.mode)
-                # store cmdline for use with 'repeat' command
-                if cmd.repeatable:
-                    ui.last_commandline = self.cmdline.lstrip()
             except CommandParseError, e:
                 ui.notify(e.message, priority='error')
                 return
-            yield ui.apply_command(cmd)
+            d.addCallback(apply_command, cmdstring, cmd)
+
+        return d
+

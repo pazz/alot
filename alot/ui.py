@@ -8,6 +8,7 @@ from twisted.internet import reactor, defer
 from settings import settings
 from buffers import BufferlistBuffer
 from commands import commandfactory
+from commands import CommandCanceled
 from alot.commands import CommandParseError
 from alot.commands.globals import CommandSequenceCommand
 from alot.helper import string_decode
@@ -557,7 +558,7 @@ class UI(object):
         footer_att = settings.get_theming_attribute('global', 'footer')
         return urwid.AttrMap(columns, footer_att)
 
-    def apply_command(self, cmd):
+    def apply_command(self, cmd, handle_error=True):
         """
         applies a command
 
@@ -566,6 +567,11 @@ class UI(object):
 
         :param cmd: an applicable command
         :type cmd: :class:`~alot.commands.Command`
+        :param handle_error: if True, the caller wants to rely on the default
+                             error handling mechanism to process the eventual
+                             errors raised while the command is applied.
+                             This is the default.
+        :type handle_error: bool
         """
         if cmd:
             # define (callback) function that invokes post-hook
@@ -575,15 +581,18 @@ class UI(object):
                     return defer.maybeDeferred(cmd.posthook, ui=self,
                                                dbm=self.dbman)
 
-            # define error handler for Failures/Exceptions
+            # define a generic error handler for Failures/Exceptions
             # raised in cmd.apply()
             def errorHandler(failure):
-                logging.error(failure.getTraceback())
-                errmsg = failure.getErrorMessage()
-                if errmsg:
-                    msg = "%s\n(check the log for details)"
-                    self.notify(
-                        msg % failure.getErrorMessage(), priority='error')
+                if failure.check(CommandCanceled):
+                    self.notify('canceled')
+                else:
+                    logging.error(failure.getTraceback())
+                    errmsg = failure.getErrorMessage()
+                    if errmsg:
+                        msg = "%s\n(check the log for details)"
+                        self.notify(
+                            msg % failure.getErrorMessage(), priority='error')
 
             # call cmd.apply
             def call_apply(ignored):
@@ -593,5 +602,6 @@ class UI(object):
             d = defer.maybeDeferred(prehook, ui=self, dbm=self.dbman)
             d.addCallback(call_apply)
             d.addCallback(call_posthook)
-            d.addErrback(errorHandler)
+            if handle_error:
+                d.addErrback(errorHandler)
             return d
