@@ -114,7 +114,6 @@ class UI(object):
                 if self._alarm is not None:
                     self.mainloop.remove_alarm(self._alarm)
                 self.input_queue = []
-                self.update()
 
             def fire(ignored, cmdline):
                 clear()
