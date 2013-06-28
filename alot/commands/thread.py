@@ -17,6 +17,7 @@ from alot.commands.globals import ExternalCommand
 from alot.commands.globals import FlushCommand
 from alot.commands.globals import ComposeCommand
 from alot.commands.globals import MoveCommand
+from alot.commands.globals import CommandCanceled
 from alot.commands.envelope import SendCommand
 from alot import completion
 from alot.db.utils import decode_header
@@ -385,8 +386,8 @@ class BounceMailCommand(Command):
             completer = None
         to = yield ui.prompt('To', completer=completer)
         if to is None:
-            ui.notify('canceled')
-            return
+            raise CommandCanceled()
+
         mail['Resent-To'] = to.strip(' \t\n,')
 
         logging.debug("bouncing mail")
@@ -823,7 +824,7 @@ class SaveAttachmentCommand(Command):
                     ui.notify('not a directory: %s' % self.path,
                               priority='error')
             else:
-                ui.notify('canceled')
+                raise CommandCanceled()
         else:  # save focussed attachment
             focus = ui.get_deep_focus()
             if isinstance(focus, AttachmentWidget):
@@ -842,7 +843,7 @@ class SaveAttachmentCommand(Command):
                     except (IOError, OSError) as e:
                         ui.notify(str(e), priority='error')
                 else:
-                    ui.notify('canceled')
+                    raise CommandCanceled()
 
 
 class OpenAttachmentCommand(Command):
