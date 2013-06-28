@@ -120,6 +120,8 @@ class PromptCommand(Command):
             # save into prompt history
             ui.commandprompthistory.append(cmdline)
             ui.apply_commandline(cmdline)
+        else:
+            self._cancel(ui)
 
 
 @registerCommand(MODE, 'refresh')
@@ -726,7 +728,7 @@ class ComposeCommand(Command):
                 fromaddress = yield ui.prompt('From', completer=cmpl,
                                               tab=1)
                 if fromaddress is None:
-                    ui.notify('canceled')
+                    self._cancel(ui)
                     return
                 self.envelope.add('From', fromaddress)
 
@@ -782,7 +784,7 @@ class ComposeCommand(Command):
             to = yield ui.prompt('To',
                                  completer=completer)
             if to is None:
-                ui.notify('canceled')
+                self._cancel(ui)
                 return
             self.envelope.add('To', to.strip(' \t\n,'))
 
@@ -791,7 +793,7 @@ class ComposeCommand(Command):
             subject = yield ui.prompt('Subject')
             logging.debug('SUBJECT: "%s"' % subject)
             if subject is None:
-                ui.notify('canceled')
+                self._cancel(ui)
                 return
             self.envelope.add('Subject', subject)
 
@@ -800,7 +802,7 @@ class ComposeCommand(Command):
             tagsstring = yield ui.prompt('Tags', completer=comp)
             tags = filter(lambda x: x, tagsstring.split(','))
             if tags is None:
-                ui.notify('canceled')
+                self._cancel(ui)
                 return
             self.envelope.tags = tags
 
@@ -868,3 +870,8 @@ class CommandSequenceCommand(Command):
                 ui.notify(e.message, priority='error')
                 return
             yield ui.apply_command(cmd)
+
+            # if the user canceled an interactive command, we will
+            # not try to run the subsequent commands
+            if cmd.canceled:
+                break
