@@ -8,6 +8,7 @@ from collections import deque
 import subprocess
 import shlex
 import email
+import mimetypes
 import os
 import re
 from email.mime.audio import MIMEAudio
@@ -435,7 +436,17 @@ def guess_encoding(blob):
 # TODO: make this work on blobs, not paths
 def mimewrap(path, filename=None, ctype=None):
     content = open(path, 'rb').read()
-    ctype = ctype or guess_mimetype(content)
+    if not ctype:
+        ctype = guess_mimetype(content)
+        # libmagic < 5.12 incorrectly detects excel/powerpoint files as 
+        # 'application/msword' (see #179 and #186 in libmagic bugtracker)
+        # This is a workaround, based on file extension, useful as long
+        # as distributions still ship libmagic 5.11
+        if ctype == 'application/msword':
+            mimetype, encoding = mimetypes.guess_type(path)
+            if mimetype:
+                ctype = mimetype
+
     maintype, subtype = ctype.split('/', 1)
     if maintype == 'text':
         part = MIMEText(content.decode(guess_encoding(content), 'replace'),
