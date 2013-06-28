@@ -441,8 +441,12 @@ def mimewrap(path, filename=None, ctype=None):
         # libmagic < 5.12 incorrectly detects excel/powerpoint files as 
         # 'application/msword' (see #179 and #186 in libmagic bugtracker)
         # This is a workaround, based on file extension, useful as long
-        # as distributions still ship libmagic 5.11
-        if ctype == 'application/msword':
+        # as distributions still ship libmagic 5.11.
+        # To see if we must apply the workaround, we just check the
+        # availability of the magic_version function which has been
+        # introduced in libmagic 5.13
+        if (not hasattr(magic._libraries['magic'], 'magic_version') and
+                ctype == 'application/msword'):
             mimetype, encoding = mimetypes.guess_type(path)
             if mimetype:
                 ctype = mimetype
