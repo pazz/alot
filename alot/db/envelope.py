@@ -20,11 +20,12 @@ import gpgme
 from alot.settings import settings
 from alot.errors import GPGProblem, GPGCode
 
-from attachment import Attachment
-from utils import encode_header
+from .attachment import Attachment
+from .utils import encode_header
 
 
 class Envelope(object):
+
     """a message that is not yet sent and still editable.
     It holds references to unencoded! body text and mail headers among other
     things.  Envelope implements the python container API for easy access of

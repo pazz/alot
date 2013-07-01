@@ -7,7 +7,6 @@ from twisted.internet import reactor, defer
 
 from settings import settings
 from buffers import BufferlistBuffer
-from commands import commandfactory
 from alot.commands import CommandParseError
 from alot.commands.globals import CommandSequenceCommand
 from alot.helper import string_decode
@@ -127,7 +126,7 @@ class UI(object):
                         self.notify(e.message, priority='error')
                 # move keys are always passed
                 elif cmdline in ['move up', 'move down', 'move page up',
-                               'move page down']:
+                                 'move page down']:
                     return [cmdline[5:]]
 
             key = keys[0]
@@ -165,7 +164,8 @@ class UI(object):
     def apply_commandline(self, cmdline):
         """
         Dispatches the interpretation of the command line string to
-        :class:`CommandSequenceCommand <alot.commands.globals.CommandSequenceCommand>`.
+        :class:`CommandSequenceCommand
+        <alot.commands.globals.CommandSequenceCommand>`.
 
         :param cmdline: command line to interpret
         :type cmdline: str

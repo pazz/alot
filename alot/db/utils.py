@@ -69,7 +69,7 @@ def get_params(mail, failobj=list(), header='content-type', unquote=True):
     :param unquote: unquote the values
     :returns: a `dict` containing the parameters
     '''
-    return {k.lower():v for k, v in mail.get_params(failobj, header, unquote)}
+    return {k.lower(): v for k, v in mail.get_params(failobj, header, unquote)}
 
 
 def message_from_file(handle):
@@ -80,7 +80,8 @@ def message_from_file(handle):
     message are added to the returned message object.
 
     :param handle: a file-like object
-    :returns: :class:`email.message.Message` possibly augmented with decrypted data
+    :returns: :class:`email.message.Message` possibly augmented with
+              decrypted data
     '''
     m = email.message_from_file(handle)
 
@@ -95,7 +96,7 @@ def message_from_file(handle):
     # handle OpenPGP signed data
     if (m.is_multipart() and
         m.get_content_subtype() == 'signed' and
-        p.get('protocol', None) == app_pgp_sig):
+            p.get('protocol', None) == app_pgp_sig):
         # RFC 3156 is quite strict:
         # * exactly two messages
         # * the second is of type 'application/pgp-signature'
@@ -132,7 +133,7 @@ def message_from_file(handle):
     elif (m.is_multipart() and
           m.get_content_subtype() == 'encrypted' and
           p.get('protocol', None) == app_pgp_enc and
-         'Version: 1' in m.get_payload(0).get_payload()):
+          'Version: 1' in m.get_payload(0).get_payload()):
         # RFC 3156 is quite strict:
         # * exactly two messages
         # * the first is of type 'application/pgp-encrypted'
@@ -143,7 +144,8 @@ def message_from_file(handle):
 
         ct = m.get_payload(0).get_content_type()
         if ct != app_pgp_enc:
-            malformed = 'expected Content-Type: {0}, got: {1}'.format(app_pgp_enc, ct)
+            malformed = 'expected Content-Type: {0}, got: {1}'.format(
+                app_pgp_enc, ct)
 
         want = 'application/octet-stream'
         ct = m.get_payload(1).get_content_type()
@@ -228,7 +230,7 @@ def extract_headers(mail, headers=None):
     :type headers: list of str
     """
     headertext = u''
-    if headers == None:
+    if headers is None:
         headers = mail.keys()
     for key in headers:
         value = u''
@@ -251,12 +253,14 @@ def extract_body(mail, types=None):
     :type types: list of str
     """
 
-    preferred = 'text/plain' if settings.get('prefer_plaintext') else 'text/html'
+    preferred = 'text/plain' if settings.get(
+        'prefer_plaintext') else 'text/html'
     has_preferred = False
 
     # see if the mail has our preferred type
-    if types == None:
-        has_preferred = list(typed_subpart_iterator(mail, *preferred.split('/')))
+    if types is None:
+        has_preferred = list(typed_subpart_iterator(
+            mail, *preferred.split('/')))
 
     body_parts = []
     for part in mail.walk():
@@ -279,7 +283,7 @@ def extract_body(mail, types=None):
             raw_payload = string_decode(raw_payload, enc)
             body_parts.append(string_sanitize(raw_payload))
         else:
-            #get mime handler
+            # get mime handler
             key = 'copiousoutput'
             handler, entry = settings.mailcap_find_match(ctype, key=key)
             tempfile_name = None
@@ -294,8 +298,8 @@ def extract_body(mail, types=None):
                     nametemplate = entry.get('nametemplate', '%s')
                     prefix, suffix = parse_mailcap_nametemplate(nametemplate)
                     tmpfile = tempfile.NamedTemporaryFile(delete=False,
-                                                        prefix=prefix,
-                                                        suffix=suffix)
+                                                          prefix=prefix,
+                                                          suffix=suffix)
                     # write payload to tmpfile
                     tmpfile.write(raw_payload)
                     tmpfile.close()
@@ -313,7 +317,8 @@ def extract_body(mail, types=None):
                 logging.debug('parms: %s' % str(parms))
                 cmdlist = split_commandstring(cmd)
                 # call handler
-                rendered_payload, errmsg, retval = helper.call_cmd(cmdlist, stdin=stdin)
+                rendered_payload, errmsg, retval = helper.call_cmd(
+                    cmdlist, stdin=stdin)
 
                 # remove tempfile
                 if tempfile_name:

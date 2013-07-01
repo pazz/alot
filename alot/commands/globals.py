@@ -35,6 +35,7 @@ MODE = 'global'
 
 @registerCommand(MODE, 'exit')
 class ExitCommand(Command):
+
     """shut down cleanly"""
     @inlineCallbacks
     def apply(self, ui):
@@ -50,10 +51,11 @@ class ExitCommand(Command):
 
 
 @registerCommand(MODE, 'search', usage='search query', arguments=[
-    (['--sort'], {'help':'sort order', 'choices':[
+    (['--sort'], {'help': 'sort order', 'choices': [
                   'oldest_first', 'newest_first', 'message_id', 'unsorted']}),
-    (['query'], {'nargs':argparse.REMAINDER, 'help':'search string'})])
+    (['query'], {'nargs': argparse.REMAINDER, 'help': 'search string'})])
 class SearchCommand(Command):
+
     """open a new search buffer"""
     repeatable = True
 
@@ -92,8 +94,9 @@ class SearchCommand(Command):
 
 
 @registerCommand(MODE, 'prompt', arguments=[
-    (['startwith'], {'nargs':'?', 'default':'', 'help':'initial content'})])
+    (['startwith'], {'nargs': '?', 'default': '', 'help': 'initial content'})])
 class PromptCommand(Command):
+
     """prompts for commandline and interprets it upon select"""
     def __init__(self, startwith='', **kwargs):
         """
@@ -124,6 +127,7 @@ class PromptCommand(Command):
 
 @registerCommand(MODE, 'refresh')
 class RefreshCommand(Command):
+
     """refresh the current buffer"""
     repeatable = True
 
@@ -133,16 +137,17 @@ class RefreshCommand(Command):
 
 
 @registerCommand(MODE, 'shellescape', arguments=[
-    (['--spawn'], {'action': BooleanAction, 'default':None,
-                   'help':'run in terminal window'}),
-    (['--thread'], {'action': BooleanAction, 'default':None,
-                    'help':'run in separate thread'}),
-    (['--refocus'], {'action': BooleanAction, 'help':'refocus current buffer \
+    (['--spawn'], {'action': BooleanAction, 'default': None,
+                   'help': 'run in terminal window'}),
+    (['--thread'], {'action': BooleanAction, 'default': None,
+                    'help': 'run in separate thread'}),
+    (['--refocus'], {'action': BooleanAction, 'help': 'refocus current buffer \
                      after command has finished'}),
-    (['cmd'], {'help':'command line to execute'})],
+    (['cmd'], {'help': 'command line to execute'})],
     forced={'shell': True},
 )
 class ExternalCommand(Command):
+
     """run external command"""
     repeatable = True
 
@@ -201,7 +206,7 @@ class ExternalCommand(Command):
         logging.debug('cmdlist: %s' % self.cmdlist)
         callerbuffer = ui.current_buffer
 
-        #set standard input for subcommand
+        # set standard input for subcommand
         stdin = None
         if self.stdin is not None:
             # wrap strings in StrinIO so that they behaves like a file
@@ -239,7 +244,7 @@ class ExternalCommand(Command):
                     return 'success'
                 else:
                     return err.strip()
-            except OSError, e:
+            except OSError as e:
                 return str(e)
 
         if self.in_thread:
@@ -258,11 +263,12 @@ class ExternalCommand(Command):
 
 
 #@registerCommand(MODE, 'edit', arguments=[
-#    (['--nospawn'], {'action': 'store_true', 'help':'spawn '}), #todo
+# (['--nospawn'], {'action': 'store_true', 'help':'spawn '}), #todo
 #    (['path'], {'help':'file to edit'})]
 #]
 #)
 class EditCommand(ExternalCommand):
+
     """edit a file"""
     def __init__(self, path, spawn=None, thread=None, **kwargs):
         """
@@ -309,6 +315,7 @@ class EditCommand(ExternalCommand):
 
 @registerCommand(MODE, 'pyshell')
 class PythonShellCommand(Command):
+
     """open an interactive python shell for introspection"""
     repeatable = True
 
@@ -320,6 +327,7 @@ class PythonShellCommand(Command):
 
 @registerCommand(MODE, 'repeat')
 class RepeatCommand(Command):
+
     """Repeats the command executed last time"""
     def __init__(self, **kwargs):
         Command.__init__(self, **kwargs)
@@ -332,8 +340,9 @@ class RepeatCommand(Command):
 
 
 @registerCommand(MODE, 'call', arguments=[
-    (['command'], {'help':'python command string to call'})])
+    (['command'], {'help': 'python command string to call'})])
 class CallCommand(Command):
+
     """ Executes python code """
     repeatable = True
 
@@ -353,7 +362,7 @@ class CallCommand(Command):
                 if k not in hooks.__dict__:
                     hooks.__dict__[k] = v
 
-            exec self.command
+            exec(self.command)
         except Exception as e:
             logging.exception(e)
             msg = 'an error occurred during execution of "%s":\n%s'
@@ -361,11 +370,12 @@ class CallCommand(Command):
 
 
 @registerCommand(MODE, 'bclose', arguments=[
-    (['--redraw'], {'action': BooleanAction, 'help':'redraw current buffer \
+    (['--redraw'], {'action': BooleanAction, 'help': 'redraw current buffer \
                      after command has finished'}),
     (['--force'], {'action': 'store_true',
                    'help': 'never ask for confirmation'})])
 class BufferCloseCommand(Command):
+
     """close a buffer"""
     repeatable = True
 
@@ -410,9 +420,10 @@ class BufferCloseCommand(Command):
 @registerCommand(MODE, 'bnext', forced={'offset': +1},
                  help='focus next buffer')
 @registerCommand(MODE, 'buffer', arguments=[
-    (['index'], {'type':int, 'help':'buffer index to focus'}), ],
+    (['index'], {'type': int, 'help': 'buffer index to focus'}), ],
     help='focus buffer with given index')
 class BufferFocusCommand(Command):
+
     """focus a :class:`~alot.buffers.Buffer`"""
     repeatable = True
 
@@ -449,6 +460,7 @@ class BufferFocusCommand(Command):
 
 @registerCommand(MODE, 'bufferlist')
 class OpenBufferlistCommand(Command):
+
     """open a list of active buffers"""
     def __init__(self, filtfun=None, **kwargs):
         """
@@ -469,6 +481,7 @@ class OpenBufferlistCommand(Command):
 
 @registerCommand(MODE, 'taglist')
 class TagListCommand(Command):
+
     """opens taglist buffer"""
     def __init__(self, filtfun=None, **kwargs):
         """
@@ -492,6 +505,7 @@ class TagListCommand(Command):
 
 @registerCommand(MODE, 'flush')
 class FlushCommand(Command):
+
     """flush write operations or retry until committed"""
     repeatable = True
 
@@ -524,16 +538,18 @@ class FlushCommand(Command):
             ui.mainloop.set_alarm_in(timeout, f)
             if not ui.db_was_locked:
                 if not self.silent:
-                    ui.notify('index locked, will try again in %d secs' % timeout)
+                    ui.notify(
+                        'index locked, will try again in %d secs' % timeout)
                 ui.db_was_locked = True
             ui.update()
             return
 
 
-#TODO: choices
+# TODO: choices
 @registerCommand(MODE, 'help', arguments=[
-    (['commandname'], {'help':'command or \'bindings\''})])
+    (['commandname'], {'help': 'command or \'bindings\''})])
 class HelpCommand(Command):
+
     """
     display help for a command. Use \'bindings\' to
     display all keybings interpreted in current mode.'
@@ -557,7 +573,7 @@ class HelpCommand(Command):
                 modemaps = dict(settings._bindings[ui.mode].items())
             else:
                 modemaps = {}
-            is_scalar = lambda (k, v): k in settings._bindings.scalars
+            is_scalar = lambda k_v: k_v[0] in settings._bindings.scalars
             globalmaps = dict(filter(is_scalar, settings._bindings.items()))
 
             # build table
@@ -608,20 +624,21 @@ class HelpCommand(Command):
 
 
 @registerCommand(MODE, 'compose', arguments=[
-    (['--sender'], {'nargs': '?', 'help':'sender'}),
-    (['--template'], {'nargs':'?',
-                      'help':'path to a template message file'}),
-    (['--subject'], {'nargs':'?', 'help':'subject line'}),
-    (['--to'], {'nargs':'+', 'help':'recipients'}),
-    (['--cc'], {'nargs':'+', 'help':'copy to'}),
-    (['--bcc'], {'nargs':'+', 'help':'blind copy to'}),
-    (['--attach'], {'nargs':'+', 'help':'attach files'}),
+    (['--sender'], {'nargs': '?', 'help': 'sender'}),
+    (['--template'], {'nargs': '?',
+                      'help': 'path to a template message file'}),
+    (['--subject'], {'nargs': '?', 'help': 'subject line'}),
+    (['--to'], {'nargs': '+', 'help': 'recipients'}),
+    (['--cc'], {'nargs': '+', 'help': 'copy to'}),
+    (['--bcc'], {'nargs': '+', 'help': 'blind copy to'}),
+    (['--attach'], {'nargs': '+', 'help': 'attach files'}),
     (['--omit_signature'], {'action': 'store_true',
-                            'help':'do not add signature'}),
-    (['--spawn'], {'action': BooleanAction, 'default':None,
-                   'help':'spawn editor in new terminal'}),
+                            'help': 'do not add signature'}),
+    (['--spawn'], {'action': BooleanAction, 'default': None,
+                   'help': 'spawn editor in new terminal'}),
 ])
 class ComposeCommand(Command):
+
     """compose a new email"""
     def __init__(self, envelope=None, headers={}, template=None,
                  sender=u'', subject=u'', to=[], cc=[], bcc=[], attach=None,
@@ -672,7 +689,7 @@ class ComposeCommand(Command):
         if self.envelope is None:
             self.envelope = Envelope()
         if self.template is not None:
-            #get location of tempsdir, containing msg templates
+            # get location of tempsdir, containing msg templates
             tempdir = settings.get('template_dir')
             tempdir = os.path.expanduser(tempdir)
             if not tempdir:
@@ -694,7 +711,7 @@ class ComposeCommand(Command):
                 return
             try:
                 self.envelope.parse_template(open(path).read())
-            except Exception, e:
+            except Exception as e:
                 ui.notify(str(e), priority='error')
                 return
 
@@ -818,9 +835,11 @@ class ComposeCommand(Command):
 
 @registerCommand(MODE, 'move', help='move focus in current buffer',
                  arguments=[(['movement'], {
-                             'nargs':argparse.REMAINDER,
-                             'help':'up, down, [half]page up, [half]page down, first'})])
+                             'nargs': argparse.REMAINDER,
+                             'help': 'up, down, [half]page up, '
+                                     '[half]page down, first'})])
 class MoveCommand(Command):
+
     """move in widget"""
     def __init__(self, movement=None, **kwargs):
         if movement is None:
@@ -832,9 +851,9 @@ class MoveCommand(Command):
     def apply(self, ui):
         if self.movement in ['up', 'down', 'page up', 'page down']:
             ui.mainloop.process_input([self.movement])
-        elif self.movement in [ 'halfpage down', 'halfpage up']:
+        elif self.movement in ['halfpage down', 'halfpage up']:
             ui.mainloop.process_input(
-                    ui.mainloop.screen_size[1]/2 * [self.movement.split()[-1]])
+                ui.mainloop.screen_size[1] / 2 * [self.movement.split()[-1]])
         elif self.movement == 'first':
             if hasattr(ui.current_buffer, "focus_first"):
                 ui.current_buffer.focus_first()
@@ -847,6 +866,7 @@ class MoveCommand(Command):
 
 
 class CommandSequenceCommand(Command):
+
     """Meta-Command that just applies a sequence of given Commands in order"""
 
     def __init__(self, cmdline='', **kwargs):
@@ -864,7 +884,7 @@ class CommandSequenceCommand(Command):
                 # store cmdline for use with 'repeat' command
                 if cmd.repeatable:
                     ui.last_commandline = self.cmdline.lstrip()
-            except CommandParseError, e:
+            except CommandParseError as e:
                 ui.notify(e.message, priority='error')
                 return
             yield ui.apply_command(cmd)

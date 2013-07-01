@@ -9,6 +9,7 @@ MODE = 'taglist'
 
 @registerCommand(MODE, 'select')
 class TaglistSelectCommand(Command):
+
     """search for messages with selected tag"""
     def apply(self, ui):
         tagstring = ui.current_buffer.get_selected_tag()

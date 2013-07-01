@@ -291,7 +291,7 @@ class SearchBuffer(Buffer):
     def focus_last(self):
         self.consume_pipe()
         num_lines = len(self.threadlist.get_lines())
-        self.body.set_focus(num_lines-1)
+        self.body.set_focus(num_lines - 1)
 
 
 class ThreadBuffer(Buffer):
@@ -529,27 +529,23 @@ class ThreadBuffer(Buffer):
 
     def focus_next_matching(self, querystring):
         """focus next matching message in depth first order"""
-        self.focus_property(
-                lambda x: x._message.matches(querystring),
-                self._tree.next_position)
+        self.focus_property(lambda x: x._message.matches(querystring),
+                            self._tree.next_position)
 
     def focus_prev_matching(self, querystring):
         """focus previous matching message in depth first order"""
-        self.focus_property(
-                lambda x: x._message.matches(querystring),
-                self._tree.prev_position)
+        self.focus_property(lambda x: x._message.matches(querystring),
+                            self._tree.prev_position)
 
     def focus_next_unfolded(self):
         """focus next unfolded message in depth first order"""
-        self.focus_property(
-                lambda x: not x.is_collapsed(x.root),
-                self._tree.next_position)
+        self.focus_property(lambda x: not x.is_collapsed(x.root),
+                            self._tree.next_position)
 
     def focus_prev_unfolded(self):
         """focus previous unfolded message in depth first order"""
-        self.focus_property(
-                lambda x: not x.is_collapsed(x.root),
-                self._tree.prev_position)
+        self.focus_property(lambda x: not x.is_collapsed(x.root),
+                            self._tree.prev_position)
 
     def expand(self, msgpos):
         """expand message at given position"""

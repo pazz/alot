@@ -458,8 +458,7 @@ class CommandCompleter(Completer):
 
         # re-insert whitespaces and correct position
         wso = whitespaceoffset
-        res = [(' ' * wso + cmd, p + wso) for cmd, p
-               in res]
+        res = [(' ' * wso + cmdstr, p + wso) for cmdstr, p in res]
         return res
 
 

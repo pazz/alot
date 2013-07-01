@@ -380,10 +380,10 @@ def guess_mimetype(blob):
     #
     # the version with open() is the bindings shipped with the file source from
     # http://darwinsys.com/file/ - this is what is used by the python-magic
-    # package on Debian/Ubuntu.  However it is not available on pypi/via pip.
+    # package on Debian/Ubuntu. However, it is not available on pypi/via pip.
     #
-    # the version with from_buffer() is from https://github.com/ahupp/python-magic
-    # which is installable via pip.
+    # the version with from_buffer() is available at
+    # https://github.com/ahupp/python-magic and directly installable via pip.
     #
     # for more detail see https://github.com/pazz/alot/pull/588
     if hasattr(magic, 'open'):
@@ -417,8 +417,8 @@ def guess_encoding(blob):
     # http://darwinsys.com/file/ - this is what is used by the python-magic
     # package on Debian/Ubuntu.  However it is not available on pypi/via pip.
     #
-    # the version with from_buffer() is from https://github.com/ahupp/python-magic
-    # which is installable via pip.
+    # the version with from_buffer() is available at
+    # https://github.com/ahupp/python-magic and directly installable via pip.
     #
     # for more detail see https://github.com/pazz/alot/pull/588
     if hasattr(magic, 'open'):

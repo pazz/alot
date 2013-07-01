@@ -2,7 +2,7 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 from alot.commands import Command, registerCommand
-import globals
+from . import globals
 
 MODE = 'bufferlist'
 
