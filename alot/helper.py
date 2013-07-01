@@ -433,6 +433,29 @@ def guess_encoding(blob):
         raise Exception('Unknown magic API')
 
 
+def libmagic_version_at_least(version):
+    """
+    checks if the libmagic library installed is more recent than a given
+    version.
+
+    :param version: minimum version expected in the form XYY (i.e. 5.14 -> 514)
+                    with XYY >= 513
+    """
+    if hasattr(magic, 'open'):
+        magic_wrapper = magic._libraries['magic']
+    elif hasattr(magic, 'from_buffer'):
+        magic_wrapper = magic.libmagic
+    else:
+        raise Exception('Unknown magic API')
+
+    if not hasattr(magic_wrapper, 'magic_version'):
+        # The magic_version function has been introduced in libmagic 5.13,
+        # if it's not present, we can't guess right, so let's assume False
+        return False
+
+    return (magic_wrapper.magic_version >= version)
+
+
 # TODO: make this work on blobs, not paths
 def mimewrap(path, filename=None, ctype=None):
     content = open(path, 'rb').read()
@@ -442,11 +465,8 @@ def mimewrap(path, filename=None, ctype=None):
         # 'application/msword' (see #179 and #186 in libmagic bugtracker)
         # This is a workaround, based on file extension, useful as long
         # as distributions still ship libmagic 5.11.
-        # To see if we must apply the workaround, we just check the
-        # availability of the magic_version function which has been
-        # introduced in libmagic 5.13
-        if (not hasattr(magic._libraries['magic'], 'magic_version') and
-                ctype == 'application/msword'):
+        if (ctype == 'application/msword' and
+                not libmagic_version_at_least(513)):
             mimetype, encoding = mimetypes.guess_type(path)
             if mimetype:
                 ctype = mimetype
