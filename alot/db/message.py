@@ -10,12 +10,13 @@ from notmuch import NullPointerError
 import alot.helper as helper
 from alot.settings import settings
 
-from utils import extract_headers, extract_body, message_from_file
+from .utils import extract_headers, extract_body, message_from_file
 from alot.db.utils import decode_header
-from attachment import Attachment
+from .attachment import Attachment
 
 
 class Message(object):
+
     """
     a persistent notmuch message object.
     It it uses a :class:`~alot.db.DBManager` for cached manipulation
@@ -36,10 +37,10 @@ class Message(object):
         self._thread = thread
         casts_date = lambda: datetime.fromtimestamp(msg.get_date())
         self._datetime = helper.safely_get(casts_date,
-                                          ValueError, None)
+                                           ValueError, None)
         self._filename = msg.get_filename()
         author = helper.safely_get(lambda: msg.get_header('From'),
-                                       NullPointerError)
+                                   NullPointerError)
         self._from = decode_header(author)
         self._email = None  # will be read upon first use
         self._attachments = None  # will be read upon first use
@@ -102,8 +103,7 @@ class Message(object):
 
     def get_tags(self):
         """returns tags attached to this message as list of strings"""
-        l = list(self._tags)
-        l.sort()
+        l = sorted(self._tags)
         return l
 
     def get_thread(self):
@@ -130,7 +130,7 @@ class Message(object):
 
         :rtype: str
         """
-        if self._datetime == None:
+        if self._datetime is None:
             res = None
         else:
             res = settings.represent_datetime(self._datetime)
@@ -235,7 +235,7 @@ class Message(object):
                                   'application/pgp-signature']:
                         self._attachments.append(Attachment(part))
                 elif cd.startswith('inline'):
-                    if filename != None and ct != 'application/pgp':
+                    if filename is not None and ct != 'application/pgp':
                         self._attachments.append(Attachment(part))
         return self._attachments
 
@@ -243,7 +243,7 @@ class Message(object):
         """
         returns bodystring extracted from this mail
         """
-        #TODO: allow toggle commands to decide which part is considered body
+        # TODO: allow toggle commands to decide which part is considered body
         return extract_body(self.get_email())
 
     def get_text_content(self):

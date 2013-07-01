@@ -18,6 +18,7 @@ MODE = 'search'
 
 @registerCommand(MODE, 'select')
 class OpenThreadCommand(Command):
+
     """open thread in a new buffer"""
     repeatable = False
 
@@ -42,14 +43,15 @@ class OpenThreadCommand(Command):
 
 
 @registerCommand(MODE, 'refine', help='refine query', arguments=[
-    (['--sort'], {'help':'sort order', 'choices':[
+    (['--sort'], {'help': 'sort order', 'choices': [
                   'oldest_first', 'newest_first', 'message_id', 'unsorted']}),
-    (['query'], {'nargs':argparse.REMAINDER, 'help':'search string'})])
+    (['query'], {'nargs': argparse.REMAINDER, 'help': 'search string'})])
 @registerCommand(MODE, 'sort', help='set sort order', arguments=[
-    (['sort'], {'help':'sort order', 'choices':[
+    (['sort'], {'help': 'sort order', 'choices': [
                 'oldest_first', 'newest_first', 'message_id', 'unsorted']}),
 ])
 class RefineCommand(Command):
+
     """refine the querystring of this buffer"""
     def __init__(self, query=None, sort=None, **kwargs):
         """
@@ -81,6 +83,7 @@ class RefineCommand(Command):
 
 @registerCommand(MODE, 'refineprompt')
 class RefinePromptCommand(Command):
+
     """prompt to change this buffers querystring"""
     repeatable = True
 
@@ -92,6 +95,7 @@ class RefinePromptCommand(Command):
 
 @registerCommand(MODE, 'retagprompt')
 class RetagPromptCommand(Command):
+
     """prompt to retag selected threads\' tags"""
     repeatable = False
 
@@ -114,8 +118,8 @@ class RetagPromptCommand(Command):
                       'default': 'True',
                       'help': 'postpone a writeout to the index'}),
     (['--all'], {'action': 'store_true', 'dest': 'allmessages', 'default':
-                 False, 'help':'retag all messages in search result'}),
-    (['tags'], {'help':'comma separated list of tags'})],
+                 False, 'help': 'retag all messages in search result'}),
+    (['tags'], {'help': 'comma separated list of tags'})],
     help='add tags to all messages in the thread',
 )
 @registerCommand(MODE, 'retag', forced={'action': 'set'}, arguments=[
@@ -123,8 +127,8 @@ class RetagPromptCommand(Command):
                       'default': 'True',
                       'help': 'postpone a writeout to the index'}),
     (['--all'], {'action': 'store_true', 'dest': 'allmessages', 'default':
-                 False, 'help':'retag all messages in search result'}),
-    (['tags'], {'help':'comma separated list of tags'})],
+                 False, 'help': 'retag all messages in search result'}),
+    (['tags'], {'help': 'comma separated list of tags'})],
     help='set tags of all messages in the thread',
 )
 @registerCommand(MODE, 'untag', forced={'action': 'remove'}, arguments=[
@@ -132,21 +136,22 @@ class RetagPromptCommand(Command):
                       'default': 'True',
                       'help': 'postpone a writeout to the index'}),
     (['--all'], {'action': 'store_true', 'dest': 'allmessages', 'default':
-                 False, 'help':'retag all messages in search result'}),
-    (['tags'], {'help':'comma separated list of tags'})],
+                 False, 'help': 'retag all messages in search result'}),
+    (['tags'], {'help': 'comma separated list of tags'})],
     help='remove tags from all messages in the thread',
 )
 @registerCommand(MODE, 'toggletags', forced={'action': 'toggle'}, arguments=[
     (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
                       'default': 'True',
                       'help': 'postpone a writeout to the index'}),
-    (['tags'], {'help':'comma separated list of tags'})],
+    (['tags'], {'help': 'comma separated list of tags'})],
     help="""flip presence of tags on this thread.
     A tag is considered present if at least one message contained in this
     thread is tagged with it. In that case this command will remove the tag
     from every message in the thread.
     """)
 class TagCommand(Command):
+
     """manipulate message tags"""
     repeatable = True
 
@@ -238,11 +243,13 @@ class TagCommand(Command):
         if self.flush:
             ui.apply_command(commands.globals.FlushCommand(callback=refresh))
 
+
 @registerCommand(MODE, 'move', help='move focus in search buffer',
                  arguments=[(['movement'], {
                              'nargs': argparse.REMAINDER,
                              'help': 'last'})])
 class MoveFocusCommand(MoveCommand):
+
     def apply(self, ui):
         logging.debug(self.movement)
         if self.movement == 'last':

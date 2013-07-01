@@ -9,6 +9,7 @@ MODE = 'taglist'
 
 @registerCommand(MODE, 'select')
 class TaglistSelectCommand(Command):
+
     """search for messages with selected tag"""
     repeatable = False
 

@@ -13,6 +13,7 @@ from alot.helper import split_commandstring
 
 
 class Command(object):
+
     """base class for commands"""
     repeatable = False
 
@@ -70,11 +71,13 @@ def lookup_parser(cmdname, mode):
 
 
 class CommandParseError(Exception):
+
     """could not parse commandline string"""
     pass
 
 
 class CommandArgumentParser(argparse.ArgumentParser):
+
     """
     :class:`~argparse.ArgumentParser` that raises :class:`CommandParseError`
     instead of printing to `sys.stderr`"""
@@ -86,6 +89,7 @@ class CommandArgumentParser(argparse.ArgumentParser):
 
 
 class registerCommand(object):
+
     """
     Decorator used to register a :class:`Command` as
     handler for command `name` in `mode` so that it
@@ -166,7 +170,7 @@ def commandfactory(cmdline, mode='global'):
     cmdline = re.sub(r'"(.*)"', r'"\\"\1\\""', cmdline)
     try:
         args = split_commandstring(cmdline)
-    except ValueError, e:
+    except ValueError as e:
         raise CommandParseError(e.message)
     args = map(lambda x: alot.helper.string_decode(x, 'utf-8'), args)
     logging.debug('ARGS: %s' % args)

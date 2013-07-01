@@ -41,11 +41,11 @@ def read_config(configpath=None, specpath=None, checks={}):
         except ConfigObjError as e:
             raise ConfigError(e.message)
 
-        if results != True:
+        if results is not True:
             error_msg = ''
             for (section_list, key, res) in flatten_errors(config, results):
                 if key is not None:
-                    if res == False:
+                    if res is False:
                         msg = 'key "%s" in section "%s" is missing.'
                         msg = msg % (key, ', '.join(section_list))
                     else:
