@@ -23,7 +23,6 @@ class ThreadlineWidget(urwid.AttrMap):
         self.tid = tid
         self.thread = None  # will be set by refresh()
         self.tag_widgets = []
-        self.display_content = settings.get('display_content_in_threadline')
         self.structure = None
         self.rebuild()
         normal = self.structure['normal']

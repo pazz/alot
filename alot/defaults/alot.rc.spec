@@ -35,9 +35,6 @@ themes_dir = string(default=None)
 # name of the theme to use
 theme = string(default=None)
 
-# fill threadline with message content
-display_content_in_threadline = boolean(default=False)
-
 # headers that get displayed by default
 displayed_headers = force_list(default=list(From,To,Cc,Bcc,Subject))
 
