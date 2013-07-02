@@ -27,7 +27,8 @@ def split_commandline(s, comments=False, posix=True):
     """
     splits semi-colon separated commandlines
     """
-    # shlex seems to remove unescaped quotes
+    # shlex seems to remove unescaped quotes and backslashes
+    s = s.replace('\\', '\\\\')
     s = s.replace('\'', '\\\'')
     s = s.replace('\"', '\\\"')
     # encode s to utf-8 for shlex
