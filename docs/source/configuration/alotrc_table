@@ -123,16 +123,6 @@
     :default: False
 
 
-.. _display-content-in-threadline:
-
-.. describe:: display_content_in_threadline
-
-     fill threadline with message content
-
-    :type: boolean
-    :default: False
-
-
 .. _displayed-headers:
 
 .. describe:: displayed_headers
