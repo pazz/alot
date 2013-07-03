@@ -217,6 +217,7 @@ class SearchBuffer(Buffer):
         self.result_count = 0
         self.isinitialized = False
         self.proc = None  # process that fills our pipe
+        self.threadlist = None
         self.rebuild()
         Buffer.__init__(self, ui, self.body)
 
@@ -248,6 +249,10 @@ class SearchBuffer(Buffer):
         self.isinitialized = True
         self.kill_filler_process()
 
+        selectedthread = None
+        if self.threadlist:
+            selectedthread = self.get_selected_thread()
+
         self.result_count = self.dbman.count_messages(self.querystring)
         try:
             self.pipe, self.proc = self.dbman.get_threads(self.querystring,
@@ -264,6 +269,9 @@ class SearchBuffer(Buffer):
 
         self.listbox = urwid.ListBox(self.threadlist)
         self.body = self.listbox
+
+        if selectedthread:
+            self.focus_thread(selectedthread)
 
     def get_selected_threadline(self):
         """
@@ -293,6 +301,14 @@ class SearchBuffer(Buffer):
         num_lines = len(self.threadlist.get_lines())
         self.body.set_focus(num_lines-1)
 
+    def focus_thread(self, thread):
+        self.consume_pipe()
+        tid = thread.get_thread_id()
+
+        for pos, threadlinewidget in enumerate(self.threadlist.get_lines()):
+            if threadlinewidget.get_thread().get_thread_id() == tid:
+                self.body.set_focus(pos)
+                return
 
 class ThreadBuffer(Buffer):
     """displays a thread as a tree of messages"""
