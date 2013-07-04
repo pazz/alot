@@ -393,6 +393,16 @@
     :default: "> "
 
 
+.. _refresh-timeout:
+
+.. describe:: refresh_interval
+
+     time in secs to periodically refresh search buffers
+
+    :type: integer
+    :default: 60
+
+
 .. _reply-force-address:
 
 .. describe:: reply_force_address

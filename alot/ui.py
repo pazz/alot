@@ -6,7 +6,7 @@ import logging
 from twisted.internet import reactor, defer
 
 from settings import settings
-from buffers import BufferlistBuffer
+from buffers import BufferlistBuffer, SearchBuffer
 from commands import commandfactory
 from alot.commands import CommandParseError
 from alot.commands.globals import CommandSequenceCommand
@@ -81,6 +81,17 @@ class UI(object):
 
         logging.debug('fire first command')
         self.apply_command(initialcmd)
+
+        refresh_interval = int(settings.get('refresh_interval'))
+
+        def refresh(*args):
+            for search in self.get_buffers_of_type(SearchBuffer):
+                search.rebuild()
+            self.update()
+            self.mainloop.set_alarm_in(refresh_interval, refresh)
+
+        if refresh_interval:
+            self.mainloop.set_alarm_in(refresh_interval, refresh)
 
         # start urwids mainloop
         self.mainloop.run()
