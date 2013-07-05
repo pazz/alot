@@ -165,9 +165,6 @@ prompt_suffix = string(default=':')
 # String prepended to line when quoting
 quote_prefix = string(default='> ')
 
-# time in secs to periodically refresh search buffers
-refresh_interval = integer(default=60)
-
 # String prepended to subject header on reply
 # only if original subject doesn't start with 'Re:' or this prefix
 reply_subject_prefix = string(default='Re: ')
