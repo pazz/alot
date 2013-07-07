@@ -14,6 +14,7 @@ from alot.db.utils import decode_header
 
 
 class Attachment(object):
+
     """represents a mail attachment"""
 
     def __init__(self, emailpart):
@@ -25,8 +26,8 @@ class Attachment(object):
 
     def __str__(self):
         desc = '%s:%s (%s)' % (self.get_content_type(),
-                              self.get_filename(),
-                              helper.humanize_size(self.get_size()))
+                               self.get_filename(),
+                               helper.humanize_size(self.get_size()))
         return string_decode(desc)
 
     def get_filename(self):
@@ -87,5 +88,5 @@ class Attachment(object):
         cd = self.part['Content-Disposition']
         del part['Content-Disposition']
         part['Content-Disposition'] = Header(cd, maxlinelen=78,
-                                         header_name='Content-Disposition')
+                                             header_name='Content-Disposition')
         return part

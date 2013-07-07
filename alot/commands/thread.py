@@ -99,6 +99,7 @@ def determine_sender(mail, action='reply'):
     (['--spawn'], {'action': BooleanAction, 'default': None,
                    'help': 'open editor in new window'})])
 class ReplyCommand(Command):
+
     """reply to message"""
     repeatable = True
 
@@ -252,6 +253,7 @@ class ReplyCommand(Command):
     (['--spawn'], {'action': BooleanAction, 'default': None,
                    'help': 'open editor in new window'})])
 class ForwardCommand(Command):
+
     """forward message"""
     repeatable = True
 
@@ -331,6 +333,7 @@ class ForwardCommand(Command):
 
 @registerCommand(MODE, 'bounce')
 class BounceMailCommand(Command):
+
     """directly re-send selected message"""
     repeatable = True
 
@@ -396,6 +399,7 @@ class BounceMailCommand(Command):
     (['--spawn'], {'action': BooleanAction, 'default': None,
                    'help': 'open editor in new window'})])
 class EditNewCommand(Command):
+
     """edit message in as new"""
     def __init__(self, message=None, spawn=None, **kwargs):
         """
@@ -456,6 +460,7 @@ class EditNewCommand(Command):
                  ],
                  help='display all headers')
 class ChangeDisplaymodeCommand(Command):
+
     """fold or unfold messages"""
     repeatable = True
 
@@ -542,6 +547,7 @@ class ChangeDisplaymodeCommand(Command):
 ],
 )
 class PipeCommand(Command):
+
     """pipe message(s) to stdin of a shellcommand"""
     repeatable = True
 
@@ -682,6 +688,7 @@ class PipeCommand(Command):
 @registerCommand(MODE, 'remove', arguments=[
     (['--all'], {'action': 'store_true', 'help': 'remove whole thread'})])
 class RemoveCommand(Command):
+
     """remove message(s) from the index"""
     repeatable = True
 
@@ -735,6 +742,7 @@ class RemoveCommand(Command):
 ],
 )
 class PrintCommand(PipeCommand):
+
     """print message(s)"""
     repeatable = True
 
@@ -778,6 +786,7 @@ class PrintCommand(PipeCommand):
     (['--all'], {'action': 'store_true', 'help': 'save all attachments'}),
     (['path'], {'nargs': '?', 'help': 'path to save to'})])
 class SaveAttachmentCommand(Command):
+
     """save attachment(s)"""
     def __init__(self, all=False, path=None, **kwargs):
         """
@@ -830,13 +839,14 @@ class SaveAttachmentCommand(Command):
                     try:
                         dest = attachment.save(self.path)
                         ui.notify('saved attachment as: %s' % dest)
-                    except (IOError, OSError), e:
+                    except (IOError, OSError) as e:
                         ui.notify(str(e), priority='error')
                 else:
                     ui.notify('canceled')
 
 
 class OpenAttachmentCommand(Command):
+
     """displays an attachment according to mailcap"""
     def __init__(self, attachment, **kwargs):
         """
@@ -902,8 +912,10 @@ class OpenAttachmentCommand(Command):
 @registerCommand(MODE, 'move', help='move focus in current buffer',
                  arguments=[(['movement'], {
                              'nargs': argparse.REMAINDER,
-                             'help': 'up, down, page up, page down, first, last'})])
+                             'help': 'up, down, page up, '
+                                     'page down, first, last'})])
 class MoveFocusCommand(MoveCommand):
+
     def apply(self, ui):
         logging.debug(self.movement)
         tbuffer = ui.current_buffer
@@ -934,6 +946,7 @@ class MoveFocusCommand(MoveCommand):
 
 @registerCommand(MODE, 'select')
 class ThreadSelectCommand(Command):
+
     """select focussed element. The fired action depends on the focus:
         - if message summary, this toggles visibility of the message,
         - if attachment line, this opens the attachment"""
@@ -979,6 +992,7 @@ class ThreadSelectCommand(Command):
     help='flip presence of tags on message(s)',
 )
 class TagCommand(Command):
+
     """manipulate message tags"""
     repeatable = True
 
