@@ -107,11 +107,13 @@ of each other; the :class:`~alot.completion.QueryCompleter` for example uses a
 :class:`~alot.completion.TagsCompleter` internally to allow tagstring completion after
 "is:" or "tag:" keywords when typing a notmuch querystring.
 
-All these classes overide the method :class:`~alot.completion.Completer.complete`, which
+All these classes overide the method :meth:`~alot.completion.Completer.complete`, which
 for a given string and cursor position in that string returns
 a list of tuples `(completed_string, new_cursor_position)` that are taken to be
 the completed values. Note that `completed_string` does not need to have the original
 string as prefix.
+:meth:`~alot.completion.Completer.complete` may rise :class:`alot.errors.CompletionError`
+exceptions.
 
 .. automodule:: alot.completion
     :members:
