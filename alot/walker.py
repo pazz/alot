@@ -46,7 +46,7 @@ class PipeWalker(urwid.ListWalker):
     def _get_at_pos(self, pos):
         if pos < 0:  # pos too low
             return (None, None)
-        elif pos > len(self.lines):  # pos too high
+        elif self.empty and pos > len(self.lines):  # pos too high
             return (None, None)
         elif len(self.lines) > pos:  # pos already cached
             return (self.lines[pos], pos)
