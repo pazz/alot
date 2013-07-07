@@ -21,6 +21,7 @@ from alot.commands import globals
 from alot.helper import string_decode
 from alot.settings import settings
 from alot.utils.booleanaction import BooleanAction
+from alot.db.errors import DatabaseError
 
 
 MODE = 'envelope'
@@ -130,14 +131,24 @@ class SaveCommand(Command):
         # add Date header
         mail['Date'] = email.Utils.formatdate(localtime=True)
         path = account.store_draft_mail(crypto.email_as_string(mail))
-        ui.notify('draft saved successfully')
+
+        msg = 'draft saved successfully'
 
         # add mail to index if maildir path available
         if path is not None:
+            ui.notify(msg + ' to %s' % path)
             logging.debug('adding new mail to index')
-            ui.dbman.add_message(path, account.draft_tags)
-            ui.apply_command(globals.FlushCommand())
-        ui.apply_command(commands.globals.BufferCloseCommand())
+            try:
+                ui.dbman.add_message(path, account.draft_tags)
+                ui.apply_command(globals.FlushCommand())
+                ui.apply_command(commands.globals.BufferCloseCommand())
+            except DatabaseError as e:
+                logging.error(e.message)
+                ui.notify('could not index message:\n%s' % e.message,
+                          priority='error',
+                          block=True)
+        else:
+            ui.apply_command(commands.globals.BufferCloseCommand())
 
 
 @registerCommand(MODE, 'send')
