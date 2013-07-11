@@ -385,7 +385,7 @@ class BounceMailCommand(Command):
             completer = None
         to = yield ui.prompt('To', completer=completer)
         if to is None:
-            ui.notify('canceled')
+            self._cancel(ui)
             return
         mail['Resent-To'] = to.strip(' \t\n,')
 
@@ -823,7 +823,7 @@ class SaveAttachmentCommand(Command):
                     ui.notify('not a directory: %s' % self.path,
                               priority='error')
             else:
-                ui.notify('canceled')
+                self._cancel(ui)
         else:  # save focussed attachment
             focus = ui.get_deep_focus()
             if isinstance(focus, AttachmentWidget):
@@ -842,7 +842,7 @@ class SaveAttachmentCommand(Command):
                     except (IOError, OSError) as e:
                         ui.notify(str(e), priority='error')
                 else:
-                    ui.notify('canceled')
+                    self._cancel(ui)
 
 
 class OpenAttachmentCommand(Command):
