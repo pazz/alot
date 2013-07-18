@@ -8,6 +8,7 @@ from collections import deque
 import subprocess
 import shlex
 import email
+import mimetypes
 import os
 import re
 from email.mime.audio import MIMEAudio
@@ -436,10 +437,44 @@ def guess_encoding(blob):
         raise Exception('Unknown magic API')
 
 
+def libmagic_version_at_least(version):
+    """
+    checks if the libmagic library installed is more recent than a given
+    version.
+
+    :param version: minimum version expected in the form XYY (i.e. 5.14 -> 514)
+                    with XYY >= 513
+    """
+    if hasattr(magic, 'open'):
+        magic_wrapper = magic._libraries['magic']
+    elif hasattr(magic, 'from_buffer'):
+        magic_wrapper = magic.libmagic
+    else:
+        raise Exception('Unknown magic API')
+
+    if not hasattr(magic_wrapper, 'magic_version'):
+        # The magic_version function has been introduced in libmagic 5.13,
+        # if it's not present, we can't guess right, so let's assume False
+        return False
+
+    return (magic_wrapper.magic_version >= version)
+
+
 # TODO: make this work on blobs, not paths
 def mimewrap(path, filename=None, ctype=None):
     content = open(path, 'rb').read()
-    ctype = ctype or guess_mimetype(content)
+    if not ctype:
+        ctype = guess_mimetype(content)
+        # libmagic < 5.12 incorrectly detects excel/powerpoint files as 
+        # 'application/msword' (see #179 and #186 in libmagic bugtracker)
+        # This is a workaround, based on file extension, useful as long
+        # as distributions still ship libmagic 5.11.
+        if (ctype == 'application/msword' and
+                not libmagic_version_at_least(513)):
+            mimetype, encoding = mimetypes.guess_type(path)
+            if mimetype:
+                ctype = mimetype
+
     maintype, subtype = ctype.split('/', 1)
     if maintype == 'text':
         part = MIMEText(content.decode(guess_encoding(content), 'replace'),
