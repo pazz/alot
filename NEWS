@@ -1,3 +1,18 @@
+0.3.5:
+* full support for PGP/MIME [de|en]cryption and signatures
+* add missing "unattach" command in envelope buffer
+* honor 'Mail-Followup-To' header and set if for selected mailinglists
+* better handling of replies to self-sent messages
+* make auto_remove_unread configurable
+* rewrite thread buffer
+* improved global move commands: first/last line, half-page up/down
+* tree-based movement in threads (first/last reply, next/previous unfolded/sibling, parent)
+* fold/unfold messages based on query string in thread mode
+* respect mailcap commands that expect stdin
+* Support different libmagic APIs
+* new hooks called before/aftr buffer open/close/focus
+* new global repeat command
+
 0.3.4:
 * extra: zsh completion file
 * thread mode: add "tags" pseudo header to message display

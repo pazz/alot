@@ -4,8 +4,7 @@ It is written in python using the [urwid][urwid] toolkit.
 Have a look at the [user manual][docs] for installation notes, advanced usage,
 customization and hacking guides.
 
-Do comment on the code or file issues! I'm curious what you think of it.
-You can talk to me in `#notmuch@freenode`.
+Do comment on the code or file issues! You can talk to me in `#notmuch@freenode`.
 
 Current features include:
 -------------------------
@@ -24,6 +23,7 @@ Current features include:
  * notification popups with priorities
  * database manager that manages a write queue to the notmuch index
  * configurable status bar
+ * full support for PGP/MIME encryption and signing
 
 Soonish to be addressed non-features:
 -------------------------------------
@@ -31,15 +31,14 @@ See [here][features], most notably:
 
  * async. calls to mimeparts renderer, parsing of VT colour escape sequences.
    see #272. Milestone `0.4`
- * encryption/decryption for messages via gnupg CLI (see branch `feature-gnupg`). Milestone `0.4`
  * live search results while you're typing (POC in `postponed-livesearch`). Milestone `0.6`
  * search for message (POC in `postponed-messagesmode`). Milestone `0.6`
  * search for strings in displayed buffer. MS `0.7`
  * undo for commands. Milestone `0.7`
 
 
-Usage
-=====
+Basic Usage
+===========
 The arrow keys, `page-up/down`, `j`, `k` and `Space` can be used to move the focus.
 `Escape` cancels prompts and `Enter` selects. Hit `:` at any time and type in commands
 to the prompt.
@@ -50,6 +49,7 @@ between them, close the current buffer with `d` and list them all with `;`.
 The buffer type or *mode* (displayed at the bottom left) determines which prompt commands
 are available. Usage information on any command can be listed by typing `help YOURCOMMAND`
 to the prompt; The key bindings for the current mode are listed upon pressing `?`.
+See the [manual][docs] for more usage info.
 
 [notmuch]: http://notmuchmail.org/
 [urwid]: http://excess.org/urwid/
