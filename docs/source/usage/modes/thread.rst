@@ -39,7 +39,7 @@ The following commands are available in thread mode
     move focus in current buffer
 
     argument
-        up, down, page up, page down, first
+        up, down, page up, page down, first, last
 
 
 .. _cmd.thread.untag:
