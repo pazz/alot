@@ -184,6 +184,10 @@ class EnvelopeBuffer(Buffer):
             self.header_wgt = HeadersList(lines, key_att, value_att, gaps_att)
             displayed_widgets.append(self.header_wgt)
 
+        # display separator
+        if settings.get('header_separator') is not None:
+            displayed_widgets.append(urwid.Text(settings.get('header_separator')))
+
         # display attachments
         lines = []
         for a in self.envelope.attachments:
