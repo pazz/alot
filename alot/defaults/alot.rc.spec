@@ -38,6 +38,9 @@ theme = string(default=None)
 # headers that get displayed by default
 displayed_headers = force_list(default=list(From,To,Cc,Bcc,Subject))
 
+# display string that separates the headers and body
+header_separator = string(default=None)
+
 # headers that are hidden in envelope buffers by default
 envelope_headers_blacklist = force_list(default=list(In-Reply-To,References))
 

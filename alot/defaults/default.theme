@@ -12,6 +12,8 @@
     prompt = 'default','','light gray','black','light gray','g11'
     tag = 'default','','light gray','black','light gray','default'
     tag_focus = 'standout, bold','','white','dark gray','#ffa','#68a'
+    separator = 'default','','light gray','default','dark red','default'
+    separator_focus = 'default','','light gray','default','light red','default'
 [help]
     text = 'default','','default','dark gray','default','g35'
     section = 'underline','','bold,underline','dark gray','bold,underline','g35'

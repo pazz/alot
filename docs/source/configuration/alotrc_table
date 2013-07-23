@@ -133,6 +133,16 @@
     :default: From, To, Cc, Bcc, Subject
 
 
+.. _header-separator:
+
+.. describe:: header_separator
+
+     display string that separates the headers and body
+
+    :type: string
+    :default: None
+
+
 .. _edit-headers-blacklist:
 
 .. describe:: edit_headers_blacklist
