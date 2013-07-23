@@ -212,6 +212,9 @@ mailinglists = force_list(default=list())
 # prefer plaintext alternatives over html content in multipart/alternative
 prefer_plaintext = boolean(default=False)
 
+# prefer to see calendar alternative in addition to text and/or html content in multipart/alternative
+prefer_calendar = boolean(default=False)
+
 # Key bindings 
 [bindings]
     __many__ = string(default=None)

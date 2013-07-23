@@ -274,7 +274,8 @@ def extract_body(mail, types=None):
             continue
         # if the mail has our preferred type, we only keep this type
         # note that if types != None, has_preferred always stays False
-        if has_preferred and ctype != preferred:
+        if has_preferred and ctype != preferred and \
+           not (settings.get('prefer_calendar') and ctype == 'text/calendar'):
             continue
 
         enc = part.get_content_charset() or 'ascii'
