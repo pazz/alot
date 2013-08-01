@@ -871,7 +871,7 @@ class CommandSequenceCommand(Command):
 
     def __init__(self, cmdline='', **kwargs):
         Command.__init__(self, **kwargs)
-        self.cmdline = cmdline
+        self.cmdline = cmdline.strip()
 
     @inlineCallbacks
     def apply(self, ui):
