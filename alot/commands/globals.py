@@ -869,37 +869,3 @@ class MoveCommand(Command):
         else:
             ui.notify('unknown movement: ' + self.movement,
                       priority='error')
-
-
-class CommandSequenceCommand(Command):
-
-    """Meta-Command that just applies a sequence of given Commands in order"""
-
-    def __init__(self, cmdline='', **kwargs):
-        Command.__init__(self, **kwargs)
-        self.cmdline = cmdline.strip()
-
-    def apply(self, ui):
-
-        def apply_command(ignored, cmdstring, cmd):
-            logging.debug('CMDSEQ: apply %s' % str(cmdstring))
-            # store cmdline for use with 'repeat' command
-            if cmd.repeatable:
-                ui.last_commandline = self.cmdline.lstrip()
-            return ui.apply_command(cmd, handle_error=False)
-
-        # we initialize a deferred which is already triggered 
-        # so that our callbacks will start to be called 
-        # immediately as possible
-        d = defer.succeed(None)
-
-        # split commandline if necessary
-        for cmdstring in split_commandline(self.cmdline):
-            # translate cmdstring into :class:`Command`
-            try:
-                cmd = commandfactory(cmdstring, ui.mode)
-            except CommandParseError, e:
-                ui.notify(e.message, priority='error')
-                return
-            d.addCallback(apply_command, cmdstring, cmd)
-        return d
