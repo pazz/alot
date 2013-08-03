@@ -173,9 +173,18 @@ class UI(object):
         :param cmdline: command line to interpret
         :type cmdline: str
         """
+        # remove initial spaces
         cmdline = cmdline.lstrip()
 
-        def apply_command(ignored, cmdstring, cmd):
+        # we pass Commands one by one to `self.apply_command`.
+        # To properly call them in sequence, even if they trigger asyncronous
+        # code (return Deferreds), these applications happen in individual
+        # callback functions which are then used as callback chain to some
+        # trivial Deferred that immediately calls its first callback. This way,
+        # one callback may return a Deferred and thus postpone the application
+        # of the next callback (and thus Command-application)
+
+        def apply_this_command(ignored, cmdstring, cmd):
             logging.debug('CMDSEQ: apply %s' % str(cmdstring))
             # store cmdline for use with 'repeat' command
             if cmd.repeatable:
@@ -183,8 +192,7 @@ class UI(object):
             return self.apply_command(cmd, handle_error=False)
 
         # we initialize a deferred which is already triggered
-        # so that our callbacks will start to be called
-        # immediately as possible
+        # so that the first callbacks will be called immediately
         d = defer.succeed(None)
 
         # split commandline if necessary
@@ -195,7 +203,7 @@ class UI(object):
             except CommandParseError, e:
                 self.notify(e.message, priority='error')
                 return
-            d.addCallback(apply_command, cmdstring, cmd)
+            d.addCallback(apply_this_command, cmdstring, cmd)
         return d
 
     def _unhandeled_input(self, key):
