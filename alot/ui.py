@@ -10,7 +10,7 @@ from buffers import BufferlistBuffer
 from commands import commandfactory
 from commands import CommandCanceled
 from alot.commands import CommandParseError
-from alot.commands.globals import CommandSequenceCommand
+from alot.helper import split_commandline
 from alot.helper import string_decode
 from alot.widgets.globals import CompleteEdit
 from alot.widgets.globals import ChoiceWidget
@@ -164,15 +164,39 @@ class UI(object):
 
     def apply_commandline(self, cmdline):
         """
-        Dispatches the interpretation of the command line string to
-        :class:`CommandSequenceCommand
-        <alot.commands.globals.CommandSequenceCommand>`.
+        interprets a command line string
+
+        i.e., splits it into separate command strings,
+        instanciates :class:`Commands <alot.commands.Command>`
+        accordingly and applies then in sequence.
 
         :param cmdline: command line to interpret
         :type cmdline: str
         """
-        cmd = CommandSequenceCommand(cmdline)
-        self.apply_command(cmd)
+        cmdline = cmdline.lstrip()
+
+        def apply_command(ignored, cmdstring, cmd):
+            logging.debug('CMDSEQ: apply %s' % str(cmdstring))
+            # store cmdline for use with 'repeat' command
+            if cmd.repeatable:
+                self.last_commandline = cmdline
+            return self.apply_command(cmd, handle_error=False)
+
+        # we initialize a deferred which is already triggered
+        # so that our callbacks will start to be called
+        # immediately as possible
+        d = defer.succeed(None)
+
+        # split commandline if necessary
+        for cmdstring in split_commandline(cmdline):
+            # translate cmdstring into :class:`Command`
+            try:
+                cmd = commandfactory(cmdstring, self.mode)
+            except CommandParseError, e:
+                self.notify(e.message, priority='error')
+                return
+            d.addCallback(apply_command, cmdstring, cmd)
+        return d
 
     def _unhandeled_input(self, key):
         """
