@@ -106,7 +106,7 @@ class RetagPromptCommand(Command):
             else:
                 tags.append(tag)
         initial_tagstring = ','.join(tags)
-        ui.apply_command(PromptCommand('retag ' + initial_tagstring))
+        return ui.apply_command(PromptCommand('retag ' + initial_tagstring))
 
 
 @registerCommand(MODE, 'tag', forced={'action': 'add'}, arguments=[
