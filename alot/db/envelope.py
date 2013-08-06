@@ -80,7 +80,6 @@ class Envelope(object):
         self.tags = tags  # tags to add after successful sendout
         self.sent_time = None
         self.modified_since_sent = False
-        self.sending = False  # semaphore to avoid accidental double sendout
 
     def __str__(self):
         return "Envelope (%s)\n%s" % (self.headers, self.body)

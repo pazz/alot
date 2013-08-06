@@ -189,8 +189,8 @@ class SendCommand(Command):
                     return
 
             # don't do anything if another SendCommand is in the middle of
-            # sending the message and we were triggered accidentally
-            if self.envelope.sending:
+            # sending this envelope and we were triggered accidentally
+            if self.envelope in ui._sending:
                 msg = 'sending this message already!'
                 logging.debug(msg)
                 return
@@ -231,7 +231,7 @@ class SendCommand(Command):
         def afterwards(returnvalue):
             initial_tags = []
             if self.envelope is not None:
-                self.envelope.sending = False
+                ui._sending.remove(self.envelope)
                 self.envelope.sent_time = datetime.datetime.now()
                 initial_tags = self.envelope.tags
             logging.debug('mail sent successfully')
@@ -254,7 +254,7 @@ class SendCommand(Command):
         # define errback
         def send_errb(failure):
             if self.envelope is not None:
-                self.envelope.sending = False
+                ui._sending.remove(self.envelope)
             ui.clear_notify([clearme])
             failure.trap(SendingMailFailed)
             logging.error(failure.getTraceback())
@@ -270,7 +270,7 @@ class SendCommand(Command):
         # send out
         clearme = ui.notify('sending..', timeout=-1)
         if self.envelope is not None:
-            self.envelope.sending = True
+            ui._sending.append(self.envelope)
         d = account.send_mail(self.mail)
         d.addCallback(afterwards)
         d.addErrback(send_errb)

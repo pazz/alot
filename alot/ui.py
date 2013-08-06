@@ -47,6 +47,8 @@ class UI(object):
         self.last_commandline = None
         """saves the last executed commandline"""
 
+        # storage for envelopes that are currently being sent
+        self._sending = []
         # define empty notification pile
         self._notificationbar = None
         # should we show a status bar?
