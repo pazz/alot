@@ -39,12 +39,21 @@ class ExitCommand(Command):
     """shut down cleanly"""
     @inlineCallbacks
     def apply(self, ui):
-        msg = 'index not fully synced. ' if ui.db_was_locked else ''
-        if settings.get('bug_on_exit') or ui.db_was_locked:
-            msg += 'really quit?'
-            if (yield ui.choice(msg, select='yes', cancel='no',
+        msg = None
+        if ui.db_was_locked:
+            msg = 'writing to the index.. abort and exit?'
+        if ui._sending:
+            msg = 'still sending mail.. abort and exit?'
+        if msg is None and settings.get('bug_on_exit'):
+            msg = 'really quit?'
+        if msg is not None:
+            if (yield ui.choice(msg,
+                                select='yes',
+                                cancel='no',
                                 msg_position='left')) == 'no':
+                # abort
                 return
+        # else continue and exit
         for b in ui.buffers:
             b.cleanup()
         ui.exit()
