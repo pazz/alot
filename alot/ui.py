@@ -617,8 +617,10 @@ class UI(object):
             def call_posthook(retval_from_apply):
                 if cmd.posthook:
                     logging.info('calling post-hook')
-                    return defer.maybeDeferred(cmd.posthook, ui=self,
-                                               dbm=self.dbman)
+                    return defer.maybeDeferred(cmd.posthook,
+                                               ui=self,
+                                               dbm=self.dbman,
+                                               cmd=cmd)
 
             # define a generic error handler for Failures/Exceptions
             # raised in cmd.apply()
@@ -638,7 +640,7 @@ class UI(object):
                 return defer.maybeDeferred(cmd.apply, self)
 
             prehook = cmd.prehook or (lambda **kwargs: None)
-            d = defer.maybeDeferred(prehook, ui=self, dbm=self.dbman)
+            d = defer.maybeDeferred(prehook, ui=self, dbm=self.dbman, cmd=cmd)
             d.addCallback(call_apply)
             d.addCallback(call_posthook)
             if handle_error:
