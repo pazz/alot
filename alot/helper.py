@@ -81,14 +81,13 @@ def string_sanitize(string, tab_width=8):
     :type tab_width: int or `None`
 
     >>> string_sanitize(' foo\rbar ', 8)
-    'foobar'
+    ' foobar '
     >>> string_sanitize('foo\tbar', 8)
     'foo     bar'
     >>> string_sanitize('foo\t\tbar', 8)
     'foo             bar'
     """
 
-    string = string.strip()
     string = string.replace('\r', '')
 
     lines = list()
