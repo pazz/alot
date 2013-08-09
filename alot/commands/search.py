@@ -250,5 +250,6 @@ class MoveFocusCommand(MoveCommand):
         logging.debug(self.movement)
         if self.movement == 'last':
             ui.current_buffer.focus_last()
+            ui.update()
         else:
             MoveCommand.apply(self, ui)
