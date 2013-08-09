@@ -9,13 +9,14 @@ class PipeWalker(urwid.ListWalker):
     """urwid.ListWalker that reads next items from a pipe and
     wraps them in `containerclass` widgets for displaying
     """
-    def __init__(self, pipe, containerclass, **kwargs):
+    def __init__(self, pipe, containerclass, reverse=False, **kwargs):
         self.pipe = pipe
         self.kwargs = kwargs
         self.containerclass = containerclass
         self.lines = []
         self.focus = 0
         self.empty = False
+        self.direction = -1 if reverse else 1
 
     def __contains__(self, name):
         return self.lines.__contains__(name)
@@ -28,10 +29,10 @@ class PipeWalker(urwid.ListWalker):
         self._modified()
 
     def get_next(self, start_from):
-        return self._get_at_pos(start_from + 1)
+        return self._get_at_pos(start_from + self.direction)
 
     def get_prev(self, start_from):
-        return self._get_at_pos(start_from - 1)
+        return self._get_at_pos(start_from - self.direction)
 
     def remove(self, obj):
         next_focus = self.focus % len(self.lines)
