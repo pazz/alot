@@ -406,7 +406,7 @@ class BufferCloseCommand(Command):
                                                     select='yes', cancel='no',
                                                     msg_position='left')) ==
                     'no'):
-                return
+                raise CommandCanceled()
 
         if len(ui.buffers) == 1:
             if settings.get('quit_on_last_bclose'):

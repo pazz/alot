@@ -88,7 +88,7 @@ class RefinePromptCommand(Command):
     def apply(self, ui):
         sbuffer = ui.current_buffer
         oldquery = sbuffer.querystring
-        ui.apply_command(PromptCommand('refine ' + oldquery))
+        return ui.apply_command(PromptCommand('refine ' + oldquery))
 
 
 @registerCommand(MODE, 'retagprompt')
