@@ -189,7 +189,7 @@ class UI(object):
             # store cmdline for use with 'repeat' command
             if cmd.repeatable:
                 self.last_commandline = cmdline
-            return self.apply_command(cmd, handle_error=False)
+            return self.apply_command(cmd)
 
         # we initialize a deferred which is already triggered
         # so that the first callbacks will be called immediately
@@ -597,7 +597,7 @@ class UI(object):
         footer_att = settings.get_theming_attribute('global', 'footer')
         return urwid.AttrMap(columns, footer_att)
 
-    def apply_command(self, cmd, handle_error=True):
+    def apply_command(self, cmd):
         """
         applies a command
 
@@ -606,11 +606,6 @@ class UI(object):
 
         :param cmd: an applicable command
         :type cmd: :class:`~alot.commands.Command`
-        :param handle_error: if True, the caller wants to rely on the default
-                             error handling mechanism to process the eventual
-                             errors raised while the command is applied.
-                             This is the default.
-        :type handle_error: bool
         """
         if cmd:
             # define (callback) function that invokes post-hook
@@ -626,7 +621,7 @@ class UI(object):
             # raised in cmd.apply()
             def errorHandler(failure):
                 if failure.check(CommandCanceled):
-                    self.notify('canceled')
+                    return failure
                 else:
                     logging.error(failure.getTraceback())
                     errmsg = failure.getErrorMessage()
@@ -643,6 +638,5 @@ class UI(object):
             d = defer.maybeDeferred(prehook, ui=self, dbm=self.dbman, cmd=cmd)
             d.addCallback(call_apply)
             d.addCallback(call_posthook)
-            if handle_error:
-                d.addErrback(errorHandler)
+            d.addErrback(errorHandler)
             return d
