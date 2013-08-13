@@ -76,27 +76,36 @@ class SettingsManager(object):
                 self._bindings.merge(newbindings)
         # themes
         themestring = newconfig['theme']
-        themes_dir = self._config.get('themes_dir')
-        if themes_dir:
-            themes_dir = os.path.expanduser(themes_dir)
-        else:
-            configdir = os.environ.get('XDG_CONFIG_HOME',
-                                       os.path.expanduser('~/.config'))
-            themes_dir = os.path.join(configdir, 'alot', 'themes')
-        logging.debug(themes_dir)
+
+        # Use the standard $PATH syntax to specify multiple dirs
+        theme_dirs = \
+            os.path.expanduser(self._config.get('themes_dir') or '').split(':')
+        # TODO: rename themes_dir to themes_path in the next maj version?
+
+        configdir = os.environ.get('XDG_CONFIG_HOME',
+                                   os.path.expanduser('~/.config'))
+        theme_dirs.append(os.path.join(configdir, 'alot', 'themes'))
+        logging.debug(theme_dirs)
 
         # if config contains theme string use that
         if themestring:
-            if not os.path.isdir(themes_dir):
-                err_msg = 'cannot find theme %s: themes_dir %s is missing'
-                raise ConfigError(err_msg % (themestring, themes_dir))
-            else:
-                theme_path = os.path.join(themes_dir, themestring)
+            for d in theme_dirs:
+                fullpath = os.path.join(d, themestring)
+                if not os.path.isfile(fullpath):
+                    continue
                 try:
-                    self._theme = Theme(theme_path)
+                    self._theme = Theme(fullpath)
+                    break
                 except ConfigError as e:
                     err_msg = 'Theme file %s failed validation:\n'
                     raise ConfigError((err_msg % themestring) + str(e.message))
+            if self._theme is None:
+                raise ConfigError(
+                    'The theme {t} couldn\'t be found in {paths}'.format(
+                        t=themestring,
+                        paths=':'.join(theme_dirs)
+                    )
+                )
 
         # if still no theme is set, resort to default
         if self._theme is None:
