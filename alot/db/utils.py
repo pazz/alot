@@ -125,7 +125,7 @@ def message_from_file(handle):
                 sigs = crypto.verify_detached(m.get_payload(0).as_string(),
                                               m.get_payload(1).get_payload())
             except GPGProblem as e:
-                malformed = str(e)
+                malformed = unicode(e)
 
         add_signature_headers(m, sigs, malformed)
 
@@ -160,7 +160,7 @@ def message_from_file(handle):
                 # the combined method is used, currently this prevents
                 # the interpretation of the recovered plain text
                 # mail. maybe that's a feature.
-                malformed = str(e)
+                malformed = unicode(e)
             else:
                 # parse decrypted message
                 n = message_from_string(d)
@@ -200,7 +200,9 @@ def message_from_file(handle):
 
         if malformed:
             msg = u'Malformed OpenPGP message: {0}'.format(malformed)
-            m.attach(email.message_from_string(msg))
+            content = email.message_from_string(msg.encode('utf-8'))
+            content.set_charset('utf-8')
+            m.attach(content)
 
     return m
 
