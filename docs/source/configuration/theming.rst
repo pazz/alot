@@ -6,6 +6,9 @@ Alot can be run in 1, 16 or 256 colour mode. The requested mode is determined by
 from option `colourmode` config value. The default is 256, which scales down depending on how many colours your
 terminal supports.
 
+Most parts of the user interface can be individually coloured to your liking.
+To make it easier to switch between or share different such themes, they are defined in separate
+files (see below for the exact format).
 To specify the theme to use, set the :ref:`theme <theme>` config option to the name of a theme-file.
 A file by that name will be looked up in the path given by the :ref:`themes_dir <themes-dir>` config setting
 which defaults to :file:`~/.config/alot/themes/`.
@@ -82,7 +85,7 @@ Each one of those can redefine any part of the structure outlined above, the res
 values defined in '[[threadline]]'.
 
 The section used to theme a particular thread is the first one (in file-order) that matches
-the criteria defined by its 'query' and 'taggeswith' values:
+the criteria defined by its 'query' and 'tagged_with' values:
 
 * If 'query' is defined, the thread must match that querystring.
 * If 'tagged_with' is defined, is value (string list)  must be a subset of the accumulated tags of all messages in the thread.
@@ -129,9 +132,10 @@ and just bold if the thread has unread but no flagged messages:
 Custom Tagstring Formatting
 ---------------------------
 
-To specify how a particular tagstring is displayed throughout the interface you can
-add a subsection named after the tag to the `[tags]` config section.
-Such a section may define
+One can specify how a particular tagstring is displayed throughout the interface. To use this
+feature, add a section `[tags]` to you alot config (not the theme file)
+and for each tag you want to customize, add a subsection named after the tag.
+Such a subsection may define
 
 :normal: :ref:`attribute <config.theming.attributes>` used if unfocussed
 :focus: :ref:`attribute <config.theming.attributes>` used if focussed
