@@ -857,9 +857,11 @@ class MoveCommand(Command):
         elif self.movement == 'first':
             if hasattr(ui.current_buffer, "focus_first"):
                 ui.current_buffer.focus_first()
+                ui.update()
         elif self.movement == 'last':
             if hasattr(ui.current_buffer, "focus_last"):
                 ui.current_buffer.focus_last()
+                ui.update()
         else:
             ui.notify('unknown movement: ' + self.movement,
                       priority='error')

@@ -207,6 +207,8 @@ class SearchBuffer(Buffer):
 
     modename = 'search'
     threads = []
+    _REVERSE = {'oldest_first': 'newest_first',
+                'newest_first': 'oldest_first'}
 
     def __init__(self, ui, initialquery='', sort_order=None):
         self.dbman = ui.dbman
@@ -244,14 +246,20 @@ class SearchBuffer(Buffer):
             if self.proc.is_alive():
                 self.proc.terminate()
 
-    def rebuild(self):
+    def rebuild(self, reverse=False):
         self.isinitialized = True
+        self.reversed = reverse
         self.kill_filler_process()
 
         self.result_count = self.dbman.count_messages(self.querystring)
+        if reverse:
+            order = self._REVERSE[self.sort_order]
+        else:
+            order = self.sort_order
+
         try:
             self.pipe, self.proc = self.dbman.get_threads(self.querystring,
-                                                          self.sort_order)
+                                                          order)
         except NotmuchError:
             self.ui.notify('malformed query string: %s' % self.querystring,
                            'error')
@@ -260,7 +268,8 @@ class SearchBuffer(Buffer):
             return
 
         self.threadlist = PipeWalker(self.pipe, ThreadlineWidget,
-                                     dbman=self.dbman)
+                                     dbman=self.dbman,
+                                     reverse=reverse)
 
         self.listbox = urwid.ListBox(self.threadlist)
         self.body = self.listbox
@@ -286,12 +295,22 @@ class SearchBuffer(Buffer):
             self.threadlist._get_next_item()
 
     def focus_first(self):
-        self.body.set_focus(0)
+        if not self.reversed:
+            self.body.set_focus(0)
+        else:
+            self.rebuild(reverse=False)
 
     def focus_last(self):
-        self.consume_pipe()
-        num_lines = len(self.threadlist.get_lines())
-        self.body.set_focus(num_lines - 1)
+        if self.reversed:
+            self.body.set_focus(0)
+        elif (self.result_count < 200) or \
+                (self.sort_order not in self._REVERSE.keys()):
+            self.consume_pipe()
+            num_lines = len(self.threadlist.get_lines())
+            self.body.set_focus(num_lines - 1)
+        else:
+            self.rebuild(reverse=True)
+
 
 
 class ThreadBuffer(Buffer):
