@@ -184,8 +184,16 @@ class UI(object):
         # one callback may return a Deferred and thus postpone the application
         # of the next callback (and thus Command-application)
 
-        def apply_this_command(ignored, cmdstring, cmd):
-            logging.debug('CMDSEQ: apply %s' % str(cmdstring))
+        def apply_this_command(ignored, cmdstring):
+            logging.debug('%s command string: "%s"' % (self.mode,
+                                                       str(cmdstring)))
+            #logging.debug('CMDSEQ: apply %s' % str(cmdstring))
+            # translate cmdstring into :class:`Command`
+            #try:
+            cmd = commandfactory(cmdstring, self.mode)
+            #except CommandParseError, e:
+             #   self.notify(e.message, priority='error')
+              #  return
             # store cmdline for use with 'repeat' command
             if cmd.repeatable:
                 self.last_commandline = cmdline
@@ -197,13 +205,21 @@ class UI(object):
 
         # split commandline if necessary
         for cmdstring in split_commandline(cmdline):
-            # translate cmdstring into :class:`Command`
-            try:
-                cmd = commandfactory(cmdstring, self.mode)
-            except CommandParseError, e:
-                self.notify(e.message, priority='error')
-                return
-            d.addCallback(apply_this_command, cmdstring, cmd)
+            d.addCallback(apply_this_command, cmdstring)
+
+        # add sequence-wide error handler
+        def errorHandler(failure):
+            if failure.check(CommandParseError):
+                self.notify(failure.getErrorMessage(), priority='error')
+            elif failure.check(CommandCanceled):
+                self.notify("operation cancelled", priority='error')
+            else:
+                logging.error(failure.getTraceback())
+                errmsg = failure.getErrorMessage()
+                if errmsg:
+                    msg = "%s\n(check the log for details)"
+                    self.notify(msg % errmsg, priority='error')
+        d.addErrback(errorHandler)
         return d
 
     def _unhandeled_input(self, key):
@@ -617,19 +633,6 @@ class UI(object):
                                                dbm=self.dbman,
                                                cmd=cmd)
 
-            # define a generic error handler for Failures/Exceptions
-            # raised in cmd.apply()
-            def errorHandler(failure):
-                if failure.check(CommandCanceled):
-                    return failure
-                else:
-                    logging.error(failure.getTraceback())
-                    errmsg = failure.getErrorMessage()
-                    if errmsg:
-                        msg = "%s\n(check the log for details)"
-                        self.notify(
-                            msg % failure.getErrorMessage(), priority='error')
-
             # call cmd.apply
             def call_apply(ignored):
                 return defer.maybeDeferred(cmd.apply, self)
@@ -638,5 +641,4 @@ class UI(object):
             d = defer.maybeDeferred(prehook, ui=self, dbm=self.dbman, cmd=cmd)
             d.addCallback(call_apply)
             d.addCallback(call_posthook)
-            d.addErrback(errorHandler)
             return d
