@@ -29,7 +29,7 @@ class Command(object):
 
 
 class CommandCanceled(Exception):
-    """ Exception triggered when an interactive command has been canceled
+    """ Exception triggered when an interactive command has been cancelled
     """
     pass
 
