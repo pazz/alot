@@ -564,7 +564,7 @@ class EncryptCommand(Command):
                         tmp_choices = [k.uids[0].uid for k in possible_keys]
                         choices = {str(len(tmp_choices) - x): tmp_choices[x]
                                    for x in range(0, len(tmp_choices))}
-                        keyid = yield ui.choice("ambiguous keyid! Which" +
+                        keyid = yield ui.choice("ambiguous keyid! Which " +
                                                 "key do you want to use?",
                                                 choices, cancel=None)
                         if keyid:
