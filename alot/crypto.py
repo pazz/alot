@@ -124,10 +124,31 @@ def get_key(keyid, validate=False, encrypt=False, sign=False):
             validate_key(key, encrypt=encrypt, sign=sign)
     except gpgme.GpgmeError as e:
         if e.code == gpgme.ERR_AMBIGUOUS_NAME:
-            raise GPGProblem(("More than one key found matching this filter." +
-                              " Please be more specific (use a key ID like " +
-                              "4AC8EE1D)."),
-                             code=GPGCode.AMBIGUOUS_NAME)
+            keys = list_keys(hint=keyid)
+            valid_key = None
+            for k in keys:
+                try:
+                    validate_key(k, encrypt=encrypt, sign=sign)
+                except GPGProblem:
+                    # if the key is invalid for given action skip it
+                    continue
+
+                if valid_key:
+                    # we have already found one valid key and now we find
+                    # another?
+                    raise GPGProblem(("More than one key found matching " +
+                                      "this filter. Please be more " +
+                                      "specific (use a key ID like " +
+                                      "4AC8EE1D)."),
+                                     code=GPGCode.AMBIGUOUS_NAME)
+                valid_key = k
+
+            if not valid_key:
+                # there were multiple keys found but none of them are valid for
+                # given action
+                raise GPGProblem("Can not find usable key for \'" + keyid + "\'.",
+                                 code=GPGCode.NOT_FOUND)
+            return valid_key
         elif e.code == gpgme.ERR_INV_VALUE or e.code == gpgme.ERR_EOF:
             raise GPGProblem("Can not find key for \'" + keyid + "\'.",
                              code=GPGCode.NOT_FOUND)
