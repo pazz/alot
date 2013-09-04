@@ -28,6 +28,11 @@ class Command(object):
         pass
 
 
+class CommandCanceled(Exception):
+    """ Exception triggered when an interactive command has been cancelled
+    """
+    pass
+
 COMMANDS = {
     'search': {},
     'envelope': {},
