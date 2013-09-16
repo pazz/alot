@@ -114,7 +114,14 @@ def get_key(keyid, validate=False, encrypt=False, sign=False):
     only if the given keyid is specific enough (if it matches multiple
     keys, an exception will be thrown).
 
+    If validate is True also make sure that returned key is not invalid, revoked
+    or expired. In addition if encrypt or sign is True also validate that key is
+    valid for that action. For example only keys with private key can sign.
+
     :param keyid: filter term for the keyring (usually a key ID)
+    :param validate: validate that returned keyid is valid
+    :param encrypt: when validating confirm that returned key can encrypt
+    :param sign: when validating confirm that returned key can sign
     :rtype: gpgme.Key
     """
     ctx = gpgme.Context()
@@ -124,6 +131,11 @@ def get_key(keyid, validate=False, encrypt=False, sign=False):
             validate_key(key, encrypt=encrypt, sign=sign)
     except gpgme.GpgmeError as e:
         if e.code == gpgme.ERR_AMBIGUOUS_NAME:
+            # When we get here it means there were multiple keys returned by gpg
+            # for given keyid. Unfortunately gpgme returns invalid and expired
+            # keys together with valid keys. If only one key is valid for given
+            # operation maybe we can still return it instead of raising
+            # exception
             keys = list_keys(hint=keyid)
             valid_key = None
             for k in keys:
@@ -135,7 +147,7 @@ def get_key(keyid, validate=False, encrypt=False, sign=False):
 
                 if valid_key:
                     # we have already found one valid key and now we find
-                    # another?
+                    # another? We really received an ambiguous keyid
                     raise GPGProblem(("More than one key found matching " +
                                       "this filter. Please be more " +
                                       "specific (use a key ID like " +
@@ -145,7 +157,7 @@ def get_key(keyid, validate=False, encrypt=False, sign=False):
 
             if not valid_key:
                 # there were multiple keys found but none of them are valid for
-                # given action
+                # given action (we don't have private key, they are expired etc)
                 raise GPGProblem("Can not find usable key for \'" + keyid + "\'.",
                                  code=GPGCode.NOT_FOUND)
             return valid_key
