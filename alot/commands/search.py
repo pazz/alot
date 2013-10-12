@@ -105,7 +105,7 @@ class RetagPromptCommand(Command):
                 tags.append('"%s"' % tag)
             else:
                 tags.append(tag)
-        initial_tagstring = ','.join(tags) + ','
+        initial_tagstring = ','.join(sorted(tags)) + ','
         return ui.apply_command(PromptCommand('retag ' + initial_tagstring))
 
 
