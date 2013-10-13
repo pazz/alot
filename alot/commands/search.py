@@ -103,7 +103,8 @@ class RetagPromptCommand(Command):
         for tag in thread.get_tags():
             if ' ' in tag:
                 tags.append('"%s"' % tag)
-            else:
+            # skip empty tags
+            elif tag:
                 tags.append(tag)
         initial_tagstring = ','.join(sorted(tags)) + ','
         ui.apply_command(PromptCommand('retag ' + initial_tagstring))
