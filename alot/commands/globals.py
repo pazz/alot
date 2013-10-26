@@ -479,20 +479,23 @@ class OpenBufferlistCommand(Command):
             ui.buffer_open(bl)
 
 
-@registerCommand(MODE, 'taglist')
+@registerCommand(MODE, 'taglist', arguments=[
+    (['--tags'], {'nargs': '+', 'help': 'tags to display'}),
+])
 class TagListCommand(Command):
 
     """opens taglist buffer"""
-    def __init__(self, filtfun=None, **kwargs):
+    def __init__(self, filtfun=None, tags=None, **kwargs):
         """
         :param filtfun: filter to apply to displayed list
         :type filtfun: callable (str->bool)
         """
         self.filtfun = filtfun
+        self.tags = tags
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        tags = ui.dbman.get_all_tags()
+        tags = self.tags or ui.dbman.get_all_tags()
         blists = ui.get_buffers_of_type(buffers.TagListBuffer)
         if blists:
             buf = blists[0]
