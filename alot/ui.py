@@ -7,8 +7,10 @@ from twisted.internet import reactor, defer
 
 from settings import settings
 from buffers import BufferlistBuffer
+from commands import commandfactory
+from commands import CommandCanceled
 from alot.commands import CommandParseError
-from alot.commands.globals import CommandSequenceCommand
+from alot.helper import split_commandline
 from alot.helper import string_decode
 from alot.widgets.globals import CompleteEdit
 from alot.widgets.globals import ChoiceWidget
@@ -162,15 +164,63 @@ class UI(object):
 
     def apply_commandline(self, cmdline):
         """
-        Dispatches the interpretation of the command line string to
-        :class:`CommandSequenceCommand
-        <alot.commands.globals.CommandSequenceCommand>`.
+        interprets a command line string
+
+        i.e., splits it into separate command strings,
+        instanciates :class:`Commands <alot.commands.Command>`
+        accordingly and applies then in sequence.
 
         :param cmdline: command line to interpret
         :type cmdline: str
         """
-        cmd = CommandSequenceCommand(cmdline)
-        self.apply_command(cmd)
+        # remove initial spaces
+        cmdline = cmdline.lstrip()
+
+        # we pass Commands one by one to `self.apply_command`.
+        # To properly call them in sequence, even if they trigger asyncronous
+        # code (return Deferreds), these applications happen in individual
+        # callback functions which are then used as callback chain to some
+        # trivial Deferred that immediately calls its first callback. This way,
+        # one callback may return a Deferred and thus postpone the application
+        # of the next callback (and thus Command-application)
+
+        def apply_this_command(ignored, cmdstring):
+            logging.debug('%s command string: "%s"' % (self.mode,
+                                                       str(cmdstring)))
+            #logging.debug('CMDSEQ: apply %s' % str(cmdstring))
+            # translate cmdstring into :class:`Command`
+            #try:
+            cmd = commandfactory(cmdstring, self.mode)
+            #except CommandParseError, e:
+             #   self.notify(e.message, priority='error')
+              #  return
+            # store cmdline for use with 'repeat' command
+            if cmd.repeatable:
+                self.last_commandline = cmdline
+            return self.apply_command(cmd)
+
+        # we initialize a deferred which is already triggered
+        # so that the first callbacks will be called immediately
+        d = defer.succeed(None)
+
+        # split commandline if necessary
+        for cmdstring in split_commandline(cmdline):
+            d.addCallback(apply_this_command, cmdstring)
+
+        # add sequence-wide error handler
+        def errorHandler(failure):
+            if failure.check(CommandParseError):
+                self.notify(failure.getErrorMessage(), priority='error')
+            elif failure.check(CommandCanceled):
+                self.notify("operation cancelled", priority='error')
+            else:
+                logging.error(failure.getTraceback())
+                errmsg = failure.getErrorMessage()
+                if errmsg:
+                    msg = "%s\n(check the log for details)"
+                    self.notify(msg % errmsg, priority='error')
+        d.addErrback(errorHandler)
+        return d
 
     def _unhandeled_input(self, key):
         """
@@ -578,26 +628,17 @@ class UI(object):
             def call_posthook(retval_from_apply):
                 if cmd.posthook:
                     logging.info('calling post-hook')
-                    return defer.maybeDeferred(cmd.posthook, ui=self,
-                                               dbm=self.dbman)
-
-            # define error handler for Failures/Exceptions
-            # raised in cmd.apply()
-            def errorHandler(failure):
-                logging.error(failure.getTraceback())
-                errmsg = failure.getErrorMessage()
-                if errmsg:
-                    msg = "%s\n(check the log for details)"
-                    self.notify(
-                        msg % failure.getErrorMessage(), priority='error')
+                    return defer.maybeDeferred(cmd.posthook,
+                                               ui=self,
+                                               dbm=self.dbman,
+                                               cmd=cmd)
 
             # call cmd.apply
             def call_apply(ignored):
                 return defer.maybeDeferred(cmd.apply, self)
 
             prehook = cmd.prehook or (lambda **kwargs: None)
-            d = defer.maybeDeferred(prehook, ui=self, dbm=self.dbman)
+            d = defer.maybeDeferred(prehook, ui=self, dbm=self.dbman, cmd=cmd)
             d.addCallback(call_apply)
             d.addCallback(call_posthook)
-            d.addErrback(errorHandler)
             return d

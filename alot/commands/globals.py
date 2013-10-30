@@ -4,6 +4,7 @@
 import os
 import code
 from twisted.internet import threads
+from twisted.internet import defer
 import subprocess
 import email
 import urwid
@@ -17,6 +18,7 @@ from alot.commands import Command, registerCommand
 from alot.completion import CommandLineCompleter
 from alot.commands import CommandParseError
 from alot.commands import commandfactory
+from alot.commands import CommandCanceled
 from alot import buffers
 from alot.widgets.utils import DialogBox
 from alot import helper
@@ -123,6 +125,8 @@ class PromptCommand(Command):
             # save into prompt history
             ui.commandprompthistory.append(cmdline)
             ui.apply_commandline(cmdline)
+        else:
+            raise CommandCanceled()
 
 
 @registerCommand(MODE, 'refresh')
@@ -402,7 +406,7 @@ class BufferCloseCommand(Command):
                                                     select='yes', cancel='no',
                                                     msg_position='left')) ==
                     'no'):
-                return
+                raise CommandCanceled()
 
         if len(ui.buffers) == 1:
             if settings.get('quit_on_last_bclose'):
@@ -746,8 +750,8 @@ class ComposeCommand(Command):
                 fromaddress = yield ui.prompt('From', completer=cmpl,
                                               tab=1)
                 if fromaddress is None:
-                    ui.notify('canceled')
-                    return
+                    raise CommandCanceled()
+
                 self.envelope.add('From', fromaddress)
 
         # add signature
@@ -802,8 +806,8 @@ class ComposeCommand(Command):
             to = yield ui.prompt('To',
                                  completer=completer)
             if to is None:
-                ui.notify('canceled')
-                return
+                raise CommandCanceled()
+
             self.envelope.add('To', to.strip(' \t\n,'))
 
         if settings.get('ask_subject') and \
@@ -811,8 +815,8 @@ class ComposeCommand(Command):
             subject = yield ui.prompt('Subject')
             logging.debug('SUBJECT: "%s"' % subject)
             if subject is None:
-                ui.notify('canceled')
-                return
+                raise CommandCanceled()
+
             self.envelope.add('Subject', subject)
 
         if settings.get('compose_ask_tags'):
@@ -820,8 +824,8 @@ class ComposeCommand(Command):
             tagsstring = yield ui.prompt('Tags', completer=comp)
             tags = filter(lambda x: x, tagsstring.split(','))
             if tags is None:
-                ui.notify('canceled')
-                return
+                raise CommandCanceled()
+
             self.envelope.tags = tags
 
         if self.attach:
@@ -868,28 +872,3 @@ class MoveCommand(Command):
         else:
             ui.notify('unknown movement: ' + self.movement,
                       priority='error')
-
-
-class CommandSequenceCommand(Command):
-
-    """Meta-Command that just applies a sequence of given Commands in order"""
-
-    def __init__(self, cmdline='', **kwargs):
-        Command.__init__(self, **kwargs)
-        self.cmdline = cmdline.strip()
-
-    @inlineCallbacks
-    def apply(self, ui):
-        # split commandline if necessary
-        for cmdstring in split_commandline(self.cmdline):
-            logging.debug('CMDSEQ: apply %s' % str(cmdstring))
-            # translate cmdstring into :class:`Command`
-            try:
-                cmd = commandfactory(cmdstring, ui.mode)
-                # store cmdline for use with 'repeat' command
-                if cmd.repeatable:
-                    ui.last_commandline = self.cmdline.lstrip()
-            except CommandParseError as e:
-                ui.notify(e.message, priority='error')
-                return
-            yield ui.apply_command(cmd)

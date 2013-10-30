@@ -88,7 +88,7 @@ class RefinePromptCommand(Command):
     def apply(self, ui):
         sbuffer = ui.current_buffer
         oldquery = sbuffer.querystring
-        ui.apply_command(PromptCommand('refine ' + oldquery))
+        return ui.apply_command(PromptCommand('refine ' + oldquery))
 
 
 @registerCommand(MODE, 'retagprompt')
@@ -107,7 +107,7 @@ class RetagPromptCommand(Command):
             elif tag:
                 tags.append(tag)
         initial_tagstring = ','.join(sorted(tags)) + ','
-        ui.apply_command(PromptCommand('retag ' + initial_tagstring))
+        return ui.apply_command(PromptCommand('retag ' + initial_tagstring))
 
 
 @registerCommand(MODE, 'tag', forced={'action': 'add'}, arguments=[

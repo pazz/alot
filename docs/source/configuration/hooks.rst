@@ -11,18 +11,20 @@ For every :ref:`COMMAND <usage.commands>` in mode :ref:`MODE <modes>`, the calla
 -- if defined -- will be called before and after the command is applied respectively. The signature for the
 pre-`send` hook in envelope mode for example looks like this:
 
-.. py:function:: pre_envelope_send(ui=None, dbm=None)
+.. py:function:: pre_envelope_send(ui=None, dbm=None, cmd=None)
 
     :param ui: the main user interface
     :type ui: :class:`alot.ui.UI`
     :param dbm: a database manager
     :type dbm: :class:`alot.db.manager.DBManager`
+    :param cmd: the Command instance that is being called
+    :type cmd: :class:`alot.commands.Command`
 
 Consider this pre-hook for the exit command, that logs a personalized goodbye message::
 
     import logging
     from alot.settings import settings
-    def pre_global_exit(ui, dbm):
+    def pre_global_exit(**kwargs):
         accounts = settings.get_accounts()
         if accounts:
             logging.info('goodbye, %s!' % accounts[0].realname)
