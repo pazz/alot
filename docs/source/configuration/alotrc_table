@@ -182,7 +182,7 @@
 
 .. describe:: editor_spawn
 
-     use terminal_command to spawn a new terminal for the editor?
+     use terminal_cmd to spawn a new terminal for the editor?
      equivalent to always providing the `--spawn=yes` parameter to compose/edit commands
 
     :type: boolean
