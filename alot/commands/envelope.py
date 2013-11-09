@@ -27,6 +27,41 @@ from alot.db.errors import DatabaseError
 MODE = 'envelope'
 
 
+@inlineCallbacks
+def _get_encrypt_keys(ui, envelope, encrypt_keys = []):
+    if not encrypt_keys:
+        for recipient in envelope.headers['To'][0].split(','):
+            if not recipient:
+                continue
+            match = re.search("<(.*@.*)>", recipient)
+            if match:
+                recipient = match.group(0)
+            encrypt_keys.append(recipient)
+
+    logging.debug("encryption keys: " + str(encrypt_keys))
+    for keyid in encrypt_keys:
+        try:
+            key = crypto.get_key(keyid, validate=True, encrypt=True)
+        except GPGProblem as e:
+            if e.code == GPGCode.AMBIGUOUS_NAME:
+                possible_keys = crypto.list_keys(hint=keyid)
+                tmp_choices = [k.uids[0].uid for k in possible_keys]
+                choices = {str(len(tmp_choices) - x): tmp_choices[x]
+                           for x in range(0, len(tmp_choices))}
+                keyid = yield ui.choice("ambiguous keyid! Which " +
+                                        "key do you want to use?",
+                                        choices, cancel=None)
+                if keyid:
+                    encrypt_keys.append(keyid)
+                continue
+            else:
+                ui.notify(e.message, priority='error')
+                continue
+        envelope.encrypt_keys[crypto.hash_key(key)] = key
+    if not envelope.encrypt_keys:
+        envelope.encrypt = False
+
+
 @registerCommand(MODE, 'attach', arguments=[
     (['path'], {'help': 'file(s) to attach (accepts wildcads)'})])
 class AttachCommand(Command):
@@ -174,6 +209,9 @@ class SendCommand(Command):
                 # needed to close later
                 self.envelope_buffer = ui.current_buffer
                 self.envelope = self.envelope_buffer.envelope
+
+            if self.envelope.encrypt and not self.envelope.encrypt_keys:
+                _get_encrypt_keys(ui, self.envelope)
 
             # This is to warn the user before re-sending
             # an already sent message in case the envelope buffer
@@ -545,36 +583,7 @@ class EncryptCommand(Command):
             encrypt = not envelope.encrypt
         envelope.encrypt = encrypt
         if encrypt:
-            if not self.encrypt_keys:
-                for recipient in envelope.headers['To'][0].split(','):
-                    if not recipient:
-                        continue
-                    match = re.search("<(.*@.*)>", recipient)
-                    if match:
-                        recipient = match.group(0)
-                    self.encrypt_keys.append(recipient)
+            _get_encrypt_keys(ui, envelope, self.encrypt_keys)
 
-            logging.debug("encryption keys: " + str(self.encrypt_keys))
-            for keyid in self.encrypt_keys:
-                try:
-                    key = crypto.get_key(keyid, validate=True, encrypt=True)
-                except GPGProblem as e:
-                    if e.code == GPGCode.AMBIGUOUS_NAME:
-                        possible_keys = crypto.list_keys(hint=keyid)
-                        tmp_choices = [k.uids[0].uid for k in possible_keys]
-                        choices = {str(len(tmp_choices) - x): tmp_choices[x]
-                                   for x in range(0, len(tmp_choices))}
-                        keyid = yield ui.choice("ambiguous keyid! Which " +
-                                                "key do you want to use?",
-                                                choices, cancel=None)
-                        if keyid:
-                            self.encrypt_keys.append(keyid)
-                        continue
-                    else:
-                        ui.notify(e.message, priority='error')
-                        continue
-                envelope.encrypt_keys[crypto.hash_key(key)] = key
-            if not envelope.encrypt_keys:
-                envelope.encrypt = False
         # reload buffer
         ui.current_buffer.rebuild()
