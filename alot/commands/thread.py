@@ -233,6 +233,8 @@ class ReplyCommand(Command):
         else:
             envelope.add('References', '<%s>' % self.message.get_message_id())
 
+        envelope.encrypt = mail.get_content_subtype() == 'encrypted'
+
         # continue to compose
         ui.apply_command(ComposeCommand(envelope=envelope,
                                         spawn=self.force_spawn))

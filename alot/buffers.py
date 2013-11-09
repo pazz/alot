@@ -196,6 +196,12 @@ class EnvelopeBuffer(Buffer):
         displayed_widgets.append(self.body_wgt)
         self.body = urwid.ListBox(displayed_widgets)
 
+    def render(self, size, focus=False):
+        if self.envelope.encrypt and not self.envelope.encrypt_keys:
+            fcmd = commands.envelope.EncryptCommand(action='encrypt')
+            self.ui.apply_command(fcmd)
+        return self.body.render(size, focus)
+
     def toggle_all_headers(self):
         """toggles visibility of all envelope headers"""
         self.all_headers = not self.all_headers
