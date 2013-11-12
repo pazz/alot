@@ -375,7 +375,8 @@ class EditCommand(Command):
         if self.envelope.tmpfile:
             old_tmpfile = self.envelope.tmpfile
         self.envelope.tmpfile = tempfile.NamedTemporaryFile(delete=False,
-                                                            prefix='alot.')
+                                                            prefix='alot.',
+                                                            suffix='.eml')
         self.envelope.tmpfile.write(content.encode('utf-8'))
         self.envelope.tmpfile.flush()
         self.envelope.tmpfile.close()
