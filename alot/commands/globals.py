@@ -654,7 +654,7 @@ class ComposeCommand(Command):
         :param envelope: use existing envelope
         :type envelope: :class:`~alot.db.envelope.Envelope`
         :param headers: forced header values
-        :type header: doct (str->str)
+        :type header: dict (str->str)
         :param template: name of template to parse into the envelope after
                          creation. This should be the name of a file in your
                          template_dir
