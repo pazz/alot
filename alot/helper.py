@@ -552,7 +552,7 @@ def parse_mailcap_nametemplate(tmplate='%s'):
     return (template_prefix, template_suffix)
 
 
-def mailto(mailto_str):
+def parse_mailto(mailto_str):
     """
     Interpret mailto-string
     :param mailto_str: the string to interpret. Must conform to :rfc:2368.
@@ -580,3 +580,13 @@ def mailto(mailto_str):
         return (headers, body)
     else:
         return (None, None)
+
+
+def mailto_to_envelope(mailto_str):
+    """
+    """
+    from alot.db.envelope import Envelope
+    headers, body = parse_mailto(mailto_str)
+    if headers is not None:
+        return Envelope(bodytext=body, headers=headers)
+    return None
