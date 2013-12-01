@@ -336,7 +336,7 @@ def decode_header(header, normalize=False):
     decode a header value to a unicode string
 
     values are usually a mixture of different substrings
-    encoded in quoted printable using diffetrent encodings.
+    encoded in quoted printable using different encodings.
     This turns it into a single unicode string
 
     :param header: the header value

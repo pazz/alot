@@ -550,3 +550,33 @@ def parse_mailcap_nametemplate(tmplate='%s'):
     else:
         template_suffix = tmplate
     return (template_prefix, template_suffix)
+
+
+def mailto(mailto_str):
+    """
+    Interpret mailto-string
+    :param mailto_str: the string to interpret. Must conform to :rfc:2368.
+    :return: pair headers,body. headers is a dict mapping str to lists of str,
+             body is a str.
+    :rtype: (dict(str-->[str,..], str)
+    """
+    import urllib
+    mtrexp = r'mailto:(.*?)[\?\&]([\w\&\=]*)'
+    M = re.search(mtrexp, mailto_str)
+    if M is not None:
+        to = urllib.unquote(M.group(1))
+        parms = M.group(2).split('&')
+
+        parms = dict(s.split('=') for s in parms)
+
+        body = u''
+        headers = {}
+        headers['To'] = [to]
+        for k, v in parms.items():
+            if k is 'body':
+                body = urllib.unquote(parms.get('body', u''))
+            else:
+                headers[k] = [urllib.unquote(v)]
+        return (headers, body)
+    else:
+        return (None, None)
