@@ -301,6 +301,9 @@ class ForwardCommand(Command):
 
             envelope.body = mailcontent
 
+            for a in self.message.get_attachments():
+                envelope.attach(a)
+
         else:  # attach original mode
             # attach original msg
             mail.set_type('message/rfc822')
