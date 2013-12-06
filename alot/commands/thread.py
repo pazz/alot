@@ -9,6 +9,7 @@ import argparse
 from twisted.internet.defer import inlineCallbacks
 import subprocess
 from email.Utils import getaddresses, parseaddr
+from email.message import Message
 import mailcap
 from cStringIO import StringIO
 
@@ -20,6 +21,7 @@ from alot.commands.globals import MoveCommand
 from alot.commands.globals import CommandCanceled
 from alot.commands.envelope import SendCommand
 from alot import completion
+from alot import crypto
 from alot.db.utils import decode_header
 from alot.db.utils import encode_header
 from alot.db.utils import extract_headers
@@ -306,9 +308,11 @@ class ForwardCommand(Command):
 
         else:  # attach original mode
             # attach original msg
-            mail.set_type('message/rfc822')
-            mail['Content-Disposition'] = 'attachment'
-            envelope.attach(Attachment(mail))
+            original_mail = Message()
+            original_mail.set_type('message/rfc822')
+            original_mail['Content-Disposition'] = 'attachment'
+            original_mail.set_payload(crypto.email_as_string(mail))
+            envelope.attach(Attachment(original_mail))
 
         # copy subject
         subject = decode_header(mail.get('Subject', ''))
