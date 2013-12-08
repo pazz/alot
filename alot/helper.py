@@ -11,16 +11,18 @@ import email
 import mimetypes
 import os
 import re
+from email.generator import Generator
 from email.mime.audio import MIMEAudio
 from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 import urwid
 import magic
 from twisted.internet import reactor
 from twisted.internet.protocol import ProcessProtocol
 from twisted.internet.defer import Deferred
-import StringIO
+from cStringIO import StringIO
 import logging
 
 
@@ -337,8 +339,8 @@ def call_cmd_async(cmdlist, stdin=None, env=None):
     class _EverythingGetter(ProcessProtocol):
         def __init__(self, deferred):
             self.deferred = deferred
-            self.outBuf = StringIO.StringIO()
-            self.errBuf = StringIO.StringIO()
+            self.outBuf = StringIO()
+            self.errBuf = StringIO()
             self.outReceived = self.outBuf.write
             self.errReceived = self.errBuf.write
 
@@ -550,3 +552,54 @@ def parse_mailcap_nametemplate(tmplate='%s'):
     else:
         template_suffix = tmplate
     return (template_prefix, template_suffix)
+
+
+def RFC3156_canonicalize(text):
+    """
+    Canonicalizes plain text (MIME-encoded usually) according to RFC3156.
+
+    This function works as follows (in that order):
+
+    1. Convert all line endings to \\\\r\\\\n (DOS line endings).
+    2. Ensure the text ends with a newline (\\\\r\\\\n).
+    3. Encode all occurences of "From " at the beginning of a line
+       to "From=20" in order to prevent other mail programs to replace
+       this with "> From" (to avoid MBox conflicts) and thus invalidate
+       the signature.
+
+    :param text: text to canonicalize (already encoded as quoted-printable)
+    :rtype: str
+    """
+    text = re.sub("\r?\n", "\r\n", text)
+    if not text.endswith("\r\n"):
+        text += "\r\n"
+    text = re.sub("^From ", "From=20", text, flags=re.MULTILINE)
+    return text
+
+
+def email_as_string(mail):
+    """
+    Converts the given message to a string, without mangling "From" lines
+    (like as_string() does).
+
+    :param mail: email to convert to string
+    :rtype: str
+    """
+    fp = StringIO()
+    g = Generator(fp, mangle_from_=False, maxheaderlen=78)
+    g.flatten(mail)
+    as_string = RFC3156_canonicalize(fp.getvalue())
+
+    if isinstance(mail, MIMEMultipart):
+        # Get the boundary for later
+        boundary = mail.get_boundary()
+
+        # Workaround for http://bugs.python.org/issue14983:
+        # Insert a newline before the outer mail boundary so that other mail
+        # clients can verify the signature when sending an email which contains
+        # attachments.
+        as_string = re.sub(r'--(\r\n)--' + boundary,
+                           '--\g<1>\g<1>--' + boundary,
+                           as_string, flags=re.MULTILINE)
+
+    return as_string

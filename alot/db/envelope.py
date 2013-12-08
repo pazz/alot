@@ -186,7 +186,7 @@ class Envelope(object):
             inner_msg = textpart
 
         if self.sign:
-            plaintext = crypto.email_as_string(inner_msg)
+            plaintext = helper.email_as_string(inner_msg)
             logging.debug('signing plaintext: ' + plaintext)
 
             try:
@@ -231,7 +231,7 @@ class Envelope(object):
             unencrypted_msg = inner_msg
 
         if self.encrypt:
-            plaintext = crypto.email_as_string(unencrypted_msg)
+            plaintext = helper.email_as_string(unencrypted_msg)
             logging.debug('encrypting plaintext: ' + plaintext)
 
             try:
