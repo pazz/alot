@@ -19,6 +19,7 @@ from alot import crypto
 from alot.commands import Command, registerCommand
 from alot.commands import globals
 from alot.helper import string_decode
+from alot.helper import email_as_string
 from alot.settings import settings
 from alot.utils.booleanaction import BooleanAction
 from alot.db.errors import DatabaseError
@@ -130,7 +131,7 @@ class SaveCommand(Command):
         # store mail locally
         # add Date header
         mail['Date'] = email.Utils.formatdate(localtime=True)
-        path = account.store_draft_mail(crypto.email_as_string(mail))
+        path = account.store_draft_mail(email_as_string(mail))
 
         msg = 'draft saved successfully'
 
@@ -201,7 +202,7 @@ class SendCommand(Command):
             try:
                 self.mail = self.envelope.construct_mail()
                 self.mail['Date'] = email.Utils.formatdate(localtime=True)
-                self.mail = crypto.email_as_string(self.mail)
+                self.mail = email_as_string(self.mail)
             except GPGProblem, e:
                 ui.clear_notify([clearme])
                 ui.notify(e.message, priority='error')
