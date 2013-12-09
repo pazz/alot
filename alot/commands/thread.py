@@ -9,6 +9,7 @@ import argparse
 from twisted.internet.defer import inlineCallbacks
 import subprocess
 from email.Utils import getaddresses, parseaddr
+from email.message import Message
 import mailcap
 from cStringIO import StringIO
 
@@ -30,6 +31,7 @@ from alot.db.errors import DatabaseROError
 from alot.settings import settings
 from alot.helper import parse_mailcap_nametemplate
 from alot.helper import split_commandstring
+from alot.helper import email_as_string
 from alot.utils.booleanaction import BooleanAction
 from alot.completion import ContactsCompleter
 
@@ -301,11 +303,16 @@ class ForwardCommand(Command):
 
             envelope.body = mailcontent
 
+            for a in self.message.get_attachments():
+                envelope.attach(a)
+
         else:  # attach original mode
             # attach original msg
-            mail.set_type('message/rfc822')
-            mail['Content-Disposition'] = 'attachment'
-            envelope.attach(Attachment(mail))
+            original_mail = Message()
+            original_mail.set_type('message/rfc822')
+            original_mail['Content-Disposition'] = 'attachment'
+            original_mail.set_payload(email_as_string(mail))
+            envelope.attach(Attachment(original_mail))
 
         # copy subject
         subject = decode_header(mail.get('Subject', ''))
