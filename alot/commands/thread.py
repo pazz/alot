@@ -807,7 +807,11 @@ class SaveAttachmentCommand(Command):
 
     @inlineCallbacks
     def apply(self, ui):
-        pcomplete = completion.PathCompleter()
+        path_completion_command = settings.get('path_completion_command')
+        if path_completion_command:
+            pcomplete = completion.CustomPathCompleter(path_completion_command)
+        else:
+            pcomplete = completion.NativePathCompleter()
         savedir = settings.get('attachment_prefix', '~')
         if self.all:
             msg = ui.current_buffer.get_selected_message()

@@ -24,6 +24,17 @@
     :default: "~"
 
 
+.. _path-completion-command:
+
+.. describe:: path_completion_command
+
+     custom command used to replace native path completion mechanism.
+     The command must return a list of possible path completions, one by line.
+
+    :type: string
+    :default: None
+
+
 .. _auto-remove-unread:
 
 .. describe:: auto_remove_unread
