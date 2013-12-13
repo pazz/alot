@@ -10,6 +10,9 @@ compose_ask_tags = boolean(default=False)
 # directory prefix for downloading attachments
 attachment_prefix = string(default='~')
 
+# custom command used to replace the native path completion mechanism
+path_completion_command = string(default=None)
+
 # timeout in (floating point) seconds until partial input is cleared
 input_timeout = float(default=1.0)
 
