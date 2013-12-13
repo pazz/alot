@@ -12,7 +12,7 @@ import alot.commands as commands
 from alot.buffers import EnvelopeBuffer
 from alot.settings import settings
 from alot.utils.booleanaction import BooleanAction
-from alot.helper import split_commandline
+from alot.helper import split_commandline, split_commandstring, call_cmd
 from alot.addressbooks import AddressbookError
 from errors import CompletionError
 
@@ -317,7 +317,11 @@ class CommandCompleter(Completer):
         self._tagcompleter = TagCompleter(dbman)
         abooks = settings.get_addressbooks()
         self._contactscompleter = ContactsCompleter(abooks)
-        self._pathcompleter = PathCompleter()
+        path_completion_command = settings.get('path_completion_command')
+        if path_completion_command:
+            self._pathcompleter = CustomPathCompleter(path_completion_command)
+        else:
+            self._pathcompleter = NativePathCompleter()
         self._accountscompleter = AccountCompleter()
         self._secretkeyscompleter = CryptoKeyCompleter(private=True)
         self._publickeyscompleter = CryptoKeyCompleter(private=False)
@@ -514,12 +518,20 @@ class CommandLineCompleter(Completer):
 
 
 class PathCompleter(Completer):
-    """completion for paths"""
-    def complete(self, original, pos):
-        if not original:
-            return [('~/', 2)]
-        prefix = os.path.expanduser(original[:pos])
+    """Base class for path completers
+    """
+    def path_complete(self, prefix):
+        """Returns a list of path completions for the given prefix.
+           The path returned must not be escaped or in quoted format.
 
+        :param prefix: the prefix to complete
+        :type prefix: str
+        """
+
+    def complete(self, original, pos):
+        """Calls the actual path_complete method and does all the
+           escaping / deescaping work
+        """
         def escape(path):
             return path.replace('\\', '\\\\').replace(' ', '\ ')
 
@@ -530,7 +542,41 @@ class PathCompleter(Completer):
             escaped_path = escape(path)
             return escaped_path, len(escaped_path)
 
-        return map(prep, glob.glob(deescape(prefix) + '*'))
+        prefix = original[:pos]
+
+        return map(prep, self.path_complete(deescape(prefix)))
+
+
+class NativePathCompleter(PathCompleter):
+    """completion for paths based on fileystem lookups"""
+    def path_complete(self, prefix):
+        if not prefix:
+            return '~/'
+
+        prefix = os.path.expanduser(prefix)
+        return glob.glob(prefix + '*')
+
+
+class CustomPathCompleter(PathCompleter):
+    """completion for paths using a custom command"""
+    def __init__(self, command):
+        self.command = command
+        self.cmdlist = split_commandstring(self.command)
+
+    def path_complete(self, prefix):
+
+        resultstring, errmsg, retval = call_cmd(self.cmdlist + [prefix])
+        if retval != 0:
+            msg = 'path completion command "%s" returned with ' % self.command
+            msg += 'return code %d' % retval
+            if errmsg:
+                msg += ':\n%s' % errmsg
+            raise CompletionError(msg)
+
+        if not resultstring:
+            return []
+
+        return resultstring.splitlines()
 
 
 class CryptoKeyCompleter(StringlistCompleter):
