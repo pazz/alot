@@ -584,6 +584,7 @@ def parse_mailto(mailto_str):
 
 def mailto_to_envelope(mailto_str):
     """
+    Interpret mailto-string into a :class:`alot.db.envelope.Envelope`
     """
     from alot.db.envelope import Envelope
     headers, body = parse_mailto(mailto_str)
