@@ -552,7 +552,7 @@ def parse_mailcap_nametemplate(tmplate='%s'):
     return (template_prefix, template_suffix)
 
 
-def mailto(mailto_str):
+def parse_mailto(mailto_str):
     """
     Interpret mailto-string
     :param mailto_str: the string to interpret. Must conform to :rfc:2368.
@@ -560,23 +560,34 @@ def mailto(mailto_str):
              body is a str.
     :rtype: (dict(str-->[str,..], str)
     """
-    import urllib
-    mtrexp = r'mailto:(.*?)[\?\&]([\w\&\=]*)'
-    M = re.search(mtrexp, mailto_str)
-    if M is not None:
-        to = urllib.unquote(M.group(1))
-        parms = M.group(2).split('&')
-
-        parms = dict(s.split('=') for s in parms)
-
-        body = u''
+    if mailto_str.startswith('mailto:'):
+        import urllib
+        to_str, parms_str = mailto_str[7:].partition('?')[::2]
         headers = {}
-        headers['To'] = [to]
-        for k, v in parms.items():
-            if k is 'body':
-                body = urllib.unquote(parms.get('body', u''))
-            else:
-                headers[k] = [urllib.unquote(v)]
+        body = u''
+
+        to = urllib.unquote(to_str)
+        if to:
+            headers['To'] = [to]
+
+        for s in parms_str.split('&'):
+            key, value = s.partition('=')[::2]
+            key = key.capitalize()
+            if key is 'body':
+                body = urllib.unquote(value)
+            elif value:
+                headers[key] = [urllib.unquote(value)]
         return (headers, body)
     else:
         return (None, None)
+
+
+def mailto_to_envelope(mailto_str):
+    """
+    Interpret mailto-string into a :class:`alot.db.envelope.Envelope`
+    """
+    from alot.db.envelope import Envelope
+    headers, body = parse_mailto(mailto_str)
+    if headers is not None:
+        return Envelope(bodytext=body, headers=headers)
+    return None

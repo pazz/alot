@@ -13,6 +13,8 @@ from alot.ui import UI
 import alot.commands as commands
 from alot.commands import *
 from alot.commands import CommandParseError
+from alot.commands.globals import ComposeCommand
+from alot.helper import mailto_to_envelope
 
 from twisted.python import usage
 
@@ -54,7 +56,7 @@ class ComposeOptions(SubcommandOptions):
 
     def parseArgs(self, *args):
         SubcommandOptions.parseArgs(self, *args)
-        self['to'] = ' '.join(args) or None
+        self['to'] = ' '.join(args) or ''
 
 
 class SearchOptions(SubcommandOptions):
@@ -175,8 +177,13 @@ def main():
                                           query)
             cmd = commands.commandfactory(cmdstring, 'global')
         elif args.subCommand == 'compose':
-            cmdstring = 'compose %s' % args.subOptions.as_argparse_opts()
-            cmd = commands.commandfactory(cmdstring, 'global')
+            to = args.subOptions['to']
+            if to.startswith('mailto'):
+                env = mailto_to_envelope(to)
+                cmd = ComposeCommand(envelope=env)
+            else:
+                cmdstring = 'compose %s' % args.subOptions.as_argparse_opts()
+                cmd = commands.commandfactory(cmdstring, 'global')
         else:
             default_commandline = settings.get('initial_command')
             cmd = commands.commandfactory(default_commandline, 'global')
