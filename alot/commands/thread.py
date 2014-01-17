@@ -57,9 +57,13 @@ def determine_sender(mail, action='reply'):
     assert my_accounts, 'no accounts set!'
 
     # extract list of addresses to check for my address
+    # X-Envelope-To and Envelope-To are used to store the recipient address
+    # if not included in other fields
     candidate_addresses = getaddresses(mail.get_all('To', []) +
                                        mail.get_all('Cc', []) +
                                        mail.get_all('Delivered-To', []) +
+                                       mail.get_all('X-Envelope-To', []) +
+                                       mail.get_all('Envelope-To', []) +
                                        mail.get_all('From', []))
 
     logging.debug('candidate addresses: %s' % candidate_addresses)
