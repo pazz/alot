@@ -318,6 +318,9 @@ class CommandCompleter(Completer):
         abooks = settings.get_addressbooks()
         self._contactscompleter = ContactsCompleter(abooks)
         self._pathcompleter = PathCompleter()
+        # We directly instantiate a native path completer as we know
+        # we don't want to use CustomPathCompleter to save file
+        self._nativepathcompleter = NativePathCompleter()
         self._accountscompleter = AccountCompleter()
         self._secretkeyscompleter = CryptoKeyCompleter(private=True)
         self._publickeyscompleter = CryptoKeyCompleter(private=False)
@@ -437,7 +440,7 @@ class CommandCompleter(Completer):
                     res = self._publickeyscompleter.complete(params, localpos)
                 # thread
                 elif self.mode == 'thread' and cmd == 'save':
-                    res = self._pathcompleter.complete(params, localpos)
+                    res = self._nativepathcompleter.complete(params, localpos)
                 elif self.mode == 'thread' and cmd in ['fold', 'unfold',
                                                        'togglesource',
                                                        'toggleheaders']:
