@@ -4,6 +4,7 @@
 import re
 import os
 
+from cStringIO import StringIO
 from alot.errors import GPGProblem, GPGCode
 import gpgme
 
