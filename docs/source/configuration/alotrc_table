@@ -28,8 +28,12 @@
 
 .. describe:: path_completion_command
 
-     custom command used to replace native path completion mechanism.
+     custom command used to replace native path completion mechanism
+     when trying to attach files to a message.
      The command must return a list of possible path completions, one by line.
+
+     The custom path completion command is not used to save attachments or
+     threads.
 
     :type: string
     :default: None
