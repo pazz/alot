@@ -317,11 +317,7 @@ class CommandCompleter(Completer):
         self._tagcompleter = TagCompleter(dbman)
         abooks = settings.get_addressbooks()
         self._contactscompleter = ContactsCompleter(abooks)
-        path_completion_command = settings.get('path_completion_command')
-        if path_completion_command:
-            self._pathcompleter = CustomPathCompleter(path_completion_command)
-        else:
-            self._pathcompleter = NativePathCompleter()
+        self._pathcompleter = PathCompleter()
         self._accountscompleter = AccountCompleter()
         self._secretkeyscompleter = CryptoKeyCompleter(private=True)
         self._publickeyscompleter = CryptoKeyCompleter(private=False)
@@ -517,7 +513,7 @@ class CommandLineCompleter(Completer):
         return res
 
 
-class PathCompleter(Completer):
+class BasePathCompleter(Completer):
     """Base class for path completers
     """
     def path_complete(self, prefix):
@@ -547,7 +543,7 @@ class PathCompleter(Completer):
         return map(prep, self.path_complete(deescape(prefix)))
 
 
-class NativePathCompleter(PathCompleter):
+class NativePathCompleter(BasePathCompleter):
     """completion for paths based on fileystem lookups"""
     def path_complete(self, prefix):
         if not prefix:
@@ -557,7 +553,7 @@ class NativePathCompleter(PathCompleter):
         return glob.glob(prefix + '*')
 
 
-class CustomPathCompleter(PathCompleter):
+class CustomPathCompleter(BasePathCompleter):
     """completion for paths using a custom command"""
     def __init__(self, command):
         self.command = command
@@ -577,6 +573,25 @@ class CustomPathCompleter(PathCompleter):
             return []
 
         return resultstring.splitlines()
+
+
+class PathCompleter(BasePathCompleter):
+    """Proxy-like Path Completer that automatically selects the appropriate
+       Path Completer class based on the path_completion_command configuration
+       settings.
+
+       You should directly instantiante the good path completer sub-class if
+       you need to bypass the configuration setting."""
+
+    def __init__(self):
+        path_completion_command = settings.get('path_completion_command')
+        if path_completion_command:
+            self._pathcompleter = CustomPathCompleter(path_completion_command)
+        else:
+            self._pathcompleter = NativePathCompleter()
+
+    def path_complete(self, prefix):
+        return self._pathcompleter.path_complete(prefix)
 
 
 class CryptoKeyCompleter(StringlistCompleter):
