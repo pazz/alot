@@ -577,12 +577,7 @@ class HelpCommand(Command):
             title_att = settings.get_theming_attribute('help', 'title')
             section_att = settings.get_theming_attribute('help', 'section')
             # get mappings
-            if ui.mode in settings._bindings:
-                modemaps = dict(settings._bindings[ui.mode].items())
-            else:
-                modemaps = {}
-            is_scalar = lambda k_v: k_v[0] in settings._bindings.scalars
-            globalmaps = dict(filter(is_scalar, settings._bindings.items()))
+            globalmaps, modemaps = settings.get_keybindings(ui.mode)
 
             # build table
             maxkeylength = len(max((modemaps).keys() + globalmaps.keys(),
