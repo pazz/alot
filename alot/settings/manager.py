@@ -309,9 +309,9 @@ class SettingsManager(object):
         return None
 
     def get_mapped_input_keysequences(self, mode='global', prefix=u''):
-        candidates = self._bindings.scalars
-        if mode != 'global':
-            candidates = candidates + self._bindings[mode].scalars
+        # get all bindings in this mode
+        globalmaps, modemaps = self.get_keybindings(mode)
+        candidates = globalmaps.keys() + modemaps.keys()
         if prefix is not None:
             prefixs = prefix + ' '
             cand = filter(lambda x: x.startswith(prefixs), candidates)
@@ -320,6 +320,39 @@ class SettingsManager(object):
             else:
                 candidates = cand
         return candidates
+
+    def get_keybindings(self, mode):
+        """look up keybindings from `MODE-maps` sections
+
+        :param mode: mode identifier
+        :type mode: str
+        :returns: dictionaries of key-cmd for global and specific mode
+        :rtype: 2-tuple of dicts
+        """
+        globalmaps, modemaps = {},{}
+        bindings = self._bindings
+        # get bindings for mode `mode`
+        # retain empty assignations to silence corresponding global mappings
+        if mode in bindings.sections:
+            for key in bindings[mode].scalars:
+                value = bindings[mode][key]
+                if isinstance(value, list):
+                    value = ','.join(value)
+                modemaps[key] = value
+        # get global bindings
+        # ignore the ones already mapped in mode bindings
+        for key in bindings.scalars:
+            if key not in modemaps:
+                value = bindings[key]
+                if isinstance(value, list):
+                    value = ','.join(value)
+                if value and value != '':
+                    globalmaps[key] = value
+        # get rid of empty commands left in mode bindings
+        for key in [k for k,v in modemaps.items() if not v or v=='']:
+            del modemaps[key]
+
+        return globalmaps, modemaps
 
     def get_keybinding(self, mode, key):
         """look up keybinding from `MODE-maps` sections
@@ -340,6 +373,9 @@ class SettingsManager(object):
                 value = bindings[mode][key]
                 if value:
                     cmdline = value
+                else:
+                    # to be sure it isn't mapped globally
+                    cmdline = None
         # Workaround for ConfigObj misbehaviour. cf issue #500
         # this ensures that we get at least strings only as commandlines
         if isinstance(cmdline, list):
