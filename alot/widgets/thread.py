@@ -202,6 +202,10 @@ class MessageTree(CollapsibleTree):
         else:
             mainstruct.append((self._get_headers(), None))
 
+            separatortree = self._get_header_separator()
+            if separatortree is not None:
+                mainstruct.append((separatortree, None))
+
             attachmenttree = self._get_attachments()
             if attachmenttree is not None:
                 mainstruct.append((attachmenttree, None))
@@ -259,6 +263,17 @@ class MessageTree(CollapsibleTree):
                     headers)
             ret = self._default_headers_tree
         return ret
+
+    def _get_header_separator(self):
+        if settings.get('header_separator') is not None:
+            att = settings.get_theming_attribute('global',
+                                                 'separator')
+            att_focus = settings.get_theming_attribute('global',
+                                                       'separator_focus')
+            return TextlinesList(settings.get('header_separator'),
+                                 att, att_focus)
+        else:
+            return None
 
     def _get_attachments(self):
         if self._attachments is None:

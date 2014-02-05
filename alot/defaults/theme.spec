@@ -7,6 +7,8 @@
     prompt = attrtriple
     tag = attrtriple
     tag_focus = attrtriple
+    separator = attrtriple(default=None)
+    separator_focus = attrtriple(default=None)
 [help]
     # formatting of the `help bindings` overlay
     text = attrtriple
