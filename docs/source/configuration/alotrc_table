@@ -350,6 +350,17 @@
     :default: False
 
 
+.. _prefer-calendar:
+
+.. describe:: prefer_calendar
+
+     prefer to see calendar alternative in addition to text and/or html content
+     in multipart/alternative
+
+    :type: boolean
+    :default: False
+
+
 .. _print-cmd:
 
 .. describe:: print_cmd
