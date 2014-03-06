@@ -49,6 +49,15 @@ class ExitCommand(Command):
                                 msg_position='left')) == 'no':
                 return
 
+        # check if there are any unsent messages
+        for buffer in ui.buffers:
+            if (isinstance(buffer, buffers.EnvelopeBuffer) and
+                    not buffer.envelope.sent_time):
+                if (yield ui.choice('quit without sending message?',
+                                    select='yes', cancel='no',
+                                    msg_position='left')) == 'no':
+                    raise CommandCanceled()
+
         for b in ui.buffers:
             b.cleanup()
         ui.apply_command(FlushCommand(callback=ui.exit))
