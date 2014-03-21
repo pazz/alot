@@ -10,7 +10,6 @@ from alot.settings import settings
 from alot.settings.errors import ConfigError
 from alot.db.manager import DBManager
 from alot.ui import UI
-import alot.commands as commands
 from alot.commands import *
 from alot.commands import CommandParseError
 from alot.commands.globals import ComposeCommand
@@ -175,20 +174,12 @@ def main():
             query = ' '.join(args.subOptions.args)
             cmdstring = 'search %s %s' % (args.subOptions.as_argparse_opts(),
                                           query)
-            cmd = commands.commandfactory(cmdstring, 'global')
         elif args.subCommand == 'compose':
-            to = args.subOptions['to']
-            if to.startswith('mailto'):
-                env = mailto_to_envelope(to)
-                cmd = ComposeCommand(envelope=env)
-            else:
-                cmdstring = 'compose %s' % args.subOptions.as_argparse_opts()
-                cmd = commands.commandfactory(cmdstring, 'global')
+            cmdstring = 'compose %s' % args.subOptions.as_argparse_opts()
         else:
-            default_commandline = settings.get('initial_command')
-            cmd = commands.commandfactory(default_commandline, 'global')
+            cmdstring = settings.get('initial_command')
     except CommandParseError, e:
         sys.exit(e)
 
     # set up and start interface
-    UI(dbman, cmd)
+    UI(dbman, cmdstring)
