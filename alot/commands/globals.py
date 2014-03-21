@@ -30,6 +30,7 @@ from alot.db.envelope import Envelope
 from alot import commands
 from alot.settings import settings
 from alot.helper import split_commandstring, split_commandline
+from alot.helper import mailto_to_envelope
 from alot.utils.booleanaction import BooleanAction
 
 MODE = 'global'
@@ -643,18 +644,19 @@ class HelpCommand(Command):
                             'help': 'do not add signature'}),
     (['--spawn'], {'action': BooleanAction, 'default': None,
                    'help': 'spawn editor in new terminal'}),
+    (['rest'], {'nargs': '*', 'default': None, 'help': ''}),
 ])
 class ComposeCommand(Command):
 
     """compose a new email"""
     def __init__(self, envelope=None, headers={}, template=None,
                  sender=u'', subject=u'', to=[], cc=[], bcc=[], attach=None,
-                 omit_signature=False, spawn=None, **kwargs):
+                 omit_signature=False, spawn=None, rest=None, **kwargs):
         """
         :param envelope: use existing envelope
         :type envelope: :class:`~alot.db.envelope.Envelope`
         :param headers: forced header values
-        :type header: dict (str->str)
+        :type headers: dict (str->str)
         :param template: name of template to parse into the envelope after
                          creation. This should be the name of a file in your
                          template_dir
@@ -675,6 +677,10 @@ class ComposeCommand(Command):
         :type omit_signature: bool
         :param spawn: force spawning of editor in a new terminal
         :type spawn: bool
+        :param rest: remaining parameters. These can start with
+                     'mailto' in which case it is interpreted sa mailto string.
+                     Otherwise it will be interpreted as recipients (to) header
+        :type rest: list(str)
         """
 
         Command.__init__(self, **kwargs)
@@ -690,11 +696,19 @@ class ComposeCommand(Command):
         self.attach = attach
         self.omit_signature = omit_signature
         self.force_spawn = spawn
+        self.rest = ' '.join(rest)
 
     @inlineCallbacks
     def apply(self, ui):
         if self.envelope is None:
-            self.envelope = Envelope()
+            if self.rest:
+                if self.rest.startswith('mailto'):
+                    self.envelope = mailto_to_envelope(self.rest)
+                else:
+                    self.envelope = Envelope()
+                    self.envelope.add('To', self.rest)
+            else:
+                self.envelope = Envelope()
         if self.template is not None:
             # get location of tempsdir, containing msg templates
             tempdir = settings.get('template_dir')

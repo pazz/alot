@@ -47,7 +47,7 @@ class Envelope(object):
     """tags to add after successful sendout"""
 
     def __init__(
-        self, template=None, bodytext=u'', headers=None, attachments=[],
+        self, template=None, bodytext=None, headers=None, attachments=[],
             sign=False, sign_key=None, encrypt=False, tags=[]):
         """
         :param template: if not None, the envelope will be initialised by
@@ -63,14 +63,12 @@ class Envelope(object):
         :param tags: tags to add after successful sendout and saving this msg
         :type tags: list of str
         """
-        assert isinstance(bodytext, unicode)
         logging.debug('TEMPLATE: %s' % template)
         if template:
             self.parse_template(template)
             logging.debug('PARSED TEMPLATE: %s' % template)
             logging.debug('BODY: %s' % self.body)
-        if self.body is None:
-            self.body = bodytext
+        self.body = bodytext or u''
         self.headers = headers or {}
         self.attachments = list(attachments)
         self.sign = sign
