@@ -464,7 +464,7 @@ def mimewrap(path, filename=None, ctype=None):
     content = open(path, 'rb').read()
     if not ctype:
         ctype = guess_mimetype(content)
-        # libmagic < 5.12 incorrectly detects excel/powerpoint files as 
+        # libmagic < 5.12 incorrectly detects excel/powerpoint files as
         # 'application/msword' (see #179 and #186 in libmagic bugtracker)
         # This is a workaround, based on file extension, useful as long
         # as distributions still ship libmagic 5.11.
@@ -588,6 +588,4 @@ def mailto_to_envelope(mailto_str):
     """
     from alot.db.envelope import Envelope
     headers, body = parse_mailto(mailto_str)
-    if headers is not None:
-        return Envelope(bodytext=body, headers=headers)
-    return None
+    return Envelope(bodytext=body, headers=headers)
