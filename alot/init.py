@@ -43,6 +43,7 @@ class ComposeOptions(SubcommandOptions):
     optParameters = [
         ['sender', '', None, 'From line'],
         ['subject', '', None, 'subject line'],
+        ['to', [], None, 'recipients'],
         ['cc', '', None, 'copy to'],
         ['bcc', '', None, 'blind copy to'],
         ['template', '', None, 'path to template file'],
@@ -54,7 +55,7 @@ class ComposeOptions(SubcommandOptions):
 
     def parseArgs(self, *args):
         SubcommandOptions.parseArgs(self, *args)
-        self['to'] = ' '.join(args) or None
+        self.rest = ' '.join(args) or None
 
 
 class SearchOptions(SubcommandOptions):
@@ -176,6 +177,8 @@ def main():
             cmd = commands.commandfactory(cmdstring, 'global')
         elif args.subCommand == 'compose':
             cmdstring = 'compose %s' % args.subOptions.as_argparse_opts()
+            if args.subOptions.rest is not None:
+                cmdstring += ' ' + args.subOptions.rest
             cmd = commands.commandfactory(cmdstring, 'global')
         else:
             default_commandline = settings.get('initial_command')
