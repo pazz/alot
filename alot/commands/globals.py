@@ -30,6 +30,7 @@ from alot.db.envelope import Envelope
 from alot import commands
 from alot.settings import settings
 from alot.helper import split_commandstring, split_commandline
+from alot.helper import mailto_to_envelope
 from alot.utils.booleanaction import BooleanAction
 
 MODE = 'global'
@@ -643,13 +644,14 @@ class HelpCommand(Command):
                             'help': 'do not add signature'}),
     (['--spawn'], {'action': BooleanAction, 'default': None,
                    'help': 'spawn editor in new terminal'}),
+    (['mailto'], {'nargs': '*', 'default': None, 'help': ''}),
 ])
 class ComposeCommand(Command):
 
     """compose a new email"""
     def __init__(self, envelope=None, headers={}, template=None,
                  sender=u'', subject=u'', to=[], cc=[], bcc=[], attach=None,
-                 omit_signature=False, spawn=None, **kwargs):
+                 omit_signature=False, spawn=None, mailto=None, **kwargs):
         """
         :param envelope: use existing envelope
         :type envelope: :class:`~alot.db.envelope.Envelope`
@@ -690,11 +692,15 @@ class ComposeCommand(Command):
         self.attach = attach
         self.omit_signature = omit_signature
         self.force_spawn = spawn
+        self.mailto = ' '.join(mailto)
 
     @inlineCallbacks
     def apply(self, ui):
         if self.envelope is None:
-            self.envelope = Envelope()
+            if self.mailto:  # is the empty list if not used
+                self.envelope = mailto_to_envelope(self.mailto)
+            else:
+                self.envelope = Envelope()
         if self.template is not None:
             # get location of tempsdir, containing msg templates
             tempdir = settings.get('template_dir')
