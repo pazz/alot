@@ -644,19 +644,19 @@ class HelpCommand(Command):
                             'help': 'do not add signature'}),
     (['--spawn'], {'action': BooleanAction, 'default': None,
                    'help': 'spawn editor in new terminal'}),
-    (['mailto'], {'nargs': '*', 'default': None, 'help': ''}),
+    (['rest'], {'nargs': '*', 'default': None, 'help': ''}),
 ])
 class ComposeCommand(Command):
 
     """compose a new email"""
     def __init__(self, envelope=None, headers={}, template=None,
                  sender=u'', subject=u'', to=[], cc=[], bcc=[], attach=None,
-                 omit_signature=False, spawn=None, mailto=None, **kwargs):
+                 omit_signature=False, spawn=None, rest=None, **kwargs):
         """
         :param envelope: use existing envelope
         :type envelope: :class:`~alot.db.envelope.Envelope`
         :param headers: forced header values
-        :type header: dict (str->str)
+        :type headers: dict (str->str)
         :param template: name of template to parse into the envelope after
                          creation. This should be the name of a file in your
                          template_dir
@@ -677,6 +677,10 @@ class ComposeCommand(Command):
         :type omit_signature: bool
         :param spawn: force spawning of editor in a new terminal
         :type spawn: bool
+        :param rest: remaining parameters. These can start with
+                     'mailto' in which case it is interpreted sa mailto string.
+                     Otherwise it will be interpreted as recipients (to) header
+        :type rest: list(str)
         """
 
         Command.__init__(self, **kwargs)
@@ -692,13 +696,17 @@ class ComposeCommand(Command):
         self.attach = attach
         self.omit_signature = omit_signature
         self.force_spawn = spawn
-        self.mailto = ' '.join(mailto)
+        self.rest = ' '.join(rest)
 
     @inlineCallbacks
     def apply(self, ui):
         if self.envelope is None:
-            if self.mailto:  # is the empty list if not used
-                self.envelope = mailto_to_envelope(self.mailto)
+            if self.rest:
+                if self.rest.startswith('mailto'):
+                    self.envelope = mailto_to_envelope(self.rest)
+                else:
+                    self.envelope = Envelope()
+                    self.envelope.add('To', self.rest)
             else:
                 self.envelope = Envelope()
         if self.template is not None:
