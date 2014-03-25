@@ -644,14 +644,14 @@ class HelpCommand(Command):
                             'help': 'do not add signature'}),
     (['--spawn'], {'action': BooleanAction, 'default': None,
                    'help': 'spawn editor in new terminal'}),
-    (['rest'], {'nargs': '*', 'default': None, 'help': ''}),
+    (['rest'], {'nargs': '*'}),
 ])
 class ComposeCommand(Command):
 
     """compose a new email"""
     def __init__(self, envelope=None, headers={}, template=None,
                  sender=u'', subject=u'', to=[], cc=[], bcc=[], attach=None,
-                 omit_signature=False, spawn=None, rest=None, **kwargs):
+                 omit_signature=False, spawn=None, rest=[], **kwargs):
         """
         :param envelope: use existing envelope
         :type envelope: :class:`~alot.db.envelope.Envelope`
