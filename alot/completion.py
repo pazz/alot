@@ -318,9 +318,9 @@ class CommandCompleter(Completer):
         abooks = settings.get_addressbooks()
         self._contactscompleter = ContactsCompleter(abooks)
         self._pathcompleter = PathCompleter()
-        # We directly instantiate a native path completer as we know
-        # we don't want to use CustomPathCompleter to save file
-        self._nativepathcompleter = NativePathCompleter()
+        # We directly instantiate a native path completer as we don't need
+        # to use completion based on custom commands to save file
+        self._nativepathcompleter = PathCompleter(force_native=True)
         self._accountscompleter = AccountCompleter()
         self._secretkeyscompleter = CryptoKeyCompleter(private=True)
         self._publickeyscompleter = CryptoKeyCompleter(private=False)
@@ -516,54 +516,30 @@ class CommandLineCompleter(Completer):
         return res
 
 
-class BasePathCompleter(Completer):
-    """Base class for path completers
-    """
-    def path_complete(self, prefix):
-        """Returns a list of path completions for the given prefix.
-           The path returned must not be escaped or in quoted format.
-
-        :param prefix: the prefix to complete
-        :type prefix: str
+class PathCompleter(Completer):
+    """completion for paths"""
+    def __init__(self, force_native=False):
         """
-
-    def complete(self, original, pos):
-        """Calls the actual path_complete method and does all the
-           escaping / deescaping work
+        :param force_native: force native filesystem based completion
+        :type force_native: bool
         """
-        def escape(path):
-            return path.replace('\\', '\\\\').replace(' ', '\ ')
+        shellcommand = settings.get('path_completion_command')
+        if not shellcommand or force_native:
+            self._path_complete = self._native_path_complete
+        else:
+            self._path_complete = self._custom_path_complete
+            self.cmdlist = split_commandstring(shellcommand)
 
-        def deescape(escaped_path):
-            return escaped_path.replace('\\ ', ' ').replace('\\\\', '\\')
-
-        def prep(path):
-            escaped_path = escape(path)
-            return escaped_path, len(escaped_path)
-
-        prefix = original[:pos]
-
-        return map(prep, self.path_complete(deescape(prefix)))
-
-
-class NativePathCompleter(BasePathCompleter):
-    """completion for paths based on fileystem lookups"""
-    def path_complete(self, prefix):
+    def _native_path_complete(self, prefix):
+        """perform completion for paths based on fileystem lookups"""
         if not prefix:
             return '~/'
 
         prefix = os.path.expanduser(prefix)
         return glob.glob(prefix + '*')
 
-
-class CustomPathCompleter(BasePathCompleter):
-    """completion for paths using a custom command"""
-    def __init__(self, command):
-        self.command = command
-        self.cmdlist = split_commandstring(self.command)
-
-    def path_complete(self, prefix):
-
+    def _custom_path_complete(self, prefix):
+        """perform completion for paths using a custom command"""
         resultstring, errmsg, retval = call_cmd(self.cmdlist + [prefix])
         if retval != 0:
             msg = 'path completion command "%s" returned with ' % self.command
@@ -577,24 +553,26 @@ class CustomPathCompleter(BasePathCompleter):
 
         return resultstring.splitlines()
 
+    def complete(self, prefix, pos):
+        """Returns a list of path completions for the given prefix.
 
-class PathCompleter(BasePathCompleter):
-    """Proxy-like Path Completer that automatically selects the appropriate
-       Path Completer class based on the path_completion_command configuration
-       settings.
+        :param prefix: the prefix to complete
+        :type prefix: str
+        :param pos: the position in the string where completion should be tried
+        :type pos: int
 
-       You should directly instantiante the good path completer sub-class if
-       you need to bypass the configuration setting."""
+        """
+        def escape(path):
+            return path.replace('\\', '\\\\').replace(' ', '\ ')
 
-    def __init__(self):
-        path_completion_command = settings.get('path_completion_command')
-        if path_completion_command:
-            self._pathcompleter = CustomPathCompleter(path_completion_command)
-        else:
-            self._pathcompleter = NativePathCompleter()
+        def deescape(escaped_path):
+            return escaped_path.replace('\\ ', ' ').replace('\\\\', '\\')
 
-    def path_complete(self, prefix):
-        return self._pathcompleter.path_complete(prefix)
+        def prep(path):
+            escaped_path = escape(path)
+            return escaped_path, len(escaped_path)
+
+        return map(prep, self._path_complete(deescape(prefix[:pos])))
 
 
 class CryptoKeyCompleter(StringlistCompleter):
