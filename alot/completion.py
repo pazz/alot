@@ -516,7 +516,40 @@ class CommandLineCompleter(Completer):
         return res
 
 
-class PathCompleter(Completer):
+class ShellCommandResultCompleter(Completer):
+    """completion based on a shell command output"""
+    def __init__(self, shellcommand):
+        """
+        :param shellcommand: shellcommand
+        :type shellcommand: str
+        """
+        self.shellcommand = shellcommand
+        self.cmdlist = split_commandstring(shellcommand)
+
+    def complete(self, prefix, pos):
+        """Returns a list of completions for the given prefix.
+
+        :param prefix: the prefix to complete
+        :type prefix: str
+        :param pos: the position in the string where completion should be tried
+        :type pos: int
+
+        """
+        resultstring, errmsg, retval = call_cmd(self.cmdlist + [prefix[:pos]])
+        if retval != 0:
+            msg = 'completion command "%s" returned with ' % self.shellcommand
+            msg += 'return code %d' % retval
+            if errmsg:
+                msg += ':\n%s' % errmsg
+            raise CompletionError(msg)
+
+        if not resultstring:
+            return []
+
+        return resultstring.splitlines()
+
+
+class PathCompleter(ShellCommandResultCompleter):
     """completion for paths"""
     def __init__(self, force_native=False):
         """
@@ -527,8 +560,8 @@ class PathCompleter(Completer):
         if not shellcommand or force_native:
             self._path_complete = self._native_path_complete
         else:
-            self._path_complete = self._custom_path_complete
-            self.cmdlist = split_commandstring(shellcommand)
+            super(PathCompleter, self).__init__(shellcommand)
+            self._path_complete = super(PathCompleter, self).complete
 
     def _native_path_complete(self, prefix):
         """perform completion for paths based on fileystem lookups"""
@@ -537,21 +570,6 @@ class PathCompleter(Completer):
 
         prefix = os.path.expanduser(prefix)
         return glob.glob(prefix + '*')
-
-    def _custom_path_complete(self, prefix):
-        """perform completion for paths using a custom command"""
-        resultstring, errmsg, retval = call_cmd(self.cmdlist + [prefix])
-        if retval != 0:
-            msg = 'path completion command "%s" returned with ' % self.command
-            msg += 'return code %d' % retval
-            if errmsg:
-                msg += ':\n%s' % errmsg
-            raise CompletionError(msg)
-
-        if not resultstring:
-            return []
-
-        return resultstring.splitlines()
 
     def complete(self, prefix, pos):
         """Returns a list of path completions for the given prefix.
@@ -572,7 +590,10 @@ class PathCompleter(Completer):
             escaped_path = escape(path)
             return escaped_path, len(escaped_path)
 
-        return map(prep, self._path_complete(deescape(prefix[:pos])))
+        deescaped_prefix = deescape(prefix[:pos])
+
+        return map(prep, self._path_complete(deescaped_prefix,
+                                             len(deescaped_prefix)))
 
 
 class CryptoKeyCompleter(StringlistCompleter):
