@@ -563,7 +563,7 @@ class PathCompleter(ShellCommandResultCompleter):
             super(PathCompleter, self).__init__(shellcommand)
             self._path_complete = super(PathCompleter, self).complete
 
-    def _native_path_complete(self, prefix):
+    def _native_path_complete(self, prefix, pos):
         """perform completion for paths based on fileystem lookups"""
         if not prefix:
             return '~/'
