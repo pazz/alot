@@ -24,11 +24,11 @@ class UI(object):
     responsible for opening, closing and focussing buffers.
     """
 
-    def __init__(self, dbman, initialcmd):
+    def __init__(self, dbman, initialcmdline):
         """
         :param dbman: :class:`~alot.db.DBManager`
-        :param initialcmd: commandline applied after setting up interface
-        :type initialcmd: str
+        :param initialcmdline: commandline applied after setting up interface
+        :type initialcmdline: str
         :param colourmode: determines which theme to chose
         :type colourmode: int in [1,16,256]
         """
@@ -81,7 +81,7 @@ class UI(object):
         self.mainloop.screen.set_terminal_properties(colors=colourmode)
 
         logging.debug('fire first command')
-        self.apply_command(initialcmd)
+        self.apply_commandline(initialcmdline)
 
         # start urwids mainloop
         self.mainloop.run()

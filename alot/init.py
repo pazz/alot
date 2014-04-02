@@ -10,7 +10,6 @@ from alot.settings import settings
 from alot.settings.errors import ConfigError
 from alot.db.manager import DBManager
 from alot.ui import UI
-import alot.commands as commands
 from alot.commands import *
 from alot.commands import CommandParseError
 
@@ -174,17 +173,14 @@ def main():
             query = ' '.join(args.subOptions.args)
             cmdstring = 'search %s %s' % (args.subOptions.as_argparse_opts(),
                                           query)
-            cmd = commands.commandfactory(cmdstring, 'global')
         elif args.subCommand == 'compose':
             cmdstring = 'compose %s' % args.subOptions.as_argparse_opts()
             if args.subOptions.rest is not None:
                 cmdstring += ' ' + args.subOptions.rest
-            cmd = commands.commandfactory(cmdstring, 'global')
         else:
-            default_commandline = settings.get('initial_command')
-            cmd = commands.commandfactory(default_commandline, 'global')
+            cmdstring = settings.get('initial_command')
     except CommandParseError, e:
         sys.exit(e)
 
     # set up and start interface
-    UI(dbman, cmd)
+    UI(dbman, cmdstring)
