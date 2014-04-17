@@ -68,18 +68,6 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         return key
 
 
-class MessageBodyWidget(urwid.AttrMap):
-    """
-    displays printable parts of an email
-    """
-
-    def __init__(self, message):
-        self._message = message
-        bodytxt = extract_body(message.get_email())
-        att = settings.get_theming_attribute('thread', 'body')
-        urwid.AttrMap.__init__(self, urwid.Text(bodytxt), att)
-
-
 class FocusableText(urwid.WidgetWrap):
     """Selectable Text used for nodes in our example"""
     def __init__(self, txt, att, att_focus):
@@ -246,6 +234,13 @@ class MessageTree(CollapsibleTree):
                     'thread', 'body_focus')
                 self._bodytree = TextlinesList(bodytxt, att, att_focus)
         return self._bodytree
+
+    def replace_bodytext(self, txt):
+        """display txt instead of current msg 'body'"""
+        if txt:
+            att = settings.get_theming_attribute('thread', 'body')
+            att_focus = settings.get_theming_attribute('thread', 'body_focus')
+            self._bodytree = TextlinesList(txt, att, att_focus)
 
     def _get_headers(self):
         if self.display_all_headers is True:
