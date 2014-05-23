@@ -44,6 +44,15 @@ Run the :file:`setup.py` with the :option:`--user` flag to install locally::
 and make sure :file:`~/.local/bin` is in your :envvar:`PATH`.
 For system-wide installation omit this falg and call with the respective permissions.
 
+Alternatively, if you've installed ``libnotmuch`` and ``libmagic`` separately
+and have ``distribute`` / ``setuptools`` installed, all Python dependencies
+should be installable by using ``pip`` to install from `PyPI
+<http://pypi.python.org/pypi/alot>`_::
+
+   pip install --user alot
+
+Note that installation via PyPI is not officially supported.
+
 .. rubric:: generate manual and manpage
 
 To generate the documentation you need `sphinx <http://sphinx.pocoo.org/>`_, ≥ `1.07` installed.
