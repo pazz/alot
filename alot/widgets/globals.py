@@ -6,6 +6,8 @@
 This contains alot-specific :class:`urwid.Widget` used in more than one mode.
 """
 import urwid
+import re
+import operator
 
 from alot.helper import string_decode
 from alot.settings import settings
@@ -162,11 +164,53 @@ class CompleteEdit(urwid.Edit):
             self.set_edit_pos(0)
         elif key == 'ctrl e':
             self.set_edit_pos(len(self.edit_text))
+        elif key == 'ctrl f':
+            self.set_edit_pos(min(self.edit_pos+1, len(self.edit_text)))
+        elif key == 'ctrl b':
+            self.set_edit_pos(max(self.edit_pos-1, 0))
+        elif key == 'ctrl k':
+            self.edit_text = self.edit_text[:self.edit_pos]
+        elif key == 'ctrl d':
+            self.edit_text = (self.edit_text[:self.edit_pos] +
+                              self.edit_text[self.edit_pos+1:])
+        elif key == 'meta f':
+            self.move_to_next_word(forward=True)
+        elif key == 'meta b':
+            self.move_to_next_word(forward=False)
+        elif key == 'meta d':
+            start_pos = self.edit_pos
+            end_pos = self.move_to_next_word(forward=True)
+            if end_pos != None:
+                self.edit_text = (self.edit_text[:start_pos] +
+                                  self.edit_text[end_pos:])
+                self.set_edit_pos(start_pos)
+        elif key == 'meta backspace':
+            end_pos = self.edit_pos
+            start_pos = self.move_to_next_word(forward=False)
+            if start_pos != None:
+                self.edit_text = (self.edit_text[:start_pos] +
+                                  self.edit_text[end_pos:])
+                self.set_edit_pos(start_pos)
         else:
             result = urwid.Edit.keypress(self, size, key)
             self.completions = None
             return result
 
+    def move_to_next_word(self, forward=True):
+        if forward:
+            match_iterator  = re.finditer(r'(\b\W+|$)', self.edit_text,
+                                          flags=re.UNICODE)
+            match_positions = [m.start() for m in match_iterator]
+            op = operator.gt
+        else:
+            match_iterator  = re.finditer(r'(\w+\b|^)', self.edit_text,
+                                          flags=re.UNICODE)
+            match_positions = reversed([m.start() for m in match_iterator])
+            op = operator.lt
+        for pos in match_positions:
+            if op(pos, self.edit_pos):
+                self.set_edit_pos(pos)
+                return pos
 
 class HeadersList(urwid.WidgetWrap):
     """ renders a pile of header values as key/value list """
