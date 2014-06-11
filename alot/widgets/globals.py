@@ -89,7 +89,14 @@ class CompleteEdit(urwid.Edit):
         :tab: calls the completer and tabs forward in the result list
         :shift tab: tabs backward in the result list
         :up/down: move in the local input history
+        :ctrl f/b: moves curser one character to the right/left
+        :meta f/b shift right/left: moves the cursor one word to the right/left
         :ctrl a/e: moves curser to the beginning/end of the input
+        :ctrl d: deletes the character under the cursor
+        :meta d: deletes everything from the cursor to the end of the next word
+        :meta delete/backspace ctrl w: deletes everything from the cursor to the beginning of the current word
+        :ctrl k: deletes everything from the cursor to the end of the input
+        :ctrl u: deletes everything from the cursor to the beginning of the input
     """
     def __init__(self, completer, on_exit,
                  on_error=None,
@@ -160,7 +167,7 @@ class CompleteEdit(urwid.Edit):
             self.on_exit(self.edit_text)
         elif key == 'esc':
             self.on_exit(None)
-        elif key == 'ctrl a':
+        elif key in ('ctrl a', 'ctrl b'):
             self.set_edit_pos(0)
         elif key == 'ctrl e':
             self.set_edit_pos(len(self.edit_text))
@@ -170,12 +177,15 @@ class CompleteEdit(urwid.Edit):
             self.set_edit_pos(max(self.edit_pos-1, 0))
         elif key == 'ctrl k':
             self.edit_text = self.edit_text[:self.edit_pos]
+        elif key == 'ctrl u':
+            self.edit_text = self.edit_text[self.edit_pos:]
+            self.set_edit_pos(0)
         elif key == 'ctrl d':
             self.edit_text = (self.edit_text[:self.edit_pos] +
                               self.edit_text[self.edit_pos+1:])
-        elif key == 'meta f':
+        elif key in ('meta f', 'shift right'):
             self.move_to_next_word(forward=True)
-        elif key == 'meta b':
+        elif key in ('meta b', 'shift left'):
             self.move_to_next_word(forward=False)
         elif key == 'meta d':
             start_pos = self.edit_pos
@@ -184,7 +194,7 @@ class CompleteEdit(urwid.Edit):
                 self.edit_text = (self.edit_text[:start_pos] +
                                   self.edit_text[end_pos:])
                 self.set_edit_pos(start_pos)
-        elif key == 'meta backspace':
+        elif key in ('meta delete', 'meta backspace', 'ctrl w'):
             end_pos = self.edit_pos
             start_pos = self.move_to_next_word(forward=False)
             if start_pos != None:
