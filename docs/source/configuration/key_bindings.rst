@@ -39,6 +39,21 @@ User-defined bindings are combined with the default bindings listed below.
 .. literalinclude:: ../../../alot/defaults/default.bindings
   :language: ini
 
+In prompts the following hardcoded bindings are available.
+
+=========================== ========
+Key                         Function
+=========================== ========
+Ctrl-f/b                    Moves the curser one character to the right/left
+Alt-f/b Shift-right/left    Moves the cursor one word to the right/left
+Ctrl-a/e                    Moves the curser to the beginning/end of the line
+Ctrl-d                      Deletes the character under the cursor
+Alt-d                       Deletes everything from the cursor to the end of the current or next word
+Alt-Delete/Backspace Ctrl-w Deletes everything from the cursor to the beginning of the current or previous word
+Ctrl-k                      Deletes everything from the cursor to the end of the line
+Ctrl-u                      Deletes everything from the cursor to the beginning of the line
+=========================== ========
+
 Overwriting defaults
 --------------------
 

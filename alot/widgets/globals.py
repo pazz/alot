@@ -6,6 +6,8 @@
 This contains alot-specific :class:`urwid.Widget` used in more than one mode.
 """
 import urwid
+import re
+import operator
 
 from alot.helper import string_decode
 from alot.settings import settings
@@ -87,7 +89,14 @@ class CompleteEdit(urwid.Edit):
         :tab: calls the completer and tabs forward in the result list
         :shift tab: tabs backward in the result list
         :up/down: move in the local input history
+        :ctrl f/b: moves curser one character to the right/left
+        :meta f/b shift right/left: moves the cursor one word to the right/left
         :ctrl a/e: moves curser to the beginning/end of the input
+        :ctrl d: deletes the character under the cursor
+        :meta d: deletes everything from the cursor to the end of the next word
+        :meta delete/backspace ctrl w: deletes everything from the cursor to the beginning of the current word
+        :ctrl k: deletes everything from the cursor to the end of the input
+        :ctrl u: deletes everything from the cursor to the beginning of the input
     """
     def __init__(self, completer, on_exit,
                  on_error=None,
@@ -162,11 +171,56 @@ class CompleteEdit(urwid.Edit):
             self.set_edit_pos(0)
         elif key == 'ctrl e':
             self.set_edit_pos(len(self.edit_text))
+        elif key == 'ctrl f':
+            self.set_edit_pos(min(self.edit_pos+1, len(self.edit_text)))
+        elif key == 'ctrl b':
+            self.set_edit_pos(max(self.edit_pos-1, 0))
+        elif key == 'ctrl k':
+            self.edit_text = self.edit_text[:self.edit_pos]
+        elif key == 'ctrl u':
+            self.edit_text = self.edit_text[self.edit_pos:]
+            self.set_edit_pos(0)
+        elif key == 'ctrl d':
+            self.edit_text = (self.edit_text[:self.edit_pos] +
+                              self.edit_text[self.edit_pos+1:])
+        elif key in ('meta f', 'shift right'):
+            self.move_to_next_word(forward=True)
+        elif key in ('meta b', 'shift left'):
+            self.move_to_next_word(forward=False)
+        elif key == 'meta d':
+            start_pos = self.edit_pos
+            end_pos = self.move_to_next_word(forward=True)
+            if end_pos != None:
+                self.edit_text = (self.edit_text[:start_pos] +
+                                  self.edit_text[end_pos:])
+                self.set_edit_pos(start_pos)
+        elif key in ('meta delete', 'meta backspace', 'ctrl w'):
+            end_pos = self.edit_pos
+            start_pos = self.move_to_next_word(forward=False)
+            if start_pos != None:
+                self.edit_text = (self.edit_text[:start_pos] +
+                                  self.edit_text[end_pos:])
+                self.set_edit_pos(start_pos)
         else:
             result = urwid.Edit.keypress(self, size, key)
             self.completions = None
             return result
 
+    def move_to_next_word(self, forward=True):
+        if forward:
+            match_iterator  = re.finditer(r'(\b\W+|$)', self.edit_text,
+                                          flags=re.UNICODE)
+            match_positions = [m.start() for m in match_iterator]
+            op = operator.gt
+        else:
+            match_iterator  = re.finditer(r'(\w+\b|^)', self.edit_text,
+                                          flags=re.UNICODE)
+            match_positions = reversed([m.start() for m in match_iterator])
+            op = operator.lt
+        for pos in match_positions:
+            if op(pos, self.edit_pos):
+                self.set_edit_pos(pos)
+                return pos
 
 class HeadersList(urwid.WidgetWrap):
     """ renders a pile of header values as key/value list """
