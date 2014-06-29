@@ -16,11 +16,11 @@ A full list of dependencies is below:
 
 On debian/ubuntu these are packaged as::
 
-  python-magic python-configobj python-twisted python-notmuch python-urwid python-gpgme
+  python-setuptools python-magic python-configobj python-twisted python-notmuch python-urwid python-gpgme
 
 On fedora/redhat these are packaged as::
 
-  python-magic python-configobj python-twisted python-notmuch python-urwid pygpgme
+  python-setuptools python-magic python-configobj python-twisted python-notmuch python-urwid pygpgme
 
 Alot uses `mailcap <http://en.wikipedia.org/wiki/Mailcap>`_ to look up mime-handler for inline
 rendering and opening of attachments.  For a full description of the maicap protocol consider the
