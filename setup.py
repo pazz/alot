@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
+from setuptools import setup, find_packages
 import alot
 
 
@@ -11,8 +11,7 @@ setup(name='alot',
       author_email=alot.__author_email__,
       url=alot.__url__,
       license=alot.__copyright__,
-      packages=['alot', 'alot.commands', 'alot.settings', 'alot.db',
-                'alot.utils', 'alot.widgets', 'alot.foreign', 'alot.foreign.urwidtrees'],
+      packages=find_packages(),
       package_data={'alot': [
                              'defaults/alot.rc.spec',
                              'defaults/notmuch.rc.spec',
@@ -22,15 +21,16 @@ setup(name='alot',
                              'defaults/config.stub',
                              'defaults/theme.spec',
                             ]},
-      scripts=['bin/alot'],
-      requires=[
-        'notmuch (>=0.13)',
-        'argparse (>=2.7)',
-        'urwid (>=1.1.0)',
-        'twisted (>=10.2.0)',
-        'magic',
-        'configobj (>=4.6.0)',
-        'subprocess (>=2.7)',
-        'gpgme (>=0.2)'],
+      entry_points={
+          'console_scripts':
+              ['alot = alot.init:main'],
+      },
+      install_requires=[
+        'notmuch>=0.13',
+        'urwid>=1.1.0',
+        'twisted>=10.2.0',
+        'python-magic',
+        'configobj>=4.6.0',
+        'pygpgme>=0.2'],
       provides='alot',
 )
