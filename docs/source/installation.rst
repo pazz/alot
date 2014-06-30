@@ -32,17 +32,21 @@ renderer (copiousoutput) set up for `text/html`, i.e. have something like this i
 
 .. rubric:: get and install alot
 
-Grab a `tarball here <https://github.com/pazz/alot/tags>`_ or
-directly check out a more recent version from `github <https://github.com/pazz/alot>`_.::
+You can use `pip` to install directly from GitHub::
 
-  git clone git@github.com:pazz/alot.git
+  $ pip install --user https://github.com/pazz/alot/archive/0.3.5.zip
 
-Run the :file:`setup.py` with the :option:`--user` flag to install locally::
+Or check out a more recent version, e.g. the master branch::
+
+  $ pip install --user https://github.com/pazz/alot/archive/master.zip
+
+Don't have pip installed? Just download and extract, then run::
 
   python setup.py install --user
 
-and make sure :file:`~/.local/bin` is in your :envvar:`PATH`.
-For system-wide installation omit this falg and call with the respective permissions.
+Make sure :file:`~/.local/bin` is in your :envvar:`PATH`. For system-wide
+installation omit the :option:`--user` flag and call with the respective
+permissions.
 
 .. rubric:: generate manual and manpage
 
