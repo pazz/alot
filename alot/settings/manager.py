@@ -313,6 +313,11 @@ class SettingsManager(object):
         # get all bindings in this mode
         globalmaps, modemaps = self.get_keybindings(mode)
         candidates = globalmaps.keys() + modemaps.keys()
+        if mode != 'global':
+            try:
+                candidates = candidates + self._bindings[mode].scalars
+            except KeyError:
+                raise RuntimeError("Mode '%s' is not in default bindings." % mode)
         if prefix is not None:
             prefixs = prefix + ' '
             cand = filter(lambda x: x.startswith(prefixs), candidates)
