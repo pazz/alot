@@ -31,7 +31,7 @@ setup(name='alot',
         'urwidtrees (>=1.0)',
         'twisted>=10.2.0',
         'python-magic',
-        'configobj>=4.6.0',
+        'configobj>=4.7.0',
         'pygpgme>=0.2'],
       provides='alot',
       )
