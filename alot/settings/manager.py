@@ -288,6 +288,7 @@ class SettingsManager(object):
                                     fallback_focus)
 
                 translated = cfg['tags'][sec]['translated']
+                translated = string_decode(translated, 'UTF-8')
                 if translated is None:
                     translated = tag
                 translation = cfg['tags'][sec]['translation']
