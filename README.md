@@ -25,17 +25,6 @@ Current features include:
  * configurable status bar
  * full support for PGP/MIME encryption and signing
 
-Soonish to be addressed non-features:
--------------------------------------
-See [here][features], most notably:
-
- * async. calls to mimeparts renderer, parsing of VT colour escape sequences.
-   see #272. Milestone `0.4`
- * live search results while you're typing (POC in `postponed-livesearch`). Milestone `0.6`
- * search for message (POC in `postponed-messagesmode`). Milestone `0.6`
- * search for strings in displayed buffer. MS `0.7`
- * undo for commands. Milestone `0.7`
-
 
 Basic Usage
 ===========

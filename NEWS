@@ -1,3 +1,14 @@
+0.3.6:
+* implement vim-style "move last" command (bound to G)
+* fixes in reply/forwarding
+* add option "--tags" to taglist command to display only a subset of the tags
+* fix: safely interrumpt a command sequence
+* use suffix ".eml" for temporary email files when editing
+* interpret "compose mailto:foo@bar" commands
+* new "tomorrow" colour theme
+* Add some Emacs keybindings for prompts
+
+
 0.3.5:
 * full support for PGP/MIME [de|en]cryption and signatures
 * add missing "unattach" command in envelope buffer
