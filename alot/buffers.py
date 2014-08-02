@@ -312,7 +312,6 @@ class SearchBuffer(Buffer):
             self.rebuild(reverse=True)
 
 
-
 class ThreadBuffer(Buffer):
     """displays a thread as a tree of messages"""
 
@@ -383,7 +382,7 @@ class ThreadBuffer(Buffer):
             summary_pos = (self.body.get_focus()[1][0], (0,))
             cursor_on_non_summary = (focus_pos != summary_pos)
             if cursor_on_non_summary:
-                if not mid in self._auto_unread_dont_touch_mids:
+                if mid not in self._auto_unread_dont_touch_mids:
                     if 'unread' in msg.get_tags():
                         logging.debug('Tbuffer: removing unread')
 

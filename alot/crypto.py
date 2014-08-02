@@ -1,7 +1,6 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
-import re
 import os
 
 from cStringIO import StringIO
@@ -55,17 +54,16 @@ def RFC3156_micalg_from_algo(hash_algo):
     return 'pgp-' + hash_algo.lower()
 
 
-
-
 def get_key(keyid, validate=False, encrypt=False, sign=False):
     """
     Gets a key from the keyring by filtering for the specified keyid, but
     only if the given keyid is specific enough (if it matches multiple
     keys, an exception will be thrown).
 
-    If validate is True also make sure that returned key is not invalid, revoked
-    or expired. In addition if encrypt or sign is True also validate that key is
-    valid for that action. For example only keys with private key can sign.
+    If validate is True also make sure that returned key is not invalid,
+    revoked or expired. In addition if encrypt or sign is True also validate
+    that key is valid for that action. For example only keys with private key
+    can sign.
 
     :param keyid: filter term for the keyring (usually a key ID)
     :param validate: validate that returned keyid is valid
@@ -80,11 +78,11 @@ def get_key(keyid, validate=False, encrypt=False, sign=False):
             validate_key(key, encrypt=encrypt, sign=sign)
     except gpgme.GpgmeError as e:
         if e.code == gpgme.ERR_AMBIGUOUS_NAME:
-            # When we get here it means there were multiple keys returned by gpg
-            # for given keyid. Unfortunately gpgme returns invalid and expired
-            # keys together with valid keys. If only one key is valid for given
-            # operation maybe we can still return it instead of raising
-            # exception
+            # When we get here it means there were multiple keys returned by
+            # gpg for given keyid. Unfortunately gpgme returns invalid and
+            # expired keys together with valid keys. If only one key is valid
+            # for given operation maybe we can still return it instead of
+            # raising exception
             keys = list_keys(hint=keyid)
             valid_key = None
             for k in keys:
@@ -106,9 +104,13 @@ def get_key(keyid, validate=False, encrypt=False, sign=False):
 
             if not valid_key:
                 # there were multiple keys found but none of them are valid for
-                # given action (we don't have private key, they are expired etc)
-                raise GPGProblem("Can not find usable key for \'" + keyid + "\'.",
-                                 code=GPGCode.NOT_FOUND)
+                # given action (we don't have private key, they are expired
+                # etc)
+                raise GPGProblem(
+                    "Can not find usable key for \'" +
+                    keyid +
+                    "\'.",
+                    code=GPGCode.NOT_FOUND)
             return valid_key
         elif e.code == gpgme.ERR_INV_VALUE or e.code == gpgme.ERR_EOF:
             raise GPGProblem("Can not find key for \'" + keyid + "\'.",

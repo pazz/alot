@@ -330,7 +330,7 @@ class SettingsManager(object):
         :returns: dictionaries of key-cmd for global and specific mode
         :rtype: 2-tuple of dicts
         """
-        globalmaps, modemaps = {},{}
+        globalmaps, modemaps = {}, {}
         bindings = self._bindings
         # get bindings for mode `mode`
         # retain empty assignations to silence corresponding global mappings
@@ -350,7 +350,7 @@ class SettingsManager(object):
                 if value and value != '':
                     globalmaps[key] = value
         # get rid of empty commands left in mode bindings
-        for key in [k for k,v in modemaps.items() if not v or v=='']:
+        for key in [k for k, v in modemaps.items() if not v or v == '']:
             del modemaps[key]
 
         return globalmaps, modemaps

@@ -94,9 +94,11 @@ class CompleteEdit(urwid.Edit):
         :ctrl a/e: moves curser to the beginning/end of the input
         :ctrl d: deletes the character under the cursor
         :meta d: deletes everything from the cursor to the end of the next word
-        :meta delete/backspace ctrl w: deletes everything from the cursor to the beginning of the current word
+        :meta delete/backspace ctrl w: deletes everything from the cursor to
+                                       the beginning of the current word
         :ctrl k: deletes everything from the cursor to the end of the input
-        :ctrl u: deletes everything from the cursor to the beginning of the input
+        :ctrl u: deletes everything from the cursor to the beginning of the
+                 input
     """
     def __init__(self, completer, on_exit,
                  on_error=None,
@@ -108,7 +110,8 @@ class CompleteEdit(urwid.Edit):
         :type completer: alot.completion.Completer
         :param on_exit: "enter"-callback that interprets the input (str)
         :type on_exit: callable
-        :param on_error: callback that handles :class:`completion errors <alot.errors.CompletionErrors>`
+        :param on_error: callback that handles
+                         :class:`alot.errors.CompletionErrors`
         :type on_error: callback
         :param edit_text: initial text
         :type edit_text: str
@@ -190,14 +193,14 @@ class CompleteEdit(urwid.Edit):
         elif key == 'meta d':
             start_pos = self.edit_pos
             end_pos = self.move_to_next_word(forward=True)
-            if end_pos != None:
+            if end_pos is not None:
                 self.edit_text = (self.edit_text[:start_pos] +
                                   self.edit_text[end_pos:])
                 self.set_edit_pos(start_pos)
         elif key in ('meta delete', 'meta backspace', 'ctrl w'):
             end_pos = self.edit_pos
             start_pos = self.move_to_next_word(forward=False)
-            if start_pos != None:
+            if start_pos is not None:
                 self.edit_text = (self.edit_text[:start_pos] +
                                   self.edit_text[end_pos:])
                 self.set_edit_pos(start_pos)
@@ -208,19 +211,20 @@ class CompleteEdit(urwid.Edit):
 
     def move_to_next_word(self, forward=True):
         if forward:
-            match_iterator  = re.finditer(r'(\b\W+|$)', self.edit_text,
-                                          flags=re.UNICODE)
+            match_iterator = re.finditer(r'(\b\W+|$)', self.edit_text,
+                                         flags=re.UNICODE)
             match_positions = [m.start() for m in match_iterator]
             op = operator.gt
         else:
-            match_iterator  = re.finditer(r'(\w+\b|^)', self.edit_text,
-                                          flags=re.UNICODE)
+            match_iterator = re.finditer(r'(\w+\b|^)', self.edit_text,
+                                         flags=re.UNICODE)
             match_positions = reversed([m.start() for m in match_iterator])
             op = operator.lt
         for pos in match_positions:
             if op(pos, self.edit_pos):
                 self.set_edit_pos(pos)
                 return pos
+
 
 class HeadersList(urwid.WidgetWrap):
     """ renders a pile of header values as key/value list """
@@ -250,12 +254,12 @@ class HeadersList(urwid.WidgetWrap):
     def _build_lines(self, lines):
         max_key_len = 1
         headerlines = []
-        #calc max length of key-string
+        # calc max length of key-string
         for key, value in lines:
             if len(key) > max_key_len:
                 max_key_len = len(key)
         for key, value in lines:
-            ##todo : even/odd
+            # todo : even/odd
             keyw = ('fixed', max_key_len + 1,
                     urwid.Text((self.key_attr, key)))
             valuew = urwid.Text((self.value_attr, value))

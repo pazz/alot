@@ -150,7 +150,8 @@ def message_from_file(handle):
         want = 'application/octet-stream'
         ct = m.get_payload(1).get_content_type()
         if ct != want:
-            malformed = u'expected Content-Type: {0}, got: {1}'.format(want, ct)
+            malformed = u'expected Content-Type: {0}, got: {1}'.format(want,
+                                                                       ct)
 
         if not malformed:
             try:
@@ -398,11 +399,12 @@ def encode_header(key, value):
         value = Header(value)
     return value
 
+
 def is_subdir_of(subpath, superpath):
-    #make both absolute    
+    # make both absolute
     superpath = os.path.realpath(superpath)
     subpath = os.path.realpath(subpath)
 
-    #return true, if the common prefix of both is equal to directory
-    #e.g. /a/b/c/d.rst and directory is /a/b, the common prefix is /a/b
+    # return true, if the common prefix of both is equal to directory
+    # e.g. /a/b/c/d.rst and directory is /a/b, the common prefix is /a/b
     return os.path.commonprefix([subpath, superpath]) == superpath

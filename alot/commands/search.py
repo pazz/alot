@@ -135,7 +135,7 @@ class RetagPromptCommand(Command):
     (['--all'], {'action': 'store_true', 'dest': 'allmessages', 'default':
                  False, 'help': 'retag all messages in search result'}),
     (['tags'], {'help': 'comma separated list of tags'})],
-    help='remove tags from all messages in the thread that match the current query',
+    help='remove tags from all messages in the thread that match the query',
 )
 @registerCommand(MODE, 'toggletags', forced={'action': 'toggle'}, arguments=[
     (['--no-flush'], {'action': 'store_false', 'dest': 'flush',

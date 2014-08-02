@@ -16,6 +16,7 @@ from alot.helper import split_commandline
 from alot.addressbooks import AddressbookError
 from errors import CompletionError
 
+
 class Completer(object):
     """base class for completers"""
     def complete(self, original, pos):

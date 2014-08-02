@@ -16,16 +16,16 @@ from collections import deque
 from message import Message
 from alot.settings import settings
 from thread import Thread
-from errors import DatabaseError
-from errors import DatabaseLockedError
-from errors import DatabaseROError
-from errors import NonexistantObjectError
+from .errors import DatabaseError
+from .errors import DatabaseLockedError
+from .errors import DatabaseROError
+from .errors import NonexistantObjectError
 from alot.db import DB_ENC
 from alot.db.utils import is_subdir_of
 
 
-
 class FillPipeProcess(multiprocessing.Process):
+
     def __init__(self, it, stdout, stderr, pipe, fun=(lambda x: x)):
         multiprocessing.Process.__init__(self)
         self.it = it
@@ -66,6 +66,7 @@ class FillPipeProcess(multiprocessing.Process):
 
 
 class DBManager(object):
+
     """
     Keeps track of your index parameters, maintains a write-queue and
     lets you look up threads and messages directly to the persistent wrapper
@@ -362,7 +363,7 @@ class DBManager(object):
             with os.fdopen(fd) as handle:
                 for line in handle:
                     logging.debug('Worker process {0} said on {1}: {2}'.format(
-                            process.pid, prefix, line.rstrip()))
+                        process.pid, prefix, line.rstrip()))
 
         # spawn two threads that read from the stdout and stderr pipes
         # and write anything that appears there to the log
@@ -420,7 +421,7 @@ class DBManager(object):
         """
         if self.ro:
             raise DatabaseROError()
-        if not is_subdir_of(path,self.path):
+        if not is_subdir_of(path, self.path):
             msg = 'message path %s ' % path
             msg += ' is not below notmuchs '
             msg += 'root path (%s)' % self.path
