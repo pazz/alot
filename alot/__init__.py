@@ -1,6 +1,6 @@
 __productname__ = 'alot'
-__version__ = '0.3.5'
-__copyright__ = "Copyright (C) 2013 Patrick Totzke"
+__version__ = '0.3.6'
+__copyright__ = "Copyright (C) 2014 Patrick Totzke"
 __author__ = "Patrick Totzke"
 __author_email__ = "patricktotzke@gmail.com"
 __description__ = "Terminal MUA using notmuch mail"
