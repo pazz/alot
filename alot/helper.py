@@ -557,9 +557,10 @@ def parse_mailcap_nametemplate(tmplate='%s'):
 def parse_mailto(mailto_str):
     """
     Interpret mailto-string
+
     :param mailto_str: the string to interpret. Must conform to :rfc:2368.
-    :return: pair headers,body. headers is a dict mapping str to lists of str,
-             body is a str.
+    :return: pair headers,body. headers is a dict mapping str to lists of
+        (str, body) is a str.
     :rtype: (dict(str-->[str,..], str)
     """
     if mailto_str.startswith('mailto:'):
