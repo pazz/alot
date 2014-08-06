@@ -357,7 +357,10 @@ def decode_header(header, normalize=False):
 
     # some mailers send out incorrectly escaped headers
     # and double quote the escaped realname part again. remove those
-    value = re.sub(r'\"(.*?=\?.*?.*?)\"', r'\1', value)
+    # RFC: 2047
+    regex = r'"(=\?.+?\?.+?\?[^ ?]+\?=)"'
+    value = re.sub(regex, r'\1', value)
+    logging.debug("unquoted header: |%s|", value)
 
     # otherwise we interpret RFC2822 encoding escape sequences
     valuelist = email.header.decode_header(value)
