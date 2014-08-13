@@ -673,7 +673,7 @@ class ComposeCommand(Command):
         :param spawn: force spawning of editor in a new terminal
         :type spawn: bool
         :param rest: remaining parameters. These can start with
-                     'mailto' in which case it is interpreted sa mailto string.
+                     'mailto' in which case it is interpreted as mailto string.
                      Otherwise it will be interpreted as recipients (to) header
         :type rest: list(str)
         """
