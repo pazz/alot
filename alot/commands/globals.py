@@ -726,7 +726,8 @@ class ComposeCommand(Command):
                           priority='error')
                 return
             try:
-                self.envelope.parse_template(open(path).read())
+                contents = open(path)
+                self.envelope.parse_template(contents)
             except Exception as e:
                 ui.notify(str(e), priority='error')
                 return
