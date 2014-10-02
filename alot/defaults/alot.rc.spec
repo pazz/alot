@@ -49,6 +49,15 @@ thread_authors_replace_me = boolean(default=True)
 # :ref:`thread_authors_replace_me <thread-authors-replace-me>`
 thread_authors_me = string(default='Me')
 
+# What should be considered to be "the thread subject".
+# Valid values are:
+#
+# * 'notmuch' (the default), will use the thread subject from notmuch, which
+#   depends on the selected sorting method
+# * 'oldest' will always use the subject of the oldest message in the thread as
+#   the thread subject
+thread_subject = option('oldest', 'notmuch', default='notmuch')
+
 # set terminal command used for spawning shell commands
 terminal_cmd = string(default='x-terminal-emulator -e')
 
