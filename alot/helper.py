@@ -576,7 +576,7 @@ def parse_mailto(mailto_str):
         for s in parms_str.split('&'):
             key, value = s.partition('=')[::2]
             key = key.capitalize()
-            if key is 'body':
+            if key == 'Body':
                 body = urllib.unquote(value)
             elif value:
                 headers[key] = [urllib.unquote(value)]
