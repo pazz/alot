@@ -58,9 +58,14 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         urwid.WidgetWrap.__init__(self, line)
 
     def __str__(self):
+        mail = self.message.get_email()
+
+        subj = mail.get_all('subject', [''])
+        subj = ','.join([decode_header(s, normalize = True) for s in subj])
+
         author, address = self.message.get_author()
         date = self.message.get_datestring()
-        rep = author if author != '' else address
+        rep = '%s: %s' % (author if author != '' else address, subj)
         if date is not None:
             rep += " (%s)" % date
         return rep
