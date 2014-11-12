@@ -405,9 +405,9 @@ class DBManager(object):
         :returns: :class:`notmuch.Query` -- the query object.
         """
         exclude_tags = settings.get_notmuch_setting('search', 'exclude_tags')
-        if exclude_tags:
+        if querystring != '*' and exclude_tags:
             exclude_tags = exclude_tags.split(';')
-            unspecified_tags = ' OR '.join('tag:%s' % t
+            unspecified_tags = ' OR '.join('tag:%s' % t.strip()
                 for t in exclude_tags
                 if 'tag:%s' % t not in querystring)
             if unspecified_tags:
