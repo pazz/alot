@@ -58,6 +58,10 @@ thread_authors_me = string(default='Me')
 #   the thread subject
 thread_subject = option('oldest', 'notmuch', default='notmuch')
 
+# When constructing the unique list of thread authors, order by date of
+# author's first or latest message in thread
+thread_authors_order_by = option('first_message', 'latest_message', default='first_message')
+
 # set terminal command used for spawning shell commands
 terminal_cmd = string(default='x-terminal-emulator -e')
 

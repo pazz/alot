@@ -559,6 +559,17 @@
     :default: True
 
 
+.. _thread-authors-order-by:
+
+.. describe:: thread_authors_order_by
+
+    In which order to list authors. By default, list authors in the order they
+    joined the conversation.
+
+    :type: option, one of ['first_message', 'latest_message']
+    :default: first_message
+
+
 .. _thread-statusbar:
 
 .. describe:: thread_statusbar

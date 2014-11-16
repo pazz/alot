@@ -1,6 +1,7 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
+import operator
 from datetime import datetime
 
 from message import Message
@@ -144,12 +145,11 @@ class Thread(object):
     def get_authors(self):
         """
         returns a list of authors (name, addr) of the messages.
-        The authors are ordered by msg date and unique (by addr).
+        The authors are ordered by msg date and unique (by name/addr).
 
         :rtype: list of (str, str)
         """
         if self._authors is None:
-            self._authors = []
             seen = {}
             msgs = self.get_messages().keys()
             msgs_with_date = filter(lambda m: m.get_date() is not None, msgs)
@@ -157,11 +157,18 @@ class Thread(object):
             # sort messages with date and append the others
             msgs_with_date.sort(None, lambda m: m.get_date())
             msgs = msgs_with_date + msgs_without_date
-            for m in msgs:
-                pair = m.get_author()
-                if not pair[1] in seen:
-                    seen[pair[1]] = True
-                    self._authors.append(pair)
+            orderby = settings.get('thread_authors_order_by')
+            if orderby == 'latest_message':
+                for i, m in enumerate(msgs):
+                    pair = m.get_author()
+                    seen[pair] = i
+            else: # i.e. first_message
+                for i, m in enumerate(msgs):
+                    pair = m.get_author()
+                    if pair not in seen:
+                        seen[pair] = i
+            self._authors = [ name for name, addr in
+                sorted(seen.items(), key=operator.itemgetter(1)) ]
         return self._authors
 
     def get_authors_string(self, own_addrs=None, replace_own=None):
