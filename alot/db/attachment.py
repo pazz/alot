@@ -47,7 +47,8 @@ class Attachment(object):
         """mime type of the attachment part"""
         ctype = self.part.get_content_type()
         # replace underspecified mime description by a better guess
-        if ctype in ['octet/stream', 'application/octet-stream']:
+        if ctype in ['octet/stream', 'application/octet-stream',
+                     'application/octetstream']:
             ctype = helper.guess_mimetype(self.get_data())
         return ctype
 
