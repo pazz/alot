@@ -144,7 +144,7 @@ class MessageTree(CollapsibleTree):
     """
     def __init__(self, message, odd=True):
         """
-        :param message: Messag to display
+        :param message: Message to display
         :type message: alot.db.Message
         :param odd: theme summary widget as if this is an odd line
                     (in the message-pile)
