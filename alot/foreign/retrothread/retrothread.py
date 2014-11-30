@@ -820,5 +820,6 @@ class RTThreadBuffer(Buffer):
                 if first is None:
                     first = (self._tree.position_of_messagetree(MT), MT.root)
                     self.little_thread.set_focus(first)
+                    self.update_message_viewer()
                     break
         self.body.refresh()
