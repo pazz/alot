@@ -60,7 +60,7 @@ class RTOpenThreadCommand(Command):
             query = ui.current_buffer.querystring
             logging.info('open thread view for %s' % self.thread)
 
-            sb = rthread.RTThreadBuffer(ui, self.thread)
+            sb = buffers.RTThreadBuffer(ui, self.thread)
             ui.buffer_open(sb)
             sb.oldest_matching(query)
 
