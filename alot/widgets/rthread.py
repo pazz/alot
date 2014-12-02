@@ -10,6 +10,7 @@ from urwid import WidgetWrap, ListBox
 from alot.db.utils import extract_body, decode_header, X_SIGNATURE_MESSAGE_HEADER
 from alot.settings import settings
 from alot.buffers import Buffer
+from alot.widgets.globals import AttachmentWidget
 from alot.widgets.thread import MessageTree, FocusableText
 from alot.foreign.urwidtrees import Tree, ArrowTree, NestedTree
 from alot.foreign.urwidtrees.widgets import TreeBox, TreeListWalker
@@ -50,25 +51,18 @@ class RTMessageViewer(MessageTree):
         if self.display_source:
             mainstruct.append((self._get_source(), None))
         else:
-            headers = self._get_headers()
+            mainstruct += self._get_headers()
 
             attachmenttree = self._get_attachments()
             if attachmenttree is not None:
-                mainstruct.append((attachmenttree, None))
+                mainstruct += attachmenttree
 
             bodytree = self._get_body()
             if bodytree is not None:
-                #mainstruct.append((self._get_body(), None))
-                body = self._get_body()
+                mainstruct += self._get_body()
 
-        div = urwid.AttrMap(urwid.Divider(u"-"), 'bright')
-        #div = FocusableText("TESTE", "default", "bright")
-
-        structure = [
-            (div, mainstruct)
-        ]
-        self.mainstruct = mainstruct
-        return headers + body
+        #return headers + body
+        return mainstruct
 
     def _get_body(self):
         if self._bodytree is None:
@@ -81,6 +75,13 @@ class RTMessageViewer(MessageTree):
                 for line in bodytxt.splitlines():
                     self._bodytree.append(FocusableText(line, attr, attr_focus))
         return self._bodytree
+
+    def _get_attachments(self):
+        if self._attachments is None:
+            alist = []
+            for a in self._message.get_attachments():
+                alist.append(AttachmentWidget(a))
+        return alist
 
     def construct_header_pile(self, headers=None, normalize=True):
         mail = self._message.get_email()
@@ -580,8 +581,8 @@ class RTThreadBuffer(Buffer):
         return self.message_viewer.keypress(size, key)
 
     ## needed for ui.get_deep_focus..
-    #def get_focus(self):
-    #    return self.body.get_focus()
+    def get_focus(self):
+        return self.body.get_focus().get_focus()
 
     #def set_focus(self, pos):
     #    logging.debug('setting focus to %s ' % str(pos))

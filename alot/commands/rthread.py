@@ -968,15 +968,16 @@ class MoveFocusCommand(MoveCommand):
 class ThreadSelectCommand(Command):
 
     """select focussed element. The fired action depends on the focus:
-        - if message summary, this toggles visibility of the message,
-        - if attachment line, this opens the attachment"""
+        - if attachment line, this opens the attachment
+        - else... TODO"""
     def apply(self, ui):
         focus = ui.get_deep_focus()
         if isinstance(focus, AttachmentWidget):
             logging.info('open attachment')
             ui.apply_command(OpenAttachmentCommand(focus.get_attachment()))
         else:
-            ui.apply_command(ChangeDisplaymodeCommand(visible='toggle'))
+            pass
+            #ui.apply_command(ChangeDisplaymodeCommand(visible='toggle'))
 
 
 @registerCommand(MODE, 'tag', forced={'action': 'add'}, arguments=[
