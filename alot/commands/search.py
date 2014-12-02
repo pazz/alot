@@ -12,7 +12,7 @@ from alot.db.errors import DatabaseROError
 from alot import commands
 from alot import buffers
 
-from alot.foreign import retrothread
+from alot.widgets import rthread
 
 
 MODE = 'search'
@@ -60,7 +60,7 @@ class RTOpenThreadCommand(Command):
             query = ui.current_buffer.querystring
             logging.info('open thread view for %s' % self.thread)
 
-            sb = retrothread.RTThreadBuffer(ui, self.thread)
+            sb = rthread.RTThreadBuffer(ui, self.thread)
             ui.buffer_open(sb)
             sb.oldest_matching(query)
 
