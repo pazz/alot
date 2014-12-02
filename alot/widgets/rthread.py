@@ -12,7 +12,7 @@ from alot.settings import settings
 from alot.buffers import Buffer
 from alot.widgets.thread import MessageTree, FocusableText
 from alot.foreign.urwidtrees import Tree, ArrowTree, NestedTree
-from alot.foreign.urwidtrees.widgets import TreeListWalker
+from alot.foreign.urwidtrees.widgets import TreeBox, TreeListWalker
 
 class RTPile(urwid.Pile):
     def refresh(self):
@@ -449,7 +449,7 @@ class RTThreadBuffer(Buffer):
                       lite=lite,
                       )
         self._nested_tree = NestedTree(A, interpret_covered=True)
-        T = RTTreeBox(self._nested_tree)
+        T = TreeBox(self._nested_tree)
         self.little_thread = T._outer_list
 
         self.end_draw()
