@@ -680,7 +680,7 @@ class TagListBuffer(Buffer):
 class RTThreadBuffer(Buffer):
     """displays a thread as a tree of messages"""
 
-    modename = 'RTthread'
+    modename = 'rthread'
 
     def __init__(self, ui, thread):
         """
@@ -730,13 +730,11 @@ class RTThreadBuffer(Buffer):
         self._tree = RTThreadTree(self.thread)
         bars_att = settings.get_theming_attribute('thread', 'arrow_bars')
         heads_att = settings.get_theming_attribute('thread', 'arrow_heads')
-        lite = True#settings.get_theming_attribute('thread', 'lite')
         A = ArrowTree(self._tree,
                       indent=2,
                       childbar_offset=0,
                       arrow_tip_att=heads_att,
                       arrow_att=bars_att,
-                      lite=lite,
                       )
         self._nested_tree = NestedTree(A, interpret_covered=True)
         T = TreeBox(self._nested_tree)

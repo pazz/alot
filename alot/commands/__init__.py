@@ -40,7 +40,7 @@ COMMANDS = {
     'taglist': {},
     'thread': {},
     'global': {},
-    'RTthread': {},
+    'rthread': {},
 }
 
 

@@ -37,7 +37,7 @@ from alot.completion import ContactsCompleter
 
 from alot.widgets.globals import AttachmentWidget
 
-MODE = 'RTthread'
+MODE = 'rthread'
 
 
 def determine_sender(mail, action='reply'):
