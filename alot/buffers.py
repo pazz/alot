@@ -1091,9 +1091,9 @@ class RTThreadBuffer(Buffer):
     #            MT.collapse(MT.root)
     #    self.body.refresh()
 
-    def oldest_matching(self, querystring, focus_first=True):
+    def first_matching(self, querystring, focus_first=True):
         """
-        focus oldest message that match a given querystring.
+        focus first message that match a given querystring.
 
         :param querystring: query to match
         :type querystring: str
@@ -1101,13 +1101,14 @@ class RTThreadBuffer(Buffer):
         :type focus_first: bool
         """
         first = None
-        for MT in self.messagetrees():
-            msg = MT._message
-            if msg.matches(querystring):
-                MT.expand(MT.root)
-                if first is None:
-                    first = (self._tree.position_of_messagetree(MT), MT.root)
-                    self.little_thread.set_focus(first)
-                    self.update_message_viewer()
-                    break
-        self.body.refresh()
+        if querystring != '*':
+            for MT in self.messagetrees():
+                msg = MT._message
+                if msg.matches(querystring):
+                    #MT.expand(MT.root)
+                    if first is None:
+                        first = (self._tree.position_of_messagetree(MT), MT.root)
+                        self.little_thread.set_focus(first)
+                        self.update_message_viewer()
+                        break
+            self.body.refresh()

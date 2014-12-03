@@ -62,7 +62,7 @@ class RTOpenThreadCommand(Command):
 
             sb = buffers.RTThreadBuffer(ui, self.thread)
             ui.buffer_open(sb)
-            sb.oldest_matching(query)
+            sb.first_matching(query)
 
 @registerCommand(MODE, 'refine', help='refine query', arguments=[
     (['--sort'], {'help': 'sort order', 'choices': [
