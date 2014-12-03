@@ -379,7 +379,7 @@ class ThreadBuffer(Buffer):
             logging.debug('Tbuffer: auto remove unread tag from msg?')
             msg = self.get_selected_message()
             mid = msg.get_message_id()
-            focus_pos = self.little_thread.get_focus()[1]
+            focus_pos = self.body.get_focus()[1]
             summary_pos = (self.body.get_focus()[1][0], (0,))
             cursor_on_non_summary = (focus_pos != summary_pos)
             if cursor_on_non_summary:
