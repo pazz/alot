@@ -212,6 +212,10 @@ mailinglists = force_list(default=list())
 # prefer plaintext alternatives over html content in multipart/alternative
 prefer_plaintext = boolean(default=False)
 
+# In a thread buffer, hide from messages summaries tags that are commom to all
+# messages in that thread.
+msg_summary_hides_threadwide_tags = boolean(default=True)
+
 # Key bindings 
 [bindings]
     __many__ = string(default=None)
