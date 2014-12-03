@@ -498,45 +498,46 @@ class ChangeDisplaymodeCommand(Command):
 
     def apply(self, ui):
         tbuffer = ui.current_buffer
-        logging.debug('matching lines %s...' % (self.query))
-        if self.query is None:
-            messagetrees = [tbuffer.get_selected_messagetree()]
+        #logging.debug('matching lines %s...' % (self.query))
+        #if self.query is None:
+        #    messagetrees = [tbuffer.get_selected_messagetree()]
+        #else:
+        #    messagetrees = tbuffer.messagetrees()
+        #    if self.query != '*':
+
+        #        def matches(msgt):
+        #            msg = msgt.get_message()
+        #            return msg.matches(self.query)
+
+        #        messagetrees = filter(matches, messagetrees)
+
+        mt = tbuffer.get_message_viewer()
+        #for mt in messagetrees:
+        # determine new display values for this message
+        if self.visible == 'toggle':
+            visible = mt.is_collapsed(mt.root)
         else:
-            messagetrees = tbuffer.messagetrees()
-            if self.query != '*':
-
-                def matches(msgt):
-                    msg = msgt.get_message()
-                    return msg.matches(self.query)
-
-                messagetrees = filter(matches, messagetrees)
-
-        for mt in messagetrees:
-            # determine new display values for this message
-            if self.visible == 'toggle':
-                visible = mt.is_collapsed(mt.root)
-            else:
-                visible = self.visible
-            if self.raw == 'toggle':
-                tbuffer.focus_selected_message()
-            raw = not mt.display_source if self.raw == 'toggle' else self.raw
-            all_headers = not mt.display_all_headers \
-                if self.all_headers == 'toggle' else self.all_headers
-
-            # collapse/expand depending on new 'visible' value
-            if visible is False:
-                mt.collapse(mt.root)
-            elif visible is True:  # could be None
-                mt.expand(mt.root)
+            visible = self.visible
+        if self.raw == 'toggle':
             tbuffer.focus_selected_message()
-            # set new values in messagetree obj
-            if raw is not None:
-                mt.display_source = raw
-            if all_headers is not None:
-                mt.display_all_headers = all_headers
-            mt.debug()
-            # let the messagetree reassemble itself
-            mt.reassemble()
+        raw = not mt.display_source if self.raw == 'toggle' else self.raw
+        all_headers = not mt.display_all_headers \
+            if self.all_headers == 'toggle' else self.all_headers
+
+        # collapse/expand depending on new 'visible' value
+        #if visible is False:
+        #    mt.collapse(mt.root)
+        #elif visible is True:  # could be None
+        #    mt.expand(mt.root)
+        tbuffer.focus_selected_message()
+        # set new values in messagetree obj
+        if raw is not None:
+            mt.display_source = raw
+        if all_headers is not None:
+            mt.display_all_headers = all_headers
+        #mt.debug()
+        # let the messagetree reassemble itself
+        mt.reassemble()
         # refresh the buffer (clears Tree caches etc)
         tbuffer.refresh()
 

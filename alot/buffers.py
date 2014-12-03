@@ -772,11 +772,11 @@ class RTThreadBuffer(Buffer):
         #msg = self.little_thread.get_focus()[1][0]
         #msg = self.thread.get_toplevel_messages()[0]
         msg = self.get_selected_message()
-        #logging.info(type(msg))
-        #logging.info(msg)
-        lines = RTMessageViewer(msg).list
-        walker = urwid.SimpleListWalker(lines)
-        return urwid.ListBox(walker)
+        #self.message_viewer_widget = RTMessageViewer(msg)
+        return RTMessageViewer(msg)
+        #lines = self.message_viewer_widget.body
+        #walker = urwid.SimpleListWalker(lines)
+        #return urwid.ListBox(walker)
         #T2 = TreeBox(nested_tree)
 
     def end_draw(self):
@@ -827,6 +827,9 @@ class RTThreadBuffer(Buffer):
             #        self._auto_unread_dont_touch_mids.remove(mid)
             #    logging.debug('Tbuffer: No, cursor on summary')
         return self.body.render(size, focus)
+
+    def get_message_viewer(self):
+        return self.message_viewer
 
     def get_selected_line(self):
         return self.message_viewer.get_focus()[1][0]
@@ -888,14 +891,15 @@ class RTThreadBuffer(Buffer):
         return self._nested_tree._sanitize_position(pos,
                                                     self._nested_tree._tree)
 
-    def _sanitize_position_message_viewer(self, pos):
-        return self._nested_tree_mv._sanitize_position(pos,
-                                                    self._nested_tree_mv._tree)
+    #def _sanitize_position_message_viewer(self, pos):
+    #    return self._nested_tree_mv._sanitize_position(pos,
+    #                                                self._nested_tree_mv._tree)
 
-    #def focus_selected_message(self):
-    #    """focus the summary line of currently focussed message"""
-    #    # move focus to summary (root of current MessageTree)
-    #    self.set_focus(self.get_selected_message_position())
+    def focus_selected_message(self):
+        """focus the summary line of currently focussed message"""
+        # move focus to summary (root of current MessageTree)
+        #self.set_focus(self.get_selected_message_position())
+        self.body.set_focus(self.little_thread)
 
     #def focus_parent(self):
     #    """move focus to parent of currently focussed message"""
@@ -963,8 +967,6 @@ class RTThreadBuffer(Buffer):
         pos = self.message_viewer.body.get_focus()[1]
         try:
             newpos = self.message_viewer.body.next_position(pos)
-            logging.info(type(newpos))
-            logging.info(newpos)
             self.message_viewer.body.set_focus(newpos)
             self.refresh()
         except IndexError:
@@ -975,8 +977,6 @@ class RTThreadBuffer(Buffer):
         pos = self.message_viewer.body.get_focus()[1]
         try:
             newpos = self.message_viewer.body.prev_position(pos)
-            logging.info(type(newpos))
-            logging.info(newpos)
             self.message_viewer.body.set_focus(newpos)
             self.refresh()
         except IndexError:
@@ -991,8 +991,6 @@ class RTThreadBuffer(Buffer):
         newpos = self._tree.next_position(mid)
         if newpos is not None:
             newpos = self._sanitize_position((newpos,))
-            logging.info(type(newpos))
-            logging.info(newpos)
             self.little_thread.set_focus(newpos)
             self.update_message_viewer()
         #self.refresh()
