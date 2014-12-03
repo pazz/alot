@@ -20,10 +20,9 @@ class RTPile(urwid.Pile):
         walker.clear_cache()
         urwid.signals.emit_signal(walker, "modified")
         walker = self.contents[2][0].body
-        #walker.clear_cache()
         urwid.signals.emit_signal(walker, "modified")
 
-class RTMessageViewer(MessageTree):
+class RTMessageViewer(urwid.ListBox):
     def __init__(self, message, odd=True):
         """
         :param message: Message to display
@@ -43,12 +42,23 @@ class RTMessageViewer(MessageTree):
         self._default_headers_tree = None
         self.display_attachments = True
         self._attachments = None
-        self.list = self._assemble_structure()
+
+        content = self._assemble_structure()
+        self.walker = urwid.SimpleListWalker(content)
+        urwid.ListBox.__init__(self, self.walker)
+        #self.body = self._assemble_structure()
+
+    #def render(self, size, focus=False):
+    #    return self.body.render(size, focus)
+
+    def reassemble(self):
+        #self.body = self._assemble_structure()
+        self.walker[:] = self._assemble_structure()
 
     def _assemble_structure(self):
         mainstruct = []
         if self.display_source:
-            mainstruct.append((self._get_source(), None))
+            mainstruct += self._get_source()
         else:
             mainstruct += self._get_headers()
 
@@ -60,8 +70,17 @@ class RTMessageViewer(MessageTree):
             if bodytree is not None:
                 mainstruct += self._get_body()
 
-        #return headers + body
         return mainstruct
+
+    def _get_source(self):
+        if self._sourcetree is None:
+            sourcetxt = self._message.get_email().as_string()
+            attr = settings.get_theming_attribute('thread', 'body')
+            attr_focus = settings.get_theming_attribute('thread', 'body_focus')
+            self._sourcetree = []
+            for line in sourcetxt.splitlines():
+                self._sourcetree.append(FocusableText(line, attr, attr_focus))
+        return self._sourcetree
 
     def _get_body(self):
         if self._bodytree is None:
@@ -74,6 +93,19 @@ class RTMessageViewer(MessageTree):
                 for line in bodytxt.splitlines():
                     self._bodytree.append(FocusableText(line, attr, attr_focus))
         return self._bodytree
+
+    def _get_headers(self):
+        if self.display_all_headers is True:
+            if self._all_headers_tree is None:
+                self._all_headers_tree = self.construct_header_pile()
+            ret = self._all_headers_tree
+        else:
+            if self._default_headers_tree is None:
+                headers = settings.get('displayed_headers')
+                self._default_headers_tree = self.construct_header_pile(
+                    headers)
+            ret = self._default_headers_tree
+        return ret
 
     def _get_attachments(self):
         if self._attachments is None:
