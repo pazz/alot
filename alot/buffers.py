@@ -340,7 +340,7 @@ class ThreadBuffer(Buffer):
                                                's' * (self.message_count > 1))
 
     def translated_tags_str(self, intersection=False):
-        tags = self.thread.get_tags(intersection=True)
+        tags = self.thread.get_tags(intersection=intersection)
         trans = [settings.get_tagstring_representation(tag)['translated']
                  for tag in tags] 
         return ' '.join(trans)
@@ -351,6 +351,7 @@ class ThreadBuffer(Buffer):
         info['authors'] = self.thread.get_authors_string()
         info['tid'] = self.thread.get_thread_id()
         info['message_count'] = self.message_count
+        info['thread_tags'] = self.translated_tags_str()
         info['intersection_tags'] = self.translated_tags_str(intersection=True)
         return info
 
