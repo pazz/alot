@@ -56,6 +56,9 @@ terminal_cmd = string(default='x-terminal-emulator -e')
 # if unset, alot will first try the :envvar:`EDITOR` env variable, then :file:`/usr/bin/editor`
 editor_cmd = string(default=None)
 
+# command to be used when editing an email for the first time; if unset, uses the above.
+new_file_editor_cmd = string(default=None)
+
 # file encoding used by your editor
 editor_writes_encoding = string(default='UTF-8')
 
