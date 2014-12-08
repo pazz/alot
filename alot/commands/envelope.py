@@ -285,7 +285,7 @@ class SendCommand(Command):
                      'help': 'refocus envelope after editing'})])
 class EditCommand(Command):
     """edit mail"""
-    def __init__(self, envelope=None, spawn=None, refocus=True, **kwargs):
+    def __init__(self, envelope=None, spawn=None, refocus=True, new_file=False, **kwargs):
         """
         :param envelope: email to edit
         :type envelope: :class:`~alot.db.envelope.Envelope`
@@ -298,6 +298,7 @@ class EditCommand(Command):
         self.force_spawn = spawn
         self.refocus = refocus
         self.edit_only_body = False
+        self.new_file = new_file
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
@@ -387,7 +388,8 @@ class EditCommand(Command):
                                   on_success=openEnvelopeFromTmpfile,
                                   spawn=self.force_spawn,
                                   thread=self.force_spawn,
-                                  refocus=self.refocus)
+                                  refocus=self.refocus,
+                                  new_file=self.new_file)
         ui.apply_command(cmd)
 
 
