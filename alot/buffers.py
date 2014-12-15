@@ -711,52 +711,17 @@ class RTThreadBuffer(ThreadBuffer):
         T = TreeBox(self._nested_tree)
         self.little_thread = T._outer_list
 
-        self.end_draw()
-
-        #lines = [] #displayedbuffers = ['a','b']
-        #for (num, b) in enumerate(displayedbuffers):
-        #    line = BufferlineWidget(b)
-        #    if (num % 2) == 0:
-        #        attr = settings.get_theming_attribute('bufferlist',
-        #                                              'line_even')
-        #    else:
-        #        attr = settings.get_theming_attribute('bufferlist', 'line_odd')
-        #    focus_att = settings.get_theming_attribute('bufferlist',
-        #                                               'line_focus')
-        #    buf = urwid.AttrMap(line, attr, focus_att)
-        #    num = urwid.Text('A')
-        #    lines.append(urwid.Columns([('fixed', 0, num), buf]))
-        #    lines.append(urwid.Columns([num, buf]))
-
-        #bufferlist = urwid.ListBox(urwid.SimpleListWalker(lines))
-
-        #l2 = []
-        #buf = urwid.AttrMap(urwid.Divider(u"!"), 'bright')
-        #l2.append(buf)
-
-        #self.list = urwid.SimpleFocusListWalker(l2)
-        #list_box = urwid.ListBox(self.list)
-
-    def create_message_viewer(self):
-        #msg = self.little_thread.get_focus()[1][0]
-        #msg = self.thread.get_toplevel_messages()[0]
-        msg = self.get_selected_message()
-        #self.message_viewer_widget = RTMessageViewer(msg)
-        return RTMessageViewer(msg)
-        #lines = self.message_viewer_widget.body
-        #walker = urwid.SimpleListWalker(lines)
-        #return urwid.ListBox(walker)
-        #T2 = TreeBox(nested_tree)
-
-    def end_draw(self):
         self.message_viewer = self.create_message_viewer()
         pile = RTPile([
             (5,self.little_thread),
             (1, urwid.Filler(urwid.AttrMap(urwid.Divider(u"-"), 'bright'))),
-            #T2._outer_list,
             self.message_viewer,
         ])
         self.body = pile
+
+    def create_message_viewer(self):
+        msg = self.get_selected_message()
+        return RTMessageViewer(msg)
 
     def update_message_viewer(self):
         self.message_viewer = self.create_message_viewer()
@@ -769,10 +734,6 @@ class RTThreadBuffer(ThreadBuffer):
             logging.debug('Tbuffer: auto remove unread tag from msg?')
             msg = self.get_selected_message()
             mid = msg.get_message_id()
-            #focus_pos = self.body.get_focus()[1]
-            #summary_pos = (self.body.get_focus()[1][0], (0,))
-            #cursor_on_non_summary = (focus_pos != summary_pos)
-            #if cursor_on_non_summary:
             if mid not in self._auto_unread_dont_touch_mids:
                 if 'unread' in msg.get_tags():
                     logging.debug('Tbuffer: removing unread')
@@ -789,11 +750,6 @@ class RTThreadBuffer(ThreadBuffer):
                     logging.debug('Tbuffer: No, msg not unread')
             else:
                 logging.debug('Tbuffer: No, mid locked for autorm-unread')
-            #else:
-            #    if not self._auto_unread_writing and \
-            #       mid in self._auto_unread_dont_touch_mids:
-            #        self._auto_unread_dont_touch_mids.remove(mid)
-            #    logging.debug('Tbuffer: No, cursor on summary')
         return self.body.render(size, focus)
 
     def get_message_viewer(self):
@@ -828,7 +784,6 @@ class RTThreadBuffer(ThreadBuffer):
             self.body.set_focus(self.message_viewer)
 
     def scroll_down(self):
-        #self.body.set_focus(self.message_viewer)
         pos = self.message_viewer.body.get_focus()[1]
         try:
             newpos = self.message_viewer.body.next_position(pos)
@@ -838,7 +793,6 @@ class RTThreadBuffer(ThreadBuffer):
             pass
 
     def scroll_up(self):
-        #self.body.set_focus(self.message_viewer)
         pos = self.message_viewer.body.get_focus()[1]
         try:
             newpos = self.message_viewer.body.prev_position(pos)
@@ -847,8 +801,6 @@ class RTThreadBuffer(ThreadBuffer):
         except IndexError:
             pass
     
-    #def scroll_page_down(self):
-
     def focus_next(self):
         """focus next message in depth first order"""
         self.body.set_focus(self.little_thread)
@@ -858,7 +810,6 @@ class RTThreadBuffer(ThreadBuffer):
             newpos = self._sanitize_position((newpos,))
             self.little_thread.set_focus(newpos)
             self.update_message_viewer()
-        #self.refresh()
 
     def focus_prev(self):
         """focus previous message in depth first order"""
@@ -890,7 +841,6 @@ class RTThreadBuffer(ThreadBuffer):
             for MT in self.messagetrees():
                 msg = MT._message
                 if msg.matches(querystring):
-                    #MT.expand(MT.root)
                     if first is None:
                         first = (self._tree.position_of_messagetree(MT), MT.root)
                         self.little_thread.set_focus(first)
