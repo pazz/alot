@@ -44,12 +44,10 @@ class MessageSummaryWidget(urwid.WidgetWrap):
 
         if settings.get('msg_summary_hides_threadwide_tags'):
             thread_tags = message.get_thread().get_tags(intersection=True)
-            outstanding_tags = set(message.get_tags()).difference(thread_tags)
-            tag_widgets = [TagWidget(t, attr, focus_att)
-                           for t in outstanding_tags]
+            displayed_tags = set(message.get_tags()).difference(thread_tags)
         else:
-            tag_widgets = [TagWidget(t, attr, focus_att)
-                           for t in message.get_tags()]
+            displayed_tags = message.get_tags()
+        tag_widgets = [TagWidget(t, attr, focus_att) for t in displayed_tags]
         tag_widgets.sort(tag_cmp, lambda tag_widget: tag_widget.translated)
         for tag_widget in tag_widgets:
             if not tag_widget.hidden:
