@@ -788,7 +788,7 @@ class RTThreadBuffer(ThreadBuffer):
         try:
             newpos = self.message_viewer.body.next_position(pos)
             self.message_viewer.body.set_focus(newpos)
-            self.refresh()
+            #self.refresh()
         except IndexError:
             pass
 
@@ -797,7 +797,7 @@ class RTThreadBuffer(ThreadBuffer):
         try:
             newpos = self.message_viewer.body.prev_position(pos)
             self.message_viewer.body.set_focus(newpos)
-            self.refresh()
+            #self.refresh()
         except IndexError:
             pass
     
