@@ -5,7 +5,7 @@
 import logging
 
 import urwid
-from urwid import WidgetWrap, ListBox
+from urwid import WidgetWrap, ListBox, Text
 
 from alot.db.utils import extract_body, decode_header, X_SIGNATURE_MESSAGE_HEADER
 from alot.settings import settings
@@ -23,24 +23,18 @@ class RTPile(urwid.Pile):
         urwid.signals.emit_signal(walker, "modified")
 
 class RTMessageViewer(urwid.ListBox):
-    def __init__(self, message, odd=True):
+    def __init__(self, message):
         """
         :param message: Message to display
         :type message: alot.db.Message
-        :param odd: theme summary widget as if this is an odd line
-                    (in the message-pile)
-        :type odd: bool
         """
         self._message = message
-        self._odd = odd
         self.display_source = False
-        self._summaryw = None
-        self._bodytree = None
+        self._bodytxt = None
         self._sourcetree = None
         self.display_all_headers = False
-        self._all_headers_tree = None
-        self._default_headers_tree = None
-        self.display_attachments = True
+        self._all_headers = None
+        self._default_headers = None
         self._attachments = None
 
         content = self._assemble_structure()
@@ -52,7 +46,6 @@ class RTMessageViewer(urwid.ListBox):
     #    return self.body.render(size, focus)
 
     def reassemble(self):
-        #self.body = self._assemble_structure()
         self.walker[:] = self._assemble_structure()
 
     def _assemble_structure(self):
@@ -68,7 +61,7 @@ class RTMessageViewer(urwid.ListBox):
 
             bodytree = self._get_body()
             if bodytree is not None:
-                mainstruct += self._get_body()
+                mainstruct.append(self._get_body())
 
         return mainstruct
 
@@ -83,28 +76,25 @@ class RTMessageViewer(urwid.ListBox):
         return self._sourcetree
 
     def _get_body(self):
-        if self._bodytree is None:
+        if self._bodytxt is None:
             bodytxt = extract_body(self._message.get_email())
             if bodytxt:
                 attr = settings.get_theming_attribute('thread', 'body')
-                attr_focus = settings.get_theming_attribute( 'thread',
-                                                            'body_focus')
-                self._bodytree = []
-                for line in bodytxt.splitlines():
-                    self._bodytree.append(FocusableText(line, attr, attr_focus))
-        return self._bodytree
+                t = urwid.Text(bodytxt)
+                self._bodytxt = urwid.AttrMap(t, attr)
+        return self._bodytxt
 
     def _get_headers(self):
         if self.display_all_headers is True:
-            if self._all_headers_tree is None:
-                self._all_headers_tree = self.construct_header_pile()
-            ret = self._all_headers_tree
+            if self._all_headers is None:
+                self._all_headers = self.construct_header_pile()
+            ret = self._all_headers
         else:
-            if self._default_headers_tree is None:
+            if self._default_headers is None:
                 headers = settings.get('displayed_headers')
-                self._default_headers_tree = self.construct_header_pile(
+                self._default_headers = self.construct_header_pile(
                     headers)
-            ret = self._default_headers_tree
+            ret = self._default_headers
         return ret
 
     def _get_attachments(self):
@@ -157,7 +147,7 @@ class RTMessageViewer(urwid.ListBox):
         gaps_att = settings.get_theming_attribute('thread', 'header')
         return self.header_part(lines, key_att, value_att, gaps_att)
 
-    def header_part(self, content, key_attr, value_attr, gaps_attr=None):
+    def header_part(self, headerslist, key_attr, value_attr, gaps_attr=None):
         """
         :param headerslist: list of key/value pairs to display
         :type headerslist: list of (str, str)
@@ -171,13 +161,12 @@ class RTMessageViewer(urwid.ListBox):
         max_key_len = 1
         structure = []
         # calc max length of key-string
-        for key, value in content:
+        for key, value in headerslist:
             if len(key) > max_key_len:
                 max_key_len = len(key)
-        for key, value in content:
+        for key, value in headerslist:
             # todo : even/odd
-            keyw = ('fixed', max_key_len + 1,
-                    urwid.Text((key_attr, key)))
+            keyw = ('fixed', max_key_len + 1, urwid.Text((key_attr, key)))
             valuew = urwid.Text((value_attr, value))
             line = urwid.Columns([keyw, valuew])
             if gaps_attr is not None:
