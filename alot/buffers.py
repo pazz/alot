@@ -767,7 +767,20 @@ class RTThreadBuffer(ThreadBuffer):
         return self._nested_tree[self.little_thread.get_focus()[1][:1]]
 
     def keypress(self, size, key):
-        return self.message_viewer.keypress(size, key)
+        #import time
+        #if key == "page up":
+        #    for i in range(30):
+        #        self.message_viewer.keypress(size, "up")
+        #        self.ui.update()
+        #        time.sleep(0.005)
+        #for i in range(30):
+        #    self.scroll_down()
+        #    self.ui.update()
+        #    time.sleep(0.005)
+        #import pudb; pudb.set_trace()
+        (maxcol, maxrow) = size
+        remaining = maxrow - 6
+        return self.message_viewer.keypress((maxcol, remaining), key)
 
     def focus_selected_message(self):
         """focus the summary line of currently focussed message"""
