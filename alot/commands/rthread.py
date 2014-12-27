@@ -946,14 +946,16 @@ class MoveFocusCommand(MoveCommand):
             tbuffer.focus_next()
         elif self.movement == 'previous':
             tbuffer.focus_prev()
-        elif self.movement == 'up':
-            tbuffer.scroll_up()
-        elif self.movement == 'down':
-            tbuffer.scroll_down()
+        #elif self.movement == 'up':
+        #    tbuffer.scroll_up()
+        #elif self.movement == 'down':
+        #    tbuffer.scroll_down()
         elif self.movement == 'switch':
             tbuffer.switch()
-        #elif self.movement == 'page down':
-        #    tbuffer.scroll_page_down()
+#        elif self.movement == 'page down':
+#            tbuffer.scroll_page_down()
+        #elif self.movement == 'page up':
+        #    tbuffer.scroll_page_up()
         elif self.movement == 'next unfolded':
             tbuffer.focus_next_unfolded()
         elif self.movement == 'previous unfolded':
