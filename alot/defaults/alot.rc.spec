@@ -56,6 +56,9 @@ terminal_cmd = string(default='x-terminal-emulator -e')
 # if unset, alot will first try the :envvar:`EDITOR` env variable, then :file:`/usr/bin/editor`
 editor_cmd = string(default=None)
 
+# command to be used when editing an email for the first time; if unset, uses the above.
+new_file_editor_cmd = string(default=None)
+
 # file encoding used by your editor
 editor_writes_encoding = string(default='UTF-8')
 
@@ -116,6 +119,7 @@ search_statusbar = mixed_list(string, string, default=list('[{buffer_no}: search
 # * `{authors}`: abbreviated authors string for this thread
 # * `{message_count}`: number of contained messages
 thread_statusbar = mixed_list(string, string, default=list('[{buffer_no}: thread] {subject}','{input_queue} total messages: {total_messages}'))
+rthread_statusbar = mixed_list(string, string, default=list('[{buffer_no}: thread] {subject}','{input_queue} total messages: {total_messages}'))
 
 # Format of the status-bar in taglist mode.
 # This is a pair of strings to be left and right aligned in the status-bar.
@@ -211,6 +215,10 @@ mailinglists = force_list(default=list())
 
 # prefer plaintext alternatives over html content in multipart/alternative
 prefer_plaintext = boolean(default=False)
+
+# In a thread buffer, hide from messages summaries tags that are commom to all
+# messages in that thread.
+msg_summary_hides_threadwide_tags = boolean(default=True)
 
 # Key bindings 
 [bindings]
