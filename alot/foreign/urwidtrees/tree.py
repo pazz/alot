@@ -56,17 +56,17 @@ class Tree(object):
 
     def _last_in_direction(self, starting_pos, direction):
         """
-        recursively move in the tree in given direction
-        and return the last position.
+        move in the tree in given direction and return the last position.
 
         :param starting_pos: position to start at
         :param direction: callable that transforms a position into a position.
         """
-        next_pos = direction(starting_pos)
-        if next_pos is None:
-            return starting_pos
-        else:
-            return self._last_in_direction(next_pos, direction)
+        cur_pos = None
+        next_pos = starting_pos
+        while next_pos is not None:
+            cur_pos = next_pos
+            next_pos = direction(cur_pos)
+        return cur_pos
 
     def depth(self, pos):
         """determine depth of node at pos"""
