@@ -243,7 +243,7 @@ def extract_headers(mail, headers=None):
     return headertext
 
 
-def extract_body(mail, types=None):
+def extract_body(mail, types=None, field_key='copiousoutput'):
     """
     returns a body text string for given mail.
     If types is `None`, `text/*` is used:
@@ -287,8 +287,7 @@ def extract_body(mail, types=None):
             body_parts.append(string_sanitize(raw_payload))
         else:
             # get mime handler
-            key = 'copiousoutput'
-            handler, entry = settings.mailcap_find_match(ctype, key=key)
+            handler, entry = settings.mailcap_find_match(ctype, key=field_key)
             tempfile_name = None
             stdin = None
 
