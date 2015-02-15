@@ -12,7 +12,7 @@ from alot.db.utils import decode_header, X_SIGNATURE_MESSAGE_HEADER
 from alot.helper import tag_cmp
 from alot.widgets.globals import TagWidget
 from alot.widgets.globals import AttachmentWidget
-from alot.foreign.urwidtrees import Tree, SimpleTree, CollapsibleTree
+from urwidtrees import Tree, SimpleTree, CollapsibleTree
 from alot.db.utils import extract_body
 
 
