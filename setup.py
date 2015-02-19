@@ -18,7 +18,6 @@ setup(name='alot',
           'alot.db',
           'alot.utils',
           'alot.widgets',
-          'alot.foreign',
           ],
       package_data={
           'alot': [
