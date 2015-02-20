@@ -1,28 +1,26 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
+
 import argparse
-import os
-import re
+import datetime
+import email
 import glob
 import logging
-import email
+import os
+import re
 import tempfile
-from twisted.internet.defer import inlineCallbacks
-import datetime
 
+from twisted.internet.defer import inlineCallbacks
+
+from . import Command, globals, registerCommand
+from alot import buffers, crypto
 from alot.account import SendingMailFailed, StoreMailError
 from alot.errors import GPGProblem, GPGCode
-from alot import buffers
-from alot import commands
-from alot import crypto
-from alot.commands import Command, registerCommand
-from alot.commands import globals
-from alot.helper import string_decode
-from alot.helper import email_as_string
+from alot.db.errors import DatabaseError
+from alot.helper import email_as_string, string_decode
 from alot.settings import settings
 from alot.utils.booleanaction import BooleanAction
-from alot.db.errors import DatabaseError
 
 
 MODE = 'envelope'
@@ -46,8 +44,8 @@ class AttachCommand(Command):
         envelope = ui.current_buffer.envelope
 
         if self.path:  # TODO: not possible, otherwise argparse error before
-            files = filter(os.path.isfile,
-                           glob.glob(os.path.expanduser(self.path)))
+            files = [p for p in glob.glob((os.path.expanduser(self.path)))
+                     if os.path.isfile(p)]
             if not files:
                 ui.notify('no matches, abort')
                 return
@@ -142,14 +140,14 @@ class SaveCommand(Command):
             try:
                 ui.dbman.add_message(path, account.draft_tags)
                 ui.apply_command(globals.FlushCommand())
-                ui.apply_command(commands.globals.BufferCloseCommand())
+                ui.apply_command(globals.BufferCloseCommand())
             except DatabaseError as e:
                 logging.error(e.message)
                 ui.notify('could not index message:\n%s' % e.message,
                           priority='error',
                           block=True)
         else:
-            ui.apply_command(commands.globals.BufferCloseCommand())
+            ui.apply_command(globals.BufferCloseCommand())
 
 
 @registerCommand(MODE, 'send')
@@ -203,7 +201,7 @@ class SendCommand(Command):
                 self.mail = self.envelope.construct_mail()
                 self.mail['Date'] = email.Utils.formatdate(localtime=True)
                 self.mail = email_as_string(self.mail)
-            except GPGProblem, e:
+            except GPGProblem as e:
                 ui.clear_notify([clearme])
                 ui.notify(e.message, priority='error')
                 return
@@ -238,7 +236,7 @@ class SendCommand(Command):
             logging.debug('mail sent successfully')
             ui.clear_notify([clearme])
             if self.envelope_buffer is not None:
-                cmd = commands.globals.BufferCloseCommand(self.envelope_buffer)
+                cmd = globals.BufferCloseCommand(self.envelope_buffer)
                 ui.apply_command(cmd)
             ui.notify('mail sent successfully')
 
@@ -486,7 +484,7 @@ class SignCommand(Command):
                 keyid = str(' '.join(self.keyid))
                 try:
                     key = crypto.get_key(keyid, validate=True, sign=True)
-                except GPGProblem, e:
+                except GPGProblem as e:
                     envelope.sign = False
                     ui.notify(e.message, priority='error')
                     return

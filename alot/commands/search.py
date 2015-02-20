@@ -4,9 +4,9 @@
 import argparse
 import logging
 
-from alot.commands import Command, registerCommand
-from alot.commands.globals import PromptCommand
-from alot.commands.globals import MoveCommand
+from . import Command, registerCommand
+from .globals import PromptCommand
+from .globals import MoveCommand
 
 from alot.db.errors import DatabaseROError
 from alot import commands
@@ -212,7 +212,7 @@ class TagCommand(Command):
             searchbuffer.result_count += (hitcount_after - hitcount_before)
             ui.update()
 
-        tags = filter(lambda x: x, self.tagsstring.split(','))
+        tags = [x for x in self.tagsstring.split(',') if x]
 
         try:
             if self.action == 'add':

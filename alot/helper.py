@@ -2,40 +2,46 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
-from datetime import timedelta
-from datetime import datetime
+
 from collections import deque
-import subprocess
-import shlex
-import email
-import mimetypes
-import os
-import re
+from datetime import datetime, timedelta
+from email import encoders
 from email.generator import Generator
 from email.mime.audio import MIMEAudio
 from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-import urwid
+import shlex
+import subprocess
+import logging
+import mimetypes
+import os
+import re
+import sys
+try:    # python 3
+    from urllib.parse import unquote
+    from io import StringIO
+except ImportError:
+    from urllib import unquote
+    from cStringIO import StringIO
+
 import magic
+import urwid
 from twisted.internet import reactor
 from twisted.internet.protocol import ProcessProtocol
 from twisted.internet.defer import Deferred
-from cStringIO import StringIO
-import logging
 
 
 def split_commandline(s, comments=False, posix=True):
-    """
-    splits semi-colon separated commandlines
-    """
+    """Splits semi-colon separated commandlines """
     # shlex seems to remove unescaped quotes and backslashes
     s = s.replace('\\', '\\\\')
     s = s.replace('\'', '\\\'')
     s = s.replace('\"', '\\\"')
     # encode s to utf-8 for shlex
-    if isinstance(s, unicode):
+
+    if sys.version_info < (3,0,0) and isinstance(s, unicode):
         s = s.encode('utf-8')
     lex = shlex.shlex(s, posix=posix)
     lex.whitespace_split = True
@@ -51,7 +57,7 @@ def split_commandstring(cmdstring):
     and the like. This simply calls shlex.split but works also with unicode
     bytestrings.
     """
-    if isinstance(cmdstring, unicode):
+    if sys.version_info < (3,0,0) and isinstance(cmdstring, unicode):
         cmdstring = cmdstring.encode('utf-8', errors='ignore')
     return shlex.split(cmdstring)
 
@@ -121,12 +127,17 @@ def string_decode(string, enc='ascii'):
 
     if enc is None:
         enc = 'ascii'
-    try:
-        string = unicode(string, enc, errors='replace')
-    except LookupError:  # malformed enc string
-        string = string.decode('ascii', errors='replace')
-    except TypeError:  # already unicode
-        pass
+
+    if sys.version_info < (3,0,0) and not isinstance(string, unicode):
+        try:
+            string = unicode(string, enc, errors='replace')
+        except LookupError:  # malformed enc string
+            string = string.decode('ascii', errors='replace')
+        except TypeError:  # already unicode
+            pass
+    elif sys.version_info > (3,0,0) and isinstance(string, bytes):
+        string = string.decode(enc)
+
     return string
 
 
@@ -489,7 +500,7 @@ def mimewrap(path, filename=None, ctype=None):
         part = MIMEBase(maintype, subtype)
         part.set_payload(content)
         # Encode the payload using Base64
-        email.encoders.encode_base64(part)
+        encoders.encode_base64(part)
     # Set the filename parameter
     if not filename:
         filename = os.path.basename(path)
@@ -506,17 +517,6 @@ def shell_quote(text):
     'hello'"'"'there'
     '''
     return "'%s'" % text.replace("'", """'"'"'""")
-
-
-def tag_cmp(a, b):
-    r'''
-    Sorting tags using this function puts all tags of length 1 at the
-    beginning. This groups all tags mapped to unicode characters.
-    '''
-    if min(len(a), len(b)) == 1 and max(len(a), len(b)) > 1:
-        return cmp(len(a), len(b))
-    else:
-        return cmp(a.lower(), b.lower())
 
 
 def humanize_size(size):
@@ -564,12 +564,11 @@ def parse_mailto(mailto_str):
     :rtype: (dict(str-->[str,..], str)
     """
     if mailto_str.startswith('mailto:'):
-        import urllib
         to_str, parms_str = mailto_str[7:].partition('?')[::2]
         headers = {}
         body = u''
 
-        to = urllib.unquote(to_str)
+        to = unquote(to_str)
         if to:
             headers['To'] = [to]
 
@@ -577,9 +576,9 @@ def parse_mailto(mailto_str):
             key, value = s.partition('=')[::2]
             key = key.capitalize()
             if key == 'Body':
-                body = urllib.unquote(value)
+                body = unquote(value)
             elif value:
-                headers[key] = [urllib.unquote(value)]
+                headers[key] = [unquote(value)]
         return (headers, body)
     else:
         return (None, None)
@@ -643,3 +642,17 @@ def email_as_string(mail):
                            as_string, flags=re.MULTILINE)
 
     return as_string
+
+
+def encode_as_string(string, encoding='UTF-8'):
+    """
+    Safely convert unicode to str for python 2 or do nothing for python 3
+    :param string: str
+    :return: str
+    """
+    if sys.version_info < (3,0,0):
+        string.encode(encoding)
+    else:
+        return string
+
+

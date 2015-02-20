@@ -1,17 +1,17 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
-import sys
+
 import logging
 import os
+import sys
 
 import alot
+from alot.commands import *
+from alot.db.manager import DBManager
 from alot.settings import settings
 from alot.settings.errors import ConfigError
-from alot.db.manager import DBManager
 from alot.ui import UI
-from alot.commands import *
-from alot.commands import CommandParseError
 
 from twisted.python import usage
 
@@ -34,7 +34,7 @@ class SubcommandOptions(usage.Options):
         return optstr
 
     def opt_version(self):
-        print alot.__version__
+        print(alot.__version__)
         sys.exit(0)
 
 
@@ -101,7 +101,7 @@ class Options(usage.Options):
                    ['compose', None, ComposeOptions, "compose a new message"]]
 
     def opt_version(self):
-        print alot.__version__
+        print(alot.__version__)
         sys.exit(0)
 
 
@@ -110,9 +110,9 @@ def main():
     args = Options()
     try:
         args.parseOptions()  # When given no argument, parses sys.argv[1:]
-    except usage.UsageError, errortext:
-        print '%s' % errortext
-        print 'Try --help for usage details.'
+    except usage.UsageError as e:
+        print('%s' % e.message)
+        print('Try --help for usage details.')
         sys.exit(1)
 
     # logging
@@ -155,7 +155,7 @@ def main():
     try:
         settings.read_config(alotconfig)
         settings.read_notmuch_config(notmuchconfig)
-    except (ConfigError, OSError, IOError), e:
+    except (ConfigError, OSError, IOError) as e:
         sys.exit(e)
 
     # store options given by config swiches to the settingsManager:
@@ -179,7 +179,7 @@ def main():
                 cmdstring += ' ' + args.subOptions.rest
         else:
             cmdstring = settings.get('initial_command')
-    except CommandParseError, e:
+    except CommandParseError as e:
         sys.exit(e)
 
     # set up and start interface

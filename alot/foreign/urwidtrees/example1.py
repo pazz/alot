@@ -3,8 +3,9 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 
 import urwid
-from tree import SimpleTree
-from widgets import TreeBox
+
+from .tree import SimpleTree
+from .widgets import TreeBox
 
 
 # define some colours

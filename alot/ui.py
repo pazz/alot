@@ -1,19 +1,16 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
-import urwid
+
 import logging
+import urwid
 from twisted.internet import reactor, defer
 
-from settings import settings
-from buffers import BufferlistBuffer
-from commands import commandfactory
-from commands import CommandCanceled
-from alot.commands import CommandParseError
-from alot.helper import split_commandline
-from alot.helper import string_decode
-from alot.widgets.globals import CompleteEdit
-from alot.widgets.globals import ChoiceWidget
+from alot.buffers import BufferlistBuffer
+from alot.commands import CommandCanceled, CommandParseError, commandfactory
+from alot.helper import split_commandline, string_decode
+from alot.settings import settings
+from alot.widgets.globals import ChoiceWidget, CompleteEdit
 
 
 class UI(object):
@@ -123,7 +120,7 @@ class UI(object):
                 if not self._locked:
                     try:
                         self.apply_commandline(cmdline)
-                    except CommandParseError, e:
+                    except CommandParseError as e:
                         self.notify(e.message, priority='error')
                 # move keys are always passed
                 elif cmdline in ['move up', 'move down', 'move page up',
@@ -423,7 +420,7 @@ class UI(object):
         :type t: alot.buffers.Buffer
         :rtype: list
         """
-        return filter(lambda x: isinstance(x, t), self.buffers)
+        return [x for x in self.buffers if isinstance(x, t)]
 
     def clear_notify(self, messages):
         """
@@ -443,8 +440,8 @@ class UI(object):
             self._notificationbar = None
         self.update()
 
-    def choice(self, message, choices={'y': 'yes', 'n': 'no'},
-               select=None, cancel=None, msg_position='above'):
+    def choice(self, message, choices=None, select=None, cancel=None,
+               msg_position='above'):
         """
         prompt user to make a choice.
 
@@ -463,8 +460,11 @@ class UI(object):
         :type msg_position: str
         :rtype:  :class:`twisted.defer.Deferred`
         """
-        assert select in choices.values() + [None]
-        assert cancel in choices.values() + [None]
+        if choices is None:
+            choices = {'y': 'yes', 'n': 'no'},
+
+        assert select in choices.values() or select is None
+        assert cancel in choices.values() or cancel is None
         assert msg_position in ['left', 'above']
 
         d = defer.Deferred()  # create return deferred

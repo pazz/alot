@@ -1,5 +1,4 @@
 try:
-    import functools.lru_cache as lru_cache
-except:
-    from lru_cache import lru_cache as lru_cache
-
+    from functoons import lru_cache
+except ImportError:
+    from .lru_cache import lru_cache

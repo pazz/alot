@@ -2,14 +2,16 @@
 # Copyright (C) 2013  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 
-from example1 import palette, construct_example_tree  # example data
-from example1 import FocusableText  # Selectable Text used for nodes
-from widgets import TreeBox
-from tree import SimpleTree
-from nested import NestedTree
-from decoration import ArrowTree, CollapsibleArrowTree  # decoration
-import urwid
 import logging
+
+import urwid
+
+from .decoration import ArrowTree, CollapsibleArrowTree  # decoration
+from .example1 import palette, construct_example_tree  # example data
+from .example1 import FocusableText  # Selectable Text used for nodes
+from .widgets import TreeBox
+from .tree import SimpleTree
+from .nested import NestedTree
 
 
 if __name__ == "__main__":

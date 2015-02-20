@@ -1,24 +1,23 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
-import urwid
-import os
-from notmuch import NotmuchError
+
 import logging
+import os
 
-from settings import settings
-import commands
-from walker import PipeWalker
-from helper import shorten_author_string
-from db.errors import NonexistantObjectError
+from notmuch import NotmuchError
+import urwid
 
-from alot.widgets.globals import TagWidget
-from alot.widgets.globals import HeadersList
-from alot.widgets.globals import AttachmentWidget
+from alot import commands
+from alot.foreign.urwidtrees import ArrowTree, TreeBox, NestedTree
+from alot.db.errors import NonexistantObjectError
+from alot.helper import shorten_author_string
+from alot.settings import settings
+from alot.walker import PipeWalker
+from alot.widgets.globals import (AttachmentWidget, HeadersList, TagWidget)
 from alot.widgets.bufferlist import BufferlineWidget
 from alot.widgets.search import ThreadlineWidget
 from alot.widgets.thread import ThreadTree
-from alot.foreign.urwidtrees import ArrowTree, TreeBox, NestedTree
 
 
 class Buffer(object):
@@ -85,7 +84,7 @@ class BufferlistBuffer(Buffer):
             self.isinitialized = True
 
         lines = list()
-        displayedbuffers = filter(self.filtfun, self.ui.buffers)
+        displayedbuffers = [self.filtfun(x) for x in self.ui.buffers]
         for (num, b) in enumerate(displayedbuffers):
             line = BufferlineWidget(b)
             if (num % 2) == 0:
@@ -634,8 +633,8 @@ class TagListBuffer(Buffer):
             self.isinitialized = True
 
         lines = list()
-        displayedtags = sorted(filter(self.filtfun, self.tags),
-                               key=unicode.lower)
+
+        displayedtags = sorted(filter(self.filtfun, self.tags), key=str.lower)
         for (num, b) in enumerate(displayedtags):
             if (num % 2) == 0:
                 attr = settings.get_theming_attribute('taglist', 'line_even')

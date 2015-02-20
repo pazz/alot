@@ -3,7 +3,7 @@
 # For further details see the COPYING file
 from datetime import datetime
 
-from message import Message
+from .message import Message
 from alot.settings import settings
 
 
@@ -141,10 +141,12 @@ class Thread(object):
             self._authors = []
             seen = {}
             msgs = self.get_messages().keys()
-            msgs_with_date = filter(lambda m: m.get_date() is not None, msgs)
-            msgs_without_date = filter(lambda m: m.get_date() is None, msgs)
+
+            msgs_with_date = [m for m in msgs if m.get_date() is not None]
+            msgs_without_date = [m for m in msgs if m.get_date() is None]
             # sort messages with date and append the others
-            msgs_with_date.sort(None, lambda m: m.get_date())
+            msgs_with_date.sort(key=lambda m: m.get_date())
+            # msgs_with_date.sort(None, lambda m: m.get_date())
             msgs = msgs_with_date + msgs_without_date
             for m in msgs:
                 pair = m.get_author()
@@ -208,7 +210,7 @@ class Thread(object):
         """
         if not self._messages:  # if not already cached
             query = self._dbman.query('thread:' + self._id)
-            thread = query.search_threads().next()
+            thread = next(query.search_threads())
 
             def accumulate(acc, msg):
                 M = Message(self._dbman, msg, thread=self)

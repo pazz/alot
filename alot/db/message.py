@@ -1,18 +1,23 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
-import email
+
 from datetime import datetime
-import email.charset as charset
+from email import charset, message_from_string
+try:
+    from email.utils import parseaddr
+except ImportError:
+    from email.Utils import parseaddr
 charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
+
 from notmuch import NullPointerError
 
-import alot.helper as helper
+from .attachment import Attachment
+from .utils import (decode_header, extract_headers, extract_body,
+                    message_from_file)
+from alot import helper
 from alot.settings import settings
 
-from .utils import extract_headers, extract_body, message_from_file
-from alot.db.utils import decode_header
-from .attachment import Attachment
 
 
 class Message(object):
@@ -73,7 +78,7 @@ class Message(object):
                 self._email = message_from_file(f_mail)
                 f_mail.close()
             except IOError:
-                self._email = email.message_from_string(warning)
+                self._email = message_from_string(warning)
         return self._email
 
     def get_date(self):
@@ -142,7 +147,7 @@ class Message(object):
 
         :rtype: (str,str)
         """
-        return email.Utils.parseaddr(self._from)
+        return parseaddr(self._from)
 
     def get_headers_string(self, headers):
         """

@@ -5,9 +5,11 @@
 """
 This contains alot-specific :class:`urwid.Widget` used in more than one mode.
 """
-import urwid
-import re
+
 import operator
+import re
+
+import urwid
 
 from alot.helper import string_decode
 from alot.settings import settings
@@ -124,8 +126,6 @@ class CompleteEdit(urwid.Edit):
         self.history = list(history)  # we temporarily add stuff here
         self.historypos = None
 
-        if not isinstance(edit_text, unicode):
-            edit_text = string_decode(edit_text)
         self.start_completion_pos = len(edit_text)
         self.completions = None
         urwid.Edit.__init__(self, edit_text=edit_text, **kwargs)
@@ -140,7 +140,7 @@ class CompleteEdit(urwid.Edit):
                     self.completions += self.completer.complete(self.edit_text,
                                                                 self.edit_pos)
                     self.focus_in_clist = 1
-                except CompletionError, e:
+                except CompletionError as e:
                     if self.on_error is not None:
                         self.on_error(e)
 

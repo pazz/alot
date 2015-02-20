@@ -1,21 +1,20 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
+
+from copy import deepcopy
+from email import charset
+charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
+from email.header import Header
 import os
 import tempfile
-import email.charset as charset
-from email.header import Header
-from copy import deepcopy
-charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
-import alot.helper as helper
-from alot.helper import string_decode
 
-from alot.db.utils import decode_header
+from .utils import decode_header
+from alot import helper
 
 
 class Attachment(object):
-
-    """represents a mail attachment"""
+    """Represents a mail attachment"""
 
     def __init__(self, emailpart):
         """
@@ -28,7 +27,7 @@ class Attachment(object):
         desc = '%s:%s (%s)' % (self.get_content_type(),
                                self.get_filename(),
                                helper.humanize_size(self.get_size()))
-        return string_decode(desc)
+        return helper.string_decode(desc)
 
     def get_filename(self):
         """
