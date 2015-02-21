@@ -651,7 +651,7 @@ def encode_as_string(string, encoding='UTF-8'):
     :return: str
     """
     if sys.version_info < (3,0,0):
-        string.encode(encoding)
+        return string.encode(encoding)
     else:
         return string
 
