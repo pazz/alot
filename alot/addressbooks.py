@@ -1,12 +1,12 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
-import re
-import os
 
+import os
+import re
+
+from alot.helper import call_cmd, split_commandstring
 from alot.settings.utils import read_config
-from helper import call_cmd
-from alot.helper import split_commandstring
 
 
 class AddressbookError(Exception):

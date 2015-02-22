@@ -1,26 +1,22 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
+
 import imp
+import logging
+import mailcap
 import os
 import re
-import mailcap
-import logging
+
 from configobj import ConfigObj, Section
 
+from .checks import force_list, mail_container, gpg_key, attr_triple, align_mode
+from .errors import ConfigError
+from .theme import Theme
+from .utils import read_config, resolve_att
 from alot.account import SendmailAccount
 from alot.addressbooks import MatchSdtoutAddressbook, AbookAddressBook
 from alot.helper import pretty_datetime, string_decode
-
-from errors import ConfigError
-from utils import read_config
-from utils import resolve_att
-from checks import force_list
-from checks import mail_container
-from checks import gpg_key
-from checks import attr_triple
-from checks import align_mode
-from theme import Theme
 
 
 DEFAULTSPATH = os.path.join(os.path.dirname(__file__), '..', 'defaults')
@@ -312,10 +308,10 @@ class SettingsManager(object):
     def get_mapped_input_keysequences(self, mode='global', prefix=u''):
         # get all bindings in this mode
         globalmaps, modemaps = self.get_keybindings(mode)
-        candidates = globalmaps.keys() + modemaps.keys()
+        candidates = list(globalmaps.keys()) + list(modemaps.keys())
         if prefix is not None:
             prefixs = prefix + ' '
-            cand = filter(lambda x: x.startswith(prefixs), candidates)
+            cand = [x for x in candidates if x.startswith(prefixs)]
             if prefix in candidates:
                 candidates = cand + [prefix]
             else:
@@ -392,8 +388,7 @@ class SettingsManager(object):
         return self._accounts
 
     def get_account_by_address(self, address):
-        """
-        returns :class:`Account` for a given email address (str)
+        """Returns :class:`Account` for a given email address (str)
 
         :param address: address to look up
         :type address: string
@@ -410,11 +405,14 @@ class SettingsManager(object):
         return [a.address for a in self._accounts]
 
     def get_addresses(self):
-        """returns addresses of known accounts including all their aliases"""
+        """Returns iterable addresses of known accounts including all their aliases
+
+        :rtype: collections.Iterable
+        """
         return self._accountmap.keys()
 
     def get_addressbooks(self, order=[], append_remaining=True):
-        """returns list of all defined :class:`AddressBook` objects"""
+        """Returns list of all defined :class:`AddressBook` objects"""
         abooks = []
         for a in order:
             if a:

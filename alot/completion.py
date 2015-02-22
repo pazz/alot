@@ -1,20 +1,20 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
-import re
-import os
+
+import argparse
 import glob
 import logging
-import argparse
+import os
+import re
 
-import alot.crypto as crypto
-import alot.commands as commands
+from alot import commands, crypto
+from alot.addressbooks import AddressbookError
 from alot.buffers import EnvelopeBuffer
+from alot.errors import CompletionError
+from alot.helper import split_commandline
 from alot.settings import settings
 from alot.utils.booleanaction import BooleanAction
-from alot.helper import split_commandline
-from alot.addressbooks import AddressbookError
-from errors import CompletionError
 
 
 class Completer(object):
@@ -150,7 +150,7 @@ class QueryCompleter(Completer):
                 resultlist.append((newtext, newpos))
             return resultlist
         else:
-            matched = filter(lambda t: t.startswith(myprefix), self.keywords)
+            matched = [t for t in self.keywords if t.startswith(myprefix)]
             resultlist = []
             for keyword in matched:
                 newprefix = original[:start] + keyword + ':'
@@ -409,11 +409,10 @@ class CommandCompleter(Completer):
                                                                    localpos)
 
                         # prepend 'set ' + header and correct position
-                        def f((completed, pos)):
-                            return ('%s %s' % (header, completed),
+                        def f(tup):      # tup is (completed, pos)
+                            return ('%s %s' % (header, tup[0]),
                                     pos + len(header) + 1)
-                        res = map(f, res)
-                        logging.debug(res)
+                        res = [f(x) for x in res]
 
                 elif self.mode == 'envelope' and cmd == 'unset':
                     plist = params.split(' ', 1)
@@ -531,7 +530,7 @@ class PathCompleter(Completer):
             escaped_path = escape(path)
             return escaped_path, len(escaped_path)
 
-        return map(prep, glob.glob(deescape(prefix) + '*'))
+        return [prep(p) for p in glob.glob(deescape(prefix) + '*')]
 
 
 class CryptoKeyCompleter(StringlistCompleter):

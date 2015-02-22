@@ -5,7 +5,9 @@ from collections import namedtuple
 from functools import update_wrapper
 from threading import Lock
 
+
 _CacheInfo = namedtuple("CacheInfo", ["hits", "misses", "maxsize", "currsize"])
+
 
 def lru_cache(maxsize=100, typed=False):
     """Least-recently-used cache decorator.

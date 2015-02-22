@@ -5,6 +5,7 @@
 """
 Widgets specific to Bufferlist mode
 """
+
 import urwid
 
 

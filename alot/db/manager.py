@@ -1,31 +1,30 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
-from notmuch import Database, NotmuchError, XapianError
-import notmuch
-import multiprocessing
-import logging
-import sys
-import os
-import errno
-import signal
-from twisted.internet import reactor
 
 from collections import deque
+import errno
+import logging
+import multiprocessing
+import os
+import signal
+import sys
 
-from message import Message
+import notmuch
+from notmuch import Database, NotmuchError, XapianError
+from twisted.internet import reactor
+
+from . import DB_ENC
+from .errors import (DatabaseError, DatabaseLockedError,
+                     DatabaseROError, NonexistantObjectError)
+from .message import Message
+from .thread import Thread
+from .utils import is_subdir_of
+from alot.helper import encode_as_string
 from alot.settings import settings
-from thread import Thread
-from .errors import DatabaseError
-from .errors import DatabaseLockedError
-from .errors import DatabaseROError
-from .errors import NonexistantObjectError
-from alot.db import DB_ENC
-from alot.db.utils import is_subdir_of
 
 
 class FillPipeProcess(multiprocessing.Process):
-
     def __init__(self, it, stdout, stderr, pipe, fun=(lambda x: x)):
         multiprocessing.Process.__init__(self)
         self.it = it
@@ -66,7 +65,6 @@ class FillPipeProcess(multiprocessing.Process):
 
 
 class DBManager(object):
-
     """
     Keeps track of your index parameters, maintains a write-queue and
     lets you look up threads and messages directly to the persistent wrapper
@@ -144,7 +142,7 @@ class DBManager(object):
                         msg.freeze()
                         logging.debug('freeze')
                         for tag in tags:
-                            msg.add_tag(tag.encode(DB_ENC),
+                            msg.add_tag(encode_as_string(tag, DB_ENC),
                                         sync_maildir_flags=sync)
                         logging.debug('added tags ')
                         msg.thaw()
@@ -161,16 +159,16 @@ class DBManager(object):
                             msg.freeze()
                             if cmd == 'tag':
                                 for tag in tags:
-                                    msg.add_tag(tag.encode(DB_ENC),
+                                    msg.add_tag(encode_as_string(tag, DB_ENC),
                                                 sync_maildir_flags=sync)
                             if cmd == 'set':
                                 msg.remove_all_tags()
                                 for tag in tags:
-                                    msg.add_tag(tag.encode(DB_ENC),
+                                    msg.add_tag(encode_as_string(tag, DB_ENC),
                                                 sync_maildir_flags=sync)
                             elif cmd == 'untag':
                                 for tag in tags:
-                                    msg.remove_tag(tag.encode(DB_ENC),
+                                    msg.remove_tag(encode_as_string(tag, DB_ENC),
                                                    sync_maildir_flags=sync)
                             msg.thaw()
 
@@ -194,7 +192,7 @@ class DBManager(object):
                 except (XapianError, NotmuchError) as e:
                     logging.exception(e)
                     self.writequeue.appendleft(current_item)
-                    raise DatabaseError(unicode(e))
+                    raise DatabaseError(str(e))
                 except DatabaseLockedError as e:
                     logging.debug('index temporarily locked')
                     self.writequeue.appendleft(current_item)
@@ -283,7 +281,7 @@ class DBManager(object):
         """returns :class:`notmuch.database.Thread` with given id"""
         query = self.query('thread:' + tid)
         try:
-            return query.search_threads().next()
+            return next(query.search_threads())
         except StopIteration:
             errmsg = 'no thread with id %s exists!' % tid
             raise NonexistantObjectError(errmsg)

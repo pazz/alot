@@ -4,13 +4,13 @@
 """
 Widgets specific to search mode
 """
+
 import urwid
 
-from alot.settings import settings
+from .globals import TagWidget
+from .utils import AttrFlipWidget
 from alot.helper import shorten_author_string
-from alot.helper import tag_cmp
-from alot.widgets.utils import AttrFlipWidget
-from alot.widgets.globals import TagWidget
+from alot.settings import settings
 
 
 class ThreadlineWidget(urwid.AttrMap):
@@ -98,7 +98,7 @@ class ThreadlineWidget(urwid.AttrMap):
 
         elif name == 'content':
             if self.thread:
-                msgs = self.thread.get_messages().keys()
+                msgs = list(self.thread.get_messages().keys())
             else:
                 msgs = []
             # sort the most recent messages first
@@ -115,8 +115,7 @@ class ThreadlineWidget(urwid.AttrMap):
                 fallback_focus = struct[name]['focus']
                 tag_widgets = [TagWidget(t, fallback_normal, fallback_focus)
                                for t in self.thread.get_tags()]
-                tag_widgets.sort(tag_cmp,
-                                 lambda tag_widget: tag_widget.translated)
+                tag_widgets.sort(key=lambda tag_widget: tag_widget.translated)
             else:
                 tag_widgets = []
             cols = []

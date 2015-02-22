@@ -1,37 +1,35 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
-import os
-import code
-from twisted.internet import threads
-from twisted.internet import defer
-import subprocess
-import email
-import urwid
-from twisted.internet.defer import inlineCallbacks
-import logging
-import argparse
-import glob
-from StringIO import StringIO
 
-from alot.commands import Command, registerCommand
-from alot.completion import CommandLineCompleter
-from alot.commands import CommandParseError
-from alot.commands import commandfactory
-from alot.commands import CommandCanceled
-from alot import buffers
-from alot.widgets.utils import DialogBox
-from alot import helper
-from alot.db.errors import DatabaseLockedError
-from alot.completion import ContactsCompleter
-from alot.completion import AccountCompleter
-from alot.completion import TagsCompleter
+import argparse
+import code
+import email
+import glob
+import logging
+import os
+import subprocess
+import sys
+
+try:
+    from io import StringIO
+except ImportError:
+    from cStringIO import StringIO
+
+from twisted.internet import threads
+from twisted.internet.defer import inlineCallbacks
+import urwid
+
+from . import Command, CommandCanceled, registerCommand
+from alot import buffers, commands, helper
+from alot.completion import (AccountCompleter, CommandLineCompleter,
+                             ContactsCompleter, TagsCompleter)
+from alot.helper import mailto_to_envelope, split_commandstring
 from alot.db.envelope import Envelope
-from alot import commands
+from alot.db.errors import DatabaseLockedError
 from alot.settings import settings
-from alot.helper import split_commandstring, split_commandline
-from alot.helper import mailto_to_envelope
 from alot.utils.booleanaction import BooleanAction
+from alot.widgets.utils import DialogBox
 
 MODE = 'global'
 
@@ -176,7 +174,8 @@ class ExternalCommand(Command):
         """
         logging.debug({'spawn': spawn})
         # make sure cmd is a list of str
-        if isinstance(cmd, unicode):
+        if sys.version_info < (3,0,0) and isinstance(cmd, unicode) \
+            or sys.version_info > (3,0,0) and isinstance(cmd, str):
             # convert cmdstring to list: in case shell==True,
             # Popen passes only the first item in the list to $SHELL
             cmd = [cmd] if shell else split_commandstring(cmd)
@@ -215,7 +214,8 @@ class ExternalCommand(Command):
         stdin = None
         if self.stdin is not None:
             # wrap strings in StrinIO so that they behaves like a file
-            if isinstance(self.stdin, unicode):
+            if sys.version_info < (3,0,0) and isinstance(self.stdin, unicode) \
+                    or sys.version_info > (3,0,0) and isinstance(cmd, str):
                 stdin = StringIO(self.stdin)
             else:
                 stdin = self.stdin
@@ -503,6 +503,8 @@ class TagListCommand(Command):
     def apply(self, ui):
         tags = self.tags or ui.dbman.get_all_tags()
         blists = ui.get_buffers_of_type(buffers.TagListBuffer)
+        if not isinstance(blists, list):
+            blists = list(blists)
         if blists:
             buf = blists[0]
             buf.tags = tags
@@ -581,8 +583,8 @@ class HelpCommand(Command):
             globalmaps, modemaps = settings.get_keybindings(ui.mode)
 
             # build table
-            maxkeylength = len(max((modemaps).keys() + globalmaps.keys(),
-                                   key=len))
+            connected_keys = list(modemaps.keys()) + list(globalmaps.keys())
+            maxkeylength = len(max(connected_keys, key=len))
             keycolumnwidth = maxkeylength + 2
 
             linewidgets = []
@@ -643,8 +645,7 @@ class HelpCommand(Command):
     (['rest'], {'nargs': '*'}),
 ])
 class ComposeCommand(Command):
-
-    """compose a new email"""
+    """Compose a new email"""
     def __init__(self, envelope=None, headers={}, template=None,
                  sender=u'', subject=u'', to=[], cc=[], bcc=[], attach=None,
                  omit_signature=False, spawn=None, rest=[], **kwargs):

@@ -1,19 +1,20 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
+
 """
 Widgets specific to thread mode
 """
-import urwid
+
 import logging
 
-from alot.settings import settings
-from alot.db.utils import decode_header, X_SIGNATURE_MESSAGE_HEADER
-from alot.helper import tag_cmp
-from alot.widgets.globals import TagWidget
-from alot.widgets.globals import AttachmentWidget
+import urwid
+
+from .globals import AttachmentWidget, TagWidget
+from alot.db.utils import (decode_header, extract_body,
+                           X_SIGNATURE_MESSAGE_HEADER)
 from alot.foreign.urwidtrees import Tree, SimpleTree, CollapsibleTree
-from alot.db.utils import extract_body
+from alot.settings import settings
 
 
 class MessageSummaryWidget(urwid.WidgetWrap):
@@ -45,7 +46,8 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         thread_tags = message.get_thread().get_tags(intersection=True)
         outstanding_tags = set(message.get_tags()).difference(thread_tags)
         tag_widgets = [TagWidget(t, attr, focus_att) for t in outstanding_tags]
-        tag_widgets.sort(tag_cmp, lambda tag_widget: tag_widget.translated)
+
+        tag_widgets.sort(key=lambda tag_widget: tag_widget.translated)
         for tag_widget in tag_widgets:
             if not tag_widget.hidden:
                 cols.append(('fixed', tag_widget.width(), tag_widget))
@@ -270,7 +272,6 @@ class MessageTree(CollapsibleTree):
 
         if headers is None:
             # collect all header/value pairs in the order they appear
-            headers = mail.keys()
             for key, value in mail.items():
                 dvalue = decode_header(value, normalize=normalize)
                 lines.append((key, dvalue))

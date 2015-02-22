@@ -9,3 +9,5 @@ docs/build
 docs/source/configuration/*table.rst
 /alot/VERSION
 tags
+.idea
+alot.egg-info

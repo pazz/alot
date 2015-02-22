@@ -1,8 +1,12 @@
 # Copyright (C) 2013  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
-from tree import Tree, SimpleTree
-import urwid
+
 import logging
+
+import urwid
+
+from .tree import Tree, SimpleTree
+
 
 NO_SPACE_MSG = 'too little space for requested decoration'
 
@@ -220,7 +224,7 @@ class IndentedTree(DecoratedTree):
         indent = self._tree.depth(pos) * self._indent
         cols = [(indent, urwid.SolidFill(' ')), widget]
         # construct a Columns, defining all spacer as Box widgets
-        line = urwid.Columns(cols, box_columns=range(len(cols))[:-1])
+        line = urwid.Columns(cols, box_columns=range(len(cols)-1))
         return line
 
 
@@ -287,7 +291,7 @@ class CollapsibleIndentedTree(CollapseIconMixin, IndentedTree):
 
         cols.append(widget)  # original widget ]
         # construct a Columns, defining all spacer as Box widgets
-        line = urwid.Columns(cols, box_columns=range(len(cols))[:-1])
+        line = urwid.Columns(cols, box_columns=range(len(cols)-1))
 
         return line
 
@@ -472,7 +476,7 @@ class ArrowTree(IndentedTree):
             # add the original widget for this line
             cols.append(original_widget)
             # construct a Columns, defining all spacer as Box widgets
-            line = urwid.Columns(cols, box_columns=range(len(cols))[:-1])
+            line = urwid.Columns(cols, box_columns=range(len(cols)-1))
         return line
 
 

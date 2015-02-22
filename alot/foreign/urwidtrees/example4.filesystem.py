@@ -2,12 +2,14 @@
 # Copyright (C) 2013  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 
-import urwid
 import os
-from example1 import palette  # example data
-from widgets import TreeBox
-from tree import Tree
-from decoration import CollapsibleArrowTree
+
+import urwid
+
+from .decoration import CollapsibleArrowTree
+from .example1 import palette  # example data
+from .tree import Tree
+from .widgets import TreeBox
 
 
 # define selectable urwid.Text widgets to display paths

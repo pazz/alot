@@ -5,36 +5,38 @@ import os
 import email
 import tempfile
 import re
-from email.header import Header
-import email.charset as charset
+from email import charset
+import sys
+
 charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
+from email.header import Header
 from email.iterators import typed_subpart_iterator
 import logging
 import mailcap
-from cStringIO import StringIO
+try:
+    from io import StringIO
+except ImportError:
+    from cStringIO import StringIO
 
-import alot.crypto as crypto
-import alot.helper as helper
+from alot import crypto, helper
 from alot.errors import GPGProblem
 from alot.settings import settings
-from alot.helper import string_sanitize
-from alot.helper import string_decode
-from alot.helper import parse_mailcap_nametemplate
-from alot.helper import split_commandstring
+from alot.helper import (string_sanitize, string_decode,
+                         parse_mailcap_nametemplate, split_commandstring)
 
 X_SIGNATURE_VALID_HEADER = 'X-Alot-OpenPGP-Signature-Valid'
 X_SIGNATURE_MESSAGE_HEADER = 'X-Alot-OpenPGP-Signature-Message'
 
 
 def add_signature_headers(mail, sigs, error_msg):
-    '''Add pseudo headers to the mail indicating whether the signature
+    """Add pseudo headers to the mail indicating whether the signature
     verification was successful.
 
     :param mail: :class:`email.message.Message` the message to entitle
     :param sigs: list of :class:`gpgme.Signature`
     :param error_msg: `str` containing an error message, the empty
                       string indicating no error
-    '''
+    """
     sig_from = ''
 
     if len(sigs) == 0:
@@ -58,7 +60,7 @@ def add_signature_headers(mail, sigs, error_msg):
 
 
 def get_params(mail, failobj=list(), header='content-type', unquote=True):
-    '''Get Content-Type parameters as dict.
+    """Get Content-Type parameters as dict.
 
     RFC 2045 specifies that parameter names are case-insensitive, so
     we normalize them here.
@@ -68,12 +70,12 @@ def get_params(mail, failobj=list(), header='content-type', unquote=True):
     :param header: the header to search for parameters, default
     :param unquote: unquote the values
     :returns: a `dict` containing the parameters
-    '''
+    """
     return {k.lower(): v for k, v in mail.get_params(failobj, header, unquote)}
 
 
 def message_from_file(handle):
-    '''Reads a mail from the given file-like object and returns an email
+    """Reads a mail from the given file-like object and returns an email
     object, very much like email.message_from_file. In addition to
     that OpenPGP encrypted data is detected and decrypted. If this
     succeeds, any mime messages found in the recovered plaintext
@@ -82,7 +84,7 @@ def message_from_file(handle):
     :param handle: a file-like object
     :returns: :class:`email.message.Message` possibly augmented with
               decrypted data
-    '''
+    """
     m = email.message_from_file(handle)
 
     # make sure noone smuggles a token in (data from m is untrusted)
@@ -125,7 +127,7 @@ def message_from_file(handle):
                 sigs = crypto.verify_detached(m.get_payload(0).as_string(),
                                               m.get_payload(1).get_payload())
             except GPGProblem as e:
-                malformed = unicode(e)
+                malformed = str(e)
 
         add_signature_headers(m, sigs, malformed)
 
@@ -161,7 +163,7 @@ def message_from_file(handle):
                 # the combined method is used, currently this prevents
                 # the interpretation of the recovered plain text
                 # mail. maybe that's a feature.
-                malformed = unicode(e)
+                malformed = str(e)
             else:
                 # parse decrypted message
                 n = message_from_string(d)
@@ -350,10 +352,11 @@ def decode_header(header, normalize=False):
     # If the value isn't ascii as RFC2822 prescribes,
     # we just return the unicode bytestring as is
     value = string_decode(header)  # convert to unicode
-    try:
-        value = value.encode('ascii')
-    except UnicodeEncodeError:
-        return value
+    if sys.version_info < (3,0,0):
+        try:
+            value = value.encode('ascii')
+        except UnicodeEncodeError:
+            return value
 
     # some mailers send out incorrectly escaped headers
     # and double quote the escaped realname part again. remove those
