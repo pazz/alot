@@ -461,7 +461,7 @@ class UI(object):
         :rtype:  :class:`twisted.defer.Deferred`
         """
         if choices is None:
-            choices = {'y': 'yes', 'n': 'no'},
+            choices = {'y': 'yes', 'n': 'no'}
 
         assert select in choices.values() or select is None
         assert cancel in choices.values() or cancel is None
