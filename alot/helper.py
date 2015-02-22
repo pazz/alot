@@ -412,6 +412,9 @@ def guess_mimetype(blob):
     else:
         raise Exception('Unknown magic API')
 
+    if sys.version > (3,0,0) and isinstance(magictype, bytes):
+        magictype = magictype.decode('utf-8')
+
     # libmagic does not always return proper mimetype strings, cf. issue #459
     if re.match(r'\w+\/\w+', magictype):
         mimetype = magictype
