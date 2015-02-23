@@ -28,7 +28,7 @@ setup(name='alot',
       install_requires=[
         'notmuch>=0.13',
         'urwid>=1.1.0',
-        'urwidtrees (>=1.0)',
+        'urwidtrees>=1.0',
         'twisted>=10.2.0',
         'python-magic',
         'configobj>=4.7.0',
