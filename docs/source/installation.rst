@@ -34,7 +34,7 @@ renderer (copiousoutput) set up for `text/html`, i.e. have something like this i
 
 You can use `pip` to install directly from GitHub::
 
-  $ pip install --user https://github.com/pazz/alot/archive/0.3.5.zip
+  $ pip install --user https://github.com/pazz/alot/archive/master.zip
 
 Or check out a more recent version, e.g. the master branch::
 
