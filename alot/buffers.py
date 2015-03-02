@@ -18,7 +18,7 @@ from alot.widgets.globals import AttachmentWidget
 from alot.widgets.bufferlist import BufferlineWidget
 from alot.widgets.search import ThreadlineWidget
 from alot.widgets.thread import ThreadTree
-from alot.foreign.urwidtrees import ArrowTree, TreeBox, NestedTree
+from urwidtrees import ArrowTree, TreeBox, NestedTree
 
 
 class Buffer(object):
