@@ -184,3 +184,6 @@ def main():
 
     # set up and start interface
     UI(dbman, cmdstring)
+
+if __name__ == '__main__':
+    main()
