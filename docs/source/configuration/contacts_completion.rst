@@ -48,6 +48,14 @@ Both respect the `ignorecase` option which defaults to `True` and results in cas
           command = nottoomuch-addresses.sh
           regexp = \"(?P<name>.+)\"\s*<(?P<email>.*.+?@.+?)>
 
+    `khard, a console carddav client <https://github.com/scheibler/khard>`_
+       query your locally synced carddav contacts
+
+       .. code-block:: ini
+
+           command = khard alot -s
+           regexp  = \"(?P<name>.+)\"\s*<(?P<email>.*.+?@.+?)>
+
     Don't hesitate to send me your custom `regexp` values to list them here.
 
 .. describe:: abook
