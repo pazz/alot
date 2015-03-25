@@ -48,6 +48,14 @@ Both respect the `ignorecase` option which defaults to `True` and results in cas
           command = nottoomuch-addresses.sh
           regexp = \"(?P<name>.+)\"\s*<(?P<email>.*.+?@.+?)>
 
+    `notmuch-abook <https://github.com/guyzmo/notmuch-abook>`_
+        completes contacts found in database of notmuch-abook:
+
+        .. code-block:: ini
+
+          command = notmuch_abook.py lookup
+          regexp = ^((?P<name>[^(\\s+\<)]*)\s+<)?(?P<email>[^@]+?@[^>]+)>?$
+
     Don't hesitate to send me your custom `regexp` values to list them here.
 
 .. describe:: abook
