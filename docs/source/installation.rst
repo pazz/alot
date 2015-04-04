@@ -12,6 +12,7 @@ A full list of dependencies is below:
 * `twisted <http://twistedmatrix.com/trac/>`_, ≥ `10.2.0`:
 * `libnotmuch <http://notmuchmail.org/>`_ and it's python bindings, ≥ `0.13`.
 * `urwid <http://excess.org/urwid/>`_ toolkit, ≥ `1.1.0`
+* `urwidtrees <https://github.com/pazz/urwidtrees>`_,
 * `PyGPGME <https://launchpad.net/pygpgme>`_ ≥ `0.2`
 
 On debian/ubuntu these are packaged as::
