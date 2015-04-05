@@ -77,8 +77,9 @@ class TextlinesList(SimpleTree):
         """
         structure = []
         for line in content.splitlines():
+            ansi_background = settings.get("ansi_background")
             structure.append((ANSIText(line, attr, attr_focus,
-                                       ansi_background=False), None))
+                                       ansi_background), None))
         SimpleTree.__init__(self, structure)
 
 
