@@ -17,6 +17,9 @@ input_timeout = float(default=1.0)
 # .. note:: this config setting is equivalent to, but independent of, the 'search.exclude_tags' in the notmuch config.
 exclude_tags = force_list(default=list())
 
+# display background colors set by ANSI character escapes
+interpret_ansi_background = boolean(default=True)
+
 # confirm exit
 bug_on_exit = boolean(default=False)
 

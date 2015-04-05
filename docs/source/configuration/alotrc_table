@@ -408,6 +408,16 @@
     :default: 1.0
 
 
+.. _interpret-ansi-background:
+
+.. describe:: interpret_ansi_background
+
+     display background colors set by ANSI character escapes
+
+    :type: boolean
+    :default: True
+
+
 .. _mailinglists:
 
 .. describe:: mailinglists

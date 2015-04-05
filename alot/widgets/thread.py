@@ -80,16 +80,17 @@ class TextlinesList(SimpleTree):
         for each line in content.
         """
         structure = []
+        ansi_background = settings.get("interpret_ansi_background")
 
         # depending on this config setting, we either add individual lines
         # or the complete context as focusable objects.
         if settings.get('thread_focus_linewise'):
             for line in content.splitlines():
                 structure.append((ANSIText(line, attr, attr_focus,
-                                           ansi_background=False), None))
+                                           ansi_background), None))
         else:
             structure.append((ANSIText(content, attr, attr_focus,
-                                       ansi_background=False), None))
+                                       ansi_background), None))
         SimpleTree.__init__(self, structure)
 
 
