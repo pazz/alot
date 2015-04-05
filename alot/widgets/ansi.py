@@ -6,7 +6,9 @@ import urwid
 
 
 class ANSIText(urwid.WidgetWrap):
+
     """Selectable Text widget that interprets ANSI color codes"""
+
     def __init__(self, txt,
                  default_attr=None,
                  default_attr_focus=None,
@@ -15,7 +17,7 @@ class ANSIText(urwid.WidgetWrap):
                                                default_attr_focus,
                                                ansi_background)
         t = urwid.Text(ct, **kwds)
-        attr_map = { default_attr.background: ''}
+        attr_map = {default_attr.background: ''}
         w = urwid.AttrMap(t, attr_map, focus_map)
         urwid.WidgetWrap.__init__(self, w)
 
@@ -34,33 +36,33 @@ def parse_escapes_to_urwid(text, default_attr=None, default_attr_focus=None,
     maps all attributes applied here to focused attribute.
     """
     ECODES = {
-         '0': { 'bold': default_attr.bold,
-                'underline': default_attr.underline,
-                'standout': default_attr.standout },
-         '1': { 'bold': True },
-         '4': { 'underline': True },
-         '7': { 'standout': True },
-        '30': { 'fg': 'black' },
-        '31': { 'fg': 'dark red' },
-        '32': { 'fg': 'dark green' },
-        '33': { 'fg': 'brown' },
-        '34': { 'fg': 'dark blue' },
-        '35': { 'fg': 'dark magenta' },
-        '36': { 'fg': 'dark cyan' },
-        '37': { 'fg': 'light gray' },
-        '40': { 'bg': 'black' },
-        '41': { 'bg': 'dark red' },
-        '42': { 'bg': 'dark green' },
-        '43': { 'bg': 'brown' },
-        '44': { 'bg': 'dark blue' },
-        '45': { 'bg': 'dark magenta' },
-        '46': { 'bg': 'dark cyan' },
-        '47': { 'bg': 'light gray' },
+        '0': {'bold': default_attr.bold,
+              'underline': default_attr.underline,
+              'standout': default_attr.standout},
+        '1': {'bold': True},
+        '4': {'underline': True},
+        '7': {'standout': True},
+        '30': {'fg': 'black'},
+        '31': {'fg': 'dark red'},
+        '32': {'fg': 'dark green'},
+        '33': {'fg': 'brown'},
+        '34': {'fg': 'dark blue'},
+        '35': {'fg': 'dark magenta'},
+        '36': {'fg': 'dark cyan'},
+        '37': {'fg': 'light gray'},
+        '40': {'bg': 'black'},
+        '41': {'bg': 'dark red'},
+        '42': {'bg': 'dark green'},
+        '43': {'bg': 'brown'},
+        '44': {'bg': 'dark blue'},
+        '45': {'bg': 'dark magenta'},
+        '46': {'bg': 'dark cyan'},
+        '47': {'bg': 'light gray'},
     }
 
     text = text.split("\033[")
-    urwid_text = [ text[0] ]
-    urwid_focus = { None: default_attr_focus }
+    urwid_text = [text[0]]
+    urwid_focus = {None: default_attr_focus}
 
     # Escapes are cumulative so we always keep previous values until it's
     # changed by another escape.
@@ -68,7 +70,7 @@ def parse_escapes_to_urwid(text, default_attr=None, default_attr_focus=None,
                 bold=default_attr.bold, underline=default_attr.underline,
                 standout=default_attr.underline)
     for part in text[1:]:
-        esc_code, esc_substr = part.split('m',1)
+        esc_code, esc_substr = part.split('m', 1)
         esc_code = esc_code.split(';')
 
         if len(esc_code) == 0:
@@ -77,8 +79,8 @@ def parse_escapes_to_urwid(text, default_attr=None, default_attr_focus=None,
                         underline=default_attr.underline,
                         standout=default_attr.underline)
         else:
-            i=0
-            while i<len(esc_code):
+            i = 0
+            while i < len(esc_code):
                 code = esc_code[i]
                 if code in ECODES:
                     attr.update(ECODES[code])
@@ -105,7 +107,7 @@ def parse_escapes_to_urwid(text, default_attr=None, default_attr_focus=None,
                 urwid_fg += ',standout'
             if parse_background:
                 urwid_bg = attr['bg']
-            urwid_attr = urwid.AttrSpec(urwid_fg,urwid_bg)
+            urwid_attr = urwid.AttrSpec(urwid_fg, urwid_bg)
             urwid_focus[urwid_attr] = default_attr_focus
-            urwid_text.append((urwid_attr,esc_substr))
-    return urwid_text,urwid_focus
+            urwid_text.append((urwid_attr, esc_substr))
+    return urwid_text, urwid_focus
