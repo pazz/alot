@@ -12,6 +12,7 @@ from alot.db.utils import decode_header, X_SIGNATURE_MESSAGE_HEADER
 from alot.helper import tag_cmp
 from alot.widgets.globals import TagWidget
 from alot.widgets.globals import AttachmentWidget
+from alot.widgets.ansi import ANSIText
 from urwidtrees import Tree, SimpleTree, CollapsibleTree
 from alot.db.utils import extract_body
 
@@ -68,20 +69,6 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         return key
 
 
-class FocusableText(urwid.WidgetWrap):
-    """Selectable Text used for nodes in our example"""
-    def __init__(self, txt, att, att_focus):
-        t = urwid.Text(txt)
-        w = urwid.AttrMap(t, att, att_focus)
-        urwid.WidgetWrap.__init__(self, w)
-
-    def selectable(self):
-        return True
-
-    def keypress(self, size, key):
-        return key
-
-
 class TextlinesList(SimpleTree):
     def __init__(self, content, attr=None, attr_focus=None):
         """
@@ -90,7 +77,8 @@ class TextlinesList(SimpleTree):
         """
         structure = []
         for line in content.splitlines():
-            structure.append((FocusableText(line, attr, attr_focus), None))
+            structure.append((ANSIText(line, attr, attr_focus,
+                                       ansi_background=False), None))
         SimpleTree.__init__(self, structure)
 
 
