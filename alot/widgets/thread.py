@@ -6,8 +6,10 @@ Widgets specific to thread mode
 """
 import logging
 import urwid
+
 from urwidtrees import Tree, SimpleTree, CollapsibleTree
 
+from .ansi import ANSIText
 from .globals import TagWidget
 from .globals import AttachmentWidget
 from ..settings.const import settings
@@ -71,20 +73,6 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         return key
 
 
-class FocusableText(urwid.WidgetWrap):
-    """Selectable Text used for nodes in our example"""
-    def __init__(self, txt, att, att_focus):
-        t = urwid.Text(txt)
-        w = urwid.AttrMap(t, att, att_focus)
-        urwid.WidgetWrap.__init__(self, w)
-
-    def selectable(self):
-        return True
-
-    def keypress(self, size, key):
-        return key
-
-
 class TextlinesList(SimpleTree):
     def __init__(self, content, attr=None, attr_focus=None):
         """
@@ -97,9 +85,11 @@ class TextlinesList(SimpleTree):
         # or the complete context as focusable objects.
         if settings.get('thread_focus_linewise'):
             for line in content.splitlines():
-                structure.append((FocusableText(line, attr, attr_focus), None))
+                structure.append((ANSIText(line, attr, attr_focus,
+                                           ansi_background=False), None))
         else:
-            structure.append((FocusableText(content, attr, attr_focus), None))
+            structure.append((ANSIText(content, attr, attr_focus,
+                                       ansi_background=False), None))
         SimpleTree.__init__(self, structure)
 
 
