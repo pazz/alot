@@ -128,8 +128,10 @@ class SettingsManager(object):
                     cmd = abook['command']
                     regexp = abook['regexp']
                     if cmd is not None and regexp is not None:
-                        args['abook'] = ExternalAddressbook(cmd, regexp)
-
+                        ef = abook['shellcommand_external_lookups']
+                        args['abook'] = ExternalAddressbook(cmd,
+                                                            regexp,
+                                                            external_filtering=ef)
                     else:
                         msg = 'underspecified abook of type \'shellcommand\':'
                         msg += '\ncommand: %s\nregexp:%s' % (cmd, regexp)
