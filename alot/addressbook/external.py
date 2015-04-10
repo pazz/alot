@@ -8,34 +8,48 @@ from ..helper import split_commandstring
 from . import AddressBook, AddressbookError
 
 
-class MatchSdtoutAddressbook(AddressBook):
-    """:class:`AddressBook` that parses a shell command's output for lookups"""
+class ExternalAddressbook(AddressBook):
+    """:class:`AddressBook` that parses a shell command's output"""
 
-    def __init__(self, command, match=None, **kwargs):
+    def __init__(self, commandline, regex, reflags=None,
+                 external_filtering=True,
+                 **kwargs):
         """
-        :param command: lookup command
-        :type command: str
-        :param match: regular expression used to match contacts in `commands`
+        :param commandline: commandline
+        :type commandline: str
+        :param regex: regular expression used to match contacts in `commands`
                       output to stdout. Must define subparts named "email" and
-                      "name".  Defaults to
-                      :regexp:`^(?P<email>[^@]+@[^\t]+)\t+(?P<name>[^\t]+)`.
-        :type match: str
+                      "name".
+        :type regex: str
+        :param reflags: flags to use with regular expression
+        :param external_filtering: if True the command is fired
+                        with the given search string as parameter
+                        and the result is not filtered further.
+                        If set to False, the command is fired without
+                        additional parameters and the result list is filtered
+                        according to the search string.
+        :type external_filtering: bool
         """
         AddressBook.__init__(self, **kwargs)
-        self.command = command
-        if not match:
-            self.match = '^(?P<email>[^@]+@[^\t]+)\t+(?P<name>[^\t]+)'
-        else:
-            self.match = match
+        self.commandline = commandline
+        self.regex = regex
+        self.reflags = reflags
+        self.external_filtering = external_filtering
 
     def get_contacts(self):
-        return self.lookup('\'\'')
+        return self._call_and_parse(self.commandline)
 
     def lookup(self, prefix):
-        cmdlist = split_commandstring(self.command)
-        resultstring, errmsg, retval = call_cmd(cmdlist + [prefix])
+        if self.external_filtering:
+            return self._call_and_parse(self.commandline + " " + prefix)
+        else:
+            return AddressBook.lookup(self, prefix)
+
+    def _call_and_parse(self, commandline):
+        cmdlist = split_commandstring(commandline)
+        resultstring, errmsg, retval = call_cmd(cmdlist)
         if retval != 0:
-            msg = 'abook command "%s" returned with ' % self.command
+            msg = 'abook command "%s" returned with ' % commandline
             msg += 'return code %d' % retval
             if errmsg:
                 msg += ':\n%s' % errmsg
@@ -46,7 +60,7 @@ class MatchSdtoutAddressbook(AddressBook):
         lines = resultstring.splitlines()
         res = []
         for l in lines:
-            m = re.match(self.match, l, self.reflags)
+            m = re.match(self.regex, l, self.reflags)
             if m:
                 info = m.groupdict()
                 if 'email' and 'name' in info:

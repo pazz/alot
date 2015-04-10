@@ -10,7 +10,7 @@ from configobj import ConfigObj, Section
 
 from alot.account import SendmailAccount
 from alot.addressbook.abook import AbookAddressBook
-from alot.addressbook.external import MatchSdtoutAddressbook
+from alot.addressbook.external import ExternalAddressbook
 from alot.helper import pretty_datetime, string_decode
 
 from errors import ConfigError
@@ -128,8 +128,8 @@ class SettingsManager(object):
                     cmd = abook['command']
                     regexp = abook['regexp']
                     if cmd is not None and regexp is not None:
-                        args['abook'] = MatchSdtoutAddressbook(cmd,
-                                                               match=regexp)
+                        args['abook'] = ExternalAddressbook(cmd, regexp)
+
                     else:
                         msg = 'underspecified abook of type \'shellcommand\':'
                         msg += '\ncommand: %s\nregexp:%s' % (cmd, regexp)
