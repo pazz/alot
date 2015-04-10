@@ -1,3 +1,7 @@
+master:
+* switched to setuptools
+* detached urwidtrees library into separate project (and new dependency)
+
 0.3.6:
 * implement vim-style "move last" command (bound to G)
 * fixes in reply/forwarding
