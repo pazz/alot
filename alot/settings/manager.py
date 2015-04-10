@@ -9,7 +9,8 @@ import logging
 from configobj import ConfigObj, Section
 
 from alot.account import SendmailAccount
-from alot.addressbooks import MatchSdtoutAddressbook, AbookAddressBook
+from alot.addressbook.abook import AbookAddressBook
+from alot.addressbook.external import MatchSdtoutAddressbook
 from alot.helper import pretty_datetime, string_decode
 
 from errors import ConfigError
