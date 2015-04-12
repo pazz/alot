@@ -513,7 +513,7 @@ class SignCommand(Command):
                       'help': 'keyid of the key to encrypt with'})],
                  help='do not encrypt to given recipient key')
 class EncryptCommand(Command):
-    def __init__(self, action=None, keyids=None, **kwargs):
+    def __init__(self, action=None, keyids=[], **kwargs):
         """
         :param action: wether to encrypt/unencrypt/toggleencrypt
         :type action: str
