@@ -316,4 +316,4 @@ prefer_plaintext = boolean(default=False)
             # If set to True, the command is fired with the given search string
             # as parameter. Otherwise, the command is fired without additional parameters
             # and the result list is filtered according to the search string.
-            shellcommand_external_lookups = boolean(default=True)
+            shellcommand_external_filtering = boolean(default=True)

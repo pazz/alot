@@ -11,7 +11,7 @@ from . import AddressBook, AddressbookError
 class ExternalAddressbook(AddressBook):
     """:class:`AddressBook` that parses a shell command's output"""
 
-    def __init__(self, commandline, regex, reflags=None,
+    def __init__(self, commandline, regex, reflags=0,
                  external_filtering=True,
                  **kwargs):
         """
@@ -21,7 +21,10 @@ class ExternalAddressbook(AddressBook):
                       output to stdout. Must define subparts named "email" and
                       "name".
         :type regex: str
-        :param reflags: flags to use with regular expression
+        :param reflags: flags to use with regular expression.
+                        Use the constants defined in :mod:`re` here
+                        (`re.IGNORECASE` etc.)
+        :type reflags: str
         :param external_filtering: if True the command is fired
                         with the given search string as parameter
                         and the result is not filtered further.

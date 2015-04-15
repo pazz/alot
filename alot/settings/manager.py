@@ -128,7 +128,7 @@ class SettingsManager(object):
                     cmd = abook['command']
                     regexp = abook['regexp']
                     if cmd is not None and regexp is not None:
-                        ef = abook['shellcommand_external_lookups']
+                        ef = abook['shellcommand_external_filtering']
                         args['abook'] = ExternalAddressbook(cmd,
                                                             regexp,
                                                             external_filtering=ef)
