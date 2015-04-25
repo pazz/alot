@@ -39,3 +39,6 @@ and :ref:`toggleencrypt <cmd.envelope.toggleencrypt>` and
 in envelope mode to ask alot to encrypt the mail before sending.
 The :ref:`encrypt <cmd.envelope.encrypt>` command accepts an optional
 hint string as argument to determine the key of the recipient.
+
+You can set the default to-encrypt bit for each :ref:`account <config.accounts>`
+individually using the option :ref:`sign_by_default <sign-by-default>`.

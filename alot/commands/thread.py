@@ -240,8 +240,10 @@ class ReplyCommand(Command):
             envelope.add('References', '<%s>' % self.message.get_message_id())
 
         # continue to compose
+        encrypt = mail.get_content_subtype() == 'encrypted'
         ui.apply_command(ComposeCommand(envelope=envelope,
-                                        spawn=self.force_spawn))
+                                        spawn=self.force_spawn,
+                                        encrypt=encrypt))
 
     def clear_my_address(self, my_addresses, value):
         """return recipient header without the addresses in my_addresses"""
