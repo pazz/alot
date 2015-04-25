@@ -13,6 +13,8 @@ from email.message import Message
 import mailcap
 from cStringIO import StringIO
 
+from alot.errors import GPGProblem, GPGCode
+from alot import crypto
 from alot.commands import Command, registerCommand
 from alot.commands.globals import ExternalCommand
 from alot.commands.globals import FlushCommand
@@ -239,6 +241,9 @@ class ReplyCommand(Command):
         else:
             envelope.add('References', '<%s>' % self.message.get_message_id())
 
+        if mail.get_content_subtype() == 'encrypted':
+            self._set_encrypt(ui, envelope)
+
         # continue to compose
         ui.apply_command(ComposeCommand(envelope=envelope,
                                         spawn=self.force_spawn))
@@ -253,6 +258,41 @@ class ReplyCommand(Command):
                 else:
                     new_value.append(address)
         return ', '.join(new_value)
+
+    @inlineCallbacks
+    def _set_encrypt(self, ui, envelope):
+        envelope.encrypt = True
+        encrypt_keys = []
+        for recipient in envelope.headers['To'][0].split(','):
+            if not recipient:
+                continue
+            match = re.search("<(.*@.*)>", recipient)
+            if match:
+                recipient = match.group(0)
+            encrypt_keys.append(recipient)
+
+        logging.debug("encryption keys: " + str(encrypt_keys))
+        for keyid in encrypt_keys:
+            try:
+                key = crypto.get_key(keyid, validate=True, encrypt=True)
+            except GPGProblem as e:
+                if e.code == GPGCode.AMBIGUOUS_NAME:
+                    possible_keys = crypto.list_keys(hint=keyid)
+                    tmp_choices = [k.uids[0].uid for k in possible_keys]
+                    choices = {str(len(tmp_choices) - x): tmp_choices[x]
+                               for x in range(0, len(tmp_choices))}
+                    keyid = yield ui.choice("ambiguous keyid! Which " +
+                                            "key do you want to use?",
+                                            choices, cancel=None)
+                    if keyid:
+                        encrypt_keys.append(keyid)
+                    continue
+                else:
+                    ui.notify(e.message, priority='error')
+                    continue
+            envelope.encrypt_keys[crypto.hash_key(key)] = key
+        if not envelope.encrypt_keys:
+            envelope.encrypt = False
 
 
 @registerCommand(MODE, 'forward', arguments=[
