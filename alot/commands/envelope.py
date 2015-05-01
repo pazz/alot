@@ -12,12 +12,13 @@ from twisted.internet.defer import inlineCallbacks
 import datetime
 
 from alot.account import SendingMailFailed, StoreMailError
-from alot.errors import GPGProblem, GPGCode
+from alot.errors import GPGProblem
 from alot import buffers
 from alot import commands
 from alot import crypto
 from alot.commands import Command, registerCommand
 from alot.commands import globals
+from alot.commands.utils import get_keys
 from alot.helper import string_decode
 from alot.helper import email_as_string
 from alot.settings import settings
@@ -557,26 +558,10 @@ class EncryptCommand(Command):
                     self.encrypt_keys.append(recipient)
 
             logging.debug("encryption keys: " + str(self.encrypt_keys))
-            for keyid in self.encrypt_keys:
-                try:
-                    key = crypto.get_key(keyid, validate=True, encrypt=True)
-                except GPGProblem as e:
-                    if e.code == GPGCode.AMBIGUOUS_NAME:
-                        possible_keys = crypto.list_keys(hint=keyid)
-                        tmp_choices = [k.uids[0].uid for k in possible_keys]
-                        choices = {str(len(tmp_choices) - x): tmp_choices[x]
-                                   for x in range(0, len(tmp_choices))}
-                        keyid = yield ui.choice("ambiguous keyid! Which " +
-                                                "key do you want to use?",
-                                                choices, cancel=None)
-                        if keyid:
-                            self.encrypt_keys.append(keyid)
-                        continue
-                    else:
-                        ui.notify(e.message, priority='error')
-                        continue
-                envelope.encrypt_keys[crypto.hash_key(key)] = key
-            if not envelope.encrypt_keys:
+            keys = yield get_keys(ui, self.encrypt_keys)
+            if keys:
+                envelope.encrypt_keys.update(keys)
+            else:
                 envelope.encrypt = False
         # reload buffer
         ui.current_buffer.rebuild()

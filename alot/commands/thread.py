@@ -20,6 +20,7 @@ from alot.commands.globals import ComposeCommand
 from alot.commands.globals import MoveCommand
 from alot.commands.globals import CommandCanceled
 from alot.commands.envelope import SendCommand
+from alot.commands.utils import get_keys
 from alot import completion
 from alot.db.utils import decode_header
 from alot.db.utils import encode_header
@@ -239,6 +240,9 @@ class ReplyCommand(Command):
         else:
             envelope.add('References', '<%s>' % self.message.get_message_id())
 
+        if mail.get_content_subtype() == 'encrypted':
+            self._set_encrypt(ui, envelope)
+
         # continue to compose
         ui.apply_command(ComposeCommand(envelope=envelope,
                                         spawn=self.force_spawn))
@@ -253,6 +257,25 @@ class ReplyCommand(Command):
                 else:
                     new_value.append(address)
         return ', '.join(new_value)
+
+    @inlineCallbacks
+    def _set_encrypt(self, ui, envelope):
+        encrypt_keys = []
+        for recipient in envelope.headers['To'][0].split(','):
+            if not recipient:
+                continue
+            match = re.search("<(.*@.*)>", recipient)
+            if match:
+                recipient = match.group(0)
+            encrypt_keys.append(recipient)
+
+        logging.debug("encryption keys: " + str(encrypt_keys))
+        keys = yield get_keys(ui, encrypt_keys)
+        if keys:
+            envelope.encrypt_keys.update(keys)
+            envelope.encrypt = True
+        else:
+            envelope.encrypt = False
 
 
 @registerCommand(MODE, 'forward', arguments=[
