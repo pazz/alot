@@ -301,3 +301,10 @@ prefer_plaintext = boolean(default=False)
 
             # contacts file used for type 'abook' address book
             abook_contacts_file = string(default='~/.abook/addressbook')
+
+            # (shellcommand addressbooks)
+            # let the external command do the filtering when looking up addresses.
+            # If set to True, the command is fired with the given search string
+            # as parameter. Otherwise, the command is fired without additional parameters
+            # and the result list is filtered according to the search string.
+            shellcommand_external_filtering = boolean(default=True)

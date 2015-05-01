@@ -55,6 +55,18 @@ Both respect the `ignorecase` option which defaults to `True` and results in cas
 
           command = notmuch_abook.py lookup
           regexp = ^((?P<name>[^(\\s+\<)]*)\s+<)?(?P<email>[^@]+?@[^>]+)>?$
+    
+    `notmuch address`
+        Since version `0.19`, notmuch itself offers a subcommand `address`, that
+        returns email addresses found in the notmuch index.
+        Combined with the `date:` syntax to query for mails within a certain
+        timeframe, this allows to search for all recently used contacts:
+
+        .. code-block:: ini
+
+           command = "notmuch address --output=recipients date:1Y.. AND from:my@address.org"
+           regexp = (\"?(?P<name>.+)\"?)?\s*<(?P<email>.*@.+?)>
+           shellcommand_external_filtering = False
 
     Don't hesitate to send me your custom `regexp` values to list them here.
 

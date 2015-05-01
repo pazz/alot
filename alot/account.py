@@ -44,7 +44,7 @@ class Account(object):
     signature_as_attachment = None
     """attach signature file instead of appending its content to body text"""
     abook = None
-    """addressbook (:class:`addressbooks.AddressBook`)
+    """addressbook (:class:`addressbook.AddressBook`)
        managing this accounts contacts"""
 
     def __init__(self, address=None, aliases=None, realname=None,
