@@ -230,10 +230,10 @@ prefer_plaintext = boolean(default=False)
 msg_summary_hides_threadwide_tags = boolean(default=True)
 
 # The list of headers to match to determine sending account for a reply.
-# Headers are searched in the order in which they are specified here, and the first match
-# is used. If multiple accounts match the same header, the one defined first in the account
-# block is used.
-determine_reply_account_from_headers = force_list(default=list(From,To,Cc,Envelope-To,X-Envelope-To,Delivered-To))
+# Headers are searched in the order in which they are specified here, and the first header
+# containing a match is used. If multiple accounts match in that header, the one defined
+# first in the account block is used.
+reply_account_header_priority = force_list(default=list(From,To,Cc,Envelope-To,X-Envelope-To,Delivered-To))
 
 # Key bindings 
 [bindings]
