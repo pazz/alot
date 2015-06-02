@@ -64,7 +64,7 @@ def determine_sender(mail, action='reply'):
     # Process the headers in order of importance: if a mail was sent with
     # account X, with account Y in e.g. CC or delivered-to, make sure that
     # account X is the one selected and not account Y.
-    candidate_headers = settings.get("determine_reply_account_from_headers")
+    candidate_headers = settings.get("reply_account_header_priority")
     for candidate_header in candidate_headers:
         if realname is not None:
             break
