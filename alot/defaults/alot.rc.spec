@@ -221,6 +221,12 @@ mailinglists = force_list(default=list())
 # prefer plaintext alternatives over html content in multipart/alternative
 prefer_plaintext = boolean(default=False)
 
+# The list of headers to match to determine sending account for a reply.
+# Headers are searched in the order in which they are specified here, and the first match
+# is used. If multiple accounts match the same header, the one defined first in the account
+# block is used.
+determine_reply_account_from_headers = force_list(default=list(From,To,Cc,Envelope-To,X-Envelope-To,Delivered-To))
+
 # Key bindings 
 [bindings]
     __many__ = string(default=None)
