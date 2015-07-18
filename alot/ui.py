@@ -1,4 +1,5 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
+# Copyright (C) 2015 Thomas Levine <_@thomaslevine.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 import urwid
@@ -123,7 +124,7 @@ class UI(object):
                 if not self._locked:
                     try:
                         self.apply_commandline(cmdline)
-                    except CommandParseError, e:
+                    except CommandParseError as e:
                         self.notify(e.message, priority='error')
                 # move keys are always passed
                 elif cmdline in ['move up', 'move down', 'move page up',
@@ -191,7 +192,7 @@ class UI(object):
             # translate cmdstring into :class:`Command`
             #try:
             cmd = commandfactory(cmdstring, self.mode)
-            #except CommandParseError, e:
+            #except CommandParseError as e:
              #   self.notify(e.message, priority='error')
               #  return
             # store cmdline for use with 'repeat' command
