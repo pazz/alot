@@ -102,7 +102,7 @@ class Options(usage.Options):
                    ['compose', None, ComposeOptions, "compose a new message"]]
 
     def opt_version(self):
-        print alot.__version__
+        print(alot.__version__)
         sys.exit(0)
 
 
@@ -111,9 +111,9 @@ def main():
     args = Options()
     try:
         args.parseOptions()  # When given no argument, parses sys.argv[1:]
-    except usage.UsageError, errortext:
-        print '%s' % errortext
-        print 'Try --help for usage details.'
+    except usage.UsageError as errortext:
+        print('%s' % errortext)
+        print('Try --help for usage details.')
         sys.exit(1)
 
     # logging
