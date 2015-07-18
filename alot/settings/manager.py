@@ -23,7 +23,7 @@ from .checks import (
     attr_triple,
     align_mode,
 )
-from theme import Theme
+from .theme import Theme
 
 
 DEFAULTSPATH = os.path.join(os.path.dirname(__file__), '..', 'defaults')

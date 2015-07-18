@@ -1,14 +1,17 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
+# Copyright (C) 2015 Thomas Levine <_@thomaslevine.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 import os
 
-from utils import read_config
-from checks import align_mode
-from checks import attr_triple
-from checks import width_tuple
-from checks import force_list
-from errors import ConfigError
+from .utils import read_config
+from .checks import (
+    align_mode,
+    attr_triple,
+    width_tuple,
+    force_list,
+)
+from .errors import ConfigError
 
 DEFAULTSPATH = os.path.join(os.path.dirname(__file__), '..', 'defaults')
 DUMMYDEFAULT = ('default',) * 6
