@@ -5,7 +5,10 @@
 import mailbox
 import re
 from urwid import AttrSpec, AttrSpecError
-from urlparse import urlparse
+try:
+    from urlparse import urlparse
+except ImportError:
+    from urllib.parse import urlparse
 from validate import VdtTypeError
 from validate import is_list
 from validate import ValidateError, VdtValueTooLongError, VdtValueError
