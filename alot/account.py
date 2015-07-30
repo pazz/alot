@@ -33,6 +33,8 @@ class Account(object):
     """this accounts main email address"""
     aliases = []
     """list of alternative addresses"""
+    alias_regexp = []
+    """regex matching alternative addresses"""
     realname = None
     """real name used to format from-headers"""
     gpg_key = None
@@ -47,13 +49,15 @@ class Account(object):
     """addressbook (:class:`addressbook.AddressBook`)
        managing this accounts contacts"""
 
-    def __init__(self, address=None, aliases=None, realname=None,
-                 gpg_key=None, signature=None, signature_filename=None,
-                 signature_as_attachment=False, sent_box=None,
-                 sent_tags=['sent'], draft_box=None, draft_tags=['draft'],
-                 abook=None, sign_by_default=False, **rest):
+    def __init__(self, address=None, aliases=None, alias_regexp=None,
+                realname=None, gpg_key=None, signature=None,
+                signature_filename=None, signature_as_attachment=False,
+                sent_box=None, sent_tags=['sent'], draft_box=None,
+                draft_tags=['draft'], abook=None, sign_by_default=False,
+                **rest):
         self.address = address
         self.aliases = aliases
+        self.alias_regexp = alias_regexp
         self.realname = realname
         self.gpg_key = gpg_key
         self.signature = signature
