@@ -252,6 +252,9 @@ prefer_plaintext = boolean(default=False)
         # used to clear your addresses/ match account when formatting replies
         aliases = force_list(default=list())
 
+        # a regex for catching further aliases (like + extensions).
+        alias_regexp = string(default=None)
+
         # sendmail command. This is the shell command used to send out mails via the sendmail protocol
         sendmail_command = string(default='sendmail -t')
 
