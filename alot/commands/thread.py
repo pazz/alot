@@ -955,6 +955,9 @@ class MoveFocusCommand(MoveCommand):
         # TODO: add next by date..
         tbuffer.body.refresh()
 
+        logging.debug("running current buffer's hooks")
+        tbuffer.run_hooks()
+
 
 @registerCommand(MODE, 'select')
 class ThreadSelectCommand(Command):
