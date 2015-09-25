@@ -49,6 +49,15 @@ thread_authors_replace_me = boolean(default=True)
 # :ref:`thread_authors_replace_me <thread-authors-replace-me>`
 thread_authors_me = string(default='Me')
 
+# What should be considered to be "the thread subject".
+# Valid values are:
+#
+# * 'notmuch' (the default), will use the thread subject from notmuch, which
+#   depends on the selected sorting method
+# * 'oldest' will always use the subject of the oldest message in the thread as
+#   the thread subject
+thread_subject = option('oldest', 'notmuch', default='notmuch')
+
 # set terminal command used for spawning shell commands
 terminal_cmd = string(default='x-terminal-emulator -e')
 
@@ -212,6 +221,12 @@ mailinglists = force_list(default=list())
 # prefer plaintext alternatives over html content in multipart/alternative
 prefer_plaintext = boolean(default=False)
 
+# The list of headers to match to determine sending account for a reply.
+# Headers are searched in the order in which they are specified here, and the first header
+# containing a match is used. If multiple accounts match in that header, the one defined
+# first in the account block is used.
+reply_account_header_priority = force_list(default=list(From,To,Cc,Envelope-To,X-Envelope-To,Delivered-To))
+
 # Key bindings 
 [bindings]
     __many__ = string(default=None)
@@ -242,6 +257,9 @@ prefer_plaintext = boolean(default=False)
 
         # used to clear your addresses/ match account when formatting replies
         aliases = force_list(default=list())
+
+        # a regex for catching further aliases (like + extensions).
+        alias_regexp = string(default=None)
 
         # sendmail command. This is the shell command used to send out mails via the sendmail protocol
         sendmail_command = string(default='sendmail -t')
@@ -278,6 +296,9 @@ prefer_plaintext = boolean(default=False)
 
         # Outgoing messages will be GPG signed by default if this is set to True.
         sign_by_default = boolean(default=False)
+
+        # Outgoing messages will be GPG encrypted by default if this is set to True.
+        encrypt_by_default = boolean(default=False)
 
         # The GPG key ID you want to use with this account. If unset, alot will
         # use your default key.

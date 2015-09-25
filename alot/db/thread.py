@@ -33,7 +33,17 @@ class Thread(object):
 
         self._total_messages = thread.get_total_messages()
         self._notmuch_authors_string = thread.get_authors()
-        self._subject = thread.get_subject()
+
+        subject_type = settings.get('thread_subject')
+        if subject_type == 'notmuch':
+            subject = thread.get_subject()
+        elif subject_type == 'oldest':
+            try:
+                subject = list(thread.get_toplevel_messages())[0].get_header('subject')
+            except IndexError:
+                subject = ''
+        self._subject = subject
+
         self._authors = None
         ts = thread.get_oldest_date()
 
