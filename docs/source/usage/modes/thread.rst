@@ -167,6 +167,7 @@ The following commands are available in thread mode
 
     optional arguments
         :---all: reply to all.
+        :---list: reply to list.
         :---spawn: open editor in new window.
 
 .. _cmd.thread.save:
