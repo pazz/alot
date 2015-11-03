@@ -117,7 +117,7 @@ class ReplyCommand(Command):
         :type message: `alot.db.message.Message`
         :param all: group reply; copies recipients from Bcc/Cc/To to the reply
         :type all: bool
-        :param listreply: reply to list
+        :param listreply: reply to list; autodetect if unset and enabled in config
         :type listreply: bool
         :param spawn: force spawning of editor in a new terminal
         :type spawn: bool
@@ -163,6 +163,11 @@ class ReplyCommand(Command):
             if not subject.lower().startswith(('re:', rsp.lower())):
                 subject = rsp + subject
         envelope.add('Subject', subject)
+
+        # Auto-detect ML
+        auto_replyto_mailinglist = settings.get('auto_replyto_mailinglist')
+        if auto_replyto_mailinglist and mail['List-Id']:
+            self.listreply = True
 
         # set From-header and sending account
         try:
@@ -227,7 +232,8 @@ class ReplyCommand(Command):
                 to = mail['To']
             logging.debug('mail list reply to: %s' % to)
             # Cleaning the 'To' in this case
-            envelope.__delitem__('To')
+            if envelope.get('To') is not None:
+                envelope.__delitem__('To')
 
         # Finally setup the 'To' header
         envelope.add('To', decode_header(to))
