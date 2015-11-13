@@ -105,7 +105,8 @@ def determine_sender(mail, action='reply'):
 
 @registerCommand(MODE, 'reply', arguments=[
     (['--all'], {'action': 'store_true', 'help': 'reply to all'}),
-    (['--list'], {'action': 'store_true', 'dest': 'listreply', 'help': 'reply to list'}),
+    (['--list'], {'action': BooleanAction, 'default': None,
+                  'dest': 'listreply', 'help': 'reply to list'}),
     (['--spawn'], {'action': BooleanAction, 'default': None,
                    'help': 'open editor in new window'})])
 class ReplyCommand(Command):
@@ -113,7 +114,7 @@ class ReplyCommand(Command):
     """reply to message"""
     repeatable = True
 
-    def __init__(self, message=None, all=False, listreply=False, spawn=None, **kwargs):
+    def __init__(self, message=None, all=False, listreply=None, spawn=None, **kwargs):
         """
         :param message: message to reply to (defaults to selected message)
         :type message: `alot.db.message.Message`
@@ -168,8 +169,14 @@ class ReplyCommand(Command):
 
         # Auto-detect ML
         auto_replyto_mailinglist = settings.get('auto_replyto_mailinglist')
-        if auto_replyto_mailinglist and mail['List-Id']:
+        if mail['List-Id'] and self.listreply == None:
+            # mail['List-Id'] is need to enable reply-to-list
+            self.listreply = auto_replyto_mailinglist
+        elif mail['List-Id'] and self.listreply == True:
             self.listreply = True
+        elif self.listreply == False:
+            # In this case we only need the sender
+            self.listreply = False
 
         # set From-header and sending account
         try:
