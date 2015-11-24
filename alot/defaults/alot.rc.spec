@@ -218,6 +218,9 @@ followup_to = boolean(default=False)
 # The list of addresses associated to the mailinglists you are subscribed to
 mailinglists = force_list(default=list())
 
+# Automatically switch to list reply mode if appropriate
+auto_replyto_mailinglist = boolean(default=False)
+
 # prefer plaintext alternatives over html content in multipart/alternative
 prefer_plaintext = boolean(default=False)
 
