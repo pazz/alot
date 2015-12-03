@@ -7,9 +7,13 @@ config. Per default this points to :file:`~/.config/alot/hooks.py`.
 
 .. rubric:: Pre/Post Command Hooks
 
-For every :ref:`COMMAND <usage.commands>` in mode :ref:`MODE <modes>`, the callables :func:`pre_MODE_COMMAND` and :func:`post_MODE_COMMAND`
--- if defined -- will be called before and after the command is applied respectively. The signature for the
-pre-`send` hook in envelope mode for example looks like this:
+For every :ref:`COMMAND <usage.commands>` in mode :ref:`MODE <modes>`, the
+callables :func:`pre_MODE_COMMAND` and :func:`post_MODE_COMMAND` -- if defined
+-- will be called before and after the command is applied respectively.  In
+addition callables :func:`pre_global_COMMAND` and :func:`post_global_COMMAND`
+can be used. They will be called if no specific hook function for a mode is
+defined. The signature for the pre-`send` hook in envelope mode for example
+looks like this:
 
 .. py:function:: pre_envelope_send(ui=None, dbm=None, cmd=None)
 
