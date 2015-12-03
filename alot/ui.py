@@ -5,10 +5,10 @@ import urwid
 import logging
 from twisted.internet import reactor, defer
 
-from settings import settings
-from buffers import BufferlistBuffer
-from commands import commandfactory
-from commands import CommandCanceled
+from .settings import settings
+from .buffers import BufferlistBuffer
+from .commands import commandfactory
+from .commands import CommandCanceled
 from alot.commands import CommandParseError
 from alot.helper import split_commandline
 from alot.helper import string_decode

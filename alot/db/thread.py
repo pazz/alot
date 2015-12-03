@@ -3,7 +3,7 @@
 # For further details see the COPYING file
 from datetime import datetime
 
-from message import Message
+from .message import Message
 from alot.settings import settings
 
 

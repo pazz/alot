@@ -13,9 +13,9 @@ from twisted.internet import reactor
 
 from collections import deque
 
-from message import Message
+from .message import Message
 from alot.settings import settings
-from thread import Thread
+from .thread import Thread
 from .errors import DatabaseError
 from .errors import DatabaseLockedError
 from .errors import DatabaseROError

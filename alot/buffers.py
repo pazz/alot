@@ -6,11 +6,11 @@ import os
 from notmuch import NotmuchError
 import logging
 
-from settings import settings
-import commands
-from walker import PipeWalker
-from helper import shorten_author_string
-from db.errors import NonexistantObjectError
+from .settings import settings
+from . import commands
+from .walker import PipeWalker
+from .helper import shorten_author_string
+from .db.errors import NonexistantObjectError
 
 from alot.widgets.globals import TagWidget
 from alot.widgets.globals import HeadersList

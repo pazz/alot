@@ -14,7 +14,7 @@ from alot.settings import settings
 from alot.utils.booleanaction import BooleanAction
 from alot.helper import split_commandline
 from alot.addressbook import AddressbookError
-from errors import CompletionError
+from .errors import CompletionError
 
 
 class Completer(object):

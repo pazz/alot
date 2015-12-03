@@ -3,7 +3,7 @@
 # For further details see the COPYING file
 from configobj import ConfigObj, ConfigObjError, flatten_errors
 from validate import Validator
-from errors import ConfigError
+from .errors import ConfigError
 from urwid import AttrSpec
 
 
