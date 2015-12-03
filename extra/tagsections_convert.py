@@ -46,7 +46,7 @@ if __name__ == "__main__":
 
     cfg = ConfigObj(args.configfile)
     out = args.out
-    print args
+    print(args)
 
     def is_256(att):
         r = r'(g\d{1,3}(?!\d))|(#[0-9A-Fa-f]{3}(?![0-9A-Fa-f]))'
