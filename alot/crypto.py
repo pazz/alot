@@ -3,7 +3,10 @@
 # For further details see the COPYING file
 import os
 
-from cStringIO import StringIO
+try:
+    from io import StringIO
+except ImportError:
+    from cStringIO import StringIO
 from alot.errors import GPGProblem, GPGCode
 import gpgme
 

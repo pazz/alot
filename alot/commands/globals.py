@@ -12,7 +12,10 @@ from twisted.internet.defer import inlineCallbacks
 import logging
 import argparse
 import glob
-from StringIO import StringIO
+try:
+    from io import StringIO
+except ImportError:
+    from cStringIO import StringIO
 
 from alot.commands import Command, registerCommand
 from alot.completion import CommandLineCompleter

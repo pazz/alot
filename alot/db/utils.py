@@ -11,8 +11,10 @@ charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 from email.iterators import typed_subpart_iterator
 import logging
 import mailcap
-from cStringIO import StringIO
-
+try:
+    from io import StringIO
+except ImportError:
+    from cStringIO import StringIO
 import alot.crypto as crypto
 import alot.helper as helper
 from alot.errors import GPGProblem
