@@ -409,7 +409,8 @@ class CommandCompleter(Completer):
                                                                    localpos)
 
                         # prepend 'set ' + header and correct position
-                        def f((completed, pos)):
+                        def f(completed_pos):
+                            (completed, pos) = completed_pos
                             return ('%s %s' % (header, completed),
                                     pos + len(header) + 1)
                         res = map(f, res)
