@@ -5,11 +5,6 @@
 from datetime import timedelta
 from datetime import datetime
 from collections import deque
-try:
-    from io import StringIO
-except ImportError:
-    from cStringIO import StringIO
-
 import logging
 import mimetypes
 import os
@@ -18,6 +13,7 @@ import shlex
 import subprocess
 import email
 from email.generator import Generator
+import sys
 from email.mime.audio import MIMEAudio
 from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
@@ -30,6 +26,18 @@ from twisted.internet import reactor
 from twisted.internet.protocol import ProcessProtocol
 from twisted.internet.defer import Deferred
 
+if sys.version_info[0] == 2:  # pragma: nocover
+    VERSION = 2
+    unicode_type = unicode  # NOQA
+    bytes_type = str
+    from cStringIO import StringIO
+
+else:  # pragma: nocover
+    VERSION = 3
+    unicode_type = str
+    bytes_type = bytes
+    from io import StringIO
+
 
 def split_commandline(s, comments=False, posix=True):
     """
@@ -40,7 +48,7 @@ def split_commandline(s, comments=False, posix=True):
     s = s.replace('\'', '\\\'')
     s = s.replace('\"', '\\\"')
     # encode s to utf-8 for shlex
-    if isinstance(s, unicode):
+    if isinstance(s, unicode_type) and VERSION == 2:
         s = s.encode('utf-8')
     lex = shlex.shlex(s, posix=posix)
     lex.whitespace_split = True
@@ -56,7 +64,7 @@ def split_commandstring(cmdstring):
     and the like. This simply calls shlex.split but works also with unicode
     bytestrings.
     """
-    if isinstance(cmdstring, unicode):
+    if isinstance(cmdstring, unicode_type) and VERSION == 2:
         cmdstring = cmdstring.encode('utf-8', errors='ignore')
     return shlex.split(cmdstring)
 
@@ -127,7 +135,7 @@ def string_decode(string, enc='ascii'):
     if enc is None:
         enc = 'ascii'
     try:
-        string = unicode(string, enc, errors='replace')
+        string = unicode_type(string, enc, errors='replace')
     except LookupError:  # malformed enc string
         string = string.decode('ascii', errors='replace')
     except TypeError:  # already unicode

@@ -5,14 +5,20 @@
 """
 This contains alot-specific :class:`urwid.Widget` used in more than one mode.
 """
-import re
 import operator
+import re
+import sys
 import urwid
 
 from ..helper import string_decode, tag_cmp
 from ..settings import settings
 from ..db.attachment import Attachment
 from ..errors import CompletionError
+
+if sys.version_info[0] == 2:  # pragma: nocover
+    unicode_type = unicode  # NOQA
+else:  # pragma: nocover
+    unicode_type = str
 
 
 class AttachmentWidget(urwid.WidgetWrap):
@@ -124,7 +130,7 @@ class CompleteEdit(urwid.Edit):
         self.history = list(history)  # we temporarily add stuff here
         self.historypos = None
 
-        if not isinstance(edit_text, unicode):
+        if not isinstance(edit_text, unicode_type):
             edit_text = string_decode(edit_text)
         self.start_completion_pos = len(edit_text)
         self.completions = None
