@@ -514,7 +514,7 @@ class ChangeDisplaymodeCommand(Command):
                     msg = msgt.get_message()
                     return msg.matches(self.query)
 
-                messagetrees = filter(matches, messagetrees)
+                messagetrees = list(filter(matches, messagetrees))
 
         for mt in messagetrees:
             # determine new display values for this message
@@ -1053,7 +1053,7 @@ class TagCommand(Command):
 
             tbuffer.refresh()
 
-        tags = filter(lambda x: x, self.tagsstring.split(','))
+        tags = [x for x in self.tagsstring.split(',') if x]
         try:
             for mt in messagetrees:
                 m = mt.get_message()

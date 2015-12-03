@@ -318,7 +318,7 @@ class SettingsManager(object):
         candidates = globalmaps.keys() + modemaps.keys()
         if prefix is not None:
             prefixs = prefix + ' '
-            cand = filter(lambda x: x.startswith(prefixs), candidates)
+            cand = [x for x in candidates if x.startswith(prefixs)]
             if prefix in candidates:
                 candidates = cand + [prefix]
             else:
