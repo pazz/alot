@@ -177,7 +177,7 @@ def commandfactory(cmdline, mode='global'):
         args = split_commandstring(cmdline)
     except ValueError as e:
         raise CommandParseError(e.message)
-    args = map(lambda x: alot.helper.string_decode(x, 'utf-8'), args)
+    args = [alot.helper.string_decode(x, 'utf-8') for x in args]
     logging.debug('ARGS: %s' % args)
     cmdname = args[0]
     args = args[1:]
