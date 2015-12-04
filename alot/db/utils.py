@@ -13,8 +13,10 @@ import logging
 import mailcap
 try:
     from io import StringIO
+    unicode_type = str
 except ImportError:
     from cStringIO import StringIO
+    unicode_type = unicode
 
 from .. import crypto
 from .. import helper
@@ -148,7 +150,7 @@ def message_from_file(handle):
                 sigs = crypto.verify_detached(m.get_payload(0).as_string(),
                                               m.get_payload(1).get_payload())
             except GPGProblem as e:
-                malformed = unicode(e)
+                malformed = unicode_type(e)
 
         add_signature_headers(m, sigs, malformed)
 
@@ -184,7 +186,7 @@ def message_from_file(handle):
                 # the combined method is used, currently this prevents
                 # the interpretation of the recovered plain text
                 # mail. maybe that's a feature.
-                malformed = unicode(e)
+                malformed = unicode_type(e)
             else:
                 # parse decrypted message
                 n = message_from_string(d)

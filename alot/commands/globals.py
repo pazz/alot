@@ -11,9 +11,11 @@ import subprocess
 try:
     from io import StringIO
     from email.utils import parseaddr
+    unicode_type = str
 except ImportError:
     from cStringIO import StringIO
     from email.Utils import parseaddr
+    unicode_type = unicode
 
 import urwid
 from twisted.internet.defer import inlineCallbacks
@@ -188,7 +190,7 @@ class ExternalCommand(Command):
         """
         logging.debug({'spawn': spawn})
         # make sure cmd is a list of str
-        if isinstance(cmd, unicode):
+        if isinstance(cmd, unicode_type):
             # convert cmdstring to list: in case shell==True,
             # Popen passes only the first item in the list to $SHELL
             cmd = [cmd] if shell else split_commandstring(cmd)
@@ -227,7 +229,7 @@ class ExternalCommand(Command):
         stdin = None
         if self.stdin is not None:
             # wrap strings in StrinIO so that they behaves like a file
-            if isinstance(self.stdin, unicode):
+            if isinstance(self.stdin, unicode_type):
                 stdin = StringIO(self.stdin)
             else:
                 stdin = self.stdin
