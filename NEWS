@@ -1,6 +1,7 @@
 master:
 * switched to setuptools
 * detached urwidtrees library into separate project (and new dependency)
+* new "exit" hook, called just before the program shuts down
 
 0.3.6:
 * implement vim-style "move last" command (bound to G)
