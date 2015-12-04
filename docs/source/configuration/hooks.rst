@@ -174,3 +174,7 @@ Apart from command pre- and posthooks, the following hooks will be interpreted:
     :type buf: alot.buffer.Buffer
     :param success: true if successfully focused buffer
     :type success: boolean
+
+.. py:function:: exit()
+
+    run just before the program exits
