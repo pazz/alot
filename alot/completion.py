@@ -150,7 +150,7 @@ class QueryCompleter(Completer):
                 resultlist.append((newtext, newpos))
             return resultlist
         else:
-            matched = [t for t in self.keywords if t.startswith(myprefix)]
+            matched = filter(lambda t: t.startswith(myprefix), self.keywords)
             resultlist = []
             for keyword in matched:
                 newprefix = original[:start] + keyword + ':'

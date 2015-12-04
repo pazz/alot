@@ -835,7 +835,7 @@ class ComposeCommand(Command):
         if settings.get('compose_ask_tags'):
             comp = TagsCompleter(ui.dbman)
             tagsstring = yield ui.prompt('Tags', completer=comp)
-            tags = [x for x in tagsstring.split(',') if x]
+            tags = filter(lambda x: x, tagsstring.split(','))
             if tags is None:
                 raise CommandCanceled()
 

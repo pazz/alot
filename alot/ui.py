@@ -423,7 +423,7 @@ class UI(object):
         :type t: alot.buffers.Buffer
         :rtype: list
         """
-        return [x for x in self.buffers if isinstance(x, t)]
+        return filter(lambda x: isinstance(x, t), self.buffers)
 
     def clear_notify(self, messages):
         """

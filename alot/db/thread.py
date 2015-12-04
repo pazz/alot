@@ -141,8 +141,8 @@ class Thread(object):
             self._authors = []
             seen = {}
             msgs = self.get_messages().keys()
-            msgs_with_date = [m for m in msgs if m.get_date() is not None]
-            msgs_without_date = [m for m in msgs if m.get_date() is None]
+            msgs_with_date = filter(lambda m: m.get_date() is not None, msgs)
+            msgs_without_date = filter(lambda m: m.get_date() is None, msgs)
             # sort messages with date and append the others
             msgs_with_date.sort(None, lambda m: m.get_date())
             msgs = msgs_with_date + msgs_without_date
