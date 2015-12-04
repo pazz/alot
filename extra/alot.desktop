@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=alot
+Categories=Office;Email;ConsoleOnly;
+GenericName=Email client
+Comment=Terminal MUA using notmuch mail
+Exec=alot compose %u
+Terminal=true
+Type=Application
+MimeType=x-scheme-handler/mailto;
