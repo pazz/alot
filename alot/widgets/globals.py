@@ -9,7 +9,7 @@ import re
 import operator
 import urwid
 
-from ..helper import string_decode
+from ..helper import string_decode, tag_cmp
 from ..settings import settings
 from ..db.attachment import Attachment
 from ..errors import CompletionError
@@ -310,3 +310,6 @@ class TagWidget(urwid.AttrMap):
 
     def set_unfocussed(self):
         self.set_attr_map(self.attmap['normal'])
+
+    def __lt__(self, other):
+        return tag_cmp(self.translated, other.translated)

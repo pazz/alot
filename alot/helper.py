@@ -520,9 +520,19 @@ def tag_cmp(a, b):
     beginning. This groups all tags mapped to unicode characters.
     '''
     if min(len(a), len(b)) == 1 and max(len(a), len(b)) > 1:
-        return cmp(len(a), len(b))
+        if len(a) > len(b):
+            return 1
+        elif len(a) == len(b):
+            return 0
+        else:
+            return -1
     else:
-        return cmp(a.lower(), b.lower())
+        if a > b:
+            return 1
+        elif a == b:
+            return 0
+        else:
+            return -1
 
 
 def humanize_size(size):
