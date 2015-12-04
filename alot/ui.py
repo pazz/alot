@@ -140,6 +140,7 @@ class UI(object):
             keyseq = ' '.join(self.input_queue)
             candidates = settings.get_mapped_input_keysequences(self.mode,
                                                                 prefix=keyseq)
+            candidates = list(candidates)
             if keyseq in candidates:
                 # case: current input queue is a mapped keysequence
                 # get binding and interpret it if non-null

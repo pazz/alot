@@ -7,6 +7,7 @@ import re
 import mailcap
 import logging
 from configobj import ConfigObj, Section
+from itertools import chain
 
 from ..account import SendmailAccount
 from ..addressbook.abook import AbookAddressBook
@@ -319,7 +320,7 @@ class SettingsManager(object):
             prefixs = prefix + ' '
             cand = filter(lambda x: x.startswith(prefixs), candidates)
             if prefix in candidates:
-                candidates = cand + [prefix]
+                candidates = chain(cand, [prefix])
             else:
                 candidates = cand
         return candidates
