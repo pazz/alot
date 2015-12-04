@@ -4,10 +4,11 @@
 import os
 import email
 import email.charset as charset
-from email.header import Header
-from email.iterators import typed_subpart_iterator
 import tempfile
 import re
+import sys
+from email.header import Header
+from email.iterators import typed_subpart_iterator
 import logging
 import mailcap
 try:
@@ -25,6 +26,11 @@ from ..helper import parse_mailcap_nametemplate
 from ..helper import split_commandstring
 
 charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
+
+if sys.version_info < (3, 0, 0):
+    VERSION = 2
+else:
+    VERSION = 3
 
 X_SIGNATURE_VALID_HEADER = 'X-Alot-OpenPGP-Signature-Valid'
 X_SIGNATURE_MESSAGE_HEADER = 'X-Alot-OpenPGP-Signature-Message'
@@ -366,10 +372,11 @@ def decode_header(header, normalize=False):
     # If the value isn't ascii as RFC2822 prescribes,
     # we just return the unicode bytestring as is
     value = string_decode(header)  # convert to unicode
-    try:
-        value = value.encode('ascii')
-    except UnicodeEncodeError:
-        return value
+    if VERSION == 2:
+        try:
+            value = value.encode('ascii')
+        except UnicodeEncodeError:
+            return value
 
     # some mailers send out incorrectly escaped headers
     # and double quote the escaped realname part again. remove those
