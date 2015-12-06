@@ -142,17 +142,17 @@ def shorten_author_string(authors_string, maxlength):
         between first and next authors is added.
 
     >>> authors = u'King Kong, Mucho Muchacho, Jaime Huerta, Flash Gordon'
-    >>> print shorten_author_string(authors, 60)
+    >>> print(shorten_author_string(authors, 60))
     King Kong, Mucho Muchacho, Jaime Huerta, Flash Gordon
-    >>> print shorten_author_string(authors, 40)
+    >>> print(shorten_author_string(authors, 40))
     King, Mucho, Jaime, Flash
-    >>> print shorten_author_string(authors, 20)
+    >>> print(shorten_author_string(authors, 20))
     King, …, Jai…, Flash
-    >>> print shorten_author_string(authors, 10)
+    >>> print(shorten_author_string(authors, 10))
     King, …
-    >>> print shorten_author_string(authors, 2)
+    >>> print(shorten_author_string(authors, 2))
     K…
-    >>> print shorten_author_string(authors, 1)
+    >>> print(shorten_author_string(authors, 1))
     K
     """
 
