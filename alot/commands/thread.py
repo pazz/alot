@@ -1084,3 +1084,31 @@ class TagCommand(Command):
         # flush index
         if self.flush:
             ui.apply_command(FlushCommand())
+
+
+@registerCommand(MODE, 'jump', help='jump to next/previous message '
+                                    'matching a query',
+                 arguments=[(['query'], {'nargs': '?',
+                                         'help': 'search string'}),
+                            (['--backwards'], {'action': 'store_true',
+                                               'help': 'jump backwards'})
+                           ])
+class JumpCommand(Command):
+
+    def __init__(self, query=None, backwards=False, **kwargs):
+        self.query = query
+        self.backwards = backwards
+
+    def apply(self, ui):
+        tbuffer = ui.current_buffer
+        if self.query:
+            logging.debug('setting subquery to ' + self.query)
+            tbuffer.current_subquery = self.query
+        elif hasattr(tbuffer, 'current_subquery'):
+            self.query = tbuffer.current_subquery
+        else:
+            return
+
+        direction = 'previous' if self.backwards else 'next'
+        movement = [direction, 'matching', self.query]
+        ui.apply_command(MoveFocusCommand(movement=movement))
