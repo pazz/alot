@@ -84,5 +84,6 @@ q = exit
     ' ' = move next
 
     / = prompt 'jump '
+    ? = prompt 'jump --backwards '
     n = jump
     N = jump --backwards
