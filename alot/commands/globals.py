@@ -654,8 +654,9 @@ class ComposeCommand(Command):
         :param headers: forced header values
         :type headers: dict (str->str)
         :param template: name of template to parse into the envelope after
-                         creation. This should be the name of a file in your
-                         template_dir
+                         creation. This can either be a path relative to the
+                         current working directory or the name of a file in
+                         your template_dir
         :type template: str
         :param sender: From-header value
         :type sender: str
@@ -706,29 +707,29 @@ class ComposeCommand(Command):
             else:
                 self.envelope = Envelope()
         if self.template is not None:
+            # Try a local file first
+            if os.path.isfile(self.template):
+                path = self.template
+            else:
             # get location of tempsdir, containing msg templates
-            tempdir = settings.get('template_dir')
-            tempdir = os.path.expanduser(tempdir)
-            if not tempdir:
-                xdgdir = os.environ.get('XDG_CONFIG_HOME',
-                                        os.path.expanduser('~/.config'))
-                tempdir = os.path.join(xdgdir, 'alot', 'templates')
+                tempdir = settings.get('template_dir')
+                tempdir = os.path.expanduser(tempdir)
+                if not tempdir:
+                    xdgdir = os.environ.get('XDG_CONFIG_HOME',
+                                            os.path.expanduser('~/.config'))
+                    tempdir = os.path.join(xdgdir, 'alot', 'templates')
 
-            path = os.path.expanduser(self.template)
-            if not os.path.dirname(path):  # use tempsdir
-                if not os.path.isdir(tempdir):
-                    ui.notify('no templates directory: %s' % tempdir,
-                              priority='error')
-                    return
-                path = os.path.join(tempdir, path)
-
-            if not os.path.isfile(path):
-                ui.notify('could not find template: %s' % path,
-                          priority='error')
-                return
+                path = os.path.expanduser(self.template)
+                if not os.path.dirname(path):  # use tempsdir
+                    if not os.path.isdir(tempdir):
+                        ui.notify('no templates directory: %s' % tempdir,
+                                  priority='error')
+                        return
             try:
-                self.envelope.parse_template(open(path).read())
+                contents = open(path)
+                self.envelope.parse_template(contents)
             except Exception as e:
+                logging.debug(e)
                 ui.notify(str(e), priority='error')
                 return
 

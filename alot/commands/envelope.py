@@ -10,6 +10,7 @@ import email
 import tempfile
 from twisted.internet.defer import inlineCallbacks
 import datetime
+from StringIO import StringIO
 
 from alot.account import SendingMailFailed, StoreMailError
 from alot.errors import GPGProblem, GPGCode
@@ -323,15 +324,15 @@ class EditCommand(Command):
 
             # get input
             # tempfile will be removed on buffer cleanup
-            f = open(self.envelope.tmpfile.name)
-            enc = settings.get('editor_writes_encoding')
-            template = string_decode(f.read(), enc)
-            f.close()
+            template = open(self.envelope.tmpfile.name)
 
             # call post-edit translate hook
             translate = settings.get_hook('post_edit_translate')
             if translate:
-                template = translate(template, ui=ui, dbm=ui.dbman)
+                enc = settings.get('editor_writes_encoding')
+                tmp_content = string_decode(template.read(), enc)
+                template.close()
+                template = IOString(translate(tmp_content, ui=ui, dbm=ui.dbman))
             self.envelope.parse_template(template,
                                          only_body=self.edit_only_body)
             if self.openNew:
@@ -346,7 +347,7 @@ class EditCommand(Command):
             vlist = self.envelope.get_all(key)
             if not vlist:
                 # ensure editable headers are present in template
-                vlist = ['']
+                vlist = [u'']
             else:
                 # remove to be edited lines from envelope
                 del self.envelope[key]
@@ -354,13 +355,13 @@ class EditCommand(Command):
             for value in vlist:
                 # newlines (with surrounding spaces) by spaces in values
                 value = value.strip()
-                value = re.sub('[ \t\r\f\v]*\n[ \t\r\f\v]*', ' ', value)
-                headertext += '%s: %s\n' % (key, value)
+                value = re.sub(u'[ \t\r\f\v]*\n[ \t\r\f\v]*', u' ', value)
+                headertext += u'{}: {}\n'.format(key, value)
 
         # determine editable content
         bodytext = self.envelope.body
         if headertext:
-            content = '%s\n%s' % (headertext, bodytext)
+            content = headertext+u'\n'+bodytext
             self.edit_only_body = False
         else:
             content = bodytext
@@ -378,7 +379,7 @@ class EditCommand(Command):
         self.envelope.tmpfile = tempfile.NamedTemporaryFile(delete=False,
                                                             prefix='alot.',
                                                             suffix='.eml')
-        self.envelope.tmpfile.write(content.encode('utf-8'))
+        self.envelope.tmpfile.write(content.encode(settings.get('editor_writes_encoding')))
         self.envelope.tmpfile.flush()
         self.envelope.tmpfile.close()
         if old_tmpfile:

@@ -5,12 +5,14 @@ import os
 import email
 import re
 import glob
+from StringIO import StringIO
 import email.charset as charset
 charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 from email.encoders import encode_7or8bit
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
+from email.parser import Parser
 
 from alot import __version__
 import logging
@@ -65,6 +67,8 @@ class Envelope(object):
         """
         logging.debug('TEMPLATE: %s' % template)
         if template:
+            if (isinstance(template, basestring)):
+                template = StringIO(template)
             self.parse_template(template)
             logging.debug('PARSED TEMPLATE: %s' % template)
             logging.debug('BODY: %s' % self.body)
@@ -277,50 +281,32 @@ class Envelope(object):
 
         return outer_msg
 
-    def parse_template(self, tmp, reset=False, only_body=False):
+    def parse_template(self, fd, reset=False, only_body=False):
         """parses a template or user edited string to fills this envelope.
 
-        :param tmp: the string to parse.
-        :type tmp: str
+        :param fd: the file to parse.
+        :type fd: file object
         :param reset: remove previous envelope content
         :type reset: bool
         """
-        logging.debug('GoT: """\n%s\n"""' % tmp)
-
         if self.sent_time:
             self.modified_since_sent = True
 
         if only_body:
-            self.body = tmp
+            self.body = unicode(fd.read())
         else:
-            m = re.match('(?P<h>([a-zA-Z0-9_-]+:.+\n)*)\n?(?P<b>(\s*.*)*)',
-                         tmp)
-            assert m
-
-            d = m.groupdict()
-            headertext = d['h']
-            self.body = d['b']
-
-            # remove existing content
+            m = Parser().parse(fd)
             if reset:
                 self.headers = {}
+
+            enc = m.get_charset() or settings.get('editor_writes_encoding')
+            self.body = m.get_payload().decode(enc)
 
             # go through multiline, utf-8 encoded headers
             # we decode the edited text ourselves here as
             # email.message_from_file can't deal with raw utf8 header values
-            key = value = None
-            for line in headertext.splitlines():
-                if re.match('[a-zA-Z0-9_-]+:', line):  # new k/v pair
-                    if key and value:  # save old one from stack
-                        self.add(key, value)  # save
-                    key, value = line.strip().split(':', 1)  # parse new pair
-                    # strip spaces, otherwise we end up having " foo" as value
-                    # of "Subject: foo"
-                    value = value.strip()
-                elif key and value:  # append new line without key prefix
-                    value += line
-            if key and value:  # save last one if present
-                self.add(key, value)
+            for k,v in m.items():
+                self.add(k.decode(enc), v.decode(enc))
 
             # interpret 'Attach' pseudo header
             if 'Attach' in self:
