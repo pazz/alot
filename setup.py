@@ -33,5 +33,5 @@ setup(name='alot',
         'python-magic',
         'configobj>=4.7.0',
         'pygpgme>=0.2'],
-      provides='alot',
+      provides=['alot'],
       )
