@@ -178,3 +178,19 @@ Apart from command pre- and posthooks, the following hooks will be interpreted:
 .. py:function:: exit()
 
     run just before the program exits
+
+.. py:function:: sanitize_attachment_filename(filename=None, prefix='', suffix='')
+
+    returns `prefix` and `suffix` for a sanitized filename to use while
+    opening an attachment.
+    The `prefix` and `suffix` are used to open a file named
+    `prefix` + `XXXXXX` + `suffix` in a temporary directory. 
+
+    :param filename: filename provided in the email (can be None)
+    :type filename: str or None
+    :param prefix: prefix string as found on mailcap
+    :type prefix: str
+    :param suffix: suffix string as found on mailcap
+    :type suffix: str
+    :returns: tuple of `prefix` and `suffix`
+    :rtype: (str, str)
