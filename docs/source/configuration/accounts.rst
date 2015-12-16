@@ -13,6 +13,7 @@ Here is an example configuration
         [[work]]
             realname = Bruce Wayne
             address = b.wayne@wayneenterprises.com
+            alias_regexp = b.wayne\+.+@wayneenterprises.com
             gpg_key = D7D6C5AA
             sendmail_command = msmtp --account=wayne -t
             sent_box = maildir:///home/bruce/mail/work/Sent

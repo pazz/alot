@@ -72,11 +72,13 @@ def determine_sender(mail, action='reply'):
     # pick the most important account that has an address in candidates
     # and use that accounts realname and the address found here
     for account in my_accounts:
-        acc_addresses = account.get_addresses()
+        acc_addresses = map(re.escape, account.get_addresses())
+        if account.alias_regexp is not None:
+            acc_addresses.append(account.alias_regexp)
         for alias in acc_addresses:
             if realname is not None:
                 break
-            regex = re.compile(re.escape(alias), flags=re.IGNORECASE)
+            regex = re.compile('^' + alias + '$', flags=re.IGNORECASE)
             for seen_name, seen_address in candidate_addresses:
                 if regex.match(seen_address):
                     logging.debug("match!: '%s' '%s'" % (seen_address, alias))
