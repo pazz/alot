@@ -282,6 +282,9 @@ prefer_plaintext = boolean(default=False)
         # Outgoing messages will be GPG signed by default if this is set to True.
         sign_by_default = boolean(default=False)
 
+        # Outgoing messages will be GPG encrypted by default if this is set to True.
+        encrypt_by_default = boolean(default=False)
+
         # The GPG key ID you want to use with this account. If unset, alot will
         # use your default key.
         gpg_key = gpg_key_hint(default=None)

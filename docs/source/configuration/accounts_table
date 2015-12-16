@@ -123,6 +123,16 @@
     :default: False
 
 
+.. _encrypt-by-default:
+
+.. describe:: encrypt_by_default
+
+     Outgoing messages will be GPG encrypted by default if this is set to True.
+
+    :type: boolean
+    :default: False
+
+
 .. _gpg-key:
 
 .. describe:: gpg_key
