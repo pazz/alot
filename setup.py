@@ -23,7 +23,7 @@ setup(name='alot',
                             ]},
       entry_points={
           'console_scripts':
-              ['alot = alot.init:main'],
+              ['alot = alot.__main__:main'],
       },
       install_requires=[
         'notmuch>=0.13',

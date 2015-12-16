@@ -190,5 +190,5 @@ def main():
     if exit_hook is not None:
         exit_hook()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
