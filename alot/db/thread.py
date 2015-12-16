@@ -39,7 +39,8 @@ class Thread(object):
             subject = thread.get_subject()
         elif subject_type == 'oldest':
             try:
-                subject = list(thread.get_toplevel_messages())[0].get_header('subject')
+                first_msg = list(thread.get_toplevel_messages())[0]
+                subject = first_msg.get_header('subject')
             except IndexError:
                 subject = ''
         self._subject = subject
@@ -186,7 +187,7 @@ class Thread(object):
                     aname = settings.get('thread_authors_me')
                 if not aname:
                     aname = aaddress
-                if not aname in authorslist:
+                if aname not in authorslist:
                     authorslist.append(aname)
             return ', '.join(authorslist)
         else:

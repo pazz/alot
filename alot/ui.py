@@ -187,13 +187,8 @@ class UI(object):
         def apply_this_command(ignored, cmdstring):
             logging.debug('%s command string: "%s"' % (self.mode,
                                                        str(cmdstring)))
-            #logging.debug('CMDSEQ: apply %s' % str(cmdstring))
             # translate cmdstring into :class:`Command`
-            #try:
             cmd = commandfactory(cmdstring, self.mode)
-            #except CommandParseError, e:
-             #   self.notify(e.message, priority='error')
-              #  return
             # store cmdline for use with 'repeat' command
             if cmd.repeatable:
                 self.last_commandline = cmdline

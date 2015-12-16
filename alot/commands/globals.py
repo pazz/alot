@@ -266,11 +266,6 @@ class ExternalCommand(Command):
             afterwards(ret)
 
 
-#@registerCommand(MODE, 'edit', arguments=[
-# (['--nospawn'], {'action': 'store_true', 'help':'spawn '}), #todo
-#    (['path'], {'help':'file to edit'})]
-#]
-#)
 class EditCommand(ExternalCommand):
 
     """edit a file"""
@@ -752,7 +747,7 @@ class ComposeCommand(Command):
             self.envelope.add('Bcc', ','.join(self.bcc))
 
         # get missing From header
-        if not 'From' in self.envelope.headers:
+        if 'From' not in self.envelope.headers:
             accounts = settings.get_accounts()
             if len(accounts) == 1:
                 a = accounts[0]
@@ -824,7 +819,7 @@ class ComposeCommand(Command):
             self.envelope.add('To', to.strip(' \t\n,'))
 
         if settings.get('ask_subject') and \
-                not 'Subject' in self.envelope.headers:
+                'Subject' not in self.envelope.headers:
             subject = yield ui.prompt('Subject')
             logging.debug('SUBJECT: "%s"' % subject)
             if subject is None:

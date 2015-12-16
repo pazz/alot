@@ -114,13 +114,15 @@ class ReplyCommand(Command):
     """reply to message"""
     repeatable = True
 
-    def __init__(self, message=None, all=False, listreply=None, spawn=None, **kwargs):
+    def __init__(self, message=None, all=False, listreply=None, spawn=None,
+                 **kwargs):
         """
         :param message: message to reply to (defaults to selected message)
         :type message: `alot.db.message.Message`
         :param all: group reply; copies recipients from Bcc/Cc/To to the reply
         :type all: bool
-        :param listreply: reply to list; autodetect if unset and enabled in config
+        :param listreply: reply to list; autodetect if unset and enabled in
+                          config
         :type listreply: bool
         :param spawn: force spawning of editor in a new terminal
         :type spawn: bool
@@ -169,12 +171,12 @@ class ReplyCommand(Command):
 
         # Auto-detect ML
         auto_replyto_mailinglist = settings.get('auto_replyto_mailinglist')
-        if mail['List-Id'] and self.listreply == None:
+        if mail['List-Id'] and self.listreply is None:
             # mail['List-Id'] is need to enable reply-to-list
             self.listreply = auto_replyto_mailinglist
-        elif mail['List-Id'] and self.listreply == True:
+        elif mail['List-Id'] and self.listreply is True:
             self.listreply = True
-        elif self.listreply == False:
+        elif self.listreply is False:
             # In this case we only need the sender
             self.listreply = False
 
