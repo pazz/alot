@@ -185,5 +185,10 @@ def main():
     # set up and start interface
     UI(dbman, cmdstring)
 
+    # run the exit hook
+    exit_hook = settings.get_hook('exit')
+    if exit_hook is not None:
+        exit_hook()
+
 if __name__ == '__main__':
     main()
