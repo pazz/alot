@@ -926,6 +926,13 @@ class OpenAttachmentCommand(Command):
             if '%s' in handler_raw_commandstring:
                 nametemplate = entry.get('nametemplate', '%s')
                 prefix, suffix = parse_mailcap_nametemplate(nametemplate)
+
+                fn_hook = settings.get_hook('sanitize_attachment_filename')
+                if fn_hook:
+                    # get filename
+                    filename = self.attachment.get_filename()
+                    prefix, suffix = fn_hook(filename, prefix, suffix)
+
                 tmpfile = tempfile.NamedTemporaryFile(delete=False,
                                                       prefix=prefix,
                                                       suffix=suffix)
