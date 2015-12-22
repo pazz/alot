@@ -281,3 +281,140 @@ class Thread(object):
                                                             subquery=query)
         num_matches = self._dbman.count_messages(thread_query)
         return num_matches > 0
+
+
+class SingleMessageDummyThread(Thread):
+    """
+    A wrapper that provides the same interface as
+    :class:`alot.db.thread.Thread`, but containing information about a single
+    message in the thread.  Used for "unthreaded" view of a search query.
+    """
+
+    def __init__(self, dbman, message):
+        """
+        :param dbman: db manager that is used for further lookups
+        :type dbman: :class:`~alot.db.DBManager`
+        :param message: the wrapped message
+        :type message: :class:`alot.db.Message`
+        """
+        self._dbman = dbman
+        self._id = message.get_thread_id()
+        self._mid = message.get_message_id()
+        self.message = message
+        self.refresh()
+
+    def refresh(self):
+        """refresh message metadata from the index"""
+        self._total_messages = 1
+        self._notmuch_authors_string = self.message.get_author()[0]
+
+        self._subject = self.message._subject
+        self._authors = None
+        self._oldest_date = self._newest_date = self.message.get_date()
+
+        self._tags = set(self.message.get_tags())
+        self._messages = {}  # this maps messages to its children
+        self._toplevel_messages = []
+
+    def __str__(self):
+        return "id:%s: %s" % (self._mid, self.get_subject())
+
+    def get_thread_id(self):
+        """returns id of the thread this message belongs to"""
+        return self._id
+
+    def get_tags(self, intersection=False):
+        """
+        returns a list of strings representing the tags attached to this
+        message
+
+        :rtype: set of str
+        """
+        return set(self.message.get_tags())
+
+    def add_tags(self, tags, afterwards=None, remove_rest=False):
+        """
+        add `tags` to this message
+
+        .. note::
+
+            This only adds the requested operation to this objects
+            :class:`DBManager's <alot.db.DBManager>` write queue.
+            You need to call :meth:`DBManager.flush <alot.db.DBManager.flush>`
+            to actually write out.
+
+        :param tags: a list of tags to be added
+        :type tags: list of str
+        :param afterwards: callback that gets called after successful
+                           application of this tagging operation
+        :type afterwards: callable
+        :param remove_rest: remove all other tags
+        :type remove_rest: bool
+        """
+        def myafterwards():
+            if remove_rest:
+                self._tags = set(tags)
+            else:
+                self._tags = self._tags.union(tags)
+            if callable(afterwards):
+                afterwards()
+
+        self._dbman.tag('id:' + self._mid, tags, afterwards=myafterwards,
+                        remove_rest=remove_rest)
+
+    def remove_tags(self, tags, afterwards=None):
+        """
+        remove `tags` (list of str) from this message
+
+        .. note::
+
+            This only adds the requested operation to this objects
+            :class:`DBManager's <alot.db.DBManager>` write queue.
+            You need to call :meth:`DBManager.flush <alot.db.DBManager.flush>`
+            to actually write out.
+
+        :param tags: a list of tags to be removed
+        :type tags: list of str
+        :param afterwards: callback that gets called after successful
+                           application of this tagging operation
+        :type afterwards: callable
+        """
+        rmtags = set(tags).intersection(self._tags)
+        if rmtags:
+
+            def myafterwards():
+                self._tags = self._tags.difference(tags)
+                if callable(afterwards):
+                    afterwards()
+            self._dbman.untag('id:' + self._mid, tags, myafterwards)
+            self._tags = self._tags.difference(rmtags)
+
+    def get_authors(self):
+        """
+        returns a list of authors (name, addr) of the message.
+
+        :rtype: list of (str, str)
+        """
+        return [self.message.get_author()]
+
+    def get_subject(self):
+        """returns subject string"""
+        return self._subject
+
+    def get_total_messages(self):
+        """returns number of contained messages"""
+        return 1
+
+    def matches(self, query):
+        """
+        Check if this thread matches the given notmuch query.
+
+        :param query: The query to check against
+        :type query: string
+        :returns: True if this thread matches the given query, False otherwise
+        :rtype: bool
+        """
+        thread_query = 'id:{mid} AND {subquery}'.format(mid=self._mid,
+                                                        subquery=query)
+        num_matches = self._dbman.count_messages(thread_query)
+        return num_matches > 0

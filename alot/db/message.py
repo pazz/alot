@@ -36,6 +36,7 @@ class Message(object):
         self._id = msg.get_message_id()
         self._thread_id = msg.get_thread_id()
         self._thread = thread
+        self._subject = msg.get_header('Subject')
         casts_date = lambda: datetime.fromtimestamp(msg.get_date())
         self._datetime = helper.safely_get(casts_date,
                                            ValueError, None)

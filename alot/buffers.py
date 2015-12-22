@@ -211,6 +211,7 @@ class SearchBuffer(Buffer):
                 'newest_first': 'oldest_first'}
 
     def __init__(self, ui, initialquery='', sort_order=None):
+        self._threaded = settings.get('threaded')
         self.dbman = ui.dbman
         self.ui = ui
         self.querystring = initialquery
@@ -257,9 +258,14 @@ class SearchBuffer(Buffer):
         else:
             order = self.sort_order
 
+        if self._threaded:
+            func = self.dbman.get_threads
+        else:
+            func = self.dbman.get_messages
         try:
-            self.pipe, self.proc = self.dbman.get_threads(self.querystring,
-                                                          order)
+
+            self.pipe, self.proc = func(self.querystring,
+                                        order)
         except NotmuchError:
             self.ui.notify('malformed query string: %s' % self.querystring,
                            'error')

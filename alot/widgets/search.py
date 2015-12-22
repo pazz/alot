@@ -18,9 +18,10 @@ class ThreadlineWidget(urwid.AttrMap):
     selectable line widget that represents a :class:`~alot.db.Thread`
     in the :class:`~alot.buffers.SearchBuffer`.
     """
-    def __init__(self, tid, dbman):
+    def __init__(self, id, dbman):
+        self._threaded = settings.get('threaded')
         self.dbman = dbman
-        self.tid = tid
+        self.id = id
         self.thread = None  # will be set by refresh()
         self.tag_widgets = []
         self.structure = None
@@ -60,11 +61,14 @@ class ThreadlineWidget(urwid.AttrMap):
             part = AttrFlipWidget(urwid.Text(datestring), struct['date'])
 
         elif name == 'mailcount':
-            if self.thread:
-                mailcountstring = "(%d)" % self.thread.get_total_messages()
+            if self._threaded:
+                if self.thread:
+                    mailcountstring = "(%d)" % self.thread.get_total_messages()
+                else:
+                    mailcountstring = "(?)"
+                mailcountstring = pad(mailcountstring)
             else:
-                mailcountstring = "(?)"
-            mailcountstring = pad(mailcountstring)
+                mailcountstring = ' '
             width = len(mailcountstring)
             mailcount_w = AttrFlipWidget(urwid.Text(mailcountstring),
                                          struct['mailcount'])
@@ -133,7 +137,8 @@ class ThreadlineWidget(urwid.AttrMap):
         return width, part
 
     def rebuild(self):
-        self.thread = self.dbman.get_thread(self.tid)
+        self.thread = self.dbman.get_thread(self.id,
+                                            dummy=(not self._threaded))
         self.widgets = []
         columns = []
         self.structure = settings.get_threadline_theming(self.thread)

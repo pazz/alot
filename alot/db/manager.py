@@ -15,7 +15,7 @@ from collections import deque
 
 from message import Message
 from alot.settings import settings
-from thread import Thread
+from thread import Thread, SingleMessageDummyThread
 from .errors import DatabaseError
 from .errors import DatabaseLockedError
 from .errors import DatabaseROError
@@ -278,9 +278,13 @@ class DBManager(object):
             errmsg = 'no thread with id %s exists!' % tid
             raise NonexistantObjectError(errmsg)
 
-    def get_thread(self, tid):
+    def get_thread(self, id, dummy=False):
         """returns :class:`Thread` with given thread id (str)"""
-        return Thread(self, self._get_notmuch_thread(tid))
+        if dummy:
+            m = Message(self, self._get_notmuch_message(id))
+            return SingleMessageDummyThread(self, m)
+        else:
+            return Thread(self, self._get_notmuch_thread(id))
 
     def _get_notmuch_message(self, mid):
         """returns :class:`notmuch.database.Message` with given id"""
@@ -385,6 +389,25 @@ class DBManager(object):
         q = self.query(querystring)
         q.set_sort(self._sort_orders[sort])
         return self.async(q.search_threads, (lambda a: a.get_thread_id()))
+
+    def get_messages(self, querystring, sort='newest_first'):
+        """
+        asynchronously look up thread ids matching `querystring`.
+
+        :param querystring: The query string to use for the lookup
+        :type querystring: str.
+        :param sort: Sort order. one of ['oldest_first', 'newest_first',
+                     'message_id', 'unsorted']
+        :type query: str
+        :returns: a pipe together with the process that asynchronously
+                  writes to it.
+        :rtype: (:class:`multiprocessing.Pipe`,
+                :class:`multiprocessing.Process`)
+        """
+        assert sort in self._sort_orders.keys()
+        q = self.query(querystring)
+        q.set_sort(self._sort_orders[sort])
+        return self.async(q.search_messages, (lambda a: a.get_message_id()))
 
     def query(self, querystring):
         """
