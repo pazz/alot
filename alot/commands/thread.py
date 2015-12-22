@@ -1013,7 +1013,7 @@ class ThreadSelectCommand(Command):
         if isinstance(focus, AttachmentWidget):
             logging.info('open attachment')
             ui.apply_command(OpenAttachmentCommand(focus.get_attachment()))
-        else:
+        elif settings.get('threaded') != 'no':
             ui.apply_command(ChangeDisplaymodeCommand(visible='toggle'))
 
 
