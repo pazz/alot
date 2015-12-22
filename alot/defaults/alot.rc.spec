@@ -1,5 +1,5 @@
 # show search results in threaded mode (versus individual messages)
-threaded = boolean(default=True)
+threaded = option('yes', 'semi', 'no', default='yes')
 
 # ask for subject when compose
 ask_subject = boolean(default=True)

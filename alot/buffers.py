@@ -258,7 +258,7 @@ class SearchBuffer(Buffer):
         else:
             order = self.sort_order
 
-        if self._threaded:
+        if self._threaded == 'yes':
             func = self.dbman.get_threads
         else:
             func = self.dbman.get_messages

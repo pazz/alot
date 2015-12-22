@@ -61,7 +61,7 @@ class ThreadlineWidget(urwid.AttrMap):
             part = AttrFlipWidget(urwid.Text(datestring), struct['date'])
 
         elif name == 'mailcount':
-            if self._threaded:
+            if self._threaded == 'yes':
                 if self.thread:
                     mailcountstring = "(%d)" % self.thread.get_total_messages()
                 else:
@@ -138,7 +138,7 @@ class ThreadlineWidget(urwid.AttrMap):
 
     def rebuild(self):
         self.thread = self.dbman.get_thread(self.id,
-                                            dummy=(not self._threaded))
+                                            dummy=(self._threaded != 'yes'))
         self.widgets = []
         columns = []
         self.structure = settings.get_threadline_theming(self.thread)

@@ -33,7 +33,7 @@ class OpenThreadCommand(Command):
         if not self.thread:
             self.thread = ui.current_buffer.get_selected_thread()
         if self.thread:
-            if settings.get('threaded'):
+            if settings.get('threaded') != 'semi':
                 query = ui.current_buffer.querystring
                 logging.info('open thread view for %s' % self.thread)
 

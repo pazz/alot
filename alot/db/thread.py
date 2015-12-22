@@ -297,6 +297,7 @@ class SingleMessageDummyThread(Thread):
         :param message: the wrapped message
         :type message: :class:`alot.db.Message`
         """
+        self._threaded = settings.get('threaded')
         self._dbman = dbman
         self._id = message.get_thread_id()
         self._mid = message.get_message_id()
@@ -396,6 +397,42 @@ class SingleMessageDummyThread(Thread):
         :rtype: list of (str, str)
         """
         return [self.message.get_author()]
+
+    def get_toplevel_messages(self):
+        """
+        returns all toplevel messages contained in this thread.
+        This are all the messages without a parent message
+        (identified by 'in-reply-to' or 'references' header.
+
+        :rtype: list of :class:`~alot.db.message.Message`
+        """
+        if self._threaded == 'semi':
+            return Thread.get_toplevel_messages(self)
+        return [self.message]
+
+    def get_messages(self):
+        """
+        returns all messages in this thread as dict mapping all contained
+        messages to their direct responses.
+
+        :rtype: dict mapping :class:`~alot.db.message.Message` to a list of
+                :class:`~alot.db.message.Message`.
+        """
+        if self._threaded == 'semi':
+            return Thread.get_messages(self)
+        return {self.message: []}
+
+    def get_replies_to(self, msg):
+        """
+        returns all replies to the given message contained in this thread.
+
+        :param msg: parent message to look up
+        :type msg: :class:`~alot.db.message.Message`
+        :returns: list of :class:`~alot.db.message.Message` or `None`
+        """
+        if self._threaded == 'semi':
+            return Thread.get_replies_to(self, msg)
+        return []
 
     def get_subject(self):
         """returns subject string"""
