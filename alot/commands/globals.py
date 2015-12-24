@@ -801,7 +801,8 @@ class ComposeCommand(Command):
             self.envelope.sign_key = account.gpg_key
 
         # get missing To header
-        if 'To' not in self.envelope.headers:
+        if (settings.get('ask_to') and
+                'To' not in self.envelope.headers):
             allbooks = not settings.get('complete_matching_abook_only')
             logging.debug(allbooks)
             if account is not None:
@@ -815,17 +816,19 @@ class ComposeCommand(Command):
                                  completer=completer)
             if to is None:
                 raise CommandCanceled()
+        else:
+            to = ''
+        self.envelope.add('To', to.strip(' \t\n,'))
 
-            self.envelope.add('To', to.strip(' \t\n,'))
-
-        if settings.get('ask_subject') and \
-                'Subject' not in self.envelope.headers:
+        if (settings.get('ask_subject') and
+                'Subject' not in self.envelope.headers):
             subject = yield ui.prompt('Subject')
             logging.debug('SUBJECT: "%s"' % subject)
             if subject is None:
                 raise CommandCanceled()
-
-            self.envelope.add('Subject', subject)
+        else:
+            subject = ''
+        self.envelope.add('Subject', subject)
 
         if settings.get('compose_ask_tags'):
             comp = TagsCompleter(ui.dbman)
