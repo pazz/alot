@@ -28,6 +28,7 @@ charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 
 GPG_AGENT_RE = re.compile(r"GPG_AGENT_INFO=(?P<whole>.*?:(?P<pid>\d*):\d*;)")
 
+
 class Envelope(object):
 
     """a message that is not yet sent and still editable.
@@ -190,9 +191,11 @@ class Envelope(object):
         # start a new gpg-agent, always
         if self.sign or self.encrypt:
             try:
-                _gpg_agent_match = GPG_AGENT_RE.match(subprocess.check_output(['gpg-agent','--daemon']))
+                _gpg_agent_str = subprocess.check_output(['gpg-agent',
+                                                          '--daemon'])
+                _gpg_agent_match = GPG_AGENT_RE.match(_gpg_agent_str)
                 if _gpg_agent_match is None:
-                    raise Exception # knock us into except branch
+                    raise Exception  # knock us into except branch
                 _gpg_agent_info = _gpg_agent_match.groupdict()
                 os.environ['GPG_AGENT_INFO'] = _gpg_agent_info['whole']
             except:
