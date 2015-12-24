@@ -106,6 +106,15 @@ class SettingsManager(object):
 
         self._accounts = self._parse_accounts(self._config)
         self._accountmap = self._account_table(self._accounts)
+        self.custom_headers = self._parse_custom_headers(self._config)
+
+    def _parse_custom_headers(self, config):
+        """
+        read in custom headers from config file
+        """
+        if 'custom_headers' not in config:
+            return {}
+        return {k:v for (k,v) in config['custom_headers'].iteritems()}
 
     def _parse_accounts(self, config):
         """

@@ -830,6 +830,10 @@ class ComposeCommand(Command):
             subject = ''
         self.envelope.add('Subject', subject)
 
+        # add custom headers
+        for (k, v) in settings.custom_headers.iteritems():
+            self.envelope.add(k, v)
+
         if settings.get('compose_ask_tags'):
             comp = TagsCompleter(ui.dbman)
             tagsstring = yield ui.prompt('Tags', completer=comp)
