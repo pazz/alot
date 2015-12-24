@@ -343,7 +343,9 @@ class EditCommand(Command):
 
         # decode header
         headertext = u''
-        for key in edit_headers:
+        for key in self.envelope.headers:
+            if key not in edit_headers:
+                continue
             vlist = self.envelope.get_all(key)
             if not vlist:
                 # ensure editable headers are present in template
