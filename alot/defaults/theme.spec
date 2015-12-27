@@ -46,6 +46,7 @@
             width = widthtuple(default=None)
             alignment = align(default=None)
 [thread]
+    arrow_tip_char = string(default=None)
     arrow_heads = attrtriple
     arrow_bars = attrtriple
     attachment = attrtriple

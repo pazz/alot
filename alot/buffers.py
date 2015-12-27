@@ -363,11 +363,13 @@ class ThreadBuffer(Buffer):
 
         bars_att = settings.get_theming_attribute('thread', 'arrow_bars')
         heads_att = settings.get_theming_attribute('thread', 'arrow_heads')
+        arrow_tip_char = settings.get_theme_arrow_tip_char()
         A = ArrowTree(self._tree,
                       indent=2,
                       childbar_offset=0,
                       arrow_tip_att=heads_att,
                       arrow_att=bars_att,
+                      arrow_tip_char=arrow_tip_char
                       )
         self._nested_tree = NestedTree(A, interpret_covered=True)
         self.body = TreeBox(self._nested_tree)
