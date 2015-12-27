@@ -19,6 +19,7 @@ from alot.completion import CommandLineCompleter
 from alot.commands import CommandCanceled
 from alot.commands.utils import get_keys
 from alot import buffers
+from alot.db.account import Account
 from alot.widgets.utils import DialogBox
 from alot import helper
 from alot.db.errors import DatabaseLockedError
@@ -477,6 +478,21 @@ class OpenBufferlistCommand(Command):
         else:
             bl = buffers.BufferlistBuffer(ui, self.filtfun)
             ui.buffer_open(bl)
+
+
+@registerCommand(MODE, 'folders')
+class OpenFolderlistCommand(Command):
+    """ display a tree view of maildir folders """
+    def apply(self, ui):
+        f_buffers = ui.get_buffers_of_type(buffers.FolderTreeBuffer)
+        if f_buffers:
+            ui.buffer_focus(f_buffers[0])
+        else:
+            account = Account(
+                ui.dbman,
+            )
+            folder_buffer = buffers.FolderTreeBuffer(ui, account)
+            ui.buffer_open(folder_buffer)
 
 
 @registerCommand(MODE, 'taglist', arguments=[

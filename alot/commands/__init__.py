@@ -37,6 +37,7 @@ COMMANDS = {
     'search': {},
     'envelope': {},
     'bufferlist': {},
+    'folders': {},
     'taglist': {},
     'thread': {},
     'global': {},
