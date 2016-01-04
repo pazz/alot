@@ -2,7 +2,7 @@
 
 
 class Folder(object):
-    """ wrappar on top of notmuch query for a folder """
+    """ wrapper on top of notmuch query for a folder """
 
     def __init__(self, dbman, folder_name, rel_path):
         self.dbman = dbman
