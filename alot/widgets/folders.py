@@ -75,8 +75,8 @@ class FoldersTree(Tree):
         self._next_sibling_of[last] = None
 
     def next_unread(self, pos):
-       folder = self._folders[pos].folder
-       return self._account.get_next_unread(folder).get_id()
+        folder = self._folders[pos].folder
+        return self._account.get_next_unread(folder).get_id()
 
     def previous_unread(self, pos):
         folder = self._folders[pos].folder
