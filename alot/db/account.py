@@ -9,7 +9,7 @@ from alot.settings import settings
 
 class Account(object):
     """
-    represents IMAP account with maildir folders
+    Account represents a collection of folders defined in notmuch config at database -> path
     """
 
     def __init__(self, dbman):
