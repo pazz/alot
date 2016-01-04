@@ -30,9 +30,9 @@ class FolderWidget(urwid.WidgetWrap):
         return key
 
 
-class AccountTree(Tree):
+class FoldersTree(Tree):
     """
-    Implementation of Tree interface for Account
+    Implementation of Tree interface for maildir folders
     """
     def __init__(self, account):
         self._account = account

@@ -5,7 +5,7 @@ import urwid
 import os
 from notmuch import NotmuchError
 import logging
-from alot.widgets.account import AccountTree
+from alot.widgets.folders import FoldersTree
 
 from settings import settings
 import commands
@@ -146,7 +146,7 @@ class FolderTreeBuffer(Buffer):
         focused_now = self.get_focused()
         self.account.refresh()
 
-        self._tree = AccountTree(self.account)
+        self._tree = FoldersTree(self.account)
 
         bars_att = settings.get_theming_attribute('folders', 'arrow_bars')
         heads_att = settings.get_theming_attribute('folders', 'arrow_heads')
