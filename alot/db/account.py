@@ -19,27 +19,31 @@ class Account(object):
         """
         logging.debug("initializing Account")
         self._dbman = dbman
-        self._init_vars()
+
+        # these variables are initialized every time get_fs_folders is called
+        # list of paths
+        self._folders_list = None
+        # mapping between rel_path and class Folder
+        self._folder_mapping = None
+        # class Folder -> children
+        self._folders = None
+        # list of Folders
+        self._unread_folders = None
 
         try:
             self.root_folder = Folder(self._dbman, settings.get_main_addresses()[0], '')
         except TypeError:
             self.root_folder = Folder(self._dbman, "root", '')
 
-    def _init_vars(self):
-        """ initiate variables """
-        # list of paths
-        self._folders_list = []
-        # mapping between rel_path and class Folder
-        self._folder_mapping = {}
-        # class Folder -> children
-        self._folders = OrderedDict()
-        self._unread_folders = []
-
     def get_fs_folders(self):
         """
         find maildir folders on filesystem and create hierarchy out of it
         """
+        self._folders_list = []
+        self._folder_mapping = {}
+        self._folders = OrderedDict()
+        self._unread_folders = []
+
         all_dirs = self._dbman.get_all_folders()
         for d in all_dirs:
             try:
@@ -123,7 +127,6 @@ class Account(object):
 
     def refresh(self):
         """ refresh all folders """
-        self._init_vars()
         self.get_fs_folders()
         return self.get_folders()
 
