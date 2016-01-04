@@ -1,15 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import logging
-import datetime
 from collections import OrderedDict
 
-from alot.db.manager import DBManager
 from alot.db.folder import Folder
 from alot.settings import settings
-
-
-logging.basicConfig(level=logging.DEBUG)
 
 
 class Account(object):
@@ -45,7 +40,6 @@ class Account(object):
         """
         find maildir folders on filesystem and create hierarchy out of it
         """
-        n = datetime.datetime.now()
         all_dirs = self._dbman.get_all_folders()
         for d in all_dirs:
             try:
@@ -55,7 +49,6 @@ class Account(object):
             self._folders_list.append((d, basename))
         # it could make sense to make this configurable
         self._folders_list = sorted(self._folders_list, key=lambda y: y[0].lower())
-        logging.debug("maildir folders lookup took %s", datetime.datetime.now() - n)
 
     def get_root(self):
         return self.root_folder
@@ -136,12 +129,3 @@ class Account(object):
 
     def __str__(self):
         return "Account"
-
-
-if __name__ == '__main__':
-    import sys
-    logging.basicConfig(level=logging.DEBUG, stream=sys.stderr)
-    dbman = DBManager()
-    a = Account(dbman)
-    from pprint import pprint
-    pprint(a.refresh())
