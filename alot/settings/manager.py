@@ -164,7 +164,9 @@ class SettingsManager(object):
             accountmap[acc.address] = acc
             for alias in acc.aliases:
                 accountmap[alias] = acc
-        return accountmap
+        return dict((self._lower_address(addr), acc)
+                    for (addr, acc)
+                    in accountmap.iteritems())
 
     def get(self, key, fallback=None):
         """
@@ -394,6 +396,11 @@ class SettingsManager(object):
         """
         return self._accounts
 
+    def _lower_address(self, address):
+        base, domain = address.split('@',1)
+        return '%s@%s' % (base, domain.lower())
+
+
     def get_account_by_address(self, address):
         """
         returns :class:`Account` for a given email address (str)
@@ -402,6 +409,8 @@ class SettingsManager(object):
         :type address: string
         :rtype:  :class:`Account` or None
         """
+
+        address = self._lower_address(address)
 
         for myad in self.get_addresses():
             if myad in address:
