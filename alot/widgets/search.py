@@ -54,7 +54,8 @@ class ThreadlineWidget(urwid.AttrMap):
             datestring = ''
             if self.thread:
                 newest = self.thread.get_newest_date()
-                datestring = settings.represent_datetime(newest)
+                if newest != None:
+                    datestring = settings.represent_datetime(newest)
             datestring = pad(datestring)
             width = len(datestring)
             part = AttrFlipWidget(urwid.Text(datestring), struct['date'])
