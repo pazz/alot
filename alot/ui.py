@@ -641,6 +641,15 @@ class UI(object):
             d.addCallback(call_posthook)
             return d
     def handle_signal(self, signum, frame):
+        """
+        handles UNIX signals
+
+        This function currently just handles SIGUSR1. It could be extended to
+        handle more
+
+        :param signum: The signal number (see man 7 signal)
+        :param frame: The execution frame (https://docs.python.org/2/reference/datamodel.html#frame-objects)
+        """
         self.current_buffer.rebuild()
         self.update()
 
