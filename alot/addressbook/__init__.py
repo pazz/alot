@@ -15,7 +15,7 @@ class AddressBook(object):
 
         This is an abstract class that leaves :meth:`get_contacts`
         unspecified. See :class:`AbookAddressBook` and
-        :class:`MatchSdtoutAddressbook` for implementations.
+        :class:`ExternalAddressbook` for implementations.
     """
     def __init__(self, ignorecase=True):
         self.reflags = re.IGNORECASE if ignorecase else 0

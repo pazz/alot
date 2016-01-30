@@ -3,6 +3,7 @@
 # For further details see the COPYING file
 import urwid
 import logging
+import signal
 from twisted.internet import reactor, defer
 
 from settings import settings
@@ -67,6 +68,8 @@ class UI(object):
         global_att = settings.get_theming_attribute('global', 'body')
         mainframe = urwid.Frame(urwid.SolidFill())
         self.root_widget = urwid.AttrMap(mainframe, global_att)
+
+        signal.signal(signal.SIGUSR1, self.handle_signal)
 
         # set up main loop
         self.mainloop = urwid.MainLoop(self.root_widget,
@@ -637,3 +640,16 @@ class UI(object):
             d.addCallback(call_apply)
             d.addCallback(call_posthook)
             return d
+    def handle_signal(self, signum, frame):
+        """
+        handles UNIX signals
+
+        This function currently just handles SIGUSR1. It could be extended to
+        handle more
+
+        :param signum: The signal number (see man 7 signal)
+        :param frame: The execution frame (https://docs.python.org/2/reference/datamodel.html#frame-objects)
+        """
+        self.current_buffer.rebuild()
+        self.update()
+

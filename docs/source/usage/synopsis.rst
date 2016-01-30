@@ -16,6 +16,11 @@ Options
     --version                      Display version string and exit
     --help                         Display  help and exit
 
+UNIX Signals
+    SIGUSR1
+        Refreshes the current buffer. Useful for telling alot to refresh the
+        view from a mail downloader e.g. Offlineimap.
+
 
 Subommands
 
