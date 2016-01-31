@@ -770,55 +770,54 @@ class ComposeCommand(Command):
 
                 self.envelope.add('From', fromaddress)
 
-        # add signature
-        if not self.omit_signature:
-            name, addr = email.Utils.parseaddr(self.envelope['From'])
-            account = settings.get_account_by_address(addr)
-            if account is not None:
-                if account.signature:
-                    logging.debug('has signature')
-                    sig = os.path.expanduser(account.signature)
-                    if os.path.isfile(sig):
-                        logging.debug('is file')
-                        if account.signature_as_attachment:
-                            name = account.signature_filename or None
-                            self.envelope.attach(sig, filename=name)
-                            logging.debug('attached')
-                        else:
-                            sigcontent = open(sig).read()
-                            enc = helper.guess_encoding(sigcontent)
-                            mimetype = helper.guess_mimetype(sigcontent)
-                            if mimetype.startswith('text'):
-                                sigcontent = helper.string_decode(sigcontent,
-                                                                  enc)
-                                self.envelope.body += '\n' + sigcontent
-                    else:
-                        ui.notify('could not locate signature: %s' % sig,
-                                  priority='error')
-                        if (yield ui.choice('send without signature?', 'yes',
-                                            'no')) == 'no':
-                            return
-
-        # Figure out whether we should GPG sign messages by default
-        # and look up key if so
+        # find out the right account
         sender = self.envelope.get('From')
         name, addr = email.Utils.parseaddr(sender)
         account = settings.get_account_by_address(addr)
-        if account:
-            self.envelope.sign = account.sign_by_default
-            self.envelope.sign_key = account.gpg_key
+        if account is None:
+            accounts = settings.get_accounts()
+            if not accounts:
+                ui.notify('no accounts set.', priority='error')
+                return
+            account = accounts[0]
+
+        # add signature
+        if not self.omit_signature and account.signature:
+            logging.debug('has signature')
+            sig = os.path.expanduser(account.signature)
+            if os.path.isfile(sig):
+                logging.debug('is file')
+                if account.signature_as_attachment:
+                    name = account.signature_filename or None
+                    self.envelope.attach(sig, filename=name)
+                    logging.debug('attached')
+                else:
+                    sigcontent = open(sig).read()
+                    enc = helper.guess_encoding(sigcontent)
+                    mimetype = helper.guess_mimetype(sigcontent)
+                    if mimetype.startswith('text'):
+                        sigcontent = helper.string_decode(sigcontent, enc)
+                        self.envelope.body += '\n' + sigcontent
+            else:
+                ui.notify('could not locate signature: %s' % sig,
+                          priority='error')
+                if (yield ui.choice('send without signature?', 'yes',
+                                    'no')) == 'no':
+                    return
+
+        # Figure out whether we should GPG sign messages by default
+        # and look up key if so
+        self.envelope.sign = account.sign_by_default
+        self.envelope.sign_key = account.gpg_key
 
         # get missing To header
         if 'To' not in self.envelope.headers:
             allbooks = not settings.get('complete_matching_abook_only')
             logging.debug(allbooks)
-            if account is not None:
-                abooks = settings.get_addressbooks(order=[account],
-                                                   append_remaining=allbooks)
-                logging.debug(abooks)
-                completer = ContactsCompleter(abooks)
-            else:
-                completer = None
+            abooks = settings.get_addressbooks(order=[account],
+                                               append_remaining=allbooks)
+            logging.debug(abooks)
+            completer = ContactsCompleter(abooks)
             to = yield ui.prompt('To',
                                  completer=completer)
             if to is None:
