@@ -42,6 +42,16 @@ class ExitCommand(Command):
     @inlineCallbacks
     def apply(self, ui):
         msg = 'index not fully synced. ' if ui.db_was_locked else ''
+
+        # check if there are any unsent messages
+        for buffer in ui.buffers:
+            if (isinstance(buffer, buffers.EnvelopeBuffer) and
+                    not buffer.envelope.sent_time):
+                if (yield ui.choice('quit without sending message?',
+                                    select='yes', cancel='no',
+                                    msg_position='left') == 'no'):
+                    raise CommandCanceled()
+
         if settings.get('bug_on_exit') or ui.db_was_locked:
             msg += 'really quit?'
             if (yield ui.choice(msg, select='yes', cancel='no',
