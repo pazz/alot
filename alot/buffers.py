@@ -415,11 +415,17 @@ class ThreadBuffer(Buffer):
 
     def get_selected_messagetree(self):
         """returns currently focussed :class:`MessageTree`"""
-        return self._nested_tree[self.body.get_focus()[1][:1]]
+        msgtree = None
+        if self.message_count > 0:
+            msgtree = self._nested_tree[self.body.get_focus()[1][:1]]
+        return msgtree
 
     def get_selected_message(self):
         """returns focussed :class:`~alot.db.message.Message`"""
-        return self.get_selected_messagetree()._message
+        msg = None
+        if self.message_count > 0:
+            msg = self.get_selected_messagetree()._message
+        return msg
 
     def get_messagetree_positions(self):
         """
