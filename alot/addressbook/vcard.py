@@ -32,7 +32,7 @@ class VcardAddressbook(AddressBook):
             paths = [path]
         elif os.path.isdir(path):
             paths = []
-            for dirpath, dirnames, filenames in os.path.walk(path):
+            for dirpath, dirnames, filenames in os.walk(path):
                 for filename in filenames:
                     paths.append(os.path.join(dirpath, filename))
         else:
@@ -50,6 +50,7 @@ class VcardAddressbook(AddressBook):
                         elif "n" in keys:
                             name = vcard.getChildValue("n")
                             # TODO format name
+                            # TODO this fails with german umlaut
                             res.append((name.given + " " + name.family, email))
                         else:
                             res.append(("", email))

@@ -358,7 +358,7 @@ thread_focus_linewise = boolean(default=True)
         # address book for this account
         [[[abook]]]
             # type identifier for address book
-            type = option('shellcommand', 'abook', default=None)
+            type = option('shellcommand', 'abook', 'vcard', default=None)
 
             # make case-insensitive lookups
             ignorecase = boolean(default=True)
