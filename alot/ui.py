@@ -8,6 +8,7 @@ from twisted.internet import reactor, defer
 
 from settings import settings
 from buffers import BufferlistBuffer
+from commands import globals
 from commands import commandfactory
 from commands import CommandCanceled
 from alot.commands import CommandParseError
@@ -69,6 +70,7 @@ class UI(object):
         mainframe = urwid.Frame(urwid.SolidFill())
         self.root_widget = urwid.AttrMap(mainframe, global_att)
 
+        signal.signal(signal.SIGINT, self.handle_signal)
         signal.signal(signal.SIGUSR1, self.handle_signal)
 
         # set up main loop
@@ -650,6 +652,10 @@ class UI(object):
         :param signum: The signal number (see man 7 signal)
         :param frame: The execution frame (https://docs.python.org/2/reference/datamodel.html#frame-objects)
         """
+        # it is a SIGINT ?
+        if signum == signal.SIGINT:
+            logging.info('shut down cleanly')
+            self.apply_command(globals.ExitCommand())
         self.current_buffer.rebuild()
         self.update()
 
