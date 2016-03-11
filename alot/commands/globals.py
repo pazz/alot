@@ -853,6 +853,14 @@ class ComposeCommand(Command):
 
     @inlineCallbacks
     def _set_encrypt(self, ui, envelope):
+        """Find and set the encryption keys in an envolope.
+
+        :param ui: the main user interface object
+        :type ui: alot.ui.UI
+        :param envolope: the envolope buffer object
+        :type envolope: alot.buffers.EnvelopeBuffer
+
+        """
         encrypt_keys = []
         for recipient in envelope.headers['To'][0].split(','):
             if not recipient:

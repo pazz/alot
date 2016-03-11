@@ -219,10 +219,12 @@ def hash_key(key):
     """
     Returns a hash of the given key. This is a workaround for
     https://bugs.launchpad.net/pygpgme/+bug/1089865
-    and can be removed if the missing feature is added to pygpgme
+    and can be removed if the missing feature is added to pygpgme.
 
     :param key: the key we want a hash of
-    :rtype: a has of the key as string
+    :type key: gpgme.Key
+    :returns: a hash of the key
+    :rtype: str
     """
     hash_str = ""
     for tmp_key in key.subkeys:
@@ -231,6 +233,17 @@ def hash_key(key):
 
 
 def validate_key(key, sign=False, encrypt=False):
+    """Assert that a key is valide and optionally that it can be used for
+    signing or encrypting.  Raise GPGProblem otherwise.
+
+    :param key: the GPG key to check
+    :type key: gpgme.Key
+    :param sign: whether the key should be able to sign
+    :type sign: bool
+    :param encrypt: whether the key should be able to encrypt
+    :type encrypt: bool
+
+    """
     if key.revoked:
         raise GPGProblem("The key \"" + key.uids[0].uid + "\" is revoked.",
                          code=GPGCode.KEY_REVOKED)
