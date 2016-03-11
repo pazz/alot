@@ -851,8 +851,10 @@ class ComposeCommand(Command):
                     logging.debug('attaching: ' + a)
 
         # set encryption if needed
-        if self.encrypt or account.encrypt_by_default:
+        if self.encrypt or account.encrypt_by_default is True:
             yield self._set_encrypt(ui, self.envelope)
+        elif account.encrypt_by_default == "Valid":
+            yield self._set_encrypt(ui, self.envelope, trusted_only=True)
 
         cmd = commands.envelope.EditCommand(envelope=self.envelope,
                                             spawn=self.force_spawn,
@@ -860,13 +862,16 @@ class ComposeCommand(Command):
         ui.apply_command(cmd)
 
     @inlineCallbacks
-    def _set_encrypt(self, ui, envelope):
+    def _set_encrypt(self, ui, envelope, signed_only=False):
         """Find and set the encryption keys in an envolope.
 
         :param ui: the main user interface object
         :type ui: alot.ui.UI
         :param envolope: the envolope buffer object
         :type envolope: alot.buffers.EnvelopeBuffer
+        :param signed_only: only add keys to the list of encryption
+            keys whose uid is signed (trusted to belong to the key)
+        :type signed_only: bool
 
         """
         encrypt_keys = []
@@ -879,7 +884,8 @@ class ComposeCommand(Command):
             encrypt_keys.append(recipient)
 
         logging.debug("encryption keys: " + str(encrypt_keys))
-        keys = yield get_keys(ui, encrypt_keys, block_error=self.encrypt)
+        keys = yield get_keys(ui, encrypt_keys, block_error=self.encrypt,
+                              signed_only=signed_only)
         if keys:
             envelope.encrypt_keys.update(keys)
             envelope.encrypt = True
