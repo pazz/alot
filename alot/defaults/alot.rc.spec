@@ -229,7 +229,7 @@ prefer_plaintext = boolean(default=False)
 # messages in that thread.
 msg_summary_hides_threadwide_tags = boolean(default=True)
 
-# Key bindings 
+# Key bindings
 [bindings]
     __many__ = string(default=None)
     [[___many___]]
@@ -299,8 +299,21 @@ msg_summary_hides_threadwide_tags = boolean(default=True)
         # Outgoing messages will be GPG signed by default if this is set to True.
         sign_by_default = boolean(default=False)
 
-        # Outgoing messages will be GPG encrypted by default if this is set to True.
-        encrypt_by_default = boolean(default=False)
+	# Alot will try to GPG encrypt outgoing messages by default when this
+	# is set to `True` or `Valid`.  If set to `True` the message will be
+	# encrypted for all recipients if a key for all of them is available
+	# in the key ring.  If set to `Valid` it will be encrypted to all
+	# recipients if a valid key is available for all recipients.
+	# Otherwise (at least one key not available or not valid) the message
+	# will not be encrypted by default.
+	#
+	# .. note:: If the message will not be encrypted by default you can
+	#           still use the :ref:`toggleencrypt
+	#           <cmd.envelope.toggleencrypt>`, :ref:`encrypt
+	#           <cmd.envelope.encrypt>` and :ref:`unencrypt
+	#           <cmd.envelope.unencrypt>` commands to encrypt it.
+
+        encrypt_by_default = option('Valid', True, False, default=False)
 
         # The GPG key ID you want to use with this account. If unset, alot will
         # use your default key.
