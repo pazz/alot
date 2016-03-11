@@ -42,10 +42,10 @@ help:
 	@echo "  linkcheck  to check all external links for integrity"
 	@echo "  doctest    to run all doctests embedded in the documentation (if enabled)"
 
-$(COMMAND_OPTION_TABLES):
+$(COMMAND_OPTION_TABLES): ../alot/commands/__init__.py
 	python source/generate_commands.py
 
-$(CONFIG_OPTION_TABLES):
+$(CONFIG_OPTION_TABLES): ../alot/defaults/alot.rc.spec
 	python source/generate_configs.py
 
 clean:
