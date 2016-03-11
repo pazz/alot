@@ -9,6 +9,20 @@ from alot import crypto
 
 @inlineCallbacks
 def get_keys(ui, encrypt_keyids, block_error=False):
+    """Get several keys from the GPG keyring.  The keys are selected by keyid
+    and are checked if they can be used for encryption.
+
+    :param ui: the main user interface object
+    :type ui: alot.ui.UI
+    :param encrypt_keyids: the key ids of the keys to get
+    :type encrypt_keyids: list(str)
+    :param block_error: wether error messages for the user should expire
+        automatically or block the ui
+    :type block_error: bool
+    :returns: the available keys indexed by their key hash
+    :rtype: dict(str->gpgme.Key)
+
+    """
     keys = {}
     for keyid in encrypt_keyids:
         try:

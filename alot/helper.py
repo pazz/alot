@@ -560,9 +560,10 @@ def parse_mailto(mailto_str):
     Interpret mailto-string
 
     :param mailto_str: the string to interpret. Must conform to :rfc:2368.
-    :return: pair headers,body. headers is a dict mapping str to lists of
-        (str, body) is a str.
-    :rtype: (dict(str-->[str,..], str)
+    :type mailto_str: str
+    :return: the header fields and the body found in the mailto link as a tuple
+        of length two
+    :rtype: tuple(dict(str->list(str)), str)
     """
     if mailto_str.startswith('mailto:'):
         import urllib
