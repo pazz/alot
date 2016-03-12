@@ -543,14 +543,15 @@ class FlushCommand(Command):
         except DatabaseLockedError:
             timeout = settings.get('flush_retry_timeout')
 
-            def f(*args):
-                self.apply(ui)
-            ui.mainloop.set_alarm_in(timeout, f)
-            if not ui.db_was_locked:
-                if not self.silent:
-                    ui.notify(
-                        'index locked, will try again in %d secs' % timeout)
-                ui.db_was_locked = True
+            if timeout > 0:
+                def f(*args):
+                    self.apply(ui)
+                ui.mainloop.set_alarm_in(timeout, f)
+                if not ui.db_was_locked:
+                    if not self.silent:
+                        ui.notify(
+                            'index locked, will try again in %d secs' % timeout)
+                    ui.db_was_locked = True
             ui.update()
             return
 

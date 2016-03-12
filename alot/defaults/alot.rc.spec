@@ -85,7 +85,8 @@ edit_headers_whitelist = force_list(default=list(*,))
 # see :ref:`edit_headers_whitelist <edit-headers-whitelist>`
 edit_headers_blacklist = force_list(default=list(Content-Type,MIME-Version,References,In-Reply-To))
 
-# timeout in seconds after a failed attempt to writeout the database is repeated
+# timeout in seconds after a failed attempt to writeout the database is
+# repeated. Set to 0 for no retry.
 flush_retry_timeout = integer(default=5)
 
 # where to look up hooks
