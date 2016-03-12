@@ -887,11 +887,12 @@ class ComposeCommand(Command):
         """
         encrypt_keys = []
         for recipient in envelope.headers['To'][0].split(','):
+            recipient = recipient.strip()
             if not recipient:
                 continue
             match = re.search("<(.*@.*)>", recipient)
             if match:
-                recipient = match.group(0)
+                recipient = match.group(1)
             encrypt_keys.append(recipient)
 
         logging.debug("encryption keys: " + str(encrypt_keys))
