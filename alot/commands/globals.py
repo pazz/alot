@@ -41,15 +41,22 @@ class ExitCommand(Command):
     """shut down cleanly"""
     @inlineCallbacks
     def apply(self, ui):
-        msg = 'index not fully synced. ' if ui.db_was_locked else ''
-        if settings.get('bug_on_exit') or ui.db_was_locked:
-            msg += 'really quit?'
+        if settings.get('bug_on_exit'):
+            msg = 'really quit?'
             if (yield ui.choice(msg, select='yes', cancel='no',
                                 msg_position='left')) == 'no':
                 return
+
         for b in ui.buffers:
             b.cleanup()
-        ui.exit()
+        ui.apply_command(FlushCommand(callback=ui.exit))
+
+        if ui.db_was_locked:
+            msg = 'Database locked. Exit without saving?'
+            if (yield ui.choice(msg, select='yes', cancel='no',
+                                msg_position='left')) == 'no':
+                return
+            ui.exit()
 
 
 @registerCommand(MODE, 'search', usage='search query', arguments=[
