@@ -851,8 +851,7 @@ class ComposeCommand(Command):
                     logging.debug('attaching: ' + a)
 
         # set encryption if needed
-        if self.encrypt or account.encrypt_by_default == u"all" or \
-                account.encrypt_by_default == u"True":
+        if self.encrypt or account.encrypt_by_default == u"all":
             logging.debug("Trying to encrypt message because encrypt={} and "
                           "encrypt_by_default={}".format(
                               self.encrypt, account.encrypt_by_default))

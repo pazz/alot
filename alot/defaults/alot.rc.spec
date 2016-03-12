@@ -316,7 +316,7 @@ msg_summary_hides_threadwide_tags = boolean(default=True)
 	#           compatibility to give users a change to migrate to the new
 	#           option type.  They might become deprecated in future
 	#           versions.
-        encrypt_by_default = option('all', 'none', 'trusted', 'True', 'False', default='none')
+        encrypt_by_default = option('all', 'none', 'trusted', 'True', 'False', 'true', 'false', 'Yes', 'No', 'yes', 'no', '1', '0', default='none')
 
         # The GPG key ID you want to use with this account. If unset, alot will
         # use your default key.
