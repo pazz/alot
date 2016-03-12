@@ -54,7 +54,7 @@ class Account(object):
                  signature_filename=None, signature_as_attachment=False,
                  sent_box=None, sent_tags=['sent'], draft_box=None,
                  draft_tags=['draft'], abook=None, sign_by_default=False,
-                 encrypt_by_default=False,
+                 encrypt_by_default=u"none",
                  **rest):
         self.address = address
         self.aliases = aliases
@@ -71,6 +71,10 @@ class Account(object):
         self.draft_box = draft_box
         self.draft_tags = draft_tags
         self.abook = abook
+        if self.encrypt_by_default == u"True" or \
+                self.encrypt_by_default == u"False":
+            logging.debug("Deprecation warning: The format for the "
+                          "encrypt_by_default option changed.")
 
     def get_addresses(self):
         """return all email addresses connected to this account, in order of
