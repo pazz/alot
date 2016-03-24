@@ -107,11 +107,11 @@ def message_from_file(handle):
         if len(m.get_payload()) != 2:
             malformed = u'expected exactly two messages, got {0}'.format(
                 len(m.get_payload()))
-
-        ct = m.get_payload(1).get_content_type()
-        if ct != app_pgp_sig:
-            malformed = u'expected Content-Type: {0}, got: {1}'.format(
-                app_pgp_sig, ct)
+        else:
+            ct = m.get_payload(1).get_content_type()
+            if ct != app_pgp_sig:
+                malformed = u'expected Content-Type: {0}, got: {1}'.format(
+                    app_pgp_sig, ct)
 
         # TODO: RFC 3156 says the alg has to be lower case, but I've
         # seen a message with 'PGP-'. maybe we should be more
