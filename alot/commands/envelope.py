@@ -492,6 +492,8 @@ class SignCommand(Command):
                     ui.notify(e.message, priority='error')
                     return
                 envelope.sign_key = key
+        else:
+            envelope.sign_key = None
 
         # reload buffer
         ui.current_buffer.rebuild()
