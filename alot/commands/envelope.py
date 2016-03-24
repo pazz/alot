@@ -500,6 +500,7 @@ class SignCommand(Command):
 
 
 @registerCommand(MODE, 'encrypt', forced={'action': 'encrypt'}, arguments=[
+    (['--trusted'], {'action': 'store_true', 'help': 'only add trusted keys'}),
     (['keyids'], {'nargs': argparse.REMAINDER,
                   'help': 'keyid of the key to encrypt with'})],
     help='request encryption of message before sendout')
@@ -507,6 +508,8 @@ class SignCommand(Command):
                  help='remove request to encrypt message before sending')
 @registerCommand(MODE, 'toggleencrypt', forced={'action': 'toggleencrypt'},
                  arguments=[
+                     (['--trusted'], {'action': 'store_true',
+                                      'help': 'only add trusted keys'}),
                      (['keyids'], {'nargs': argparse.REMAINDER,
                       'help': 'keyid of the key to encrypt with'})],
                  help='toggle if message should be encrypted before sendout')
@@ -516,16 +519,19 @@ class SignCommand(Command):
                       'help': 'keyid of the key to encrypt with'})],
                  help='do not encrypt to given recipient key')
 class EncryptCommand(Command):
-    def __init__(self, action=None, keyids=None, **kwargs):
+    def __init__(self, action=None, keyids=None, trusted=False, **kwargs):
         """
         :param action: wether to encrypt/unencrypt/toggleencrypt
         :type action: str
         :param keyid: the id of the key to encrypt
         :type keyid: str
+        :param trusted: wether to filter keys and only use trusted ones
+        :type trusted: bool
         """
 
         self.encrypt_keys = keyids
         self.action = action
+        self.trusted = trusted
         Command.__init__(self, **kwargs)
 
     @inlineCallbacks
@@ -556,11 +562,15 @@ class EncryptCommand(Command):
                         continue
                     match = re.search("<(.*@.*)>", recipient)
                     if match:
-                        recipient = match.group(0)
+                        recipient = match.group(1)
                     self.encrypt_keys.append(recipient)
 
             logging.debug("encryption keys: " + str(self.encrypt_keys))
-            keys = yield get_keys(ui, self.encrypt_keys)
+            keys = yield get_keys(ui, self.encrypt_keys,
+                                  signed_only=self.trusted)
+            if self.trusted:
+                logging.debug("filtered encrytion keys: " +
+                              " ".join(x.uids[0].uid for x in keys.values()))
             if keys:
                 envelope.encrypt_keys.update(keys)
             else:
