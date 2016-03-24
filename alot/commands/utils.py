@@ -19,8 +19,8 @@ def get_keys(ui, encrypt_keyids, block_error=False, signed_only=False):
     :param block_error: wether error messages for the user should expire
         automatically or block the ui
     :type block_error: bool
-    :param signed_only: only return keys  whose uid is signed (trusted to
-        belong to the key)
+    :param signed_only: only return keys whose uid is signed (trusted to belong
+        to the key)
     :type signed_only: bool
     :returns: the available keys indexed by their key hash
     :rtype: dict(str->gpgme.Key)
