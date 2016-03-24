@@ -575,5 +575,9 @@ class EncryptCommand(Command):
                 envelope.encrypt_keys.update(keys)
             else:
                 envelope.encrypt = False
+        if not envelope.encrypt:
+            # This is an extra conditional as it can even happen if encrypt is
+            # True.
+            envelope.encrypt_keys = {}
         # reload buffer
         ui.current_buffer.rebuild()
