@@ -42,7 +42,17 @@ def add_signature_headers(mail, sigs, error_msg):
         error_msg = error_msg or 'no signature found'
     else:
         try:
-            sig_from = crypto.get_key(sigs[0].fpr).uids[0].uid
+            key = crypto.get_key(sigs[0].fpr)
+            for uid in key.uids:
+                if crypto.check_uid_validity(key, uid.email):
+                    sig_from = uid.uid
+                    uid_trusted = True
+                    break
+            else:
+                # No trusted uid found, we did not break but drop from the
+                # for loop.
+                uid_trusted = False
+                sig_from = key.uids[0].uid
         except:
             sig_from = sigs[0].fpr
 
@@ -54,7 +64,9 @@ def add_signature_headers(mail, sigs, error_msg):
         X_SIGNATURE_MESSAGE_HEADER,
         u'Invalid: {0}'.format(error_msg)
         if error_msg else
-        u'Valid: {0}'.format(sig_from),
+        u'Valid: {0}'.format(sig_from)
+        if uid_trusted else
+        u'Untrusted: {0}'.format(sig_from)
     )
 
 
