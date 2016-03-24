@@ -300,20 +300,23 @@ msg_summary_hides_threadwide_tags = boolean(default=True)
         sign_by_default = boolean(default=False)
 
 	# Alot will try to GPG encrypt outgoing messages by default when this
-	# is set to `True` or `Valid`.  If set to `True` the message will be
-	# encrypted for all recipients if a key for all of them is available
-	# in the key ring.  If set to `Valid` it will be encrypted to all
-	# recipients if a valid key is available for all recipients.
-	# Otherwise (at least one key not available or not valid) the message
-	# will not be encrypted by default.
+	# is set to `all` or `trusted`.  If set to `all` the message will be
+	# encrypted for all recipients for who a key is available in the key
+	# ring.  If set to `trusted` it will be encrypted to all
+	# recipients if a trusted key is available for all recipients (one
+	# where the user id for the key is signed with a trusted signature).
 	#
 	# .. note:: If the message will not be encrypted by default you can
 	#           still use the :ref:`toggleencrypt
 	#           <cmd.envelope.toggleencrypt>`, :ref:`encrypt
 	#           <cmd.envelope.encrypt>` and :ref:`unencrypt
 	#           <cmd.envelope.unencrypt>` commands to encrypt it.
-
-        encrypt_by_default = option('Valid', True, False, default=False)
+	# .. note:: The values `True` and `False` are interpreted as `all` and
+	#           `none` respectively.  They are kept for backwards
+	#           compatibility to give users a change to migrate to the new
+	#           option type.  They might become deprecated in future
+	#           versions.
+        encrypt_by_default = option('all', 'none', 'trusted', 'True', 'False', 'true', 'false', 'Yes', 'No', 'yes', 'no', '1', '0', default='none')
 
         # The GPG key ID you want to use with this account. If unset, alot will
         # use your default key.

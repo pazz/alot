@@ -54,7 +54,7 @@ class Account(object):
                  signature_filename=None, signature_as_attachment=False,
                  sent_box=None, sent_tags=['sent'], draft_box=None,
                  draft_tags=['draft'], abook=None, sign_by_default=False,
-                 encrypt_by_default=False,
+                 encrypt_by_default=u"none",
                  **rest):
         self.address = address
         self.aliases = aliases
@@ -65,12 +65,23 @@ class Account(object):
         self.signature_filename = signature_filename
         self.signature_as_attachment = signature_as_attachment
         self.sign_by_default = sign_by_default
-        self.encrypt_by_default = encrypt_by_default
         self.sent_box = sent_box
         self.sent_tags = sent_tags
         self.draft_box = draft_box
         self.draft_tags = draft_tags
         self.abook = abook
+        # Handle encrypt_by_default in an backwards compatible way.  The
+        # logging info call can later be upgraded to warning or error.
+        encrypt_by_default = encrypt_by_default.lower()
+        msg = "Deprecation warning: The format for the encrypt_by_default " \
+              "option changed.  Please use 'none', 'all' or 'trusted'."
+        if encrypt_by_default in (u"true", u"yes", u"1"):
+            encrypt_by_default = u"all"
+            logging.info(msg)
+        elif encrypt_by_default in (u"false", u"no", u"0"):
+            encrypt_by_default = u"none"
+            logging.info(msg)
+        self.encrypt_by_default = encrypt_by_default
 
     def get_addresses(self):
         """return all email addresses connected to this account, in order of
