@@ -34,4 +34,5 @@ setup(name='alot',
         'configobj>=4.7.0',
         'pygpgme>=0.2'],
       provides=['alot'],
+      test_suite="test",
       )
