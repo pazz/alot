@@ -55,6 +55,7 @@ def add_signature_headers(mail, sigs, error_msg):
                 sig_from = key.uids[0].uid
         except:
             sig_from = sigs[0].fpr
+            uid_trusted = False
 
     mail.add_header(
         X_SIGNATURE_VALID_HEADER,
