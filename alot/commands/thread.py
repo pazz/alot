@@ -196,7 +196,7 @@ class ReplyCommand(Command):
 
         # check if reply is to self sent message
         if sender_address in my_addresses:
-            recipients = [mail['To']]
+            recipients = mail.get_all('To', [])
             emsg = 'Replying to own message, set recipients to: %s' \
                 % recipients
             logging.debug(emsg)
