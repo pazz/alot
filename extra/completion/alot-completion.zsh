@@ -35,18 +35,37 @@ _alot_compose()
 
 _alot()
 {
-  if (( CURRENT > 2 )) ; then
-    local cmd=${words[2]}
-    curcontext="${curcontext%:*:*}:alot-$cmd"
-    (( CURRENT-- ))
-    shift words
-    _call_function ret _alot_$cmd
-    return ret
-  else
-    _alot_subcommands
-  fi
+  local state
+  local ret=1
+  # Complete global options.  Set $state to "command" or "options" in order to
+  # do further completion.
+  _arguments \
+    '(- *)--help[show the help message]' \
+    '(- *)--version[show version information]' \
+    '(--help --version -r --read-only)'-{r,-read-only}'[open db in read only mode]' \
+    '(--help --version -c --config)'-{c,-config}'[specify an alternative config file]:alot config file:_files' \
+    '(--help --version -n --notmuch-config)'-{n,-notmuch-config}'[specify an alternative notmuch config file]:notmuch config file:_files' \
+    '(--help --version -C --colour-mode)'-{C,-colour-mode}'[terminal colour mode]:colour mode:(1 16 256)' \
+    '(--help --version -p --mailindex-path)'-{p,-mailindex-path}'[path to notmuch index]:directory:_directories' \
+    '(--help --version -d --debug-level)'-{d,-debug-level}'[set the log level]:debug level:(debug info warning error)' \
+    '(--help --version -l --logfile)'-{l,-logfile}'[specify the logfile (default: /dev/null)]:log file:_files' \
+    ': :->command' \
+    '*:: :->options' \
+  && ret=0
+
+  case $state in
+    command)
+      _alot_subcommands
+      ;;
+    options)
+      # Call the specific completion function for the subcommand.
+      _call_function ret _alot_$words[1]
+      ;;
+  esac
+
+  return ret
 }
 
-_alot "$@"
+_alot $@
 
 # vim: set sw=2 sts=2 ts=2 et ft=zsh :
