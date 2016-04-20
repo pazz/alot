@@ -850,21 +850,26 @@ class ComposeCommand(Command):
                     self.envelope.attach(a)
                     logging.debug('attaching: ' + a)
 
+        if account is None:
+            encrypt_by_default = None
+        else:
+            encrypt_by_default = account.encrypt_by_default
+
         # set encryption if needed
-        if self.encrypt or account.encrypt_by_default == u"all":
+        if self.encrypt or encrypt_by_default == u"all":
             logging.debug("Trying to encrypt message because encrypt={} and "
                           "encrypt_by_default={}".format(
-                              self.encrypt, account.encrypt_by_default))
+                              self.encrypt, encrypt_by_default))
             yield self._set_encrypt(ui, self.envelope)
-        elif account.encrypt_by_default == u"trusted":
+        elif encrypt_by_default == u"trusted":
             logging.debug("Trying to encrypt message because "
                           "account.encrypt_by_default={}".format(
-                              account.encrypt_by_default))
+                              encrypt_by_default))
             yield self._set_encrypt(ui, self.envelope, trusted_only=True)
         else:
             logging.debug(
                     "No encryption by default, encrypt_by_default={}".format(
-                        account.encrypt_by_default))
+                        encrypt_by_default))
 
         cmd = commands.envelope.EditCommand(envelope=self.envelope,
                                             spawn=self.force_spawn,
