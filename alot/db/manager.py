@@ -264,6 +264,11 @@ class DBManager(object):
 
     def _append_queue(self, command, afterwards, querystring, tags):
         self.writequeue.append((command, afterwards, querystring, tags))
+        tagging_hook = settings.get_hook('pre_tagging')
+        if tagging_hook:
+            res = tagging_hook(command, querystring, tags)
+            if res:
+                tags = res
 
     def count_messages(self, querystring):
         """returns number of messages that match `querystring`"""
