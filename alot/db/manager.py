@@ -234,9 +234,10 @@ class DBManager(object):
         if self.ro:
             raise DatabaseROError()
         if remove_rest:
-            self.writequeue.append(('set', afterwards, querystring, tags))
+            command = 'set'
         else:
-            self.writequeue.append(('tag', afterwards, querystring, tags))
+            command = 'tag'
+        self._append_queue(command, afterwards, querystring, tags)
 
     def untag(self, querystring, tags, afterwards=None):
         """
@@ -259,7 +260,10 @@ class DBManager(object):
         """
         if self.ro:
             raise DatabaseROError()
-        self.writequeue.append(('untag', afterwards, querystring, tags))
+        self._append_queue('untag', afterwards, querystring, tags)
+
+    def _append_queue(self, command, afterwards, querystring, tags):
+        self.writequeue.append((command, afterwards, querystring, tags))
 
     def count_messages(self, querystring):
         """returns number of messages that match `querystring`"""
