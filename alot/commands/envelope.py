@@ -14,7 +14,7 @@ from twisted.internet.defer import inlineCallbacks
 
 from . import Command, registerCommand
 from . import globals
-from .utils import get_keys
+from .utils import set_encrypt
 from .. import buffers
 from .. import commands
 from .. import crypto
@@ -563,27 +563,9 @@ class EncryptCommand(Command):
             encrypt = False
         elif self.action == 'toggleencrypt':
             encrypt = not envelope.encrypt
-        envelope.encrypt = encrypt
         if encrypt:
-            if not self.encrypt_keys:
-                for recipient in envelope.headers['To'][0].split(','):
-                    if not recipient:
-                        continue
-                    match = re.search("<(.*@.*)>", recipient)
-                    if match:
-                        recipient = match.group(1)
-                    self.encrypt_keys.append(recipient)
-
-            logging.debug("encryption keys: %s", self.encrypt_keys)
-            keys = yield get_keys(ui, self.encrypt_keys,
-                                  signed_only=self.trusted)
-            if self.trusted:
-                logging.debug("filtered encrytion keys: " +
-                              " ".join(x.uids[0].uid for x in keys.itervalues()))
-            if keys:
-                envelope.encrypt_keys.update(keys)
-            else:
-                envelope.encrypt = False
+            yield set_encrypt(ui, envelope, signed_only=self.trusted)
+        envelope.encrypt = encrypt
         if not envelope.encrypt:
             # This is an extra conditional as it can even happen if encrypt is
             # True.
