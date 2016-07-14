@@ -414,7 +414,7 @@ class SetCommand(Command):
         envelope = ui.current_buffer.envelope
         if self.reset:
             if self.key in envelope:
-                del(envelope[self.key])
+                del envelope[self.key]
         envelope.add(self.key, self.value)
         ui.current_buffer.rebuild()
 
@@ -432,7 +432,7 @@ class UnsetCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        del(ui.current_buffer.envelope[self.key])
+        del ui.current_buffer.envelope[self.key]
         ui.current_buffer.rebuild()
 
 

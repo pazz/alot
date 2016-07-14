@@ -141,10 +141,10 @@ class SettingsManager(object):
                     args['abook'] = AbookAddressBook(
                         contacts_path, ignorecase=abook['ignorecase'])
                 else:
-                    del(args['abook'])
+                    del args['abook']
 
                 cmd = args['sendmail_command']
-                del(args['sendmail_command'])
+                del args['sendmail_command']
                 newacc = SendmailAccount(cmd, **args)
                 accounts.append(newacc)
         return accounts

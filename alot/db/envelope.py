@@ -103,7 +103,7 @@ class Envelope(object):
         return self.headers[name][0]
 
     def __delitem__(self, name):
-        del(self.headers[name])
+        del self.headers[name]
 
         if self.sent_time:
             self.modified_since_sent = True
@@ -330,4 +330,4 @@ class Envelope(object):
                 logging.debug('Attaching: %s' % to_attach)
                 for path in to_attach:
                     self.attach(path)
-                del(self['Attach'])
+                del self['Attach']

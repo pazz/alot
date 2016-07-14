@@ -62,14 +62,14 @@ if __name__ == "__main__":
                 if not is_256(fg):
                     att[2] = fg
                 att[4] = fg
-                del(sec['fg'])
+                del sec['fg']
 
             if 'bg' in sec:
                 bg = sec['bg']
                 if not is_256(bg):
                     att[3] = bg
                 att[5] = bg
-                del(sec['bg'])
+                del sec['bg']
             sec['normal'] = att
 
             if sec.get('hidden'):

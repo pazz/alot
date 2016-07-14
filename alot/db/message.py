@@ -115,7 +115,7 @@ class Message(object):
 
     def has_replies(self):
         """returns true if this message has at least one reply"""
-        return (len(self.get_replies()) > 0)
+        return len(self.get_replies()) > 0
 
     def get_replies(self):
         """returns replies to this message as list of :class:`Message`"""
