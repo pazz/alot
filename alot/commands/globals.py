@@ -52,6 +52,7 @@ class ExitCommand(Command):
         for b in ui.buffers:
             b.cleanup()
         ui.apply_command(FlushCommand(callback=ui.exit))
+        ui.cleanup()
 
         if ui.db_was_locked:
             msg = 'Database locked. Exit without saving?'

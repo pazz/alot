@@ -2,7 +2,9 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 import logging
+import os
 import signal
+
 from twisted.internet import reactor, defer
 import urwid
 
@@ -72,6 +74,12 @@ class UI(object):
 
         signal.signal(signal.SIGINT, self.handle_signal)
         signal.signal(signal.SIGUSR1, self.handle_signal)
+
+        # load command history
+        self._cache = os.path.join(
+            os.environ.get('XDG_CACHE_HOME', os.path.expanduser('~/.cache')),
+            'alot', 'commandhistory')
+        self.commandprompthistory = self._load_history_from_file( self._cache)
 
         # set up main loop
         self.mainloop = urwid.MainLoop(self.root_widget,
@@ -664,3 +672,37 @@ class UI(object):
             if isinstance(self.current_buffer, SearchBuffer):
                 self.current_buffer.rebuild()
                 self.update()
+
+    def cleanup(self):
+        """Do the final clean up before shutting down."""
+        self._save_history_to_file(self.commandprompthistory, self._cache)
+
+    @staticmethod
+    def _load_history_from_file(path):
+        """Load a history list from a file and split it into lines.
+
+        :param path: the path to the file that should be loaded
+        :type path: str
+        :returns: a list of history items (the lines of the file)
+        :rtype: list(str)
+
+        """
+        if os.path.exists(path):
+            return [line.rstrip('\n') for line in open(path).readlines()]
+
+    @staticmethod
+    def _save_history_to_file(history, path):
+        """Save a history list to a file for later loading (possibly in another
+        session).
+
+        :param history: the history list to save
+        :type history: list(str)
+        :param path: the path to the file where to save the history
+        :type path: str
+        :returns: None
+
+        """
+        directory = os.path.dirname(path)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        open(path, 'w').write('\n'.join(history))
