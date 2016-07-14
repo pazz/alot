@@ -1,20 +1,20 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
-import re
-import os
+import argparse
 import glob
 import logging
-import argparse
+import os
+import re
 
-import alot.crypto as crypto
-import alot.commands as commands
-from alot.buffers import EnvelopeBuffer
-from alot.settings import settings
-from alot.utils.booleanaction import BooleanAction
-from alot.helper import split_commandline
-from alot.addressbook import AddressbookError
-from errors import CompletionError
+from . import crypto
+from . import commands
+from .buffers import EnvelopeBuffer
+from .settings import settings
+from .utils.booleanaction import BooleanAction
+from .helper import split_commandline
+from .addressbook import AddressbookError
+from .errors import CompletionError
 
 
 class Completer(object):

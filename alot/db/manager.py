@@ -1,27 +1,27 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
+from collections import deque
+import errno
+import logging
+import multiprocessing
+import os
+import signal
+import sys
+
 from notmuch import Database, NotmuchError, XapianError
 import notmuch
-import multiprocessing
-import logging
-import sys
-import os
-import errno
-import signal
 from twisted.internet import reactor
 
-from collections import deque
-
-from message import Message
-from alot.settings import settings
-from thread import Thread
+from . import DB_ENC
 from .errors import DatabaseError
 from .errors import DatabaseLockedError
 from .errors import DatabaseROError
 from .errors import NonexistantObjectError
-from alot.db import DB_ENC
-from alot.db.utils import is_subdir_of
+from .message import Message
+from .thread import Thread
+from .utils import is_subdir_of
+from ..settings import settings
 
 
 class FillPipeProcess(multiprocessing.Process):

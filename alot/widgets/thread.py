@@ -4,16 +4,16 @@
 """
 Widgets specific to thread mode
 """
-import urwid
 import logging
-
-from alot.settings import settings
-from alot.db.utils import decode_header, X_SIGNATURE_MESSAGE_HEADER
-from alot.helper import tag_cmp
-from alot.widgets.globals import TagWidget
-from alot.widgets.globals import AttachmentWidget
+import urwid
 from urwidtrees import Tree, SimpleTree, CollapsibleTree
-from alot.db.utils import extract_body
+
+from .globals import TagWidget
+from .globals import AttachmentWidget
+from ..settings import settings
+from ..db.utils import decode_header, X_SIGNATURE_MESSAGE_HEADER
+from ..db.utils import extract_body
+from ..helper import tag_cmp
 
 
 class MessageSummaryWidget(urwid.WidgetWrap):

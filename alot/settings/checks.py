@@ -9,8 +9,8 @@ from validate import VdtTypeError
 from validate import is_list
 from validate import ValidateError, VdtValueTooLongError, VdtValueError
 
-from alot import crypto
-from alot.errors import GPGProblem
+from .. import crypto
+from ..errors import GPGProblem
 
 
 def attr_triple(value):

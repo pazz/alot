@@ -4,13 +4,13 @@
 import argparse
 import logging
 
-from alot.commands import Command, registerCommand
-from alot.commands.globals import PromptCommand
-from alot.commands.globals import MoveCommand
+from . import Command, registerCommand
+from .globals import PromptCommand
+from .globals import MoveCommand
+from .. import commands
 
-from alot.db.errors import DatabaseROError
-from alot import commands
-from alot import buffers
+from .. import buffers
+from ..db.errors import DatabaseROError
 
 
 MODE = 'search'

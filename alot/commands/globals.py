@@ -1,36 +1,38 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
+import argparse
+import code
+import email
+import glob
+import logging
 import os
 import re
-import code
-from twisted.internet import threads
 import subprocess
-import email
-import urwid
-from twisted.internet.defer import inlineCallbacks
-import logging
-import argparse
-import glob
 from StringIO import StringIO
 
-from alot.commands import Command, registerCommand
-from alot.completion import CommandLineCompleter
-from alot.commands import CommandCanceled
-from alot.commands.utils import get_keys
-from alot import buffers
-from alot.widgets.utils import DialogBox
-from alot import helper
-from alot.db.errors import DatabaseLockedError
-from alot.completion import ContactsCompleter
-from alot.completion import AccountCompleter
-from alot.completion import TagsCompleter
-from alot.db.envelope import Envelope
-from alot import commands
-from alot.settings import settings
-from alot.helper import split_commandstring
-from alot.helper import mailto_to_envelope
-from alot.utils.booleanaction import BooleanAction
+import urwid
+from twisted.internet.defer import inlineCallbacks
+from twisted.internet import threads
+
+from . import Command, registerCommand
+from . import CommandCanceled
+from .utils import get_keys
+from .. import commands
+
+from .. import buffers
+from .. import helper
+from ..helper import split_commandstring
+from ..helper import mailto_to_envelope
+from ..completion import CommandLineCompleter
+from ..completion import ContactsCompleter
+from ..completion import AccountCompleter
+from ..completion import TagsCompleter
+from ..widgets.utils import DialogBox
+from ..db.errors import DatabaseLockedError
+from ..db.envelope import Envelope
+from ..settings import settings
+from ..utils.booleanaction import BooleanAction
 
 MODE = 'global'
 

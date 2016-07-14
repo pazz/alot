@@ -6,11 +6,11 @@ Widgets specific to search mode
 """
 import urwid
 
-from alot.settings import settings
-from alot.helper import shorten_author_string
-from alot.helper import tag_cmp
-from alot.widgets.utils import AttrFlipWidget
-from alot.widgets.globals import TagWidget
+from ..settings import settings
+from ..helper import shorten_author_string
+from ..helper import tag_cmp
+from .utils import AttrFlipWidget
+from .globals import TagWidget
 
 
 class ThreadlineWidget(urwid.AttrMap):

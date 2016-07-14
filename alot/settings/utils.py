@@ -3,9 +3,9 @@
 # For further details see the COPYING file
 from configobj import ConfigObj, ConfigObjError, flatten_errors
 from validate import Validator
-from errors import ConfigError
 from urwid import AttrSpec
 
+from .errors import ConfigError
 
 def read_config(configpath=None, specpath=None, checks={}):
     """

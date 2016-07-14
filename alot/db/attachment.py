@@ -6,10 +6,9 @@ import tempfile
 import email.charset as charset
 from email.header import Header
 from copy import deepcopy
-import alot.helper as helper
-from alot.helper import string_decode
 
-from alot.db.utils import decode_header
+from ..helper import string_decode, humanize_size, guess_mimetype
+from .utils import decode_header
 
 charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 
@@ -28,7 +27,7 @@ class Attachment(object):
     def __str__(self):
         desc = '%s:%s (%s)' % (self.get_content_type(),
                                self.get_filename(),
-                               helper.humanize_size(self.get_size()))
+                               humanize_size(self.get_size()))
         return string_decode(desc)
 
     def get_filename(self):
@@ -50,7 +49,7 @@ class Attachment(object):
         # replace underspecified mime description by a better guess
         if ctype in ['octet/stream', 'application/octet-stream',
                      'application/octetstream']:
-            ctype = helper.guess_mimetype(self.get_data())
+            ctype = guess_mimetype(self.get_data())
         return ctype
 
     def get_size(self):

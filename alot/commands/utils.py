@@ -3,8 +3,8 @@
 # For further details see the COPYING file
 from twisted.internet.defer import inlineCallbacks, returnValue
 
-from alot.errors import GPGProblem, GPGCode
-from alot import crypto
+from ..errors import GPGProblem, GPGCode
+from .. import crypto
 
 
 @inlineCallbacks

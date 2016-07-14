@@ -5,14 +5,14 @@
 """
 This contains alot-specific :class:`urwid.Widget` used in more than one mode.
 """
-import urwid
 import re
 import operator
+import urwid
 
-from alot.helper import string_decode
-from alot.settings import settings
-from alot.db.attachment import Attachment
-from alot.errors import CompletionError
+from ..helper import string_decode
+from ..settings import settings
+from ..db.attachment import Attachment
+from ..errors import CompletionError
 
 
 class AttachmentWidget(urwid.WidgetWrap):

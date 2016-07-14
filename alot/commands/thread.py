@@ -1,41 +1,40 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
+import argparse
+import logging
+import mailcap
 import os
 import re
-import logging
-import tempfile
-import argparse
-from twisted.internet.defer import inlineCallbacks
 import subprocess
+import tempfile
 from email.Utils import getaddresses, parseaddr
 from email.message import Message
-import mailcap
+
+from twisted.internet.defer import inlineCallbacks
 from cStringIO import StringIO
 
-from alot.commands import Command, registerCommand
-from alot.commands.globals import ExternalCommand
-from alot.commands.globals import FlushCommand
-from alot.commands.globals import ComposeCommand
-from alot.commands.globals import MoveCommand
-from alot.commands.globals import CommandCanceled
-from alot.commands.envelope import SendCommand
-from alot import completion
-from alot.db.utils import decode_header
-from alot.db.utils import encode_header
-from alot.db.utils import extract_headers
-from alot.db.utils import extract_body
-from alot.db.envelope import Envelope
-from alot.db.attachment import Attachment
-from alot.db.errors import DatabaseROError
-from alot.settings import settings
-from alot.helper import parse_mailcap_nametemplate
-from alot.helper import split_commandstring
-from alot.helper import email_as_string
-from alot.utils.booleanaction import BooleanAction
-from alot.completion import ContactsCompleter
-
-from alot.widgets.globals import AttachmentWidget
+from . import Command, registerCommand
+from .globals import ExternalCommand
+from .globals import FlushCommand
+from .globals import ComposeCommand
+from .globals import MoveCommand
+from .globals import CommandCanceled
+from .envelope import SendCommand
+from ..completion import ContactsCompleter, PathCompleter
+from ..db.utils import decode_header
+from ..db.utils import encode_header
+from ..db.utils import extract_headers
+from ..db.utils import extract_body
+from ..db.envelope import Envelope
+from ..db.attachment import Attachment
+from ..db.errors import DatabaseROError
+from ..settings import settings
+from ..helper import parse_mailcap_nametemplate
+from ..helper import split_commandstring
+from ..helper import email_as_string
+from ..utils.booleanaction import BooleanAction
+from ..widgets.globals import AttachmentWidget
 
 MODE = 'thread'
 
@@ -862,7 +861,7 @@ class SaveAttachmentCommand(Command):
 
     @inlineCallbacks
     def apply(self, ui):
-        pcomplete = completion.PathCompleter()
+        pcomplete = PathCompleter()
         savedir = settings.get('attachment_prefix', '~')
         if self.all:
             msg = ui.current_buffer.get_selected_message()

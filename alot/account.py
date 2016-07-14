@@ -1,13 +1,13 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
-import mailbox
-import logging
-import os
 import glob
+import logging
+import mailbox
+import os
 
-from alot.helper import call_cmd_async
-from alot.helper import split_commandstring
+from .helper import call_cmd_async
+from .helper import split_commandstring
 
 
 class SendingMailFailed(RuntimeError):

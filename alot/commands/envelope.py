@@ -2,28 +2,29 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 import argparse
-import os
-import re
+import datetime
+import email
 import glob
 import logging
-import email
+import os
+import re
 import tempfile
-from twisted.internet.defer import inlineCallbacks
-import datetime
 
-from alot.account import SendingMailFailed, StoreMailError
-from alot.errors import GPGProblem
-from alot import buffers
-from alot import commands
-from alot import crypto
-from alot.commands import Command, registerCommand
-from alot.commands import globals
-from alot.commands.utils import get_keys
-from alot.helper import string_decode
-from alot.helper import email_as_string
-from alot.settings import settings
-from alot.utils.booleanaction import BooleanAction
-from alot.db.errors import DatabaseError
+from twisted.internet.defer import inlineCallbacks
+
+from . import Command, registerCommand
+from . import globals
+from .utils import get_keys
+from .. import buffers
+from .. import commands
+from .. import crypto
+from ..account import SendingMailFailed, StoreMailError
+from ..db.errors import DatabaseError
+from ..errors import GPGProblem
+from ..helper import email_as_string
+from ..helper import string_decode
+from ..settings import settings
+from ..utils.booleanaction import BooleanAction
 
 
 MODE = 'envelope'

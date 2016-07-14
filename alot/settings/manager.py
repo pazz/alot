@@ -8,20 +8,20 @@ import mailcap
 import logging
 from configobj import ConfigObj, Section
 
-from alot.account import SendmailAccount
-from alot.addressbook.abook import AbookAddressBook
-from alot.addressbook.external import ExternalAddressbook
-from alot.helper import pretty_datetime, string_decode
+from ..account import SendmailAccount
+from ..addressbook.abook import AbookAddressBook
+from ..addressbook.external import ExternalAddressbook
+from ..helper import pretty_datetime, string_decode
 
-from errors import ConfigError
-from utils import read_config
-from utils import resolve_att
-from checks import force_list
-from checks import mail_container
-from checks import gpg_key
-from checks import attr_triple
-from checks import align_mode
-from theme import Theme
+from .errors import ConfigError
+from .utils import read_config
+from .utils import resolve_att
+from .checks import force_list
+from .checks import mail_container
+from .checks import gpg_key
+from .checks import attr_triple
+from .checks import align_mode
+from .theme import Theme
 
 
 DEFAULTSPATH = os.path.join(os.path.dirname(__file__), '..', 'defaults')

@@ -5,25 +5,26 @@
 from datetime import timedelta
 from datetime import datetime
 from collections import deque
-import subprocess
-import shlex
-import email
+from cStringIO import StringIO
+import logging
 import mimetypes
 import os
 import re
+import shlex
+import subprocess
+import email
 from email.generator import Generator
 from email.mime.audio import MIMEAudio
 from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+
 import urwid
 import magic
 from twisted.internet import reactor
 from twisted.internet.protocol import ProcessProtocol
 from twisted.internet.defer import Deferred
-from cStringIO import StringIO
-import logging
 
 
 def split_commandline(s, comments=False, posix=True):

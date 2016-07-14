@@ -1,15 +1,14 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
-import os
-import re
+import argparse
 import glob
 import logging
-import argparse
+import os
+import re
 
-from alot.settings import settings
-import alot.helper
-from alot.helper import split_commandstring
+from ..settings import settings
+from ..helper import split_commandstring, string_decode
 
 
 class Command(object):
@@ -177,7 +176,7 @@ def commandfactory(cmdline, mode='global'):
         args = split_commandstring(cmdline)
     except ValueError as e:
         raise CommandParseError(e.message)
-    args = map(lambda x: alot.helper.string_decode(x, 'utf-8'), args)
+    args = map(lambda x: string_decode(x, 'utf-8'), args)
     logging.debug('ARGS: %s', args)
     cmdname = args[0]
     args = args[1:]

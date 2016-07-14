@@ -3,24 +3,24 @@
 # For further details see the COPYING file
 import os
 import email
-import tempfile
-import re
+import email.charset as charset
 from email.header import Header
 from email.iterators import typed_subpart_iterator
+import tempfile
+import re
 import logging
 import mailcap
 from cStringIO import StringIO
 
-import alot.crypto as crypto
-import alot.helper as helper
-from alot.errors import GPGProblem
-from alot.settings import settings
-from alot.helper import string_sanitize
-from alot.helper import string_decode
-from alot.helper import parse_mailcap_nametemplate
-from alot.helper import split_commandstring
+from .. import crypto
+from .. import helper
+from ..errors import GPGProblem
+from ..settings import settings
+from ..helper import string_sanitize
+from ..helper import string_decode
+from ..helper import parse_mailcap_nametemplate
+from ..helper import split_commandstring
 
-import email.charset as charset
 charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 
 X_SIGNATURE_VALID_HEADER = 'X-Alot-OpenPGP-Signature-Valid'
