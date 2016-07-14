@@ -641,6 +641,7 @@ class UI(object):
             d.addCallback(call_apply)
             d.addCallback(call_posthook)
             return d
+
     def handle_signal(self, signum, frame):
         """
         handles UNIX signals
@@ -649,7 +650,8 @@ class UI(object):
         handle more
 
         :param signum: The signal number (see man 7 signal)
-        :param frame: The execution frame (https://docs.python.org/2/reference/datamodel.html#frame-objects)
+        :param frame: The execution frame
+            (https://docs.python.org/2/reference/datamodel.html#frame-objects)
         """
         # it is a SIGINT ?
         if signum == signal.SIGINT:

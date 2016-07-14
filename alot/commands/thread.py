@@ -239,8 +239,8 @@ class ReplyCommand(Command):
             # X-BeenThere is needed by sourceforge ML also winehq
             # X-Mailing-List is also standart and is used by git-send-mail
             to = mail['Reply-To'] or mail['X-BeenThere'] or mail['X-Mailing-List']
-            # Some mail server (gmail) will not resend you own mail, so you have
-            # to deal with the one in sent
+            # Some mail server (gmail) will not resend you own mail, so you
+            # have to deal with the one in sent
             if to is None:
                 to = mail['To']
             logging.debug('mail list reply to: %s', to)
@@ -284,7 +284,8 @@ class ReplyCommand(Command):
                                         spawn=self.force_spawn,
                                         encrypt=encrypt))
 
-    def clear_my_address(self, my_addresses, value):
+    @staticmethod
+    def clear_my_address(my_addresses, value):
         """return recipient header without the addresses in my_addresses"""
         new_value = []
         for name, address in getaddresses(value):

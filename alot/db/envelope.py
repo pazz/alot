@@ -48,7 +48,7 @@ class Envelope(object):
     """tags to add after successful sendout"""
 
     def __init__(
-        self, template=None, bodytext=None, headers=None, attachments=[],
+            self, template=None, bodytext=None, headers=None, attachments=[],
             sign=False, sign_key=None, encrypt=False, tags=[]):
         """
         :param template: if not None, the envelope will be initialised by
@@ -209,8 +209,8 @@ class Envelope(object):
                 raise GPGProblem(str(e), code=GPGCode.KEY_CANNOT_SIGN)
 
             micalg = crypto.RFC3156_micalg_from_algo(signatures[0].hash_algo)
-            unencrypted_msg = MIMEMultipart('signed', micalg=micalg,
-                                            protocol='application/pgp-signature')
+            unencrypted_msg = MIMEMultipart(
+                'signed', micalg=micalg, protocol='application/pgp-signature')
 
             # wrap signature in MIMEcontainter
             stype = 'pgp-signature; name="signature.asc"'
