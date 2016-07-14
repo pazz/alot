@@ -70,7 +70,7 @@ def determine_sender(mail, action='reply'):
             break
         candidate_addresses = getaddresses(mail.get_all(candidate_header, []))
 
-        logging.debug('candidate addresses: %s' % candidate_addresses)
+        logging.debug('candidate addresses: %s', candidate_addresses)
         # pick the most important account that has an address in candidates
         # and use that accounts realname and the address found here
         for account in my_accounts:
@@ -99,8 +99,8 @@ def determine_sender(mail, action='reply'):
         account = my_accounts[0]
         realname = account.realname
         address = account.address
-    logging.debug('using realname: "%s"' % realname)
-    logging.debug('using address: %s' % address)
+    logging.debug('using realname: "%s"', realname)
+    logging.debug('using address: %s', address)
 
     from_value = address if realname == '' else '%s <%s>' % (realname, address)
     return from_value, account
@@ -232,7 +232,7 @@ class ReplyCommand(Command):
                     envelope.add('Cc', decode_header(cc))
 
         to = ', '.join(recipients)
-        logging.debug('reply to: %s' % to)
+        logging.debug('reply to: %s', to)
 
         if self.listreply:
             # To choose the target of the reply --list
@@ -244,7 +244,7 @@ class ReplyCommand(Command):
             # to deal with the one in sent
             if to is None:
                 to = mail['To']
-            logging.debug('mail list reply to: %s' % to)
+            logging.debug('mail list reply to: %s', to)
             # Cleaning the 'To' in this case
             if envelope.get('To') is not None:
                 envelope.__delitem__('To')
@@ -261,7 +261,7 @@ class ReplyCommand(Command):
             # check if any recipient address matches a known mailing list
             if any([addr in lists for n, addr in getaddresses(allrecipients)]):
                 followupto = ', '.join(allrecipients)
-                logging.debug('mail followup to: %s' % followupto)
+                logging.debug('mail followup to: %s', followupto)
                 envelope.add('Mail-Followup-To', decode_header(followupto))
 
         # set In-Reply-To header
@@ -540,7 +540,7 @@ class ChangeDisplaymodeCommand(Command):
 
     def apply(self, ui):
         tbuffer = ui.current_buffer
-        logging.debug('matching lines %s...' % (self.query))
+        logging.debug('matching lines %s...', self.query)
         if self.query is None:
             messagetrees = [tbuffer.get_selected_messagetree()]
         else:
@@ -715,7 +715,7 @@ class PipeCommand(Command):
         # do teh monkey
         for mail in pipestrings:
             if self.background:
-                logging.debug('call in background: %s' % str(self.cmd))
+                logging.debug('call in background: %s', self.cmd)
                 proc = subprocess.Popen(self.cmd,
                                         shell=True, stdin=subprocess.PIPE,
                                         stdout=subprocess.PIPE,
@@ -726,7 +726,7 @@ class PipeCommand(Command):
             else:
                 logging.debug('stop urwid screen')
                 ui.mainloop.screen.stop()
-                logging.debug('call: %s' % str(self.cmd))
+                logging.debug('call: %s', self.cmd)
                 # if proc.stdout is defined later calls to communicate
                 # seem to be non-blocking!
                 proc = subprocess.Popen(self.cmd, shell=True,

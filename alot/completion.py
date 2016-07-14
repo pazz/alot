@@ -289,7 +289,7 @@ class CommandNameCompleter(Completer):
     def complete(self, original, pos):
         # TODO refine <tab> should get current querystring
         commandprefix = original[:pos]
-        logging.debug('original="%s" prefix="%s"' % (original, commandprefix))
+        logging.debug('original="%s" prefix="%s"', original, commandprefix)
         cmdlist = commands.COMMANDS['global'].copy()
         cmdlist.update(commands.COMMANDS[self.mode])
         matching = [t for t in cmdlist if t.startswith(commandprefix)]

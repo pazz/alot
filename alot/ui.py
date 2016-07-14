@@ -82,7 +82,7 @@ class UI(object):
 
         # set up colours
         colourmode = int(settings.get('colourmode'))
-        logging.info('setup gui in %d colours' % colourmode)
+        logging.info('setup gui in %d colours', colourmode)
         self.mainloop.screen.set_terminal_properties(colors=colourmode)
 
         logging.debug('fire first command')
@@ -99,7 +99,7 @@ class UI(object):
         to let the root widget handle keys. We intercept the input here
         to trigger custom commands as defined in our keybindings.
         """
-        logging.debug("Got key (%s, %s)" % (keys, raw))
+        logging.debug("Got key (%s, %s)", keys, raw)
         # work around: escape triggers this twice, with keys = raw = []
         # the first time..
         if not keys:
@@ -124,7 +124,7 @@ class UI(object):
 
             def fire(ignored, cmdline):
                 clear()
-                logging.debug("cmdline: '%s'" % cmdline)
+                logging.debug("cmdline: '%s'", cmdline)
                 if not self._locked:
                     try:
                         self.apply_commandline(cmdline)
@@ -190,8 +190,7 @@ class UI(object):
         # of the next callback (and thus Command-application)
 
         def apply_this_command(ignored, cmdstring):
-            logging.debug('%s command string: "%s"' % (self.mode,
-                                                       str(cmdstring)))
+            logging.debug('%s command string: "%s"', self.mode, str(cmdstring))
             # translate cmdstring into :class:`Command`
             cmd = commandfactory(cmdstring, self.mode)
             # store cmdline for use with 'repeat' command
@@ -228,7 +227,7 @@ class UI(object):
         widget by `self._input_filter` but is not handled in any widget. We
         keep it for debuging purposes.
         """
-        logging.debug('unhandled input: %s' % key)
+        logging.debug('unhandled input: %s', key)
 
     def show_as_root_until_keypress(self, w, key, afterwards=None):
         """
@@ -317,7 +316,7 @@ class UI(object):
             reactor.stop()
         except Exception as e:
             exit_msg = 'Could not stop reactor: {}.'.format(e)
-            logging.error(exit_msg + '\nShutting down anyway..')
+            logging.error('%s\nShutting down anyway..', exit_msg)
 
     def buffer_open(self, buf):
         """register and focus new :class:`~alot.buffers.Buffer`."""
@@ -355,10 +354,10 @@ class UI(object):
         buffers = self.buffers
         success = False
         if buf not in buffers:
-            string = 'tried to close unknown buffer: %s. \n\ni have:%s'
-            logging.error(string % (buf, self.buffers))
+            logging.error('tried to close unknown buffer: %s. \n\ni have:%s',
+                          buf, self.buffers)
         elif self.current_buffer == buf:
-            logging.info('closing current buffer %s' % buf)
+            logging.info('closing current buffer %s', buf)
             index = buffers.index(buf)
             buffers.remove(buf)
             offset = settings.get('bufferclose_focus_offset')

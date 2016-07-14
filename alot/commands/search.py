@@ -33,7 +33,7 @@ class OpenThreadCommand(Command):
             self.thread = ui.current_buffer.get_selected_thread()
         if self.thread:
             query = ui.current_buffer.querystring
-            logging.info('open thread view for %s' % self.thread)
+            logging.info('open thread view for %s', self.thread)
 
             sb = buffers.ThreadBuffer(ui, self.thread)
             ui.buffer_open(sb)
@@ -185,13 +185,13 @@ class TagCommand(Command):
         if not self.allm:
             testquery = "(%s) AND thread:%s" % (testquery,
                                                 thread.get_thread_id())
-        logging.debug('all? %s' % self.allm)
-        logging.debug('q: %s' % testquery)
+        logging.debug('all? %s', self.allm)
+        logging.debug('q: %s', testquery)
 
         hitcount_before = ui.dbman.count_messages(testquery)
 
         def remove_thread():
-            logging.debug('remove thread from result list: %s' % thread)
+            logging.debug('remove thread from result list: %s', thread)
             if threadline_widget in searchbuffer.threadlist:
                 # remove this thread from result list
                 searchbuffer.threadlist.remove(threadline_widget)

@@ -64,11 +64,11 @@ class Envelope(object):
         :param tags: tags to add after successful sendout and saving this msg
         :type tags: list of str
         """
-        logging.debug('TEMPLATE: %s' % template)
+        logging.debug('TEMPLATE: %s', template)
         if template:
             self.parse_template(template)
-            logging.debug('PARSED TEMPLATE: %s' % template)
-            logging.debug('BODY: %s' % self.body)
+            logging.debug('PARSED TEMPLATE: %s', template)
+            logging.debug('BODY: %s', self.body)
         self.body = bodytext or u''
         self.headers = headers or {}
         self.attachments = list(attachments)
@@ -185,7 +185,7 @@ class Envelope(object):
 
         if self.sign:
             plaintext = helper.email_as_string(inner_msg)
-            logging.debug('signing plaintext: ' + plaintext)
+            logging.debug('signing plaintext: %s', plaintext)
 
             try:
                 signatures, signature_str = crypto.detached_signature_for(
@@ -229,7 +229,7 @@ class Envelope(object):
 
         if self.encrypt:
             plaintext = helper.email_as_string(unencrypted_msg)
-            logging.debug('encrypting plaintext: ' + plaintext)
+            logging.debug('encrypting plaintext: %s', plaintext)
 
             try:
                 encrypted_str = crypto.encrypt(plaintext,
@@ -284,7 +284,7 @@ class Envelope(object):
         :param reset: remove previous envelope content
         :type reset: bool
         """
-        logging.debug('GoT: """\n%s\n"""' % tmp)
+        logging.debug('GoT: """\n%s\n"""', tmp)
 
         if self.sent_time:
             self.modified_since_sent = True
@@ -327,7 +327,7 @@ class Envelope(object):
                 for line in self.get_all('Attach'):
                     gpath = os.path.expanduser(line.strip())
                     to_attach += filter(os.path.isfile, glob.glob(gpath))
-                logging.debug('Attaching: %s' % to_attach)
+                logging.debug('Attaching: %s', to_attach)
                 for path in to_attach:
                     self.attach(path)
                 del self['Attach']

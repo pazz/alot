@@ -70,7 +70,7 @@ class SettingsManager(object):
         try:
             self.hooks = imp.load_source('hooks', hooks_path)
         except:
-            logging.debug('unable to load hooks file:%s' % hooks_path)
+            logging.debug('unable to load hooks file:%s', hooks_path)
         if 'bindings' in newconfig:
             newbindings = newconfig['bindings']
             if isinstance(newbindings, Section):
@@ -123,7 +123,7 @@ class SettingsManager(object):
 
                 # create abook for this account
                 abook = accsec['abook']
-                logging.debug('abook defined: %s' % abook)
+                logging.debug('abook defined: %s', abook)
                 if abook['type'] == 'shellcommand':
                     cmd = abook['command']
                     regexp = abook['regexp']

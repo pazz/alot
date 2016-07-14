@@ -56,7 +56,7 @@ class AttachCommand(Command):
             ui.notify('no files specified, abort')
             return
 
-        logging.info("attaching: %s" % files)
+        logging.info("attaching: %s", files)
         for path in files:
             envelope.attach(path)
         ui.current_buffer.rebuild()
@@ -193,8 +193,7 @@ class SendCommand(Command):
             # don't do anything if another SendCommand is in the middle of
             # sending the message and we were triggered accidentally
             if self.envelope.sending:
-                msg = 'sending this message already!'
-                logging.debug(msg)
+                logging.debug('sending this message already!')
                 return
 
             clearme = ui.notify(u'constructing mail (GPG, attachments)\u2026',
@@ -314,7 +313,7 @@ class EditCommand(Command):
         if '*' in blacklist:
             blacklist = set(self.envelope.headers.keys())
         edit_headers = edit_headers - blacklist
-        logging.info('editable headers: %s' % edit_headers)
+        logging.info('editable headers: %s', edit_headers)
 
         def openEnvelopeFromTmpfile():
             # This parses the input from the tempfile.
@@ -565,7 +564,7 @@ class EncryptCommand(Command):
                         recipient = match.group(1)
                     self.encrypt_keys.append(recipient)
 
-            logging.debug("encryption keys: " + str(self.encrypt_keys))
+            logging.debug("encryption keys: %s", self.encrypt_keys)
             keys = yield get_keys(ui, self.encrypt_keys,
                                   signed_only=self.trusted)
             if self.trusted:

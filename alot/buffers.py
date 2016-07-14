@@ -445,7 +445,7 @@ class ThreadBuffer(Buffer):
         return self.body.get_focus()
 
     def set_focus(self, pos):
-        logging.debug('setting focus to %s ' % str(pos))
+        logging.debug('setting focus to %s ', pos)
         self.body.set_focus(pos)
 
     def focus_first(self):

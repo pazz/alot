@@ -168,7 +168,7 @@ def commandfactory(cmdline, mode='global'):
     # split commandname and parameters
     if not cmdline:
         return None
-    logging.debug('mode:%s got commandline "%s"' % (mode, cmdline))
+    logging.debug('mode:%s got commandline "%s"', mode, cmdline)
     # allow to shellescape without a space after '!'
     if cmdline.startswith('!'):
         cmdline = 'shellescape \'%s\'' % cmdline[1:]
@@ -178,7 +178,7 @@ def commandfactory(cmdline, mode='global'):
     except ValueError as e:
         raise CommandParseError(e.message)
     args = map(lambda x: alot.helper.string_decode(x, 'utf-8'), args)
-    logging.debug('ARGS: %s' % args)
+    logging.debug('ARGS: %s', args)
     cmdname = args[0]
     args = args[1:]
 
@@ -195,7 +195,7 @@ def commandfactory(cmdline, mode='global'):
     parms = vars(parser.parse_args(args))
     parms.update(forcedparms)
 
-    logging.debug('cmd parms %s' % parms)
+    logging.debug('cmd parms %s', parms)
 
     # create Command
     cmd = cmdclass(**parms)

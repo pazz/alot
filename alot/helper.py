@@ -359,8 +359,8 @@ def call_cmd_async(cmdlist, stdin=None, env=None):
     environment = os.environ
     if env is not None:
         environment.update(env)
-    logging.debug('ENV = %s' % environment)
-    logging.debug('CMD = %s' % cmdlist)
+    logging.debug('ENV = %s', environment)
+    logging.debug('CMD = %s', cmdlist)
     proc = reactor.spawnProcess(_EverythingGetter(d), executable=cmdlist[0],
                                 env=environment,
                                 args=cmdlist)

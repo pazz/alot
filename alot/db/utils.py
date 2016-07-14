@@ -329,8 +329,8 @@ def extract_body(mail, types=None, field_key='copiousoutput'):
                 # create and call external command
                 cmd = mailcap.subst(entry['view'], ctype,
                                     filename=tempfile_name, plist=parms)
-                logging.debug('command: %s' % cmd)
-                logging.debug('parms: %s' % str(parms))
+                logging.debug('command: %s', cmd)
+                logging.debug('parms: %s', str(parms))
                 cmdlist = split_commandstring(cmd)
                 # call handler
                 rendered_payload, errmsg, retval = helper.call_cmd(

@@ -119,7 +119,7 @@ class Account(object):
             message_id = mbx.add(msg)
             mbx.flush()
             mbx.unlock()
-            logging.debug('got mailbox msg id : %s' % message_id)
+            logging.debug('got mailbox msg id : %s', message_id)
         except Exception as e:
             raise StoreMailError(e)
 
@@ -132,7 +132,7 @@ class Account(object):
                                message_id + '*')
             if plist:
                 path = os.path.join(mbx._path, 'new', plist[0])
-                logging.debug('path of saved msg: %s' % path)
+                logging.debug('path of saved msg: %s', path)
         return path
 
     def store_sent_mail(self, mail):
