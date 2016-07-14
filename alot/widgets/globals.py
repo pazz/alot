@@ -140,7 +140,7 @@ class CompleteEdit(urwid.Edit):
                     self.completions += self.completer.complete(self.edit_text,
                                                                 self.edit_pos)
                     self.focus_in_clist = 1
-                except CompletionError, e:
+                except CompletionError as e:
                     if self.on_error is not None:
                         self.on_error(e)
 

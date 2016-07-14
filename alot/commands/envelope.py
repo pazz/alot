@@ -204,7 +204,7 @@ class SendCommand(Command):
                 self.mail = self.envelope.construct_mail()
                 self.mail['Date'] = email.Utils.formatdate(localtime=True)
                 self.mail = email_as_string(self.mail)
-            except GPGProblem, e:
+            except GPGProblem as e:
                 ui.clear_notify([clearme])
                 ui.notify(e.message, priority='error')
                 return
@@ -487,7 +487,7 @@ class SignCommand(Command):
                 keyid = str(' '.join(self.keyid))
                 try:
                     key = crypto.get_key(keyid, validate=True, sign=True)
-                except GPGProblem, e:
+                except GPGProblem as e:
                     envelope.sign = False
                     ui.notify(e.message, priority='error')
                     return

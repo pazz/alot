@@ -110,7 +110,7 @@ def main():
     args = Options()
     try:
         args.parseOptions()  # When given no argument, parses sys.argv[1:]
-    except usage.UsageError, errortext:
+    except usage.UsageError as errortext:
         print '%s' % errortext
         print 'Try --help for usage details.'
         sys.exit(1)
@@ -155,7 +155,7 @@ def main():
     try:
         settings.read_config(alotconfig)
         settings.read_notmuch_config(notmuchconfig)
-    except (ConfigError, OSError, IOError), e:
+    except (ConfigError, OSError, IOError) as e:
         sys.exit(e)
 
     # store options given by config swiches to the settingsManager:
@@ -179,7 +179,7 @@ def main():
                 cmdstring += ' ' + args.subOptions.rest
         else:
             cmdstring = settings.get('initial_command')
-    except CommandParseError, e:
+    except CommandParseError as e:
         sys.exit(e)
 
     # set up and start interface
