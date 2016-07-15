@@ -79,7 +79,8 @@ class UI(object):
         self._cache = os.path.join(
             os.environ.get('XDG_CACHE_HOME', os.path.expanduser('~/.cache')),
             'alot', 'commandhistory')
-        self.commandprompthistory = self._load_history_from_file( self._cache)
+        self.commandprompthistory = self._load_history_from_file(
+            self._cache, size=settings.get('history_size'))
 
         # set up main loop
         self.mainloop = urwid.MainLoop(self.root_widget,
@@ -675,33 +676,49 @@ class UI(object):
 
     def cleanup(self):
         """Do the final clean up before shutting down."""
-        self._save_history_to_file(self.commandprompthistory, self._cache)
+        self._save_history_to_file(self.commandprompthistory, self._cache,
+                                   size=settings.get('history_size'))
 
     @staticmethod
-    def _load_history_from_file(path):
+    def _load_history_from_file(path, size=-1):
         """Load a history list from a file and split it into lines.
 
         :param path: the path to the file that should be loaded
         :type path: str
+        :param size: the number of lines to load (0 means no lines, < 0 means
+            all lines)
+        :type size: int
         :returns: a list of history items (the lines of the file)
         :rtype: list(str)
 
         """
+        if size == 0:
+            return []
         if os.path.exists(path):
-            return [line.rstrip('\n') for line in open(path).readlines()]
+            lines = [line.rstrip('\n') for line in open(path).readlines()]
+            if size > 0:
+                lines = lines[-size:]
+            return lines
 
     @staticmethod
-    def _save_history_to_file(history, path):
+    def _save_history_to_file(history, path, size=-1):
         """Save a history list to a file for later loading (possibly in another
         session).
 
         :param history: the history list to save
         :type history: list(str)
         :param path: the path to the file where to save the history
+        :param size: the number of lines to save (0 means no lines, < 0 means
+            all lines)
+        :type size: int
         :type path: str
         :returns: None
 
         """
+        if size == 0:
+            return
+        if size > 0:
+            history = history[-size:]
         directory = os.path.dirname(path)
         if not os.path.exists(directory):
             os.makedirs(directory)
