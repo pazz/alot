@@ -4,6 +4,7 @@
 # You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
+PYTHON        = python
 PAPER         =
 BUILDDIR      = build
 
@@ -43,13 +44,16 @@ help:
 	@echo "  doctest    to run all doctests embedded in the documentation (if enabled)"
 
 $(COMMAND_OPTION_TABLES): ../alot/commands/__init__.py
-	python source/generate_commands.py
+	$(PYTHON) source/generate_commands.py
 
 $(CONFIG_OPTION_TABLES): ../alot/defaults/alot.rc.spec
-	python source/generate_configs.py
+	$(PYTHON) source/generate_configs.py
 
 clean:
 	-rm -rf $(BUILDDIR)/*
+
+cleanall: clean
+	-rm -rf $(CONFIG_OPTION_TABLES) $(COMMAND_OPTION_TABLES)
 
 html: $(CONFIG_OPTION_TABLES) $(COMMAND_OPTION_TABLES)
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html

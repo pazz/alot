@@ -1,7 +1,7 @@
 import sys
 import os
 HERE = os.path.dirname(__file__)
-sys.path.append(os.path.join(HERE, '..', '..', '..'))
+sys.path.append(os.path.join(HERE, '..', '..'))
 from alot.commands import COMMANDS
 from configobj import ConfigObj
 from validate import Validator
