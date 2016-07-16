@@ -765,10 +765,11 @@ class ComposeCommand(Command):
             else:
                 cmpl = AccountCompleter()
                 fromaddress = yield ui.prompt('From', completer=cmpl,
-                                              tab=1)
+                                              tab=1, history=ui.senderhistory)
                 if fromaddress is None:
                     raise CommandCanceled()
 
+                ui.senderhistory.append(fromaddress)
                 self.envelope.add('From', fromaddress)
 
         # find out the right account
@@ -819,12 +820,14 @@ class ComposeCommand(Command):
                                                append_remaining=allbooks)
             logging.debug(abooks)
             completer = ContactsCompleter(abooks)
-            to = yield ui.prompt('To',
-                                 completer=completer)
+            to = yield ui.prompt('To', completer=completer,
+                                 history=ui.recipienthistory)
             if to is None:
                 raise CommandCanceled()
 
-            self.envelope.add('To', to.strip(' \t\n,'))
+            to = to.strip(' \t\n,')
+            ui.recipienthistory.append(to)
+            self.envelope.add('To', to)
 
         if settings.get('ask_subject') and \
                 'Subject' not in self.envelope.headers:

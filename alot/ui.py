@@ -48,6 +48,10 @@ class UI(object):
         """interface mode identifier - type of current buffer"""
         self.commandprompthistory = []
         """history of the command line prompt"""
+        self.senderhistory = []
+        """history of the sender prompt"""
+        self.recipienthistory = []
+        """history of the recipients prompt"""
         self.input_queue = []
         """stores partial keyboard input"""
         self.last_commandline = None
@@ -75,12 +79,20 @@ class UI(object):
         signal.signal(signal.SIGINT, self.handle_signal)
         signal.signal(signal.SIGUSR1, self.handle_signal)
 
-        # load command history
+        # load histories
         self._cache = os.path.join(
             os.environ.get('XDG_CACHE_HOME', os.path.expanduser('~/.cache')),
-            'alot', 'commandhistory')
+            'alot', 'history')
+        self._cmd_hist_file = os.path.join(self._cache, 'commands')
+        self._sender_hist_file = os.path.join(self._cache, 'senders')
+        self._recipients_hist_file = os.path.join(self._cache, 'recipients')
+        size = settings.get('history_size')
         self.commandprompthistory = self._load_history_from_file(
-            self._cache, size=settings.get('history_size'))
+            self._cmd_hist_file, size=size)
+        self.senderhistory = self._load_history_from_file(
+            self._sender_hist_file, size=size)
+        self.recipienthistory = self._load_history_from_file(
+            self._recipients_hist_file, size=size)
 
         # set up main loop
         self.mainloop = urwid.MainLoop(self.root_widget,
@@ -676,8 +688,13 @@ class UI(object):
 
     def cleanup(self):
         """Do the final clean up before shutting down."""
-        self._save_history_to_file(self.commandprompthistory, self._cache,
-                                   size=settings.get('history_size'))
+        size = settings.get('history_size')
+        self._save_history_to_file(self.commandprompthistory,
+                                   self._cmd_hist_file, size=size)
+        self._save_history_to_file(self.senderhistory, self._sender_hist_file,
+                                   size=size)
+        self._save_history_to_file(self.recipienthistory,
+                                   self._recipients_hist_file, size=size)
 
     @staticmethod
     def _load_history_from_file(path, size=-1):
@@ -699,6 +716,8 @@ class UI(object):
             if size > 0:
                 lines = lines[-size:]
             return lines
+        else:
+            return []
 
     @staticmethod
     def _save_history_to_file(history, path, size=-1):
