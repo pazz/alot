@@ -1,0 +1,23 @@
+language: python
+sudo: true
+
+python:
+  # We can add more version strings here when we support other python
+  # versions.
+  - "2.7"
+
+install:
+  - sudo apt-get update
+  # The gpgme build files are needed by the gpgme python module.
+  - sudo apt-get -yqq install libgpgme11-dev
+  # urwid needs to be installed first.  The installation of urwidtrees will
+  # fail otherwise.
+  # TODO This should be fixed upstream.
+  - pip install urwid
+  # Install alot and the dependencies it declares.
+  - pip install .
+  # Install sphinx for building the documentation of alot.
+  - pip install sphinx
+
+script:
+  - make -C docs html
