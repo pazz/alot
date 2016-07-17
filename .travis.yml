@@ -10,6 +10,9 @@ addons:
     packages:
       # The gpgme build files are needed by the gpgme python module.
       - libgpgme11-dev
+      # The notmuch libs are needed to actually run alot.  The notmuch package
+      # should pull the correct libs.
+      - notmuch
 
 install:
   # urwid needs to be installed first.  The installation of urwidtrees will
