@@ -1,4 +1,5 @@
 language: python
+sudo: true
 
 python:
   # We can add more version strings here when we support other python
@@ -25,6 +26,12 @@ addons:
 # 14.04 Ubuntu repos do not match and do not fullfill the version requirement
 # for alot.
 before_install:
+  - sudo apt-get update
+  # Until https://github.com/travis-ci/apt-package-whitelist/issues/3215 is
+  # resolved we have to install gmime with sudo.  Afterwards we can swtich to
+  # the container based infrastructure.
+  # gmime is needed to build notmuch from source.
+  - sudo apt-get -yqq install libgmime-2.6-dev
   # Clone the notmuch repository and move into it.
   - git clone git://notmuchmail.org/git/notmuch
   - cd notmuch
