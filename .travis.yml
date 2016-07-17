@@ -20,6 +20,11 @@ install:
   - pip install .
   # Install sphinx for building the documentation of alot.
   - pip install sphinx
+  # Prepare a minimal config file for the final test.
+  - echo 'initial_command=call os._exit(0)' > conf
 
 script:
+  # Build the documentation for alot.
   - make -C docs html
+  # Minimal test: Start alot in order to quit immediatly.
+  - alot --config conf
