@@ -1,4 +1,9 @@
 language: python
+
+# We need a newer version of zlib to build notmuch from source as is available
+# in precise.
+dist: trusty
+
 sudo: true
 
 python:
