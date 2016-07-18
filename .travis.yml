@@ -65,6 +65,7 @@ install:
 
 before_script:
   # Prepare a minimal config file for the final test.
+  - touch ~/.notmuch-config
   - echo 'initial_command=call os._exit(0)' > conf
 
 script:
