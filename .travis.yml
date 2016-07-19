@@ -73,3 +73,5 @@ script:
   - make -C docs html
   # Minimal test: Start alot in order to quit immediatly.
   - alot --config conf
+  # Run the testsuite.
+  - python setup.py test
