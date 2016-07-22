@@ -18,6 +18,132 @@ class StoreMailError(Exception):
     pass
 
 
+class _CaseInsensitiveUnicode(unicode):
+    """A subclass of unicode that matches case insensitive.
+
+    This behaves exactly like a standard Unicode object, except that it
+    overrides the rich comparison methods and __contains__ to do case
+    insensitve comparison.
+    """
+    # TODO: There are some cases that are not going to be handled correctly,
+    # the strip methods, for example, will return a standard Unicode object
+    # rather than a _CaseInsensitveUnicode.
+
+    def __lt__(self, other):
+        if isinstance(other, basestring):
+            return super(_CaseInsensitiveUnicode, self).lower() < other.lower()
+        return super(_CaseInsensitveStr, self).__lt__(other)
+
+    def __le__(self, other):
+        if isinstance(other, basestring):
+            return super(_CaseInsensitiveUnicode, self).lower() <= other.lower()
+        return super(_CaseInsensitveStr, self).__le__(other)
+
+    def __gt__(self, other):
+        if isinstance(other, basestring):
+            return super(_CaseInsensitiveUnicode, self).lower() > other.lower()
+        return super(_CaseInsensitveStr, self).__gt__(other)
+
+    def __ge__(self, other):
+        if isinstance(other, basestring):
+            return super(_CaseInsensitiveUnicode, self).lower() >= other.lower()
+        return super(_CaseInsensitveStr, self).__ge__(other)
+
+    def __eq__(self, other):
+        if isinstance(other, basestring):
+            return super(_CaseInsensitiveUnicode, self).lower() == other.lower()
+        return super(_CaseInsensitveStr, self).__eq__(other)
+
+    def __ne__(self, other):
+        if isinstance(other, basestring):
+            return super(_CaseInsensitiveUnicode, self).lower() != other.lower()
+        return super(_CaseInsensitveStr, self).__ne__(other)
+
+    def __contains__(self, other):
+        if isinstance(other, basestring):
+            return other.lower() in super(_CaseInsensitiveUnicode, self).lower()
+        return super(_CaseInsensitveStr, self).__contains__(other)
+
+    def capitalize(self):
+        return self
+
+    def center(self, *args, **kwargs):
+        return _CaseInsensitiveUnicode(
+            super(_CaseInsensitiveUnicode, self).center(*args, **kwargs))
+
+    def endswith(self, other, *args, **kwargs):
+        return super(_CaseInsensitiveUnicode, self).lower().endswith(
+            other.lower(), *args, **kwargs)
+
+    def expandtabs(self, *args, **kwargs):
+        return _CaseInsensitiveUnicode(
+            super(_CaseInsensitiveUnicode, self).expandtabs(*args, **kwargs))
+
+    def ljust(self, *args, **kwargs):
+        return _CaseInsensitiveUnicode(
+            super(_CaseInsensitiveUnicode, self).ljust(*args, **kwargs))
+
+    def lower(self):
+        return self
+
+    def lstrip(self, *args, **kwargs):
+        return _CaseInsensitiveUnicode(
+            super(_CaseInsensitiveUnicode, self).lstrip(*args, **kwargs))
+
+    def partition(self, *args, **kwargs):
+        return tuple(_CaseInsensitiveUnicode(s) for s in 
+                     super(_CaseInsensitiveUnicode, self).partition(
+                         *args, **kwargs))
+
+    def rjust(self, *args, **kwargs):
+        return _CaseInsensitiveUnicode(
+            super(_CaseInsensitiveUnicode, self).rjust(*args, **kwargs))
+
+    def rpartition(self, *args, **kwargs):
+        return tuple(_CaseInsensitiveUnicode(s) for s in 
+                     super(_CaseInsensitiveUnicode, self).rpartition(
+                         *args, **kwargs))
+
+    def rsplit(self, sep, **kwargs):
+        return [_CaseInsensitiveUnicode(s) for s in 
+                super(_CaseInsensitiveUnicode, self).lower().rsplit(
+                    sep.lower(), **kwargs)]
+
+    def rstrip(self, *args, **kwargs):
+        return _CaseInsensitiveUnicode(
+            super(_CaseInsensitiveUnicode, self).rstrip(*args, **kwargs))
+
+    def split(self, *args, **kwargs):
+        return [_CaseInsensitiveUnicode(s) for s in 
+                super(_CaseInsensitiveUnicode, self).lower().split(
+                    sep.lower(), **kwargs)]
+
+    def splitlines(self, *args, **kwargs):
+        return [_CaseInsensitiveUnicode(s) for s in 
+                super(_CaseInsensitiveUnicode, self).splitlines(*args, **kwargs)]
+
+    def startswith(self, other, *args, **kwargs):
+        return super(_CaseInsensitiveUnicode, self).lower().startswith(
+            other.lower(), *args, **kwargs)
+
+    def swapcase(self):
+        return self
+
+    def title(self):
+        return self
+
+    def translate(self, *args, **kwargs):
+        return _CaseInsensitiveUnicode(
+            super(_CaseInsensitiveUnicode, self).translate(*args, **kwargs))
+
+    def upper(self):
+        return self
+
+    def zfill(self, *args, **kwargs):
+        return _CaseInsensitiveUnicode(
+            super(_CaseInsensitiveUnicode, self).zfill(*args, **kwargs))
+
+
 class Account(object):
     """
     Datastructure that represents an email account. It manages this account's
@@ -54,8 +180,10 @@ class Account(object):
                  signature_filename=None, signature_as_attachment=False,
                  sent_box=None, sent_tags=['sent'], draft_box=None,
                  draft_tags=['draft'], abook=None, sign_by_default=False,
-                 encrypt_by_default=False,
+                 encrypt_by_default=False, non_standard_case_insensitive=False,
                  **rest):
+        if non_standard_case_insensitive:
+            address = _CaseInsensitiveUnicode(address)
         self.address = address
         self.aliases = aliases
         self.alias_regexp = alias_regexp
