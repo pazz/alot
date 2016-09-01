@@ -170,6 +170,8 @@ class CompleteEdit(urwid.Edit):
             self.on_exit(self.edit_text)
         elif key == 'esc':
             self.on_exit(None)
+        elif key == 'ctrl g':
+            self.on_exit(None)
         elif key == 'ctrl a':
             self.set_edit_pos(0)
         elif key == 'ctrl e':
