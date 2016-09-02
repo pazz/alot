@@ -84,7 +84,7 @@ class CompleteEdit(urwid.Edit):
 
     The interpretation of some keypresses is hard-wired:
         :enter: calls 'on_exit' callback with current value
-        :esc: calls 'on_exit' with value `None`, which can be interpreted
+        :esc/ctrl g: calls 'on_exit' with value `None`, which can be interpreted
               as cancelation
         :tab: calls the completer and tabs forward in the result list
         :shift tab: tabs backward in the result list
@@ -168,9 +168,7 @@ class CompleteEdit(urwid.Edit):
                 self.set_edit_text(self.history[self.historypos])
         elif key == 'enter':
             self.on_exit(self.edit_text)
-        elif key == 'esc':
-            self.on_exit(None)
-        elif key == 'ctrl g':
+        elif key in ('ctrl g', 'esc'):
             self.on_exit(None)
         elif key == 'ctrl a':
             self.set_edit_pos(0)
