@@ -5,8 +5,6 @@ import os
 import email
 import re
 import glob
-import email.charset as charset
-charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 from email.encoders import encode_7or8bit
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -22,6 +20,9 @@ from alot.errors import GPGProblem, GPGCode
 
 from .attachment import Attachment
 from .utils import encode_header
+
+import email.charset as charset
+charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 
 
 class Envelope(object):
@@ -210,8 +211,7 @@ class Envelope(object):
 
             micalg = crypto.RFC3156_micalg_from_algo(signatures[0].hash_algo)
             unencrypted_msg = MIMEMultipart('signed', micalg=micalg,
-                                            protocol=
-                                            'application/pgp-signature')
+                                            protocol='application/pgp-signature')
 
             # wrap signature in MIMEcontainter
             stype = 'pgp-signature; name="signature.asc"'

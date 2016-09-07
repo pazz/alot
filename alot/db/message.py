@@ -3,8 +3,6 @@
 # For further details see the COPYING file
 import email
 from datetime import datetime
-import email.charset as charset
-charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 from notmuch import NullPointerError
 
 import alot.helper as helper
@@ -13,6 +11,9 @@ from alot.settings import settings
 from .utils import extract_headers, extract_body, message_from_file
 from alot.db.utils import decode_header
 from .attachment import Attachment
+
+import email.charset as charset
+charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 
 
 class Message(object):

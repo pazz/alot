@@ -7,9 +7,13 @@ config. Per default this points to :file:`~/.config/alot/hooks.py`.
 
 .. rubric:: Pre/Post Command Hooks
 
-For every :ref:`COMMAND <usage.commands>` in mode :ref:`MODE <modes>`, the callables :func:`pre_MODE_COMMAND` and :func:`post_MODE_COMMAND`
--- if defined -- will be called before and after the command is applied respectively. The signature for the
-pre-`send` hook in envelope mode for example looks like this:
+For every :ref:`COMMAND <usage.commands>` in mode :ref:`MODE <modes>`, the
+callables :func:`pre_MODE_COMMAND` and :func:`post_MODE_COMMAND` -- if defined
+-- will be called before and after the command is applied respectively.  In
+addition callables :func:`pre_global_COMMAND` and :func:`post_global_COMMAND`
+can be used. They will be called if no specific hook function for a mode is
+defined. The signature for the pre-`send` hook in envelope mode for example
+looks like this:
 
 .. py:function:: pre_envelope_send(ui=None, dbm=None, cmd=None)
 
@@ -170,3 +174,23 @@ Apart from command pre- and posthooks, the following hooks will be interpreted:
     :type buf: alot.buffer.Buffer
     :param success: true if successfully focused buffer
     :type success: boolean
+
+.. py:function:: exit()
+
+    run just before the program exits
+
+.. py:function:: sanitize_attachment_filename(filename=None, prefix='', suffix='')
+
+    returns `prefix` and `suffix` for a sanitized filename to use while
+    opening an attachment.
+    The `prefix` and `suffix` are used to open a file named
+    `prefix` + `XXXXXX` + `suffix` in a temporary directory. 
+
+    :param filename: filename provided in the email (can be None)
+    :type filename: str or None
+    :param prefix: prefix string as found on mailcap
+    :type prefix: str
+    :param suffix: suffix string as found on mailcap
+    :type suffix: str
+    :returns: tuple of `prefix` and `suffix`
+    :rtype: (str, str)

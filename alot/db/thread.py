@@ -34,7 +34,18 @@ class Thread(object):
 
         self._total_messages = thread.get_total_messages()
         self._notmuch_authors_string = thread.get_authors()
-        self._subject = thread.get_subject()
+
+        subject_type = settings.get('thread_subject')
+        if subject_type == 'notmuch':
+            subject = thread.get_subject()
+        elif subject_type == 'oldest':
+            try:
+                first_msg = list(thread.get_toplevel_messages())[0]
+                subject = first_msg.get_header('subject')
+            except IndexError:
+                subject = ''
+        self._subject = subject
+
         self._authors = None
         ts = thread.get_oldest_date()
 
@@ -183,7 +194,7 @@ class Thread(object):
                     aname = settings.get('thread_authors_me')
                 if not aname:
                     aname = aaddress
-                if not aname in authorslist:
+                if aname not in authorslist:
                     authorslist.append(aname)
             return ', '.join(authorslist)
         else:

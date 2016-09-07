@@ -269,16 +269,6 @@ class DBManager(object):
         """returns number of threads that match `querystring`"""
         return self.query(querystring).count_threads()
 
-    def search_thread_ids(self, querystring):
-        """
-        returns the ids of all threads that match the `querystring`
-        This copies! all integer thread ids into an new list.
-
-        :returns: list of str
-        """
-
-        return self.query_threaded(querystring)
-
     def _get_notmuch_thread(self, tid):
         """returns :class:`notmuch.database.Thread` with given id"""
         query = self.query('thread:' + tid)

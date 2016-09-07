@@ -6,11 +6,12 @@ import tempfile
 import email.charset as charset
 from email.header import Header
 from copy import deepcopy
-charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 import alot.helper as helper
 from alot.helper import string_decode
 
 from alot.db.utils import decode_header
+
+charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 
 
 class Attachment(object):

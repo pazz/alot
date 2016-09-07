@@ -39,3 +39,13 @@ and :ref:`toggleencrypt <cmd.envelope.toggleencrypt>` and
 in envelope mode to ask alot to encrypt the mail before sending.
 The :ref:`encrypt <cmd.envelope.encrypt>` command accepts an optional
 hint string as argument to determine the key of the recipient.
+
+You can set the default to-encrypt bit for each :ref:`account <config.accounts>`
+individually using the option :ref:`encrypt_by_default <encrypt-by-default>`.
+
+.. note::
+    If you want to access encrypt mail later it is useful to add yourself to the
+    list of recipients when encrypting with gpg (not the recipients whom mail is
+    actually send to). The simplest way to do this is to use the `encrypt-to`
+    option in the :file:`~/.gnupg/gpg.conf`. But you might have to specify the
+    correct encryption subkey otherwise gpg seems to throw an error.

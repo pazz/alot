@@ -3,10 +3,12 @@
 # For further details see the COPYING file
 import urwid
 import logging
+import signal
 from twisted.internet import reactor, defer
 
 from settings import settings
 from buffers import BufferlistBuffer
+from commands import globals
 from commands import commandfactory
 from commands import CommandCanceled
 from alot.commands import CommandParseError
@@ -67,6 +69,9 @@ class UI(object):
         global_att = settings.get_theming_attribute('global', 'body')
         mainframe = urwid.Frame(urwid.SolidFill())
         self.root_widget = urwid.AttrMap(mainframe, global_att)
+
+        signal.signal(signal.SIGINT, self.handle_signal)
+        signal.signal(signal.SIGUSR1, self.handle_signal)
 
         # set up main loop
         self.mainloop = urwid.MainLoop(self.root_widget,
@@ -187,13 +192,8 @@ class UI(object):
         def apply_this_command(ignored, cmdstring):
             logging.debug('%s command string: "%s"' % (self.mode,
                                                        str(cmdstring)))
-            #logging.debug('CMDSEQ: apply %s' % str(cmdstring))
             # translate cmdstring into :class:`Command`
-            #try:
             cmd = commandfactory(cmdstring, self.mode)
-            #except CommandParseError, e:
-             #   self.notify(e.message, priority='error')
-              #  return
             # store cmdline for use with 'repeat' command
             if cmd.repeatable:
                 self.last_commandline = cmdline
@@ -642,3 +642,20 @@ class UI(object):
             d.addCallback(call_apply)
             d.addCallback(call_posthook)
             return d
+    def handle_signal(self, signum, frame):
+        """
+        handles UNIX signals
+
+        This function currently just handles SIGUSR1. It could be extended to
+        handle more
+
+        :param signum: The signal number (see man 7 signal)
+        :param frame: The execution frame (https://docs.python.org/2/reference/datamodel.html#frame-objects)
+        """
+        # it is a SIGINT ?
+        if signum == signal.SIGINT:
+            logging.info('shut down cleanly')
+            self.apply_command(globals.ExitCommand())
+        self.current_buffer.rebuild()
+        self.update()
+

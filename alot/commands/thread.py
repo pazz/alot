@@ -72,11 +72,13 @@ def determine_sender(mail, action='reply'):
     # pick the most important account that has an address in candidates
     # and use that accounts realname and the address found here
     for account in my_accounts:
-        acc_addresses = account.get_addresses()
+        acc_addresses = map(re.escape, account.get_addresses())
+        if account.alias_regexp is not None:
+            acc_addresses.append(account.alias_regexp)
         for alias in acc_addresses:
             if realname is not None:
                 break
-            regex = re.compile(re.escape(alias), flags=re.IGNORECASE)
+            regex = re.compile('^' + alias + '$', flags=re.IGNORECASE)
             for seen_name, seen_address in candidate_addresses:
                 if regex.match(seen_address):
                     logging.debug("match!: '%s' '%s'" % (seen_address, alias))
@@ -103,6 +105,8 @@ def determine_sender(mail, action='reply'):
 
 @registerCommand(MODE, 'reply', arguments=[
     (['--all'], {'action': 'store_true', 'help': 'reply to all'}),
+    (['--list'], {'action': BooleanAction, 'default': None,
+                  'dest': 'listreply', 'help': 'reply to list'}),
     (['--spawn'], {'action': BooleanAction, 'default': None,
                    'help': 'open editor in new window'})])
 class ReplyCommand(Command):
@@ -110,17 +114,22 @@ class ReplyCommand(Command):
     """reply to message"""
     repeatable = True
 
-    def __init__(self, message=None, all=False, spawn=None, **kwargs):
+    def __init__(self, message=None, all=False, listreply=None, spawn=None,
+                 **kwargs):
         """
         :param message: message to reply to (defaults to selected message)
         :type message: `alot.db.message.Message`
         :param all: group reply; copies recipients from Bcc/Cc/To to the reply
         :type all: bool
+        :param listreply: reply to list; autodetect if unset and enabled in
+                          config
+        :type listreply: bool
         :param spawn: force spawning of editor in a new terminal
         :type spawn: bool
         """
         self.message = message
         self.groupreply = all
+        self.listreply = listreply
         self.force_spawn = spawn
         Command.__init__(self, **kwargs)
 
@@ -160,6 +169,17 @@ class ReplyCommand(Command):
                 subject = rsp + subject
         envelope.add('Subject', subject)
 
+        # Auto-detect ML
+        auto_replyto_mailinglist = settings.get('auto_replyto_mailinglist')
+        if mail['List-Id'] and self.listreply is None:
+            # mail['List-Id'] is need to enable reply-to-list
+            self.listreply = auto_replyto_mailinglist
+        elif mail['List-Id'] and self.listreply is True:
+            self.listreply = True
+        elif self.listreply is False:
+            # In this case we only need the sender
+            self.listreply = False
+
         # set From-header and sending account
         try:
             from_header, account = determine_sender(mail, 'reply')
@@ -176,7 +196,7 @@ class ReplyCommand(Command):
 
         # check if reply is to self sent message
         if sender_address in my_addresses:
-            recipients = [mail['To']]
+            recipients = mail.get_all('To', [])
             emsg = 'Replying to own message, set recipients to: %s' \
                 % recipients
             logging.debug(emsg)
@@ -210,6 +230,23 @@ class ReplyCommand(Command):
 
         to = ', '.join(recipients)
         logging.debug('reply to: %s' % to)
+
+        if self.listreply:
+            # To choose the target of the reply --list
+            # Reply-To is standart reply target RFC 2822:, RFC 1036: 2.2.1
+            # X-BeenThere is needed by sourceforge ML also winehq
+            # X-Mailing-List is also standart and is used by git-send-mail
+            to = mail['Reply-To'] or mail['X-BeenThere'] or mail['X-Mailing-List']
+            # Some mail server (gmail) will not resend you own mail, so you have
+            # to deal with the one in sent
+            if to is None:
+                to = mail['To']
+            logging.debug('mail list reply to: %s' % to)
+            # Cleaning the 'To' in this case
+            if envelope.get('To') is not None:
+                envelope.__delitem__('To')
+
+        # Finally setup the 'To' header
         envelope.add('To', decode_header(to))
 
         # if any of the recipients is a mailinglist that we are subscribed to,
@@ -240,8 +277,10 @@ class ReplyCommand(Command):
             envelope.add('References', '<%s>' % self.message.get_message_id())
 
         # continue to compose
+        encrypt = mail.get_content_subtype() == 'encrypted'
         ui.apply_command(ComposeCommand(envelope=envelope,
-                                        spawn=self.force_spawn))
+                                        spawn=self.force_spawn,
+                                        encrypt=encrypt))
 
     def clear_my_address(self, my_addresses, value):
         """return recipient header without the addresses in my_addresses"""
@@ -889,6 +928,13 @@ class OpenAttachmentCommand(Command):
             if '%s' in handler_raw_commandstring:
                 nametemplate = entry.get('nametemplate', '%s')
                 prefix, suffix = parse_mailcap_nametemplate(nametemplate)
+
+                fn_hook = settings.get_hook('sanitize_attachment_filename')
+                if fn_hook:
+                    # get filename
+                    filename = self.attachment.get_filename()
+                    prefix, suffix = fn_hook(filename, prefix, suffix)
+
                 tmpfile = tempfile.NamedTemporaryFile(delete=False,
                                                       prefix=prefix,
                                                       suffix=suffix)

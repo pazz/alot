@@ -23,7 +23,7 @@ setup(name='alot',
                             ]},
       entry_points={
           'console_scripts':
-              ['alot = alot.init:main'],
+              ['alot = alot.__main__:main'],
       },
       install_requires=[
         'notmuch>=0.13',
@@ -33,5 +33,5 @@ setup(name='alot',
         'python-magic',
         'configobj>=4.7.0',
         'pygpgme>=0.2'],
-      provides='alot',
+      provides=['alot'],
       )

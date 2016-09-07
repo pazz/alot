@@ -53,6 +53,15 @@ thread_authors_me = string(default='Me')
 # author's first or latest message in thread
 thread_authors_order_by = option('first_message', 'latest_message', default='first_message')
 
+# What should be considered to be "the thread subject".
+# Valid values are:
+#
+# * 'notmuch' (the default), will use the thread subject from notmuch, which
+#   depends on the selected sorting method
+# * 'oldest' will always use the subject of the oldest message in the thread as
+#   the thread subject
+thread_subject = option('oldest', 'notmuch', default='notmuch')
+
 # set terminal command used for spawning shell commands
 terminal_cmd = string(default='x-terminal-emulator -e')
 
@@ -80,7 +89,8 @@ edit_headers_whitelist = force_list(default=list(*,))
 # see :ref:`edit_headers_whitelist <edit-headers-whitelist>`
 edit_headers_blacklist = force_list(default=list(Content-Type,MIME-Version,References,In-Reply-To))
 
-# timeout in seconds after a failed attempt to writeout the database is repeated
+# timeout in seconds after a failed attempt to writeout the database is
+# repeated. Set to 0 for no retry.
 flush_retry_timeout = integer(default=5)
 
 # where to look up hooks
@@ -213,8 +223,15 @@ followup_to = boolean(default=False)
 # The list of addresses associated to the mailinglists you are subscribed to
 mailinglists = force_list(default=list())
 
+# Automatically switch to list reply mode if appropriate
+auto_replyto_mailinglist = boolean(default=False)
+
 # prefer plaintext alternatives over html content in multipart/alternative
 prefer_plaintext = boolean(default=False)
+
+# In a thread buffer, hide from messages summaries tags that are commom to all
+# messages in that thread.
+msg_summary_hides_threadwide_tags = boolean(default=True)
 
 # Key bindings 
 [bindings]
@@ -246,6 +263,9 @@ prefer_plaintext = boolean(default=False)
 
         # used to clear your addresses/ match account when formatting replies
         aliases = force_list(default=list())
+
+        # a regex for catching further aliases (like + extensions).
+        alias_regexp = string(default=None)
 
         # sendmail command. This is the shell command used to send out mails via the sendmail protocol
         sendmail_command = string(default='sendmail -t')
@@ -283,6 +303,9 @@ prefer_plaintext = boolean(default=False)
         # Outgoing messages will be GPG signed by default if this is set to True.
         sign_by_default = boolean(default=False)
 
+        # Outgoing messages will be GPG encrypted by default if this is set to True.
+        encrypt_by_default = boolean(default=False)
+
         # The GPG key ID you want to use with this account. If unset, alot will
         # use your default key.
         gpg_key = gpg_key_hint(default=None)
@@ -305,3 +328,10 @@ prefer_plaintext = boolean(default=False)
 
             # contacts file used for type 'abook' address book
             abook_contacts_file = string(default='~/.abook/addressbook')
+
+            # (shellcommand addressbooks)
+            # let the external command do the filtering when looking up addresses.
+            # If set to True, the command is fired with the given search string
+            # as parameter. Otherwise, the command is fired without additional parameters
+            # and the result list is filtered according to the search string.
+            shellcommand_external_filtering = boolean(default=True)

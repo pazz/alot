@@ -2,9 +2,9 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 import os
+import re
 import code
 from twisted.internet import threads
-from twisted.internet import defer
 import subprocess
 import email
 import urwid
@@ -16,9 +16,8 @@ from StringIO import StringIO
 
 from alot.commands import Command, registerCommand
 from alot.completion import CommandLineCompleter
-from alot.commands import CommandParseError
-from alot.commands import commandfactory
 from alot.commands import CommandCanceled
+from alot.commands.utils import get_keys
 from alot import buffers
 from alot.widgets.utils import DialogBox
 from alot import helper
@@ -29,7 +28,7 @@ from alot.completion import TagsCompleter
 from alot.db.envelope import Envelope
 from alot import commands
 from alot.settings import settings
-from alot.helper import split_commandstring, split_commandline
+from alot.helper import split_commandstring
 from alot.helper import mailto_to_envelope
 from alot.utils.booleanaction import BooleanAction
 
@@ -42,15 +41,22 @@ class ExitCommand(Command):
     """shut down cleanly"""
     @inlineCallbacks
     def apply(self, ui):
-        msg = 'index not fully synced. ' if ui.db_was_locked else ''
-        if settings.get('bug_on_exit') or ui.db_was_locked:
-            msg += 'really quit?'
+        if settings.get('bug_on_exit'):
+            msg = 'really quit?'
             if (yield ui.choice(msg, select='yes', cancel='no',
                                 msg_position='left')) == 'no':
                 return
+
         for b in ui.buffers:
             b.cleanup()
-        ui.exit()
+        ui.apply_command(FlushCommand(callback=ui.exit))
+
+        if ui.db_was_locked:
+            msg = 'Database locked. Exit without saving?'
+            if (yield ui.choice(msg, select='yes', cancel='no',
+                                msg_position='left')) == 'no':
+                return
+            ui.exit()
 
 
 @registerCommand(MODE, 'search', usage='search query', arguments=[
@@ -267,11 +273,6 @@ class ExternalCommand(Command):
             afterwards(ret)
 
 
-#@registerCommand(MODE, 'edit', arguments=[
-# (['--nospawn'], {'action': 'store_true', 'help':'spawn '}), #todo
-#    (['path'], {'help':'file to edit'})]
-#]
-#)
 class EditCommand(ExternalCommand):
 
     """edit a file"""
@@ -542,14 +543,15 @@ class FlushCommand(Command):
         except DatabaseLockedError:
             timeout = settings.get('flush_retry_timeout')
 
-            def f(*args):
-                self.apply(ui)
-            ui.mainloop.set_alarm_in(timeout, f)
-            if not ui.db_was_locked:
-                if not self.silent:
-                    ui.notify(
-                        'index locked, will try again in %d secs' % timeout)
-                ui.db_was_locked = True
+            if timeout > 0:
+                def f(*args):
+                    self.apply(ui)
+                ui.mainloop.set_alarm_in(timeout, f)
+                if not ui.db_was_locked:
+                    if not self.silent:
+                        ui.notify(
+                            'index locked, will try again in %d secs' % timeout)
+                    ui.db_was_locked = True
             ui.update()
             return
 
@@ -647,7 +649,8 @@ class ComposeCommand(Command):
     """compose a new email"""
     def __init__(self, envelope=None, headers={}, template=None,
                  sender=u'', subject=u'', to=[], cc=[], bcc=[], attach=None,
-                 omit_signature=False, spawn=None, rest=[], **kwargs):
+                 omit_signature=False, spawn=None, rest=[],
+                 encrypt=False, **kwargs):
         """
         :param envelope: use existing envelope
         :type envelope: :class:`~alot.db.envelope.Envelope`
@@ -677,6 +680,8 @@ class ComposeCommand(Command):
                      'mailto' in which case it is interpreted as mailto string.
                      Otherwise it will be interpreted as recipients (to) header
         :type rest: list(str)
+        :param encrypt: if the email should be encrypted
+        :type encrypt: bool
         """
 
         Command.__init__(self, **kwargs)
@@ -693,6 +698,7 @@ class ComposeCommand(Command):
         self.omit_signature = omit_signature
         self.force_spawn = spawn
         self.rest = ' '.join(rest)
+        self.encrypt = encrypt
 
     @inlineCallbacks
     def apply(self, ui):
@@ -749,7 +755,7 @@ class ComposeCommand(Command):
             self.envelope.add('Bcc', ','.join(self.bcc))
 
         # get missing From header
-        if not 'From' in self.envelope.headers:
+        if 'From' not in self.envelope.headers:
             accounts = settings.get_accounts()
             if len(accounts) == 1:
                 a = accounts[0]
@@ -821,7 +827,7 @@ class ComposeCommand(Command):
             self.envelope.add('To', to.strip(' \t\n,'))
 
         if settings.get('ask_subject') and \
-                not 'Subject' in self.envelope.headers:
+                'Subject' not in self.envelope.headers:
             subject = yield ui.prompt('Subject')
             logging.debug('SUBJECT: "%s"' % subject)
             if subject is None:
@@ -844,10 +850,41 @@ class ComposeCommand(Command):
                     self.envelope.attach(a)
                     logging.debug('attaching: ' + a)
 
+        # set encryption if needed
+        if self.encrypt or account.encrypt_by_default:
+            yield self._set_encrypt(ui, self.envelope)
+
         cmd = commands.envelope.EditCommand(envelope=self.envelope,
                                             spawn=self.force_spawn,
                                             refocus=False)
         ui.apply_command(cmd)
+
+    @inlineCallbacks
+    def _set_encrypt(self, ui, envelope):
+        """Find and set the encryption keys in an envolope.
+
+        :param ui: the main user interface object
+        :type ui: alot.ui.UI
+        :param envolope: the envolope buffer object
+        :type envolope: alot.buffers.EnvelopeBuffer
+
+        """
+        encrypt_keys = []
+        for recipient in envelope.headers['To'][0].split(','):
+            if not recipient:
+                continue
+            match = re.search("<(.*@.*)>", recipient)
+            if match:
+                recipient = match.group(0)
+            encrypt_keys.append(recipient)
+
+        logging.debug("encryption keys: " + str(encrypt_keys))
+        keys = yield get_keys(ui, encrypt_keys, block_error=self.encrypt)
+        if keys:
+            envelope.encrypt_keys.update(keys)
+            envelope.encrypt = True
+        else:
+            envelope.encrypt = False
 
 
 @registerCommand(MODE, 'move', help='move focus in current buffer',

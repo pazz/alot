@@ -56,6 +56,16 @@
     :default: True
 
 
+.. _auto_replyto_mailinglist:
+
+.. describe:: auto_replyto_mailinglist
+
+     Automatically switch to list reply mode if appropriate
+
+    :type: boolean
+    :default: False
+
+
 .. _bufferclose-focus-offset:
 
 .. describe:: bufferclose_focus_offset

@@ -13,7 +13,7 @@ from alot.buffers import EnvelopeBuffer
 from alot.settings import settings
 from alot.utils.booleanaction import BooleanAction
 from alot.helper import split_commandline
-from alot.addressbooks import AddressbookError
+from alot.addressbook import AddressbookError
 from errors import CompletionError
 
 

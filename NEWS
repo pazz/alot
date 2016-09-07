@@ -1,6 +1,15 @@
-master:
+0.3.7:
+* new config option: msg_summary_hides_threadwide_tags
+* new config setting: thread_subject
+* new hook: sanitize_attachment_filename
+* new hook: exit()
+* list replies (new command parameter and config setting: auto_replyto_mailinglist)
+* new config setting for accounts: encrypt_by_default
+* new config setting for accounts: alias_regexp
+* new config setting for abooks: shellcommand_external_filtering
 * switched to setuptools
 * detached urwidtrees library into separate project (and new dependency)
+
 
 0.3.6:
 * implement vim-style "move last" command (bound to G)

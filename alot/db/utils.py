@@ -6,8 +6,6 @@ import email
 import tempfile
 import re
 from email.header import Header
-import email.charset as charset
-charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 from email.iterators import typed_subpart_iterator
 import logging
 import mailcap
@@ -21,6 +19,9 @@ from alot.helper import string_sanitize
 from alot.helper import string_decode
 from alot.helper import parse_mailcap_nametemplate
 from alot.helper import split_commandstring
+
+import email.charset as charset
+charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 
 X_SIGNATURE_VALID_HEADER = 'X-Alot-OpenPGP-Signature-Valid'
 X_SIGNATURE_MESSAGE_HEADER = 'X-Alot-OpenPGP-Signature-Message'
