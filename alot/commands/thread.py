@@ -516,27 +516,23 @@ class EditNewCommand(Command):
 
 
 @registerCommand(
-    MODE, 'fold', forced={'visible': False},
-    arguments=[
-        (['query'], {'help': 'query used to filter messages to affect',
-                     'nargs': '*'})
-    ],
-    help='fold message(s)')
-@registerCommand(MODE, 'unfold', forced={'visible': True}, arguments=[
-    (['query'], {'help': 'query used to filter messages to affect',
-                 'nargs': '*'}),
-], help='unfold message(s)')
-@registerCommand(MODE, 'togglesource', forced={'raw': 'toggle'}, arguments=[
-    (['query'], {'help': 'query used to filter messages to affect',
-                 'nargs': '*'}),
-], help='display message source')
-@registerCommand(MODE, 'toggleheaders', forced={'all_headers': 'toggle'},
-                 arguments=[
-                     (['query'], {
-                         'help': 'query used to filter messages to affect',
-                         'nargs': '*'}),
-                 ],
-                 help='display all headers')
+    MODE, 'fold', help='fold message(s)', forced={'visible': False},
+    arguments=[(['query'], {'help': 'query used to filter messages to affect',
+                            'nargs': '*'})])
+@registerCommand(
+    MODE, 'unfold', help='unfold message(s)', forced={'visible': True},
+    arguments=[(['query'], {'help': 'query used to filter messages to affect',
+                            'nargs': '*'})])
+@registerCommand(
+    MODE, 'togglesource', help='display message source',
+    forced={'raw': 'toggle'},
+    arguments=[(['query'], {'help': 'query used to filter messages to affect',
+                            'nargs': '*'})])
+@registerCommand(
+    MODE, 'toggleheaders', help='display all headers',
+    forced={'all_headers': 'toggle'},
+    arguments=[(['query'], {'help': 'query used to filter messages to affect',
+                            'nargs': '*'})])
 class ChangeDisplaymodeCommand(Command):
 
     """fold or unfold messages"""
