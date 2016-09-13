@@ -506,24 +506,31 @@ class EditNewCommand(Command):
     MODE, 'indent', help='change message/reply indentation',
     arguments=[(['indent'], {'action': cargparse.ValidatedStoreAction,
                              'validator': cargparse.is_int_or_pm})])
+@registerCommand(
+    MODE, 'togglemimetree', help='disply mime tree of the message',
+    forced={'mimetree': 'toggle'},
+    arguments=[(['query'], {'help': 'query used to filter messages to affect',
+                            'nargs': '*'})])
 class ChangeDisplaymodeCommand(Command):
 
     """fold or unfold messages"""
     repeatable = True
 
     def __init__(self, query=None, visible=None, raw=None, all_headers=None,
-                 indent=None, **kwargs):
+                 indent=None, mimetree=None, **kwargs):
         """
         :param query: notmuch query string used to filter messages to affect
         :type query: str
         :param visible: unfold if `True`, fold if `False`, ignore if `None`
         :type visible: True, False, 'toggle' or None
-        :param raw: display raw message text.
+        :param raw: display raw message text
         :type raw: True, False, 'toggle' or None
         :param all_headers: show all headers (only visible if not in raw mode)
         :type all_headers: True, False, 'toggle' or None
         :param indent: message/reply indentation
         :type indent: '+', '-', or int
+        :param mimetree: show the mime tree of the message
+        :type mimetree: True, False, 'toggle' or None
         """
         self.query = None
         if query:
