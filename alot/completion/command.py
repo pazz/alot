@@ -193,7 +193,8 @@ class CommandCompleter(Completer):
                     res = self._pathcompleter.complete(params, localpos)
                 elif self.mode == 'thread' and cmd in ['fold', 'unfold',
                                                        'togglesource',
-                                                       'toggleheaders']:
+                                                       'toggleheaders',
+                                                       'togglemimetree']:
                     res = self._querycompleter.complete(params, localpos)
                 elif self.mode == 'thread' and cmd in ['tag', 'retag', 'untag',
                                                        'toggletags']:
