@@ -539,6 +539,7 @@ class ChangeDisplaymodeCommand(Command):
         self.raw = raw
         self.all_headers = all_headers
         self.indent = indent
+        self.mimetree = mimetree
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
@@ -584,6 +585,11 @@ class ChangeDisplaymodeCommand(Command):
             raw = not mt.display_source if self.raw == 'toggle' else self.raw
             all_headers = not mt.display_all_headers \
                 if self.all_headers == 'toggle' else self.all_headers
+            if self.mimetree == 'toggle':
+                tbuffer.focus_selected_message()
+            mimetree = not mt.display_mimetree \
+                if self.mimetree == 'toggle' else self.mimetree
+
 
             # collapse/expand depending on new 'visible' value
             if visible is False:
@@ -596,6 +602,8 @@ class ChangeDisplaymodeCommand(Command):
                 mt.display_source = raw
             if all_headers is not None:
                 mt.display_all_headers = all_headers
+            if mimetree is not None:
+                mt.display_mimetree = mimetree
             mt.debug()
             # let the messagetree reassemble itself
             mt.reassemble()
