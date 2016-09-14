@@ -171,7 +171,9 @@ class MessageTree(CollapsibleTree):
         self._all_headers_tree = None
         self._default_headers_tree = None
         self.display_attachments = True
+        self._mimetree = None
         self._attachments = None
+        self.display_mimetree = False
         self._maintree = SimpleTree(self._assemble_structure())
         CollapsibleTree.__init__(self, self._maintree)
 
@@ -190,6 +192,7 @@ class MessageTree(CollapsibleTree):
         logging.debug('display_source %s', self.display_source)
         logging.debug('display_all_headers %s', self.display_all_headers)
         logging.debug('display_attachements %s', self.display_attachments)
+        logging.debug('display_mimetree %s', self.display_mimetree)
         logging.debug('AHT %s', str(self._all_headers_tree))
         logging.debug('DHT %s', str(self._default_headers_tree))
         logging.debug('MAINTREE %s', str(self._maintree._treelist))
@@ -198,6 +201,9 @@ class MessageTree(CollapsibleTree):
         mainstruct = []
         if self.display_source:
             mainstruct.append((self._get_source(), None))
+        elif self.display_mimetree:
+            mainstruct.append((self._get_headers(), None))
+            mainstruct.append((self._get_mimetree(), None))
         else:
             mainstruct.append((self._get_headers(), None))
 
@@ -310,6 +316,12 @@ class MessageTree(CollapsibleTree):
         value_att = settings.get_theming_attribute('thread', 'header_value')
         gaps_att = settings.get_theming_attribute('thread', 'header')
         return DictList(lines, key_att, value_att, gaps_att)
+
+    def _get_mimetree(self):
+        if self._mimetree is None:
+            mime_tree = self._message.get_mime_tree()
+            self._mimetree = SimpleTree([mime_tree])
+        return self._mimetree
 
 
 class ThreadTree(Tree):
