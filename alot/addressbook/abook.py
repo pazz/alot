@@ -11,7 +11,7 @@ class AbookAddressBook(AddressBook):
     """:class:`AddressBook` that parses abook's config/database files"""
     def __init__(self, path='~/.abook/addressbook', **kwargs):
         """
-        :param path: path to theme file
+        :param path: path to abook addressbook file
         :type path: str
         """
         AddressBook.__init__(self, **kwargs)
