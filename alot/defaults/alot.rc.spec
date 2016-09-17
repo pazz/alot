@@ -239,7 +239,7 @@ msg_summary_hides_threadwide_tags = boolean(default=True)
 # first in the account block is used.
 reply_account_header_priority = force_list(default=list(From,To,Cc,Envelope-To,X-Envelope-To,Delivered-To))
 
-# Key bindings 
+# Key bindings
 [bindings]
     __many__ = string(default=None)
     [[___many___]]

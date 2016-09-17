@@ -55,7 +55,7 @@ Both respect the `ignorecase` option which defaults to `True` and results in cas
 
           command = notmuch_abook.py lookup
           regexp = ^((?P<name>[^(\\s+\<)]*)\s+<)?(?P<email>[^@]+?@[^>]+)>?$
-    
+
     `notmuch address`
         Since version `0.19`, notmuch itself offers a subcommand `address`, that
         returns email addresses found in the notmuch index.
