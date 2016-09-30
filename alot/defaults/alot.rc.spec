@@ -116,6 +116,8 @@ bufferlist_statusbar = mixed_list(string, string, default=list('[{buffer_no}: bu
 # * `{result_count_positive}`: 's' if result count is greater than 0.
 search_statusbar = mixed_list(string, string, default=list('[{buffer_no}: search] for "{querystring}"','{input_queue} {result_count} of {total_messages} messages'))
 
+searchmessages_statusbar = mixed_list(string, string, default=list('[{buffer_no}: messages] for "{querystring}" {subject}','{input_queue} {result_count} of {total_messages} messages'))
+
 # Format of the status-bar in thread mode.
 # This is a pair of strings to be left and right aligned in the status-bar.
 # Apart from the global variables listed at :ref:`bufferlist_statusbar <bufferlist-statusbar>`

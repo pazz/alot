@@ -102,6 +102,37 @@ class SearchCommand(Command):
             ui.notify('empty query string')
 
 
+@registerCommand(MODE, 'searchmessages', usage='search query', arguments=[
+    (['--sort'], {'help': 'sort order', 'choices': [
+                  'oldest_first', 'newest_first', 'message_id', 'unsorted']}),
+    (['query'], {'nargs': argparse.REMAINDER,
+                 'help': 'searchmessages string'})])
+class SearchMessagesCommand(SearchCommand):
+
+    """open a new search messages buffer"""
+
+    def apply(self, ui):
+        if self.query:
+            open_searches = ui.get_buffers_of_type(
+                buffers.SearchMessagesBuffer)
+            to_be_focused = None
+            for sb in open_searches:
+                if sb.querystring == self.query:
+                    to_be_focused = sb
+            if to_be_focused:
+                if ui.current_buffer != to_be_focused:
+                    ui.buffer_focus(to_be_focused)
+                else:
+                    # refresh an already displayed search
+                    ui.current_buffer.rebuild()
+                    ui.update()
+            else:
+                ui.buffer_open(buffers.SearchMessagesBuffer(
+                    ui, self.query, sort_order=self.order))
+        else:
+            ui.notify('empty query string')
+
+
 @registerCommand(MODE, 'prompt', arguments=[
     (['startwith'], {'nargs': '?', 'default': '', 'help': 'initial content'})])
 class PromptCommand(Command):
