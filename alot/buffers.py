@@ -784,6 +784,7 @@ class SearchMessagesBuffer(SearchBuffer):
             self.listbox.set_focus(0)
         else:
             self.rebuild(reverse=False)
+        self.possible_message_focus_change()
 
     def focus_last(self):
         if self.reversed:
@@ -798,6 +799,7 @@ class SearchMessagesBuffer(SearchBuffer):
             self.listbox.set_focus(num_lines - 1)
         else:
             self.rebuild(reverse=True)
+        self.possible_message_focus_change()
 
     def get_selected_messageline(self):
         """
