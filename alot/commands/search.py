@@ -55,9 +55,12 @@ class OpenThreadMessagesCommand(Command):
     def apply(self, ui):
         if not self.thread:
             self.thread = ui.current_buffer.get_selected_thread()
+        # TODO: allow custom focus_oldest_with_tags
         ui.buffer_open(
-            buffers.SearchMessagesBuffer(ui, thread=self.thread,
-                                         sort_order=None))
+            buffers.SearchMessagesBuffer(
+                ui, thread=self.thread, sort_order=None,
+                focus_oldest_with_tags=['inbox', 'unread']
+            ))
 
 
 @registerCommand(MODE, 'refine', help='refine query', arguments=[
