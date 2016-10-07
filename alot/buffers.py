@@ -684,7 +684,8 @@ class SearchMessagesBuffer(SearchBuffer):
 
     modename = 'searchmessages'
 
-    def __init__(self, ui, initialquery='', thread=None, sort_order=None):
+    def __init__(self, ui, initialquery='', thread=None, sort_order=None,
+                 focus_oldest_with_tags=None):
         """
         May receive a query string or a thread object. If a thread object is
         passed, all the messages from it are displayed instead of using the
@@ -701,6 +702,9 @@ class SearchMessagesBuffer(SearchBuffer):
         self.thread = thread
 
         SearchBuffer.__init__(self, ui, initialquery, sort_order)
+
+        if focus_oldest_with_tags:
+            self.set_focus_by_tags(focus_oldest_with_tags)
 
     def __str__(self):
         content = self.querystring if self.querystring else self.thread
@@ -757,7 +761,8 @@ class SearchMessagesBuffer(SearchBuffer):
 
         self.message_viewer = self.get_message_viewer(
             self.get_selected_message())
-        frame = urwid.Frame(
+
+        self.body = urwid.Frame(
             self.message_viewer,
             urwid.Pile([
                 AlwaysFocused(urwid.BoxAdapter(self.listbox, 5)),
@@ -765,7 +770,25 @@ class SearchMessagesBuffer(SearchBuffer):
                     urwid.AttrMap(urwid.Divider(u"_"), 'bright'))),
             ])
         )
-        self.body = frame
+
+    def set_focus_by_tags(self, tags, oldest=True):
+        '''
+        Set focus to the last or oldest message that contains 'tags'.
+        '''
+        tags = set(tags)
+        oldest_date = None
+        focus = self.listbox.get_focus()[1]
+        for i, line in enumerate(self.listbox.body):
+            msg = line.message
+            if tags.issubset(msg.get_tags()):
+                if oldest:
+                    date = msg.get_date()
+                    if oldest_date is None or date < oldest_date:
+                        oldest_date = date
+                        focus = i
+                else:
+                    focus = i
+        self.listbox.set_focus(focus)
 
     def keypress(self, size, key):
         if key == 'next':
