@@ -232,12 +232,12 @@ class Message(object):
                     content = part.get_payload(decode=True)
                     ct = helper.guess_mimetype(content)
 
-                if cd.startswith('attachment'):
-                    if ct not in ['application/pgp-encrypted',
+                if cd.lower().startswith('attachment'):
+                    if ct.lower() not in ['application/pgp-encrypted',
                                   'application/pgp-signature']:
                         self._attachments.append(Attachment(part))
-                elif cd.startswith('inline'):
-                    if filename is not None and ct != 'application/pgp':
+                elif cd.lower().startswith('inline'):
+                    if filename is not None and ct.lower() != 'application/pgp':
                         self._attachments.append(Attachment(part))
         return self._attachments
 
