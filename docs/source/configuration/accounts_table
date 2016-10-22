@@ -143,3 +143,13 @@
     :type: string
     :default: None
 
+.. _non-standard-case-insensitive:
+
+.. describe:: non_standard_case_insensitive
+
+     If the server will match addresses without regard to case,
+     (foo@example.com == Foo@example.com). This is non-standard behavior, if
+     unsure leave False.
+
+     :type: boolean
+     :default: False
