@@ -850,8 +850,13 @@ class ComposeCommand(Command):
                     self.envelope.attach(a)
                     logging.debug('attaching: ' + a)
 
+        if account is None:
+            encrypt_by_default = None
+        else:
+            encrypt_by_default = account.encrypt_by_default
+
         # set encryption if needed
-        if self.encrypt or account.encrypt_by_default:
+        if self.encrypt or encrypt_by_default:
             yield self._set_encrypt(ui, self.envelope)
 
         cmd = commands.envelope.EditCommand(envelope=self.envelope,
