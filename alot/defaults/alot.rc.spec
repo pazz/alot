@@ -296,6 +296,10 @@ msg_summary_hides_threadwide_tags = boolean(default=True)
         # :ref:`signature_as_attachment <signature-as-attachment>` is set to True
         signature_filename = string(default=None)
 
+        # prefix to prepend to signature on the preceding line when signature
+        # is included in body text
+        signature_prefix = string(default=None)
+
         # Outgoing messages will be GPG signed by default if this is set to True.
         sign_by_default = boolean(default=False)
 

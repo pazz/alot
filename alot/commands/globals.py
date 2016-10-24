@@ -791,6 +791,10 @@ class ComposeCommand(Command):
                             if mimetype.startswith('text'):
                                 sigcontent = helper.string_decode(sigcontent,
                                                                   enc)
+                                if account.signature_prefix:
+                                    sigcontent = (account.signature_prefix
+                                                  + '\n'
+                                                  + sigcontent)
                                 self.envelope.body += '\n' + sigcontent
                     else:
                         ui.notify('could not locate signature: %s' % sig,

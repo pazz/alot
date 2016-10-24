@@ -113,6 +113,17 @@
     :default: None
 
 
+.. _signature-prefix:
+
+.. describe:: signature_prefix
+
+     line to prefix signature with if included in message body if
+     :ref:`signature_as_attachment <signature-as-attachment>` is set to False
+
+    :type: string
+    :default: None
+
+
 .. _sign-by-default:
 
 .. describe:: sign_by_default

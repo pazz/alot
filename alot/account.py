@@ -45,6 +45,9 @@ class Account(object):
     """filename of signature file in attachment"""
     signature_as_attachment = None
     """attach signature file instead of appending its content to body text"""
+    signature_prefix = None
+    """line to prefix signature with in body of message"""
+
     abook = None
     """addressbook (:class:`addressbook.AddressBook`)
        managing this accounts contacts"""
@@ -52,9 +55,9 @@ class Account(object):
     def __init__(self, address=None, aliases=None, alias_regexp=None,
                  realname=None, gpg_key=None, signature=None,
                  signature_filename=None, signature_as_attachment=False,
-                 sent_box=None, sent_tags=['sent'], draft_box=None,
-                 draft_tags=['draft'], abook=None, sign_by_default=False,
-                 encrypt_by_default=False,
+                 signature_prefix=None, sent_box=None, sent_tags=['sent'],
+                 draft_box=None, draft_tags=['draft'], abook=None,
+                 sign_by_default=False, encrypt_by_default=False,
                  **rest):
         self.address = address
         self.aliases = aliases
@@ -64,6 +67,7 @@ class Account(object):
         self.signature = signature
         self.signature_filename = signature_filename
         self.signature_as_attachment = signature_as_attachment
+        self.signature_prefix = signature_prefix
         self.sign_by_default = sign_by_default
         self.encrypt_by_default = encrypt_by_default
         self.sent_box = sent_box
