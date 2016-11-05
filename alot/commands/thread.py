@@ -158,17 +158,6 @@ class ReplyCommand(Command):
 
         envelope = Envelope(bodytext=mailcontent)
 
-        # copy subject
-        subject = decode_header(mail.get('Subject', ''))
-        reply_subject_hook = settings.get_hook('reply_subject')
-        if reply_subject_hook:
-            subject = reply_subject_hook(subject)
-        else:
-            rsp = settings.get('reply_subject_prefix')
-            if not subject.lower().startswith(('re:', rsp.lower())):
-                subject = rsp + subject
-        envelope.add('Subject', subject)
-
         # Auto-detect ML
         auto_replyto_mailinglist = settings.get('auto_replyto_mailinglist')
         if mail['List-Id'] and self.listreply is None:
@@ -192,7 +181,7 @@ class ReplyCommand(Command):
         sender = mail['Reply-To'] or mail['From']
         my_addresses = settings.get_addresses()
         sender_address = parseaddr(sender)[1]
-        cc = ''
+        cc = None
 
         # check if reply is to self sent message
         if sender_address in my_addresses:
@@ -226,7 +215,6 @@ class ReplyCommand(Command):
                 if 'Cc' in mail:
                     cc = self.clear_my_address(
                         my_addresses, mail.get_all('Cc', []))
-                    envelope.add('Cc', decode_header(cc))
 
         to = ', '.join(recipients)
         logging.debug('reply to: %s' % to)
@@ -246,8 +234,21 @@ class ReplyCommand(Command):
             if envelope.get('To') is not None:
                 envelope.__delitem__('To')
 
-        # Finally setup the 'To' header
+        # Finally setup the 'To' and 'CC' headers
         envelope.add('To', decode_header(to))
+        if cc is not None:
+            envelope.add('Cc', cc)
+
+        # copy subject
+        subject = decode_header(mail.get('Subject', ''))
+        reply_subject_hook = settings.get_hook('reply_subject')
+        if reply_subject_hook:
+            subject = reply_subject_hook(subject)
+        else:
+            rsp = settings.get('reply_subject_prefix')
+            if not subject.lower().startswith(('re:', rsp.lower())):
+                subject = rsp + subject
+        envelope.add('Subject', subject)
 
         # if any of the recipients is a mailinglist that we are subscribed to,
         # set Mail-Followup-To header so that duplicates are avoided

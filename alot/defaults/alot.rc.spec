@@ -1,6 +1,9 @@
 
 ask_subject = boolean(default=True) # ask for subject when compose
 
+# ask for recipient when composing
+ask_to = boolean(default=True)
+
 # automatically remove 'unread' tag when focussing messages in thread mode
 auto_remove_unread = boolean(default=True)
 

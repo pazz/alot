@@ -9,6 +9,7 @@ from email.encoders import encode_7or8bit
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
+from collections import OrderedDict
 
 from alot import __version__
 import logging
@@ -70,7 +71,7 @@ class Envelope(object):
             logging.debug('PARSED TEMPLATE: %s' % template)
             logging.debug('BODY: %s' % self.body)
         self.body = bodytext or u''
-        self.headers = headers or {}
+        self.headers = OrderedDict(headers or {})
         self.attachments = list(attachments)
         self.sign = sign
         self.sign_key = sign_key
@@ -303,7 +304,7 @@ class Envelope(object):
 
             # remove existing content
             if reset:
-                self.headers = {}
+                self.headers = OrderedDict()
 
             # go through multiline, utf-8 encoded headers
             # we decode the edited text ourselves here as
