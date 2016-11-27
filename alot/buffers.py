@@ -789,6 +789,7 @@ class SearchMessagesBuffer(SearchBuffer):
                 else:
                     focus = i
         self.listbox.set_focus(focus)
+        self.possible_message_focus_change()
 
     def keypress(self, size, key):
         if key == 'next':
