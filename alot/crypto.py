@@ -218,23 +218,6 @@ def decrypt_verify(encrypted):
     return verify_result.signatures, plaintext
 
 
-def hash_key(key):
-    """
-    Returns a hash of the given key. This is a workaround for
-    https://bugs.launchpad.net/pygpgme/+bug/1089865
-    and can be removed if the missing feature is added to pygpgme.
-
-    :param key: the key we want a hash of
-    :type key: gpgme.Key
-    :returns: a hash of the key
-    :rtype: str
-    """
-    hash_str = ""
-    for tmp_key in key.subkeys:
-        hash_str += tmp_key.keyid
-    return hash_str
-
-
 def validate_key(key, sign=False, encrypt=False):
     """Assert that a key is valide and optionally that it can be used for
     signing or encrypting.  Raise GPGProblem otherwise.

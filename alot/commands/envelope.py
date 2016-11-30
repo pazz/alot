@@ -572,7 +572,7 @@ class EncryptCommand(Command):
             try:
                 for keyid in self.encrypt_keys:
                     tmp_key = crypto.get_key(keyid)
-                    del envelope.encrypt_keys[crypto.hash_key(tmp_key)]
+                    del envelope.encrypt_keys[tmp_key.fpr]
             except GPGProblem as e:
                 ui.notify(e.message, priority='error')
             if not envelope.encrypt_keys:
