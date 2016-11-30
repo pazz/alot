@@ -33,7 +33,7 @@ MOCK_MODULES = ['twisted', 'twisted.internet',
                 'urwid',
                 'urwidtrees',
                 'magic',
-                'gpgme',
+                'gpg',
                 'configobj',
                 'validate',
                 'argparse']

@@ -123,7 +123,7 @@ install:
       # alot when rebuilding the documentation.  Notmuch would have to be
       # installed by hand in order to get a recent enough version on travis.
       printf '%s = None\n' NotmuchError NullPointerError > notmuch.py
-      touch gpgme.py
+      touch gpg.py
       # install sphinx for building the html docs
       pip install sphinx
     else

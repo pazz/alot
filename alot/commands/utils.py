@@ -66,7 +66,7 @@ def _get_keys(ui, encrypt_keyids, block_error=False, signed_only=False):
         to the key)
     :type signed_only: bool
     :returns: the available keys indexed by their key hash
-    :rtype: dict(str->gpgme.Key)
+    :rtype: dict(str->gpg key object)
 
     """
     keys = {}

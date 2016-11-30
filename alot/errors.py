@@ -13,6 +13,8 @@ class GPGCode(object):
     KEY_CANNOT_ENCRYPT = 7
     KEY_CANNOT_SIGN = 8
     INVALID_HASH = 9
+    INVALID_HASH_ALGORITHM = 10
+    BAD_SIGNATURE = 11
 
 
 class GPGProblem(Exception):
