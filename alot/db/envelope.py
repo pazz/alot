@@ -11,8 +11,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 import email.charset as charset
-
-import gpgme
+import gpg
 
 from .attachment import Attachment
 from .utils import encode_header
@@ -194,8 +193,8 @@ class Envelope(object):
                     raise GPGProblem("Could not sign message (GPGME "
                                      "did not return a signature)",
                                      code=GPGCode.KEY_CANNOT_SIGN)
-            except gpgme.GpgmeError as e:
-                if e.code == gpgme.ERR_BAD_PASSPHRASE:
+            except gpg.errors.GPGMEError as e:
+                if e.code == gpg.errors.BAD_PASSPHRASE:
                     # If GPG_AGENT_INFO is unset or empty, the user just does
                     # not have gpg-agent running (properly).
                     if os.environ.get('GPG_AGENT_INFO', '').strip() == '':
@@ -234,7 +233,7 @@ class Envelope(object):
             try:
                 encrypted_str = crypto.encrypt(plaintext,
                                                self.encrypt_keys.values())
-            except gpgme.GpgmeError as e:
+            except gpg.errors.GPGMEError as e:
                 raise GPGProblem(str(e), code=GPGCode.KEY_CANNOT_ENCRYPT)
 
             outer_msg = MIMEMultipart('encrypted',

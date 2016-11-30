@@ -32,6 +32,6 @@ setup(name='alot',
         'twisted>=10.2.0',
         'python-magic',
         'configobj>=4.7.0',
-        'pygpgme>=0.2'],
+        'gpg'],
       provides=['alot'],
       )
