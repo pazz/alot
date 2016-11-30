@@ -19,8 +19,8 @@ def get_keys(ui, encrypt_keyids, block_error=False):
     :param block_error: wether error messages for the user should expire
         automatically or block the ui
     :type block_error: bool
-    :returns: the available keys indexed by their key hash
-    :rtype: dict(str->gpgme.Key)
+    :returns: the available keys indexed by their OpenPGP fingerprint
+    :rtype: dict(str->gpg key object)
 
     """
     keys = {}
@@ -42,5 +42,5 @@ def get_keys(ui, encrypt_keyids, block_error=False):
             else:
                 ui.notify(e.message, priority='error', block=block_error)
                 continue
-        keys[crypto.hash_key(key)] = key
+        keys[key.fpr] = key
     returnValue(keys)

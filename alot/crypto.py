@@ -5,38 +5,7 @@ import os
 
 from cStringIO import StringIO
 from alot.errors import GPGProblem, GPGCode
-import gpgme
-
-
-def _hash_algo_name(hash_algo):
-    """
-    Re-implements GPGME's hash_algo_name as long as pygpgme doesn't wrap that
-    function.
-
-    :param hash_algo: GPGME hash_algo
-    :rtype: str
-    """
-    mapping = {
-        gpgme.MD_MD5: "MD5",
-        gpgme.MD_SHA1: "SHA1",
-        gpgme.MD_RMD160: "RIPEMD160",
-        gpgme.MD_MD2: "MD2",
-        gpgme.MD_TIGER: "TIGER192",
-        gpgme.MD_HAVAL: "HAVAL",
-        gpgme.MD_SHA256: "SHA256",
-        gpgme.MD_SHA384: "SHA384",
-        gpgme.MD_SHA512: "SHA512",
-        gpgme.MD_MD4: "MD4",
-        gpgme.MD_CRC32: "CRC32",
-        gpgme.MD_CRC32_RFC1510: "CRC32RFC1510",
-        gpgme.MD_CRC24_RFC2440: "CRC24RFC2440",
-    }
-    if hash_algo in mapping:
-        return mapping[hash_algo]
-    else:
-        raise GPGProblem(("Invalid hash_algo passed to hash_algo_name."
-                          " Please report this as a bug in alot."),
-                         code=GPGCode.INVALID_HASH)
+import gpg
 
 
 def RFC3156_micalg_from_algo(hash_algo):
@@ -50,7 +19,7 @@ def RFC3156_micalg_from_algo(hash_algo):
     :rtype: str
     """
     # hash_algo will be something like SHA256, but we need pgp-sha256.
-    hash_algo = _hash_algo_name(hash_algo)
+    hash_algo = gpg._gpgme.gpgme_hash_algo_name(hash_algo)
     return 'pgp-' + hash_algo.lower()
 
 
@@ -69,15 +38,15 @@ def get_key(keyid, validate=False, encrypt=False, sign=False):
     :param validate: validate that returned keyid is valid
     :param encrypt: when validating confirm that returned key can encrypt
     :param sign: when validating confirm that returned key can sign
-    :rtype: gpgme.Key
+    :rtype: gpg key object
     """
-    ctx = gpgme.Context()
+    ctx = gpg.Context()
     try:
         key = ctx.get_key(keyid)
         if validate:
             validate_key(key, encrypt=encrypt, sign=sign)
-    except gpgme.GpgmeError as e:
-        if e.code == gpgme.ERR_AMBIGUOUS_NAME:
+    except gpg.errors.GPGMEError as e:
+        if e.getcode() == gpg.errors.AMBIGUOUS_NAME:
             # When we get here it means there were multiple keys returned by
             # gpg for given keyid. Unfortunately gpgme returns invalid and
             # expired keys together with valid keys. If only one key is valid
@@ -112,7 +81,7 @@ def get_key(keyid, validate=False, encrypt=False, sign=False):
                     "\'.",
                     code=GPGCode.NOT_FOUND)
             return valid_key
-        elif e.code == gpgme.ERR_INV_VALUE or e.code == gpgme.ERR_EOF:
+        elif e.getcode() == gpg.errors.INV_VALUE or e.getcode() == gpg.errors.EOF:
             raise GPGProblem("Can not find key for \'" + keyid + "\'.",
                              code=GPGCode.NOT_FOUND)
         else:
@@ -128,7 +97,7 @@ def list_keys(hint=None, private=False):
     :param private: Whether secret keys are listed
     :rtype: list
     """
-    ctx = gpgme.Context()
+    ctx = gpg.Context()
     return ctx.keylist(hint, private)
 
 
@@ -141,18 +110,14 @@ def detached_signature_for(plaintext_str, key=None):
 
     :param plaintext_str: text to sign
     :param key: gpgme_key_t object representing the key to use
-    :rtype: tuple of gpgme.NewSignature array and str
+    :rtype: tuple of gpg.results.NewSignature array and str
     """
-    ctx = gpgme.Context()
+    ctx = gpg.Context()
     ctx.armor = True
     if key is not None:
         ctx.signers = [key]
-    plaintext_data = StringIO(plaintext_str)
-    signature_data = StringIO()
-    sigs = ctx.sign(plaintext_data, signature_data, gpgme.SIG_MODE_DETACH)
-    signature_data.seek(0, os.SEEK_SET)
-    signature = signature_data.read()
-    return sigs, signature
+    (sigblob, sign_result) = ctx.sign(gpg.Data(string=plaintext_str), mode=gpg.constants.SIG_MODE_DETACH)
+    return sign_result.signatures, sigblob
 
 
 def encrypt(plaintext_str, keys=None):
@@ -164,15 +129,10 @@ def encrypt(plaintext_str, keys=None):
     :param key: gpgme_key_t object representing the key to use
     :rtype: a string holding the encrypted mail
     """
-    plaintext_data = StringIO(plaintext_str)
-    encrypted_data = StringIO()
-    ctx = gpgme.Context()
+    ctx = gpg.Context()
     ctx.armor = True
-    ctx.encrypt(keys, gpgme.ENCRYPT_ALWAYS_TRUST, plaintext_data,
-                encrypted_data)
-    encrypted_data.seek(0, os.SEEK_SET)
-    encrypted = encrypted_data.read()
-    return encrypted
+    (out, encrypt_result, sign_result) = ctx.encrypt(gpg.Data(string=plaintext_str), recipients=keys, always_trust=True)
+    return out
 
 
 def verify_detached(message, signature):
@@ -181,15 +141,14 @@ def verify_detached(message, signature):
 
     :param message: the message as `str`
     :param signature: a `str` containing an OpenPGP signature
-    :returns: a list of :class:`gpgme.Signature`
+    :returns: a list of :class:`gpg.results.Signature`
     :raises: :class:`~alot.errors.GPGProblem` if the verification fails
     '''
-    message_data = StringIO(message)
-    signature_data = StringIO(signature)
-    ctx = gpgme.Context()
+    ctx = gpg.Context()
     try:
-        return ctx.verify(signature_data, message_data, None)
-    except gpgme.GpgmeError as e:
+        (data, verify_results) = ctx.verify(gpg.Data(string=message), gpg.Data(string=signature), message_data)
+        return verify_results.signatures
+    except gpg.errors.GPGMEError as e:
         raise GPGProblem(e.message, code=e.code)
 
 
@@ -199,37 +158,17 @@ def decrypt_verify(encrypted):
 
     :param encrypted: the mail to decrypt
     :returns: a tuple (sigs, plaintext) with sigs being a list of a
-              :class:`gpgme.Signature` and plaintext is a `str` holding
+              :class:`gpg.result.Signature` and plaintext is a `str` holding
               the decrypted mail
     :raises: :class:`~alot.errors.GPGProblem` if the decryption fails
     '''
-    encrypted_data = StringIO(encrypted)
-    plaintext_data = StringIO()
-    ctx = gpgme.Context()
+    ctx = gpg.Context()
     try:
-        sigs = ctx.decrypt_verify(encrypted_data, plaintext_data)
-    except gpgme.GpgmeError as e:
+        (plaintext, result, verify_result) = ctx.decrypt(gpg.Data(string=encrypted_data), verify=True)
+    except gpg.errors.GPGMEError as e:
         raise GPGProblem(e.message, code=e.code)
 
-    plaintext_data.seek(0, os.SEEK_SET)
-    return sigs, plaintext_data.read()
-
-
-def hash_key(key):
-    """
-    Returns a hash of the given key. This is a workaround for
-    https://bugs.launchpad.net/pygpgme/+bug/1089865
-    and can be removed if the missing feature is added to pygpgme.
-
-    :param key: the key we want a hash of
-    :type key: gpgme.Key
-    :returns: a hash of the key
-    :rtype: str
-    """
-    hash_str = ""
-    for tmp_key in key.subkeys:
-        hash_str += tmp_key.keyid
-    return hash_str
+    return verify_result.signatures, plaintext
 
 
 def validate_key(key, sign=False, encrypt=False):
@@ -237,7 +176,7 @@ def validate_key(key, sign=False, encrypt=False):
     signing or encrypting.  Raise GPGProblem otherwise.
 
     :param key: the GPG key to check
-    :type key: gpgme.Key
+    :type key: gpg key object
     :param sign: whether the key should be able to sign
     :type sign: bool
     :param encrypt: whether the key should be able to encrypt
