@@ -22,9 +22,8 @@ def get_keys(ui, encrypt_keyids, block_error=False, signed_only=False):
     :param signed_only: only return keys whose uid is signed (trusted to belong
         to the key)
     :type signed_only: bool
-    :returns: the available keys indexed by their key hash
+    :returns: the available keys indexed by their OpenPGP fingerprint
     :rtype: dict(str->gpg key object)
-
     """
     keys = {}
     for keyid in encrypt_keyids:
@@ -46,5 +45,5 @@ def get_keys(ui, encrypt_keyids, block_error=False, signed_only=False):
             else:
                 ui.notify(e.message, priority='error', block=block_error)
                 continue
-        keys[crypto.hash_key(key)] = key
+        keys[key.fpr] = key
     returnValue(keys)
