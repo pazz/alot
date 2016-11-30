@@ -20,7 +20,7 @@ def get_keys(ui, encrypt_keyids, block_error=False):
         automatically or block the ui
     :type block_error: bool
     :returns: the available keys indexed by their key hash
-    :rtype: dict(str->gpgme.Key)
+    :rtype: dict(str->gpg key object)
 
     """
     keys = {}
