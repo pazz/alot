@@ -32,10 +32,7 @@ setup(name='alot',
         'twisted>=10.2.0',
         'python-magic',
         'configobj>=4.7.0',
-        'pygpgme>=0.2'],
-      tests_require=[
-          'mock',
-      ],
+        'gpg'],
       provides=['alot'],
       test_suite="tests",
       )
