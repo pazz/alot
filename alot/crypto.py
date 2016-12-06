@@ -64,10 +64,10 @@ def get_key(keyid, validate=False, encrypt=False, sign=False,
     If validate is True also make sure that returned key is not invalid,
     revoked or expired. In addition if encrypt or sign is True also validate
     that key is valid for that action. For example only keys with private key
-    can sign. If signed_only is True make sure that the user id can be can be
-    trusted to belong to the key (is signed). This last check will only work if
-    the keyid is part of the user id associated with the key, not if it is part
-    of the key fingerprint.
+    can sign. If signed_only is True make sure that the user id can be trusted
+    to belong to the key (is signed). This last check will only work if the
+    keyid is part of the user id associated with the key, not if it is part of
+    the key fingerprint.
 
     :param keyid: filter term for the keyring (usually a key ID)
     :type keyid: str

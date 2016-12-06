@@ -397,7 +397,8 @@ def guess_mimetype(blob):
         m.load()
         magictype = m.buffer(blob)
     elif hasattr(magic, 'from_buffer'):
-        magictype = magic.from_buffer(blob, mime=True)
+        # cf. issue #841
+        magictype = magic.from_buffer(blob, mime=True) or magictype
     else:
         raise Exception('Unknown magic API')
 
