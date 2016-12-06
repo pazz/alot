@@ -2,7 +2,8 @@
 * signal: refresh current buffer on SIGUSR1
 * ignal: exit interface on SIGINT
 * interpret C-g keybinding in prompts
-* new option "encrypt_by_default"
+* new config option:encrypt_by_default
+* new config option: thread_authors_order_by
 * indicate untrusted PGP signatures in thread view
 * more flexible account selection for replies
 
