@@ -1040,7 +1040,7 @@ class ThreadSelectCommand(Command):
     (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
                       'help': 'postpone a writeout to the index'}),
     (['tags'], {'help': 'comma separated list of tags'})],
-    help='set message(s) tags.',
+    help='set message(s) tags. Like add, but discards previously existing tags',
 )
 @registerCommand(MODE, 'untag', forced={'action': 'remove'}, arguments=[
     (['--all'], {'action': 'store_true',
@@ -1103,8 +1103,12 @@ class TagCommand(Command):
 
             tbuffer.refresh()
 
-        tags = filter(lambda x: x, self.tagsstring.split(','))
+        tags = set(filter(lambda x: x, self.tagsstring.split(',')))
         try:
+            UndoTagCommand.stack.append(zip(
+                [ m.get_message()               for m in messagetrees],
+                [ m.get_message().get_tags()[:] for m in messagetrees]))
+
             for mt in messagetrees:
                 m = mt.get_message()
                 if self.action == 'add':
@@ -1115,14 +1119,8 @@ class TagCommand(Command):
                 elif self.action == 'remove':
                     m.remove_tags(tags, afterwards=refresh_widgets)
                 elif self.action == 'toggle':
-                    to_remove = []
-                    to_add = []
-                    for t in tags:
-                        if t in m.get_tags():
-                            to_remove.append(t)
-                        else:
-                            to_add.append(t)
-                    m.remove_tags(to_remove)
+                    to_add = tags.difference(m.get_tags())
+                    m.remove_tags(tags.intersection(m.get_tags()))
                     m.add_tags(to_add, afterwards=refresh_widgets)
 
         except DatabaseROError:
@@ -1132,3 +1130,48 @@ class TagCommand(Command):
         # flush index
         if self.flush:
             ui.apply_command(FlushCommand())
+
+
+@registerCommand('thread', 'undotag', arguments=[
+    (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
+                      'help': 'postpone a writeout to the index'})],
+    help='undo previous tagging command',
+)
+@registerCommand('search', 'undotag', arguments=[
+    (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
+                      'help': 'postpone a writeout to the index'})],
+    help='undo previous tagging command',
+)
+class UndoTagCommand(Command):
+    stack = []
+
+    """reverts previous tagging commands"""
+    def __init__(self, flush=True, **kwargs):
+        """
+        :param flush: imediately write out to the index
+        :type flush: bool
+        """
+        self.flush = flush
+        super(UndoTagCommand, self).__init__(**kwargs)
+
+    def apply(self, ui):
+        # restore most recent tags
+        logging.debug('stack[-1]: %s' % self.stack[-1])
+        msg, tags = self.stack[-1]
+        msg.add_tags(tags, remove_rest=True)
+
+        # pop most recent entry
+        self.stack.pop()
+
+        # flush index
+        if self.flush:
+            ui.apply_command(FlushCommand())
+
+        # refresh buffer
+        try:
+            threadline_widget = ui.current_buffer.get_selected_threadline()
+            threadline_widget.rebuild()
+        except:
+            ui.current_buffer.rebuild()
+        finally:
+            ui.update()
