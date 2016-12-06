@@ -61,35 +61,38 @@ def determine_sender(mail, action='reply'):
     # extract list of addresses to check for my address
     # X-Envelope-To and Envelope-To are used to store the recipient address
     # if not included in other fields
-    candidate_addresses = getaddresses(mail.get_all('To', []) +
-                                       mail.get_all('Cc', []) +
-                                       mail.get_all('Delivered-To', []) +
-                                       mail.get_all('X-Envelope-To', []) +
-                                       mail.get_all('Envelope-To', []) +
-                                       mail.get_all('From', []))
+    # Process the headers in order of importance: if a mail was sent with
+    # account X, with account Y in e.g. CC or delivered-to, make sure that
+    # account X is the one selected and not account Y.
+    candidate_headers = settings.get("reply_account_header_priority")
+    for candidate_header in candidate_headers:
+        if realname is not None:
+            break
+        candidate_addresses = getaddresses(mail.get_all(candidate_header, []))
 
-    logging.debug('candidate addresses: %s' % candidate_addresses)
-    # pick the most important account that has an address in candidates
-    # and use that accounts realname and the address found here
-    for account in my_accounts:
-        acc_addresses = map(re.escape, account.get_addresses())
-        if account.alias_regexp is not None:
-            acc_addresses.append(account.alias_regexp)
-        for alias in acc_addresses:
-            if realname is not None:
-                break
-            regex = re.compile('^' + alias + '$', flags=re.IGNORECASE)
-            for seen_name, seen_address in candidate_addresses:
-                if regex.match(seen_address):
-                    logging.debug("match!: '%s' '%s'" % (seen_address, alias))
-                    if settings.get(action + '_force_realname'):
-                        realname = account.realname
-                    else:
-                        realname = seen_name
-                    if settings.get(action + '_force_address'):
-                        address = account.address
-                    else:
-                        address = seen_address
+        logging.debug('candidate addresses: %s' % candidate_addresses)
+        # pick the most important account that has an address in candidates
+        # and use that accounts realname and the address found here
+        for account in my_accounts:
+            acc_addresses = map(re.escape, account.get_addresses())
+            if account.alias_regexp is not None:
+                acc_addresses.append(account.alias_regexp)
+            for alias in acc_addresses:
+                if realname is not None:
+                    break
+                regex = re.compile('^' + alias + '$', flags=re.IGNORECASE)
+                for seen_name, seen_address in candidate_addresses:
+                    if regex.match(seen_address):
+                        logging.debug("match!: '%s' '%s'" % (seen_address,
+                                                             alias))
+                        if settings.get(action + '_force_realname'):
+                            realname = account.realname
+                        else:
+                            realname = seen_name
+                        if settings.get(action + '_force_address'):
+                            address = account.address
+                        else:
+                            address = seen_address
 
     # revert to default account if nothing found
     if realname is None:
