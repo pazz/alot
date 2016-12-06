@@ -96,8 +96,13 @@ class Options(usage.Options):
     ]
     search_help = "start in a search buffer using the querystring provided "\
                   "as parameter. See the SEARCH SYNTAX section of notmuch(1)."
+    searchmessages_help = "start in a search messages buffer using the "\
+                          "querystring provided as parameter. See the SEARCH"\
+                          " SYNTAX section of notmuch(1)."
 
     subCommands = [['search', None, SearchOptions, search_help],
+                   ['searchmessages', None, SearchOptions,
+                    searchmessages_help],
                    ['compose', None, ComposeOptions, "compose a new message"]]
 
     def opt_version(self):
@@ -173,6 +178,10 @@ def main():
             query = ' '.join(args.subOptions.args)
             cmdstring = 'search %s %s' % (args.subOptions.as_argparse_opts(),
                                           query)
+        elif args.subCommand == 'searchmessages':
+            query = ' '.join(args.subOptions.args)
+            cmdstring = 'searchmessages %s %s' % (
+                args.subOptions.as_argparse_opts(), query)
         elif args.subCommand == 'compose':
             cmdstring = 'compose %s' % args.subOptions.as_argparse_opts()
             if args.subOptions.rest is not None:

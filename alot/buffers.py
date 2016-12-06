@@ -12,12 +12,14 @@ from walker import PipeWalker
 from helper import shorten_author_string
 from db.errors import NonexistantObjectError
 
-from alot.widgets.globals import TagWidget
-from alot.widgets.globals import HeadersList
-from alot.widgets.globals import AttachmentWidget
+from alot.widgets.globals import (
+    TagWidget, AlwaysFocused, HeadersList, AttachmentWidget,
+    ModifiedOnFocusChangeWalker)
 from alot.widgets.bufferlist import BufferlineWidget
-from alot.widgets.search import ThreadlineWidget
+from alot.widgets.search import (
+    ThreadlineWidget, SearchMessageSummaryWidget)
 from alot.widgets.thread import ThreadTree
+from alot.widgets.message import MessageViewer
 from urwidtrees import ArrowTree, TreeBox, NestedTree
 
 
@@ -672,3 +674,229 @@ class TagListBuffer(Buffer):
         (cols, pos) = self.taglist.get_focus()
         tagwidget = cols.original_widget.get_focus()
         return tagwidget.get_tag()
+
+
+class SearchMessagesBuffer(SearchBuffer):
+    """
+    Shows a result list of message for a query, or messages for
+    a thread.
+    """
+
+    modename = 'searchmessages'
+
+    def __init__(self, ui, initialquery='', thread=None, sort_order=None,
+                 focus_oldest_with_tags=None):
+        """
+        May receive a query string or a thread object. If a thread object is
+        passed, all the messages from it are displayed instead of using the
+        query string.
+        """
+
+        # cache for already rendered messages
+        self.message_viewers = {}
+
+        # two semaphores for auto-removal of unread tag
+        self._auto_unread_dont_touch_mids = set([])
+        self._auto_unread_writing = False
+
+        self.thread = thread
+
+        SearchBuffer.__init__(self, ui, initialquery, sort_order)
+
+        if focus_oldest_with_tags:
+            self.set_focus_by_tags(focus_oldest_with_tags)
+
+    def __str__(self):
+        content = self.querystring if self.querystring else self.thread
+        formatstring = '[searchmessages] for "%s" (%d message%s)'
+        return formatstring % (content, self.result_count,
+                               's' * (not (self.result_count == 1)))
+
+    def get_info(self):
+        info = {}
+        info['querystring'] = self.querystring
+        info['subject'] = self.thread.get_subject() if self.thread else ''
+        info['result_count'] = self.result_count
+        info['result_count_positive'] = 's' * (not (self.result_count == 1))
+        return info
+
+    def rebuild(self, reverse=False):
+        self.isinitialized = True
+        self.reversed = reverse
+        self.kill_filler_process()
+
+        # if this buffer received a thread object directly
+        if self.thread:
+            messages = [SearchMessageSummaryWidget(message=m)
+                        for m in sorted(self.thread.get_messages(),
+                                        key=lambda m: m.get_date())]
+            # if should display newest messages first
+            if self.sort_order == 'newest_first' or reverse:
+                messages = list(reversed(messages))
+            self.result_count = len(messages)
+            self.messagelist = ModifiedOnFocusChangeWalker(messages)
+        # if no thread object was passed and a query is needed
+        else:
+            self.result_count = self.dbman.count_messages(self.querystring)
+            if reverse:
+                order = self._REVERSE[self.sort_order]
+            else:
+                order = self.sort_order
+
+            try:
+                self.pipe, self.proc = self.dbman.get_messages(
+                    self.querystring, order)
+            except NotmuchError:
+                self.ui.notify(
+                    'malformed query string: %s' % self.querystring, 'error')
+                self.listbox = urwid.ListBox([])
+                self.body = self.listbox
+                return
+
+            self.messagelist = PipeWalker(
+                self.pipe, SearchMessageSummaryWidget,
+                dbman=self.dbman, reverse=reverse)
+
+        self.listbox = urwid.ListBox(self.messagelist)
+
+        self.message_viewer = self.get_message_viewer(
+            self.get_selected_message())
+
+        self.body = urwid.Frame(
+            self.message_viewer,
+            urwid.Pile([
+                AlwaysFocused(urwid.BoxAdapter(self.listbox, 5)),
+                (1, urwid.Filler(
+                    urwid.AttrMap(urwid.Divider(u"_"), 'bright'))),
+            ])
+        )
+
+    def set_focus_by_tags(self, tags, oldest=True):
+        '''
+        Set focus to the last or oldest message that contains 'tags'.
+        '''
+        tags = set(tags)
+        oldest_date = None
+        focus = self.listbox.get_focus()[1]
+        for i, line in enumerate(self.listbox.body):
+            msg = line.message
+            if tags.issubset(msg.get_tags()):
+                if oldest:
+                    date = msg.get_date()
+                    if oldest_date is None or date < oldest_date:
+                        oldest_date = date
+                        focus = i
+                else:
+                    focus = i
+        self.listbox.set_focus(focus)
+        self.possible_message_focus_change()
+
+    def keypress(self, size, key):
+        if key == 'next':
+            return self.listbox.keypress(size, 'down')
+        elif key == 'previous':
+            return self.listbox.keypress(size, 'up')
+        else:
+            return self.body.keypress(size, key)
+
+    def consume_pipe(self):
+        while not self.messagelist.empty:
+            self.messagelist._get_next_item()
+
+    def focus_first(self):
+        if not self.reversed:
+            self.listbox.set_focus(0)
+        else:
+            self.rebuild(reverse=False)
+        self.possible_message_focus_change()
+
+    def focus_last(self):
+        if self.reversed:
+            self.listbox.set_focus(0)
+        elif (self.result_count < 200) or \
+                (self.sort_order not in self._REVERSE.keys()):
+            if self.thread:
+                num_lines = self.result_count
+            else:
+                self.consume_pipe()
+                num_lines = len(self.messagelist.get_lines())
+            self.listbox.set_focus(num_lines - 1)
+        else:
+            self.rebuild(reverse=True)
+        self.possible_message_focus_change()
+
+    def get_selected_messageline(self):
+        """
+        returns curently focussed :class:`alot.widgets.MessagelineWidget`
+        from the result list.
+        """
+        (messagelinewidget, size) = self.messagelist.get_focus()
+        return messagelinewidget
+
+    def get_selected_message(self):
+        """returns currently selected :class:`~alot.db.Message`"""
+        messagelinewidget = self.get_selected_messageline()
+        message = None
+        if messagelinewidget:
+            message = messagelinewidget.get_message()
+        return message
+
+    def get_selected_mid(self):
+        return self.get_selected_message().get_message_id()
+
+    def get_message_viewer(self, message=None):
+        """Returns a message viewer for arg message, storing it in cache."""
+        if not message:
+            message = self.get_selected_message()
+        mid = message.get_message_id()
+        mv = self.message_viewers.get(mid)
+        if not mv:
+            mv = MessageViewer(message)
+            self.message_viewers[mid] = mv
+        return mv
+
+    def possible_message_focus_change(self):
+        message = self.get_selected_message()
+        if self.message_viewer.get_message() != message:
+            mv = self.get_message_viewer(message)
+            self.body.contents['body'] = (mv, None)
+            self.message_viewer = mv
+
+    def render(self, size, focus=False):
+        if settings.get('auto_remove_unread'):
+            logging.debug('SMbuffer: auto remove unread tag from msg?')
+            msg = self.get_selected_message()
+            ml = self.get_selected_messageline()
+            mid = msg.get_message_id()
+            if mid not in self._auto_unread_dont_touch_mids:
+                if 'unread' in msg.get_tags():
+                    logging.debug('SMbuffer: removing unread')
+
+                    def clear():
+                        self._auto_unread_writing = False
+                        ml.refresh()
+
+                    self._auto_unread_dont_touch_mids.add(mid)
+                    self._auto_unread_writing = True
+                    msg.remove_tags(['unread'], afterwards=clear)
+                    fcmd = commands.globals.FlushCommand(silent=True)
+                    self.ui.apply_command(fcmd)
+                else:
+                    logging.debug('SMbuffer: No, msg not unread')
+            else:
+                logging.debug('SMbuffer: No, mid locked for autorm-unread')
+        return self.body.render(size, focus)
+
+    def message_trees(self):
+        # TODO: weird method name, but used to implement TagCommand
+        return self.messagelist
+
+    def get_selected_messagetree(self):
+        # TODO: weird method name, but used to implement TagCommand
+        return self.get_selected_messageline()
+
+    def refresh(self):
+        self.get_selected_messageline().refresh()
+
+    def get_focus(self):
+        return self.body.get_body()

@@ -30,7 +30,10 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         """
         self.message = message
         self.even = even
-        if even:
+        urwid.WidgetWrap.__init__(self, self._build_line())
+
+    def _build_line(self):
+        if self.even:
             attr = settings.get_theming_attribute('thread', 'summary', 'even')
         else:
             attr = settings.get_theming_attribute('thread', 'summary', 'odd')
@@ -43,20 +46,21 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         cols.append(txt)
 
         if settings.get('msg_summary_hides_threadwide_tags'):
-            thread_tags = message.get_thread().get_tags(intersection=True)
-            outstanding_tags = set(message.get_tags()).difference(thread_tags)
+            thread_tags = self.message.get_thread().get_tags(intersection=True)
+            outstanding_tags = set(
+                self.message.get_tags()).difference(thread_tags)
             tag_widgets = [TagWidget(t, attr, focus_att)
                            for t in outstanding_tags]
         else:
             tag_widgets = [TagWidget(t, attr, focus_att)
-                           for t in message.get_tags()]
+                           for t in self.message.get_tags()]
         tag_widgets.sort(tag_cmp, lambda tag_widget: tag_widget.translated)
         for tag_widget in tag_widgets:
             if not tag_widget.hidden:
                 cols.append(('fixed', tag_widget.width(), tag_widget))
         line = urwid.AttrMap(urwid.Columns(cols, dividechars=1), attr,
                              focus_att)
-        urwid.WidgetWrap.__init__(self, line)
+        return line
 
     def __str__(self):
         author, address = self.message.get_author()

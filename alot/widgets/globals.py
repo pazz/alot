@@ -310,3 +310,22 @@ class TagWidget(urwid.AttrMap):
 
     def set_unfocussed(self):
         self.set_attr_map(self.attmap['normal'])
+
+
+class AlwaysFocused(urwid.WidgetWrap):
+    """
+    Makes the wrapped widget render always as focused.
+    """
+
+    def __init__(self, w):
+        urwid.WidgetWrap.__init__(self, w)
+
+    def render(self, size, focus):
+        return self._w.render(size, True)
+
+
+class ModifiedOnFocusChangeWalker(urwid.SimpleFocusListWalker):
+
+    def set_focus(self, focus):
+        self.focus = focus
+        self._modified()

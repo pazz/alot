@@ -367,6 +367,25 @@ class DBManager(object):
         sender.close()
         return receiver, process
 
+    def get_messages(self, querystring, sort='newest_first'):
+        """
+        asynchronously look up messages ids matching `querystring`.
+
+        :param querystring: The query string to use for the lookup
+        :type querystring: str.
+        :param sort: Sort order. one of ['oldest_first', 'newest_first',
+                     'message_id', 'unsorted']
+        :type query: str
+        :returns: a pipe together with the process that asynchronously
+                  writes to it.
+        :rtype: (:class:`multiprocessing.Pipe`,
+                :class:`multiprocessing.Process`)
+        """
+        assert sort in self._sort_orders.keys()
+        q = self.query(querystring)
+        q.set_sort(self._sort_orders[sort])
+        return self.async(q.search_messages, (lambda a: a.get_message_id()))
+
     def get_threads(self, querystring, sort='newest_first'):
         """
         asynchronously look up thread ids matching `querystring`.
