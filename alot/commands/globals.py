@@ -276,7 +276,7 @@ class ExternalCommand(Command):
 class EditCommand(ExternalCommand):
 
     """edit a file"""
-    def __init__(self, path, spawn=None, thread=None, **kwargs):
+    def __init__(self, path, spawn=None, thread=None, new_file=False, **kwargs):
         """
         :param path: path to the file to be edited
         :type path: str
@@ -293,10 +293,14 @@ class EditCommand(ExternalCommand):
             self.thread = settings.get('editor_in_thread')
 
         editor_cmdstring = None
-        if os.path.isfile('/usr/bin/editor'):
-            editor_cmdstring = '/usr/bin/editor'
-        editor_cmdstring = os.environ.get('EDITOR', editor_cmdstring)
-        editor_cmdstring = settings.get('editor_cmd') or editor_cmdstring
+
+        # Allows to set a specific command when editing a new file
+        editor_cmdstring = settings.get('new_file_editor_cmd') or editor_cmdstring
+        if not editor_cmdstring or not new_file:
+            if os.path.isfile('/usr/bin/editor'):
+                editor_cmdstring = '/usr/bin/editor'
+            editor_cmdstring = os.environ.get('EDITOR', editor_cmdstring)
+            editor_cmdstring = settings.get('editor_cmd') or editor_cmdstring
         logging.debug('using editor_cmd: %s' % editor_cmdstring)
 
         self.cmdlist = None
@@ -867,7 +871,8 @@ class ComposeCommand(Command):
 
         cmd = commands.envelope.EditCommand(envelope=self.envelope,
                                             spawn=self.force_spawn,
-                                            refocus=False)
+                                            refocus=False,
+                                            new_file=True)
         ui.apply_command(cmd)
 
     @inlineCallbacks
