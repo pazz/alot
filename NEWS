@@ -1,3 +1,12 @@
+0.3.8:
+* signal: refresh current buffer on SIGUSR1
+* ignal: exit interface on SIGINT
+* interpret C-g keybinding in prompts
+* new option "encrypt_by_default"
+* indicate untrusted PGP signatures in thread view
+* more flexible account selection for replies
+
+
 0.3.7:
 * new config option: msg_summary_hides_threadwide_tags
 * new config setting: thread_subject
