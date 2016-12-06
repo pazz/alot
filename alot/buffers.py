@@ -1,6 +1,7 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
+from datetime import datetime, timedelta
 import urwid
 import os
 from notmuch import NotmuchError
@@ -19,6 +20,8 @@ from alot.widgets.bufferlist import BufferlineWidget
 from alot.widgets.search import ThreadlineWidget
 from alot.widgets.thread import ThreadTree
 from urwidtrees import ArrowTree, TreeBox, NestedTree
+
+FOCUS_THREAD_TIMEOUT = timedelta(milliseconds=300)
 
 
 class Buffer(object):
@@ -219,6 +222,7 @@ class SearchBuffer(Buffer):
         self.result_count = 0
         self.isinitialized = False
         self.proc = None  # process that fills our pipe
+        self.threadlist = None
         self.rebuild()
         Buffer.__init__(self, ui, self.body)
 
@@ -251,6 +255,10 @@ class SearchBuffer(Buffer):
         self.reversed = reverse
         self.kill_filler_process()
 
+        selectedthread = None
+        if self.threadlist:
+            selectedthread = self.get_selected_thread()
+
         self.result_count = self.dbman.count_messages(self.querystring)
         if reverse:
             order = self._REVERSE[self.sort_order]
@@ -273,6 +281,9 @@ class SearchBuffer(Buffer):
 
         self.listbox = urwid.ListBox(self.threadlist)
         self.body = self.listbox
+
+        if selectedthread:
+            self.focus_thread(selectedthread)
 
     def get_selected_threadline(self):
         """
@@ -311,6 +322,21 @@ class SearchBuffer(Buffer):
         else:
             self.rebuild(reverse=True)
 
+    def focus_thread(self, thread):
+        """attempt to focus the thread, but give up if it takes too long to
+        find it"""
+        focus_tid = thread.get_thread_id()
+        start_time = datetime.now()
+        pos = 0
+
+        while datetime.now() - start_time < FOCUS_THREAD_TIMEOUT:
+            widget = self.threadlist._get_at_pos(pos)[0]
+            if widget is None:
+                return
+            if widget.get_thread().get_thread_id() == focus_tid:
+                self.body.set_focus(pos)
+                return
+            pos += 1
 
 class ThreadBuffer(Buffer):
     """displays a thread as a tree of messages"""
