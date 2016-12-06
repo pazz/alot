@@ -171,7 +171,6 @@ class Envelope(object):
         # Build body text part. To properly sign/encrypt messages later on, we
         # convert the text to its canonical format (as per RFC 2015).
         canonical_format = self.body.encode('utf-8')
-        canonical_format = canonical_format.replace('\\t', ' ' * 4)
         textpart = MIMEText(canonical_format, 'plain', 'utf-8')
 
         # wrap it in a multipart container if necessary
