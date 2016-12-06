@@ -7,7 +7,7 @@ import signal
 from twisted.internet import reactor, defer
 
 from settings import settings
-from buffers import BufferlistBuffer
+from buffers import BufferlistBuffer, SearchBuffer
 from commands import globals
 from commands import commandfactory
 from commands import CommandCanceled
@@ -656,6 +656,7 @@ class UI(object):
         if signum == signal.SIGINT:
             logging.info('shut down cleanly')
             self.apply_command(globals.ExitCommand())
-        self.current_buffer.rebuild()
-        self.update()
-
+        elif signum == signal.SIGUSR1:
+            if isinstance(self.current_buffer, SearchBuffer):
+                self.current_buffer.rebuild()
+                self.update()
