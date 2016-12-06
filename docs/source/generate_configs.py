@@ -17,7 +17,7 @@ def rewrite_entries(config, path, specpath, sec=None, sort=False):
     file = open(path, 'w')
     file.write(NOTE % specpath)
 
-    if sec == None:
+    if sec is None:
         sec = config
     if sort:
         sec.scalars.sort()
@@ -46,7 +46,7 @@ def rewrite_entries(config, path, specpath, sec=None, sort=False):
                 etype = 'string list'
             description += '\n    :type: %s\n' % etype
 
-        if default != None:
+        if default is not None:
             default = default.replace('*','\\*')
             if etype in ['string', 'string_list', 'gpg_key_hint'] and default != 'None':
                 description += '    :default: "%s"\n\n' % (default)

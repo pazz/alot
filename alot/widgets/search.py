@@ -54,7 +54,7 @@ class ThreadlineWidget(urwid.AttrMap):
             datestring = ''
             if self.thread:
                 newest = self.thread.get_newest_date()
-                if newest != None:
+                if newest is not None:
                     datestring = settings.represent_datetime(newest)
             datestring = pad(datestring)
             width = len(datestring)
