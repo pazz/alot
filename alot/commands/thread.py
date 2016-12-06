@@ -598,6 +598,8 @@ class ChangeDisplaymodeCommand(Command):
                    'help': 'let the shell interpret the command'}),
     (['--notify_stdout'], {'action': 'store_true',
                            'help': 'display cmd\'s stdout as notification'}),
+    (['--field_key'], {'help': 'mailcap field key for decoding',
+                       'default': 'copiousoutput'}),
 ],
 )
 class PipeCommand(Command):
@@ -608,7 +610,8 @@ class PipeCommand(Command):
     def __init__(self, cmd, all=False, separately=False, background=False,
                  shell=False, notify_stdout=False, format='raw',
                  add_tags=False, noop_msg='no command specified',
-                 confirm_msg='', done_msg=None, **kwargs):
+                 confirm_msg='', done_msg=None, field_key='copiousoutput',
+                 **kwargs):
         """
         :param cmd: shellcommand to open
         :type cmd: str or list of str
@@ -637,6 +640,8 @@ class PipeCommand(Command):
         :type confirm_msg: str
         :param done_msg: notification message to show upon success
         :type done_msg: str
+        :param field_key: malcap field key for decoding
+        :type field_key: str
         """
         Command.__init__(self, **kwargs)
         if isinstance(cmd, unicode):
@@ -652,6 +657,7 @@ class PipeCommand(Command):
         self.noop_msg = noop_msg
         self.confirm_msg = confirm_msg
         self.done_msg = done_msg
+        self.field_key = field_key
 
     @inlineCallbacks
     def apply(self, ui):
@@ -697,7 +703,7 @@ class PipeCommand(Command):
                     pipestrings.append(mail.as_string())
                 elif self.output_format == 'decoded':
                     headertext = extract_headers(mail)
-                    bodytext = extract_body(mail)
+                    bodytext = extract_body(mail, field_key=self.field_key)
                     msgtext = '%s\n\n%s' % (headertext, bodytext)
                     pipestrings.append(msgtext.encode('utf-8'))
 
