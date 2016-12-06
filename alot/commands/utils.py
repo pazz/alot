@@ -8,7 +8,7 @@ from alot import crypto
 
 
 @inlineCallbacks
-def get_keys(ui, encrypt_keyids, block_error=False):
+def get_keys(ui, encrypt_keyids, block_error=False, signed_only=False):
     """Get several keys from the GPG keyring.  The keys are selected by keyid
     and are checked if they can be used for encryption.
 
@@ -19,6 +19,9 @@ def get_keys(ui, encrypt_keyids, block_error=False):
     :param block_error: wether error messages for the user should expire
         automatically or block the ui
     :type block_error: bool
+    :param signed_only: only return keys whose uid is signed (trusted to belong
+        to the key)
+    :type signed_only: bool
     :returns: the available keys indexed by their key hash
     :rtype: dict(str->gpgme.Key)
 
@@ -26,7 +29,8 @@ def get_keys(ui, encrypt_keyids, block_error=False):
     keys = {}
     for keyid in encrypt_keyids:
         try:
-            key = crypto.get_key(keyid, validate=True, encrypt=True)
+            key = crypto.get_key(keyid, validate=True, encrypt=True,
+                                 signed_only=signed_only)
         except GPGProblem as e:
             if e.code == GPGCode.AMBIGUOUS_NAME:
                 possible_keys = crypto.list_keys(hint=keyid)

@@ -54,7 +54,8 @@ def RFC3156_micalg_from_algo(hash_algo):
     return 'pgp-' + hash_algo.lower()
 
 
-def get_key(keyid, validate=False, encrypt=False, sign=False):
+def get_key(keyid, validate=False, encrypt=False, sign=False,
+            signed_only=False):
     """
     Gets a key from the keyring by filtering for the specified keyid, but
     only if the given keyid is specific enough (if it matches multiple
@@ -63,12 +64,22 @@ def get_key(keyid, validate=False, encrypt=False, sign=False):
     If validate is True also make sure that returned key is not invalid,
     revoked or expired. In addition if encrypt or sign is True also validate
     that key is valid for that action. For example only keys with private key
-    can sign.
+    can sign. If signed_only is True make sure that the user id can be can be
+    trusted to belong to the key (is signed). This last check will only work if
+    the keyid is part of the user id associated with the key, not if it is part
+    of the key fingerprint.
 
     :param keyid: filter term for the keyring (usually a key ID)
+    :type keyid: str
     :param validate: validate that returned keyid is valid
+    :type validate: bool
     :param encrypt: when validating confirm that returned key can encrypt
+    :type encrypt: bool
     :param sign: when validating confirm that returned key can sign
+    :type sign: bool
+    :param signed_only: only return keys  whose uid is signed (trusted to
+        belong to the key)
+    :type signed_only: bool
     :rtype: gpgme.Key
     """
     ctx = gpgme.Context()
@@ -117,6 +128,9 @@ def get_key(keyid, validate=False, encrypt=False, sign=False):
                              code=GPGCode.NOT_FOUND)
         else:
             raise e
+    if signed_only and not check_uid_validity(key, keyid):
+        raise GPGProblem("Can not find a trusworthy key for '" + keyid + "'.",
+                         code=GPGCode.NOT_FOUND)
     return key
 
 
@@ -259,3 +273,23 @@ def validate_key(key, sign=False, encrypt=False):
     if sign and not key.can_sign:
         raise GPGProblem("The key \"" + key.uids[0].uid + "\" can not sign.",
                          code=GPGCode.KEY_CANNOT_SIGN)
+
+
+def check_uid_validity(key, email):
+    """Check that a the email belongs to the given key.  Also check the trust
+    level of this connection.  Only if the trust level is high enough (>=4) the
+    email is assumed to belong to the key.
+
+    :param key: the GPG key to which the email should belong
+    :type key: gpgme.Key
+    :param email: the email address that should belong to the key
+    :type email: str
+    :returns: whether the key can be assumed to belong to the given email
+    :rtype: bool
+
+    """
+    for key_uid in key.uids:
+        if email == key_uid.email and not key_uid.revoked and \
+                not key_uid.invalid and key_uid.validity >= 4:
+            return True
+    return False
