@@ -1,5 +1,8 @@
+# show search results in threaded mode (versus individual messages)
+threaded = option('yes', 'semi', 'no', default='yes')
 
-ask_subject = boolean(default=True) # ask for subject when compose
+# ask for subject when compose
+ask_subject = boolean(default=True)
 
 # automatically remove 'unread' tag when focussing messages in thread mode
 auto_remove_unread = boolean(default=True)

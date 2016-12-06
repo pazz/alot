@@ -8,6 +8,7 @@ from alot.commands import Command, registerCommand
 from alot.commands.globals import PromptCommand
 from alot.commands.globals import MoveCommand
 
+from alot.settings import settings
 from alot.db.errors import DatabaseROError
 from alot import commands
 from alot import buffers
@@ -32,12 +33,18 @@ class OpenThreadCommand(Command):
         if not self.thread:
             self.thread = ui.current_buffer.get_selected_thread()
         if self.thread:
-            query = ui.current_buffer.querystring
-            logging.info('open thread view for %s' % self.thread)
+            if settings.get('threaded') != 'semi':
+                query = ui.current_buffer.querystring
+                logging.info('open thread view for %s' % self.thread)
 
-            sb = buffers.ThreadBuffer(ui, self.thread)
-            ui.buffer_open(sb)
-            sb.unfold_matching(query)
+                sb = buffers.ThreadBuffer(ui, self.thread)
+                ui.buffer_open(sb)
+                sb.unfold_matching(query)
+            else:
+                sb = buffers.ThreadBuffer(ui, self.thread)
+                ui.buffer_open(sb)
+                sb.collapse_all()
+                sb.unfold_matching("id:" + self.thread._mid, True)
 
 
 @registerCommand(MODE, 'refine', help='refine query', arguments=[
