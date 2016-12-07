@@ -5,6 +5,8 @@ import os
 import email
 import re
 import glob
+import signal
+import subprocess
 from email.encoders import encode_7or8bit
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -23,6 +25,8 @@ from .utils import encode_header
 
 import email.charset as charset
 charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
+
+GPG_AGENT_RE = re.compile(r"GPG_AGENT_INFO=(?P<whole>.*?:(?P<pid>\d*):\d*;)")
 
 
 class Envelope(object):
@@ -183,6 +187,19 @@ class Envelope(object):
         else:
             inner_msg = textpart
 
+        # start a new gpg-agent, always
+        if self.sign or self.encrypt:
+            try:
+                _gpg_agent_str = subprocess.check_output(['gpg-agent',
+                                                          '--daemon'])
+                _gpg_agent_match = GPG_AGENT_RE.match(_gpg_agent_str)
+                if _gpg_agent_match is None:
+                    raise Exception  # knock us into except branch
+                _gpg_agent_info = _gpg_agent_match.groupdict()
+                os.environ['GPG_AGENT_INFO'] = _gpg_agent_info['whole']
+            except:
+                raise GPGProblem("Could not start gpg-agent")
+
         if self.sign:
             plaintext = helper.email_as_string(inner_msg)
             logging.debug('signing plaintext: ' + plaintext)
@@ -255,6 +272,10 @@ class Envelope(object):
 
         else:
             outer_msg = unencrypted_msg
+
+        if self.sign or self.encrypt:
+            os.kill(int(_gpg_agent_info['pid']), signal.SIGTERM)
+            del os.environ['GPG_AGENT_INFO']
 
         headers = self.headers.copy()
         # add Message-ID
