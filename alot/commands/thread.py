@@ -8,11 +8,14 @@ import os
 import re
 import subprocess
 import tempfile
-from email.Utils import getaddresses, parseaddr
 from email.message import Message
-
 from twisted.internet.defer import inlineCallbacks
-from cStringIO import StringIO
+try:
+    from email.utils import getaddresses, parseaddr
+    from io import StringIO
+except ImportError:
+    from email.Utils import getaddresses, parseaddr
+    from cStringIO import StringIO
 
 from . import Command, registerCommand
 from .globals import ExternalCommand

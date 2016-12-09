@@ -9,7 +9,10 @@ import logging
 import os
 import re
 import subprocess
-from StringIO import StringIO
+try:
+    from io import StringIO
+except ImportError:
+    from cStringIO import StringIO
 
 import urwid
 from twisted.internet.defer import inlineCallbacks

@@ -10,7 +10,10 @@ import tempfile
 import re
 import logging
 import mailcap
-from cStringIO import StringIO
+try:
+    from io import StringIO
+except ImportError:
+    from cStringIO import StringIO
 
 from .. import crypto
 from .. import helper

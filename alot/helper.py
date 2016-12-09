@@ -5,7 +5,11 @@
 from datetime import timedelta
 from datetime import datetime
 from collections import deque
-from cStringIO import StringIO
+try:
+    from io import StringIO
+except ImportError:
+    from cStringIO import StringIO
+
 import logging
 import mimetypes
 import os
