@@ -1,6 +1,6 @@
-0.3.8:
+0.4:
 * signal: refresh current buffer on SIGUSR1
-* ignal: exit interface on SIGINT
+* signal: exit interface on SIGINT
 * interpret C-g keybinding in prompts
 * new config option:encrypt_by_default
 * new config option: thread_authors_order_by
