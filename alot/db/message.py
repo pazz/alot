@@ -3,6 +3,10 @@
 # For further details see the COPYING file
 import email
 import email.charset as charset
+try:
+    from email.Utils import parseaddr
+except ImportError:
+    from email.utils import parseaddr
 from datetime import datetime
 
 from notmuch import NullPointerError
@@ -143,7 +147,7 @@ class Message(object):
 
         :rtype: (str,str)
         """
-        return email.Utils.parseaddr(self._from)
+        return parseaddr(self._from)
 
     def get_headers_string(self, headers):
         """

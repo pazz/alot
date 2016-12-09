@@ -3,7 +3,6 @@
 # For further details see the COPYING file
 import argparse
 import code
-import email
 import glob
 import logging
 import os
@@ -11,8 +10,10 @@ import re
 import subprocess
 try:
     from io import StringIO
+    from email.utils import parseaddr
 except ImportError:
     from cStringIO import StringIO
+    from email.Utils import parseaddr
 
 import urwid
 from twisted.internet.defer import inlineCallbacks
@@ -777,7 +778,7 @@ class ComposeCommand(Command):
 
         # find out the right account
         sender = self.envelope.get('From')
-        name, addr = email.Utils.parseaddr(sender)
+        name, addr = parseaddr(sender)
         account = settings.get_account_by_address(addr)
         if account is None:
             accounts = settings.get_accounts()
