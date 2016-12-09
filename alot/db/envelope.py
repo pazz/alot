@@ -1,27 +1,27 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
-import os
-import email
-import re
 import glob
+import logging
+import os
+import re
+import email
 from email.encoders import encode_7or8bit
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
+import email.charset as charset
 
-from alot import __version__
-import logging
-import alot.helper as helper
-import alot.crypto as crypto
 import gpgme
-from alot.settings import settings
-from alot.errors import GPGProblem, GPGCode
 
 from .attachment import Attachment
 from .utils import encode_header
+from .. import __version__
+from .. import helper
+from .. import crypto
+from ..settings import settings
+from ..errors import GPGProblem, GPGCode
 
-import email.charset as charset
 charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 
 
@@ -48,7 +48,7 @@ class Envelope(object):
     """tags to add after successful sendout"""
 
     def __init__(
-        self, template=None, bodytext=None, headers=None, attachments=[],
+            self, template=None, bodytext=None, headers=None, attachments=[],
             sign=False, sign_key=None, encrypt=False, tags=[]):
         """
         :param template: if not None, the envelope will be initialised by
@@ -64,11 +64,11 @@ class Envelope(object):
         :param tags: tags to add after successful sendout and saving this msg
         :type tags: list of str
         """
-        logging.debug('TEMPLATE: %s' % template)
+        logging.debug('TEMPLATE: %s', template)
         if template:
             self.parse_template(template)
-            logging.debug('PARSED TEMPLATE: %s' % template)
-            logging.debug('BODY: %s' % self.body)
+            logging.debug('PARSED TEMPLATE: %s', template)
+            logging.debug('BODY: %s', self.body)
         self.body = bodytext or u''
         self.headers = headers or {}
         self.attachments = list(attachments)
@@ -103,7 +103,7 @@ class Envelope(object):
         return self.headers[name][0]
 
     def __delitem__(self, name):
-        del(self.headers[name])
+        del self.headers[name]
 
         if self.sent_time:
             self.modified_since_sent = True
@@ -185,7 +185,7 @@ class Envelope(object):
 
         if self.sign:
             plaintext = helper.email_as_string(inner_msg)
-            logging.debug('signing plaintext: ' + plaintext)
+            logging.debug('signing plaintext: %s', plaintext)
 
             try:
                 signatures, signature_str = crypto.detached_signature_for(
@@ -209,8 +209,8 @@ class Envelope(object):
                 raise GPGProblem(str(e), code=GPGCode.KEY_CANNOT_SIGN)
 
             micalg = crypto.RFC3156_micalg_from_algo(signatures[0].hash_algo)
-            unencrypted_msg = MIMEMultipart('signed', micalg=micalg,
-                                            protocol='application/pgp-signature')
+            unencrypted_msg = MIMEMultipart(
+                'signed', micalg=micalg, protocol='application/pgp-signature')
 
             # wrap signature in MIMEcontainter
             stype = 'pgp-signature; name="signature.asc"'
@@ -229,7 +229,7 @@ class Envelope(object):
 
         if self.encrypt:
             plaintext = helper.email_as_string(unencrypted_msg)
-            logging.debug('encrypting plaintext: ' + plaintext)
+            logging.debug('encrypting plaintext: %s', plaintext)
 
             try:
                 encrypted_str = crypto.encrypt(plaintext,
@@ -284,7 +284,7 @@ class Envelope(object):
         :param reset: remove previous envelope content
         :type reset: bool
         """
-        logging.debug('GoT: """\n%s\n"""' % tmp)
+        logging.debug('GoT: """\n%s\n"""', tmp)
 
         if self.sent_time:
             self.modified_since_sent = True
@@ -327,7 +327,7 @@ class Envelope(object):
                 for line in self.get_all('Attach'):
                     gpath = os.path.expanduser(line.strip())
                     to_attach += filter(os.path.isfile, glob.glob(gpath))
-                logging.debug('Attaching: %s' % to_attach)
+                logging.debug('Attaching: %s', to_attach)
                 for path in to_attach:
                     self.attach(path)
-                del(self['Attach'])
+                del self['Attach']

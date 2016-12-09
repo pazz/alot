@@ -1,13 +1,13 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
-import mailbox
-import logging
-import os
 import glob
+import logging
+import mailbox
+import os
 
-from alot.helper import call_cmd_async
-from alot.helper import split_commandstring
+from .helper import call_cmd_async
+from .helper import split_commandstring
 
 
 class SendingMailFailed(RuntimeError):
@@ -119,7 +119,7 @@ class Account(object):
             message_id = mbx.add(msg)
             mbx.flush()
             mbx.unlock()
-            logging.debug('got mailbox msg id : %s' % message_id)
+            logging.debug('got mailbox msg id : %s', message_id)
         except Exception as e:
             raise StoreMailError(e)
 
@@ -132,7 +132,7 @@ class Account(object):
                                message_id + '*')
             if plist:
                 path = os.path.join(mbx._path, 'new', plist[0])
-                logging.debug('path of saved msg: %s' % path)
+                logging.debug('path of saved msg: %s', path)
         return path
 
     def store_sent_mail(self, mail):

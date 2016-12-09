@@ -3,9 +3,9 @@
 # For further details see the COPYING file
 from configobj import ConfigObj, ConfigObjError, flatten_errors
 from validate import Validator
-from errors import ConfigError
 from urwid import AttrSpec
 
+from .errors import ConfigError
 
 def read_config(configpath=None, specpath=None, checks={}):
     """
@@ -27,7 +27,8 @@ def read_config(configpath=None, specpath=None, checks={}):
     except ConfigObjError as e:
         raise ConfigError(e)
     except IOError:
-        raise ConfigError('Could not read %s and/or %s' % (configpath, specpath))
+        raise ConfigError('Could not read %s and/or %s'
+                          % (configpath, specpath))
     except UnboundLocalError:
         # this works around a bug in configobj
         msg = '%s is malformed. Check for sections without parents..'

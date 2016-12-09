@@ -1,41 +1,40 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
+import argparse
+import logging
+import mailcap
 import os
 import re
-import logging
-import tempfile
-import argparse
-from twisted.internet.defer import inlineCallbacks
 import subprocess
+import tempfile
 from email.Utils import getaddresses, parseaddr
 from email.message import Message
-import mailcap
+
+from twisted.internet.defer import inlineCallbacks
 from cStringIO import StringIO
 
-from alot.commands import Command, registerCommand
-from alot.commands.globals import ExternalCommand
-from alot.commands.globals import FlushCommand
-from alot.commands.globals import ComposeCommand
-from alot.commands.globals import MoveCommand
-from alot.commands.globals import CommandCanceled
-from alot.commands.envelope import SendCommand
-from alot import completion
-from alot.db.utils import decode_header
-from alot.db.utils import encode_header
-from alot.db.utils import extract_headers
-from alot.db.utils import extract_body
-from alot.db.envelope import Envelope
-from alot.db.attachment import Attachment
-from alot.db.errors import DatabaseROError
-from alot.settings import settings
-from alot.helper import parse_mailcap_nametemplate
-from alot.helper import split_commandstring
-from alot.helper import email_as_string
-from alot.utils.booleanaction import BooleanAction
-from alot.completion import ContactsCompleter
-
-from alot.widgets.globals import AttachmentWidget
+from . import Command, registerCommand
+from .globals import ExternalCommand
+from .globals import FlushCommand
+from .globals import ComposeCommand
+from .globals import MoveCommand
+from .globals import CommandCanceled
+from .envelope import SendCommand
+from ..completion import ContactsCompleter, PathCompleter
+from ..db.utils import decode_header
+from ..db.utils import encode_header
+from ..db.utils import extract_headers
+from ..db.utils import extract_body
+from ..db.envelope import Envelope
+from ..db.attachment import Attachment
+from ..db.errors import DatabaseROError
+from ..settings import settings
+from ..helper import parse_mailcap_nametemplate
+from ..helper import split_commandstring
+from ..helper import email_as_string
+from ..utils.booleanaction import BooleanAction
+from ..widgets.globals import AttachmentWidget
 
 MODE = 'thread'
 
@@ -70,7 +69,7 @@ def determine_sender(mail, action='reply'):
             break
         candidate_addresses = getaddresses(mail.get_all(candidate_header, []))
 
-        logging.debug('candidate addresses: %s' % candidate_addresses)
+        logging.debug('candidate addresses: %s', candidate_addresses)
         # pick the most important account that has an address in candidates
         # and use that accounts realname and the address found here
         for account in my_accounts:
@@ -99,8 +98,8 @@ def determine_sender(mail, action='reply'):
         account = my_accounts[0]
         realname = account.realname
         address = account.address
-    logging.debug('using realname: "%s"' % realname)
-    logging.debug('using address: %s' % address)
+    logging.debug('using realname: "%s"', realname)
+    logging.debug('using address: %s', address)
 
     from_value = address if realname == '' else '%s <%s>' % (realname, address)
     return from_value, account
@@ -232,7 +231,7 @@ class ReplyCommand(Command):
                     envelope.add('Cc', decode_header(cc))
 
         to = ', '.join(recipients)
-        logging.debug('reply to: %s' % to)
+        logging.debug('reply to: %s', to)
 
         if self.listreply:
             # To choose the target of the reply --list
@@ -240,11 +239,11 @@ class ReplyCommand(Command):
             # X-BeenThere is needed by sourceforge ML also winehq
             # X-Mailing-List is also standart and is used by git-send-mail
             to = mail['Reply-To'] or mail['X-BeenThere'] or mail['X-Mailing-List']
-            # Some mail server (gmail) will not resend you own mail, so you have
-            # to deal with the one in sent
+            # Some mail server (gmail) will not resend you own mail, so you
+            # have to deal with the one in sent
             if to is None:
                 to = mail['To']
-            logging.debug('mail list reply to: %s' % to)
+            logging.debug('mail list reply to: %s', to)
             # Cleaning the 'To' in this case
             if envelope.get('To') is not None:
                 envelope.__delitem__('To')
@@ -261,7 +260,7 @@ class ReplyCommand(Command):
             # check if any recipient address matches a known mailing list
             if any([addr in lists for n, addr in getaddresses(allrecipients)]):
                 followupto = ', '.join(allrecipients)
-                logging.debug('mail followup to: %s' % followupto)
+                logging.debug('mail followup to: %s', followupto)
                 envelope.add('Mail-Followup-To', decode_header(followupto))
 
         # set In-Reply-To header
@@ -285,7 +284,8 @@ class ReplyCommand(Command):
                                         spawn=self.force_spawn,
                                         encrypt=encrypt))
 
-    def clear_my_address(self, my_addresses, value):
+    @staticmethod
+    def clear_my_address(my_addresses, value):
         """return recipient header without the addresses in my_addresses"""
         new_value = []
         for name, address in getaddresses(value):
@@ -540,7 +540,7 @@ class ChangeDisplaymodeCommand(Command):
 
     def apply(self, ui):
         tbuffer = ui.current_buffer
-        logging.debug('matching lines %s...' % (self.query))
+        logging.debug('matching lines %s...', self.query)
         if self.query is None:
             messagetrees = [tbuffer.get_selected_messagetree()]
         else:
@@ -715,7 +715,7 @@ class PipeCommand(Command):
         # do teh monkey
         for mail in pipestrings:
             if self.background:
-                logging.debug('call in background: %s' % str(self.cmd))
+                logging.debug('call in background: %s', self.cmd)
                 proc = subprocess.Popen(self.cmd,
                                         shell=True, stdin=subprocess.PIPE,
                                         stdout=subprocess.PIPE,
@@ -726,7 +726,7 @@ class PipeCommand(Command):
             else:
                 logging.debug('stop urwid screen')
                 ui.mainloop.screen.stop()
-                logging.debug('call: %s' % str(self.cmd))
+                logging.debug('call: %s', self.cmd)
                 # if proc.stdout is defined later calls to communicate
                 # seem to be non-blocking!
                 proc = subprocess.Popen(self.cmd, shell=True,
@@ -862,7 +862,7 @@ class SaveAttachmentCommand(Command):
 
     @inlineCallbacks
     def apply(self, ui):
-        pcomplete = completion.PathCompleter()
+        pcomplete = PathCompleter()
         savedir = settings.get('attachment_prefix', '~')
         if self.all:
             msg = ui.current_buffer.get_selected_message()

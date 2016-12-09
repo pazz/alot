@@ -1,27 +1,27 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
+from collections import deque
+import errno
+import logging
+import multiprocessing
+import os
+import signal
+import sys
+
 from notmuch import Database, NotmuchError, XapianError
 import notmuch
-import multiprocessing
-import logging
-import sys
-import os
-import errno
-import signal
 from twisted.internet import reactor
 
-from collections import deque
-
-from message import Message
-from alot.settings import settings
-from thread import Thread
+from . import DB_ENC
 from .errors import DatabaseError
 from .errors import DatabaseLockedError
 from .errors import DatabaseROError
 from .errors import NonexistantObjectError
-from alot.db import DB_ENC
-from alot.db.utils import is_subdir_of
+from .message import Message
+from .thread import Thread
+from .utils import is_subdir_of
+from ..settings import settings
 
 
 class FillPipeProcess(multiprocessing.Process):
@@ -114,7 +114,7 @@ class DBManager(object):
             # go through writequeue entries
             while self.writequeue:
                 current_item = self.writequeue.popleft()
-                logging.debug('write-out item: %s' % str(current_item))
+                logging.debug('write-out item: %s', str(current_item))
 
                 # watch out for notmuch errors to re-insert current_item
                 # to the queue on errors
@@ -329,7 +329,7 @@ class DBManager(object):
         process = FillPipeProcess(cbl(), stdout[1], stderr[1], pipe, fun)
         process.start()
         self.processes.append(process)
-        logging.debug('Worker process {0} spawned'.format(process.pid))
+        logging.debug('Worker process %s spawned', process.pid)
 
         def threaded_wait():
             # wait(2) for the process to die
@@ -342,7 +342,7 @@ class DBManager(object):
             else:
                 msg = 'exited successfully'
 
-            logging.debug('Worker process {0} {1}'.format(process.pid, msg))
+            logging.debug('Worker process %s %s', process.pid, msg)
             self.processes.remove(process)
 
         # spawn a thread to collect the worker process once it dies
@@ -352,8 +352,8 @@ class DBManager(object):
         def threaded_reader(prefix, fd):
             with os.fdopen(fd) as handle:
                 for line in handle:
-                    logging.debug('Worker process {0} said on {1}: {2}'.format(
-                        process.pid, prefix, line.rstrip()))
+                    logging.debug('Worker process %s said on %s: %s',
+                                  process.pid, prefix, line.rstrip())
 
         # spawn two threads that read from the stdout and stderr pipes
         # and write anything that appears there to the log

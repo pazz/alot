@@ -1,21 +1,21 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
-import urwid
 import logging
 import signal
 from twisted.internet import reactor, defer
+import urwid
 
-from settings import settings
-from buffers import BufferlistBuffer, SearchBuffer
-from commands import globals
-from commands import commandfactory
-from commands import CommandCanceled
-from alot.commands import CommandParseError
-from alot.helper import split_commandline
-from alot.helper import string_decode
-from alot.widgets.globals import CompleteEdit
-from alot.widgets.globals import ChoiceWidget
+from .settings import settings
+from .buffers import BufferlistBuffer, SearchBuffer
+from .commands import globals
+from .commands import commandfactory
+from .commands import CommandCanceled
+from .commands import CommandParseError
+from .helper import split_commandline
+from .helper import string_decode
+from .widgets.globals import CompleteEdit
+from .widgets.globals import ChoiceWidget
 
 
 class UI(object):
@@ -82,7 +82,7 @@ class UI(object):
 
         # set up colours
         colourmode = int(settings.get('colourmode'))
-        logging.info('setup gui in %d colours' % colourmode)
+        logging.info('setup gui in %d colours', colourmode)
         self.mainloop.screen.set_terminal_properties(colors=colourmode)
 
         logging.debug('fire first command')
@@ -99,7 +99,7 @@ class UI(object):
         to let the root widget handle keys. We intercept the input here
         to trigger custom commands as defined in our keybindings.
         """
-        logging.debug("Got key (%s, %s)" % (keys, raw))
+        logging.debug("Got key (%s, %s)", keys, raw)
         # work around: escape triggers this twice, with keys = raw = []
         # the first time..
         if not keys:
@@ -124,11 +124,11 @@ class UI(object):
 
             def fire(ignored, cmdline):
                 clear()
-                logging.debug("cmdline: '%s'" % cmdline)
+                logging.debug("cmdline: '%s'", cmdline)
                 if not self._locked:
                     try:
                         self.apply_commandline(cmdline)
-                    except CommandParseError, e:
+                    except CommandParseError as e:
                         self.notify(e.message, priority='error')
                 # move keys are always passed
                 elif cmdline in ['move up', 'move down', 'move page up',
@@ -190,8 +190,7 @@ class UI(object):
         # of the next callback (and thus Command-application)
 
         def apply_this_command(ignored, cmdstring):
-            logging.debug('%s command string: "%s"' % (self.mode,
-                                                       str(cmdstring)))
+            logging.debug('%s command string: "%s"', self.mode, str(cmdstring))
             # translate cmdstring into :class:`Command`
             cmd = commandfactory(cmdstring, self.mode)
             # store cmdline for use with 'repeat' command
@@ -228,7 +227,7 @@ class UI(object):
         widget by `self._input_filter` but is not handled in any widget. We
         keep it for debuging purposes.
         """
-        logging.debug('unhandled input: %s' % key)
+        logging.debug('unhandled input: %s', key)
 
     def show_as_root_until_keypress(self, w, key, afterwards=None):
         """
@@ -317,7 +316,7 @@ class UI(object):
             reactor.stop()
         except Exception as e:
             exit_msg = 'Could not stop reactor: {}.'.format(e)
-            logging.error(exit_msg + '\nShutting down anyway..')
+            logging.error('%s\nShutting down anyway..', exit_msg)
 
     def buffer_open(self, buf):
         """register and focus new :class:`~alot.buffers.Buffer`."""
@@ -355,10 +354,10 @@ class UI(object):
         buffers = self.buffers
         success = False
         if buf not in buffers:
-            string = 'tried to close unknown buffer: %s. \n\ni have:%s'
-            logging.error(string % (buf, self.buffers))
+            logging.error('tried to close unknown buffer: %s. \n\ni have:%s',
+                          buf, self.buffers)
         elif self.current_buffer == buf:
-            logging.info('closing current buffer %s' % buf)
+            logging.info('closing current buffer %s', buf)
             index = buffers.index(buf)
             buffers.remove(buf)
             offset = settings.get('bufferclose_focus_offset')
@@ -642,6 +641,7 @@ class UI(object):
             d.addCallback(call_apply)
             d.addCallback(call_posthook)
             return d
+
     def handle_signal(self, signum, frame):
         """
         handles UNIX signals
@@ -650,7 +650,8 @@ class UI(object):
         handle more
 
         :param signum: The signal number (see man 7 signal)
-        :param frame: The execution frame (https://docs.python.org/2/reference/datamodel.html#frame-objects)
+        :param frame: The execution frame
+            (https://docs.python.org/2/reference/datamodel.html#frame-objects)
         """
         # it is a SIGINT ?
         if signum == signal.SIGINT:

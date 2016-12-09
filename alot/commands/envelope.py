@@ -2,28 +2,29 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 import argparse
-import os
-import re
+import datetime
+import email
 import glob
 import logging
-import email
+import os
+import re
 import tempfile
-from twisted.internet.defer import inlineCallbacks
-import datetime
 
-from alot.account import SendingMailFailed, StoreMailError
-from alot.errors import GPGProblem
-from alot import buffers
-from alot import commands
-from alot import crypto
-from alot.commands import Command, registerCommand
-from alot.commands import globals
-from alot.commands.utils import get_keys
-from alot.helper import string_decode
-from alot.helper import email_as_string
-from alot.settings import settings
-from alot.utils.booleanaction import BooleanAction
-from alot.db.errors import DatabaseError
+from twisted.internet.defer import inlineCallbacks
+
+from . import Command, registerCommand
+from . import globals
+from .utils import get_keys
+from .. import buffers
+from .. import commands
+from .. import crypto
+from ..account import SendingMailFailed, StoreMailError
+from ..db.errors import DatabaseError
+from ..errors import GPGProblem
+from ..helper import email_as_string
+from ..helper import string_decode
+from ..settings import settings
+from ..utils.booleanaction import BooleanAction
 
 
 MODE = 'envelope'
@@ -56,7 +57,7 @@ class AttachCommand(Command):
             ui.notify('no files specified, abort')
             return
 
-        logging.info("attaching: %s" % files)
+        logging.info("attaching: %s", files)
         for path in files:
             envelope.attach(path)
         ui.current_buffer.rebuild()
@@ -193,8 +194,7 @@ class SendCommand(Command):
             # don't do anything if another SendCommand is in the middle of
             # sending the message and we were triggered accidentally
             if self.envelope.sending:
-                msg = 'sending this message already!'
-                logging.debug(msg)
+                logging.debug('sending this message already!')
                 return
 
             clearme = ui.notify(u'constructing mail (GPG, attachments)\u2026',
@@ -204,7 +204,7 @@ class SendCommand(Command):
                 self.mail = self.envelope.construct_mail()
                 self.mail['Date'] = email.Utils.formatdate(localtime=True)
                 self.mail = email_as_string(self.mail)
-            except GPGProblem, e:
+            except GPGProblem as e:
                 ui.clear_notify([clearme])
                 ui.notify(e.message, priority='error')
                 return
@@ -314,7 +314,7 @@ class EditCommand(Command):
         if '*' in blacklist:
             blacklist = set(self.envelope.headers.keys())
         edit_headers = edit_headers - blacklist
-        logging.info('editable headers: %s' % edit_headers)
+        logging.info('editable headers: %s', edit_headers)
 
         def openEnvelopeFromTmpfile():
             # This parses the input from the tempfile.
@@ -414,7 +414,7 @@ class SetCommand(Command):
         envelope = ui.current_buffer.envelope
         if self.reset:
             if self.key in envelope:
-                del(envelope[self.key])
+                del envelope[self.key]
         envelope.add(self.key, self.value)
         ui.current_buffer.rebuild()
 
@@ -432,7 +432,7 @@ class UnsetCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        del(ui.current_buffer.envelope[self.key])
+        del ui.current_buffer.envelope[self.key]
         ui.current_buffer.rebuild()
 
 
@@ -487,7 +487,7 @@ class SignCommand(Command):
                 keyid = str(' '.join(self.keyid))
                 try:
                     key = crypto.get_key(keyid, validate=True, sign=True)
-                except GPGProblem, e:
+                except GPGProblem as e:
                     envelope.sign = False
                     ui.notify(e.message, priority='error')
                     return
@@ -565,7 +565,7 @@ class EncryptCommand(Command):
                         recipient = match.group(1)
                     self.encrypt_keys.append(recipient)
 
-            logging.debug("encryption keys: " + str(self.encrypt_keys))
+            logging.debug("encryption keys: %s", self.encrypt_keys)
             keys = yield get_keys(ui, self.encrypt_keys,
                                   signed_only=self.trusted)
             if self.trusted:

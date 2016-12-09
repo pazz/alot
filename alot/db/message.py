@@ -2,17 +2,17 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 import email
+import email.charset as charset
 from datetime import datetime
+
 from notmuch import NullPointerError
 
-import alot.helper as helper
-from alot.settings import settings
-
 from .utils import extract_headers, extract_body, message_from_file
-from alot.db.utils import decode_header
+from .utils import decode_header
 from .attachment import Attachment
+from .. import helper
+from ..settings import settings
 
-import email.charset as charset
 charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 
 
@@ -115,7 +115,7 @@ class Message(object):
 
     def has_replies(self):
         """returns true if this message has at least one reply"""
-        return (len(self.get_replies()) > 0)
+        return len(self.get_replies()) > 0
 
     def get_replies(self):
         """returns replies to this message as list of :class:`Message`"""

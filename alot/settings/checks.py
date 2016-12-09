@@ -9,8 +9,8 @@ from validate import VdtTypeError
 from validate import is_list
 from validate import ValidateError, VdtValueTooLongError, VdtValueError
 
-from alot import crypto
-from alot.errors import GPGProblem
+from .. import crypto
+from ..errors import GPGProblem
 
 
 def attr_triple(value):
@@ -43,7 +43,7 @@ def attr_triple(value):
         mono = AttrSpec(acc['1fg'], acc['1bg'], 1)
         normal = AttrSpec(acc['16fg'], acc['16bg'], 16)
         high = AttrSpec(acc['256fg'], acc['256bg'], 256)
-    except AttrSpecError, e:
+    except AttrSpecError as e:
         raise ValidateError(e.message)
     return mono, normal, high
 
@@ -142,5 +142,5 @@ def gpg_key(value):
     """
     try:
         return crypto.get_key(value)
-    except GPGProblem, e:
+    except GPGProblem as e:
         raise ValidateError(e.message)

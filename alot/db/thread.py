@@ -4,8 +4,8 @@
 import operator
 from datetime import datetime
 
-from message import Message
-from alot.settings import settings
+from .message import Message
+from ..settings import settings
 
 
 class Thread(object):

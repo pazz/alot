@@ -1,24 +1,24 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
-import urwid
-import os
-from notmuch import NotmuchError
 import logging
+import os
 
-from settings import settings
-import commands
-from walker import PipeWalker
-from helper import shorten_author_string
-from db.errors import NonexistantObjectError
-
-from alot.widgets.globals import TagWidget
-from alot.widgets.globals import HeadersList
-from alot.widgets.globals import AttachmentWidget
-from alot.widgets.bufferlist import BufferlineWidget
-from alot.widgets.search import ThreadlineWidget
-from alot.widgets.thread import ThreadTree
+import urwid
 from urwidtrees import ArrowTree, TreeBox, NestedTree
+from notmuch import NotmuchError
+
+from .settings import settings
+from . import commands
+from .walker import PipeWalker
+from .helper import shorten_author_string
+from .db.errors import NonexistantObjectError
+from .widgets.globals import TagWidget
+from .widgets.globals import HeadersList
+from .widgets.globals import AttachmentWidget
+from .widgets.bufferlist import BufferlineWidget
+from .widgets.search import ThreadlineWidget
+from .widgets.thread import ThreadTree
 
 
 class Buffer(object):
@@ -445,7 +445,7 @@ class ThreadBuffer(Buffer):
         return self.body.get_focus()
 
     def set_focus(self, pos):
-        logging.debug('setting focus to %s ' % str(pos))
+        logging.debug('setting focus to %s ', pos)
         self.body.set_focus(pos)
 
     def focus_first(self):

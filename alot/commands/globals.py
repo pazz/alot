@@ -1,36 +1,38 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
+import argparse
+import code
+import email
+import glob
+import logging
 import os
 import re
-import code
-from twisted.internet import threads
 import subprocess
-import email
-import urwid
-from twisted.internet.defer import inlineCallbacks
-import logging
-import argparse
-import glob
 from StringIO import StringIO
 
-from alot.commands import Command, registerCommand
-from alot.completion import CommandLineCompleter
-from alot.commands import CommandCanceled
-from alot.commands.utils import get_keys
-from alot import buffers
-from alot.widgets.utils import DialogBox
-from alot import helper
-from alot.db.errors import DatabaseLockedError
-from alot.completion import ContactsCompleter
-from alot.completion import AccountCompleter
-from alot.completion import TagsCompleter
-from alot.db.envelope import Envelope
-from alot import commands
-from alot.settings import settings
-from alot.helper import split_commandstring
-from alot.helper import mailto_to_envelope
-from alot.utils.booleanaction import BooleanAction
+import urwid
+from twisted.internet.defer import inlineCallbacks
+from twisted.internet import threads
+
+from . import Command, registerCommand
+from . import CommandCanceled
+from .utils import get_keys
+from .. import commands
+
+from .. import buffers
+from .. import helper
+from ..helper import split_commandstring
+from ..helper import mailto_to_envelope
+from ..completion import CommandLineCompleter
+from ..completion import ContactsCompleter
+from ..completion import AccountCompleter
+from ..completion import TagsCompleter
+from ..widgets.utils import DialogBox
+from ..db.errors import DatabaseLockedError
+from ..db.envelope import Envelope
+from ..settings import settings
+from ..utils.booleanaction import BooleanAction
 
 MODE = 'global'
 
@@ -125,7 +127,7 @@ class PromptCommand(Command):
                                   completer=cmpl,
                                   history=ui.commandprompthistory,
                                   )
-        logging.debug('CMDLINE: %s' % cmdline)
+        logging.debug('CMDLINE: %s', cmdline)
 
         # interpret and apply commandline
         if cmdline:
@@ -193,13 +195,13 @@ class ExternalCommand(Command):
         if touchhook is not None:
             logging.debug('calling hook: touch_external_cmdlist')
             res = touchhook(cmd, shell=shell, spawn=spawn, thread=thread)
-            logging.debug('got: %s' % res)
+            logging.debug('got: %s', res)
             cmd, shell, self.in_thread = res
         # otherwise if spawn requested and X11 is running
         elif spawn:
             if 'DISPLAY' in os.environ:
                 term_cmd = settings.get('terminal_cmd', '')
-                logging.info('spawn in terminal: %s' % term_cmd)
+                logging.info('spawn in terminal: %s', term_cmd)
                 termcmdlist = split_commandstring(term_cmd)
                 cmd = termcmdlist + cmd
             else:
@@ -214,7 +216,7 @@ class ExternalCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        logging.debug('cmdlist: %s' % self.cmdlist)
+        logging.debug('cmdlist: %s', self.cmdlist)
         callerbuffer = ui.current_buffer
 
         # set standard input for subcommand
@@ -236,7 +238,7 @@ class ExternalCommand(Command):
                 logging.info('refocussing')
                 ui.buffer_focus(callerbuffer)
 
-        logging.info('calling external command: %s' % self.cmdlist)
+        logging.info('calling external command: %s', self.cmdlist)
 
         def thread_code(*args):
             try:
@@ -297,7 +299,7 @@ class EditCommand(ExternalCommand):
             editor_cmdstring = '/usr/bin/editor'
         editor_cmdstring = os.environ.get('EDITOR', editor_cmdstring)
         editor_cmdstring = settings.get('editor_cmd') or editor_cmdstring
-        logging.debug('using editor_cmd: %s' % editor_cmdstring)
+        logging.debug('using editor_cmd: %s', editor_cmdstring)
 
         self.cmdlist = None
         if '%s' in editor_cmdstring:
@@ -549,8 +551,8 @@ class FlushCommand(Command):
                 ui.mainloop.set_alarm_in(timeout, f)
                 if not ui.db_was_locked:
                     if not self.silent:
-                        ui.notify(
-                            'index locked, will try again in %d secs' % timeout)
+                        ui.notify('index locked, will try again in %d secs'
+                                  % timeout)
                     ui.db_was_locked = True
             ui.update()
             return
@@ -620,7 +622,7 @@ class HelpCommand(Command):
                                     ('relative', 70))
             ui.show_as_root_until_keypress(overlay, 'esc')
         else:
-            logging.debug('HELP %s' % self.commandname)
+            logging.debug('HELP %s', self.commandname)
             parser = commands.lookup_parser(self.commandname, ui.mode)
             if parser:
                 ui.notify(parser.format_help(), block=True)
@@ -828,7 +830,7 @@ class ComposeCommand(Command):
         if settings.get('ask_subject') and \
                 'Subject' not in self.envelope.headers:
             subject = yield ui.prompt('Subject')
-            logging.debug('SUBJECT: "%s"' % subject)
+            logging.debug('SUBJECT: "%s"', subject)
             if subject is None:
                 raise CommandCanceled()
 
@@ -847,7 +849,7 @@ class ComposeCommand(Command):
             for gpath in self.attach:
                 for a in glob.glob(gpath):
                     self.envelope.attach(a)
-                    logging.debug('attaching: ' + a)
+                    logging.debug('attaching: %s', a)
 
         # set encryption if needed
         if self.encrypt or account.encrypt_by_default == u"all":
@@ -893,7 +895,7 @@ class ComposeCommand(Command):
                 recipient = match.group(1)
             encrypt_keys.append(recipient)
 
-        logging.debug("encryption keys: " + str(encrypt_keys))
+        logging.debug("encryption keys: %s", encrypt_keys)
         keys = yield get_keys(ui, encrypt_keys, block_error=self.encrypt,
                               signed_only=trusted_only)
         if keys:

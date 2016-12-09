@@ -4,16 +4,16 @@
 """
 Widgets specific to thread mode
 """
-import urwid
 import logging
-
-from alot.settings import settings
-from alot.db.utils import decode_header, X_SIGNATURE_MESSAGE_HEADER
-from alot.helper import tag_cmp
-from alot.widgets.globals import TagWidget
-from alot.widgets.globals import AttachmentWidget
+import urwid
 from urwidtrees import Tree, SimpleTree, CollapsibleTree
-from alot.db.utils import extract_body
+
+from .globals import TagWidget
+from .globals import AttachmentWidget
+from ..settings import settings
+from ..db.utils import decode_header, X_SIGNATURE_MESSAGE_HEADER
+from ..db.utils import extract_body
+from ..helper import tag_cmp
 
 
 class MessageSummaryWidget(urwid.WidgetWrap):
@@ -180,13 +180,13 @@ class MessageTree(CollapsibleTree):
         self.reassemble()
 
     def debug(self):
-        logging.debug('collapsed %s' % self.is_collapsed(self.root))
-        logging.debug('display_source %s' % self.display_source)
-        logging.debug('display_all_headers %s' % self.display_all_headers)
-        logging.debug('display_attachements %s' % self.display_attachments)
-        logging.debug('AHT %s' % str(self._all_headers_tree))
-        logging.debug('DHT %s' % str(self._default_headers_tree))
-        logging.debug('MAINTREE %s' % str(self._maintree._treelist))
+        logging.debug('collapsed %s', self.is_collapsed(self.root))
+        logging.debug('display_source %s', self.display_source)
+        logging.debug('display_all_headers %s', self.display_all_headers)
+        logging.debug('display_attachements %s', self.display_attachments)
+        logging.debug('AHT %s', str(self._all_headers_tree))
+        logging.debug('DHT %s', str(self._default_headers_tree))
+        logging.debug('MAINTREE %s', str(self._maintree._treelist))
 
     def _assemble_structure(self):
         mainstruct = []

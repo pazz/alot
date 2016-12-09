@@ -19,7 +19,7 @@ class AbookAddressBook(AddressBook):
         self._spec = os.path.join(DEFAULTSPATH, 'abook_contacts.spec')
         path = os.path.expanduser(path)
         self._config = read_config(path, self._spec)
-        del(self._config['format'])
+        del self._config['format']
 
     def get_contacts(self):
         c = self._config

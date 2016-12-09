@@ -8,20 +8,20 @@ import mailcap
 import logging
 from configobj import ConfigObj, Section
 
-from alot.account import SendmailAccount
-from alot.addressbook.abook import AbookAddressBook
-from alot.addressbook.external import ExternalAddressbook
-from alot.helper import pretty_datetime, string_decode
+from ..account import SendmailAccount
+from ..addressbook.abook import AbookAddressBook
+from ..addressbook.external import ExternalAddressbook
+from ..helper import pretty_datetime, string_decode
 
-from errors import ConfigError
-from utils import read_config
-from utils import resolve_att
-from checks import force_list
-from checks import mail_container
-from checks import gpg_key
-from checks import attr_triple
-from checks import align_mode
-from theme import Theme
+from .errors import ConfigError
+from .utils import read_config
+from .utils import resolve_att
+from .checks import force_list
+from .checks import mail_container
+from .checks import gpg_key
+from .checks import attr_triple
+from .checks import align_mode
+from .theme import Theme
 
 
 DEFAULTSPATH = os.path.join(os.path.dirname(__file__), '..', 'defaults')
@@ -70,7 +70,7 @@ class SettingsManager(object):
         try:
             self.hooks = imp.load_source('hooks', hooks_path)
         except:
-            logging.debug('unable to load hooks file:%s' % hooks_path)
+            logging.debug('unable to load hooks file:%s', hooks_path)
         if 'bindings' in newconfig:
             newbindings = newconfig['bindings']
             if isinstance(newbindings, Section):
@@ -123,15 +123,14 @@ class SettingsManager(object):
 
                 # create abook for this account
                 abook = accsec['abook']
-                logging.debug('abook defined: %s' % abook)
+                logging.debug('abook defined: %s', abook)
                 if abook['type'] == 'shellcommand':
                     cmd = abook['command']
                     regexp = abook['regexp']
                     if cmd is not None and regexp is not None:
                         ef = abook['shellcommand_external_filtering']
-                        args['abook'] = ExternalAddressbook(cmd,
-                                                            regexp,
-                                                            external_filtering=ef)
+                        args['abook'] = ExternalAddressbook(
+                            cmd, regexp, external_filtering=ef)
                     else:
                         msg = 'underspecified abook of type \'shellcommand\':'
                         msg += '\ncommand: %s\nregexp:%s' % (cmd, regexp)
@@ -141,10 +140,10 @@ class SettingsManager(object):
                     args['abook'] = AbookAddressBook(
                         contacts_path, ignorecase=abook['ignorecase'])
                 else:
-                    del(args['abook'])
+                    del args['abook']
 
                 cmd = args['sendmail_command']
-                del(args['sendmail_command'])
+                del args['sendmail_command']
                 newacc = SendmailAccount(cmd, **args)
                 accounts.append(newacc)
         return accounts

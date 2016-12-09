@@ -4,13 +4,13 @@
 import argparse
 import logging
 
-from alot.commands import Command, registerCommand
-from alot.commands.globals import PromptCommand
-from alot.commands.globals import MoveCommand
+from . import Command, registerCommand
+from .globals import PromptCommand
+from .globals import MoveCommand
+from .. import commands
 
-from alot.db.errors import DatabaseROError
-from alot import commands
-from alot import buffers
+from .. import buffers
+from ..db.errors import DatabaseROError
 
 
 MODE = 'search'
@@ -33,7 +33,7 @@ class OpenThreadCommand(Command):
             self.thread = ui.current_buffer.get_selected_thread()
         if self.thread:
             query = ui.current_buffer.querystring
-            logging.info('open thread view for %s' % self.thread)
+            logging.info('open thread view for %s', self.thread)
 
             sb = buffers.ThreadBuffer(ui, self.thread)
             ui.buffer_open(sb)
@@ -185,13 +185,13 @@ class TagCommand(Command):
         if not self.allm:
             testquery = "(%s) AND thread:%s" % (testquery,
                                                 thread.get_thread_id())
-        logging.debug('all? %s' % self.allm)
-        logging.debug('q: %s' % testquery)
+        logging.debug('all? %s', self.allm)
+        logging.debug('q: %s', testquery)
 
         hitcount_before = ui.dbman.count_messages(testquery)
 
         def remove_thread():
-            logging.debug('remove thread from result list: %s' % thread)
+            logging.debug('remove thread from result list: %s', thread)
             if threadline_widget in searchbuffer.threadlist:
                 # remove this thread from result list
                 searchbuffer.threadlist.remove(threadline_widget)

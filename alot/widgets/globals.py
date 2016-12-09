@@ -5,14 +5,14 @@
 """
 This contains alot-specific :class:`urwid.Widget` used in more than one mode.
 """
-import urwid
 import re
 import operator
+import urwid
 
-from alot.helper import string_decode
-from alot.settings import settings
-from alot.db.attachment import Attachment
-from alot.errors import CompletionError
+from ..helper import string_decode
+from ..settings import settings
+from ..db.attachment import Attachment
+from ..errors import CompletionError
 
 
 class AttachmentWidget(urwid.WidgetWrap):
@@ -140,7 +140,7 @@ class CompleteEdit(urwid.Edit):
                     self.completions += self.completer.complete(self.edit_text,
                                                                 self.edit_pos)
                     self.focus_in_clist = 1
-                except CompletionError, e:
+                except CompletionError as e:
                     if self.on_error is not None:
                         self.on_error(e)
 
