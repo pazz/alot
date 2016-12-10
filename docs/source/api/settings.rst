@@ -61,11 +61,16 @@ Accounts
 Addressbooks
 ------------
 
-.. module:: alot.addressbooks
+.. module:: alot.addressbook
 
 .. autoclass:: AddressBook
     :members:
-.. autoclass:: MatchSdtoutAddressbook
-    :members:
+
+.. module:: alot.addressbook.abook
+
 .. autoclass:: AbookAddressBook
     :members:
+
+.. module:: alot.addressbook.external
+
+.. autoclass:: ExternalAddressbook
