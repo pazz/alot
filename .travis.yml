@@ -1,0 +1,77 @@
+language: python
+
+# We need a newer version of zlib to build notmuch from source as is available
+# in precise.
+dist: trusty
+
+sudo: true
+
+python:
+  # We can add more version strings here when we support other python
+  # versions.
+  - "2.7"
+
+addons:
+  apt:
+    packages:
+      # The gpgme build files are needed by the gpgme python module
+      # (a dependency of alot).
+      - libgpgme11-dev
+      # The notmuch libs are needed to actually run alot.  The notmuch package
+      # should pull the correct libs but currently the available version is
+      # not compatible with alot, so we have to build from source.
+      #- notmuch
+      # Dependencies to build notmuch from source.
+      - libxapian-dev
+      - libtalloc-dev
+      - zlib1g-dev
+
+# Build notmuch and the python notmuch libs manually.  The versions of the
+# notmuch library and the python module which are available in the 12.04 and
+# 14.04 Ubuntu repos do not match and do not fullfill the version requirement
+# for alot.
+before_install:
+  - sudo apt-get update
+  # Until https://github.com/travis-ci/apt-package-whitelist/issues/3215 is
+  # resolved we have to install gmime with sudo.  Afterwards we can swtich to
+  # the container based infrastructure.
+  # gmime is needed to build notmuch from source.
+  - sudo apt-get -yqq install libgmime-2.6-dev
+  # Clone the notmuch repository and move into it.
+  - git clone git://notmuchmail.org/git/notmuch
+  - cd notmuch
+  # Make and install the library.  We install the library without sudo as we
+  # might want to switch to the travis container later.
+  - ./configure --prefix=$HOME/.local
+  - make
+  - make install
+  # Export the library search path.
+  - export LD_LIBRARY_PATH=$HOME/.local/lib
+  # Install the python bindings.
+  - cd bindings/python
+  - pip install .
+  # Move out of the notmuch dir again.
+  - cd ../../..
+
+install:
+  # urwid needs to be installed first.  The installation of urwidtrees will
+  # fail otherwise.
+  # TODO This should be fixed upstream.
+  - pip install urwid
+  # Install alot and the dependencies it declares.
+  - pip install .
+  # Install sphinx for building the documentation of alot.
+  - pip install sphinx
+
+before_script:
+  # Prepare a minimal config file for the final test.
+  - touch ~/.notmuch-config
+  - echo 'initial_command=call os._exit(0)' > conf
+
+script:
+  # Build the documentation for alot.
+  - make -C docs html
+  # Minimal test: Start alot in order to quit immediatly.
+  - alot --config conf
+  # Run the testsuite.
+  - python setup.py test
