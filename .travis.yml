@@ -1,0 +1,27 @@
+language: python
+
+python:
+  # We can add more version strings here when we support other python
+  # versions.
+  - "2.7"
+
+# Install or mock dependencies for alot as the package has to be imported
+# during generation of the docs.
+install:
+  - pip install configobj urwid twisted python-magic
+  # urwid has to be installed when installing urwidtrees otherwise the process
+  # fails.
+  - pip install urwidtrees
+  # Mock all "difficult" dependencies of alot in order to be able to import
+  # alot when rebuilding the documentation.  Notmuch would have to be
+  # installed by hand in order to get a recent enough version on travis.
+  - printf '%s = None\n' NotmuchError NullPointerError > notmuch.py
+  - touch gpgme.py
+
+script:
+  # First remove the generated docs.
+  - make -C docs cleanall
+  # Regenerate them
+  - make -C docs html SPHINXBUILD=true
+  # Check that the generated docs where already commited.
+  - git diff --exit-code
