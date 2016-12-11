@@ -58,7 +58,7 @@ def rstify_parser(parser):
         if len(parser._positionals._group_actions) == 1:
             out += "    argument\n"
             a = parser._positionals._group_actions[0]
-            out += ' '*8 + parser._positionals._group_actions[0].help
+            out += ' '*8 + str(parser._positionals._group_actions[0].help)
             if a.choices:
                 out += ". valid choices are: %s." % ','.join(['\`%s\`' % s for s
                                                               in a.choices])
