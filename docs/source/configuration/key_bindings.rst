@@ -31,7 +31,7 @@ Have a look at `the urwid User Input documentation <http://excess.org/urwid/wiki
 
 .. _config.key-bingings.defaults:
 
-Default bindings 
+Default bindings
 ----------------
 
 User-defined bindings are combined with the default bindings listed below.

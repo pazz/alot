@@ -98,7 +98,6 @@ The following commands are available in search mode
     A tag is considered present if at least one message contained in this
     thread is tagged with it. In that case this command will remove the tag
     from every message in the thread.
-    
 
     argument
         comma separated list of tags

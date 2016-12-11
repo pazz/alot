@@ -27,7 +27,7 @@ input and acts on it:
 .. code-block:: python
 
     from twisted.internet import defer
-    
+
     @defer.inlineCallbacks
     def greet(ui):  # ui is instance of alot.ui.UI
         name = yield ui.prompt('pls enter your name')
@@ -102,7 +102,7 @@ Completion
 :meth:`alot.ui.UI.prompt` allows tab completion using a :class:`~alot.completion.Completer`
 object handed as 'completer' parameter. :mod:`alot.completion` defines several
 subclasses for different occasions like completing email addresses from an
-:class:`~alot.account.AddressBook`, notmuch tagstrings. Some of these actually build on top 
+:class:`~alot.account.AddressBook`, notmuch tagstrings. Some of these actually build on top
 of each other; the :class:`~alot.completion.QueryCompleter` for example uses a
 :class:`~alot.completion.TagsCompleter` internally to allow tagstring completion after
 "is:" or "tag:" keywords when typing a notmuch querystring.

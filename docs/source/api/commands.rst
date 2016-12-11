@@ -10,7 +10,7 @@ Command-line strings given by the user via the prompt or key bindings can be tra
 Specific actions are defined as subclasses of :class:`Command` and can be registered
 to a global command pool using the :class:`registerCommand` decorator.
 
-.. Note:: 
+.. Note::
 
     that the return value
     of :func:`commandfactory` depends on the current *mode* the user interface is in.
@@ -34,7 +34,7 @@ to a global command pool using the :class:`registerCommand` decorator.
 
 .. autoclass:: Command
     :members:
-    
+
 .. autoclass:: CommandParseError
 .. autoclass:: CommandArgumentParser
 .. autofunction:: commandfactory

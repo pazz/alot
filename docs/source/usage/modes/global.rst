@@ -55,10 +55,8 @@ The following commands are available globally
 
 .. describe:: help
 
-    
     display help for a command. Use 'bindings' to
     display all keybings interpreted in current mode.'
-    
 
     argument
         command or 'bindings'
@@ -154,7 +152,7 @@ The following commands are available globally
 
 .. describe:: call
 
-     Executes python code 
+    Executes python code
 
     argument
         python command string to call

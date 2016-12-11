@@ -184,7 +184,7 @@ Apart from command pre- and posthooks, the following hooks will be interpreted:
     returns `prefix` and `suffix` for a sanitized filename to use while
     opening an attachment.
     The `prefix` and `suffix` are used to open a file named
-    `prefix` + `XXXXXX` + `suffix` in a temporary directory. 
+    `prefix` + `XXXXXX` + `suffix` in a temporary directory.
 
     :param filename: filename provided in the email (can be None)
     :type filename: str or None

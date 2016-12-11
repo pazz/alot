@@ -22,7 +22,7 @@ FAQ
 
 3. I want feature X!
 
-    Me too! Feel free to file a new or comment on existing 
+    Me too! Feel free to file a new or comment on existing
     `issues <https://github.com/pazz/alot/issues>`_ if you don't want/have the time/know how to
     implement it yourself. Be verbose as to how it should look or work when it's finished and
     give it some thought how you think we should implement it. We'll discuss it from there.
@@ -51,7 +51,7 @@ FAQ
 
     Lazyness and Ignorance: In most cases I simply did not or still don't know a better solution.
     I try to outsource as much as I can to well established libraries and be it only to avoid
-    having to read rfc's. But there are lots 
+    having to read rfc's. But there are lots
     of tasks I implemented myself, possibly overlooking a ready made and available solution.
     Twisted is such a feature-rich but gray area in my mind for example.
     If you think you know how to improve the current implementation let me know!
