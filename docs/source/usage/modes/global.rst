@@ -55,8 +55,8 @@ The following commands are available globally
 
 .. describe:: help
 
-    display help for a command. Use 'bindings' to
-    display all keybings interpreted in current mode.'
+    display help for a command. Use 'bindings' to display all keybings
+    interpreted in current mode.'
 
     argument
         command or 'bindings'
@@ -116,6 +116,9 @@ The following commands are available globally
 
     compose a new email
 
+    argument
+        None
+
     optional arguments
         :---sender: sender.
         :---template: path to a template message file.
@@ -171,4 +174,6 @@ The following commands are available globally
 
     opens taglist buffer
 
+    optional arguments
+        :---tags: tags to display.
 

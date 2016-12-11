@@ -22,6 +22,7 @@ The following commands are available in thread mode
         :---add_tags: add 'Tags' header to the message.
         :---shell: let the shell interpret the command.
         :---notify_stdout: display cmd's stdout as notification.
+        :---field_key: mailcap field key for decoding (Defaults to: 'copiousoutput').
 
 .. _cmd.thread.editnew:
 
