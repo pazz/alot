@@ -3,7 +3,7 @@
 # For further details see the COPYING file
 
 
-class GPGCode:
+class GPGCode(object):
     AMBIGUOUS_NAME = 1
     NOT_FOUND = 2
     BAD_PASSPHRASE = 3
