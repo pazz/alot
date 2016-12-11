@@ -51,8 +51,7 @@ Don't have pip installed? Just download and extract, then run::
   python setup.py install --user
 
 Make sure :file:`~/.local/bin` is in your :envvar:`PATH`. For system-wide
-installation omit the :option:`--user` flag and call with the respective
-permissions.
+installation omit the `--user` flag and call with the respective permissions.
 
 .. rubric:: generate manual and manpage
 

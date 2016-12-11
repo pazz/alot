@@ -145,8 +145,7 @@ class RetagPromptCommand(Command):
     help="""flip presence of tags on this thread.
     A tag is considered present if at least one message contained in this
     thread is tagged with it. In that case this command will remove the tag
-    from every message in the thread.
-    """)
+    from every message in the thread.""")
 class TagCommand(Command):
 
     """manipulate message tags"""

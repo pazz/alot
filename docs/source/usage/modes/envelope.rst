@@ -35,6 +35,8 @@ The following commands are available in envelope mode
     argument
         keyid of the key to encrypt with
 
+    optional arguments
+        :---trusted: only add trusted keys.
 
 .. _cmd.envelope.togglesign:
 
@@ -129,6 +131,8 @@ The following commands are available in envelope mode
     argument
         keyid of the key to encrypt with
 
+    optional arguments
+        :---trusted: only add trusted keys.
 
 .. _cmd.envelope.save:
 

@@ -1,7 +1,7 @@
 import sys
 import os
 HERE = os.path.dirname(__file__)
-sys.path.append(os.path.join(HERE, '..', '..', '..'))
+sys.path.insert(0, os.path.join(HERE, '..', '..'))
 from alot.commands import COMMANDS
 from configobj import ConfigObj
 from validate import Validator
@@ -38,7 +38,8 @@ def rewrite_entries(config, path, specpath, sec=None, sort=False):
         comments = [sec.inline_comments[entry]] + sec.comments[entry]
         for c in comments:
             if c:
-                description += ' '*4 + re.sub('^\s*#', '', c) + '\n'
+                description += ' '*4 + re.sub('^\s*#', '', c)
+                description = description.rstrip(' ') + '\n'
         if etype == 'option':
             description += '\n    :type: option, one of %s\n' % eargs
         else:

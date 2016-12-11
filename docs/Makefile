@@ -52,6 +52,9 @@ $(CONFIG_OPTION_TABLES): ../alot/defaults/alot.rc.spec
 clean:
 	-$(RM) -rf $(BUILDDIR)/*
 
+cleanall: clean
+	-$(RM) -rf $(CONFIG_OPTION_TABLES) $(COMMAND_OPTION_TABLES)
+
 html: $(CONFIG_OPTION_TABLES) $(COMMAND_OPTION_TABLES)
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo

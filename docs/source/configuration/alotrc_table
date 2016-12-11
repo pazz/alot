@@ -34,6 +34,16 @@
     :default: True
 
 
+.. _auto-replyto-mailinglist:
+
+.. describe:: auto_replyto_mailinglist
+
+     Automatically switch to list reply mode if appropriate
+
+    :type: boolean
+    :default: False
+
+
 .. _bounce-force-address:
 
 .. describe:: bounce_force_address
@@ -54,16 +64,6 @@
 
     :type: boolean
     :default: True
-
-
-.. _auto_replyto_mailinglist:
-
-.. describe:: auto_replyto_mailinglist
-
-     Automatically switch to list reply mode if appropriate
-
-    :type: boolean
-    :default: False
 
 
 .. _bufferclose-focus-offset:
@@ -192,7 +192,7 @@
 
 .. describe:: editor_spawn
 
-     use terminal_cmd to spawn a new terminal for the editor?
+     use terminal_command to spawn a new terminal for the editor?
      equivalent to always providing the `--spawn=yes` parameter to compose/edit commands
 
     :type: boolean
@@ -238,7 +238,8 @@
 
 .. describe:: flush_retry_timeout
 
-     timeout in seconds after a failed attempt to writeout the database is repeated
+     timeout in seconds after a failed attempt to writeout the database is
+     repeated. Set to 0 for no retry.
 
     :type: integer
     :default: 5
@@ -340,6 +341,17 @@
     :default: ,
 
 
+.. _msg-summary-hides-threadwide-tags:
+
+.. describe:: msg_summary_hides_threadwide_tags
+
+     In a thread buffer, hide from messages summaries tags that are commom to all
+     messages in that thread.
+
+    :type: boolean
+    :default: True
+
+
 .. _notify-timeout:
 
 .. describe:: notify_timeout
@@ -401,6 +413,19 @@
 
     :type: string
     :default: "> "
+
+
+.. _reply-account-header-priority:
+
+.. describe:: reply_account_header_priority
+
+     The list of headers to match to determine sending account for a reply.
+     Headers are searched in the order in which they are specified here, and the first header
+     containing a match is used. If multiple accounts match in that header, the one defined
+     first in the account block is used.
+
+    :type: string list
+    :default: From, To, Cc, Envelope-To, X-Envelope-To, Delivered-To
 
 
 .. _reply-force-address:
@@ -548,6 +573,17 @@
     :default: "Me"
 
 
+.. _thread-authors-order-by:
+
+.. describe:: thread_authors_order_by
+
+     When constructing the unique list of thread authors, order by date of
+     author's first or latest message in thread
+
+    :type: option, one of ['first_message', 'latest_message']
+    :default: first_message
+
+
 .. _thread-authors-replace-me:
 
 .. describe:: thread_authors_replace_me
@@ -557,17 +593,6 @@
 
     :type: boolean
     :default: True
-
-
-.. _thread-authors-order-by:
-
-.. describe:: thread_authors_order_by
-
-    In which order to list authors. By default, list authors in the order they
-    joined the conversation.
-
-    :type: option, one of ['first_message', 'latest_message']
-    :default: first_message
 
 
 .. _thread-statusbar:
@@ -586,6 +611,22 @@
 
     :type: mixed_list
     :default: [{buffer_no}: thread] {subject}, {input_queue} total messages: {total_messages}
+
+
+.. _thread-subject:
+
+.. describe:: thread_subject
+
+     What should be considered to be "the thread subject".
+     Valid values are:
+
+     * 'notmuch' (the default), will use the thread subject from notmuch, which
+       depends on the selected sorting method
+     * 'oldest' will always use the subject of the oldest message in the thread as
+       the thread subject
+
+    :type: option, one of ['oldest', 'notmuch']
+    :default: notmuch
 
 
 .. _timestamp-format:

@@ -19,7 +19,7 @@ The following commands are available in search mode
 
 .. describe:: untag
 
-    remove tags from all messages in the thread
+    remove tags from all messages in the thread that match the query
 
     argument
         comma separated list of tags
@@ -42,7 +42,7 @@ The following commands are available in search mode
 
 .. describe:: retag
 
-    set tags of all messages in the thread
+    set tags of all messages in the thread that match the current query
 
     argument
         comma separated list of tags
@@ -62,7 +62,7 @@ The following commands are available in search mode
 
 .. describe:: tag
 
-    add tags to all messages in the thread
+    add tags to all messages in the thread that match the current query
 
     argument
         comma separated list of tags

@@ -351,7 +351,7 @@ class RepeatCommand(Command):
     (['command'], {'help': 'python command string to call'})])
 class CallCommand(Command):
 
-    """ Executes python code """
+    """Executes python code"""
     repeatable = True
 
     def __init__(self, command, **kwargs):
@@ -563,10 +563,8 @@ class FlushCommand(Command):
     (['commandname'], {'help': 'command or \'bindings\''})])
 class HelpCommand(Command):
 
-    """
-    display help for a command. Use \'bindings\' to
-    display all keybings interpreted in current mode.'
-    """
+    """display help for a command. Use \'bindings\' to display all keybings
+    interpreted in current mode.'"""
     def __init__(self, commandname='', **kwargs):
         """
         :param commandname: command to document
