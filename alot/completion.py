@@ -409,10 +409,11 @@ class CommandCompleter(Completer):
                                                                    localpos)
 
                         # prepend 'set ' + header and correct position
-                        def f((completed, pos)):
+                        def f(completed_pos):
+                            (completed, pos) = completed_pos
                             return ('%s %s' % (header, completed),
                                     pos + len(header) + 1)
-                        res = map(f, res)
+                        res = list(map(f, res))
                         logging.debug(res)
 
                 elif self.mode == 'envelope' and cmd == 'unset':
@@ -531,7 +532,7 @@ class PathCompleter(Completer):
             escaped_path = escape(path)
             return escaped_path, len(escaped_path)
 
-        return map(prep, glob.glob(deescape(prefix) + '*'))
+        return list(map(prep, glob.glob(deescape(prefix) + '*')))
 
 
 class CryptoKeyCompleter(StringlistCompleter):

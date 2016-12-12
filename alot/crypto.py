@@ -2,7 +2,11 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 import os
-from cStringIO import StringIO
+try:
+    from io import StringIO
+except ImportError:
+    from cStringIO import StringIO
+
 import gpgme
 from .errors import GPGProblem, GPGCode
 

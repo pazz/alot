@@ -7,6 +7,7 @@ import re
 import mailcap
 import logging
 from configobj import ConfigObj, Section
+from itertools import chain
 
 from ..account import SendmailAccount
 from ..addressbook.abook import AbookAddressBook
@@ -314,12 +315,12 @@ class SettingsManager(object):
     def get_mapped_input_keysequences(self, mode='global', prefix=u''):
         # get all bindings in this mode
         globalmaps, modemaps = self.get_keybindings(mode)
-        candidates = globalmaps.keys() + modemaps.keys()
+        candidates = list(globalmaps.keys()) + list(modemaps.keys())
         if prefix is not None:
             prefixs = prefix + ' '
             cand = filter(lambda x: x.startswith(prefixs), candidates)
             if prefix in candidates:
-                candidates = cand + [prefix]
+                candidates = chain(cand, [prefix])
             else:
                 candidates = cand
         return candidates

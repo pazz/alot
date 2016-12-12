@@ -152,10 +152,10 @@ class Thread(object):
         if self._authors is None:
             seen = {}
             msgs = self.get_messages().keys()
-            msgs_with_date = filter(lambda m: m.get_date() is not None, msgs)
-            msgs_without_date = filter(lambda m: m.get_date() is None, msgs)
+            msgs_with_date = list(filter(lambda m: m.get_date() is not None, msgs))
+            msgs_without_date = list(filter(lambda m: m.get_date() is None, msgs))
             # sort messages with date and append the others
-            msgs_with_date.sort(None, lambda m: m.get_date())
+            msgs_with_date.sort(key=lambda m: m.get_date())
             msgs = msgs_with_date + msgs_without_date
             orderby = settings.get('thread_authors_order_by')
             if orderby == 'latest_message':

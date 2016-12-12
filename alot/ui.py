@@ -1,6 +1,7 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
+from itertools import chain
 import logging
 import signal
 from twisted.internet import reactor, defer
@@ -140,6 +141,7 @@ class UI(object):
             keyseq = ' '.join(self.input_queue)
             candidates = settings.get_mapped_input_keysequences(self.mode,
                                                                 prefix=keyseq)
+            candidates = list(candidates)
             if keyseq in candidates:
                 # case: current input queue is a mapped keysequence
                 # get binding and interpret it if non-null
@@ -462,8 +464,8 @@ class UI(object):
         :type msg_position: str
         :rtype:  :class:`twisted.defer.Deferred`
         """
-        assert select in choices.values() + [None]
-        assert cancel in choices.values() + [None]
+        assert select in chain(choices.values(), [None])
+        assert cancel in chain(choices.values(), [None])
         assert msg_position in ['left', 'above']
 
         d = defer.Deferred()  # create return deferred
