@@ -258,7 +258,7 @@ class ReplyCommand(Command):
             allrecipients = [to] + [cc]
             lists = settings.get('mailinglists')
             # check if any recipient address matches a known mailing list
-            if any([addr in lists for n, addr in getaddresses(allrecipients)]):
+            if any(addr in lists for n, addr in getaddresses(allrecipients)):
                 followupto = ', '.join(allrecipients)
                 logging.debug('mail followup to: %s', followupto)
                 envelope.add('Mail-Followup-To', decode_header(followupto))
