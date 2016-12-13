@@ -965,8 +965,8 @@ class OpenAttachmentCommand(Command):
             handler_cmdlist = split_commandstring(handler_cmd)
 
             # 'needsterminal' makes handler overtake the terminal
-            nt = entry.get('needsterminal', None)
-            overtakes = (nt is None)
+            # XXX: could this be repalced with "'needsterminal' not in entry"?
+            overtakes = entry.get('needsterminal') is None
 
             ui.apply_command(ExternalCommand(handler_cmdlist,
                                              stdin=handler_stdin,

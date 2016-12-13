@@ -111,7 +111,7 @@ def message_from_file(handle):
     # handle OpenPGP signed data
     if (m.is_multipart() and
         m.get_content_subtype() == 'signed' and
-            p.get('protocol', None) == app_pgp_sig):
+            p.get('protocol') == app_pgp_sig):
         # RFC 3156 is quite strict:
         # * exactly two messages
         # * the second is of type 'application/pgp-signature'
@@ -147,7 +147,7 @@ def message_from_file(handle):
     # handle OpenPGP encrypted data
     elif (m.is_multipart() and
           m.get_content_subtype() == 'encrypted' and
-          p.get('protocol', None) == app_pgp_enc and
+          p.get('protocol') == app_pgp_enc and
           'Version: 1' in m.get_payload(0).get_payload()):
         # RFC 3156 is quite strict:
         # * exactly two messages
