@@ -59,7 +59,7 @@ class Thread(object):
         except ValueError:  # year is out of range
             self._newest_date = None
 
-        self._tags = set([t for t in thread.get_tags()])
+        self._tags = {t for t in thread.get_tags()}
         self._messages = {}  # this maps messages to its children
         self._toplevel_messages = []
 
