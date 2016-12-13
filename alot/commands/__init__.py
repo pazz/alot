@@ -112,7 +112,7 @@ class registerCommand(object):
 
     """
     def __init__(self, mode, name, help=None, usage=None,
-                 forced={}, arguments=[]):
+                 forced=None, arguments=None):
         """
         :param mode: mode identifier
         :type mode: str
@@ -133,8 +133,8 @@ class registerCommand(object):
         self.name = name
         self.help = help
         self.usage = usage
-        self.forced = forced
-        self.arguments = arguments
+        self.forced = forced or {}
+        self.arguments = arguments or []
 
     def __call__(self, klass):
         helpstring = self.help or klass.__doc__

@@ -48,8 +48,8 @@ class Envelope(object):
     """tags to add after successful sendout"""
 
     def __init__(
-            self, template=None, bodytext=None, headers=None, attachments=[],
-            sign=False, sign_key=None, encrypt=False, tags=[]):
+            self, template=None, bodytext=None, headers=None, attachments=None,
+            sign=False, sign_key=None, encrypt=False, tags=None):
         """
         :param template: if not None, the envelope will be initialised by
                          :meth:`parsing <parse_template>` this string before
@@ -71,12 +71,12 @@ class Envelope(object):
             logging.debug('BODY: %s', self.body)
         self.body = bodytext or u''
         self.headers = headers or {}
-        self.attachments = list(attachments)
+        self.attachments = list(attachments) if attachments is not None else []
         self.sign = sign
         self.sign_key = sign_key
         self.encrypt = encrypt
         self.encrypt_keys = {}
-        self.tags = tags  # tags to add after successful sendout
+        self.tags = tags or []  # tags to add after successful sendout
         self.sent_time = None
         self.modified_since_sent = False
         self.sending = False  # semaphore to avoid accidental double sendout
@@ -121,12 +121,12 @@ class Envelope(object):
             value = fallback
         return value
 
-    def get_all(self, key, fallback=[]):
+    def get_all(self, key, fallback=None):
         """returns all header values for given key"""
         if key in self.headers:
             value = self.headers[key]
         else:
-            value = fallback
+            value = fallback or []
         return value
 
     def add(self, key, value):

@@ -415,8 +415,9 @@ class SettingsManager(object):
         """returns addresses of known accounts including all their aliases"""
         return self._accountmap.keys()
 
-    def get_addressbooks(self, order=[], append_remaining=True):
+    def get_addressbooks(self, order=None, append_remaining=True):
         """returns list of all defined :class:`AddressBook` objects"""
+        order = order or []
         abooks = []
         for a in order:
             if a:

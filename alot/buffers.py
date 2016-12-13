@@ -618,10 +618,10 @@ class TagListBuffer(Buffer):
 
     modename = 'taglist'
 
-    def __init__(self, ui, alltags=[], filtfun=None):
+    def __init__(self, ui, alltags=None, filtfun=None):
         self.filtfun = filtfun
         self.ui = ui
-        self.tags = alltags
+        self.tags = alltags or []
         self.isinitialized = False
         self.rebuild()
         Buffer.__init__(self, ui, self.body)

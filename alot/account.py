@@ -52,10 +52,17 @@ class Account(object):
     def __init__(self, address=None, aliases=None, alias_regexp=None,
                  realname=None, gpg_key=None, signature=None,
                  signature_filename=None, signature_as_attachment=False,
-                 sent_box=None, sent_tags=['sent'], draft_box=None,
-                 draft_tags=['draft'], abook=None, sign_by_default=False,
+                 sent_box=None, sent_tags=None, draft_box=None,
+                 draft_tags=None, abook=None, sign_by_default=False,
                  encrypt_by_default=u"none",
                  **rest):
+        sent_tags = sent_tags or []
+        if 'sent' not in sent_tags:
+            sent_tags.append('sent')
+        draft_tags = draft_tags or []
+        if 'draft' not in draft_tags:
+            draft_tags.append('draft')
+
         self.address = address
         self.aliases = aliases
         self.alias_regexp = alias_regexp

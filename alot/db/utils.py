@@ -71,7 +71,7 @@ def add_signature_headers(mail, sigs, error_msg):
     )
 
 
-def get_params(mail, failobj=list(), header='content-type', unquote=True):
+def get_params(mail, failobj=None, header='content-type', unquote=True):
     '''Get Content-Type parameters as dict.
 
     RFC 2045 specifies that parameter names are case-insensitive, so
@@ -83,6 +83,7 @@ def get_params(mail, failobj=list(), header='content-type', unquote=True):
     :param unquote: unquote the values
     :returns: a `dict` containing the parameters
     '''
+    failobj = failobj or []
     return {k.lower(): v for k, v in mail.get_params(failobj, header, unquote)}
 
 

@@ -398,7 +398,7 @@ class DBManager(object):
         db = Database(path=self.path, mode=mode)
         return db.create_query(querystring)
 
-    def add_message(self, path, tags=[], afterwards=None):
+    def add_message(self, path, tags=None, afterwards=None):
         """
         Adds a file to the notmuch index.
 
@@ -409,6 +409,8 @@ class DBManager(object):
         :param afterwards: callback to trigger after adding
         :type afterwards: callable or None
         """
+        tags = tags or []
+
         if self.ro:
             raise DatabaseROError()
         if not is_subdir_of(path, self.path):
