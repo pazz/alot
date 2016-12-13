@@ -403,7 +403,7 @@ class SettingsManager(object):
         """
 
         for myad in self.get_addresses():
-            if myad in address:
+            if myad == address:
                 return self._accountmap[myad]
         return None
 
