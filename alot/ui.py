@@ -368,7 +368,6 @@ class UI(object):
             buf.cleanup()
             success = True
         else:
-            string = 'closing buffer %d:%s'
             buffers.remove(buf)
             buf.cleanup()
             success = True
