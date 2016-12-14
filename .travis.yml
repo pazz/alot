@@ -1,23 +1,19 @@
 language: python
 
-# We want the docs checks to run as fast as possible and with minimal setup,
-# hence they will be run in a container.  For the full build (needed for the
-# test runs) this is not possible as neither Ubuntu 12.4 nor 14.4 offer recent
-# enough versions of some packages.
-matrix:
-  include:
-    # a container for checking the docs
-    - os: linux
-      dist: trusty
-      sudo: false
-      python: "2.7"
-      env: JOB=docs
-    # a full VM to build all deps and run the tests
-    - os: linux
-      dist: trusty
-      sudo: true
-      python: "2.7"
-      env: JOB=tests
+# We need a newer version of zlib to build notmuch from source as is available
+# in precise.
+dist: trusty
+
+python:
+  # We can add more version strings here when we support other python
+  # versions.
+  - "2.7"
+
+# We start two containers in parallel, one to check and build the docs and the
+# other to run the test suite.
+env:
+  - JOB=docs
+  - JOB=tests
 
 addons:
   apt:
@@ -33,6 +29,7 @@ addons:
       - libxapian-dev
       - libtalloc-dev
       - zlib1g-dev
+      - libgmime-2.6-dev
 
 # Build notmuch and the python notmuch libs manually.  The versions of the
 # notmuch library and the python module which are available in the 12.04 and
@@ -41,12 +38,6 @@ addons:
 before_install: |
   set -e
   if [[ $JOB = tests ]]; then
-    sudo apt-get update
-    # Until https://github.com/travis-ci/apt-package-whitelist/issues/3895 is
-    # resolved we have to install gmime with sudo.  Afterwards we can swtich
-    # to the container based infrastructure.
-    # gmime is needed to build notmuch from source.
-    sudo apt-get -yqq install libgmime-2.6-dev
     # Clone the notmuch repository and move into it.
     git clone git://notmuchmail.org/git/notmuch
     cd notmuch
