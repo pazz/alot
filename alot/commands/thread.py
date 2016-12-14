@@ -258,7 +258,7 @@ class ReplyCommand(Command):
             allrecipients = [to] + [cc]
             lists = settings.get('mailinglists')
             # check if any recipient address matches a known mailing list
-            if any([addr in lists for n, addr in getaddresses(allrecipients)]):
+            if any(addr in lists for n, addr in getaddresses(allrecipients)):
                 followupto = ', '.join(allrecipients)
                 logging.debug('mail followup to: %s', followupto)
                 envelope.add('Mail-Followup-To', decode_header(followupto))
@@ -965,8 +965,8 @@ class OpenAttachmentCommand(Command):
             handler_cmdlist = split_commandstring(handler_cmd)
 
             # 'needsterminal' makes handler overtake the terminal
-            nt = entry.get('needsterminal', None)
-            overtakes = (nt is None)
+            # XXX: could this be repalced with "'needsterminal' not in entry"?
+            overtakes = entry.get('needsterminal') is None
 
             ui.apply_command(ExternalCommand(handler_cmdlist,
                                              stdin=handler_stdin,

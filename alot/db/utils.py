@@ -71,7 +71,7 @@ def add_signature_headers(mail, sigs, error_msg):
     )
 
 
-def get_params(mail, failobj=list(), header='content-type', unquote=True):
+def get_params(mail, failobj=None, header='content-type', unquote=True):
     '''Get Content-Type parameters as dict.
 
     RFC 2045 specifies that parameter names are case-insensitive, so
@@ -83,6 +83,7 @@ def get_params(mail, failobj=list(), header='content-type', unquote=True):
     :param unquote: unquote the values
     :returns: a `dict` containing the parameters
     '''
+    failobj = failobj or []
     return {k.lower(): v for k, v in mail.get_params(failobj, header, unquote)}
 
 
@@ -110,7 +111,7 @@ def message_from_file(handle):
     # handle OpenPGP signed data
     if (m.is_multipart() and
         m.get_content_subtype() == 'signed' and
-            p.get('protocol', None) == app_pgp_sig):
+            p.get('protocol') == app_pgp_sig):
         # RFC 3156 is quite strict:
         # * exactly two messages
         # * the second is of type 'application/pgp-signature'
@@ -146,7 +147,7 @@ def message_from_file(handle):
     # handle OpenPGP encrypted data
     elif (m.is_multipart() and
           m.get_content_subtype() == 'encrypted' and
-          p.get('protocol', None) == app_pgp_enc and
+          p.get('protocol') == app_pgp_enc and
           'Version: 1' in m.get_payload(0).get_payload()):
         # RFC 3156 is quite strict:
         # * exactly two messages

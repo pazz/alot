@@ -7,7 +7,7 @@ from urwid import AttrSpec
 
 from .errors import ConfigError
 
-def read_config(configpath=None, specpath=None, checks={}):
+def read_config(configpath=None, specpath=None, checks=None):
     """
     get a (validated) config object for given config file path.
 
@@ -21,6 +21,8 @@ def read_config(configpath=None, specpath=None, checks={}):
     :raises: :class:`~alot.settings.errors.ConfigError`
     :rtype: `configobj.ConfigObj`
     """
+    checks = checks or {}
+
     try:
         config = ConfigObj(infile=configpath, configspec=specpath,
                            file_error=True, encoding='UTF8')

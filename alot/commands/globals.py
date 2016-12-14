@@ -647,10 +647,10 @@ class HelpCommand(Command):
 class ComposeCommand(Command):
 
     """compose a new email"""
-    def __init__(self, envelope=None, headers={}, template=None,
-                 sender=u'', subject=u'', to=[], cc=[], bcc=[], attach=None,
-                 omit_signature=False, spawn=None, rest=[],
-                 encrypt=False, **kwargs):
+    def __init__(self, envelope=None, headers=None, template=None, sender=u'',
+                 subject=u'', to=None, cc=None, bcc=None, attach=None,
+                 omit_signature=False, spawn=None, rest=None, encrypt=False,
+                 **kwargs):
         """
         :param envelope: use existing envelope
         :type envelope: :class:`~alot.db.envelope.Envelope`
@@ -688,16 +688,16 @@ class ComposeCommand(Command):
 
         self.envelope = envelope
         self.template = template
-        self.headers = headers
+        self.headers = headers or {}
         self.sender = sender
         self.subject = subject
-        self.to = to
-        self.cc = cc
-        self.bcc = bcc
+        self.to = to or []
+        self.cc = cc or []
+        self.bcc = bcc or []
         self.attach = attach
         self.omit_signature = omit_signature
         self.force_spawn = spawn
-        self.rest = ' '.join(rest)
+        self.rest = ' '.join(rest or [])
         self.encrypt = encrypt
 
     @inlineCallbacks

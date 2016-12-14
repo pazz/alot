@@ -258,8 +258,8 @@ class ArgparseOptionCompleter(Completer):
                 for optionstring in act.option_strings:
                     if optionstring.startswith(pref):
                         # append '=' for options that await a string value
-                        if isinstance(act, argparse._StoreAction) or\
-                                isinstance(act, BooleanAction):
+                        if isinstance(
+                                act, (argparse._StoreAction, BooleanAction)):
                             optionstring += '='
                         res.append(optionstring)
 

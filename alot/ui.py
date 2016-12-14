@@ -241,7 +241,7 @@ class UI(object):
         self._unlock_callback = afterwards
         self._locked = True
 
-    def prompt(self, prefix, text=u'', completer=None, tab=0, history=[]):
+    def prompt(self, prefix, text=u'', completer=None, tab=0, history=None):
         """
         prompt for text input.
         This returns a :class:`~twisted.defer.Deferred` that calls back with
@@ -260,6 +260,8 @@ class UI(object):
         :type history: list of str
         :rtype: :class:`twisted.defer.Deferred`
         """
+        history = history or []
+
         d = defer.Deferred()  # create return deferred
         oldroot = self.mainloop.widget
 
@@ -442,8 +444,8 @@ class UI(object):
             self._notificationbar = None
         self.update()
 
-    def choice(self, message, choices={'y': 'yes', 'n': 'no'},
-               select=None, cancel=None, msg_position='above'):
+    def choice(self, message, choices=None, select=None, cancel=None,
+               msg_position='above'):
         """
         prompt user to make a choice.
 
@@ -462,6 +464,7 @@ class UI(object):
         :type msg_position: str
         :rtype:  :class:`twisted.defer.Deferred`
         """
+        choices = choices or {'y': 'yes', 'n': 'no'}
         assert select in choices.values() + [None]
         assert cancel in choices.values() + [None]
         assert msg_position in ['left', 'above']
