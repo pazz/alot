@@ -324,10 +324,9 @@ class EditCommand(Command):
 
             # get input
             # tempfile will be removed on buffer cleanup
-            f = open(self.envelope.tmpfile.name)
             enc = settings.get('editor_writes_encoding')
-            template = string_decode(f.read(), enc)
-            f.close()
+            with open(self.envelope.tmpfile.name) as f:
+                template = string_decode(f.read(), enc)
 
             # call post-edit translate hook
             translate = settings.get_hook('post_edit_translate')

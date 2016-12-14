@@ -70,9 +70,8 @@ class Message(object):
                   "Message file is no longer accessible:\n%s" % path
         if not self._email:
             try:
-                f_mail = open(path)
-                self._email = message_from_file(f_mail)
-                f_mail.close()
+                with open(path) as f:
+                    self._email = message_from_file(f)
             except IOError:
                 self._email = email.message_from_string(warning)
         return self._email
