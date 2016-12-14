@@ -465,7 +465,8 @@ def libmagic_version_at_least(version):
 
 # TODO: make this work on blobs, not paths
 def mimewrap(path, filename=None, ctype=None):
-    content = open(path, 'rb').read()
+    with open(path, 'rb') as f:
+        content = f.read()
     if not ctype:
         ctype = guess_mimetype(content)
         # libmagic < 5.12 incorrectly detects excel/powerpoint files as
