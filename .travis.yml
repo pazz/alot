@@ -1,27 +1,112 @@
 language: python
 
-python:
-  # We can add more version strings here when we support other python
-  # versions.
-  - "2.7"
+# We want the docs checks to run as fast as possible and with minimal setup,
+# hence they will be run in a container.  For the full build (needed for the
+# test runs) this is not possible as neither Ubuntu 12.4 nor 14.4 offer recent
+# enough versions of some packages.
+matrix:
+  include:
+    # a container for checking the docs
+    - os: linux
+      dist: trusty
+      sudo: false
+      python: "2.7"
+      env: JOB=docs
+    # a full VM to build all deps and run the tests
+    - os: linux
+      dist: trusty
+      sudo: true
+      python: "2.7"
+      env: JOB=tests
+
+addons:
+  apt:
+    packages:
+      # The gpgme build files are needed by the gpgme python module
+      # (a dependency of alot).
+      - libgpgme11-dev
+      # The notmuch libs are needed to actually run alot.  But currently the
+      # available version is not compatible with alot, so we have to build
+      # from source.
+      #- notmuch
+      # Dependencies to build notmuch from source.
+      - libxapian-dev
+      - libtalloc-dev
+      - zlib1g-dev
+
+# Build notmuch and the python notmuch libs manually.  The versions of the
+# notmuch library and the python module which are available in the 12.04 and
+# 14.04 Ubuntu repos do not match and do not fullfill the version requirement
+# for alot.
+before_install: |
+  set -e
+  if [[ $JOB = tests ]]; then
+    sudo apt-get update
+    # Until https://github.com/travis-ci/apt-package-whitelist/issues/3895 is
+    # resolved we have to install gmime with sudo.  Afterwards we can swtich
+    # to the container based infrastructure.
+    # gmime is needed to build notmuch from source.
+    sudo apt-get -yqq install libgmime-2.6-dev
+    # Clone the notmuch repository and move into it.
+    git clone git://notmuchmail.org/git/notmuch
+    cd notmuch
+    # Make and install the library.  We install the library without sudo as we
+    # might want to switch to the travis container later.
+    ./configure --prefix=$HOME/.local
+    make
+    make install
+    # Export the library search path.
+    export LD_LIBRARY_PATH=$HOME/.local/lib
+    # Install the python bindings.
+    cd bindings/python
+    pip install .
+    # Move out of the notmuch dir again.
+    cd ../../..
+  fi
+
+# Prepare a minimal config file for the test.
+before_script: |
+  set -e
+  if [[ $JOB = tests ]]; then
+    touch ~/.notmuch-config
+    echo 'initial_command=call os._exit(0)' > conf
+  fi
 
 # Install or mock dependencies for alot as the package has to be imported
 # during generation of the docs.
 install:
-  - pip install configobj urwid twisted python-magic
-  # urwid has to be installed when installing urwidtrees otherwise the process
-  # fails.
-  - pip install urwidtrees
-  # Mock all "difficult" dependencies of alot in order to be able to import
-  # alot when rebuilding the documentation.  Notmuch would have to be
-  # installed by hand in order to get a recent enough version on travis.
-  - printf '%s = None\n' NotmuchError NullPointerError > notmuch.py
-  - touch gpgme.py
+  # urwid needs to be installed first.  The installation of urwidtrees will
+  # fail otherwise.
+  # TODO This should be fixed upstream.
+  - pip install urwid
+  # Install alot and the dependencies it declares.
+  - |
+    set -e
+    if [[ $JOB = docs ]]; then
+      pip install configobj twisted python-magic urwidtrees
+      # Mock all "difficult" dependencies of alot in order to be able to import
+      # alot when rebuilding the documentation.  Notmuch would have to be
+      # installed by hand in order to get a recent enough version on travis.
+      printf '%s = None\n' NotmuchError NullPointerError > notmuch.py
+      touch gpgme.py
+      # install sphinx for building the html docs
+      pip install sphinx
+    else
+      pip install .
+    fi
 
-script:
-  # First remove the generated docs.
-  - make -C docs cleanall
-  # Regenerate them
-  - make -C docs html SPHINXBUILD=true
-  # Check that the generated docs where already commited.
-  - git diff --exit-code
+script: |
+  set -e
+  if [[ $JOB = docs ]]; then
+    # First remove the auto generated documentation source files.
+    make -C docs cleanall
+    # Regenerate them (run "true" instead of sphinx-build to speed things up).
+    make -C docs html SPHINXBUILD=true
+    # Check that the generated docs where already commited.
+    git diff --exit-code
+    # Generate the html docs and turn all warnings into errors.
+    make -C docs html SPHINXBUILD='sphinx-build -W'
+  else
+    alot --config conf
+    python setup.py test
+  fi
