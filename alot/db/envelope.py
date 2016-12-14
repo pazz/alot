@@ -326,7 +326,8 @@ class Envelope(object):
                 to_attach = []
                 for line in self.get_all('Attach'):
                     gpath = os.path.expanduser(line.strip())
-                    to_attach += filter(os.path.isfile, glob.glob(gpath))
+                    to_attach += [g for g in glob.glob(gpath)
+                                  if os.path.isfile(g)]
                 logging.debug('Attaching: %s', to_attach)
                 for path in to_attach:
                     self.attach(path)

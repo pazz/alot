@@ -48,8 +48,8 @@ class AttachCommand(Command):
         envelope = ui.current_buffer.envelope
 
         if self.path:  # TODO: not possible, otherwise argparse error before
-            files = filter(os.path.isfile,
-                           glob.glob(os.path.expanduser(self.path)))
+            files = [g for g in glob.glob(os.path.expanduser(self.path))
+                     if os.path.isfile(g)]
             if not files:
                 ui.notify('no matches, abort')
                 return

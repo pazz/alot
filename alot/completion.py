@@ -150,7 +150,7 @@ class QueryCompleter(Completer):
                 resultlist.append((newtext, newpos))
             return resultlist
         else:
-            matched = filter(lambda t: t.startswith(myprefix), self.keywords)
+            matched = (t for t in self.keywords if t.startswith(myprefix))
             resultlist = []
             for keyword in matched:
                 newprefix = original[:start] + keyword + ':'
@@ -412,8 +412,7 @@ class CommandCompleter(Completer):
                         def f((completed, pos)):
                             return ('%s %s' % (header, completed),
                                     pos + len(header) + 1)
-                        res = map(f, res)
-                        logging.debug(res)
+                        logging.debug(f(r) for r in res)
 
                 elif self.mode == 'envelope' and cmd == 'unset':
                     plist = params.split(' ', 1)
@@ -532,7 +531,7 @@ class PathCompleter(Completer):
             escaped_path = escape(path)
             return escaped_path, len(escaped_path)
 
-        return map(prep, glob.glob(deescape(prefix) + '*'))
+        return [prep(g) for g in glob.glob(deescape(prefix) + '*')]
 
 
 class CryptoKeyCompleter(StringlistCompleter):

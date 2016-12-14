@@ -318,8 +318,8 @@ class SettingsManager(object):
         globalmaps, modemaps = self.get_keybindings(mode)
         candidates = globalmaps.keys() + modemaps.keys()
         if prefix is not None:
-            prefixs = prefix + ' '
-            cand = filter(lambda x: x.startswith(prefixs), candidates)
+            prefixes = prefix + ' '
+            cand = [c for c in candidates if c.startswith(prefixes)]
             if prefix in candidates:
                 candidates = cand + [prefix]
             else:

@@ -73,7 +73,7 @@ def determine_sender(mail, action='reply'):
         # pick the most important account that has an address in candidates
         # and use that accounts realname and the address found here
         for account in my_accounts:
-            acc_addresses = map(re.escape, account.get_addresses())
+            acc_addresses = [re.escape(a) for a in account.get_addresses()]
             if account.alias_regexp is not None:
                 acc_addresses.append(account.alias_regexp)
             for alias in acc_addresses:
@@ -551,7 +551,7 @@ class ChangeDisplaymodeCommand(Command):
                     msg = msgt.get_message()
                     return msg.matches(self.query)
 
-                messagetrees = filter(matches, messagetrees)
+                messagetrees = [m for m in messagetrees if matches(m)]
 
         for mt in messagetrees:
             # determine new display values for this message
@@ -930,7 +930,7 @@ class OpenAttachmentCommand(Command):
             handler_raw_commandstring = entry['view']
             # read parameter
             part = self.attachment.get_mime_representation()
-            parms = tuple(map('='.join, part.get_params()))
+            parms = tuple('='.join(p) for p in  part.get_params())
 
             # in case the mailcap defined command contains no '%s',
             # we pipe the files content to the handling command via stdin
@@ -1100,7 +1100,7 @@ class TagCommand(Command):
 
             tbuffer.refresh()
 
-        tags = filter(lambda x: x, self.tagsstring.split(','))
+        tags = [t for t in self.tagsstring.split(',') if t]
         try:
             for mt in messagetrees:
                 m = mt.get_message()

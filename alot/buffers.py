@@ -85,7 +85,7 @@ class BufferlistBuffer(Buffer):
             self.isinitialized = True
 
         lines = list()
-        displayedbuffers = filter(self.filtfun, self.ui.buffers)
+        displayedbuffers = [b for b in self.ui.buffers if self.filtfun(b)]
         for (num, b) in enumerate(displayedbuffers):
             line = BufferlineWidget(b)
             if (num % 2) == 0:
@@ -634,7 +634,7 @@ class TagListBuffer(Buffer):
             self.isinitialized = True
 
         lines = list()
-        displayedtags = sorted(filter(self.filtfun, self.tags),
+        displayedtags = sorted((t for t in self.tags if self.filtfun(t)),
                                key=unicode.lower)
         for (num, b) in enumerate(displayedtags):
             if (num % 2) == 0:

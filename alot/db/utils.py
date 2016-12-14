@@ -323,7 +323,7 @@ def extract_body(mail, types=None, field_key='copiousoutput'):
                     stdin = raw_payload
 
                 # read parameter, create handler command
-                parms = tuple(map('='.join, part.get_params()))
+                parms = tuple('='.join(p) for p in part.get_params())
 
                 # create and call external command
                 cmd = mailcap.subst(entry['view'], ctype,
