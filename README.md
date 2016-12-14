@@ -4,7 +4,9 @@ It is written in python using the [urwid][urwid] toolkit.
 Have a look at the [user manual][docs] for installation notes, advanced usage,
 customization and hacking guides.
 
-Do comment on the code or file issues! You can talk to me in `#notmuch@freenode`.
+Do comment on the code or file issues! 
+
+Most of the developers hang out in `#alot@freenode`, feel free to ask questions or make suggestions there.
 
 Current features include:
 -------------------------
