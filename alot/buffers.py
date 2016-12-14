@@ -225,13 +225,13 @@ class SearchBuffer(Buffer):
     def __str__(self):
         formatstring = '[search] for "%s" (%d message%s)'
         return formatstring % (self.querystring, self.result_count,
-                               's' * (not (self.result_count == 1)))
+                               's' if self.result_count > 1 else '')
 
     def get_info(self):
         info = {}
         info['querystring'] = self.querystring
         info['result_count'] = self.result_count
-        info['result_count_positive'] = 's' * (not (self.result_count == 1))
+        info['result_count_positive'] = 's' if self.result_count > 1 else ''
         return info
 
     def cleanup(self):

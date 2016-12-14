@@ -442,7 +442,7 @@ def libmagic_version_at_least(version):
         # if it's not present, we can't guess right, so let's assume False
         return False
 
-    return (magic_wrapper.magic_version >= version)
+    return magic_wrapper.magic_version >= version
 
 
 # TODO: make this work on blobs, not paths
