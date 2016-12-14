@@ -133,7 +133,7 @@ class QueryCompleter(Completer):
     def complete(self, original, pos):
         mypart, start, end, mypos = self.relevant_part(original, pos)
         myprefix = mypart[:mypos]
-        m = re.search('(tag|is|to|from):(\w*)', myprefix)
+        m = re.search(r'(tag|is|to|from):(\w*)', myprefix)
         if m:
             cmd, params = m.groups()
             cmdlen = len(cmd) + 1  # length of the keyword part incld colon
@@ -523,7 +523,7 @@ class PathCompleter(Completer):
         prefix = os.path.expanduser(original[:pos])
 
         def escape(path):
-            return path.replace('\\', '\\\\').replace(' ', '\ ')
+            return path.replace('\\', '\\\\').replace(' ', r'\ ')
 
         def deescape(escaped_path):
             return escaped_path.replace('\\ ', ' ').replace('\\\\', '\\')

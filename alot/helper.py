@@ -625,7 +625,7 @@ def email_as_string(mail):
         # clients can verify the signature when sending an email which contains
         # attachments.
         as_string = re.sub(r'--(\r\n)--' + boundary,
-                           '--\g<1>\g<1>--' + boundary,
+                           r'--\g<1>\g<1>--' + boundary,
                            as_string, flags=re.MULTILINE)
 
     return as_string
