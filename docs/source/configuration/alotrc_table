@@ -289,6 +289,19 @@
     :default: "Fwd: "
 
 
+.. _history-size:
+
+.. describe:: history_size
+
+     The number of command line history entries to save
+
+     .. note:: You can set this to -1 to save *all* entries to disk but the
+               history file might get *very* long.
+
+    :type: integer
+    :default: 50
+
+
 .. _honor-followup-to:
 
 .. describe:: honor_followup_to
