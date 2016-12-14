@@ -49,6 +49,10 @@ thread_authors_replace_me = boolean(default=True)
 # :ref:`thread_authors_replace_me <thread-authors-replace-me>`
 thread_authors_me = string(default='Me')
 
+# When constructing the unique list of thread authors, order by date of
+# author's first or latest message in thread
+thread_authors_order_by = option('first_message', 'latest_message', default='first_message')
+
 # What should be considered to be "the thread subject".
 # Valid values are:
 #
