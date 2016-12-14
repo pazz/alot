@@ -240,6 +240,14 @@ class SettingsManager(object):
         colours = int(self._config.get('colourmode'))
         return self._theme.get_threadline_theming(thread, colours)
 
+    def get_theme_arrow_tip_char(self):
+        """
+        looks up the character to be used for the arrow-tip in a thread. This
+        wraps around :meth:`~alot.settings.theme.Theme.get_arrow_tip_char`.
+
+        """
+        return self._theme.get_arrow_tip_char()
+
     def get_tagstring_representation(self, tag, onebelow_normal=None,
                                      onebelow_focus=None):
         """

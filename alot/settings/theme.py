@@ -131,3 +131,7 @@ class Theme(object):
             res[part]['normal'] = pickcolour(fill('normal'))
             res[part]['focus'] = pickcolour(fill('focus'))
         return res
+
+    def get_arrow_tip_char(self):
+        char = self._config['thread']['arrow_tip_char'] or u'\u25B7'
+        return char
