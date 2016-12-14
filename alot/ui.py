@@ -707,12 +707,12 @@ class UI(object):
         :type size: int
         :returns: a list of history items (the lines of the file)
         :rtype: list(str)
-
         """
         if size == 0:
             return []
         if os.path.exists(path):
-            lines = [line.rstrip('\n') for line in open(path).readlines()]
+            with open(path) as histfile:
+                lines = [line.rstrip('\n') for line in histfile]
             if size > 0:
                 lines = lines[-size:]
             return lines
@@ -732,7 +732,6 @@ class UI(object):
         :type size: int
         :type path: str
         :returns: None
-
         """
         if size == 0:
             return
@@ -741,4 +740,8 @@ class UI(object):
         directory = os.path.dirname(path)
         if not os.path.exists(directory):
             os.makedirs(directory)
-        open(path, 'w').write('\n'.join(history))
+        # Write linewise to avoid building a last string in menory.
+        with open(path, 'w') as histfile:
+            for line in history:
+                histfile.write(line)
+                histfile.write('\n')
