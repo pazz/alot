@@ -6,8 +6,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
-from datetime import timedelta
-from datetime import datetime
+from datetime import datetime, timedelta
 from collections import deque
 from cStringIO import StringIO
 import logging
@@ -16,7 +15,7 @@ import os
 import re
 import shlex
 import subprocess
-import email
+from email.encoders import encode_base64
 from email.generator import Generator
 from email.mime.audio import MIMEAudio
 from email.mime.base import MIMEBase
@@ -24,9 +23,9 @@ from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-import urwid
+from urwid.util import detected_encoding
 import magic
-from twisted.internet import reactor
+from twisted.internet.reactor import spawnProcess
 from twisted.internet.protocol import ProcessProtocol
 from twisted.internet.defer import Deferred
 
@@ -295,8 +294,8 @@ def call_cmd(cmdlist, stdin=None):
         out, err = proc.communicate(stdin)
         ret = proc.returncode
 
-    out = string_decode(out, urwid.util.detected_encoding)
-    err = string_decode(err, urwid.util.detected_encoding)
+    out = string_decode(out, detected_encoding)
+    err = string_decode(err, detected_encoding)
     return out, err, ret
 
 
@@ -321,7 +320,7 @@ def call_cmd_async(cmdlist, stdin=None, env=None):
             self.errReceived = self.errBuf.write
 
         def processEnded(self, status):
-            termenc = urwid.util.detected_encoding
+            termenc = detected_encoding
             out = string_decode(self.outBuf.getvalue(), termenc)
             err = string_decode(self.errBuf.getvalue(), termenc)
             if status.value.exitCode == 0:
@@ -337,7 +336,7 @@ def call_cmd_async(cmdlist, stdin=None, env=None):
         environment.update(env)
     logging.debug('ENV = %s', environment)
     logging.debug('CMD = %s', cmdlist)
-    proc = reactor.spawnProcess(_EverythingGetter(d), executable=cmdlist[0],
+    proc = spawnProcess(_EverythingGetter(d), executable=cmdlist[0],
                                 env=environment,
                                 args=cmdlist)
     if stdin:
@@ -481,7 +480,7 @@ def mimewrap(path, filename=None, ctype=None):
         part = MIMEBase(maintype, subtype)
         part.set_payload(content)
         # Encode the payload using Base64
-        email.encoders.encode_base64(part)
+        encode_base64(part)
     # Set the filename parameter
     if not filename:
         filename = os.path.basename(path)
