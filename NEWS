@@ -1,3 +1,6 @@
+next release:
+* save command prompt, recipient and sender history across program restarts
+
 0.4:
 * signal: refresh current buffer on SIGUSR1
 * signal: exit interface on SIGINT
