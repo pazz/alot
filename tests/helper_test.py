@@ -1,9 +1,29 @@
 # encoding=utf-8
+# Copyright © 2016-2017 Dylan Baker
+# Copyright © 2017 Lucas Hoffman
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """Test suite for alot.helper module."""
+
 from __future__ import absolute_import
 
+import datetime
+import random
 import unittest
+
+import mock
 
 from alot import helper
 
@@ -77,3 +97,209 @@ class TestHumanizeSize(unittest.TestCase):
     def test_numbers_are_not_converted_to_gigabyte(self):
         readable = helper.humanize_size(1234*1024*1024)
         self.assertEqual(readable, "1234.0M")
+
+
+class TestSplitCommandline(unittest.TestCase):
+
+    def _test(self, base, expected):
+        """Shared helper to reduce some boilerplate."""
+        actual = helper.split_commandline(base)
+        self.assertListEqual(actual, expected)
+
+    def test_simple(self):
+        base = 'echo "foo";sleep 1'
+        expected = ['echo "foo"', 'sleep 1']
+        self._test(base, expected)
+
+    def test_single(self):
+        base = 'echo "foo bar"'
+        expected = [base]
+        self._test(base, expected)
+
+    def test_unicode(self):
+        base = u'echo "foo";sleep 1'
+        expected = ['echo "foo"', 'sleep 1']
+        self._test(base, expected)
+
+
+class TestSplitCommandstring(unittest.TestCase):
+
+    def _test(self, base, expected):
+        """Shared helper to reduce some boilerplate."""
+        actual = helper.split_commandstring(base)
+        self.assertListEqual(actual, expected)
+
+    def test_bytes(self):
+        base = b'echo "foo bar"'
+        expected = [b'echo', b'foo bar']
+        self._test(base, expected)
+
+    def test_unicode(self):
+        base = u'echo "foo €"'
+        expected = [b'echo', u'foo €'.encode('utf-8')]
+        self._test(base, expected)
+
+
+class TestStringSanitize(unittest.TestCase):
+
+    def test_tabs(self):
+        base = 'foo\tbar\noink\n'
+        expected = 'foo' + ' ' * 5 + 'bar\noink\n'
+        actual = helper.string_sanitize(base)
+        self.assertEqual(actual, expected)
+
+
+class TestStringDecode(unittest.TestCase):
+
+    def _test(self, base, expected, encoding='ascii'):
+        actual = helper.string_decode(base, encoding)
+        self.assertEqual(actual, expected)
+
+    def test_ascii_bytes(self):
+        base = u'test'.encode('ascii')
+        expected = u'test'
+        self._test(base, expected)
+
+    def test_utf8_bytes(self):
+        base = u'test'.encode('utf-8')
+        expected = u'test'
+        self._test(base, expected, 'utf-8')
+
+    def test_unicode(self):
+        base = u'test'
+        expected = u'test'
+        self._test(base, expected)
+
+
+class TestPrettyDatetime(unittest.TestCase):
+
+    # TODO: Currently these tests use the ampm format based on whether or not
+    # the testing machine's locale sets them. To be really good mock should be
+    # used to change the locale between an am/pm locale and a 24 hour locale
+    # and test both scenarios.
+
+    __patchers = []
+
+    @classmethod
+    def setUpClass(cls):
+        # Create a random number generator, but seed it so that it will produce
+        # deterministic output. This is used to select a subset of possible
+        # values for each of the tests in this class, since otherwise they
+        # would get really expensive (time wise).
+        cls.random = random.Random()
+        cls.random.seed(42)
+
+        # Pick an exact date to ensure that the tests run the same no matter
+        # what time of day they're run.
+        cls.now = datetime.datetime(2000, 1, 5, 12, 0, 0, 0)
+
+        # Mock datetime.now, which ensures that the time is always the same
+        # removing race conditions from the tests.
+        dt = mock.Mock()
+        dt.now = mock.Mock(return_value=cls.now)
+        cls.__patchers.append(mock.patch('alot.helper.datetime', dt))
+
+        for p in cls.__patchers:
+            p.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        for p in cls.__patchers:
+            p.stop()
+
+    def test_just_now(self):
+        for i in (self.random.randint(0, 60) for _ in xrange(5)):
+            test = self.now - datetime.timedelta(seconds=i)
+            actual = helper.pretty_datetime(test)
+            self.assertEquals(actual, u'just now')
+
+    def test_x_minutes_ago(self):
+        for i in (self.random.randint(60, 3600) for _ in xrange(10)):
+            test = self.now - datetime.timedelta(seconds=i)
+            actual = helper.pretty_datetime(test)
+            self.assertEquals(
+                actual, u'{}min ago'.format((self.now - test).seconds // 60))
+
+    def test_x_hours_ago(self):
+        for i in (self.random.randint(3600, 3600 * 6) for _ in xrange(10)):
+            test = self.now - datetime.timedelta(seconds=i)
+            actual = helper.pretty_datetime(test)
+            self.assertEquals(
+                actual, u'{}h ago'.format((self.now - test).seconds // 3600))
+
+    # TODO: yesterday
+    # TODO: yesterday > now > a year
+    # TODO: last year
+    # XXX: when can the last else be hit?
+
+    @staticmethod
+    def _future_expected(test):
+        if test.strftime('%p'):
+            expected = test.strftime('%I:%M%P').lower()
+        else:
+            expected = test.strftime('%H:%M')
+        expected = expected.decode('utf-8')
+        return expected
+
+    def test_future_seconds(self):
+        test = self.now + datetime.timedelta(seconds=30)
+        actual = helper.pretty_datetime(test)
+        expected = self._future_expected(test)
+        self.assertEqual(actual, expected)
+
+    # Returns 'just now', instead of 'from future' or something similar
+    @unittest.expectedFailure
+    def test_future_minutes(self):
+        test = self.now + datetime.timedelta(minutes=5)
+        actual = helper.pretty_datetime(test)
+        expected = test.strftime('%a ') + self._future_expected(test)
+        self.assertEqual(actual, expected)
+
+    # Returns 'just now', instead of 'from future' or something similar
+    @unittest.expectedFailure
+    def test_future_hours(self):
+        test = self.now + datetime.timedelta(hours=1)
+        actual = helper.pretty_datetime(test)
+        expected = test.strftime('%a ') + self._future_expected(test)
+        self.assertEqual(actual, expected)
+
+    # Returns 'just now', instead of 'from future' or something similar
+    @unittest.expectedFailure
+    def test_future_days(self):
+        def make_expected():
+            # Uses the hourfmt instead of the hourminfmt from pretty_datetime
+            if test.strftime('%P'):
+                expected = test.strftime('%I%P')
+            else:
+                expected = test.strftime('%Hh')
+            expected = expected.decode('utf-8')
+            return expected
+
+        test = self.now + datetime.timedelta(days=1)
+        actual = helper.pretty_datetime(test)
+        expected = test.strftime('%a ') + make_expected()
+        self.assertEqual(actual, expected)
+
+    # Returns 'just now', instead of 'from future' or something similar
+    @unittest.expectedFailure
+    def test_future_week(self):
+        test = self.now + datetime.timedelta(days=7)
+        actual = helper.pretty_datetime(test)
+        expected = test.strftime('%b %d')
+        self.assertEqual(actual, expected)
+
+    # Returns 'just now', instead of 'from future' or something similar
+    @unittest.expectedFailure
+    def test_future_month(self):
+        test = self.now + datetime.timedelta(days=31)
+        actual = helper.pretty_datetime(test)
+        expected = test.strftime('%b %d')
+        self.assertEqual(actual, expected)
+
+    # Returns 'just now', instead of 'from future' or something similar
+    @unittest.expectedFailure
+    def test_future_year(self):
+        test = self.now + datetime.timedelta(days=365)
+        actual = helper.pretty_datetime(test)
+        expected = test.strftime('%b %Y')
+        self.assertEqual(actual, expected)
