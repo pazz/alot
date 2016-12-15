@@ -4,7 +4,15 @@ It is written in python using the [urwid][urwid] toolkit.
 Have a look at the [user manual][docs] for installation notes, advanced usage,
 customization and hacking guides.
 
-Do comment on the code or file issues! You can talk to me in `#notmuch@freenode`.
+Do comment on the code or file issues! 
+
+Most of the developers hang out in `#alot@freenode`, feel free to ask questions or make suggestions there.
+
+Badges
+------
+
+[![Build Status](https://travis-ci.org/pazz/alot.svg?branch=master)](https://travis-ci.org/pazz/alot)
+[![Code Issues](https://www.quantifiedcode.com/api/v1/project/c5aaa4739c5b4f6eb75eaaf8c01da679/badge.svg)](https://www.quantifiedcode.com/app/project/c5aaa4739c5b4f6eb75eaaf8c01da679)
 
 Current features include:
 -------------------------
