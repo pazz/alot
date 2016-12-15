@@ -740,7 +740,7 @@ class UI(object):
         directory = os.path.dirname(path)
         if not os.path.exists(directory):
             os.makedirs(directory)
-        # Write linewise to avoid building a last string in menory.
+        # Write linewise to avoid building a large string in menory.
         with open(path, 'w') as histfile:
             for line in history:
                 histfile.write(line)
