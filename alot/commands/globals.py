@@ -733,7 +733,8 @@ class ComposeCommand(Command):
                           priority='error')
                 return
             try:
-                self.envelope.parse_template(open(path).read())
+                with open(path) as f:
+                    self.envelope.parse_template(f.read())
             except Exception as e:
                 ui.notify(str(e), priority='error')
                 return
@@ -792,7 +793,8 @@ class ComposeCommand(Command):
                     self.envelope.attach(sig, filename=name)
                     logging.debug('attached')
                 else:
-                    sigcontent = open(sig).read()
+                    with open(sig) as f:
+                        sigcontent = f.read()
                     enc = helper.guess_encoding(sigcontent)
                     mimetype = helper.guess_mimetype(sigcontent)
                     if mimetype.startswith('text'):
