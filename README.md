@@ -1,18 +1,15 @@
 Alot is an experimental terminal MUA based on [notmuch mail][notmuch].
 It is written in python using the [urwid][urwid] toolkit.
 
+[![Build Status][travis-img]][travis]
+[![Code Issues][quantcode-img]][quantcode]
+
 Have a look at the [user manual][docs] for installation notes, advanced usage,
 customization and hacking guides.
 
 Do comment on the code or file issues!
 
 Most of the developers hang out in `#alot@freenode`, feel free to ask questions or make suggestions there.
-
-Badges
-------
-
-[![Build Status][travis-img]][travis]
-[![Code Issues][quantcode-img]][quantcode]
 
 Current features include:
 -------------------------
