@@ -239,6 +239,12 @@ msg_summary_hides_threadwide_tags = boolean(default=True)
 # first in the account block is used.
 reply_account_header_priority = force_list(default=list(From,To,Cc,Envelope-To,X-Envelope-To,Delivered-To))
 
+# The number of command line history entries to save
+#
+# .. note:: You can set this to -1 to save *all* entries to disk but the
+#           history file might get *very* long.
+history_size = integer(default=50)
+
 # Key bindings
 [bindings]
     __many__ = string(default=None)

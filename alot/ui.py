@@ -2,7 +2,9 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 import logging
+import os
 import signal
+
 from twisted.internet import reactor, defer
 import urwid
 
@@ -46,6 +48,10 @@ class UI(object):
         """interface mode identifier - type of current buffer"""
         self.commandprompthistory = []
         """history of the command line prompt"""
+        self.senderhistory = []
+        """history of the sender prompt"""
+        self.recipienthistory = []
+        """history of the recipients prompt"""
         self.input_queue = []
         """stores partial keyboard input"""
         self.last_commandline = None
@@ -72,6 +78,21 @@ class UI(object):
 
         signal.signal(signal.SIGINT, self.handle_signal)
         signal.signal(signal.SIGUSR1, self.handle_signal)
+
+        # load histories
+        self._cache = os.path.join(
+            os.environ.get('XDG_CACHE_HOME', os.path.expanduser('~/.cache')),
+            'alot', 'history')
+        self._cmd_hist_file = os.path.join(self._cache, 'commands')
+        self._sender_hist_file = os.path.join(self._cache, 'senders')
+        self._recipients_hist_file = os.path.join(self._cache, 'recipients')
+        size = settings.get('history_size')
+        self.commandprompthistory = self._load_history_from_file(
+            self._cmd_hist_file, size=size)
+        self.senderhistory = self._load_history_from_file(
+            self._sender_hist_file, size=size)
+        self.recipienthistory = self._load_history_from_file(
+            self._recipients_hist_file, size=size)
 
         # set up main loop
         self.mainloop = urwid.MainLoop(self.root_widget,
@@ -663,3 +684,63 @@ class UI(object):
             if isinstance(self.current_buffer, SearchBuffer):
                 self.current_buffer.rebuild()
                 self.update()
+
+    def cleanup(self):
+        """Do the final clean up before shutting down."""
+        size = settings.get('history_size')
+        self._save_history_to_file(self.commandprompthistory,
+                                   self._cmd_hist_file, size=size)
+        self._save_history_to_file(self.senderhistory, self._sender_hist_file,
+                                   size=size)
+        self._save_history_to_file(self.recipienthistory,
+                                   self._recipients_hist_file, size=size)
+
+    @staticmethod
+    def _load_history_from_file(path, size=-1):
+        """Load a history list from a file and split it into lines.
+
+        :param path: the path to the file that should be loaded
+        :type path: str
+        :param size: the number of lines to load (0 means no lines, < 0 means
+            all lines)
+        :type size: int
+        :returns: a list of history items (the lines of the file)
+        :rtype: list(str)
+        """
+        if size == 0:
+            return []
+        if os.path.exists(path):
+            with open(path) as histfile:
+                lines = [line.rstrip('\n') for line in histfile]
+            if size > 0:
+                lines = lines[-size:]
+            return lines
+        else:
+            return []
+
+    @staticmethod
+    def _save_history_to_file(history, path, size=-1):
+        """Save a history list to a file for later loading (possibly in another
+        session).
+
+        :param history: the history list to save
+        :type history: list(str)
+        :param path: the path to the file where to save the history
+        :param size: the number of lines to save (0 means no lines, < 0 means
+            all lines)
+        :type size: int
+        :type path: str
+        :returns: None
+        """
+        if size == 0:
+            return
+        if size > 0:
+            history = history[-size:]
+        directory = os.path.dirname(path)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        # Write linewise to avoid building a large string in menory.
+        with open(path, 'w') as histfile:
+            for line in history:
+                histfile.write(line)
+                histfile.write('\n')

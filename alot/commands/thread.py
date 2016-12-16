@@ -436,7 +436,8 @@ class BounceMailCommand(Command):
             completer = ContactsCompleter(abooks)
         else:
             completer = None
-        to = yield ui.prompt('To', completer=completer)
+        to = yield ui.prompt('To', completer=completer,
+                             history=ui.recipienthistory)
         if to is None:
             raise CommandCanceled()
 
