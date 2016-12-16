@@ -51,8 +51,6 @@ if __name__ == "__main__":
             values.append(get_leaf_value(old, [c] + path + ['fg']) or 'default')
             values.append(get_leaf_value(old, [c] + path + ['bg']) or 'default')
         return values
-        values = map(lambda s: '\'' + s + '\'', values)
-        return ','.join(values)
 
     for bmode in ['global', 'help', 'envelope']:
         new[bmode] = {}
