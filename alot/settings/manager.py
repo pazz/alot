@@ -119,7 +119,7 @@ class SettingsManager(object):
         if 'accounts' in config:
             for acc in config['accounts'].sections:
                 accsec = config['accounts'][acc]
-                args = dict(config['accounts'][acc])
+                args = dict(config['accounts'][acc].items())
 
                 # create abook for this account
                 abook = accsec['abook']
