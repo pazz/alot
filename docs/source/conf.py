@@ -21,7 +21,7 @@ class Mock(object):
 
 class MockModule(object):
     @classmethod
-    def __getattr__(self, name):
+    def __getattr__(cls, name):
         return Mock if name not in ('__file__', '__path__') else '/dev/null'
 
 MOCK_MODULES = ['twisted', 'twisted.internet',

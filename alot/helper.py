@@ -133,7 +133,7 @@ def string_decode(string, enc='ascii'):
 
 def shorten(string, maxlen):
     """shortens string if longer than maxlen, appending ellipsis"""
-    if maxlen > 1 and len(string) > maxlen:
+    if 1 < maxlen < len(string):
         string = string[:maxlen - 1] + u'\u2026'
     return string[:maxlen]
 

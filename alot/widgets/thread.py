@@ -360,22 +360,23 @@ class ThreadTree(Tree):
 
     # Tree API
     def __getitem__(self, pos):
-        return self._message.get(pos, None)
+        return self._message.get(pos)
 
     def parent_position(self, pos):
-        return self._parent_of.get(pos, None)
+        return self._parent_of.get(pos)
 
     def first_child_position(self, pos):
-        return self._first_child_of.get(pos, None)
+        return self._first_child_of.get(pos)
 
     def last_child_position(self, pos):
-        return self._last_child_of.get(pos, None)
+        return self._last_child_of.get(pos)
 
     def next_sibling_position(self, pos):
-        return self._next_sibling_of.get(pos, None)
+        return self._next_sibling_of.get(pos)
 
     def prev_sibling_position(self, pos):
-        return self._prev_sibling_of.get(pos, None)
+        return self._prev_sibling_of.get(pos)
 
-    def position_of_messagetree(self, mt):
+    @staticmethod
+    def position_of_messagetree(mt):
         return mt._message.get_message_id()
