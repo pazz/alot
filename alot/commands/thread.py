@@ -944,13 +944,10 @@ class OpenAttachmentCommand(Command):
                     filename = self.attachment.get_filename()
                     prefix, suffix = fn_hook(filename, prefix, suffix)
 
-                tmpfile = tempfile.NamedTemporaryFile(delete=False,
-                                                      prefix=prefix,
-                                                      suffix=suffix)
-
-                tempfile_name = tmpfile.name
-                self.attachment.write(tmpfile)
-                tmpfile.close()
+                with tempfile.NamedTemporaryFile(delete=False, prefix=prefix,
+                                                 suffix=suffix) as tmpfile:
+                    tempfile_name = tmpfile.name
+                    self.attachment.write(tmpfile)
 
                 def afterwards():
                     os.unlink(tempfile_name)

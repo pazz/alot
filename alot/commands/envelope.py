@@ -375,12 +375,11 @@ class EditCommand(Command):
         old_tmpfile = None
         if self.envelope.tmpfile:
             old_tmpfile = self.envelope.tmpfile
-        self.envelope.tmpfile = tempfile.NamedTemporaryFile(delete=False,
-                                                            prefix='alot.',
-                                                            suffix='.eml')
-        self.envelope.tmpfile.write(content.encode('utf-8'))
-        self.envelope.tmpfile.flush()
-        self.envelope.tmpfile.close()
+        with tempfile.NamedTemporaryFile(
+                delete=False, prefix='alot.', suffix='.eml') as tmpfile:
+            tmpfile.write(content.encode('utf-8'))
+            tmpfile.flush()
+            self.envelope.tmpfile = tmpfile
         if old_tmpfile:
             os.unlink(old_tmpfile.name)
         cmd = globals.EditCommand(self.envelope.tmpfile.name,
