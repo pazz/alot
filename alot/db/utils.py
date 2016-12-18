@@ -314,13 +314,11 @@ def extract_body(mail, types=None, field_key='copiousoutput'):
                     # open tempfile, respect mailcaps nametemplate
                     nametemplate = entry.get('nametemplate', '%s')
                     prefix, suffix = parse_mailcap_nametemplate(nametemplate)
-                    tmpfile = tempfile.NamedTemporaryFile(delete=False,
-                                                          prefix=prefix,
-                                                          suffix=suffix)
-                    # write payload to tmpfile
-                    tmpfile.write(raw_payload)
-                    tmpfile.close()
-                    tempfile_name = tmpfile.name
+                    with tempfile.NamedTemporaryFile(
+                            delete=False, prefix=prefix, suffix=suffix) \
+                            as tmpfile:
+                        tmpfile.write(raw_payload)
+                        tempfile_name = tmpfile.name
                 else:
                     stdin = raw_payload
 
