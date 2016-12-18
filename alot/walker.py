@@ -79,6 +79,3 @@ class PipeWalker(urwid.ListWalker):
             next_widget = None
             self.empty = True
         return next_widget
-
-    def get_lines(self):
-        return self.lines
