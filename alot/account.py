@@ -95,7 +95,8 @@ class Account(object):
         their importance"""
         return [self.address] + self.aliases
 
-    def store_mail(self, mbx, mail):
+    @staticmethod
+    def store_mail(mbx, mail):
         """
         stores given mail in mailbox. If mailbox is maildir, set the S-flag and
         return path to newly added mail. Oherwise this will return `None`.

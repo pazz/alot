@@ -107,7 +107,8 @@ class SettingsManager(object):
         self._accounts = self._parse_accounts(self._config)
         self._accountmap = self._account_table(self._accounts)
 
-    def _parse_accounts(self, config):
+    @staticmethod
+    def _parse_accounts(config):
         """
         read accounts information from config
 
@@ -148,7 +149,8 @@ class SettingsManager(object):
                 accounts.append(newacc)
         return accounts
 
-    def _account_table(self, accounts):
+    @staticmethod
+    def _account_table(accounts):
         """
         creates a lookup table (emailaddress -> account) for a given list of
         accounts

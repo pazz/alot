@@ -242,7 +242,8 @@ class UI(object):
         d.addErrback(errorHandler)
         return d
 
-    def _unhandeled_input(self, key):
+    @staticmethod
+    def _unhandeled_input(key):
         """
         Called by :class:`urwid.MainLoop` if a keypress was passed to the root
         widget by `self._input_filter` but is not handled in any widget. We
@@ -329,7 +330,8 @@ class UI(object):
         self._passall = True
         return d  # return deferred
 
-    def exit(self):
+    @staticmethod
+    def exit():
         """
         shuts down user interface without cleaning up.
         Use a :class:`alot.commands.globals.ExitCommand` for a clean shutdown.
