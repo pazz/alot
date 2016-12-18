@@ -676,4 +676,4 @@ class TagListBuffer(Buffer):
         """returns selected tagstring"""
         cols, _ = self.taglist.get_focus()
         tagwidget = cols.original_widget.get_focus()
-        return tagwidget.get_tag()
+        return tagwidget.tag

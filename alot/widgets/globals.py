@@ -307,9 +307,6 @@ class TagWidget(urwid.AttrMap):
     def keypress(self, size, key):
         return key
 
-    def get_tag(self):
-        return self.tag
-
     def set_focussed(self):
         self.set_attr_map(self.attmaps['focus'])
 
