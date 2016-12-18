@@ -47,7 +47,7 @@ FAQ
     Most `text based browsers <http://en.wikipedia.org/wiki/Text-based_web_browser>`_ have
     a dump mode that can be used here.
 
-6. Why are you $THIS not $THAT way?
+6. Why are you doing $THIS not $THAT way?
 
     Lazyness and Ignorance: In most cases I simply did not or still don't know a better solution.
     I try to outsource as much as I can to well established libraries and be it only to avoid
@@ -58,7 +58,7 @@ FAQ
 
     The few exceptions to above stated rule are the following:
 
-    * CLI option parsing is done using twisted.usage.Options, and not (as e.g. in-app command parsing)
+    * CLI option parsing is done using `twisted.usage.Options`, and not (as e.g. in-app command parsing)
       via argparse. The reason is that argparse does not yet offer optional subcommands.
     * The modules cmd and cmd2, that handle all sorts of convenience around command objects
       hate urwid: They are painfully strongly coupled to user in/output via stdin and out.

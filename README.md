@@ -5,7 +5,7 @@ It is written in python using the [urwid][urwid] toolkit.
 [![Code Issues][quantcode-img]][quantcode]
 
 Have a look at the [user manual][docs] for installation notes, advanced usage,
-customization and hacking guides.
+customization, hacking guides and [frequently asked questions][FAQ].
 
 Do comment on the code or file issues!
 
@@ -48,6 +48,7 @@ See the [manual][docs] for more usage info.
 [notmuch]: http://notmuchmail.org/
 [urwid]: http://excess.org/urwid/
 [docs]: http://alot.rtfd.org
+[FAQ]: http://alot.readthedocs.io/en/latest/faq.html
 [features]: https://github.com/pazz/alot/issues?labels=feature
 [travis]: https://travis-ci.org/pazz/alot
 [quantcode]: https://www.quantifiedcode.com/app/project/c5aaa4739c5b4f6eb75eaaf8c01da679
