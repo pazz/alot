@@ -484,7 +484,8 @@ class CommandLineCompleter(Completer):
         """
         self._commandcompleter = CommandCompleter(dbman, mode, currentbuffer)
 
-    def get_context(self, line, pos):
+    @staticmethod
+    def get_context(line, pos):
         """
         computes start and end position of substring of line that is the
         command string under given position
