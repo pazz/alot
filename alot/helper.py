@@ -57,24 +57,6 @@ def split_commandstring(cmdstring):
     return shlex.split(cmdstring)
 
 
-def safely_get(clb, E, on_error=''):
-    """
-    returns result of :func:`clb` and falls back to `on_error`
-    in case exception `E` is raised.
-
-    :param clb: function to evaluate
-    :type clb: callable
-    :param E: exception to catch
-    :type E: Exception
-    :param on_error: default string returned when exception is caught
-    :type on_error: str
-    """
-    try:
-        return clb()
-    except E:
-        return on_error
-
-
 def string_sanitize(string, tab_width=8):
     r"""
     strips, and replaces non-printable characters
