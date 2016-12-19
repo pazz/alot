@@ -25,6 +25,9 @@ class Thread(object):
         self._dbman = dbman
         self._authors = None
         self._id = thread.get_thread_id()
+        self._messages = {}
+        self._tags = set()
+
         self.refresh(thread)
 
     def refresh(self, thread=None):
