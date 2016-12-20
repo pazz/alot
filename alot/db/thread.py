@@ -24,6 +24,7 @@ class Thread(object):
         :type thread: :class:`notmuch.database.Thread`
         """
         self._dbman = dbman
+        self._authors = None
         self._id = thread.get_thread_id()
         self.refresh(thread)
 
