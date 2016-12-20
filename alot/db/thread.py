@@ -1,7 +1,6 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
-import operator
 from datetime import datetime
 
 from .message import Message
@@ -156,19 +155,20 @@ class Thread(object):
             msgs = sorted(self.get_messages().iterkeys(),
                           key=lambda m: m.get_date() or datetime.max)
 
-            seen = {}
             orderby = settings.get('thread_authors_order_by')
+            self._authors = []
             if orderby == 'latest_message':
-                for i, m in enumerate(msgs):
+                for m in msgs:
                     pair = m.get_author()
-                    seen[pair] = i
+                    if pair in self._authors:
+                        self._authors.remove(pair)
+                    self._authors.append(pair)
             else:  # i.e. first_message
-                for i, m in enumerate(msgs):
+                for m in msgs:
                     pair = m.get_author()
-                    if pair not in seen:
-                        seen[pair] = i
-            self._authors = [ name for name, addr in
-                sorted(seen.items(), key=operator.itemgetter(1)) ]
+                    if pair not in self._authors:
+                        self._authors.append(pair)
+
         return self._authors
 
     def get_authors_string(self, own_addrs=None, replace_own=None):
