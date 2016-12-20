@@ -1,6 +1,7 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
+import abc
 import argparse
 import glob
 import logging
@@ -19,6 +20,10 @@ from .errors import CompletionError
 
 class Completer(object):
     """base class for completers"""
+
+    __metaclass__ = abc.ABCMeta
+
+    @abc.abstractmethod
     def complete(self, original, pos):
         """returns a list of completions and cursor positions for the
         string original from position pos on.
@@ -32,7 +37,7 @@ class Completer(object):
         :rtype: list of (str, int)
         :raises: :exc:`CompletionError`
         """
-        return list()
+        pass
 
     def relevant_part(self, original, pos, sep=' '):
         """

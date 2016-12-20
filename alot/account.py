@@ -1,6 +1,7 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
+import abc
 import glob
 import logging
 import mailbox
@@ -28,6 +29,8 @@ class Account(object):
         See :class:`SendmailAccount` for a subclass that uses a sendmail
         command to send out mails.
     """
+
+    __metaclass__ = abc.ABCMeta
 
     address = None
     """this accounts main email address"""
@@ -159,6 +162,7 @@ class Account(object):
         if self.draft_box is not None:
             return self.store_mail(self.draft_box, mail)
 
+    @abc.abstractmethod
     def send_mail(self, mail):
         """
         sends given mail
@@ -168,7 +172,7 @@ class Account(object):
         :returns: a `Deferred` that errs back with a class:`SendingMailFailed`,
                   containing a reason string if an error occured.
         """
-        raise NotImplementedError
+        pass
 
 
 class SendmailAccount(Account):
