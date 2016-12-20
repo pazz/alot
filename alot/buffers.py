@@ -106,7 +106,7 @@ class BufferlistBuffer(Buffer):
 
     def get_selected_buffer(self):
         """returns currently selected :class:`Buffer` element from list"""
-        (linewidget, pos) = self.bufferlist.get_focus()
+        linewidget, _ = self.bufferlist.get_focus()
         bufferlinewidget = linewidget.get_focus().original_widget
         return bufferlinewidget.get_buffer()
 
@@ -279,7 +279,7 @@ class SearchBuffer(Buffer):
         returns curently focussed :class:`alot.widgets.ThreadlineWidget`
         from the result list.
         """
-        (threadlinewidget, size) = self.threadlist.get_focus()
+        threadlinewidget, _ = self.threadlist.get_focus()
         return threadlinewidget
 
     def get_selected_thread(self):
@@ -668,6 +668,6 @@ class TagListBuffer(Buffer):
 
     def get_selected_tag(self):
         """returns selected tagstring"""
-        (cols, pos) = self.taglist.get_focus()
+        cols, _ = self.taglist.get_focus()
         tagwidget = cols.original_widget.get_focus()
         return tagwidget.get_tag()

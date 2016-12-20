@@ -183,7 +183,7 @@ class ReplyCommand(Command):
 
         # set From-header and sending account
         try:
-            from_header, account = determine_sender(mail, 'reply')
+            from_header, _ = determine_sender(mail, 'reply')
         except AssertionError as e:
             ui.notify(e.message, priority='error')
             return
@@ -373,7 +373,7 @@ class ForwardCommand(Command):
 
         # set From-header and sending account
         try:
-            from_header, account = determine_sender(mail, 'reply')
+            from_header, _ = determine_sender(mail, 'reply')
         except AssertionError as e:
             ui.notify(e.message, priority='error')
             return
@@ -471,7 +471,6 @@ class EditNewCommand(Command):
             self.message = ui.current_buffer.get_selected_message()
         mail = self.message.get_email()
         # set body text
-        name, address = self.message.get_author()
         mailcontent = self.message.accumulate_body()
         envelope = Envelope(bodytext=mailcontent)
 

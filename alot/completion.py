@@ -108,7 +108,7 @@ class MultipleSelectionCompleter(Completer):
     def complete(self, original, pos):
         mypart, start, end, mypos = self.relevant_part(original, pos)
         res = []
-        for c, p in self._completer.complete(mypart, mypos):
+        for c, _ in self._completer.complete(mypart, mypos):
             newprefix = original[:start] + c
             if not original[end:].startswith(self._separator):
                 newprefix += self._separator
@@ -135,7 +135,7 @@ class QueryCompleter(Completer):
         myprefix = mypart[:mypos]
         m = re.search(r'(tag|is|to|from):(\w*)', myprefix)
         if m:
-            cmd, params = m.groups()
+            cmd, _ = m.groups()
             cmdlen = len(cmd) + 1  # length of the keyword part incld colon
             if cmd in ['to', 'from']:
                 localres = self._abookscompleter.complete(mypart[cmdlen:],

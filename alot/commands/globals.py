@@ -241,7 +241,7 @@ class ExternalCommand(Command):
 
         logging.info('calling external command: %s', self.cmdlist)
 
-        def thread_code(*args):
+        def thread_code(*_):
             try:
                 if stdin is None:
                     proc = subprocess.Popen(self.cmdlist, shell=self.shell,
@@ -252,7 +252,7 @@ class ExternalCommand(Command):
                     proc = subprocess.Popen(self.cmdlist, shell=self.shell,
                                             stdin=subprocess.PIPE,
                                             stderr=subprocess.PIPE)
-                    out, err = proc.communicate(stdin.read())
+                    _, err = proc.communicate(stdin.read())
                     ret = proc.wait()
                 if ret == 0:
                     return 'success'
@@ -547,7 +547,7 @@ class FlushCommand(Command):
             timeout = settings.get('flush_retry_timeout')
 
             if timeout > 0:
-                def f(*args):
+                def f(*_):
                     self.apply(ui)
                 ui.mainloop.set_alarm_in(timeout, f)
                 if not ui.db_was_locked:

@@ -55,7 +55,7 @@ class Account(object):
                  sent_box=None, sent_tags=None, draft_box=None,
                  draft_tags=None, abook=None, sign_by_default=False,
                  encrypt_by_default=u"none",
-                 **rest):
+                 **_):
         sent_tags = sent_tags or []
         if 'sent' not in sent_tags:
             sent_tags.append('sent')

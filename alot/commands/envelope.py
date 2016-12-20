@@ -115,7 +115,7 @@ class SaveCommand(Command):
         envelope = ui.current_buffer.envelope
 
         # determine account to use
-        sname, saddr = email.Utils.parseaddr(envelope.get('From'))
+        _, saddr = email.Utils.parseaddr(envelope.get('From'))
         account = settings.get_account_by_address(saddr)
         if account is None:
             if not settings.get_accounts():
@@ -215,7 +215,7 @@ class SendCommand(Command):
         msg = self.mail
         if not isinstance(msg, email.message.Message):
             msg = email.message_from_string(self.mail)
-        sname, saddr = email.Utils.parseaddr(msg.get('From', ''))
+        _, saddr = email.Utils.parseaddr(msg.get('From', ''))
         account = settings.get_account_by_address(saddr)
         if account is None:
             if not settings.get_accounts():
@@ -230,7 +230,7 @@ class SendCommand(Command):
             self.mail = str(self.mail)
 
         # define callback
-        def afterwards(returnvalue):
+        def afterwards(_):
             initial_tags = []
             if self.envelope is not None:
                 self.envelope.sending = False

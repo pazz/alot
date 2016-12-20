@@ -457,7 +457,7 @@ def mimewrap(path, filename=None, ctype=None):
         # as distributions still ship libmagic 5.11.
         if (ctype == 'application/msword' and
                 not libmagic_version_at_least(513)):
-            mimetype, encoding = mimetypes.guess_type(path)
+            mimetype, _ = mimetypes.guess_type(path)
             if mimetype:
                 ctype = mimetype
 

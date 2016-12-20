@@ -302,7 +302,7 @@ def extract_body(mail, types=None, field_key='copiousoutput'):
             body_parts.append(string_sanitize(raw_payload))
         else:
             # get mime handler
-            handler, entry = settings.mailcap_find_match(ctype, key=field_key)
+            _, entry = settings.mailcap_find_match(ctype, key=field_key)
             tempfile_name = None
             stdin = None
 
@@ -332,8 +332,7 @@ def extract_body(mail, types=None, field_key='copiousoutput'):
                 logging.debug('parms: %s', str(parms))
                 cmdlist = split_commandstring(cmd)
                 # call handler
-                rendered_payload, errmsg, retval = helper.call_cmd(
-                    cmdlist, stdin=stdin)
+                rendered_payload, _, _ = helper.call_cmd(cmdlist, stdin=stdin)
 
                 # remove tempfile
                 if tempfile_name:

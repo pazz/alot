@@ -138,8 +138,7 @@ class DBManager(object):
                     if cmd == 'add':
                         logging.debug('add')
                         path, tags = current_item[2:]
-                        msg, status = db.add_message(path,
-                                                     sync_maildir_flags=sync)
+                        msg, _ = db.add_message(path, sync_maildir_flags=sync)
                         logging.debug('added msg')
                         msg.freeze()
                         logging.debug('freeze')

@@ -138,12 +138,12 @@ class UI(object):
         # otherwise interpret keybinding
         else:
             # define callback that resets input queue
-            def clear(*args):
+            def clear(*_):
                 if self._alarm is not None:
                     self.mainloop.remove_alarm(self._alarm)
                 self.input_queue = []
 
-            def fire(ignored, cmdline):
+            def fire(_, cmdline):
                 clear()
                 logging.debug("cmdline: '%s'", cmdline)
                 if not self._locked:
@@ -210,7 +210,7 @@ class UI(object):
         # one callback may return a Deferred and thus postpone the application
         # of the next callback (and thus Command-application)
 
-        def apply_this_command(ignored, cmdstring):
+        def apply_this_command(_, cmdstring):
             logging.debug('%s command string: "%s"', self.mode, str(cmdstring))
             # translate cmdstring into :class:`Command`
             cmd = commandfactory(cmdstring, self.mode)
@@ -308,7 +308,7 @@ class UI(object):
                                 edit_text=text, history=history,
                                 on_error=cerror)
 
-        for i in range(tab):  # hit some tabs
+        for _ in range(tab):  # hit some tabs
             editpart.keypress((0,), 'tab')
 
         # build promptwidget
@@ -559,7 +559,7 @@ class UI(object):
             self._notificationbar = urwid.Pile(newpile)
         self.update()
 
-        def clear(*args):
+        def clear(*_):
             self.clear_notify(msgs)
 
         if block:
@@ -649,7 +649,7 @@ class UI(object):
         """
         if cmd:
             # define (callback) function that invokes post-hook
-            def call_posthook(retval_from_apply):
+            def call_posthook(_):
                 if cmd.posthook:
                     logging.info('calling post-hook')
                     return defer.maybeDeferred(cmd.posthook,
@@ -658,7 +658,7 @@ class UI(object):
                                                cmd=cmd)
 
             # call cmd.apply
-            def call_apply(ignored):
+            def call_apply(_):
                 return defer.maybeDeferred(cmd.apply, self)
 
             prehook = cmd.prehook or (lambda **kwargs: None)
