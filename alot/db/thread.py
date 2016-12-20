@@ -163,7 +163,7 @@ class Thread(object):
                 for i, m in enumerate(msgs):
                     pair = m.get_author()
                     seen[pair] = i
-            else: # i.e. first_message
+            else:  # i.e. first_message
                 for i, m in enumerate(msgs):
                     pair = m.get_author()
                     if pair not in seen:
