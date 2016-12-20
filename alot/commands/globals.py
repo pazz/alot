@@ -368,7 +368,7 @@ class CallCommand(Command):
             hooks = settings.hooks
             if hooks:
                 env = {'ui': ui, 'settings': settings}
-                for k, v in env.items():
+                for k, v in env.iteritems():
                     if k not in hooks.__dict__:
                         hooks.__dict__[k] = v
 
@@ -593,7 +593,7 @@ class HelpCommand(Command):
             if modemaps:
                 txt = (section_att, '\n%s-mode specific maps' % ui.mode)
                 linewidgets.append(urwid.Text(txt))
-                for (k, v) in modemaps.items():
+                for (k, v) in modemaps.iteritems():
                     line = urwid.Columns([('fixed', keycolumnwidth,
                                            urwid.Text((text_att, k))),
                                           urwid.Text((text_att, v))])
@@ -601,7 +601,7 @@ class HelpCommand(Command):
 
             # global maps
             linewidgets.append(urwid.Text((section_att, '\nglobal maps')))
-            for (k, v) in globalmaps.items():
+            for (k, v) in globalmaps.iteritems():
                 if k not in modemaps:
                     line = urwid.Columns(
                         [('fixed', keycolumnwidth, urwid.Text((text_att, k))),
@@ -741,7 +741,7 @@ class ComposeCommand(Command):
                 return
 
         # set forced headers
-        for key, value in self.headers.items():
+        for key, value in self.headers.iteritems():
             self.envelope.add(key, value)
 
         # set forced headers for separate parameters

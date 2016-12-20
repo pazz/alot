@@ -568,7 +568,7 @@ class EncryptCommand(Command):
                                   signed_only=self.trusted)
             if self.trusted:
                 logging.debug("filtered encrytion keys: " +
-                              " ".join(x.uids[0].uid for x in keys.values()))
+                              " ".join(x.uids[0].uid for x in keys.itervalues()))
             if keys:
                 envelope.encrypt_keys.update(keys)
             else:

@@ -270,7 +270,7 @@ class Envelope(object):
             headers['User-Agent'] = [uastring]
 
         # copy headers from envelope to mail
-        for k, vlist in headers.items():
+        for k, vlist in headers.iteritems():
             for v in vlist:
                 outer_msg[k] = encode_header(k, v)
 

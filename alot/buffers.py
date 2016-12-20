@@ -144,7 +144,7 @@ class EnvelopeBuffer(Buffer):
         hidden = settings.get('envelope_headers_blacklist')
         # build lines
         lines = []
-        for (k, vlist) in self.envelope.headers.items():
+        for (k, vlist) in self.envelope.headers.iteritems():
             if (k not in hidden) or self.all_headers:
                 for value in vlist:
                     lines.append((k, value))

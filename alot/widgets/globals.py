@@ -51,7 +51,7 @@ class ChoiceWidget(urwid.Text):
         self.separator = separator
 
         items = []
-        for k, v in choices.items():
+        for k, v in choices.iteritems():
             if v == select and select is not None:
                 items += ['[', k, ']:', v]
             else:

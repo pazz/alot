@@ -84,7 +84,7 @@ class Thread(object):
         """
         tags = set(list(self._tags))
         if intersection:
-            for m in self.get_messages().keys():
+            for m in self.get_messages().iterkeys():
                 tags = tags.intersection(set(m.get_tags()))
         return tags
 
@@ -255,7 +255,7 @@ class Thread(object):
         """
         mid = msg.get_message_id()
         msg_hash = self.get_messages()
-        for m in msg_hash.keys():
+        for m in msg_hash.iterkeys():
             if m.get_message_id() == mid:
                 return msg_hash[m]
         return None
