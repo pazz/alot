@@ -381,7 +381,7 @@ class DBManager(object):
         :rtype: (:class:`multiprocessing.Pipe`,
                 :class:`multiprocessing.Process`)
         """
-        assert sort in self._sort_orders.keys()
+        assert sort in self._sort_orders
         q = self.query(querystring)
         q.set_sort(self._sort_orders[sort])
         return self.async(q.search_threads, (lambda a: a.get_thread_id()))

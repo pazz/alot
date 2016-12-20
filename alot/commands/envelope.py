@@ -309,10 +309,10 @@ class EditCommand(Command):
         # determine editable headers
         edit_headers = set(settings.get('edit_headers_whitelist'))
         if '*' in edit_headers:
-            edit_headers = set(self.envelope.headers.keys())
+            edit_headers = set(self.envelope.headers)
         blacklist = set(settings.get('edit_headers_blacklist'))
         if '*' in blacklist:
-            blacklist = set(self.envelope.headers.keys())
+            blacklist = set(self.envelope.headers)
         edit_headers = edit_headers - blacklist
         logging.info('editable headers: %s', edit_headers)
 

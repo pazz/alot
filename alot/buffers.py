@@ -303,8 +303,7 @@ class SearchBuffer(Buffer):
     def focus_last(self):
         if self.reversed:
             self.body.set_focus(0)
-        elif (self.result_count < 200) or \
-                (self.sort_order not in self._REVERSE.keys()):
+        elif self.result_count < 200 or self.sort_order not in self._REVERSE:
             self.consume_pipe()
             num_lines = len(self.threadlist.get_lines())
             self.body.set_focus(num_lines - 1)
