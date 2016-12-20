@@ -487,8 +487,8 @@ class UI(object):
         :rtype:  :class:`twisted.defer.Deferred`
         """
         choices = choices or {'y': 'yes', 'n': 'no'}
-        assert select in choices.values() + [None]
-        assert cancel in choices.values() + [None]
+        assert select is None or select in choices.itervalues()
+        assert cancel is None or cancel in choices.itervalues()
         assert msg_position in ['left', 'above']
 
         d = defer.Deferred()  # create return deferred
