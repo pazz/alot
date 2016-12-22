@@ -110,7 +110,7 @@ def message_from_file(handle):
 
     # handle OpenPGP signed data
     if (m.is_multipart() and
-        m.get_content_subtype() == 'signed' and
+            m.get_content_subtype() == 'signed' and
             p.get('protocol') == app_pgp_sig):
         # RFC 3156 is quite strict:
         # * exactly two messages
