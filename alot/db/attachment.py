@@ -86,8 +86,8 @@ class Attachment(object):
     def get_mime_representation(self):
         """returns mime part that constitutes this attachment"""
         part = deepcopy(self.part)
-        cd = self.part['Content-Disposition']
-        del part['Content-Disposition']
-        part['Content-Disposition'] = Header(cd, maxlinelen=78,
-                                             header_name='Content-Disposition')
+        part['Content-Disposition'] = Header(
+            self.part['Content-Disposition'],
+            maxlinelen=78,
+            header_name='Content-Disposition')
         return part
