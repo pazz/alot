@@ -70,6 +70,8 @@ class Envelope(object):
             logging.debug('PARSED TEMPLATE: %s', template)
             logging.debug('BODY: %s', self.body)
         self.body = bodytext or u''
+        # TODO: if this was as collections.defaultdict a number of methods
+        # could be simplified.
         self.headers = headers or {}
         self.attachments = list(attachments) if attachments is not None else []
         self.sign = sign
