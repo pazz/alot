@@ -1,28 +1,24 @@
 # -*- coding: utf-8 -*-
 # alot documentation build configuration file
 
-import sys, os
+import sys
+import os
 
 ###############################
 # readthedocs.org hack,
 # needed to use autodocs on their build-servers:
 # http://readthedocs.org/docs/read-the-docs/en/latest/faq.html?highlight=autodocs#where-do-i-need-to-put-my-docs-for-rtd-to-find-it
 
-class Mock(object):
-    def __init__(self, *args, **kwargs):
-        pass
+try:
+    from unittest.mock import MagicMock
+except ImportError:
+    from mock import Mock as MagicMock
 
-    def __call__(self, *args, **kwargs):
-        return Mock()
 
+class Mock(MagicMock):
     @classmethod
     def __getattr__(cls, name):
-        return Mock() if name not in ('__file__', '__path__') else '/dev/null'
-
-class MockModule(object):
-    @classmethod
-    def __getattr__(cls, name):
-        return Mock if name not in ('__file__', '__path__') else '/dev/null'
+            return MagicMock()
 
 MOCK_MODULES = ['twisted', 'twisted.internet',
                 'twisted.internet.defer',
@@ -34,12 +30,9 @@ MOCK_MODULES = ['twisted', 'twisted.internet',
                 'gpgme',
                 'configobj',
                 'validate',
-                'argparse']
-MOCK_DIRTY = ['notmuch']
-for mod_name in MOCK_MODULES:
-    sys.modules[mod_name] = MockModule()
-for mod_name in MOCK_DIRTY:
-    sys.modules[mod_name] = Mock()
+                'notmuch',
+                ]
+sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 # end of readthedocs.org hack
 ##############################
