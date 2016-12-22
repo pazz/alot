@@ -308,7 +308,7 @@ class UI(object):
                                 edit_text=text, history=history,
                                 on_error=cerror)
 
-        for _ in range(tab):  # hit some tabs
+        for _ in xrange(tab):  # hit some tabs
             editpart.keypress((0,), 'tab')
 
         # build promptwidget
