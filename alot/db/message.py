@@ -3,6 +3,7 @@
 # For further details see the COPYING file
 import email
 import email.charset as charset
+import functools
 from datetime import datetime
 
 from notmuch import NullPointerError
@@ -16,6 +17,7 @@ from ..settings import settings
 charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 
 
+@functools.total_ordering
 class Message(object):
 
     """
@@ -60,10 +62,20 @@ class Message(object):
         """needed for sets of Messages"""
         return hash(self._id)
 
-    def __cmp__(self, other):
-        """needed for Message comparison"""
-        res = cmp(self.get_message_id(), other.get_message_id())
-        return res
+    def __eq__(self, other):
+        if isinstance(other, type(self)):
+            return self.get_message_id() == other.get_message_id()
+        return NotImplemented
+
+    def __ne__(self, other):
+        if isinstance(other, type(self)):
+            return self.get_message_id() != other.get_message_id()
+        return NotImplemented
+
+    def __lt__(self, other):
+        if isinstance(other, type(self)):
+            return self.get_message_id() < other.get_message_id()
+        return NotImplemented
 
     def get_email(self):
         """returns :class:`email.Message` for this message"""
