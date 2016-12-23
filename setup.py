@@ -34,8 +34,13 @@ setup(name='alot',
         'configobj>=4.7.0',
         'pygpgme>=0.2'],
       tests_require=[
-          'mock',
+        'mock',
       ],
+      extras_require={
+        'docs': [
+            'mock',
+        ],
+      },
       provides=['alot'],
       test_suite="tests",
       )
