@@ -1,6 +1,7 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
+import abc
 import argparse
 import glob
 import logging
@@ -19,6 +20,10 @@ from .errors import CompletionError
 
 class Completer(object):
     """base class for completers"""
+
+    __metaclass__ = abc.ABCMeta
+
+    @abc.abstractmethod
     def complete(self, original, pos):
         """returns a list of completions and cursor positions for the
         string original from position pos on.
@@ -32,7 +37,7 @@ class Completer(object):
         :rtype: list of (str, int)
         :raises: :exc:`CompletionError`
         """
-        return list()
+        pass
 
     def relevant_part(self, original, pos, sep=' '):
         """
@@ -108,7 +113,7 @@ class MultipleSelectionCompleter(Completer):
     def complete(self, original, pos):
         mypart, start, end, mypos = self.relevant_part(original, pos)
         res = []
-        for c, p in self._completer.complete(mypart, mypos):
+        for c, _ in self._completer.complete(mypart, mypos):
             newprefix = original[:start] + c
             if not original[end:].startswith(self._separator):
                 newprefix += self._separator
@@ -133,9 +138,9 @@ class QueryCompleter(Completer):
     def complete(self, original, pos):
         mypart, start, end, mypos = self.relevant_part(original, pos)
         myprefix = mypart[:mypos]
-        m = re.search('(tag|is|to|from):(\w*)', myprefix)
+        m = re.search(r'(tag|is|to|from):(\w*)', myprefix)
         if m:
-            cmd, params = m.groups()
+            cmd, _ = m.groups()
             cmdlen = len(cmd) + 1  # length of the keyword part incld colon
             if cmd in ['to', 'from']:
                 localres = self._abookscompleter.complete(mypart[cmdlen:],
@@ -150,7 +155,7 @@ class QueryCompleter(Completer):
                 resultlist.append((newtext, newpos))
             return resultlist
         else:
-            matched = filter(lambda t: t.startswith(myprefix), self.keywords)
+            matched = (t for t in self.keywords if t.startswith(myprefix))
             resultlist = []
             for keyword in matched:
                 newprefix = original[:start] + keyword + ':'
@@ -412,8 +417,7 @@ class CommandCompleter(Completer):
                         def f((completed, pos)):
                             return ('%s %s' % (header, completed),
                                     pos + len(header) + 1)
-                        res = map(f, res)
-                        logging.debug(res)
+                        logging.debug(f(r) for r in res)
 
                 elif self.mode == 'envelope' and cmd == 'unset':
                     plist = params.split(' ', 1)
@@ -523,7 +527,7 @@ class PathCompleter(Completer):
         prefix = os.path.expanduser(original[:pos])
 
         def escape(path):
-            return path.replace('\\', '\\\\').replace(' ', '\ ')
+            return path.replace('\\', '\\\\').replace(' ', r'\ ')
 
         def deescape(escaped_path):
             return escaped_path.replace('\\ ', ' ').replace('\\\\', '\\')
@@ -532,7 +536,7 @@ class PathCompleter(Completer):
             escaped_path = escape(path)
             return escaped_path, len(escaped_path)
 
-        return map(prep, glob.glob(deescape(prefix) + '*'))
+        return [prep(g) for g in glob.glob(deescape(prefix) + '*')]
 
 
 class CryptoKeyCompleter(StringlistCompleter):

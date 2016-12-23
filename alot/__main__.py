@@ -24,7 +24,7 @@ class SubcommandOptions(usage.Options):
 
     def as_argparse_opts(self):
         optstr = ''
-        for k, v in self.items():
+        for k, v in self.iteritems():
             # flags translate int value 0 or 1..
             if k in [a[0] for a in self.optFlags]:  # if flag
                 optstr += ('--%s ' % k) * v
@@ -60,8 +60,8 @@ class ComposeOptions(SubcommandOptions):
 class SearchOptions(SubcommandOptions):
     accepted = ['oldest_first', 'newest_first', 'message_id', 'unsorted']
 
-    def colourint(val):
-        if val not in accepted:
+    def colourint(self, val):
+        if val not in self.accepted:
             raise ValueError("Unknown sort order")
         return val
     colourint.coerceDoc = "Must be one of " + str(accepted)
@@ -73,14 +73,18 @@ class SearchOptions(SubcommandOptions):
 class Options(usage.Options):
     optFlags = [["read-only", "r", 'open db in read only mode'], ]
 
-    def colourint(val):
+    # Should be static method, except static methods are slotted and cannot
+    # have arbitrary attributes attached
+    def colourint(self, val):
         val = int(val)
         if val not in [1, 16, 256]:
             raise ValueError("Not in range")
         return val
     colourint.coerceDoc = "Must be 1, 16 or 256"
 
-    def debuglogstring(val):
+    # Should be static method, except static methods are slotted and cannot
+    # have arbitrary attributes attached
+    def debuglogstring(self, val):
         if val not in ['error', 'debug', 'info', 'warning']:
             raise ValueError("Not in range")
         return val

@@ -249,7 +249,7 @@ def extract_headers(mail, headers=None):
     """
     headertext = u''
     if headers is None:
-        headers = mail.keys()
+        headers = mail.iterkeys()
     for key in headers:
         value = u''
         if key in mail:
@@ -302,7 +302,7 @@ def extract_body(mail, types=None, field_key='copiousoutput'):
             body_parts.append(string_sanitize(raw_payload))
         else:
             # get mime handler
-            handler, entry = settings.mailcap_find_match(ctype, key=field_key)
+            _, entry = settings.mailcap_find_match(ctype, key=field_key)
             tempfile_name = None
             stdin = None
 
@@ -323,7 +323,7 @@ def extract_body(mail, types=None, field_key='copiousoutput'):
                     stdin = raw_payload
 
                 # read parameter, create handler command
-                parms = tuple(map('='.join, part.get_params()))
+                parms = tuple('='.join(p) for p in part.get_params())
 
                 # create and call external command
                 cmd = mailcap.subst(entry['view'], ctype,
@@ -332,8 +332,7 @@ def extract_body(mail, types=None, field_key='copiousoutput'):
                 logging.debug('parms: %s', str(parms))
                 cmdlist = split_commandstring(cmd)
                 # call handler
-                rendered_payload, errmsg, retval = helper.call_cmd(
-                    cmdlist, stdin=stdin)
+                rendered_payload, _, _ = helper.call_cmd(cmdlist, stdin=stdin)
 
                 # remove tempfile
                 if tempfile_name:
@@ -400,7 +399,7 @@ def encode_header(key, value):
         rawentries = value.split(',')
         encodedentries = []
         for entry in rawentries:
-            m = re.search('\s*(.*)\s+<(.*\@.*\.\w*)>\s*$', entry)
+            m = re.search(r'\s*(.*)\s+<(.*\@.*\.\w*)>\s*$', entry)
             if m:  # If a realname part is contained
                 name, address = m.groups()
                 # try to encode as ascii, if that fails, revert to utf-8

@@ -318,8 +318,8 @@ class SettingsManager(object):
         globalmaps, modemaps = self.get_keybindings(mode)
         candidates = globalmaps.keys() + modemaps.keys()
         if prefix is not None:
-            prefixs = prefix + ' '
-            cand = filter(lambda x: x.startswith(prefixs), candidates)
+            prefixes = prefix + ' '
+            cand = [c for c in candidates if c.startswith(prefixes)]
             if prefix in candidates:
                 candidates = cand + [prefix]
             else:
@@ -354,8 +354,9 @@ class SettingsManager(object):
                 if value and value != '':
                     globalmaps[key] = value
         # get rid of empty commands left in mode bindings
-        for key in [k for k, v in modemaps.items() if not v or v == '']:
-            del modemaps[key]
+        for k, v in modemaps.items():
+            if not v:
+                del modemaps[k]
 
         return globalmaps, modemaps
 

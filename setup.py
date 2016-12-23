@@ -33,5 +33,9 @@ setup(name='alot',
         'python-magic',
         'configobj>=4.7.0',
         'pygpgme>=0.2'],
+      tests_require=[
+          'mock',
+      ],
       provides=['alot'],
+      test_suite="tests",
       )

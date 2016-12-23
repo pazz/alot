@@ -442,7 +442,7 @@ def libmagic_version_at_least(version):
         # if it's not present, we can't guess right, so let's assume False
         return False
 
-    return (magic_wrapper.magic_version >= version)
+    return magic_wrapper.magic_version >= version
 
 
 # TODO: make this work on blobs, not paths
@@ -457,7 +457,7 @@ def mimewrap(path, filename=None, ctype=None):
         # as distributions still ship libmagic 5.11.
         if (ctype == 'application/msword' and
                 not libmagic_version_at_least(513)):
-            mimetype, encoding = mimetypes.guess_type(path)
+            mimetype, _ = mimetypes.guess_type(path)
             if mimetype:
                 ctype = mimetype
 
@@ -625,7 +625,7 @@ def email_as_string(mail):
         # clients can verify the signature when sending an email which contains
         # attachments.
         as_string = re.sub(r'--(\r\n)--' + boundary,
-                           '--\g<1>\g<1>--' + boundary,
+                           r'--\g<1>\g<1>--' + boundary,
                            as_string, flags=re.MULTILINE)
 
     return as_string

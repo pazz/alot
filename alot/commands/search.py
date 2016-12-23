@@ -211,7 +211,7 @@ class TagCommand(Command):
             searchbuffer.result_count += (hitcount_after - hitcount_before)
             ui.update()
 
-        tags = filter(lambda x: x, self.tagsstring.split(','))
+        tags = [x for x in self.tagsstring.split(',') if x]
 
         try:
             if self.action == 'add':

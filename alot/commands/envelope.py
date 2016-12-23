@@ -48,8 +48,8 @@ class AttachCommand(Command):
         envelope = ui.current_buffer.envelope
 
         if self.path:  # TODO: not possible, otherwise argparse error before
-            files = filter(os.path.isfile,
-                           glob.glob(os.path.expanduser(self.path)))
+            files = [g for g in glob.glob(os.path.expanduser(self.path))
+                     if os.path.isfile(g)]
             if not files:
                 ui.notify('no matches, abort')
                 return
@@ -115,7 +115,7 @@ class SaveCommand(Command):
         envelope = ui.current_buffer.envelope
 
         # determine account to use
-        sname, saddr = email.Utils.parseaddr(envelope.get('From'))
+        _, saddr = email.Utils.parseaddr(envelope.get('From'))
         account = settings.get_account_by_address(saddr)
         if account is None:
             if not settings.get_accounts():
@@ -215,7 +215,7 @@ class SendCommand(Command):
         msg = self.mail
         if not isinstance(msg, email.message.Message):
             msg = email.message_from_string(self.mail)
-        sname, saddr = email.Utils.parseaddr(msg.get('From', ''))
+        _, saddr = email.Utils.parseaddr(msg.get('From', ''))
         account = settings.get_account_by_address(saddr)
         if account is None:
             if not settings.get_accounts():
@@ -230,7 +230,7 @@ class SendCommand(Command):
             self.mail = str(self.mail)
 
         # define callback
-        def afterwards(returnvalue):
+        def afterwards(_):
             initial_tags = []
             if self.envelope is not None:
                 self.envelope.sending = False
@@ -309,10 +309,10 @@ class EditCommand(Command):
         # determine editable headers
         edit_headers = set(settings.get('edit_headers_whitelist'))
         if '*' in edit_headers:
-            edit_headers = set(self.envelope.headers.keys())
+            edit_headers = set(self.envelope.headers)
         blacklist = set(settings.get('edit_headers_blacklist'))
         if '*' in blacklist:
-            blacklist = set(self.envelope.headers.keys())
+            blacklist = set(self.envelope.headers)
         edit_headers = edit_headers - blacklist
         logging.info('editable headers: %s', edit_headers)
 
@@ -568,7 +568,7 @@ class EncryptCommand(Command):
                                   signed_only=self.trusted)
             if self.trusted:
                 logging.debug("filtered encrytion keys: " +
-                              " ".join(x.uids[0].uid for x in keys.values()))
+                              " ".join(x.uids[0].uid for x in keys.itervalues()))
             if keys:
                 envelope.encrypt_keys.update(keys)
             else:

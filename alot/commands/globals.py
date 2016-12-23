@@ -241,7 +241,7 @@ class ExternalCommand(Command):
 
         logging.info('calling external command: %s', self.cmdlist)
 
-        def thread_code(*args):
+        def thread_code(*_):
             try:
                 if stdin is None:
                     proc = subprocess.Popen(self.cmdlist, shell=self.shell,
@@ -252,7 +252,7 @@ class ExternalCommand(Command):
                     proc = subprocess.Popen(self.cmdlist, shell=self.shell,
                                             stdin=subprocess.PIPE,
                                             stderr=subprocess.PIPE)
-                    out, err = proc.communicate(stdin.read())
+                    _, err = proc.communicate(stdin.read())
                     ret = proc.wait()
                 if ret == 0:
                     return 'success'
@@ -368,7 +368,7 @@ class CallCommand(Command):
             hooks = settings.hooks
             if hooks:
                 env = {'ui': ui, 'settings': settings}
-                for k, v in env.items():
+                for k, v in env.iteritems():
                     if k not in hooks.__dict__:
                         hooks.__dict__[k] = v
 
@@ -547,7 +547,7 @@ class FlushCommand(Command):
             timeout = settings.get('flush_retry_timeout')
 
             if timeout > 0:
-                def f(*args):
+                def f(*_):
                     self.apply(ui)
                 ui.mainloop.set_alarm_in(timeout, f)
                 if not ui.db_was_locked:
@@ -593,7 +593,7 @@ class HelpCommand(Command):
             if modemaps:
                 txt = (section_att, '\n%s-mode specific maps' % ui.mode)
                 linewidgets.append(urwid.Text(txt))
-                for (k, v) in modemaps.items():
+                for (k, v) in modemaps.iteritems():
                     line = urwid.Columns([('fixed', keycolumnwidth,
                                            urwid.Text((text_att, k))),
                                           urwid.Text((text_att, v))])
@@ -601,7 +601,7 @@ class HelpCommand(Command):
 
             # global maps
             linewidgets.append(urwid.Text((section_att, '\nglobal maps')))
-            for (k, v) in globalmaps.items():
+            for (k, v) in globalmaps.iteritems():
                 if k not in modemaps:
                     line = urwid.Columns(
                         [('fixed', keycolumnwidth, urwid.Text((text_att, k))),
@@ -741,7 +741,7 @@ class ComposeCommand(Command):
                 return
 
         # set forced headers
-        for key, value in self.headers.items():
+        for key, value in self.headers.iteritems():
             self.envelope.add(key, value)
 
         # set forced headers for separate parameters
@@ -843,7 +843,7 @@ class ComposeCommand(Command):
         if settings.get('compose_ask_tags'):
             comp = TagsCompleter(ui.dbman)
             tagsstring = yield ui.prompt('Tags', completer=comp)
-            tags = filter(lambda x: x, tagsstring.split(','))
+            tags = [t for t in tagsstring.splie(',') if t]
             if tags is None:
                 raise CommandCanceled()
 

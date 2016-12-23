@@ -23,7 +23,7 @@ class BufferCloseCommand(Command):
         selected = bufferlist.get_selected_buffer()
         d = ui.apply_command(globals.BufferCloseCommand(buffer=selected))
 
-        def cb(ignoreme):
+        def cb(_):
             if bufferlist is not selected:
                 bufferlist.rebuild()
             ui.update()

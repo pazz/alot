@@ -138,8 +138,7 @@ class DBManager(object):
                     if cmd == 'add':
                         logging.debug('add')
                         path, tags = current_item[2:]
-                        msg, status = db.add_message(path,
-                                                     sync_maildir_flags=sync)
+                        msg, _ = db.add_message(path, sync_maildir_flags=sync)
                         logging.debug('added msg')
                         msg.freeze()
                         logging.debug('freeze')
@@ -381,7 +380,7 @@ class DBManager(object):
         :rtype: (:class:`multiprocessing.Pipe`,
                 :class:`multiprocessing.Process`)
         """
-        assert sort in self._sort_orders.keys()
+        assert sort in self._sort_orders
         q = self.query(querystring)
         q.set_sort(self._sort_orders[sort])
         return self.async(q.search_threads, (lambda a: a.get_thread_id()))

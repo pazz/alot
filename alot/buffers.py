@@ -85,7 +85,7 @@ class BufferlistBuffer(Buffer):
             self.isinitialized = True
 
         lines = list()
-        displayedbuffers = filter(self.filtfun, self.ui.buffers)
+        displayedbuffers = [b for b in self.ui.buffers if self.filtfun(b)]
         for (num, b) in enumerate(displayedbuffers):
             line = BufferlineWidget(b)
             if (num % 2) == 0:
@@ -106,7 +106,7 @@ class BufferlistBuffer(Buffer):
 
     def get_selected_buffer(self):
         """returns currently selected :class:`Buffer` element from list"""
-        (linewidget, pos) = self.bufferlist.get_focus()
+        linewidget, _ = self.bufferlist.get_focus()
         bufferlinewidget = linewidget.get_focus().original_widget
         return bufferlinewidget.get_buffer()
 
@@ -144,7 +144,7 @@ class EnvelopeBuffer(Buffer):
         hidden = settings.get('envelope_headers_blacklist')
         # build lines
         lines = []
-        for (k, vlist) in self.envelope.headers.items():
+        for (k, vlist) in self.envelope.headers.iteritems():
             if (k not in hidden) or self.all_headers:
                 for value in vlist:
                     lines.append((k, value))
@@ -225,13 +225,13 @@ class SearchBuffer(Buffer):
     def __str__(self):
         formatstring = '[search] for "%s" (%d message%s)'
         return formatstring % (self.querystring, self.result_count,
-                               's' * (not (self.result_count == 1)))
+                               's' if self.result_count > 1 else '')
 
     def get_info(self):
         info = {}
         info['querystring'] = self.querystring
         info['result_count'] = self.result_count
-        info['result_count_positive'] = 's' * (not (self.result_count == 1))
+        info['result_count_positive'] = 's' if self.result_count > 1 else ''
         return info
 
     def cleanup(self):
@@ -279,7 +279,7 @@ class SearchBuffer(Buffer):
         returns curently focussed :class:`alot.widgets.ThreadlineWidget`
         from the result list.
         """
-        (threadlinewidget, size) = self.threadlist.get_focus()
+        threadlinewidget, _ = self.threadlist.get_focus()
         return threadlinewidget
 
     def get_selected_thread(self):
@@ -303,8 +303,7 @@ class SearchBuffer(Buffer):
     def focus_last(self):
         if self.reversed:
             self.body.set_focus(0)
-        elif (self.result_count < 200) or \
-                (self.sort_order not in self._REVERSE.keys()):
+        elif self.result_count < 200 or self.sort_order not in self._REVERSE:
             self.consume_pipe()
             num_lines = len(self.threadlist.get_lines())
             self.body.set_focus(num_lines - 1)
@@ -634,7 +633,7 @@ class TagListBuffer(Buffer):
             self.isinitialized = True
 
         lines = list()
-        displayedtags = sorted(filter(self.filtfun, self.tags),
+        displayedtags = sorted((t for t in self.tags if self.filtfun(t)),
                                key=unicode.lower)
         for (num, b) in enumerate(displayedtags):
             if (num % 2) == 0:
@@ -669,6 +668,6 @@ class TagListBuffer(Buffer):
 
     def get_selected_tag(self):
         """returns selected tagstring"""
-        (cols, pos) = self.taglist.get_focus()
+        cols, _ = self.taglist.get_focus()
         tagwidget = cols.original_widget.get_focus()
         return tagwidget.get_tag()

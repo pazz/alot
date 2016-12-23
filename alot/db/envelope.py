@@ -270,7 +270,7 @@ class Envelope(object):
             headers['User-Agent'] = [uastring]
 
         # copy headers from envelope to mail
-        for k, vlist in headers.items():
+        for k, vlist in headers.iteritems():
             for v in vlist:
                 outer_msg[k] = encode_header(k, v)
 
@@ -292,7 +292,7 @@ class Envelope(object):
         if only_body:
             self.body = tmp
         else:
-            m = re.match('(?P<h>([a-zA-Z0-9_-]+:.+\n)*)\n?(?P<b>(\s*.*)*)',
+            m = re.match(r'(?P<h>([a-zA-Z0-9_-]+:.+\n)*)\n?(?P<b>(\s*.*)*)',
                          tmp)
             assert m
 
@@ -326,7 +326,8 @@ class Envelope(object):
                 to_attach = []
                 for line in self.get_all('Attach'):
                     gpath = os.path.expanduser(line.strip())
-                    to_attach += filter(os.path.isfile, glob.glob(gpath))
+                    to_attach += [g for g in glob.glob(gpath)
+                                  if os.path.isfile(g)]
                 logging.debug('Attaching: %s', to_attach)
                 for path in to_attach:
                     self.attach(path)

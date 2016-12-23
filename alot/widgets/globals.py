@@ -51,7 +51,7 @@ class ChoiceWidget(urwid.Text):
         self.separator = separator
 
         items = []
-        for k, v in choices.items():
+        for k, v in choices.iteritems():
             if v == select and select is not None:
                 items += ['[', k, ']:', v]
             else:
@@ -123,6 +123,7 @@ class CompleteEdit(urwid.Edit):
         self.on_error = on_error
         self.history = list(history)  # we temporarily add stuff here
         self.historypos = None
+        self.focus_in_clist = 0
 
         if not isinstance(edit_text, unicode):
             edit_text = string_decode(edit_text)

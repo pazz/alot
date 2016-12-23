@@ -1,6 +1,7 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
+import abc
 import glob
 import logging
 import mailbox
@@ -29,6 +30,8 @@ class Account(object):
         command to send out mails.
     """
 
+    __metaclass__ = abc.ABCMeta
+
     address = None
     """this accounts main email address"""
     aliases = []
@@ -55,7 +58,7 @@ class Account(object):
                  sent_box=None, sent_tags=None, draft_box=None,
                  draft_tags=None, abook=None, sign_by_default=False,
                  encrypt_by_default=u"none",
-                 **rest):
+                 **_):
         sent_tags = sent_tags or []
         if 'sent' not in sent_tags:
             sent_tags.append('sent')
@@ -159,6 +162,7 @@ class Account(object):
         if self.draft_box is not None:
             return self.store_mail(self.draft_box, mail)
 
+    @abc.abstractmethod
     def send_mail(self, mail):
         """
         sends given mail
@@ -168,7 +172,7 @@ class Account(object):
         :returns: a `Deferred` that errs back with a class:`SendingMailFailed`,
                   containing a reason string if an error occured.
         """
-        raise NotImplementedError
+        pass
 
 
 class SendmailAccount(Account):

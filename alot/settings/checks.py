@@ -110,7 +110,7 @@ def mail_container(value):
 
 
 def force_list(value, min=None, max=None):
-    """
+    r"""
     Check that a value is a list, coercing strings into
     a list with one member.
 

@@ -83,7 +83,7 @@ install:
       # install sphinx for building the html docs
       pip install sphinx
     else
-      pip install .
+      pip install .[test]
     fi
 
 script: |
