@@ -33,8 +33,7 @@ class DialogBox(urwid.WidgetWrap):
                             align='center',
                             valign='top',
                             width=len(title),
-                            height=None,
-                            )
+                            height=None)
         urwid.WidgetWrap.__init__(self, box)
 
     def selectable(self):

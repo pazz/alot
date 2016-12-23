@@ -491,11 +491,12 @@ class EditNewCommand(Command):
                                         omit_signature=True))
 
 
-@registerCommand(MODE, 'fold', forced={'visible': False}, arguments=[
-    (
-        ['query'], {'help': 'query used to filter messages to affect',
-                    'nargs': '*'}),
-],
+@registerCommand(
+    MODE, 'fold', forced={'visible': False},
+    arguments=[
+        (['query'], {'help': 'query used to filter messages to affect',
+                     'nargs': '*'})
+    ],
     help='fold message(s)')
 @registerCommand(MODE, 'unfold', forced={'visible': True}, arguments=[
     (['query'], {'help': 'query used to filter messages to affect',
@@ -599,8 +600,7 @@ class ChangeDisplaymodeCommand(Command):
                            'help': 'display cmd\'s stdout as notification'}),
     (['--field_key'], {'help': 'mailcap field key for decoding',
                        'default': 'copiousoutput'}),
-],
-)
+])
 class PipeCommand(Command):
 
     """pipe message(s) to stdin of a shellcommand"""
@@ -798,8 +798,7 @@ class RemoveCommand(Command):
                         'help': 'call print command once for each message'}),
     (['--add_tags'], {'action': 'store_true',
                       'help': 'add \'Tags\' header to the message'}),
-],
-)
+])
 class PrintCommand(PipeCommand):
 
     """print message(s)"""
@@ -929,7 +928,7 @@ class OpenAttachmentCommand(Command):
             handler_raw_commandstring = entry['view']
             # read parameter
             part = self.attachment.get_mime_representation()
-            parms = tuple('='.join(p) for p in  part.get_params())
+            parms = tuple('='.join(p) for p in part.get_params())
 
             # in case the mailcap defined command contains no '%s',
             # we pipe the files content to the handling command via stdin
@@ -972,11 +971,12 @@ class OpenAttachmentCommand(Command):
             ui.notify('unknown mime type')
 
 
-@registerCommand(MODE, 'move', help='move focus in current buffer',
-                 arguments=[(['movement'], {
-                             'nargs': argparse.REMAINDER,
-                             'help': 'up, down, page up, '
-                                     'page down, first, last'})])
+@registerCommand(
+    MODE, 'move', help='move focus in current buffer',
+    arguments=[
+        (['movement'],
+         {'nargs': argparse.REMAINDER,
+          'help': 'up, down, page up, page down, first, last'})])
 class MoveFocusCommand(MoveCommand):
 
     def apply(self, ui):
@@ -1022,36 +1022,44 @@ class ThreadSelectCommand(Command):
             ui.apply_command(ChangeDisplaymodeCommand(visible='toggle'))
 
 
-@registerCommand(MODE, 'tag', forced={'action': 'add'}, arguments=[
-    (['--all'], {'action': 'store_true',
-     'help': 'tag all messages in thread'}),
-    (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
-                      'help': 'postpone a writeout to the index'}),
-    (['tags'], {'help': 'comma separated list of tags'})],
+@registerCommand(
+    MODE, 'tag', forced={'action': 'add'},
+    arguments=[
+        (['--all'], {'action': 'store_true',
+                     'help': 'tag all messages in thread'}),
+        (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
+                          'help': 'postpone a writeout to the index'}),
+        (['tags'], {'help': 'comma separated list of tags'})],
     help='add tags to message(s)',
 )
-@registerCommand(MODE, 'retag', forced={'action': 'set'}, arguments=[
-    (['--all'], {'action': 'store_true',
-     'help': 'tag all messages in thread'}),
-    (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
-                      'help': 'postpone a writeout to the index'}),
-    (['tags'], {'help': 'comma separated list of tags'})],
+@registerCommand(
+    MODE, 'retag', forced={'action': 'set'},
+    arguments=[
+        (['--all'], {'action': 'store_true',
+                     'help': 'tag all messages in thread'}),
+        (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
+                          'help': 'postpone a writeout to the index'}),
+        (['tags'], {'help': 'comma separated list of tags'})],
     help='set message(s) tags.',
 )
-@registerCommand(MODE, 'untag', forced={'action': 'remove'}, arguments=[
-    (['--all'], {'action': 'store_true',
-     'help': 'tag all messages in thread'}),
-    (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
-                      'help': 'postpone a writeout to the index'}),
-    (['tags'], {'help': 'comma separated list of tags'})],
+@registerCommand(
+    MODE, 'untag', forced={'action': 'remove'},
+    arguments=[
+        (['--all'], {'action': 'store_true',
+                     'help': 'tag all messages in thread'}),
+        (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
+                          'help': 'postpone a writeout to the index'}),
+        (['tags'], {'help': 'comma separated list of tags'})],
     help='remove tags from message(s)',
 )
-@registerCommand(MODE, 'toggletags', forced={'action': 'toggle'}, arguments=[
-    (['--all'], {'action': 'store_true',
-     'help': 'tag all messages in thread'}),
-    (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
-                      'help': 'postpone a writeout to the index'}),
-    (['tags'], {'help': 'comma separated list of tags'})],
+@registerCommand(
+    MODE, 'toggletags', forced={'action': 'toggle'},
+    arguments=[
+        (['--all'], {'action': 'store_true',
+                     'help': 'tag all messages in thread'}),
+        (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
+                          'help': 'postpone a writeout to the index'}),
+        (['tags'], {'help': 'comma separated list of tags'})],
     help='flip presence of tags on message(s)',
 )
 class TagCommand(Command):
