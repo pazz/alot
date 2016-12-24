@@ -101,3 +101,6 @@ script: |
     alot --config conf
     python setup.py test
   fi
+
+notifications:
+    irc: "chat.freenode.net#alot"
