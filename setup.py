@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 from setuptools import setup, find_packages
+import os
+
 import alot
 
 
@@ -32,7 +34,7 @@ setup(name='alot',
         'twisted>=10.2.0',
         'python-magic',
         'configobj>=4.7.0',
-        'pygpgme>=0.2'],
+        'pygpgme>=0.2'] if not os.environ.get('READTHEDOCS') == 'True' else [],
       tests_require=[
         'mock',
       ],
