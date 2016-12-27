@@ -1,5 +1,8 @@
 language: python
 
+# Cache pip objects to speed up next build
+cache: pip
+
 # We need a newer version of zlib to build notmuch from source as is available
 # in precise.
 dist: trusty
