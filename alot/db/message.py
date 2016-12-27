@@ -246,10 +246,11 @@ class Message(object):
 
                 if cd.lower().startswith('attachment'):
                     if ct.lower() not in ['application/pgp-encrypted',
-                                  'application/pgp-signature']:
+                                          'application/pgp-signature']:
                         self._attachments.append(Attachment(part))
                 elif cd.lower().startswith('inline'):
-                    if filename is not None and ct.lower() != 'application/pgp':
+                    if (filename is not None and
+                            ct.lower() != 'application/pgp'):
                         self._attachments.append(Attachment(part))
         return self._attachments
 
