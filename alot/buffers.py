@@ -362,12 +362,15 @@ class ThreadBuffer(Buffer):
 
         bars_att = settings.get_theming_attribute('thread', 'arrow_bars')
         heads_att = settings.get_theming_attribute('thread', 'arrow_heads')
-        A = ArrowTree(self._tree,
-                      indent=2,
-                      childbar_offset=0,
-                      arrow_tip_att=heads_att,
-                      arrow_att=bars_att,
-                      )
+        if settings.get('indent_threads'):
+            A = ArrowTree(self._tree,
+                          indent=2,
+                          childbar_offset=0,
+                          arrow_tip_att=heads_att,
+                          arrow_att=bars_att,
+                          )
+        else:
+            A = self._tree
         self._nested_tree = NestedTree(A, interpret_covered=True)
         self.body = TreeBox(self._nested_tree)
         self.message_count = self.thread.get_total_messages()

@@ -1,3 +1,5 @@
+# indent threads in thread mode
+indent_threads = boolean(default=True)
 
 ask_subject = boolean(default=True) # ask for subject when compose
 
