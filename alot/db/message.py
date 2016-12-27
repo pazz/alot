@@ -286,5 +286,8 @@ class Message:
 
     @staticmethod
     def _get_mime_part_info(mime_part):
-        return '{}: {}'.format(mime_part.get_content_type(), 
-                               mime_part.get_filename() or '(no filename)')
+        contenttype = mime_part.get_content_type()
+        filename = mime_part.get_filename() or '(no filename)'
+        charset = mime_part.get_content_charset() or ''
+        size = helper.humanize_size(len(mime_part.as_string()))
+        return ' '.join((contenttype, filename, charset, size))
