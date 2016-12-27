@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 import logging
 import urwid
-from urwidtrees import Tree, SimpleTree, CollapsibleTree
+from urwidtrees import Tree, SimpleTree, CollapsibleTree, ArrowTree
 
 from .globals import TagWidget
 from .globals import AttachmentWidget
@@ -319,9 +319,10 @@ class MessageTree(CollapsibleTree):
 
     def _get_mimetree(self):
         if self._mimetree is None:
-            mime_tree_txt = self._message.get_mime_tree()
-            mime_tree_widgets = self._text_tree_to_widget_tree(mime_tree_txt)
-            self._mimetree = SimpleTree([mime_tree_widgets])
+            tree = self._message.get_mime_tree()
+            tree = self._text_tree_to_widget_tree(tree)
+            tree = SimpleTree([tree])
+            self._mimetree = ArrowTree(tree)
         return self._mimetree
 
     def _text_tree_to_widget_tree(self, tree):
