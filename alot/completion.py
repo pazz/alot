@@ -458,7 +458,8 @@ class CommandCompleter(Completer):
                         directions += ['first', 'last', 'next', 'previous',
                                        'last reply', 'first reply', 'parent',
                                        'next unfolded', 'previous unfolded',
-                                       'next sibling', 'previous sibling']
+                                       'next sibling', 'previous sibling',
+                                       'next matching', 'previous matching']
                     localcompleter = StringlistCompleter(directions)
                     res = localcompleter.complete(params, localpos)
 

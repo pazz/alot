@@ -976,7 +976,9 @@ class OpenAttachmentCommand(Command):
                  arguments=[(['movement'], {
                              'nargs': argparse.REMAINDER,
                              'help': 'up, down, page up, '
-                                     'page down, first, last'})])
+                                     'page down, first, last, '
+                                     'next unfolded, previous unfolded, '
+                                     'next matching, previous matching'})])
 class MoveFocusCommand(MoveCommand):
 
     def apply(self, ui):
@@ -1000,9 +1002,14 @@ class MoveFocusCommand(MoveCommand):
             tbuffer.focus_next_unfolded()
         elif self.movement == 'previous unfolded':
             tbuffer.focus_prev_unfolded()
+        elif self.movement[:14] == 'next matching ':
+            querystring = self.movement[14:]
+            tbuffer.focus_next_matching(querystring)
+        elif self.movement[:18] == 'previous matching ':
+            querystring = self.movement[18:]
+            tbuffer.focus_prev_matching(querystring)
         else:
             MoveCommand.apply(self, ui)
-        # TODO add 'next matching' if threadbuffer stores the original query
         # TODO: add next by date..
         tbuffer.body.refresh()
 
@@ -1128,3 +1135,31 @@ class TagCommand(Command):
         # flush index
         if self.flush:
             ui.apply_command(FlushCommand())
+
+
+@registerCommand(MODE, 'jump', help='jump to next/previous message '
+                                    'matching a query',
+                 arguments=[(['query'], {'nargs': '?',
+                                         'help': 'search string'}),
+                            (['--backwards'], {'action': 'store_true',
+                                               'help': 'jump backwards'})
+                           ])
+class JumpCommand(Command):
+
+    def __init__(self, query=None, backwards=False, **kwargs):
+        self.query = query
+        self.backwards = backwards
+
+    def apply(self, ui):
+        tbuffer = ui.current_buffer
+        if self.query:
+            logging.debug('setting subquery to ' + self.query)
+            tbuffer.current_subquery = self.query
+        elif hasattr(tbuffer, 'current_subquery'):
+            self.query = tbuffer.current_subquery
+        else:
+            return
+
+        direction = 'previous' if self.backwards else 'next'
+        movement = [direction, 'matching', self.query]
+        ui.apply_command(MoveFocusCommand(movement=movement))
