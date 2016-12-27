@@ -324,9 +324,20 @@ class MessageTree(CollapsibleTree):
 
     def _get_mimetree(self):
         if self._mimetree is None:
-            mime_tree = self._message.get_mime_tree()
-            self._mimetree = SimpleTree([mime_tree])
+            mime_tree_txt = self._message.get_mime_tree()
+            mime_tree_widgets = self._text_tree_to_widget_tree(mime_tree_txt)
+            self._mimetree = SimpleTree([mime_tree_widgets])
         return self._mimetree
+
+    def _text_tree_to_widget_tree(self, tree):
+        att = settings.get_theming_attribute('thread', 'body')
+        att_focus = settings.get_theming_attribute('thread', 'body_focus')
+        label, subtrees = tree
+        label = FocusableText(label, att, att_focus)
+        if subtrees is None:
+            return label, None
+        else:
+            return label, [self._text_tree_to_widget_tree(s) for s in subtrees]
 
 
 class ThreadTree(Tree):

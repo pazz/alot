@@ -46,6 +46,7 @@ class Message:
         self._filename = msg.get_filename()
         self._email = None  # will be read upon first use
         self._attachments = None  # will be read upon first use
+        self._mime_tree = None  # will be read upon first use
         self._tags = set(msg.get_tags())
 
         self._session_keys = []
@@ -269,3 +270,21 @@ class Message:
         """tests if this messages is in the resultset for `querystring`"""
         searchfor = '( {} ) AND id:{}'.format(querystring, self._id)
         return self._dbman.count_messages(searchfor) > 0
+
+    def get_mime_tree(self):
+        if not self._mime_tree:
+            self._mime_tree = self._get_mimetree(self.get_email())
+        return self._mime_tree
+
+    @classmethod
+    def _get_mimetree(cls, message):
+        label = cls._get_mime_part_info(message)
+        if message.is_multipart():
+            return label, [cls._get_mimetree(m) for m in message.get_payload()]
+        else:
+            return label, None
+
+    @staticmethod
+    def _get_mime_part_info(mime_part):
+        return '{}: {}'.format(mime_part.get_content_type(), 
+                               mime_part.get_filename() or '(no filename)')
