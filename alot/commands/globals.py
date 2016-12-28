@@ -64,7 +64,7 @@ class ExitCommand(Command):
 
 @registerCommand(MODE, 'search', usage='search query', arguments=[
     (['--sort'], {'help': 'sort order', 'choices': [
-                  'oldest_first', 'newest_first', 'message_id', 'unsorted']}),
+        'oldest_first', 'newest_first', 'message_id', 'unsorted']}),
     (['query'], {'nargs': argparse.REMAINDER, 'help': 'search string'})])
 class SearchCommand(Command):
 
@@ -123,11 +123,11 @@ class PromptCommand(Command):
         logging.info('open command shell')
         mode = ui.mode or 'global'
         cmpl = CommandLineCompleter(ui.dbman, mode, ui.current_buffer)
-        cmdline = yield ui.prompt('',
-                                  text=self.startwith,
-                                  completer=cmpl,
-                                  history=ui.commandprompthistory,
-                                  )
+        cmdline = yield ui.prompt(
+            '',
+            text=self.startwith,
+            completer=cmpl,
+            history=ui.commandprompthistory)
         logging.debug('CMDLINE: %s', cmdline)
 
         # interpret and apply commandline
@@ -150,14 +150,16 @@ class RefreshCommand(Command):
         ui.update()
 
 
-@registerCommand(MODE, 'shellescape', arguments=[
-    (['--spawn'], {'action': BooleanAction, 'default': None,
-                   'help': 'run in terminal window'}),
-    (['--thread'], {'action': BooleanAction, 'default': None,
-                    'help': 'run in separate thread'}),
-    (['--refocus'], {'action': BooleanAction, 'help': 'refocus current buffer \
-                     after command has finished'}),
-    (['cmd'], {'help': 'command line to execute'})],
+@registerCommand(
+    MODE, 'shellescape', arguments=[
+        (['--spawn'], {'action': BooleanAction, 'default': None,
+                       'help': 'run in terminal window'}),
+        (['--thread'], {'action': BooleanAction, 'default': None,
+                        'help': 'run in separate thread'}),
+        (['--refocus'], {'action': BooleanAction,
+                         'help': 'refocus current buffer after command '
+                                 'has finished'}),
+        (['cmd'], {'help': 'command line to execute'})],
     forced={'shell': True},
 )
 class ExternalCommand(Command):
@@ -380,10 +382,11 @@ class CallCommand(Command):
 
 
 @registerCommand(MODE, 'bclose', arguments=[
-    (['--redraw'], {'action': BooleanAction, 'help': 'redraw current buffer \
-                     after command has finished'}),
-    (['--force'], {'action': 'store_true',
-                   'help': 'never ask for confirmation'})])
+    (['--redraw'],
+     {'action': BooleanAction,
+      'help': 'redraw current buffer after command has finished'}),
+    (['--force'],
+     {'action': 'store_true', 'help': 'never ask for confirmation'})])
 class BufferCloseCommand(Command):
 
     """close a buffer"""
@@ -429,8 +432,9 @@ class BufferCloseCommand(Command):
                  help='focus previous buffer')
 @registerCommand(MODE, 'bnext', forced={'offset': +1},
                  help='focus next buffer')
-@registerCommand(MODE, 'buffer', arguments=[
-    (['index'], {'type': int, 'help': 'buffer index to focus'}), ],
+@registerCommand(
+    MODE, 'buffer',
+    arguments=[(['index'], {'type': int, 'help': 'buffer index to focus'})],
     help='focus buffer with given index')
 class BufferFocusCommand(Command):
 
@@ -908,11 +912,12 @@ class ComposeCommand(Command):
             envelope.encrypt = False
 
 
-@registerCommand(MODE, 'move', help='move focus in current buffer',
-                 arguments=[(['movement'], {
-                             'nargs': argparse.REMAINDER,
-                             'help': 'up, down, [half]page up, '
-                                     '[half]page down, first'})])
+@registerCommand(
+    MODE, 'move', help='move focus in current buffer',
+    arguments=[
+        (['movement'],
+         {'nargs': argparse.REMAINDER,
+          'help': 'up, down, [half]page up, [half]page down, first'})])
 class MoveCommand(Command):
 
     """move in widget"""

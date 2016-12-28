@@ -106,11 +106,11 @@ class Theme(object):
         candidates = self._config['search'].sections
         for candidatename in candidates:
             candidate = self._config['search'][candidatename]
-            if candidatename.startswith('threadline') and\
-               (not candidatename == 'threadline') and\
-               matches(candidate, thread):
-                    match = candidate
-                    break
+            if (candidatename.startswith('threadline') and
+                    (not candidatename == 'threadline') and
+                    matches(candidate, thread)):
+                match = candidate
+                break
 
         # fill in values
         res = {}

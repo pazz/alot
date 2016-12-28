@@ -70,6 +70,8 @@ class Envelope(object):
             logging.debug('PARSED TEMPLATE: %s', template)
             logging.debug('BODY: %s', self.body)
         self.body = bodytext or u''
+        # TODO: if this was as collections.defaultdict a number of methods
+        # could be simplified.
         self.headers = headers or {}
         self.attachments = list(attachments) if attachments is not None else []
         self.sign = sign
@@ -109,7 +111,7 @@ class Envelope(object):
             self.modified_since_sent = True
 
     def __contains__(self, name):
-        return self.headers.__contains__(name)
+        return name in self.headers
 
     def get(self, key, fallback=None):
         """secure getter for header values that allows specifying a `fallback`

@@ -30,8 +30,9 @@ from ..utils.booleanaction import BooleanAction
 MODE = 'envelope'
 
 
-@registerCommand(MODE, 'attach', arguments=[
-    (['path'], {'help': 'file(s) to attach (accepts wildcads)'})])
+@registerCommand(
+    MODE, 'attach',
+    arguments=[(['path'], {'help': 'file(s) to attach (accepts wildcads)'})])
 class AttachCommand(Command):
     """attach files to the mail"""
     repeatable = True
@@ -443,13 +444,18 @@ class ToggleHeaderCommand(Command):
         ui.current_buffer.toggle_all_headers()
 
 
-@registerCommand(MODE, 'sign', forced={'action': 'sign'}, arguments=[
-    (['keyid'], {'nargs': argparse.REMAINDER, 'help': 'which key id to use'})],
+@registerCommand(
+    MODE, 'sign', forced={'action': 'sign'},
+    arguments=[
+        (['keyid'],
+         {'nargs': argparse.REMAINDER, 'help': 'which key id to use'})],
     help='mark mail to be signed before sending')
 @registerCommand(MODE, 'unsign', forced={'action': 'unsign'},
                  help='mark mail not to be signed before sending')
-@registerCommand(MODE, 'togglesign', forced={'action': 'toggle'}, arguments=[
-    (['keyid'], {'nargs': argparse.REMAINDER, 'help': 'which key id to use'})],
+@registerCommand(
+    MODE, 'togglesign', forced={'action': 'toggle'}, arguments=[
+        (['keyid'],
+         {'nargs': argparse.REMAINDER, 'help': 'which key id to use'})],
     help='toggle sign status')
 class SignCommand(Command):
     """toggle signing this email"""
@@ -497,25 +503,30 @@ class SignCommand(Command):
         ui.current_buffer.rebuild()
 
 
-@registerCommand(MODE, 'encrypt', forced={'action': 'encrypt'}, arguments=[
-    (['--trusted'], {'action': 'store_true', 'help': 'only add trusted keys'}),
-    (['keyids'], {'nargs': argparse.REMAINDER,
-                  'help': 'keyid of the key to encrypt with'})],
+@registerCommand(
+    MODE, 'encrypt', forced={'action': 'encrypt'}, arguments=[
+        (['--trusted'], {'action': 'store_true',
+                         'help': 'only add trusted keys'}),
+        (['keyids'], {'nargs': argparse.REMAINDER,
+                      'help': 'keyid of the key to encrypt with'})],
     help='request encryption of message before sendout')
-@registerCommand(MODE, 'unencrypt', forced={'action': 'unencrypt'},
-                 help='remove request to encrypt message before sending')
-@registerCommand(MODE, 'toggleencrypt', forced={'action': 'toggleencrypt'},
-                 arguments=[
-                     (['--trusted'], {'action': 'store_true',
-                                      'help': 'only add trusted keys'}),
-                     (['keyids'], {'nargs': argparse.REMAINDER,
+@registerCommand(
+    MODE, 'unencrypt', forced={'action': 'unencrypt'},
+    help='remove request to encrypt message before sending')
+@registerCommand(
+    MODE, 'toggleencrypt', forced={'action': 'toggleencrypt'},
+    arguments=[
+        (['--trusted'], {'action': 'store_true',
+                         'help': 'only add trusted keys'}),
+        (['keyids'], {'nargs': argparse.REMAINDER,
                       'help': 'keyid of the key to encrypt with'})],
-                 help='toggle if message should be encrypted before sendout')
-@registerCommand(MODE, 'rmencrypt', forced={'action': 'rmencrypt'},
-                 arguments=[
-                     (['keyids'], {'nargs': argparse.REMAINDER,
+    help='toggle if message should be encrypted before sendout')
+@registerCommand(
+    MODE, 'rmencrypt', forced={'action': 'rmencrypt'},
+    arguments=[
+        (['keyids'], {'nargs': argparse.REMAINDER,
                       'help': 'keyid of the key to encrypt with'})],
-                 help='do not encrypt to given recipient key')
+    help='do not encrypt to given recipient key')
 class EncryptCommand(Command):
     def __init__(self, action=None, keyids=None, trusted=False, **kwargs):
         """

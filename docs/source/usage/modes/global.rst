@@ -12,7 +12,7 @@ The following commands are available globally
     close a buffer
 
     optional arguments
-        :---redraw: redraw current buffer                      after command has finished.
+        :---redraw: redraw current buffer after command has finished.
         :---force: never ask for confirmation.
 
 .. _cmd.global.bprevious:
@@ -94,7 +94,7 @@ The following commands are available globally
     optional arguments
         :---spawn: run in terminal window.
         :---thread: run in separate thread.
-        :---refocus: refocus current buffer                      after command has finished.
+        :---refocus: refocus current buffer after command has finished.
 
 .. _cmd.global.refresh:
 
