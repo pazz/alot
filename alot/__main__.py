@@ -78,30 +78,20 @@ def main():
                         filemode='w', format=logformat)
 
     # locate alot config files
-    configfiles = [
-        os.path.join(os.environ.get('XDG_CONFIG_HOME',
-                                    os.path.expanduser('~/.config')),
-                     'alot', 'config'),
-    ]
-    if options.config:
-        expanded_path = os.path.expanduser(options.config)
-        if not os.path.exists(expanded_path):
-            msg = 'Config file "%s" does not exist. Goodbye for now.'
-            sys.exit(msg % expanded_path)
-        configfiles.insert(0, expanded_path)
+    if options.config is None:
+        alotconfig = os.path.join(
+            os.environ.get('XDG_CONFIG_HOME', os.path.expanduser('~/.config')),
+            'alot', 'config')
+        if not os.path.exists(alotconfig):
+            alotconfig = None
+    else:
+        alotconfig = options.config
 
     # locate notmuch config
     notmuchpath = os.environ.get('NOTMUCH_CONFIG', '~/.notmuch-config')
     if options.notmuch_config:
         notmuchpath = options.notmuch_config
     notmuchconfig = os.path.expanduser(notmuchpath)
-
-    alotconfig = None
-    # read the first alot config file we find
-    for configfilename in configfiles:
-        if os.path.exists(configfilename):
-            alotconfig = configfilename
-            break  # use only the first
 
     try:
         settings.read_config(alotconfig)
