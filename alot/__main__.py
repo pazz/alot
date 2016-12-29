@@ -37,7 +37,10 @@ def main():
     parser.add_argument('-l', '--logfile', default='/dev/null',
                         type=lambda x: argparse.FileType('w')(x).name,
                         help='logfile [default: %(default)s]')
-    parser.add_argument('command', nargs=argparse.REMAINDER)
+    # We will handle the subcommands in a seperate run of argparse as argparse
+    # does not support optional subcommands until now.
+    parser.add_argument('command', nargs=argparse.REMAINDER,
+                        help="possible subcommands are 'search' and 'compose'")
     options = parser.parse_args()
     if options.command:
         # We have a command after the initial options so we also parse that.
@@ -111,6 +114,7 @@ def main():
     exit_hook = settings.get_hook('exit')
     if exit_hook is not None:
         exit_hook()
+
 
 if __name__ == "__main__":
     main()
