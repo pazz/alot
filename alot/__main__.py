@@ -12,7 +12,7 @@ from alot.settings.errors import ConfigError
 from alot.db.manager import DBManager
 from alot.ui import UI
 from alot.commands import *
-from alot.commands import CommandParseError
+from alot.commands import CommandParseError, COMMANDS
 
 
 def main():
@@ -41,27 +41,14 @@ def main():
     options = parser.parse_args()
     if options.command:
         # We have a command after the initial options so we also parse that.
+        # But we just use the parser that is already defined for the internal
+        # command that will back this subcommand.
         parser = argparse.ArgumentParser()
         subparsers = parser.add_subparsers(dest='subcommand')
-        search = subparsers.add_parser('search')
-        search.add_argument('--sort', default='newest_first',
-                            help='sort order',
-                            choices=('oldest_first', 'newest_first',
-                                     'message_id', 'unsorted'))
-        search.add_argument('terms', nargs='+')
-        compose = subparsers.add_parser('compose')
-        compose.add_argument('--omit_signature', action='store_true',
-                             help='do not add signature')
-        compose.add_argument('--sender', help='From line')
-        compose.add_argument('--subject', help='subject line')
-        compose.add_argument('--to', help='recipients')
-        compose.add_argument('--cc', help='copy to')
-        compose.add_argument('--bcc', help='blind copy to')
-        compose.add_argument('--template', type=argparse.FileType('r'),
-                             help='path to template file')
-        compose.add_argument('--attach', type=argparse.FileType('r'),
-                             help='files to attach')
-
+        subparsers.add_parser('search',
+                              parents=[COMMANDS['global']['search'][1]])
+        subparsers.add_parser('compose',
+                              parents=[COMMANDS['global']['compose'][1]])
         command = parser.parse_args(options.command)
     else:
         command = None
@@ -109,16 +96,13 @@ def main():
     dbman = DBManager(path=indexpath, ro=options.read_only)
 
     # determine what to do
-    try:
-        if command is None:
+    if command is None:
+        try:
             cmdstring = settings.get('initial_command')
-        elif command.subcommand == 'search':
-            query = ' '.join(command.terms)
-            cmdstring = 'search --sort {} {}'.format(command.sort, query)
-        elif command.subcommand == 'compose':
-            cmdstring = ' '.join(options.command)
-    except CommandParseError as err:
-        sys.exit(err)
+        except CommandParseError as err:
+            sys.exit(err)
+    elif command.subcommand in ('compose', 'search'):
+        cmdstring = ' '.join(options.command)
 
     # set up and start interface
     UI(dbman, cmdstring)
