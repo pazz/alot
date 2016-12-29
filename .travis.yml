@@ -107,3 +107,4 @@ script: |
 
 notifications:
     irc: "chat.freenode.net#alot"
+    on_success: change
