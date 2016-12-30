@@ -62,9 +62,8 @@ def main():
         root_logger.removeHandler(log_handler)
     root_logger = None
     numeric_loglevel = getattr(logging, options.debug_level.upper(), None)
-    logfilename = os.path.expanduser(options.logfile)
     logformat = '%(levelname)s:%(module)s:%(message)s'
-    logging.basicConfig(level=numeric_loglevel, filename=logfilename,
+    logging.basicConfig(level=numeric_loglevel, filename=options.logfile,
                         filemode='w', format=logformat)
 
     # locate alot config files
@@ -78,10 +77,11 @@ def main():
         alotconfig = options.config
 
     # locate notmuch config
-    notmuchpath = os.environ.get('NOTMUCH_CONFIG', '~/.notmuch-config')
     if options.notmuch_config:
-        notmuchpath = options.notmuch_config
-    notmuchconfig = os.path.expanduser(notmuchpath)
+        notmuchconfig = options.notmuch_config
+    else:
+        notmuchconfig = os.environ.get('NOTMUCH_CONFIG',
+                                       os.path.expanduser('~/.notmuch-config'))
 
     try:
         settings.read_config(alotconfig)
