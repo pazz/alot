@@ -39,8 +39,10 @@ def main():
                         help='logfile [default: %(default)s]')
     # We will handle the subcommands in a seperate run of argparse as argparse
     # does not support optional subcommands until now.
+    subcommands = ('search', 'compose', 'bufferlist', 'taglist', 'pyshell')
     parser.add_argument('command', nargs=argparse.REMAINDER,
-                        help="possible subcommands are 'search' and 'compose'")
+                        help='possible subcommands are {}'.format(
+                            ', '.join(subcommands)))
     options = parser.parse_args()
     if options.command:
         # We have a command after the initial options so we also parse that.
@@ -48,10 +50,9 @@ def main():
         # command that will back this subcommand.
         parser = argparse.ArgumentParser()
         subparsers = parser.add_subparsers(dest='subcommand')
-        subparsers.add_parser('search',
-                              parents=[COMMANDS['global']['search'][1]])
-        subparsers.add_parser('compose',
-                              parents=[COMMANDS['global']['compose'][1]])
+        for subcommand in subcommands:
+            subparsers.add_parser(subcommand,
+                                  parents=[COMMANDS['global'][subcommand][1]])
         command = parser.parse_args(options.command)
     else:
         command = None
@@ -104,7 +105,7 @@ def main():
             cmdstring = settings.get('initial_command')
         except CommandParseError as err:
             sys.exit(err)
-    elif command.subcommand in ('compose', 'search'):
+    elif command.subcommand in subcommands:
         cmdstring = ' '.join(options.command)
 
     # set up and start interface
