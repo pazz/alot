@@ -25,6 +25,9 @@ def main():
     parser.add_argument('-c', '--config', type=argparse.FileType('r'),
                         help='config file')
     parser.add_argument('-n', '--notmuch-config', type=argparse.FileType('r'),
+                        default=os.environ.get(
+                            'NOTMUCH_CONFIG',
+                            os.path.expanduser('~/.notmuch-config')),
                         help='notmuch config')
     parser.add_argument('-C', '--colour-mode',
                         choices=(1, 16, 256), type=int, default=256,
@@ -77,16 +80,9 @@ def main():
     else:
         alotconfig = options.config
 
-    # locate notmuch config
-    if options.notmuch_config:
-        notmuchconfig = options.notmuch_config
-    else:
-        notmuchconfig = os.environ.get('NOTMUCH_CONFIG',
-                                       os.path.expanduser('~/.notmuch-config'))
-
     try:
         settings.read_config(alotconfig)
-        settings.read_notmuch_config(notmuchconfig)
+        settings.read_notmuch_config(options.notmuch_config)
     except (ConfigError, OSError, IOError) as e:
         sys.exit(e)
 
