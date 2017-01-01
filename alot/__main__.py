@@ -22,12 +22,12 @@ def main():
                         version=alot.__version__)
     parser.add_argument('-r', '--read-only', action='store_true',
                         help='open db in read only mode')
-    parser.add_argument('-c', '--config', type=argparse.FileType('r'),
-                        help='config file')
-    parser.add_argument('-n', '--notmuch-config', type=argparse.FileType('r'),
-                        default=os.environ.get(
+    parser.add_argument('-c', '--config', help='config file',
+                        type=lambda x: argparse.FileType('r')(x).name)
+    parser.add_argument('-n', '--notmuch-config', default=os.environ.get(
                             'NOTMUCH_CONFIG',
                             os.path.expanduser('~/.notmuch-config')),
+                        type=lambda x: argparse.FileType('r')(x).name,
                         help='notmuch config')
     parser.add_argument('-C', '--colour-mode',
                         choices=(1, 16, 256), type=int, default=256,
