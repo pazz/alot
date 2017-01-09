@@ -96,7 +96,7 @@ class UI(object):
 
         # set up main loop
         self.mainloop = urwid.MainLoop(self.root_widget,
-                                       handle_mouse=False,
+                                       handle_mouse=True,
                                        event_loop=urwid.TwistedEventLoop(),
                                        unhandled_input=self._unhandeled_input,
                                        input_filter=self._input_filter)
@@ -157,6 +157,8 @@ class UI(object):
                     return [cmdline[5:]]
 
             key = keys[0]
+            if key and key[0].startswith('mouse'):
+                key = key[0] + ' %i' % key[1]
             self.input_queue.append(key)
             keyseq = ' '.join(self.input_queue)
             candidates = settings.get_mapped_input_keysequences(self.mode,
