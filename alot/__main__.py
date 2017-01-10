@@ -17,10 +17,11 @@ from alot.commands import *
 from alot.commands import CommandParseError, COMMANDS
 
 
-def main():
-    """The main entry point to alot.  It parses the command line and prepares
-    for the user interface main loop to run."""
-    # set up the parser to parse the command line options.
+_SUBCOMMANDS = ['search', 'compose', 'bufferlist', 'taglist', 'pyshell']
+
+
+def parser():
+    """Parse command line arguments, validate them, and return them."""
     parser = argparse.ArgumentParser()
     parser.add_argument('-v', '--version', action='version',
                         version=alot.__version__)
@@ -46,23 +47,31 @@ def main():
                         help='logfile [default: %(default)s]')
     # We will handle the subcommands in a seperate run of argparse as argparse
     # does not support optional subcommands until now.
-    subcommands = ('search', 'compose', 'bufferlist', 'taglist', 'pyshell')
     parser.add_argument('command', nargs=argparse.REMAINDER,
                         help='possible subcommands are {}'.format(
-                            ', '.join(subcommands)))
+                            ', '.join(_SUBCOMMANDS)))
     options = parser.parse_args()
+
     if options.command:
         # We have a command after the initial options so we also parse that.
         # But we just use the parser that is already defined for the internal
         # command that will back this subcommand.
         parser = argparse.ArgumentParser()
         subparsers = parser.add_subparsers(dest='subcommand')
-        for subcommand in subcommands:
+        for subcommand in _SUBCOMMANDS:
             subparsers.add_parser(subcommand,
                                   parents=[COMMANDS['global'][subcommand][1]])
         command = parser.parse_args(options.command)
     else:
         command = None
+
+    return options, command
+
+
+def main():
+    """The main entry point to alot.  It parses the command line and prepares
+    for the user interface main loop to run."""
+    options, command = parser()
 
     # logging
     root_logger = logging.getLogger()
@@ -105,7 +114,7 @@ def main():
             cmdstring = settings.get('initial_command')
         except CommandParseError as err:
             sys.exit(err)
-    elif command.subcommand in subcommands:
+    elif command.subcommand in _SUBCOMMANDS:
         cmdstring = ' '.join(options.command)
 
     # set up and start interface
