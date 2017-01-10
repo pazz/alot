@@ -15,6 +15,7 @@ from alot.db.manager import DBManager
 from alot.ui import UI
 from alot.commands import *
 from alot.commands import CommandParseError, COMMANDS
+from alot.utils import argparse as cargparse
 
 
 _SUBCOMMANDS = ['search', 'compose', 'bufferlist', 'taglist', 'pyshell']
@@ -27,23 +28,29 @@ def parser():
                         version=alot.__version__)
     parser.add_argument('-r', '--read-only', action='store_true',
                         help='open db in read only mode')
-    parser.add_argument('-c', '--config', help='config file',
-                        type=lambda x: argparse.FileType('r')(x).name)
+    parser.add_argument('-c', '--config',
+                        action=cargparse.ValidatedStoreAction,
+                        validator=cargparse.require_file,
+                        help='config file')
     parser.add_argument('-n', '--notmuch-config', default=os.environ.get(
                             'NOTMUCH_CONFIG',
                             os.path.expanduser('~/.notmuch-config')),
-                        type=lambda x: argparse.FileType('r')(x).name,
+                        action=cargparse.ValidatedStoreAction,
+                        validator=cargparse.require_file,
                         help='notmuch config')
     parser.add_argument('-C', '--colour-mode',
                         choices=(1, 16, 256), type=int, default=256,
                         help='terminal colour mode [default: %(default)s].')
-    parser.add_argument('-p', '--mailindex-path', #type=directory,
+    parser.add_argument('-p', '--mailindex-path',
+                        action=cargparse.ValidatedStoreAction,
+                        validator=cargparse.require_dir,
                         help='path to notmuch index')
     parser.add_argument('-d', '--debug-level', default='info',
                         choices=('debug', 'info', 'warning', 'error'),
                         help='debug log [default: %(default)s]')
     parser.add_argument('-l', '--logfile', default='/dev/null',
-                        type=lambda x: argparse.FileType('w')(x).name,
+                        action=cargparse.ValidatedStoreAction,
+                        validator=cargparse.optional_file_like,
                         help='logfile [default: %(default)s]')
     # We will handle the subcommands in a seperate run of argparse as argparse
     # does not support optional subcommands until now.
