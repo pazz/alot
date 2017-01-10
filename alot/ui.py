@@ -157,7 +157,7 @@ class UI(object):
                     return [cmdline[5:]]
 
             key = keys[0]
-            if key and key[0].startswith('mouse'):
+            if key and 'mouse' in key[0]:
                 key = key[0] + ' %i' % key[1]
             self.input_queue.append(key)
             keyseq = ' '.join(self.input_queue)
