@@ -1,9 +1,10 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
-import sys
+import argparse
 import logging
 import os
+import sys
 
 import alot
 from alot.settings import settings
@@ -11,176 +12,97 @@ from alot.settings.errors import ConfigError
 from alot.db.manager import DBManager
 from alot.ui import UI
 from alot.commands import *
-from alot.commands import CommandParseError
-
-from twisted.python import usage
-
-
-class SubcommandOptions(usage.Options):
-    optFlags = []
-
-    def parseArgs(self, *args):
-        self.args = args
-
-    def as_argparse_opts(self):
-        optstr = ''
-        for k, v in self.iteritems():
-            # flags translate int value 0 or 1..
-            if k in [a[0] for a in self.optFlags]:  # if flag
-                optstr += ('--%s ' % k) * v
-            else:
-                if v is not None:
-                    optstr += '--%s \'%s\' ' % (k, v)
-        return optstr
-
-    def opt_version(self):
-        print alot.__version__
-        sys.exit(0)
-
-
-class ComposeOptions(SubcommandOptions):
-    optParameters = [
-        ['sender', '', None, 'From line'],
-        ['subject', '', None, 'subject line'],
-        ['to', [], None, 'recipients'],
-        ['cc', '', None, 'copy to'],
-        ['bcc', '', None, 'blind copy to'],
-        ['template', '', None, 'path to template file'],
-        ['attach', '', None, 'files to attach'],
-    ]
-    optFlags = [
-        ['omit_signature', '', 'do not add signature'],
-    ]
-
-    def parseArgs(self, *args):
-        SubcommandOptions.parseArgs(self, *args)
-        self.rest = ' '.join(args) or None
-
-
-class SearchOptions(SubcommandOptions):
-    accepted = ['oldest_first', 'newest_first', 'message_id', 'unsorted']
-
-    def colourint(val):
-        if val not in accepted:
-            raise ValueError("Unknown sort order")
-        return val
-    colourint.coerceDoc = "Must be one of " + str(accepted)
-    optParameters = [
-        ['sort', 'newest_first', None, 'Sort order'],
-    ]
-
-
-class Options(usage.Options):
-    optFlags = [["read-only", "r", 'open db in read only mode'], ]
-
-    def colourint(val):
-        val = int(val)
-        if val not in [1, 16, 256]:
-            raise ValueError("Not in range")
-        return val
-    colourint.coerceDoc = "Must be 1, 16 or 256"
-
-    def debuglogstring(val):
-        if val not in ['error', 'debug', 'info', 'warning']:
-            raise ValueError("Not in range")
-        return val
-    debuglogstring.coerceDoc = "Must be one of debug,info,warning or error"
-
-    optParameters = [
-        ['config', 'c', None, 'config file'],
-        ['notmuch-config', 'n', None, 'notmuch config'],
-        ['colour-mode', 'C', None, 'terminal colour mode', colourint],
-        ['mailindex-path', 'p', None, 'path to notmuch index'],
-        ['debug-level', 'd', 'info', 'debug log', debuglogstring],
-        ['logfile', 'l', '/dev/null', 'logfile'],
-    ]
-    search_help = "start in a search buffer using the querystring provided "\
-                  "as parameter. See the SEARCH SYNTAX section of notmuch(1)."
-
-    subCommands = [['search', None, SearchOptions, search_help],
-                   ['compose', None, ComposeOptions, "compose a new message"]]
-
-    def opt_version(self):
-        print alot.__version__
-        sys.exit(0)
+from alot.commands import CommandParseError, COMMANDS
 
 
 def main():
-    # interpret cml arguments
-    args = Options()
-    try:
-        args.parseOptions()  # When given no argument, parses sys.argv[1:]
-    except usage.UsageError as errortext:
-        print '%s' % errortext
-        print 'Try --help for usage details.'
-        sys.exit(1)
+    # set up the parser to parse the command line options.
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-v', '--version', action='version',
+                        version=alot.__version__)
+    parser.add_argument('-r', '--read-only', action='store_true',
+                        help='open db in read only mode')
+    parser.add_argument('-c', '--config', help='config file',
+                        type=lambda x: argparse.FileType('r')(x).name)
+    parser.add_argument('-n', '--notmuch-config', default=os.environ.get(
+                            'NOTMUCH_CONFIG',
+                            os.path.expanduser('~/.notmuch-config')),
+                        type=lambda x: argparse.FileType('r')(x).name,
+                        help='notmuch config')
+    parser.add_argument('-C', '--colour-mode',
+                        choices=(1, 16, 256), type=int, default=256,
+                        help='terminal colour mode [default: %(default)s].')
+    parser.add_argument('-p', '--mailindex-path', #type=directory,
+                        help='path to notmuch index')
+    parser.add_argument('-d', '--debug-level', default='info',
+                        choices=('debug', 'info', 'warning', 'error'),
+                        help='debug log [default: %(default)s]')
+    parser.add_argument('-l', '--logfile', default='/dev/null',
+                        type=lambda x: argparse.FileType('w')(x).name,
+                        help='logfile [default: %(default)s]')
+    # We will handle the subcommands in a seperate run of argparse as argparse
+    # does not support optional subcommands until now.
+    subcommands = ('search', 'compose', 'bufferlist', 'taglist', 'pyshell')
+    parser.add_argument('command', nargs=argparse.REMAINDER,
+                        help='possible subcommands are {}'.format(
+                            ', '.join(subcommands)))
+    options = parser.parse_args()
+    if options.command:
+        # We have a command after the initial options so we also parse that.
+        # But we just use the parser that is already defined for the internal
+        # command that will back this subcommand.
+        parser = argparse.ArgumentParser()
+        subparsers = parser.add_subparsers(dest='subcommand')
+        for subcommand in subcommands:
+            subparsers.add_parser(subcommand,
+                                  parents=[COMMANDS['global'][subcommand][1]])
+        command = parser.parse_args(options.command)
+    else:
+        command = None
 
     # logging
     root_logger = logging.getLogger()
     for log_handler in root_logger.handlers:
         root_logger.removeHandler(log_handler)
     root_logger = None
-    numeric_loglevel = getattr(logging, args['debug-level'].upper(), None)
-    logfilename = os.path.expanduser(args['logfile'])
+    numeric_loglevel = getattr(logging, options.debug_level.upper(), None)
     logformat = '%(levelname)s:%(module)s:%(message)s'
-    logging.basicConfig(level=numeric_loglevel, filename=logfilename,
+    logging.basicConfig(level=numeric_loglevel, filename=options.logfile,
                         filemode='w', format=logformat)
 
     # locate alot config files
-    configfiles = [
-        os.path.join(os.environ.get('XDG_CONFIG_HOME',
-                                    os.path.expanduser('~/.config')),
-                     'alot', 'config'),
-    ]
-    if args['config']:
-        expanded_path = os.path.expanduser(args['config'])
-        if not os.path.exists(expanded_path):
-            msg = 'Config file "%s" does not exist. Goodbye for now.'
-            sys.exit(msg % expanded_path)
-        configfiles.insert(0, expanded_path)
-
-    # locate notmuch config
-    notmuchpath = os.environ.get('NOTMUCH_CONFIG', '~/.notmuch-config')
-    if args['notmuch-config']:
-        notmuchpath = args['notmuch-config']
-    notmuchconfig = os.path.expanduser(notmuchpath)
-
-    alotconfig = None
-    # read the first alot config file we find
-    for configfilename in configfiles:
-        if os.path.exists(configfilename):
-            alotconfig = configfilename
-            break  # use only the first
+    if options.config is None:
+        alotconfig = os.path.join(
+            os.environ.get('XDG_CONFIG_HOME', os.path.expanduser('~/.config')),
+            'alot', 'config')
+        if not os.path.exists(alotconfig):
+            alotconfig = None
+    else:
+        alotconfig = options.config
 
     try:
         settings.read_config(alotconfig)
-        settings.read_notmuch_config(notmuchconfig)
+        settings.read_notmuch_config(options.notmuch_config)
     except (ConfigError, OSError, IOError) as e:
         sys.exit(e)
 
     # store options given by config swiches to the settingsManager:
-    if args['colour-mode']:
-        settings.set('colourmode', args['colour-mode'])
+    if options.colour_mode:
+        settings.set('colourmode', options.colour_mode)
 
     # get ourselves a database manager
     indexpath = settings.get_notmuch_setting('database', 'path')
-    indexpath = args['mailindex-path'] or indexpath
-    dbman = DBManager(path=indexpath, ro=args['read-only'])
+    indexpath = options.mailindex_path or indexpath
+    dbman = DBManager(path=indexpath, ro=options.read_only)
 
     # determine what to do
-    try:
-        if args.subCommand == 'search':
-            query = ' '.join(args.subOptions.args)
-            cmdstring = 'search %s %s' % (args.subOptions.as_argparse_opts(),
-                                          query)
-        elif args.subCommand == 'compose':
-            cmdstring = 'compose %s' % args.subOptions.as_argparse_opts()
-            if args.subOptions.rest is not None:
-                cmdstring += ' ' + args.subOptions.rest
-        else:
+    if command is None:
+        try:
             cmdstring = settings.get('initial_command')
-    except CommandParseError as e:
-        sys.exit(e)
+        except CommandParseError as err:
+            sys.exit(err)
+    elif command.subcommand in subcommands:
+        cmdstring = ' '.join(options.command)
 
     # set up and start interface
     UI(dbman, cmdstring)
@@ -189,6 +111,7 @@ def main():
     exit_hook = settings.get_hook('exit')
     if exit_hook is not None:
         exit_hook()
+
 
 if __name__ == "__main__":
     main()
