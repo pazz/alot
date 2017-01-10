@@ -1,5 +1,7 @@
 next release:
 * save command prompt, recipient and sender history across program restarts
+* Allow scrolling with the mouse scroll wheel
+* Prompt for unsent messages before closing
 
 0.4:
 * signal: refresh current buffer on SIGUSR1
