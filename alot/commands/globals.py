@@ -7,7 +7,6 @@ import email
 import glob
 import logging
 import os
-import re
 import subprocess
 from StringIO import StringIO
 
@@ -17,7 +16,7 @@ from twisted.internet import threads
 
 from . import Command, registerCommand
 from . import CommandCanceled
-from .utils import get_keys
+from .utils import set_encrypt
 from .. import commands
 
 from .. import buffers
@@ -873,12 +872,12 @@ class ComposeCommand(Command):
             logging.debug("Trying to encrypt message because encrypt=%s and "
                           "encrypt_by_default=%s", self.encrypt,
                           account.encrypt_by_default)
-            yield self._set_encrypt(ui, self.envelope)
+            yield set_encrypt(ui, self.envelope, block_error=self.encrypt)
         elif account.encrypt_by_default == u"trusted":
             logging.debug("Trying to encrypt message because "
                           "account.encrypt_by_default=%s",
                           account.encrypt_by_default)
-            yield self._set_encrypt(ui, self.envelope, trusted_only=True)
+            yield set_encrypt(ui, self.envelope, block_error=self.encrypt, signed_only=True)
         else:
             logging.debug("No encryption by default, encrypt_by_default=%s",
                           account.encrypt_by_default)
@@ -887,38 +886,6 @@ class ComposeCommand(Command):
                                             spawn=self.force_spawn,
                                             refocus=False)
         ui.apply_command(cmd)
-
-    @inlineCallbacks
-    def _set_encrypt(self, ui, envelope, trusted_only=False):
-        """Find and set the encryption keys in an envolope.
-
-        :param ui: the main user interface object
-        :type ui: alot.ui.UI
-        :param envolope: the envolope buffer object
-        :type envolope: alot.buffers.EnvelopeBuffer
-        :param trusted_only: only add keys to the list of encryption
-            keys whose uid is signed (trusted to belong to the key)
-        :type trusted_only: bool
-
-        """
-        encrypt_keys = []
-        for recipient in envelope.headers['To'][0].split(','):
-            recipient = recipient.strip()
-            if not recipient:
-                continue
-            match = re.search("<(.*@.*)>", recipient)
-            if match:
-                recipient = match.group(1)
-            encrypt_keys.append(recipient)
-
-        logging.debug("encryption keys: %s", encrypt_keys)
-        keys = yield get_keys(ui, encrypt_keys, block_error=self.encrypt,
-                              signed_only=trusted_only)
-        if keys:
-            envelope.encrypt_keys.update(keys)
-            envelope.encrypt = True
-        else:
-            envelope.encrypt = False
 
 
 @registerCommand(
