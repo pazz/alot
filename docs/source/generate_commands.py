@@ -105,8 +105,7 @@ def get_mode_docs():
     return docs
 
 
-if __name__ == "__main__":
-
+def generate_command_tables():
     modes = []
     for mode, modecommands in COMMANDS.items():
         modefilename = mode+'.rst'
@@ -128,3 +127,6 @@ if __name__ == "__main__":
             modefile.write(labelline)
             modefile.write(rstify_parser(parser))
         modefile.close()
+
+if __name__ == "__main__":
+    generate_command_tables()

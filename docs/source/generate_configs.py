@@ -56,7 +56,8 @@ def rewrite_entries(config, path, specpath, sec=None, sort=False):
         file.write(description)
     file.close()
 
-if __name__ == "__main__":
+
+def generate_config_tables():
     specpath = os.path.join(HERE, '..','..', 'alot', 'defaults', 'alot.rc.spec')
     config = ConfigObj(None, configspec=specpath, stringify=False, list_values=False)
     config.validate(Validator())
@@ -67,3 +68,6 @@ if __name__ == "__main__":
     rewrite_entries(config, os.path.join(HERE, 'configuration', 'accounts_table'),
                     'defaults/alot.rc.spec',
                     sec=config.configspec['accounts']['__many__'])
+
+if __name__ == "__main__":
+    generate_config_tables()

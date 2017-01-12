@@ -3,6 +3,15 @@
 
 import sys, os
 
+##################################
+# generate tables documenting config settings
+# and commands from inline docs
+sys.path.insert(0, os.path.abspath('.'))
+from .generate_commands import generate_command_tables
+generate_command_tables()
+from .generate_configs import generate_config_tables
+generate_config_tables()
+
 ###############################
 # readthedocs.org hack,
 # needed to use autodocs on their build-servers:
@@ -50,6 +59,15 @@ for mod_name in MOCK_DIRTY:
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath(os.path.join('..','..')))
 from alot import __version__,__author__
+
+
+
+
+
+
+
+
+
 
 # -- General configuration -----------------------------------------------------
 
