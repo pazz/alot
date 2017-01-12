@@ -39,6 +39,7 @@ COMMANDS = {
     'taglist': {},
     'thread': {},
     'global': {},
+    'rthread': {},
 }
 
 

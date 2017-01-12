@@ -130,6 +130,7 @@ search_statusbar = mixed_list(string, string, default=list('[{buffer_no}: search
 # * `{authors}`: abbreviated authors string for this thread
 # * `{message_count}`: number of contained messages
 thread_statusbar = mixed_list(string, string, default=list('[{buffer_no}: thread] {subject}','{input_queue} total messages: {total_messages}'))
+rthread_statusbar = mixed_list(string, string, default=list('[{buffer_no}: thread] {subject}','{input_queue} total messages: {total_messages}'))
 
 # Format of the status-bar in taglist mode.
 # This is a pair of strings to be left and right aligned in the status-bar.

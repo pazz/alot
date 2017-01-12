@@ -20,6 +20,7 @@ from .widgets.bufferlist import BufferlineWidget
 from .widgets.search import ThreadlineWidget
 from .widgets.thread import ThreadTree
 
+from alot.widgets.rthread import RTThreadTree, RTMessageViewer, RTPile
 
 class Buffer(object):
     """Abstract base class for buffers."""
@@ -671,3 +672,190 @@ class TagListBuffer(Buffer):
         cols, _ = self.taglist.get_focus()
         tagwidget = cols.original_widget.get_focus()
         return tagwidget.get_tag()
+
+
+
+
+class RTThreadBuffer(ThreadBuffer):
+    """displays a thread as a tree of messages and a message in a message
+    viewer"""
+
+    modename = 'rthread'
+
+    def __str__(self):
+        return '[rthread] %s (%d message%s)' % (self.thread.get_subject(),
+                                               self.message_count,
+                                               's' * (self.message_count > 1))
+
+    def rebuild(self):
+        try:
+            self.thread.refresh()
+        except NonexistantObjectError:
+            self.body = urwid.SolidFill()
+            self.message_count = 0
+            return
+
+        self.message_count = self.thread.get_total_messages()
+
+        self._tree = RTThreadTree(self.thread)
+        bars_att = settings.get_theming_attribute('thread', 'arrow_bars')
+        heads_att = settings.get_theming_attribute('thread', 'arrow_heads')
+        A = ArrowTree(self._tree,
+                      indent=2,
+                      childbar_offset=0,
+                      arrow_tip_att=heads_att,
+                      arrow_att=bars_att,
+                      )
+        self._nested_tree = NestedTree(A, interpret_covered=True)
+        T = TreeBox(self._nested_tree)
+        self.little_thread = T._outer_list
+
+        self.message_viewer = self.create_message_viewer()
+        pile = RTPile([
+            (5,self.little_thread),
+            (1, urwid.Filler(urwid.AttrMap(urwid.Divider(u"-"), 'bright'))),
+            self.message_viewer,
+        ])
+        self.body = pile
+
+    def create_message_viewer(self):
+        msg = self.get_selected_message()
+        return RTMessageViewer(msg)
+
+    def update_message_viewer(self):
+        self.message_viewer = self.create_message_viewer()
+        pile = self.body.contents
+        pile.pop()
+        pile.append((self.message_viewer, ('weight', 1)))
+
+    def render(self, size, focus=False):
+        if settings.get('auto_remove_unread'):
+            logging.debug('Tbuffer: auto remove unread tag from msg?')
+            msg = self.get_selected_message()
+            mid = msg.get_message_id()
+            if mid not in self._auto_unread_dont_touch_mids:
+                if 'unread' in msg.get_tags():
+                    logging.debug('Tbuffer: removing unread')
+
+                    def clear():
+                        self._auto_unread_writing = False
+
+                    self._auto_unread_dont_touch_mids.add(mid)
+                    self._auto_unread_writing = True
+                    msg.remove_tags(['unread'], afterwards=clear)
+                    fcmd = commands.globals.FlushCommand(silent=True)
+                    self.ui.apply_command(fcmd)
+                else:
+                    logging.debug('Tbuffer: No, msg not unread')
+            else:
+                logging.debug('Tbuffer: No, mid locked for autorm-unread')
+        return self.body.render(size, focus)
+
+    def get_message_viewer(self):
+        return self.message_viewer
+
+    def get_selected_line(self):
+        return self.message_viewer.get_focus()[1][0]
+
+    def get_selected_mid(self):
+        """returns Message ID of focussed message"""
+        return self.little_thread.get_focus()[1][0]
+
+    def get_selected_messagetree(self):
+        """returns currently focussed :class:`MessageTree`"""
+        return self._nested_tree[self.little_thread.get_focus()[1][:1]]
+
+    def keypress(self, size, key):
+        #import time
+        #if key == "page up":
+        #    for i in range(30):
+        #        self.message_viewer.keypress(size, "up")
+        #        self.ui.update()
+        #        time.sleep(0.005)
+        #for i in range(30):
+        #    self.scroll_down()
+        #    self.ui.update()
+        #    time.sleep(0.005)
+        #import pudb; pudb.set_trace()
+        (maxcol, maxrow) = size
+        remaining = maxrow - 6
+        return self.message_viewer.keypress((maxcol, remaining), key)
+
+    def focus_selected_message(self):
+        """focus the summary line of currently focussed message"""
+        # move focus to summary (root of current MessageTree)
+        #self.set_focus(self.get_selected_message_position())
+        self.body.set_focus(self.little_thread)
+
+    def switch(self):
+        """Switch focus between thread viewer and message viewer"""
+        current = self.body.get_focus()
+        if current == self.message_viewer:
+            self.body.set_focus(self.little_thread)
+        else:
+            self.body.set_focus(self.message_viewer)
+
+    def scroll_down(self):
+        pos = self.message_viewer.body.get_focus()[1]
+        try:
+            newpos = self.message_viewer.body.next_position(pos)
+            self.message_viewer.body.set_focus(newpos)
+            #self.refresh()
+        except IndexError:
+            pass
+
+    def scroll_up(self):
+        pos = self.message_viewer.body.get_focus()[1]
+        try:
+            newpos = self.message_viewer.body.prev_position(pos)
+            self.message_viewer.body.set_focus(newpos)
+            #self.refresh()
+        except IndexError:
+            pass
+    
+    def focus_next(self):
+        """focus next message in depth first order"""
+        self.body.set_focus(self.little_thread)
+        mid = self.get_selected_mid()
+        newpos = self._tree.next_position(mid)
+        if newpos is not None:
+            newpos = self._sanitize_position((newpos,))
+            self.little_thread.set_focus(newpos)
+            self.update_message_viewer()
+
+    def focus_prev(self):
+        """focus previous message in depth first order"""
+        self.body.set_focus(self.little_thread)
+        mid = self.get_selected_mid()
+        mid = self.get_selected_mid()
+        localroot = self._sanitize_position((mid,))
+        if localroot == self.little_thread.get_focus()[1]:
+            newpos = self._tree.prev_position(mid)
+            if newpos is not None:
+                newpos = self._sanitize_position((newpos,))
+        else:
+            newpos = localroot
+        if newpos is not None:
+            self.little_thread.set_focus(newpos)
+            self.update_message_viewer()
+
+    def first_matching(self, querystring, focus_first=True):
+        """
+        focus first message that match a given querystring.
+
+        :param querystring: query to match
+        :type querystring: str
+        :param focus_first: set the focus to the first matching message
+        :type focus_first: bool
+        """
+        first = None
+        if querystring != '*':
+            for MT in self.messagetrees():
+                msg = MT._message
+                if msg.matches(querystring):
+                    if first is None:
+                        first = (self._tree.position_of_messagetree(MT), MT.root)
+                        self.little_thread.set_focus(first)
+                        self.update_message_viewer()
+                        break
+            self.body.refresh()

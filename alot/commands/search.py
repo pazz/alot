@@ -12,6 +12,8 @@ from .. import commands
 from .. import buffers
 from ..db.errors import DatabaseROError
 
+from alot.widgets import rthread
+
 
 MODE = 'search'
 
@@ -39,6 +41,28 @@ class OpenThreadCommand(Command):
             ui.buffer_open(sb)
             sb.unfold_matching(query)
 
+@registerCommand(MODE, 'RTselect')
+class RTOpenThreadCommand(Command):
+
+    """open thread in a new buffer"""
+    def __init__(self, thread=None, **kwargs):
+        """
+        :param thread: thread to open (Uses focussed thread if unset)
+        :type thread: :class:`~alot.db.Thread`
+        """
+        self.thread = thread
+        Command.__init__(self, **kwargs)
+
+    def apply(self, ui):
+        if not self.thread:
+            self.thread = ui.current_buffer.get_selected_thread()
+        if self.thread:
+            query = ui.current_buffer.querystring
+            logging.info('open thread view for %s' % self.thread)
+
+            sb = buffers.RTThreadBuffer(ui, self.thread)
+            ui.buffer_open(sb)
+            sb.first_matching(query)
 
 @registerCommand(MODE, 'refine', help='refine query', arguments=[
     (['--sort'], {'help': 'sort order', 'choices': [
