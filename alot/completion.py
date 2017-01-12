@@ -417,7 +417,8 @@ class CommandCompleter(Completer):
                         def f((completed, pos)):
                             return ('%s %s' % (header, completed),
                                     pos + len(header) + 1)
-                        logging.debug(f(r) for r in res)
+                        res = [f(r) for r in res]
+                        logging.debug(res)
 
                 elif self.mode == 'envelope' and cmd == 'unset':
                     plist = params.split(' ', 1)
