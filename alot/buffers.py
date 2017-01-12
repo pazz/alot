@@ -63,7 +63,7 @@ class BufferlistBuffer(Buffer):
 
     modename = 'bufferlist'
 
-    def __init__(self, ui, filtfun=None):
+    def __init__(self, ui, filtfun=lambda x: x):
         self.filtfun = filtfun
         self.ui = ui
         self.isinitialized = False
@@ -617,7 +617,7 @@ class TagListBuffer(Buffer):
 
     modename = 'taglist'
 
-    def __init__(self, ui, alltags=None, filtfun=None):
+    def __init__(self, ui, alltags=None, filtfun=lambda x: x):
         self.filtfun = filtfun
         self.ui = ui
         self.tags = alltags or []
