@@ -289,6 +289,16 @@
     :default: "Fwd: "
 
 
+.. _handle-mouse:
+
+.. describe:: handle_mouse
+
+     enable mouse support - mouse tracking will be handled by urwid
+
+    :type: boolean
+    :default: True
+
+
 .. _history-size:
 
 .. describe:: history_size
