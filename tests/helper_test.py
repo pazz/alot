@@ -1,6 +1,7 @@
 # encoding=utf-8
 
 """Test suite for alot.helper module."""
+from __future__ import absolute_import
 
 import unittest
 

@@ -2,6 +2,8 @@
 
 """Test suite for alot.commands.__init__ module."""
 
+from __future__ import absolute_import
+
 import argparse
 import unittest
 

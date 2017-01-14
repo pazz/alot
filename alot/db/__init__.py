@@ -2,6 +2,8 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 
+from __future__ import absolute_import
+
 from .thread import Thread
 from .message import Message
 DB_ENC = 'UTF-8'

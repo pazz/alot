@@ -4,6 +4,8 @@
 """
 Widgets specific to search mode
 """
+from __future__ import absolute_import
+
 import urwid
 
 from ..settings import settings
