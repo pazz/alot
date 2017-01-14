@@ -1,3 +1,7 @@
+# Copyright (C) 2017  Lucas Hoffmann <l-m-h@web.de>
+# This file is released under the GNU GPL, version 3 or a later revision.
+# For further details see the COPYING file
+
 try:
     import vobject
 except ImportError:
@@ -32,7 +36,7 @@ class VcardAddressbook(AddressBook):
             paths = [path]
         elif os.path.isdir(path):
             paths = []
-            for dirpath, dirnames, filenames in os.walk(path):
+            for dirpath, _, filenames in os.walk(path):
                 for filename in filenames:
                     paths.append(os.path.join(dirpath, filename))
         else:
