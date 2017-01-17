@@ -190,7 +190,7 @@ class SettingsManager(object):
         """
         setter for global config values
 
-        :param key: config option identifise
+        :param key: config option identifies
         :type key: str
         :param value: option to set
         :type value: depends on the specfile :file:`alot.rc.spec`
