@@ -53,10 +53,6 @@ def lookup_command(cmdname, mode):
     :type mode: str
     :rtype: (:class:`Command`, :class:`~argparse.ArgumentParser`,
             dict(str->dict))
-
-    >>> (cmd, parser, kwargs) = lookup_command('save', 'thread')
-    >>> cmd
-    <class 'alot.commands.thread.SaveAttachmentCommand'>
     """
     if cmdname in COMMANDS[mode]:
         return COMMANDS[mode][cmdname]
@@ -155,14 +151,6 @@ def commandfactory(cmdline, mode='global'):
     :type cmdline: str
     :param mode: mode identifier
     :type mode: str
-
-    >>> cmd = alot.commands.commandfactory('save --all /foo', mode='thread')
-    >>> cmd
-    <alot.commands.thread.SaveAttachmentCommand object at 0x272cf10
-    >>> cmd.all
-    True
-    >>> cmd.path
-    u'/foo'
     """
     # split commandname and parameters
     if not cmdline:
