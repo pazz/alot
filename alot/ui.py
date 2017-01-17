@@ -98,7 +98,7 @@ class UI(object):
         self.mainloop = urwid.MainLoop(self.root_widget,
                                        handle_mouse=settings.get('handle_mouse'),
                                        event_loop=urwid.TwistedEventLoop(),
-                                       unhandled_input=self._unhandeled_input,
+                                       unhandled_input=self._unhandled_input,
                                        input_filter=self._input_filter)
 
         # set up colours
@@ -245,7 +245,7 @@ class UI(object):
         return d
 
     @staticmethod
-    def _unhandeled_input(key):
+    def _unhandled_input(key):
         """
         Called by :class:`urwid.MainLoop` if a keypress was passed to the root
         widget by `self._input_filter` but is not handled in any widget. We
