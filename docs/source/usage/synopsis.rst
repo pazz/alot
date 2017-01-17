@@ -21,7 +21,7 @@ UNIX Signals
         view from a mail downloader e.g. Offlineimap.
 
 
-Subommands
+Subcommands
 
     search
         start in a search buffer using the querystring provided as
