@@ -414,8 +414,23 @@ class BufferCloseCommand(Command):
 
     @inlineCallbacks
     def apply(self, ui):
+        def last_buffer_no_close():
+            """Helper that prints a message to the log and notifies if this is
+            the last buffer and the settings don't allow closebuffer to
+            exit."""
+            msg = ('not closing last remaining buffer as '
+                   'global.quit_on_last_bclose is set to False')
+            logging.info(msg)
+            ui.notify(msg, priority='error')
+
         if self.buffer is None:
             self.buffer = ui.current_buffer
+
+        # If there is only one buffer and the settings don't allow using
+        # closebuffer to exit, then just stop.
+        if len(ui.buffers) == 1 and not settings.get('quit_on_last_bclose'):
+            last_buffer_no_close()
+            return
 
         if (isinstance(self.buffer, buffers.EnvelopeBuffer) and
                 not self.buffer.envelope.sent_time):
@@ -425,13 +440,14 @@ class BufferCloseCommand(Command):
                     'no'):
                 raise CommandCanceled()
 
+        # Because we yield above it is possible that the settings or the number
+        # of buffer chould change, so retest
         if len(ui.buffers) == 1:
             if settings.get('quit_on_last_bclose'):
                 logging.info('closing the last buffer, exiting')
                 ui.apply_command(ExitCommand())
             else:
-                logging.info('not closing last remaining buffer as '
-                             'global.quit_on_last_bclose is set to False')
+                last_buffer_no_close()
         else:
             ui.buffer_close(self.buffer, self.redraw)
 
