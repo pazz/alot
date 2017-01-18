@@ -235,7 +235,7 @@ def pretty_datetime(d):
     >>> pretty_datetime(now - timedelta(days=356))
     u'Apr 2011'
     """
-    ampm = d.strftime('%P')
+    ampm = d.strftime('%p').lower()
     if len(ampm):
         hourfmt = '%I' + ampm
         hourminfmt = '%I:%M' + ampm
