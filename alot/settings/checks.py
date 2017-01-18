@@ -121,11 +121,6 @@ def force_list(value, min=None, max=None):
     The difference to :func:`validate.force_list` is that this test
     will return an empty list instead of `['']` if the config value
     matches `r'\s*,?\s*'`.
-
-    >>> vtor.check('force_list', 'hello')
-    ['hello']
-    >>> vtor.check('force_list', '')
-    []
     """
     if not isinstance(value, (list, tuple)):
         value = [value]

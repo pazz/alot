@@ -87,9 +87,8 @@ class Envelope(object):
         return "Envelope (%s)\n%s" % (self.headers, self.body)
 
     def __setitem__(self, name, val):
-        """setter for header values. this allows adding header like so:
-
-        >>> envelope['Subject'] = u'sm\xf8rebr\xf8d'
+        """setter for header values. This allows adding header like so:
+        envelope['Subject'] = u'sm\xf8rebr\xf8d'
         """
         if name not in self.headers:
             self.headers[name] = []

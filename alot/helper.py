@@ -140,20 +140,6 @@ def shorten_author_string(authors_string, maxlength):
 
       - If it is finally necessary to hide any author, an ellipsis
         between first and next authors is added.
-
-    >>> authors = u'King Kong, Mucho Muchacho, Jaime Huerta, Flash Gordon'
-    >>> print shorten_author_string(authors, 60)
-    King Kong, Mucho Muchacho, Jaime Huerta, Flash Gordon
-    >>> print shorten_author_string(authors, 40)
-    King, Mucho, Jaime, Flash
-    >>> print shorten_author_string(authors, 20)
-    King, …, Jai…, Flash
-    >>> print shorten_author_string(authors, 10)
-    King, …
-    >>> print shorten_author_string(authors, 2)
-    K…
-    >>> print shorten_author_string(authors, 1)
-    K
     """
 
     # I will create a list of authors by parsing author_string. I use
@@ -484,12 +470,6 @@ def mimewrap(path, filename=None, ctype=None):
 
 
 def shell_quote(text):
-    r'''
-    >>> print(shell_quote("hello"))
-    'hello'
-    >>> print(shell_quote("hello'there"))
-    'hello'"'"'there'
-    '''
     return "'%s'" % text.replace("'", """'"'"'""")
 
 
@@ -505,18 +485,6 @@ def tag_cmp(a, b):
 
 
 def humanize_size(size):
-    r'''
-    >>> humanize_size(1)
-    '1'
-    >>> humanize_size(123)
-    '123'
-    >>> humanize_size(1234)
-    '1K'
-    >>> humanize_size(1234 * 1024)
-    '1.2M'
-    >>> humanize_size(1234 * 1024 * 1024)
-    '1234.0M'
-    '''
     for factor, format_string in ((1, '%i'),
                                   (1024, '%iK'),
                                   (1024 * 1024, '%.1fM')):
