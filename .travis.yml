@@ -1,7 +1,11 @@
 language: python
 
 # Cache pip objects to speed up next build
-cache: pip
+cache:
+  pip: True
+  directories:
+    - $HOME/.ccache
+
 
 # We need a newer version of zlib to build notmuch from source as is available
 # in precise.
@@ -41,6 +45,9 @@ addons:
 before_install: |
   set -e
   if [[ $JOB = tests ]]; then
+    # Build with ccache to speed up rebuilds.
+    export PATH=/usr/lib/ccache:$PATH
+
     # Clone the notmuch repository and move into it.
     git clone git://notmuchmail.org/git/notmuch
     cd notmuch
