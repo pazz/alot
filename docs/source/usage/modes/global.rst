@@ -134,7 +134,12 @@ The following commands are available globally
 
 .. describe:: exit
 
-    shut down cleanly
+    Shut down cleanly.
+
+    The _prompt variable is for internal use only, it's used to control
+    prompting to close without sending, and is used by the BufferCloseCommand
+    if settings change after yielding to the UI.
+    
 
 
 .. _cmd.global.flush:

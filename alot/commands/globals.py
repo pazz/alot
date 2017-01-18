@@ -38,8 +38,17 @@ MODE = 'global'
 
 @registerCommand(MODE, 'exit')
 class ExitCommand(Command):
+    """Shut down cleanly.
 
-    """shut down cleanly"""
+    The _prompt variable is for internal use only, it's used to control
+    prompting to close without sending, and is used by the BufferCloseCommand
+    if settings change after yielding to the UI.
+    """
+
+    def __init__(self, _prompt=True, **kwargs):
+        super(ExitCommand, self).__init__(**kwargs)
+        self.prompt_to_send = _prompt
+
     @inlineCallbacks
     def apply(self, ui):
         if settings.get('bug_on_exit'):
@@ -49,13 +58,14 @@ class ExitCommand(Command):
                 return
 
         # check if there are any unsent messages
-        for buffer in ui.buffers:
-            if (isinstance(buffer, buffers.EnvelopeBuffer) and
-                    not buffer.envelope.sent_time):
-                if (yield ui.choice('quit without sending message?',
-                                    select='yes', cancel='no',
-                                    msg_position='left')) == 'no':
-                    raise CommandCanceled()
+        if self.prompt_to_send:
+            for buffer in ui.buffers:
+                if (isinstance(buffer, buffers.EnvelopeBuffer) and
+                        not buffer.envelope.sent_time):
+                    if (yield ui.choice('quit without sending message?',
+                                        select='yes', cancel='no',
+                                        msg_position='left')) == 'no':
+                        raise CommandCanceled()
 
         for b in ui.buffers:
             b.cleanup()
@@ -414,8 +424,31 @@ class BufferCloseCommand(Command):
 
     @inlineCallbacks
     def apply(self, ui):
+        def one_buffer(prompt=True):
+            """Helper to handle the case on only one buffer being opened.
+
+            prompt is a boolean that is passed to ExitCommand() as the _prompt
+            keyword argument.
+            """
+            # If there is only one buffer and the settings don't allow using
+            # closebuffer to exit, then just stop.
+            if not settings.get('quit_on_last_bclose'):
+                msg = ('not closing last remaining buffer as '
+                       'global.quit_on_last_bclose is set to False')
+                logging.info(msg)
+                ui.notify(msg, priority='error')
+            # Otherwise pass directly to exit command, which also prommpts for
+            # 'close without sending'
+            else:
+                logging.info('closing the last buffer, exiting')
+                ui.apply_command(ExitCommand(_prompt=prompt))
+
         if self.buffer is None:
             self.buffer = ui.current_buffer
+
+        if len(ui.buffers) == 1:
+            one_buffer()
+            return
 
         if (isinstance(self.buffer, buffers.EnvelopeBuffer) and
                 not self.buffer.envelope.sent_time):
@@ -425,13 +458,10 @@ class BufferCloseCommand(Command):
                     'no'):
                 raise CommandCanceled()
 
+        # Because we yield above it is possible that the settings or the number
+        # of buffers chould change, so retest.
         if len(ui.buffers) == 1:
-            if settings.get('quit_on_last_bclose'):
-                logging.info('closing the last buffer, exiting')
-                ui.apply_command(ExitCommand())
-            else:
-                logging.info('not closing last remaining buffer as '
-                             'global.quit_on_last_bclose is set to False')
+            one_buffer(prompt=False)
         else:
             ui.buffer_close(self.buffer, self.redraw)
 
