@@ -137,8 +137,8 @@ class UI(object):
                 self._unlock_callback()
         # otherwise interpret keybinding
         else:
-            # define callback that resets input queue
             def clear(*_):
+                """Callback that resets the input queue."""
                 if self._alarm is not None:
                     self.mainloop.remove_alarm(self._alarm)
                 self.input_queue = []
@@ -290,8 +290,8 @@ class UI(object):
         oldroot = self.mainloop.widget
 
         def select_or_cancel(text):
-            # restore main screen and invoke callback
-            # (delayed return) with given text
+            """Restore the main screen and invoce the callback (delayed return)
+            with the given text."""
             self.mainloop.widget = oldroot
             self._passall = False
             d.callback(text)
@@ -497,6 +497,8 @@ class UI(object):
         oldroot = self.mainloop.widget
 
         def select_or_cancel(text):
+            """Restore the main screen and invoce the callback (delayed return)
+            with the given text."""
             self.mainloop.widget = oldroot
             self._passall = False
             d.callback(text)
@@ -650,8 +652,8 @@ class UI(object):
         :type cmd: :class:`~alot.commands.Command`
         """
         if cmd:
-            # define (callback) function that invokes post-hook
             def call_posthook(_):
+                """Callback function that will invoke the post-hook."""
                 if cmd.posthook:
                     logging.info('calling post-hook')
                     return defer.maybeDeferred(cmd.posthook,
