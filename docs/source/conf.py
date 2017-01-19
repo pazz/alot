@@ -3,15 +3,6 @@
 
 import sys, os
 
-##################################
-# generate tables documenting config settings
-# and commands from inline docs
-sys.path.insert(0, os.path.abspath('.'))
-from .generate_commands import generate_command_tables
-generate_command_tables()
-from .generate_configs import generate_config_tables
-generate_config_tables()
-
 ###############################
 # readthedocs.org hack,
 # needed to use autodocs on their build-servers:
@@ -50,6 +41,15 @@ for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = MockModule()
 for mod_name in MOCK_DIRTY:
     sys.modules[mod_name] = Mock()
+
+##################################
+# generate tables documenting config settings
+# and commands from inline docs
+sys.path.insert(0, os.path.abspath('.'))
+from .generate_commands import generate_command_tables
+generate_command_tables()
+from .generate_configs import generate_config_tables
+generate_config_tables()
 
 # end of readthedocs.org hack
 ##############################
