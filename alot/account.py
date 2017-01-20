@@ -178,6 +178,7 @@ class Account(object):
 class SendmailAccount(Account):
     """:class:`Account` that pipes a message to a `sendmail` shell command for
     sending"""
+
     def __init__(self, cmd, **kwargs):
         """
         :param cmd: sendmail command to use for this account
@@ -187,13 +188,22 @@ class SendmailAccount(Account):
         self.cmd = cmd
 
     def send_mail(self, mail):
+        """Pipe the given mail to the configured sendmail command.  Display a
+        short message on success or a notification on error.
+        :param mail: the mail to send out
+        :type mail: str
+        :returns: the deferred that calls the sendmail command
+        :rtype: `twisted.internet.defer.Deferred`
+        """
         cmdlist = split_commandstring(self.cmd)
 
         def cb(out):
+            """The callback used on success."""
             logging.info('sent mail successfully')
             logging.info(out)
 
         def errb(failure):
+            """The callback used on error."""
             termobj = failure.value
             errmsg = '%s failed with code %s:\n%s' % \
                 (self.cmd, termobj.exitCode, str(failure.value))

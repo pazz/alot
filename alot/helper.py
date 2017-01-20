@@ -433,6 +433,20 @@ def libmagic_version_at_least(version):
 
 # TODO: make this work on blobs, not paths
 def mimewrap(path, filename=None, ctype=None):
+    """Take the contents of the given path and wrap them into an email MIME
+    part according to the content type.  The content type is auto detected from
+    the actual file contents and the file name if it is not given.
+
+    :param path: the path to the file contents
+    :type path: str
+    :param filename: the file name to use in the generated MIME part
+    :type filename: str or None
+    :param ctype: the content type of the file contents in path
+    :type ctype: str or None
+    :returns: the message MIME part storing the data from path
+    :rtype: subclasses of email.mime.base.MIMEBase
+    """
+
     with open(path, 'rb') as f:
         content = f.read()
     if not ctype:
@@ -470,6 +484,15 @@ def mimewrap(path, filename=None, ctype=None):
 
 
 def shell_quote(text):
+    """Escape the given text for passing it to the shell for interpretation.
+    The resulting string will be parsed into one "word" (in the sense used in
+    the shell documentation, see sh(1)) by the shell.
+
+    :param text: the text to quote
+    :type text: str
+    :returns: the quoted text
+    :rtype: str
+    """
     return "'%s'" % text.replace("'", """'"'"'""")
 
 
@@ -485,6 +508,15 @@ def tag_cmp(a, b):
 
 
 def humanize_size(size):
+    """Create a nice human readable representation of the given number
+    (understood as bytes) using the "K" and "M" suffixes to indicate kilo- and
+    megabytes.  They are understood to be 1024 based.
+
+    :param size: the number to convert
+    :type size: int
+    :returns: the human readable representation of size
+    :rtype: str
+    """
     for factor, format_string in ((1, '%i'),
                                   (1024, '%iK'),
                                   (1024 * 1024, '%.1fM')):

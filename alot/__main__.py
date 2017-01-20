@@ -16,6 +16,8 @@ from alot.commands import CommandParseError, COMMANDS
 
 
 def main():
+    """The main entry point to alot.  It parses the command line and prepares
+    for the user interface main loop to run."""
     # set up the parser to parse the command line options.
     parser = argparse.ArgumentParser()
     parser.add_argument('-v', '--version', action='version',
