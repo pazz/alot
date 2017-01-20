@@ -112,6 +112,19 @@ class UI(object):
         # start urwids mainloop
         self.mainloop.run()
 
+    def _error_handler(self, failure):
+        """Default handler for exceptions in callbacks."""
+        if failure.check(CommandParseError):
+            self.notify(failure.getErrorMessage(), priority='error')
+        elif failure.check(CommandCanceled):
+            self.notify("operation cancelled", priority='error')
+        else:
+            logging.error(failure.getTraceback())
+            errmsg = failure.getErrorMessage()
+            if errmsg:
+                msg = "{}\n(check the log for details)".format(errmsg)
+                self.notify(msg, priority='error')
+
     def _input_filter(self, keys, raw):
         """
         handles keypresses.
@@ -229,19 +242,8 @@ class UI(object):
         for cmdstring in split_commandline(cmdline):
             d.addCallback(apply_this_command, cmdstring)
 
-        # add sequence-wide error handler
-        def errorHandler(failure):
-            if failure.check(CommandParseError):
-                self.notify(failure.getErrorMessage(), priority='error')
-            elif failure.check(CommandCanceled):
-                self.notify("operation cancelled", priority='error')
-            else:
-                logging.error(failure.getTraceback())
-                errmsg = failure.getErrorMessage()
-                if errmsg:
-                    msg = "%s\n(check the log for details)"
-                    self.notify(msg % errmsg, priority='error')
-        d.addErrback(errorHandler)
+        d.addErrback(self._error_handler)
+
         return d
 
     @staticmethod
@@ -668,7 +670,7 @@ class UI(object):
             prehook = cmd.prehook or (lambda **kwargs: None)
             d = defer.maybeDeferred(prehook, ui=self, dbm=self.dbman, cmd=cmd)
             d.addCallback(call_apply)
-            d.addCallback(call_posthook)
+            d.addCallbacks(call_posthook, self._error_handler)
             return d
 
     def handle_signal(self, signum, frame):
