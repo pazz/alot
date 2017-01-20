@@ -64,8 +64,8 @@ Both respect the `ignorecase` option which defaults to `True` and results in cas
 
         .. code-block:: ini
 
-           command = "notmuch address --output=recipients date:1Y.. AND from:my@address.org"
-           regexp = (\"?(?P<name>.+)\"?)?\s*<(?P<email>.*@.+?)>
+           command = 'notmuch address --format=json --output=recipients date:1Y.. AND from:my@address.org'
+           regexp = '\[?{"name": "(?P<name>.*)", "address": "(?P<email>.+)", "name-addr": ".*"}[,\]]?'
            shellcommand_external_filtering = False
 
     Don't hesitate to send me your custom `regexp` values to list them here.
