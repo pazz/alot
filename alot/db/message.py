@@ -107,13 +107,10 @@ class Message(object):
         return self._thread_id
 
     def get_message_parts(self):
-        """returns a list of all body parts of this message"""
-        # TODO really needed? email  iterators can do this
-        out = []
+        """yield all body parts of this message"""
         for msg in self.get_email().walk():
             if not msg.is_multipart():
-                out.append(msg)
-        return out
+                yield msg
 
     def get_tags(self):
         """returns tags attached to this message as list of strings"""

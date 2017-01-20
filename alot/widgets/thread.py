@@ -240,13 +240,6 @@ class MessageTree(CollapsibleTree):
                 self._bodytree = TextlinesList(bodytxt, att, att_focus)
         return self._bodytree
 
-    def replace_bodytext(self, txt):
-        """display txt instead of current msg 'body'"""
-        if txt:
-            att = settings.get_theming_attribute('thread', 'body')
-            att_focus = settings.get_theming_attribute('thread', 'body_focus')
-            self._bodytree = TextlinesList(txt, att, att_focus)
-
     def _get_headers(self):
         if self.display_all_headers is True:
             if self._all_headers_tree is None:
