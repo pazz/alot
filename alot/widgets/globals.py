@@ -307,7 +307,7 @@ class TagWidget(urwid.AttrMap):
         return self.tag
 
     def set_focussed(self):
-        self.set_attr_map(self.attmap['focus'])
+        self.set_attr_map(self.attmaps['focus'])
 
     def set_unfocussed(self):
-        self.set_attr_map(self.attmap['normal'])
+        self.set_attr_map(self.attmaps['normal'])
