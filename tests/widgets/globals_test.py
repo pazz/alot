@@ -29,12 +29,11 @@ class TestTagWidget(unittest.TestCase):
 
     def test_sort(self):
         """Test sorting."""
-        from alot.helper import tag_cmp
         with mock.patch(
                 'alot.widgets.globals.settings.get_tagstring_representation',
                 lambda t, _, __: {'translated': t, 'normal': None,
                                   'focussed': None}):
             expected = ['a', 'z', 'aa', 'bar', 'foo']
-            base = [globals_.TagWidget(x) for x in expected]
-            actual = list(sorted(base, cmp=tag_cmp, key=lambda x: x.translated))
-            self.assertListEqual([g.translated for g in actual], expected)
+            actual = [g.translated for g in
+                      sorted(globals_.TagWidget(x) for x in expected)]
+            self.assertListEqual(actual, expected)

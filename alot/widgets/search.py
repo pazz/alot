@@ -10,7 +10,6 @@ import urwid
 
 from ..settings import settings
 from ..helper import shorten_author_string
-from ..helper import tag_cmp
 from .utils import AttrFlipWidget
 from .globals import TagWidget
 
@@ -116,10 +115,8 @@ class ThreadlineWidget(urwid.AttrMap):
             if self.thread:
                 fallback_normal = struct[name]['normal']
                 fallback_focus = struct[name]['focus']
-                tag_widgets = [TagWidget(t, fallback_normal, fallback_focus)
-                               for t in self.thread.get_tags()]
-                tag_widgets.sort(tag_cmp,
-                                 lambda tag_widget: tag_widget.translated)
+                tag_widgets = sorted(TagWidget(t, fallback_normal, fallback_focus)
+                                     for t in self.thread.get_tags())
             else:
                 tag_widgets = []
             cols = []

@@ -15,7 +15,6 @@ from .globals import AttachmentWidget
 from ..settings import settings
 from ..db.utils import decode_header, X_SIGNATURE_MESSAGE_HEADER
 from ..db.utils import extract_body
-from ..helper import tag_cmp
 
 
 class MessageSummaryWidget(urwid.WidgetWrap):
@@ -47,12 +46,11 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         if settings.get('msg_summary_hides_threadwide_tags'):
             thread_tags = message.get_thread().get_tags(intersection=True)
             outstanding_tags = set(message.get_tags()).difference(thread_tags)
-            tag_widgets = [TagWidget(t, attr, focus_att)
-                           for t in outstanding_tags]
+            tag_widgets = sorted(TagWidget(t, attr, focus_att)
+                                 for t in outstanding_tags)
         else:
-            tag_widgets = [TagWidget(t, attr, focus_att)
-                           for t in message.get_tags()]
-        tag_widgets.sort(tag_cmp, lambda tag_widget: tag_widget.translated)
+            tag_widgets = sorted(TagWidget(t, attr, focus_att)
+                                 for t in message.get_tags())
         for tag_widget in tag_widgets:
             if not tag_widget.hidden:
                 cols.append(('fixed', tag_widget.width(), tag_widget))

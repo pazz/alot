@@ -498,17 +498,6 @@ def shell_quote(text):
     return "'%s'" % text.replace("'", """'"'"'""")
 
 
-def tag_cmp(a, b):
-    r'''
-    Sorting tags using this function puts all tags of length 1 at the
-    beginning. This groups all tags mapped to unicode characters.
-    '''
-    if min(len(a), len(b)) == 1 and max(len(a), len(b)) > 1:
-        return cmp(len(a), len(b))
-    else:
-        return cmp(a.lower(), b.lower())
-
-
 def humanize_size(size):
     """Create a nice human readable representation of the given number
     (understood as bytes) using the "K" and "M" suffixes to indicate kilo- and
