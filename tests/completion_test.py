@@ -13,31 +13,33 @@ import mock
 from alot import completion
 
 
-class AbooksCompleterTest(unittest.TestCase):
+def _mock_lookup(query):
+    """Look up the query from fixed list of names and email addresses."""
+    abook = [
+        ("", "no-real-name@example.com"),
+        ("foo", "foo@example.com"),
+        ("comma, person", "comma@example.com"),
+        ("single 'quote' person", "squote@example.com"),
+        ('double "quote" person', "dquote@example.com"),
+        ("""all 'fanzy' "stuff" at, once""", "all@example.com")
+    ]
+    results = []
+    for name, email in abook:
+        if query in name or query in email:
+            results.append((name, email))
+    return results
 
-    @staticmethod
-    def _mock_lookup(query):
-        """Look up the query from fixed list of names and email addresses."""
-        abook = [
-            ("", "no-real-name@example.com"),
-            ("foo", "foo@example.com"),
-            ("comma, person", "comma@example.com"),
-            ("single 'quote' person", "squote@example.com"),
-            ('double "quote" person', "dquote@example.com"),
-            ("""all 'fanzy' "stuff" at, once""", "all@example.com")
-        ]
-        results = []
-        for name, email in abook:
-            if query in name or query in email:
-                results.append((name, email))
-        return results
+
+class AbooksCompleterTest(unittest.TestCase):
+    """Tests for the address book completion class."""
 
     @classmethod
     def setUpClass(cls):
         abook = mock.Mock()
-        abook.lookup = cls._mock_lookup
+        abook.lookup = _mock_lookup
         cls.empty_abook_completer = completion.AbooksCompleter([])
         cls.example_abook_completer = completion.AbooksCompleter([abook])
+
     def test_empty_address_book_returns_empty_list(self):
         actual = self.__class__.empty_abook_completer.complete('real-name', 9)
         expected = []
@@ -49,6 +51,7 @@ class AbooksCompleterTest(unittest.TestCase):
         self.assertEqual(len(actual), 1)
         self.assertEqual(len(expected), 1)
         self.assertTupleEqual(actual[0], expected[0])
+
     def test_empty_real_name_returns_plain_email_address(self):
         actual = self.__class__.example_abook_completer.complete("real-name", 9)
         expected = [("no-real-name@example.com", 24)]
