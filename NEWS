@@ -1,7 +1,10 @@
 next release:
 * save command prompt, recipient and sender history across program restarts
-* Allow scrolling with the mouse scroll wheel
+* Allow scrolling with the mouse scroll wheel (with corresponding option)
 * Prompt for unsent messages before closing
+* enable variable interpolation in config file
+* Add encryption to CC addresses
+* Add bufferlist, tablist and pyshell subcommands to the command line interface
 
 0.4:
 * signal: refresh current buffer on SIGUSR1
