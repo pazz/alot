@@ -5,6 +5,8 @@
 """
 Widgets specific to Bufferlist mode
 """
+from __future__ import absolute_import
+
 import urwid
 
 

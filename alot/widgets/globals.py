@@ -5,6 +5,8 @@
 """
 This contains alot-specific :class:`urwid.Widget` used in more than one mode.
 """
+from __future__ import absolute_import
+
 import re
 import operator
 import urwid
