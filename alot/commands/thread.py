@@ -231,7 +231,20 @@ class ReplyCommand(Command):
                         my_addresses, mail.get_all('Cc', []))
                     envelope.add('Cc', decode_header(', '.join(cc)))
 
-        to = ', '.join(recipients)
+        def ensure_unique_address(recipients):
+            """
+            clean up a list of name,address pairs so that
+            no address appears multiple times.
+            """
+            res = dict()
+            for name, address in getaddresses(recipients):
+                res[address] = name
+            urecipients = ['"{}" <{}>'.format(n, a) if n != ''
+                           else a
+                           for a, n in res.iteritems()]
+            return sorted(urecipients)
+
+        to = ', '.join(ensure_unique_address(recipients))
         logging.debug('reply to: %s', to)
 
         if self.listreply:
@@ -295,7 +308,7 @@ class ReplyCommand(Command):
                     new_value.append('"%s" <%s>' % (name, address))
                 else:
                     new_value.append(address)
-        return ', '.join(new_value)
+        return new_value
 
 
 @registerCommand(MODE, 'forward', arguments=[
