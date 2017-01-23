@@ -204,7 +204,7 @@ class ReplyCommand(Command):
                 % recipients
             logging.debug(emsg)
         else:
-            recipients = [sender]
+            recipients = self.clear_my_address([], [sender])
 
         if self.groupreply:
             # make sure that our own address is not included
@@ -212,8 +212,8 @@ class ReplyCommand(Command):
             MFT = mail.get_all('Mail-Followup-To', [])
             followupto = self.clear_my_address(my_addresses, MFT)
             if followupto and settings.get('honor_followup_to'):
-                logging.debug('honor followup to: %s', followupto)
-                recipients = [followupto]
+                logging.debug('honor followup to: %s', ', '.join(followupto))
+                recipients = followupto
                 # since Mail-Followup-To was set, ignore the Cc header
             else:
                 if sender != mail['From']:
@@ -223,15 +223,28 @@ class ReplyCommand(Command):
                 if sender_address not in my_addresses:
                     cleared = self.clear_my_address(
                         my_addresses, mail.get_all('To', []))
-                    recipients.append(cleared)
+                    recipients.extend(cleared)
 
                 # copy cc for group-replies
                 if 'Cc' in mail:
                     cc = self.clear_my_address(
                         my_addresses, mail.get_all('Cc', []))
-                    envelope.add('Cc', decode_header(cc))
+                    envelope.add('Cc', decode_header(', '.join(cc)))
 
-        to = ', '.join(recipients)
+        def ensure_unique_address(recipients):
+            """
+            clean up a list of name,address pairs so that
+            no address appears multiple times.
+            """
+            res = dict()
+            for name, address in getaddresses(recipients):
+                res[address] = name
+            urecipients = ['"{}" <{}>'.format(n, a) if n != ''
+                           else a
+                           for a, n in res.iteritems()]
+            return sorted(urecipients)
+
+        to = ', '.join(ensure_unique_address(recipients))
         logging.debug('reply to: %s', to)
 
         if self.listreply:
@@ -295,7 +308,7 @@ class ReplyCommand(Command):
                     new_value.append('"%s" <%s>' % (name, address))
                 else:
                     new_value.append(address)
-        return ', '.join(new_value)
+        return new_value
 
 
 @registerCommand(MODE, 'forward', arguments=[
