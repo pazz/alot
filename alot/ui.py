@@ -659,7 +659,7 @@ class UI(object):
             def call_posthook(_):
                 """Callback function that will invoke the post-hook."""
                 if cmd.posthook:
-                    logging.info('calling post-hook')
+                    logging.info('calling post hook for "%s"', cmd.id)
                     return defer.maybeDeferred(cmd.posthook,
                                                ui=self,
                                                dbm=self.dbman,
@@ -669,7 +669,11 @@ class UI(object):
             def call_apply(_):
                 return defer.maybeDeferred(cmd.apply, self)
 
-            prehook = cmd.prehook or (lambda **kwargs: None)
+            if cmd.prehook:
+                logging.info('calling pre hook for "%s"', cmd.id)
+                prehook = cmd.prehook
+            else:
+                prehook = lambda **kwargs: None
             d = defer.maybeDeferred(prehook, ui=self, dbm=self.dbman, cmd=cmd)
             d.addCallback(call_apply)
             d.addCallbacks(call_posthook, self._error_handler)

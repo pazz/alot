@@ -631,3 +631,29 @@ def email_as_string(mail):
                            as_string, flags=re.MULTILINE)
 
     return as_string
+
+
+class classproperty(object):
+    """Decorator to emulate 'class properties' using class level methods.
+
+    The decorator is applied to a method to make it a class property. E.g.
+
+    .. code-block
+
+        class Foo(object):
+
+            _some_property = 0.5
+
+            @classproperty
+            def some_property(cls):
+                return cls._some_proprerty
+    """
+
+    def __init__(self, func):
+        """Store method to be used to return property value."""
+        self.__func__ = func
+
+    def __get__(self, instance, cls):
+        """Return value of property."""
+        return self.__func__(cls)
+
