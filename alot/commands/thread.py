@@ -287,7 +287,16 @@ class ReplyCommand(Command):
 
     @staticmethod
     def clear_my_address(my_addresses, value):
-        """return recipient header without the addresses in my_addresses"""
+        """return recipient header without the addresses in my_addresses
+
+        :param my_addresses: a list of my email addresses (no real name part)
+        :type my_addresses: list(str)
+        :param value: a list of recipient or sender strings (with or without
+            real names as taken from email headers)
+        :type value: list(str)
+        :returns: a new, potentially shortend list
+        :rtype: list(str)
+        """
         new_value = []
         for name, address in getaddresses(value):
             if address not in my_addresses:
