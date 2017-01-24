@@ -5,6 +5,7 @@ from __future__ import absolute_import
 
 import abc
 import argparse
+import email.utils
 import glob
 import logging
 import os
@@ -227,14 +228,11 @@ class AbooksCompleter(Completer):
             except AddressbookError as e:
                 raise CompletionError(e)
         if self.addressesonly:
-            returnlist = [(email, len(email)) for (name, email) in res]
+            returnlist = [(addr, len(addr)) for (name, addr) in res]
         else:
             returnlist = []
-            for name, email in res:
-                if name:
-                    newtext = "%s <%s>" % (name, email)
-                else:
-                    newtext = email
+            for name, addr in res:
+                newtext = email.utils.formataddr((name, addr))
                 returnlist.append((newtext, len(newtext)))
         return returnlist
 
@@ -278,7 +276,8 @@ class AccountCompleter(StringlistCompleter):
 
     def __init__(self, **kwargs):
         accounts = settings.get_accounts()
-        resultlist = ["%s <%s>" % (a.realname, a.address) for a in accounts]
+        resultlist = [email.utils.formataddr((a.realname, a.address))
+                      for a in accounts]
         StringlistCompleter.__init__(self, resultlist, match_anywhere=True,
                                      **kwargs)
 
