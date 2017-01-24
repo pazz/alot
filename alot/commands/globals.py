@@ -6,6 +6,7 @@ from __future__ import absolute_import
 import argparse
 import code
 import email
+import email.utils
 import glob
 import logging
 import os
@@ -805,7 +806,7 @@ class ComposeCommand(Command):
             accounts = settings.get_accounts()
             if len(accounts) == 1:
                 a = accounts[0]
-                fromstring = "%s <%s>" % (a.realname, a.address)
+                fromstring = email.utils.formataddr((a.realname, a.address))
                 self.envelope.add('From', fromstring)
             else:
                 cmpl = AccountCompleter()
