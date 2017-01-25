@@ -14,15 +14,11 @@ from ..account import SendmailAccount
 from ..addressbook.abook import AbookAddressBook
 from ..addressbook.external import ExternalAddressbook
 from ..helper import pretty_datetime, string_decode
+from ..utils import configobj as checks
 
 from .errors import ConfigError
 from .utils import read_config
 from .utils import resolve_att
-from .checks import force_list
-from .checks import mail_container
-from .checks import gpg_key
-from .checks import attr_triple
-from .checks import align_mode
 from .theme import Theme
 
 
@@ -60,12 +56,13 @@ class SettingsManager(object):
     def read_config(self, path):
         """parse alot's config file from path"""
         spec = os.path.join(DEFAULTSPATH, 'alot.rc.spec')
-        newconfig = read_config(path, spec,
-                                checks={'mail_container': mail_container,
-                                        'force_list': force_list,
-                                        'align': align_mode,
-                                        'attrtriple': attr_triple,
-                                        'gpg_key_hint': gpg_key})
+        newconfig = read_config(
+            path, spec, checks={
+                'mail_container': checks.mail_container,
+                'force_list': checks.force_list,
+                'align': checks.align_mode,
+                'attrtriple': checks.attr_triple,
+                'gpg_key_hint': checks.gpg_key})
         self._config.merge(newconfig)
 
         hooks_path = os.path.expanduser(self._config.get('hooksfile'))

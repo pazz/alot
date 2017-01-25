@@ -3,7 +3,7 @@ from __future__ import absolute_import
 
 import unittest
 
-from alot.settings import checks
+from alot.utils import configobj as checks
 
 
 class TestForceList(unittest.TestCase):
