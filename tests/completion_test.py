@@ -62,26 +62,22 @@ class AbooksCompleterTest(unittest.TestCase):
         expected = [("foo <foo@example.com>", 21)]
         self.assertListEqual(actual, expected)
 
-    @unittest.expectedFailure
     def test_real_name_with_comma(self):
         actual = self.__class__.example_abook_completer.complete("comma", 5)
-        expected = [('"comma, person" <comma@example.com>', 32)]
+        expected = [('"comma, person" <comma@example.com>', 35)]
         self.assertListEqual(actual, expected)
 
-    @unittest.expectedFailure
     def test_real_name_with_single_quotes(self):
         actual = self.__class__.example_abook_completer.complete("squote", 6)
-        expected = [(""""single 'quote' person" <squote@example.com>""", 47)]
+        expected = [("single 'quote' person <squote@example.com>", 42)]
         self._assert_only_one_list_entry(actual, expected)
 
-    @unittest.expectedFailure
     def test_real_name_double_quotes(self):
         actual = self.__class__.example_abook_completer.complete("dquote", 6)
         expected = [("", 0)]
-        expected = [(""""double 'quote' person" <dquote@example.com>""", 47)]
+        expected = [(r""""double \"quote\" person" <dquote@example.com>""", 46)]
         self._assert_only_one_list_entry(actual, expected)
 
-    @unittest.expectedFailure
     def test_real_name_with_quotes_and_comma(self):
         actual = self.__class__.example_abook_completer.complete("all", 3)
         expected = [(r""""all 'fanzy' \"stuff\" at, once" <all@example.com>""",
