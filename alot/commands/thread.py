@@ -137,7 +137,7 @@ class ReplyCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        # get message to forward if not given in constructor
+        # get message to reply to if not given in constructor
         if not self.message:
             self.message = ui.current_buffer.get_selected_message()
         mail = self.message.get_email()
@@ -195,7 +195,7 @@ class ReplyCommand(Command):
         sender = mail['Reply-To'] or mail['From']
         my_addresses = settings.get_addresses()
         sender_address = parseaddr(sender)[1]
-        cc = ''
+        cc = []
 
         # check if reply is to self sent message
         if sender_address in my_addresses:
@@ -256,7 +256,7 @@ class ReplyCommand(Command):
         # set Mail-Followup-To header so that duplicates are avoided
         if settings.get('followup_to'):
             # to and cc are already cleared of our own address
-            allrecipients = [to] + [cc]
+            allrecipients = [to] + cc
             lists = settings.get('mailinglists')
             # check if any recipient address matches a known mailing list
             if any(addr in lists for n, addr in getaddresses(allrecipients)):
