@@ -205,3 +205,10 @@ Apart from command pre- and posthooks, the following hooks will be interpreted:
     :type suffix: str
     :returns: tuple of `prefix` and `suffix`
     :rtype: (str, str)
+
+.. py:function:: loop_hook(ui=None)
+
+    Run on a period controlled by :ref:`_periodic_hook_frequency <periodic-hook-frequency>`
+
+    :param ui: the main user interface
+    :type ui: :class:`alot.ui.UI`

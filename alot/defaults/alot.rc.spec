@@ -248,6 +248,9 @@ reply_account_header_priority = force_list(default=list(From,To,Cc,Envelope-To,X
 #           history file might get *very* long.
 history_size = integer(default=50)
 
+# The number of seconds to wait between calls to the loop_hook
+periodic_hook_frequency = integer(default=300)
+
 # Key bindings
 [bindings]
     __many__ = string(default=None)

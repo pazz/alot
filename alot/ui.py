@@ -7,7 +7,7 @@ import logging
 import os
 import signal
 
-from twisted.internet import reactor, defer
+from twisted.internet import reactor, defer, task
 import urwid
 
 from .settings import settings
@@ -102,6 +102,15 @@ class UI(object):
                                        event_loop=urwid.TwistedEventLoop(),
                                        unhandled_input=self._unhandled_input,
                                        input_filter=self._input_filter)
+
+        # Create a defered that calls the loop_hook
+        loop_hook = settings.get_hook('loop_hook')
+        if loop_hook:
+            loop = task.LoopingCall(loop_hook, ui=self)
+            loop_defered = loop.start(settings.get('periodic_hook_frequency'))
+            loop_defered.addErrback(
+                lambda e: logging.error('error in loop hook %s',
+                                        e.getErrorMessage()))
 
         # set up colours
         colourmode = int(settings.get('colourmode'))

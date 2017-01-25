@@ -385,6 +385,16 @@
     :default: 2
 
 
+.. _periodic-hook-frequency:
+
+.. describe:: periodic_hook_frequency
+
+     The number of seconds to wait between calls to the loop_hook
+
+    :type: integer
+    :default: 300
+
+
 .. _prefer-plaintext:
 
 .. describe:: prefer_plaintext
