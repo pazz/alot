@@ -10,7 +10,7 @@ import os
 import re
 import subprocess
 import tempfile
-from email.utils import getaddresses, parseaddr
+from email.utils import getaddresses, parseaddr, formataddr
 from email.message import Message
 
 from twisted.internet.defer import inlineCallbacks
@@ -102,7 +102,7 @@ def determine_sender(mail, action='reply'):
     logging.debug('using realname: "%s"', realname)
     logging.debug('using address: %s', address)
 
-    from_value = address if realname == '' else '%s <%s>' % (realname, address)
+    from_value = formataddr((realname, address))
     return from_value, account
 
 
@@ -287,14 +287,20 @@ class ReplyCommand(Command):
 
     @staticmethod
     def clear_my_address(my_addresses, value):
-        """return recipient header without the addresses in my_addresses"""
+        """return recipient header without the addresses in my_addresses
+
+        :param my_addresses: a list of my email addresses (no real name part)
+        :type my_addresses: list(str)
+        :param value: a list of recipient or sender strings (with or without
+            real names as taken from email headers)
+        :type value: list(str)
+        :returns: a new, potentially shortend list
+        :rtype: list(str)
+        """
         new_value = []
         for name, address in getaddresses(value):
             if address not in my_addresses:
-                if name != '':
-                    new_value.append('"%s" <%s>' % (name, address))
-                else:
-                    new_value.append(address)
+                new_value.append(formataddr((name, address)))
         return new_value
 
     @staticmethod
@@ -306,9 +312,7 @@ class ReplyCommand(Command):
         res = dict()
         for name, address in getaddresses(recipients):
             res[address] = name
-        urecipients = ['"{}" <{}>'.format(n, a) if n != ''
-                       else a
-                       for a, n in res.iteritems()]
+        urecipients = [formataddr((n, a)) for a, n in res.iteritems()]
         return sorted(urecipients)
 
 
