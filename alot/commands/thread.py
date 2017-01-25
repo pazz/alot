@@ -137,7 +137,7 @@ class ReplyCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        # get message to forward if not given in constructor
+        # get message to reply to if not given in constructor
         if not self.message:
             self.message = ui.current_buffer.get_selected_message()
         mail = self.message.get_email()
