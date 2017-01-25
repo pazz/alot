@@ -195,7 +195,7 @@ class ReplyCommand(Command):
         sender = mail['Reply-To'] or mail['From']
         my_addresses = settings.get_addresses()
         sender_address = parseaddr(sender)[1]
-        cc = ''
+        cc = []
 
         # check if reply is to self sent message
         if sender_address in my_addresses:
@@ -256,7 +256,7 @@ class ReplyCommand(Command):
         # set Mail-Followup-To header so that duplicates are avoided
         if settings.get('followup_to'):
             # to and cc are already cleared of our own address
-            allrecipients = [to] + [cc]
+            allrecipients = [to] + cc
             lists = settings.get('mailinglists')
             # check if any recipient address matches a known mailing list
             if any(addr in lists for n, addr in getaddresses(allrecipients)):
