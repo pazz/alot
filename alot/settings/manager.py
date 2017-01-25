@@ -311,8 +311,7 @@ class SettingsManager(object):
     def get_hook(self, key):
         """return hook (`callable`) identified by `key`"""
         if self.hooks:
-            if key in self.hooks.__dict__:
-                return self.hooks.__dict__[key]
+            return getattr(self.hooks, key, None)
         return None
 
     def get_mapped_input_keysequences(self, mode='global', prefix=u''):
