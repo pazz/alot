@@ -7,7 +7,7 @@ from alot.commands import *
 from alot.commands import COMMANDS
 import alot.buffers
 from argparse import HelpFormatter, SUPPRESS, OPTIONAL, ZERO_OR_MORE, ONE_OR_MORE, PARSER, REMAINDER
-from alot.utils.booleanaction import BooleanAction
+from alot.utils.argparse import BooleanAction
 from gettext import gettext as _
 import collections as _collections
 import copy as _copy

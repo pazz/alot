@@ -35,7 +35,7 @@ from ..settings import settings
 from ..helper import parse_mailcap_nametemplate
 from ..helper import split_commandstring
 from ..helper import email_as_string
-from ..utils.booleanaction import BooleanAction
+from ..utils import argparse as cargparse
 from ..widgets.globals import AttachmentWidget
 
 MODE = 'thread'
@@ -108,9 +108,9 @@ def determine_sender(mail, action='reply'):
 
 @registerCommand(MODE, 'reply', arguments=[
     (['--all'], {'action': 'store_true', 'help': 'reply to all'}),
-    (['--list'], {'action': BooleanAction, 'default': None,
+    (['--list'], {'action': cargparse.BooleanAction, 'default': None,
                   'dest': 'listreply', 'help': 'reply to list'}),
-    (['--spawn'], {'action': BooleanAction, 'default': None,
+    (['--spawn'], {'action': cargparse.BooleanAction, 'default': None,
                    'help': 'open editor in new window'})])
 class ReplyCommand(Command):
 
@@ -313,7 +313,7 @@ class ReplyCommand(Command):
 
 @registerCommand(MODE, 'forward', arguments=[
     (['--attach'], {'action': 'store_true', 'help': 'attach original mail'}),
-    (['--spawn'], {'action': BooleanAction, 'default': None,
+    (['--spawn'], {'action': cargparse.BooleanAction, 'default': None,
                    'help': 'open editor in new window'})])
 class ForwardCommand(Command):
 
@@ -465,7 +465,7 @@ class BounceMailCommand(Command):
 
 
 @registerCommand(MODE, 'editnew', arguments=[
-    (['--spawn'], {'action': BooleanAction, 'default': None,
+    (['--spawn'], {'action': cargparse.BooleanAction, 'default': None,
                    'help': 'open editor in new window'})])
 class EditNewCommand(Command):
 

@@ -33,7 +33,7 @@ from ..widgets.utils import DialogBox
 from ..db.errors import DatabaseLockedError
 from ..db.envelope import Envelope
 from ..settings import settings
-from ..utils.booleanaction import BooleanAction
+from ..utils import argparse as cargparse
 
 MODE = 'global'
 
@@ -172,11 +172,11 @@ class RefreshCommand(Command):
 
 @registerCommand(
     MODE, 'shellescape', arguments=[
-        (['--spawn'], {'action': BooleanAction, 'default': None,
+        (['--spawn'], {'action': cargparse.BooleanAction, 'default': None,
                        'help': 'run in terminal window'}),
-        (['--thread'], {'action': BooleanAction, 'default': None,
+        (['--thread'], {'action': cargparse.BooleanAction, 'default': None,
                         'help': 'run in separate thread'}),
-        (['--refocus'], {'action': BooleanAction,
+        (['--refocus'], {'action': cargparse.BooleanAction,
                          'help': 'refocus current buffer after command '
                                  'has finished'}),
         (['cmd'], {'help': 'command line to execute'})],
@@ -403,7 +403,7 @@ class CallCommand(Command):
 
 @registerCommand(MODE, 'bclose', arguments=[
     (['--redraw'],
-     {'action': BooleanAction,
+     {'action': cargparse.BooleanAction,
       'help': 'redraw current buffer after command has finished'}),
     (['--force'],
      {'action': 'store_true', 'help': 'never ask for confirmation'})])
@@ -685,7 +685,7 @@ class HelpCommand(Command):
     (['--attach'], {'nargs': '+', 'help': 'attach files'}),
     (['--omit_signature'], {'action': 'store_true',
                             'help': 'do not add signature'}),
-    (['--spawn'], {'action': BooleanAction, 'default': None,
+    (['--spawn'], {'action': cargparse.BooleanAction, 'default': None,
                    'help': 'spawn editor in new terminal'}),
     (['rest'], {'nargs': '*'}),
 ])

@@ -26,7 +26,7 @@ from ..errors import GPGProblem
 from ..helper import email_as_string
 from ..helper import string_decode
 from ..settings import settings
-from ..utils.booleanaction import BooleanAction
+from ..utils import argparse as cargparse
 
 
 MODE = 'envelope'
@@ -283,9 +283,9 @@ class SendCommand(Command):
 
 
 @registerCommand(MODE, 'edit', arguments=[
-    (['--spawn'], {'action': BooleanAction, 'default': None,
+    (['--spawn'], {'action': cargparse.BooleanAction, 'default': None,
                    'help': 'spawn editor in new terminal'}),
-    (['--refocus'], {'action': BooleanAction, 'default': True,
+    (['--refocus'], {'action': cargparse.BooleanAction, 'default': True,
                      'help': 'refocus envelope after editing'})])
 class EditCommand(Command):
     """edit mail"""
