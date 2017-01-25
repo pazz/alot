@@ -1,5 +1,6 @@
 # encoding=utf-8
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
+# Copyright © 2017 Dylan Baker
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,28 +20,28 @@
 from __future__ import absolute_import
 
 import argparse
+import itertools
 
 
-TRUEISH = ['true', 'yes', 'on', '1', 't', 'y']
-FALSISH = ['false', 'no', 'off', '0', 'f', 'n']
+_TRUEISH = ['true', 'yes', 'on', '1', 't', 'y']
+_FALSISH = ['false', 'no', 'off', '0', 'f', 'n']
 
 
-def boolean(string):
+def _boolean(string):
     string = string.lower()
-    if string in FALSISH:
+    if string in _FALSISH:
         return False
-    elif string in TRUEISH:
+    elif string in _TRUEISH:
         return True
     else:
-        raise ValueError()
+        raise ValueError('Option must be one of: {}'.format(
+            ', '.join(itertools.chain(iter(_TRUEISH), iter(_FALSISH)))))
 
 
 class BooleanAction(argparse.Action):
-    """
-    argparse action that can be used to store boolean values
-    """
+    """Argparse action that can be used to store boolean values."""
     def __init__(self, *args, **kwargs):
-        kwargs['type'] = boolean
+        kwargs['type'] = _boolean
         kwargs['metavar'] = 'BOOL'
         argparse.Action.__init__(self, *args, **kwargs)
 
