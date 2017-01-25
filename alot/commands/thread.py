@@ -231,7 +231,7 @@ class ReplyCommand(Command):
                         my_addresses, mail.get_all('Cc', []))
                     envelope.add('Cc', decode_header(', '.join(cc)))
 
-        to = ', '.join(ensure_unique_address(recipients))
+        to = ', '.join(self.ensure_unique_address(recipients))
         logging.debug('reply to: %s', to)
 
         if self.listreply:
