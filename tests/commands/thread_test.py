@@ -13,10 +13,10 @@ from alot.commands import thread
 
 class Test_ensure_unique_address(unittest.TestCase):
 
-    foo = '"foo" <foo@example.com>'
-    foo2 = '"foo the fanzy" <foo@example.com>'
-    bar = '"bar" <bar@example.com>'
-    baz = '"baz" <baz@example.com>'
+    foo = 'foo <foo@example.com>'
+    foo2 = 'foo the fanzy <foo@example.com>'
+    bar = 'bar <bar@example.com>'
+    baz = 'baz <baz@example.com>'
 
     def test_unique_lists_are_unchanged(self):
         expected = sorted([self.foo, self.bar])
