@@ -2,8 +2,8 @@
 
 Hooks
 =====
-Hooks are python callables that live in a module specified by `hooksfile` in the
-config. Per default this points to :file:`~/.config/alot/hooks.py`.
+Hooks are python callables that live in a module specified by `hooksfile` in
+the config. Per default this points to :file:`~/.config/alot/hooks.py`.
 
 .. rubric:: Pre/Post Command Hooks
 
@@ -24,7 +24,8 @@ looks like this:
     :param cmd: the Command instance that is being called
     :type cmd: :class:`alot.commands.Command`
 
-Consider this pre-hook for the exit command, that logs a personalized goodbye message::
+Consider this pre-hook for the exit command, that logs a personalized goodbye
+message::
 
     import logging
     from alot.settings import settings
@@ -42,7 +43,8 @@ Apart from command pre- and posthooks, the following hooks will be interpreted:
 .. py:function:: reply_prefix(realname, address, timestamp[, ui= None, dbm=None])
 
     Is used to reformat the first indented line in a reply message.
-    This defaults to 'Quoting %s (%s)\n' % (realname, timestamp)' unless this hook is defined
+    This defaults to 'Quoting %s (%s)\n' % (realname, timestamp)' unless this
+    hook is defined
 
     :param realname: name or the original sender
     :type realname: str
@@ -55,7 +57,8 @@ Apart from command pre- and posthooks, the following hooks will be interpreted:
 .. py:function:: forward_prefix(realname, address, timestamp[, ui= None, dbm=None])
 
     Is used to reformat the first indented line in a inline forwarded message.
-    This defaults to 'Forwarded message from %s (%s)\n' % (realname, timestamp)' if this hook is undefined
+    This defaults to 'Forwarded message from %s (%s)\n' % (realname,
+    timestamp)' if this hook is undefined
 
     :param realname: name or the original sender
     :type realname: str
@@ -65,20 +68,28 @@ Apart from command pre- and posthooks, the following hooks will be interpreted:
     :type timestamp: :obj:`datetime.datetime`
     :rtype: string
 
-.. py:function:: pre_edit_translate(bodytext[, ui= None, dbm=None])
+.. _pre-edit-translate:
 
-    used to manipulate a messages bodytext *before* the editor is called.
+.. py:function:: pre_edit_translate(text[, ui= None, dbm=None])
 
-    :param bodytext: text representation of mail body as displayed in the interface and as sent to the editor
-    :type bodytext: str
+    Used to manipulate a message's text *before* the editor is called.  The
+    text might also contain some header lines, depending on the settings
+    :ref:`edit_headers_whitelist <edit-headers-whitelist>` and
+    :ref:`edit_header_blacklist <edit-headers-blacklist>`.
+
+    :param text: text representation of mail as displayed in the interface and
+                 as sent to the editor
+    :type text: str
     :rtype: str
 
-.. py:function:: post_edit_translate(bodytext[, ui= None, dbm=None])
+.. py:function:: post_edit_translate(text[, ui= None, dbm=None])
 
-    used to manipulate a messages bodytext *after* the editor is called
+    used to manipulate a message's text *after* the editor is called, also see
+    :ref:`pre_edit_translate <pre-edit-translate>`
 
-    :param bodytext: text representation of mail body as displayed in the interface and as sent to the editor
-    :type bodytext: str
+    :param text: text representation of mail as displayed in the interface and
+                 as sent to the editor
+    :type text: str
     :rtype: str
 
 .. py:function:: text_quote(message)
@@ -93,7 +104,7 @@ Apart from command pre- and posthooks, the following hooks will be interpreted:
 
     represents given timestamp as string
 
-    :param bodytext: timestamp to represent
+    :param timestamp: timestamp to represent
     :type timestamp: `datetime`
     :rtype: str
 
