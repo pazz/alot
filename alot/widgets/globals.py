@@ -326,7 +326,8 @@ class TagWidget(urwid.AttrMap):
 
         self_len = len(self.translated)
         oth_len = len(other.translated)
-        if min(self_len, oth_len) == 1 and max(self_len, oth_len) > 1:
+
+        if (self_len == 1) is not (oth_len == 1):
             return self_len < oth_len
         return self.translated.lower() < other.translated.lower()
 
