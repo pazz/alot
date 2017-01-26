@@ -5,6 +5,7 @@ next release:
 * enable variable interpolation in config file
 * Add encryption to CC addresses
 * Add bufferlist, tablist and pyshell subcommands to the command line interface
+* Add hook that runs periodically.
 
 0.4:
 * signal: refresh current buffer on SIGUSR1
