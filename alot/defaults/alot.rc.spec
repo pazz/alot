@@ -36,7 +36,7 @@ themes_dir = string(default=None)
 theme = string(default=None)
 
 # enable mouse support - mouse tracking will be handled by urwid
-handle_mouse = boolean(default=True)
+handle_mouse = boolean(default=False)
 
 # headers that get displayed by default
 displayed_headers = force_list(default=list(From,To,Cc,Bcc,Subject))
