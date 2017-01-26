@@ -68,9 +68,14 @@ Apart from command pre- and posthooks, the following hooks will be interpreted:
     :type timestamp: :obj:`datetime.datetime`
     :rtype: string
 
+.. _pre-edit-translate:
+
 .. py:function:: pre_edit_translate(bodytext[, ui= None, dbm=None])
 
-    used to manipulate a messages bodytext *before* the editor is called.
+    Used to manipulate a messages bodytext *before* the editor is called.  The
+    bodytext might also contain some header lines, depending on the settings
+    :ref:`edit_headers_whitelist <edit-headers-whitelist>` and
+    :ref:`edit_header_blacklist <edit-headers-blacklist>`.
 
     :param bodytext: text representation of mail body as displayed in the
                      interface and as sent to the editor
@@ -79,7 +84,8 @@ Apart from command pre- and posthooks, the following hooks will be interpreted:
 
 .. py:function:: post_edit_translate(bodytext[, ui= None, dbm=None])
 
-    used to manipulate a messages bodytext *after* the editor is called
+    used to manipulate a messages bodytext *after* the editor is called, also
+    see :ref:`pre_edit_translate <pre-edit-translate>`
 
     :param bodytext: text representation of mail body as displayed in the
                      interface and as sent to the editor
