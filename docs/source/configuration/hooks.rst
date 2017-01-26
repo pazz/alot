@@ -2,8 +2,8 @@
 
 Hooks
 =====
-Hooks are python callables that live in a module specified by `hooksfile` in the
-config. Per default this points to :file:`~/.config/alot/hooks.py`.
+Hooks are python callables that live in a module specified by `hooksfile` in
+the config. Per default this points to :file:`~/.config/alot/hooks.py`.
 
 .. rubric:: Pre/Post Command Hooks
 
@@ -24,7 +24,8 @@ looks like this:
     :param cmd: the Command instance that is being called
     :type cmd: :class:`alot.commands.Command`
 
-Consider this pre-hook for the exit command, that logs a personalized goodbye message::
+Consider this pre-hook for the exit command, that logs a personalized goodbye
+message::
 
     import logging
     from alot.settings import settings
@@ -42,7 +43,8 @@ Apart from command pre- and posthooks, the following hooks will be interpreted:
 .. py:function:: reply_prefix(realname, address, timestamp[, ui= None, dbm=None])
 
     Is used to reformat the first indented line in a reply message.
-    This defaults to 'Quoting %s (%s)\n' % (realname, timestamp)' unless this hook is defined
+    This defaults to 'Quoting %s (%s)\n' % (realname, timestamp)' unless this
+    hook is defined
 
     :param realname: name or the original sender
     :type realname: str
@@ -55,7 +57,8 @@ Apart from command pre- and posthooks, the following hooks will be interpreted:
 .. py:function:: forward_prefix(realname, address, timestamp[, ui= None, dbm=None])
 
     Is used to reformat the first indented line in a inline forwarded message.
-    This defaults to 'Forwarded message from %s (%s)\n' % (realname, timestamp)' if this hook is undefined
+    This defaults to 'Forwarded message from %s (%s)\n' % (realname,
+    timestamp)' if this hook is undefined
 
     :param realname: name or the original sender
     :type realname: str
@@ -69,7 +72,8 @@ Apart from command pre- and posthooks, the following hooks will be interpreted:
 
     used to manipulate a messages bodytext *before* the editor is called.
 
-    :param bodytext: text representation of mail body as displayed in the interface and as sent to the editor
+    :param bodytext: text representation of mail body as displayed in the
+                     interface and as sent to the editor
     :type bodytext: str
     :rtype: str
 
@@ -77,7 +81,8 @@ Apart from command pre- and posthooks, the following hooks will be interpreted:
 
     used to manipulate a messages bodytext *after* the editor is called
 
-    :param bodytext: text representation of mail body as displayed in the interface and as sent to the editor
+    :param bodytext: text representation of mail body as displayed in the
+                     interface and as sent to the editor
     :type bodytext: str
     :rtype: str
 
