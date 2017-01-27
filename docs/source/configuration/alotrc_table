@@ -296,7 +296,7 @@
      enable mouse support - mouse tracking will be handled by urwid
 
     :type: boolean
-    :default: True
+    :default: False
 
 
 .. _history-size:
