@@ -120,7 +120,7 @@ class DictList(SimpleTree):
     its sibblings will be the other pairs and first|last_child will always
     be None.
     """
-    def __init__(self, content: list[tuple[str, str]],
+    def __init__(self, content: list[tuple[str, str | urwid.Text]],
                  key_attr: urwid.AttrSpec,
                  value_attr: urwid.AttrSpec,
                  gaps_attr: urwid.AttrSpec | None = None):
@@ -317,7 +317,12 @@ class MessageTree(CollapsibleTree):
 
         # OpenPGP pseudo headers
         if mail[X_SIGNATURE_MESSAGE_HEADER]:
-            lines.append(('PGP-Signature', mail[X_SIGNATURE_MESSAGE_HEADER]))
+            status, _ = mail[X_SIGNATURE_MESSAGE_HEADER].split(':')
+            value = mail[X_SIGNATURE_MESSAGE_HEADER]
+            if status != 'Valid':
+                attr = settings.get_theming_attribute('global', 'notify_error')
+                value = urwid.Text((attr, value))
+            lines.append(('PGP-Signature', value))
 
         key_att = settings.get_theming_attribute('thread', 'header_key')
         value_att = settings.get_theming_attribute('thread', 'header_value')

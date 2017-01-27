@@ -5,7 +5,7 @@
 """
 This contains alot-specific :class:`urwid.Widget` used in more than one mode.
 """
-from typing import Generator
+from typing import Generator, Sequence
 import re
 import operator
 import urwid
@@ -256,14 +256,27 @@ class HeadersList(urwid.WidgetWrap):
         return str(self.headers)
 
 
-def key_value_columns(pairs: list[tuple[str, str]],
+def key_value_columns(pairs: Sequence[tuple[str, str | urwid.Text]],
                       key_attr: urwid.AttrSpec,
                       value_attr: urwid.AttrSpec) -> Generator[urwid.Columns, None, None]:
-    """one :class:`urwid.Columns` per (key, value) pair, keys aligned"""
+    """Align a list of pairs by the width of the first column
+
+    The second element of each tuple can already be a Text object with its own
+    styling applied.  This makes it possible to have some "cells" on the right
+    with different styling than the uniform value_attr.
+
+    :param pairs: the rows with to columns each
+    :param key_attr: styling of the first column
+    :param value_attr: styling of the second column
+    """
     width = max([1] + [len(key) for key, _ in pairs]) + 1
     for key, value in pairs:
-        yield urwid.Columns([('fixed', width, urwid.Text((key_attr, key))),
-                             urwid.Text((value_attr, value))])
+        key_widget = ('fixed', width, urwid.Text((key_attr, key)))
+        if isinstance(value, urwid.Text):
+            value_widget = value
+        else:
+            value_widget = urwid.Text((value_attr, value))
+        yield urwid.Columns([key_widget, value_widget])
 
 
 class TagWidget(urwid.AttrMap):
