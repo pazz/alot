@@ -80,23 +80,23 @@ class TestHumanizeSize(unittest.TestCase):
         readable = helper.humanize_size(1023)
         self.assertEqual(readable, "1023")
         readable = helper.humanize_size(1024)
-        self.assertEqual(readable, "1K")
+        self.assertEqual(readable, "1KiB")
         readable = helper.humanize_size(1234)
-        self.assertEqual(readable, "1K")
+        self.assertEqual(readable, "1KiB")
 
     def test_numbers_above_1048576_are_converted_to_megabyte(self):
         readable = helper.humanize_size(1024*1024-1)
-        self.assertEqual(readable, "1023K")
+        self.assertEqual(readable, "1023KiB")
         readable = helper.humanize_size(1024*1024)
-        self.assertEqual(readable, "1.0M")
+        self.assertEqual(readable, "1.0MiB")
 
     def test_megabyte_numbers_are_converted_with_precision_1(self):
         readable = helper.humanize_size(1234*1024)
-        self.assertEqual(readable, "1.2M")
+        self.assertEqual(readable, "1.2MiB")
 
     def test_numbers_are_not_converted_to_gigabyte(self):
         readable = helper.humanize_size(1234*1024*1024)
-        self.assertEqual(readable, "1234.0M")
+        self.assertEqual(readable, "1234.0MiB")
 
 
 class TestSplitCommandline(unittest.TestCase):
