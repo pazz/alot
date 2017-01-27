@@ -5,11 +5,12 @@ from __future__ import absolute_import
 
 import mailbox
 import re
-from urwid import AttrSpec, AttrSpecError
 from urlparse import urlparse
+
 from validate import VdtTypeError
 from validate import is_list
 from validate import ValidateError, VdtValueTooLongError, VdtValueError
+from urwid import AttrSpec, AttrSpecError
 
 from .. import crypto
 from ..errors import GPGProblem

@@ -15,7 +15,7 @@ from . import crypto
 from . import commands
 from .buffers import EnvelopeBuffer
 from .settings import settings
-from .utils.booleanaction import BooleanAction
+from .utils import argparse as cargparse
 from .helper import split_commandline
 from .addressbook import AddressbookError
 from .errors import CompletionError
@@ -263,8 +263,8 @@ class ArgparseOptionCompleter(Completer):
                 for optionstring in act.option_strings:
                     if optionstring.startswith(pref):
                         # append '=' for options that await a string value
-                        if isinstance(
-                                act, (argparse._StoreAction, BooleanAction)):
+                        if isinstance(act, (argparse._StoreAction,
+                                            cargparse.BooleanAction)):
                             optionstring += '='
                         res.append(optionstring)
 
