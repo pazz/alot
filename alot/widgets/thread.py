@@ -136,7 +136,10 @@ class DictList(SimpleTree):
             # todo : even/odd
             keyw = ('fixed', max_key_len + 1,
                     urwid.Text((key_attr, key)))
-            valuew = urwid.Text((value_attr, value))
+            if isinstance(value, urwid.Text):
+                valuew = value
+            else:
+                valuew = urwid.Text((value_attr, value))
             line = urwid.Columns([keyw, valuew])
             if gaps_attr is not None:
                 line = urwid.AttrMap(line, gaps_attr)
@@ -304,7 +307,12 @@ class MessageTree(CollapsibleTree):
 
         # OpenPGP pseudo headers
         if mail[X_SIGNATURE_MESSAGE_HEADER]:
-            lines.append(('PGP-Signature', mail[X_SIGNATURE_MESSAGE_HEADER]))
+            status, _ = mail[X_SIGNATURE_MESSAGE_HEADER].split(':')
+            value = mail[X_SIGNATURE_MESSAGE_HEADER]
+            if status != 'Valid':
+                attr = settings.get_theming_attribute('global', 'notify_error')
+                value = urwid.Text((attr, value))
+            lines.append(('PGP-Signature', value))
 
         key_att = settings.get_theming_attribute('thread', 'header_key')
         value_att = settings.get_theming_attribute('thread', 'header_value')
