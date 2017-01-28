@@ -511,8 +511,10 @@ def tag_cmp(a, b):
 
 def humanize_size(size):
     """Create a nice human readable representation of the given number
-    (understood as bytes) using the "K" and "M" suffixes to indicate kilo- and
-    megabytes.  They are understood to be 1024 based.
+    (understood as bytes) using the "KiB" and "MiB" suffixes to indicate
+    kibibytes and mebibytes. A kibibyte is defined as 1024 bytes (as opposed to
+    a kilobyte which is 1000 bytes) and a mibibyte is 1024**2 bytes (as opposed
+    to a megabyte which is 1000**2 bytes).
 
     :param size: the number to convert
     :type size: int
@@ -520,8 +522,8 @@ def humanize_size(size):
     :rtype: str
     """
     for factor, format_string in ((1, '%i'),
-                                  (1024, '%iK'),
-                                  (1024 * 1024, '%.1fM')):
+                                  (1024, '%iKiB'),
+                                  (1024 * 1024, '%.1fMiB')):
         if size / factor < 1024:
             return format_string % (float(size) / factor)
     return format_string % (size / factor)
