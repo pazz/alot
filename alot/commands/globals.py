@@ -2,6 +2,7 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 from __future__ import absolute_import
+from __future__ import division
 
 import argparse
 import code
@@ -942,7 +943,7 @@ class MoveCommand(Command):
             ui.mainloop.process_input([self.movement])
         elif self.movement in ['halfpage down', 'halfpage up']:
             ui.mainloop.process_input(
-                ui.mainloop.screen_size[1] / 2 * [self.movement.split()[-1]])
+                ui.mainloop.screen_size[1] // 2 * [self.movement.split()[-1]])
         elif self.movement == 'first':
             if hasattr(ui.current_buffer, "focus_first"):
                 ui.current_buffer.focus_first()

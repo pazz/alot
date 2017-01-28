@@ -3,6 +3,7 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 from __future__ import absolute_import
+from __future__ import division
 
 from datetime import timedelta
 from datetime import datetime
@@ -238,9 +239,9 @@ def pretty_datetime(d):
         if delta.seconds < 60:
             string = 'just now'
         elif delta.seconds < 3600:
-            string = '%dmin ago' % (delta.seconds / 60)
+            string = '%dmin ago' % (delta.seconds // 60)
         elif delta.seconds < 6 * 3600:
-            string = '%dh ago' % (delta.seconds / 3600)
+            string = '%dh ago' % (delta.seconds // 3600)
         else:
             string = d.strftime(hourminfmt)
     elif d.date() == today - timedelta(1):
@@ -525,7 +526,7 @@ def humanize_size(size):
                                   (1024, '%iKiB'),
                                   (1024 * 1024, '%.1fMiB')):
         if size / factor < 1024:
-            return format_string % (float(size) / factor)
+            return format_string % (size / factor)
     return format_string % (size / factor)
 
 
