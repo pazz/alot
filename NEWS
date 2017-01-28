@@ -1,11 +1,12 @@
 0.5:
 * save command prompt, recipient and sender history across program restarts
-* Allow scrolling with the mouse scroll wheel (with corresponding option)
-* Prompt for unsent messages before closing
+* new config option: "handle_mouse" to enable interpretation of mouse events
+* prompt for unsent messages before closing
 * enable variable interpolation in config file
 * Add encryption to CC addresses
 * Add bufferlist, tablist and pyshell subcommands to the command line interface
-* Add hook that runs periodically.
+* new hook: "loop_hook", that runs periodically
+* new config option: "periodic_hook_frequency" to adjust how often to fire "loop_hook"
 
 0.4:
 * signal: refresh current buffer on SIGUSR1
