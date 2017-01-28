@@ -1,4 +1,4 @@
-next release:
+0.5:
 * save command prompt, recipient and sender history across program restarts
 * Allow scrolling with the mouse scroll wheel (with corresponding option)
 * Prompt for unsent messages before closing
