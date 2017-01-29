@@ -25,6 +25,8 @@ import shutil
 import tempfile
 import unittest
 
+import mock
+
 from alot.utils import argparse as cargparse
 
 
@@ -43,7 +45,8 @@ class TestValidatedStore(unittest.TestCase):
             'foo',
             action=cargparse.ValidatedStoreAction,
             validator=validator)
-        return parser.parse_args(args)
+        with mock.patch('sys.stderr', mock.Mock()):
+            return parser.parse_args(args)
 
     def test_validates(self):
         # Arparse will raise a SystemExit (calls sys.exit) rather than letting
