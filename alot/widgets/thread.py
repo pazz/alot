@@ -271,7 +271,7 @@ class MessageTree(CollapsibleTree):
         if headers is None:
             # collect all header/value pairs in the order they appear
             headers = mail.keys()
-            for key, value in mail.iteritems():
+            for key, value in mail.items():
                 dvalue = decode_header(value, normalize=normalize)
                 lines.append((key, dvalue))
         else:
