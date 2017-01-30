@@ -7,6 +7,7 @@ This contains alot-specific :class:`urwid.Widget` used in more than one mode.
 """
 from __future__ import absolute_import
 
+import functools
 import re
 import operator
 import urwid
@@ -271,6 +272,7 @@ class HeadersList(urwid.WidgetWrap):
         return headerlines
 
 
+@functools.total_ordering
 class TagWidget(urwid.AttrMap):
     """
     text widget that renders a tagstring.
@@ -313,3 +315,30 @@ class TagWidget(urwid.AttrMap):
 
     def set_unfocussed(self):
         self.set_attr_map(self.attmaps['normal'])
+
+    def __lt__(self, other):
+        """Groups tags of 1 character first, then alphabetically.
+
+        This groups tags unicode characters at the begnining.
+        """
+        if not isinstance(other, TagWidget):
+            return NotImplemented
+
+        self_len = len(self.translated)
+        oth_len = len(other.translated)
+
+        if (self_len == 1) is not (oth_len == 1):
+            return self_len < oth_len
+        return self.translated.lower() < other.translated.lower()
+
+    def __eq__(self, other):
+        if not isinstance(other, TagWidget):
+            return NotImplemented
+        if len(self.translated) != len(other.translated):
+            return False
+        return self.translated.lower() == other.translated.lower()
+
+    def __ne__(self, other):
+        if not isinstance(other, TagWidget):
+            return NotImplemented
+        return self.translated.lower() != other.translated.lower()
