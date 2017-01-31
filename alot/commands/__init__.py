@@ -101,6 +101,8 @@ class registerCommand(object):
     definition is decorated to register it as handler for
     'save' in mode 'thread' and add boolean and string arguments::
 
+    .. code-block::
+
         @registerCommand('thread', 'save', arguments=[
             (['--all'], {'action': 'store_true', 'help':'save all'}),
             (['path'], {'nargs':'?', 'help':'path to save to'})],
