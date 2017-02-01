@@ -39,7 +39,7 @@ class AttachCommand(Command):
     """attach files to the mail"""
     repeatable = True
 
-    def __init__(self, path=None, **kwargs):
+    def __init__(self, path, **kwargs):
         """
         :param path: files to attach (globable string)
         :type path: str
@@ -50,14 +50,10 @@ class AttachCommand(Command):
     def apply(self, ui):
         envelope = ui.current_buffer.envelope
 
-        if self.path:  # TODO: not possible, otherwise argparse error before
-            files = [g for g in glob.glob(os.path.expanduser(self.path))
-                     if os.path.isfile(g)]
-            if not files:
-                ui.notify('no matches, abort')
-                return
-        else:
-            ui.notify('no files specified, abort')
+        files = [g for g in glob.glob(os.path.expanduser(self.path))
+                 if os.path.isfile(g)]
+        if not files:
+            ui.notify('no matches, abort')
             return
 
         logging.info("attaching: %s", files)
