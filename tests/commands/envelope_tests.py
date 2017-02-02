@@ -27,9 +27,14 @@ import mock
 
 from alot.commands import envelope
 
+# When using an assert from a mock a TestCase method might not use self. That's
+# okay.
+# pylint: disable=no-self-use
+
 
 @contextlib.contextmanager
 def temporary_directory(suffix='', prefix='', dir=None):
+    # pylint: disable=redefined-builtin
     """Python3 interface implementation.
 
     Python3 provides a class that can be used as a context manager, which

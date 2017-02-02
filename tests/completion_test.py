@@ -12,6 +12,10 @@ import mock
 
 from alot import completion
 
+# Good descriptive test names often don't fit PEP8, which is meant to cover
+# functions meant to be called by humans.
+# pylint: disable=invalid-name
+
 
 def _mock_lookup(query):
     """Look up the query from fixed list of names and email addresses."""

@@ -10,6 +10,13 @@ import unittest
 
 from alot.commands import thread
 
+# Good descriptive test names often don't fit PEP8, which is meant to cover
+# functions meant to be called by humans.
+# pylint: disable=invalid-name
+
+# These are tests, don't worry about names like "foo" and "bar"
+# pylint: disable=blacklisted-name
+
 
 class Test_ensure_unique_address(unittest.TestCase):
 

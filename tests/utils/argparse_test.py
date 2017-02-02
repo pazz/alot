@@ -29,6 +29,14 @@ import mock
 
 from alot.utils import argparse as cargparse
 
+# Good descriptive test names often don't fit PEP8, which is meant to cover
+# functions meant to be called by humans.
+# pylint: disable=invalid-name
+
+# When using mock asserts its possible that many methods will not use self,
+# that's fine
+# pylint: disable=no-self-use
+
 
 class TestValidatedStore(unittest.TestCase):
     """Tests for the ValidatedStore action class."""
@@ -56,7 +64,7 @@ class TestValidatedStore(unittest.TestCase):
 
 
 @contextlib.contextmanager
-def temporary_directory(suffix='', prefix='', dir=None):
+def temporary_directory(suffix='', prefix='', dir=None):  # pylint: disable=redefined-builtin
     """Python3 interface implementation.
 
     Python3 provides a class that can be used as a context manager, which

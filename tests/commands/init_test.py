@@ -12,6 +12,13 @@ import mock
 from alot import commands
 from alot.commands import thread
 
+# Good descriptive test names often don't fit PEP8, which is meant to cover
+# functions meant to be called by humans.
+# pylint: disable=invalid-name
+
+# These are tests, don't worry about names like "foo" and "bar"
+# pylint: disable=blacklisted-name
+
 
 class TestLookupCommand(unittest.TestCase):
 
@@ -39,7 +46,7 @@ class TestRegisterCommand(unittest.TestCase):
         """using registerCommand adds to the COMMANDS dict."""
         with mock.patch('alot.commands.COMMANDS', {'foo': {}}):
             @commands.registerCommand('foo', 'test')
-            def foo():
+            def foo():  # pylint: disable=unused-variable
                 pass
 
             self.assertIn('test', commands.COMMANDS['foo'])
