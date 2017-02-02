@@ -251,7 +251,7 @@ def extract_headers(mail, headers=None):
     """
     headertext = u''
     if headers is None:
-        headers = mail.iterkeys()
+        headers = mail.keys()
     for key in headers:
         value = u''
         if key in mail:
