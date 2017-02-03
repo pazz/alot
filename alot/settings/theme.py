@@ -60,7 +60,7 @@ class Theme:
 
     def get_threadline_theming(self, thread, colourmode):
         """
-        look up how to display a Threadline wiidget in search mode
+        look up how to display a Threadline widget in search mode
         for a given thread.
 
         :param thread: Thread to theme Threadline for
