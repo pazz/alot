@@ -10,7 +10,7 @@ from datetime import datetime
 
 from notmuch import NullPointerError
 
-from .utils import extract_headers, extract_body, message_from_file
+from .utils import extract_body, message_from_file
 from .utils import decode_header
 from .attachment import Attachment
 from .. import helper
@@ -156,17 +156,6 @@ class Message(object):
         :rtype: (str,str)
         """
         return email.Utils.parseaddr(self._from)
-
-    def get_headers_string(self, headers):
-        """
-        returns subset of this messages headers as human-readable format:
-        all header values are decoded, the resulting string has
-        one line "KEY: VALUE" for each requested header present in the mail.
-
-        :param headers: headers to extract
-        :type headers: list of str
-        """
-        return extract_headers(self.get_email(), headers)
 
     def add_tags(self, tags, afterwards=None, remove_rest=False):
         """
