@@ -36,6 +36,11 @@ themes_dir = string(default=None)
 theme = string(default=None)
 
 # enable mouse support - mouse tracking will be handled by urwid
+#
+# .. note:: If this is set to True mouse events are passed from the terminal
+#           to urwid/alot.  This means that normal text selection in alot will
+#           not be possible.  Most terminal emulators will still allow you to
+#           select text when shift is pressed.
 handle_mouse = boolean(default=False)
 
 # headers that get displayed by default
