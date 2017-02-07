@@ -20,12 +20,20 @@
 from __future__ import absolute_import
 
 import datetime
+import errno
 import random
 import unittest
 
 import mock
 
 from alot import helper
+
+# Descriptive names for tests often violate PEP8. That's not an issue, users
+# aren't meant to call these functions.
+# pylint: disable=invalid-name
+
+# They're tests, only add docstrings when it makes sense
+# pylint: disable=missing-docstring
 
 
 class TestHelperShortenAuthorString(unittest.TestCase):
@@ -303,3 +311,64 @@ class TestPrettyDatetime(unittest.TestCase):
         actual = helper.pretty_datetime(test)
         expected = test.strftime('%b %Y')
         self.assertEqual(actual, expected)
+
+
+class TestCallCmd(unittest.TestCase):
+    """Tests for the call_cmd function."""
+
+    def test_no_stdin(self):
+        out, err, code = helper.call_cmd(['echo', '-n', 'foo'])
+        self.assertEqual(out, u'foo')
+        self.assertEqual(err, u'')
+        self.assertEqual(code, 0)
+
+    def test_no_stdin_unicode(self):
+        out, err, code = helper.call_cmd(['echo', '-n', '�'])
+        self.assertEqual(out, u'�')
+        self.assertEqual(err, u'')
+        self.assertEqual(code, 0)
+
+    def test_stdin(self):
+        out, err, code = helper.call_cmd(['cat'], stdin='�')
+        self.assertEqual(out, u'�')
+        self.assertEqual(err, u'')
+        self.assertEqual(code, 0)
+
+    def test_no_such_command(self):
+        out, err, code = helper.call_cmd(['thiscommandabsolutelydoesntexist'])
+        self.assertEqual(out, u'')
+
+        # We don't control the output of err, the shell does. Therefore simply
+        # assert that the shell said *something*
+        self.assertNotEqual(err, u'')
+        self.assertEqual(code, errno.ENOENT)
+
+    def test_no_such_command_stdin(self):
+        out, err, code = helper.call_cmd(['thiscommandabsolutelydoesntexist'],
+                                         stdin='foo')
+        self.assertEqual(out, u'')
+
+        # We don't control the output of err, the shell does. Therefore simply
+        # assert that the shell said *something*
+        self.assertNotEqual(err, u'')
+        self.assertEqual(code, errno.ENOENT)
+
+    def test_bad_argument_stdin(self):
+        out, err, code = helper.call_cmd(['cat', '-Y'], stdin='�')
+        self.assertEqual(out, u'')
+        self.assertNotEqual(err, u'')
+
+        # We don't control this, although 1 might be a fairly safe guess, we
+        # know for certain it should *not* return 0
+        self.assertNotEqual(code, 0)
+
+    # This fails because stderr is not recorded correctly
+    @unittest.expectedFailure
+    def test_bad_argument(self):
+        out, err, code = helper.call_cmd(['cat', '-Y'])
+        self.assertEqual(out, u'')
+        self.assertNotEqual(err, u'')
+
+        # We don't control this, although 1 might be a fairly safe guess, we
+        # know for certain it should *not* return 0
+        self.assertNotEqual(code, 0)
