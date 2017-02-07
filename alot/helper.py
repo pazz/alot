@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
+# Copyright © 2017 Dylan Baker
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 from __future__ import absolute_import
@@ -272,22 +273,16 @@ def call_cmd(cmdlist, stdin=None):
     :return: triple of stdout, stderr, return value of the shell command
     :rtype: str, str, int
     """
-
-    out, err, ret = '', '', 0
     try:
-        if stdin:
-            proc = subprocess.Popen(cmdlist, stdin=subprocess.PIPE,
-                                    stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE)
-            out, err = proc.communicate(stdin)
-            ret = proc.poll()
-        else:
-            try:
-                out = subprocess.check_output(cmdlist)
-            except subprocess.CalledProcessError as e:
-                err = e.output
-                ret = e.returncode
+        proc = subprocess.Popen(
+            cmdlist,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            stdin=subprocess.PIPE if stdin is not None else None)
+        out, err = proc.communicate(stdin)
+        ret = proc.returncode
     except OSError as e:
+        out = b''
         err = e.strerror
         ret = e.errno
 
