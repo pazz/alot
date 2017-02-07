@@ -362,8 +362,6 @@ class TestCallCmd(unittest.TestCase):
         # know for certain it should *not* return 0
         self.assertNotEqual(code, 0)
 
-    # This fails because stderr is not recorded correctly
-    @unittest.expectedFailure
     def test_bad_argument(self):
         out, err, code = helper.call_cmd(['cat', '-Y'])
         self.assertEqual(out, u'')
