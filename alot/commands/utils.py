@@ -75,8 +75,8 @@ def _get_keys(ui, encrypt_keyids, block_error=False, signed_only=False):
                                  signed_only=signed_only)
         except GPGProblem as e:
             if e.code == GPGCode.AMBIGUOUS_NAME:
-                tmp_choices = (k.uids[0].uid for k in
-                               crypto.list_keys(hint=keyid))
+                tmp_choices = [k.uids[0].uid for k in
+                               crypto.list_keys(hint=keyid)]
                 choices = {str(i): t for i, t in
                            enumerate(reversed(tmp_choices), 1)}
                 keyid = yield ui.choice("ambiguous keyid! Which " +
