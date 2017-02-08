@@ -29,6 +29,8 @@ class TestTagWidget(unittest.TestCase):
 
     def test_sort(self):
         """Test sorting."""
+        # There's an upstream bug about this
+        # pylint: disable=bad-continuation
         with mock.patch(
                 'alot.widgets.globals.settings.get_tagstring_representation',
                 lambda t, _, __: {'translated': t, 'normal': None,
