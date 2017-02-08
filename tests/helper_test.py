@@ -402,3 +402,21 @@ class TestEmailAsString(unittest.TestCase):
         actual = helper.email_as_string(message)
         expected = 'X-Unicode-Header: dummy value\r\n\r\n'
         self.assertEqual(actual, expected)
+
+
+class TestShorten(unittest.TestCase):
+
+    def test_lt_maxlen(self):
+        expected = u'a string'
+        actual = helper.shorten(expected, 25)
+        self.assertEqual(expected, actual)
+
+    def test_eq_maxlen(self):
+        expected = 'a string'
+        actual = helper.shorten(expected, len(expected))
+        self.assertEqual(expected, actual)
+
+    def test_gt_maxlen(self):
+        expected = u'a long string…'
+        actual = helper.shorten('a long string that is full of text', 14)
+        self.assertEqual(expected, actual)
