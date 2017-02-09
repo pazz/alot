@@ -633,6 +633,18 @@
     :default: True
 
 
+.. _thread-focus-linewise:
+
+.. describe:: thread_focus_linewise
+
+     Split message body linewise and allows to (move) the focus to each individual
+     line. Setting this to False will result in one potentially big text widget
+     for the whole message body.
+
+    :type: boolean
+    :default: True
+
+
 .. _thread-statusbar:
 
 .. describe:: thread_statusbar

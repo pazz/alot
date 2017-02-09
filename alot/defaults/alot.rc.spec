@@ -256,6 +256,12 @@ history_size = integer(default=50)
 # The number of seconds to wait between calls to the loop_hook
 periodic_hook_frequency = integer(default=300)
 
+# Split message body linewise and allows to (move) the focus to each individual
+# line. Setting this to False will result in one potentially big text widget
+# for the whole message body.
+thread_focus_linewise = boolean(default=True)
+
+
 # Key bindings
 [bindings]
     __many__ = string(default=None)
