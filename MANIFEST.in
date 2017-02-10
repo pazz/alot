@@ -3,4 +3,3 @@ include NEWS
 include extra/completion/alot-completion.zsh
 include extra/alot.desktop
 include tests
-recursive-exclude *
