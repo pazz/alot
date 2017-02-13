@@ -80,7 +80,7 @@ editor_cmd = string(default=None)
 # file encoding used by your editor
 editor_writes_encoding = string(default='UTF-8')
 
-# use terminal_command to spawn a new terminal for the editor?
+# use :ref:`terminal_cmd <terminal-cmd>` to spawn a new terminal for the editor?
 # equivalent to always providing the `--spawn=yes` parameter to compose/edit commands
 editor_spawn = boolean(default=False)
 
