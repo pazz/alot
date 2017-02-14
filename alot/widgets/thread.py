@@ -94,8 +94,14 @@ class TextlinesList(SimpleTree):
         for each line in content.
         """
         structure = []
-        for line in content.splitlines():
-            structure.append((FocusableText(line, attr, attr_focus), None))
+
+        # depending on this config setting, we either add individual lines
+        # or the complete context as focusable objects.
+        if settings.get('thread_focus_linewise'):
+            for line in content.splitlines():
+                structure.append((FocusableText(line, attr, attr_focus), None))
+        else:
+            structure.append((FocusableText(content, attr, attr_focus), None))
         SimpleTree.__init__(self, structure)
 
 
