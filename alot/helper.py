@@ -279,12 +279,13 @@ def call_cmd(cmdlist, stdin=None):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             stdin=subprocess.PIPE if stdin is not None else None)
-        out, err = proc.communicate(stdin)
-        ret = proc.returncode
     except OSError as e:
         out = b''
         err = e.strerror
         ret = e.errno
+    else:
+        out, err = proc.communicate(stdin)
+        ret = proc.returncode
 
     out = string_decode(out, urwid.util.detected_encoding)
     err = string_decode(err, urwid.util.detected_encoding)

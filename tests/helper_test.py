@@ -370,3 +370,12 @@ class TestCallCmd(unittest.TestCase):
         # We don't control this, although 1 might be a fairly safe guess, we
         # know for certain it should *not* return 0
         self.assertNotEqual(code, 0)
+
+    def test_os_errors_from_popen_are_caught(self):
+        with mock.patch('subprocess.Popen',
+                        mock.Mock(side_effect=OSError(42, u'foobar'))):
+            out, err, code = helper.call_cmd(
+                ['does_not_matter_as_subprocess_popen_is_mocked'])
+        self.assertEqual(out, u'')
+        self.assertEqual(err, u'foobar')
+        self.assertEqual(code, 42)
