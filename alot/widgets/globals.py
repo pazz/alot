@@ -279,6 +279,10 @@ class TagWidget(urwid.AttrMap):
 
     It looks up the string it displays in the `tags` section
     of the config as well as custom theme settings for its tag.
+
+    Atributes that should be considered publicly readable:
+        :attr tag: the notmuch tag
+        :type tag: str
     """
     def __init__(self, tag, fallback_normal=None, fallback_focus=None):
         self.tag = tag

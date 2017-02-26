@@ -8,8 +8,12 @@ import urwid
 
 
 class PipeWalker(urwid.ListWalker):
-    """urwid.ListWalker that reads next items from a pipe and
-    wraps them in `containerclass` widgets for displaying
+    """urwid.ListWalker that reads next items from a pipe and wraps them in
+    `containerclass` widgets for displaying
+
+    Atributes that should be considered publicly readable:
+        :attr lines: the lines obtained from the pipe
+        :type lines: list(`containerclass`)
     """
     def __init__(self, pipe, containerclass, reverse=False, **kwargs):
         self.pipe = pipe
