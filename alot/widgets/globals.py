@@ -279,6 +279,10 @@ class TagWidget(urwid.AttrMap):
 
     It looks up the string it displays in the `tags` section
     of the config as well as custom theme settings for its tag.
+
+    Atributes that should be considered publicly readable:
+        :attr tag: the notmuch tag
+        :type tag: str
     """
     def __init__(self, tag, fallback_normal=None, fallback_focus=None):
         self.tag = tag
@@ -306,9 +310,6 @@ class TagWidget(urwid.AttrMap):
 
     def keypress(self, size, key):
         return key
-
-    def get_tag(self):
-        return self.tag
 
     def set_focussed(self):
         self.set_attr_map(self.attmaps['focus'])
