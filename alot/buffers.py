@@ -282,7 +282,7 @@ class SearchBuffer(Buffer):
         returns curently focussed :class:`alot.widgets.ThreadlineWidget`
         from the result list.
         """
-        threadlinewidget, _ = self.threadlist.focus
+        threadlinewidget, _ = self.threadlist.get_focus()
         return threadlinewidget
 
     def get_selected_thread(self):

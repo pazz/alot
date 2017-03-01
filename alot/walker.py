@@ -20,20 +20,18 @@ class PipeWalker(urwid.ListWalker):
         self.kwargs = kwargs
         self.containerclass = containerclass
         self.lines = []
-        self._focus = 0
+        self.focus = 0
         self.empty = False
         self.direction = -1 if reverse else 1
 
     def __contains__(self, name):
         return self.lines.__contains__(name)
 
-    @property
-    def focus(self):
-        return self._get_at_pos(self._focus)
+    def get_focus(self):
+        return self._get_at_pos(self.focus)
 
-    @focus.setter
-    def focus(self, value):
-        self._focus = value
+    def set_focus(self, focus):
+        self.focus = focus
         self._modified()
 
     def get_next(self, start_from):
@@ -43,9 +41,9 @@ class PipeWalker(urwid.ListWalker):
         return self._get_at_pos(start_from - self.direction)
 
     def remove(self, obj):
-        next_focus = self._focus % len(self.lines)
-        if self._focus == len(self.lines) - 1 and self.empty:
-            next_focus = self._focus - 1
+        next_focus = self.focus % len(self.lines)
+        if self.focus == len(self.lines) - 1 and self.empty:
+            next_focus = self.focus - 1
 
         self.lines.remove(obj)
         if self.lines:
