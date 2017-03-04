@@ -3,8 +3,6 @@
 # For further details see the COPYING file
 from __future__ import absolute_import
 
-import os
-from cStringIO import StringIO
 import gpg
 
 from .errors import GPGProblem, GPGCode
@@ -21,7 +19,7 @@ def RFC3156_micalg_from_algo(hash_algo):
     :rtype: str
     """
     # hash_algo will be something like SHA256, but we need pgp-sha256.
-    hash_algo = gpg._gpgme.gpgme_hash_algo_name(hash_algo)
+    hash_algo = gpg.core.hash_algo_name(hash_algo)
     return 'pgp-' + hash_algo.lower()
 
 
@@ -128,11 +126,10 @@ def detached_signature_for(plaintext_str, key=None):
     :param key: gpgme_key_t object representing the key to use
     :rtype: tuple of gpg.results.NewSignature array and str
     """
-    ctx = gpg.Context()
-    ctx.armor = True
+    ctx = gpg.Context(armor=True)
     if key is not None:
         ctx.signers = [key]
-    (sigblob, sign_result) = ctx.sign(gpg.Data(string=plaintext_str), mode=gpg.constants.SIG_MODE_DETACH)
+    (sigblob, sign_result) = ctx.sign(plaintext_str, mode=gpg.constants.SIG_MODE_DETACH)
     return sign_result.signatures, sigblob
 
 
@@ -147,7 +144,7 @@ def encrypt(plaintext_str, keys=None):
     """
     ctx = gpg.Context()
     ctx.armor = True
-    (out, encrypt_result, sign_result) = ctx.encrypt(gpg.Data(string=plaintext_str), recipients=keys, always_trust=True)
+    (out, encrypt_result, _) = ctx.encrypt(plaintext_str, recipients=keys, always_trust=True)
     return out
 
 
@@ -162,7 +159,7 @@ def verify_detached(message, signature):
     '''
     ctx = gpg.Context()
     try:
-        (data, verify_results) = ctx.verify(gpg.Data(string=message), gpg.Data(string=signature), message_data)
+        (_, verify_results) = ctx.verify(message, signature)
         return verify_results.signatures
     except gpg.errors.GPGMEError as e:
         raise GPGProblem(e.message, code=e.code)
@@ -180,9 +177,9 @@ def decrypt_verify(encrypted):
     '''
     ctx = gpg.Context()
     try:
-        (plaintext, result, verify_result) = ctx.decrypt(gpg.Data(string=encrypted_data), verify=True)
+        (plaintext, _, verify_result) = ctx.decrypt(encrypted, verify=True)
     except gpg.errors.GPGMEError as e:
-        raise GPGProblem(e.message, code=e.code)
+        raise GPGProblem(e.message, code=e.getcode())
 
     return verify_result.signatures, plaintext
 
