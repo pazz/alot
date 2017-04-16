@@ -15,6 +15,12 @@ A full list of dependencies is below:
 * `urwidtrees <https://github.com/pazz/urwidtrees>`_, ≥ `1.0`
 * `PyGPGME <https://launchpad.net/pygpgme>`_ ≥ `0.2`
 
+These depend, in turn, on some packages that you won't find in PyPI.
+
+* `gpgme <https://www.gnupg.org/related_software/gpgme/>`_
+* `notmuch <http://notmuchmail.org/>`_
+* libmagic
+
 .. note:: urwidtrees was only recently detached from alot and is not widely
           available as a separate package. You can install it e.g., via
           `pip <https://pypi.python.org/pypi/pip>`_ directly from github:
