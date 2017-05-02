@@ -282,7 +282,7 @@ class SearchBuffer(Buffer):
         returns curently focussed :class:`alot.widgets.ThreadlineWidget`
         from the result list.
         """
-        threadlinewidget, _ = self.threadlist.focus
+        threadlinewidget, _ = self.threadlist.get_focus()
         return threadlinewidget
 
     def get_selected_thread(self):
@@ -308,7 +308,7 @@ class SearchBuffer(Buffer):
             self.body.set_focus(0)
         elif self.result_count < 200 or self.sort_order not in self._REVERSE:
             self.consume_pipe()
-            num_lines = len(self.threadlist.lines)
+            num_lines = len(self.threadlist.get_lines())
             self.body.set_focus(num_lines - 1)
         else:
             self.rebuild(reverse=True)
