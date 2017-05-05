@@ -376,6 +376,9 @@ class ThreadBuffer(Buffer):
         self.message_count = self.thread.get_total_messages()
 
     def render(self, size, focus=False):
+        if self.message_count == 0:
+            return self.body.render(size, focus)
+
         if settings.get('auto_remove_unread'):
             logging.debug('Tbuffer: auto remove unread tag from msg?')
             msg = self.get_selected_message()
