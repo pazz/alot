@@ -586,9 +586,9 @@ def RFC3156_canonicalize(text):
     :param text: text to canonicalize (already encoded as quoted-printable)
     :rtype: str
     """
-    text = re.sub("\r?\n", "\r\n", text)
-    if not text.endswith("\r\n"):
-        text += "\r\n"
+    #text = re.sub("\r?\n", "\r\n", text)
+    #if not text.endswith("\r\n"):
+    #    text += "\r\n"
     text = re.sub("^From ", "From=20", text, flags=re.MULTILINE)
     return text
 
