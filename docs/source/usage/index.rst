@@ -23,7 +23,6 @@ First Steps
 .. toctree::
    :hidden:
 
-   commands
    first_steps
    synopsis
    crypto
