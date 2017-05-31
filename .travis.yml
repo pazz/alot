@@ -91,7 +91,7 @@ install:
       printf '%s = None\n' NotmuchError NullPointerError > notmuch.py
       touch gpgme.py
       # install sphinx for building the html docs
-      pip install sphinx==1.5.1
+      pip install sphinx
     else
       pip install .[test]
     fi
