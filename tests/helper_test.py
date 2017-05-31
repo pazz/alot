@@ -243,7 +243,7 @@ class TestPrettyDatetime(unittest.TestCase):
     @staticmethod
     def _future_expected(test):
         if test.strftime('%p'):
-            expected = test.strftime('%I:%M%P').lower()
+            expected = test.strftime('%I:%M%p').lower()
         else:
             expected = test.strftime('%H:%M')
         expected = expected.decode('utf-8')
@@ -276,8 +276,8 @@ class TestPrettyDatetime(unittest.TestCase):
     def test_future_days(self):
         def make_expected():
             # Uses the hourfmt instead of the hourminfmt from pretty_datetime
-            if test.strftime('%P'):
-                expected = test.strftime('%I%P')
+            if test.strftime('%p'):
+                expected = test.strftime('%I%p')
             else:
                 expected = test.strftime('%Hh')
             expected = expected.decode('utf-8')
