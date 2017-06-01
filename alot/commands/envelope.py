@@ -225,6 +225,7 @@ class SendCommand(Command):
         msg = self.mail
         if not isinstance(msg, email.message.Message):
             msg = email.message_from_string(self.mail)
+<<<<<<< HEAD
         address = msg.get('From', '')
         logging.debug("FROM: \"%s\"" % address)
         try:
@@ -234,6 +235,21 @@ class SendCommand(Command):
             ui.notify('no accounts set', priority='error')
             return
         logging.debug("ACCOUNT: \"%s\"" % account.address)
+=======
+        _, saddr = email.utils.parseaddr(msg.get('From', ''))
+        account = settings.get_account_by_address(saddr)
+        if account is None:
+            if not settings.get_accounts():
+                ui.notify('no accounts set', priority='error')
+                return
+            else:
+                account = settings.get_accounts()[0]
+
+        # make sure self.mail is a string
+        logging.debug(self.mail.__class__)
+        if isinstance(self.mail, email.message.Message):
+            self.mail = str(self.mail)
+>>>>>>> py3k: convert email.Utils to email.utils
 
         # define callback
         def afterwards(_):
