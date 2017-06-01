@@ -58,8 +58,6 @@ FAQ
 
     The few exceptions to above stated rule are the following:
 
-    * CLI option parsing is done using `twisted.usage.Options`, and not (as e.g. in-app command parsing)
-      via argparse. The reason is that argparse does not yet offer optional subcommands.
     * The modules cmd and cmd2, that handle all sorts of convenience around command objects
       hate urwid: They are painfully strongly coupled to user in/output via stdin and out.
     * `notmuch reply` is not used to format reply messages because 1. it is not offered by
@@ -71,11 +69,5 @@ FAQ
 
 7. Why doesn't alot run on python3?
 
-   Because it builds on libraries that don't (yet):
+   We're on it. Check out the `py3k milestone <https://github.com/pazz/alot/issues?q=is%3Aopen+is%3Aissue+milestone%3A%22full+py3k+compatibility%22>`_
 
-    * `configobj <http://www.voidspace.org.uk/python/weblog/arch_d7_2010_12_11.shtml>`_
-    * `twisted <http://twistedmatrix.com/trac/milestone/Python-3.x>`_
-
-   Alot itself can be converted to py3k syntax automatically using
-   `2to3 <http://docs.python.org/2/library/2to3.html>`_ and I will push those changes as soon
-   as the libs are ready.
