@@ -195,7 +195,7 @@ class DBManager(object):
                 except (XapianError, NotmuchError) as e:
                     logging.exception(e)
                     self.writequeue.appendleft(current_item)
-                    raise DatabaseError(unicode(e))
+                    raise DatabaseError(str(e))
                 except DatabaseLockedError as e:
                     logging.debug('index temporarily locked')
                     self.writequeue.appendleft(current_item)

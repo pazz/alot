@@ -211,7 +211,7 @@ class ExternalCommand(Command):
         """
         logging.debug({'spawn': spawn})
         # make sure cmd is a list of str
-        if isinstance(cmd, unicode):
+        if isinstance(cmd, str):
             # convert cmdstring to list: in case shell==True,
             # Popen passes only the first item in the list to $SHELL
             cmd = [cmd] if shell else split_commandstring(cmd)
@@ -249,8 +249,8 @@ class ExternalCommand(Command):
         # set standard input for subcommand
         stdin = None
         if self.stdin is not None:
-            # wrap strings in StringIO so that they behave like files
-            if isinstance(self.stdin, unicode):
+            # wrap strings in StrinIO so that they behaves like a file
+            if isinstance(self.stdin, str):
                 stdin = StringIO(self.stdin)
             else:
                 stdin = self.stdin

@@ -403,11 +403,12 @@ def decode_header(header, normalize=False):
     :type header: str
     :param normalize: replace trailing spaces after newlines
     :type normalize: bool
-    :rtype: unicode
+    :rtype: str
     """
 
     # If the value isn't ascii as RFC2822 prescribes,
     # we just return the unicode bytestring as is
+    # XXX: this prbably isn't going to work in python 3
     value = string_decode(header)  # convert to unicode
     try:
         value = value.encode('ascii')

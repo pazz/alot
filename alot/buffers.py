@@ -662,7 +662,7 @@ class TagListBuffer(Buffer):
 
         lines = list()
         displayedtags = sorted((t for t in self.tags if self.filtfun(t)),
-                               key=unicode.lower)
+                               key=str.lower)
         for (num, b) in enumerate(displayedtags):
             if (num % 2) == 0:
                 attr = settings.get_theming_attribute('taglist', 'line_even')

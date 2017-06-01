@@ -689,7 +689,7 @@ class PipeCommand(Command):
         :type field_key: str
         """
         Command.__init__(self, **kwargs)
-        if isinstance(cmd, unicode):
+        if isinstance(cmd, str):
             cmd = split_commandstring(cmd)
         self.cmd = cmd
         self.whole_thread = all
