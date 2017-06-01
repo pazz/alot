@@ -395,7 +395,7 @@ class SettingsManager(object):
     def get_mapped_input_keysequences(self, mode='global', prefix=u''):
         # get all bindings in this mode
         globalmaps, modemaps = self.get_keybindings(mode)
-        candidates = globalmaps.keys() + modemaps.keys()
+        candidates = list(globalmaps.keys()) + list(modemaps.keys())
         if prefix is not None:
             prefixes = prefix + ' '
             cand = [c for c in candidates if c.startswith(prefixes)]
@@ -504,7 +504,7 @@ class SettingsManager(object):
 
     def get_addresses(self):
         """returns addresses of known accounts including all their aliases"""
-        return self._accountmap.keys()
+        return list(self._accountmap.keys())
 
     def get_addressbooks(self, order=None, append_remaining=True):
         """returns list of all defined :class:`AddressBook` objects"""
