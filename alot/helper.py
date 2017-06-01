@@ -40,7 +40,6 @@ def split_commandline(s, comments=False, posix=True):
     s = s.replace('\\', '\\\\')
     s = s.replace('\'', '\\\'')
     s = s.replace('\"', '\\\"')
-    # encode s to utf-8 for shlex
     lex = shlex.shlex(s, posix=posix)
     lex.whitespace_split = True
     lex.whitespace = ';'
@@ -55,8 +54,7 @@ def split_commandstring(cmdstring):
     and the like. This simply calls shlex.split but works also with unicode
     bytestrings.
     """
-    if isinstance(cmdstring, str):
-        cmdstring = cmdstring.encode('utf-8', errors='ignore')
+    assert isinstance(cmdstring, str)
     return shlex.split(cmdstring)
 
 
