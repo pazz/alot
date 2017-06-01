@@ -66,9 +66,8 @@ class ExitCommand(Command):
             for buffer in ui.buffers:
                 if (isinstance(buffer, buffers.EnvelopeBuffer) and
                         not buffer.envelope.sent_time):
-                    if (yield ui.choice('quit without sending message?',
-                                        select='yes', cancel='no',
-                                        msg_position='left')) == 'no':
+                    msg = 'quit without sending message?'
+                    if (yield ui.choice(msg, cancel='no')) == 'no':
                         raise CommandCanceled()
 
         for b in ui.buffers:
@@ -78,8 +77,7 @@ class ExitCommand(Command):
 
         if ui.db_was_locked:
             msg = 'Database locked. Exit without saving?'
-            if (yield ui.choice(msg, select='yes', cancel='no',
-                                msg_position='left')) == 'no':
+            if (yield ui.choice(msg, select='yes', cancel='no')) == 'no':
                 return
             ui.exit()
 
@@ -457,7 +455,7 @@ class BufferCloseCommand(Command):
         if (isinstance(self.buffer, buffers.EnvelopeBuffer) and
                 not self.buffer.envelope.sent_time):
             if (not self.force and (yield ui.choice('close without sending?',
-                                                    select='yes', cancel='no',
+                                                    select=None, cancel='no',
                                                     msg_position='left')) ==
                     'no'):
                 raise CommandCanceled()
