@@ -86,7 +86,7 @@ class Thread(object):
         """
         tags = set(list(self._tags))
         if intersection:
-            for m in self.get_messages().iterkeys():
+            for m in self.get_messages().keys():
                 tags = tags.intersection(set(m.get_tags()))
         return tags
 
@@ -157,7 +157,7 @@ class Thread(object):
         if self._authors is None:
             # Sort messages with date first (by date ascending), and those
             # without a date last.
-            msgs = sorted(self.get_messages().iterkeys(),
+            msgs = sorted(self.get_messages().keys(),
                           key=lambda m: m.get_date() or datetime.max)
 
             orderby = settings.get('thread_authors_order_by')
@@ -257,7 +257,7 @@ class Thread(object):
         """
         mid = msg.get_message_id()
         msg_hash = self.get_messages()
-        for m in msg_hash.iterkeys():
+        for m in msg_hash.keys():
             if m.get_message_id() == mid:
                 return msg_hash[m]
         return None

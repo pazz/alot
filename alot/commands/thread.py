@@ -313,7 +313,7 @@ class ReplyCommand(Command):
         res = dict()
         for name, address in getaddresses(recipients):
             res[address] = name
-        urecipients = [formataddr((n, a)) for a, n in res.iteritems()]
+        urecipients = [formataddr((n, a)) for a, n in res.items()]
         return sorted(urecipients)
 
 
