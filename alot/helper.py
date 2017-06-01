@@ -10,7 +10,7 @@ from datetime import timedelta
 from datetime import datetime
 from collections import deque
 from io import BytesIO
-from cStringIO import StringIO
+from io import StringIO
 import logging
 import mimetypes
 import os

@@ -14,7 +14,7 @@ from email.utils import getaddresses, parseaddr, formataddr
 from email.message import Message
 
 from twisted.internet.defer import inlineCallbacks
-from io import BytesIO
+from io import StringIO
 
 from . import Command, registerCommand
 from .globals import ExternalCommand
@@ -993,7 +993,7 @@ class OpenAttachmentCommand(Command):
                 def afterwards():
                     os.unlink(tempfile_name)
             else:
-                handler_stdin = BytesIO()
+                handler_stdin = StringIO()
                 self.attachment.write(handler_stdin)
 
             # create handler command list

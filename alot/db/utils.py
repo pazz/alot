@@ -15,7 +15,7 @@ import tempfile
 import re
 import logging
 import mailcap
-from io import BytesIO
+from io import StringIO
 
 from .. import crypto
 from .. import helper
@@ -265,14 +265,14 @@ def message_from_file(handle):
 def message_from_string(s):
     '''Reads a mail from the given string. This is the equivalent of
     :func:`email.message_from_string` which does nothing but to wrap
-    the given string in a BytesIO object and to call
+    the given string in a StringIO object and to call
     :func:`email.message_from_file`.
 
     Please refer to the documentation of :func:`message_from_file` for
     details.
 
     '''
-    return message_from_file(BytesIO(s))
+    return message_from_file(StringIO(s))
 
 
 def extract_headers(mail, headers=None):
