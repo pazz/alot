@@ -41,8 +41,6 @@ def split_commandline(s, comments=False, posix=True):
     s = s.replace('\'', '\\\'')
     s = s.replace('\"', '\\\"')
     # encode s to utf-8 for shlex
-    if isinstance(s, str):
-        s = s.encode('utf-8')
     lex = shlex.shlex(s, posix=posix)
     lex.whitespace_split = True
     lex.whitespace = ';'
