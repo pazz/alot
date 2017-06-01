@@ -400,15 +400,15 @@ def decode_header(header, normalize=False):
     This turns it into a single unicode string
 
     :param header: the header value
-    :type header: str
+    :type header: bytes
     :param normalize: replace trailing spaces after newlines
     :type normalize: bool
     :rtype: str
     """
+    # FIXME: this is just hacked until it works, mostly
 
     # If the value isn't ascii as RFC2822 prescribes,
     # we just return the unicode bytestring as is
-    # XXX: this prbably isn't going to work in python 3
     value = string_decode(header)  # convert to unicode
     try:
         value = value.encode('ascii')
@@ -418,12 +418,12 @@ def decode_header(header, normalize=False):
     # some mailers send out incorrectly escaped headers
     # and double quote the escaped realname part again. remove those
     # RFC: 2047
-    regex = r'"(=\?.+?\?.+?\?[^ ?]+\?=)"'
-    value = re.sub(regex, r'\1', value)
-    logging.debug("unquoted header: |%s|", value)
+    regex = br'"(=\?.+?\?.+?\?[^ ?]+\?=)"'
+    value = re.sub(regex, br'\1', value)
+    logging.debug(b"unquoted header: |%s|", value)
 
     # otherwise we interpret RFC2822 encoding escape sequences
-    valuelist = email.header.decode_header(value)
+    valuelist = email.header.decode_header(value.decode('ascii'))
     decoded_list = []
     for v, enc in valuelist:
         v = string_decode(v, enc)
