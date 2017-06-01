@@ -433,7 +433,7 @@ class SettingsManager(object):
                 if value and value != '':
                     globalmaps[key] = value
         # get rid of empty commands left in mode bindings
-        for k, v in modemaps.items():
+        for k, v in list(modemaps.items()):
             if not v:
                 del modemaps[k]
 
