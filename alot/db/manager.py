@@ -368,7 +368,7 @@ class DBManager(object):
         sender.close()
         return receiver, process
 
-    def get_threads(self, querystring, sort='newest_first'):
+    def get_threads(self, querystring, sort='newest_first', exclude_tags=None):
         """
         asynchronously look up thread ids matching `querystring`.
 
@@ -377,6 +377,8 @@ class DBManager(object):
         :param sort: Sort order. one of ['oldest_first', 'newest_first',
                      'message_id', 'unsorted']
         :type query: str
+        :param exclude_tags: Tags to exclude by default unless included in the search
+        :type exclude_tags: list of str
         :returns: a pipe together with the process that asynchronously
                   writes to it.
         :rtype: (:class:`multiprocessing.Pipe`,
@@ -385,6 +387,9 @@ class DBManager(object):
         assert sort in self._sort_orders
         q = self.query(querystring)
         q.set_sort(self._sort_orders[sort])
+        if exclude_tags:
+            for tag in exclude_tags:
+                q.exclude_tag(tag)
         return self.async(q.search_threads, (lambda a: a.get_thread_id()))
 
     def query(self, querystring):

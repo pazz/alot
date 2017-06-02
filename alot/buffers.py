@@ -260,9 +260,14 @@ class SearchBuffer(Buffer):
         else:
             order = self.sort_order
 
+        exclude_tags = settings.get_notmuch_setting('search', 'exclude_tags')
+        if exclude_tags:
+            exclude_tags = [t for t in exclude_tags.split(';') if t]
+
         try:
             self.pipe, self.proc = self.dbman.get_threads(self.querystring,
-                                                          order)
+                                                          order,
+                                                          exclude_tags)
         except NotmuchError:
             self.ui.notify('malformed query string: %s' % self.querystring,
                            'error')
