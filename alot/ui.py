@@ -317,7 +317,7 @@ class UI(object):
 
         def cerror(e):
             logging.error(e)
-            self.notify('completion error: %s' % e.message,
+            self.notify('completion error: %s' % str(e),
                         priority='error')
             self.update()
 

@@ -145,8 +145,8 @@ class SaveCommand(Command):
                 ui.apply_command(globals.FlushCommand())
                 ui.apply_command(commands.globals.BufferCloseCommand())
             except DatabaseError as e:
-                logging.error(e)
-                ui.notify('could not index message:\n%s' % e,
+                logging.error(str(e))
+                ui.notify('could not index message:\n%s' % str(e),
                           priority='error',
                           block=True)
         else:
@@ -515,6 +515,7 @@ class SignCommand(Command):
                 except GPGProblem as e:
                     envelope.sign = False
                     ui.notify(str(e), priority='error')
+<<<<<<< HEAD
                     return
             else:
                 try:
@@ -523,6 +524,8 @@ class SignCommand(Command):
                     envelope.sign = False
                     ui.notify('Unable to find a matching account',
                               priority='error')
+=======
+>>>>>>> py3k: Replace 'e.message' with 'str(e)' when handling exceptions
                     return
                 if not acc.gpg_key:
                     envelope.sign = False
