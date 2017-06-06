@@ -9,5 +9,3 @@ if the type says "boolean" you may only provide "True" or "False" as values in y
 otherwise alot will complain on startup. Strings *may* be quoted but do not need to be.
 
 .. include:: alotrc_table
-
-.. _account:
