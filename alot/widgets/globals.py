@@ -130,7 +130,7 @@ class CompleteEdit(urwid.Edit):
         self.historypos = None
         self.focus_in_clist = 0
 
-        if not isinstance(edit_text, unicode):
+        if not isinstance(edit_text, str):
             edit_text = string_decode(edit_text)
         self.start_completion_pos = len(edit_text)
         self.completions = None
