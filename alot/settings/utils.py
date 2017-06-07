@@ -13,8 +13,8 @@ def read_config(configpath=None, specpath=None, checks=None):
     """
     get a (validated) config object for given config file path.
 
-    :param configpath: path to config-file
-    :type configpath: str
+    :param configpath: path to config-file or a list of lines as its content
+    :type configpath: str or list(str)
     :param specpath: path to spec-file
     :type specpath: str
     :param checks: custom checks to use for validator.
