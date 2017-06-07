@@ -10,19 +10,52 @@ import os
 import re
 
 from ..settings import settings
-from ..helper import split_commandstring, string_decode
+from ..helper import split_commandstring, string_decode, classproperty
 
 
 class Command(object):
 
     """base class for commands"""
     repeatable = False
+    mode = ""
+    cmdname = ""
+
+    @classproperty
+    def id(cls):
+        """Mode and command name of instance as string."""
+        return "{}.{}".format(cls.mode, cls.cmdname)
 
     def __init__(self):
-        self.prehook = None
-        self.posthook = None
+        # set to False if no attempt to fetch hooks from settings. After
+        # looking for hooks, they will contain a callable or None if no
+        # hook was found.
+        self._prehook = False
+        self._posthook = False
+
         self.undoable = False
         self.help = self.__doc__
+
+    @property
+    def prehook(self):
+        """Command pre hook."""
+        if self._prehook is False:
+            get_hook = settings.get_hook
+            mode = type(self).mode
+            cmdname = type(self).cmdname
+            self._prehook = (get_hook('pre_%s_%s' % (mode, cmdname)) or
+                             get_hook('pre_global_%s' % cmdname))
+        return self._prehook
+
+    @property
+    def posthook(self):
+        """Command post hook."""
+        if self._posthook is False:
+            get_hook = settings.get_hook
+            mode = type(self).mode
+            cmdname = type(self).cmdname
+            self._posthook = (get_hook('post_%s_%s' % (mode, cmdname)) or
+                              get_hook('post_global_%s' % cmdname))
+        return self._posthook
 
     def apply(self, caller):
         """code that gets executed when this command is applied"""
@@ -33,6 +66,7 @@ class CommandCanceled(Exception):
     """ Exception triggered when an interactive command has been cancelled
     """
     pass
+
 
 COMMANDS = {
     'search': {},
@@ -136,15 +170,17 @@ class registerCommand(object):
         self.forced = forced or {}
         self.arguments = arguments or []
 
-    def __call__(self, klass):
-        helpstring = self.help or klass.__doc__
+    def __call__(self, class_):
+        helpstring = self.help or class_.__doc__
         argparser = CommandArgumentParser(description=helpstring,
                                           usage=self.usage,
                                           prog=self.name, add_help=False)
         for args, kwargs in self.arguments:
             argparser.add_argument(*args, **kwargs)
-        COMMANDS[self.mode][self.name] = (klass, argparser, self.forced)
-        return klass
+        COMMANDS[self.mode][self.name] = (class_, argparser, self.forced)
+        class_.mode = self.mode
+        class_.cmdname = self.name
+        return class_
 
 
 def commandfactory(cmdline, mode='global'):
@@ -190,13 +226,6 @@ def commandfactory(cmdline, mode='global'):
 
     # create Command
     cmd = cmdclass(**parms)
-
-    # set pre and post command hooks
-    get_hook = settings.get_hook
-    cmd.prehook = get_hook('pre_%s_%s' % (mode, cmdname)) or \
-        get_hook('pre_global_%s' % cmdname)
-    cmd.posthook = get_hook('post_%s_%s' % (mode, cmdname)) or \
-        get_hook('post_global_%s' % cmdname)
 
     return cmd
 
