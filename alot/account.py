@@ -69,7 +69,7 @@ class Account(object):
             draft_tags.append('draft')
 
         self.address = address
-        self.aliases = aliases
+        self.aliases = aliases or []
         self.alias_regexp = alias_regexp
         self.realname = realname
         self.gpg_key = gpg_key
