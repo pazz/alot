@@ -291,6 +291,7 @@ def check_uid_validity(key, email):
     """
     for key_uid in key.uids:
         if email == key_uid.email and not key_uid.revoked and \
-                not key_uid.invalid and key_uid.validity >= 4:
+                not key_uid.invalid and \
+                key_uid.validity >= gpgme.VALIDITY_FULL:
             return True
     return False
