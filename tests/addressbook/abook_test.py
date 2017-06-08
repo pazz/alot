@@ -3,6 +3,7 @@
 # For further details see the COPYING file
 from __future__ import absolute_import
 
+import os
 import tempfile
 import unittest
 
@@ -31,6 +32,7 @@ class TestAbookAddressBook(unittest.TestCase):
         with tempfile.NamedTemporaryFile(delete=False) as tmp:
             tmp.write(data)
             path = tmp.name
+            self.addCleanup(os.unlink, path)
         addressbook = abook.AbookAddressBook(path)
         actual = addressbook.get_contacts()
         expected = [('me', 'me@example.com'), ('you', 'you@other.domain'),
