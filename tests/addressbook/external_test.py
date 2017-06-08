@@ -45,10 +45,18 @@ class TestExternalAddressbookGetContacts(unittest.TestCase):
         expected = [('me', '<me@example.com>'), ('you', '<you@other.domain>')]
         self.assertListEqual(actual, expected)
 
-    def test_returns_empty_list_if_regex_has_no_name_and_email_submatches(self):
+    def test_returns_empty_list_if_regex_has_no_name_submatches(self):
         abook = external.ExternalAddressbook(
-            'foobar', self.regex.replace('name', 'xname').replace('email',
-                                                                  'xemail'))
+            'foobar', self.regex.replace('name', 'xname'))
+        with self._patch_call_cmd(
+                ('me\t<me@example.com>\nyou\t<you@other.domain>', '', 0)):
+            actual = abook.get_contacts()
+        self.assertListEqual(actual, [])
+
+    @unittest.expectedFailure
+    def test_returns_empty_list_if_regex_has_no_email_submatches(self):
+        abook = external.ExternalAddressbook(
+            'foobar', self.regex.replace('email', 'xemail'))
         with self._patch_call_cmd(
                 ('me\t<me@example.com>\nyou\t<you@other.domain>', '', 0)):
             actual = abook.get_contacts()
