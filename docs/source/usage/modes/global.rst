@@ -26,7 +26,8 @@ The following commands are available globally
 
 .. describe:: search
 
-    open a new search buffer
+    open a new search buffer. Search obeys the notmuch
+    :ref:`search.exclude_tags <search.exclude_tags>` setting.
 
     argument
         search string

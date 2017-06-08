@@ -89,7 +89,8 @@ class ExitCommand(Command):
     (['query'], {'nargs': argparse.REMAINDER, 'help': 'search string'})])
 class SearchCommand(Command):
 
-    """open a new search buffer"""
+    """open a new search buffer. Search obeys the notmuch
+    :ref:`search.exclude_tags <search.exclude_tags>` setting."""
     repeatable = True
 
     def __init__(self, query, sort=None, **kwargs):
