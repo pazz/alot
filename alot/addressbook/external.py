@@ -68,7 +68,7 @@ class ExternalAddressbook(AddressBook):
             m = re.match(self.regex, l, self.reflags)
             if m:
                 info = m.groupdict()
-                if 'email' and 'name' in info:
+                if 'email' in info and 'name' in info:
                     email = info['email'].strip()
                     name = info['name']
                     res.append((name, email))
