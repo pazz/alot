@@ -189,3 +189,74 @@ class TestEncodeHeader(unittest.TestCase):
         actual = utils.encode_header('from', addresses)
         expected = email.header.Header(addresses)
         self.assertEqual(str(actual), str(expected))
+
+
+class TestDecodeHeader(unittest.TestCase):
+
+    def _test(self, teststring, expected):
+        actual = utils.decode_header(teststring)
+        self.assertEqual(actual, expected)
+
+    def test_non_ascii_strings_are_returned_as_unicode_directly(self):
+        text = u'Nön ÄSCII string¡'
+        self._test(text, text)
+
+    def test_basic_utf_8_quoted(self):
+        text = '=?utf-8?Q?=C3=84=C3=96=C3=9C=C3=A4=C3=B6=C3=BC?='
+        expected = u'ÄÖÜäöü'
+        self._test(text, expected)
+
+    def test_basic_iso_8859_1_quoted(self):
+        text = '=?iso-8859-1?Q?=C4=D6=DC=E4=F6=FC?='
+        expected = u'ÄÖÜäöü'
+        self._test(text, expected)
+
+    def test_basic_windows_1252_quoted(self):
+        text = '=?windows-1252?Q?=C4=D6=DC=E4=F6=FC?='
+        expected = u'ÄÖÜäöü'
+        self._test(text, expected)
+
+    def test_basic_utf_8_base64(self):
+        text = '=?utf-8?b?w4TDlsOcw6TDtsO8?='
+        expected = u'ÄÖÜäöü'
+        self._test(text, expected)
+
+    def test_basic_iso_8859_1_base64(self):
+        text = '=?iso-8859-1?b?xNbc5Pb8?='
+        expected = u'ÄÖÜäöü'
+        self._test(text, expected)
+
+    def test_basic_iso_1252_base64(self):
+        text = '=?windows-1252?b?xNbc5Pb8?='
+        expected = u'ÄÖÜäöü'
+        self._test(text, expected)
+
+    def test_quoted_words_can_be_interrupted(self):
+        text = '=?utf-8?b?w4TDlsOcw6TDtsO8?= and ' \
+            '=?utf-8?Q?=C3=84=C3=96=C3=9C=C3=A4=C3=B6=C3=BC?='
+        expected = u'ÄÖÜäöü and ÄÖÜäöü'
+        self._test(text, expected)
+
+    def test_different_encodings_can_be_mixed(self):
+        text = 'utf-8: =?utf-8?b?w4TDlsOcw6TDtsO8?= ' \
+            'again: =?utf-8?Q?=C3=84=C3=96=C3=9C=C3=A4=C3=B6=C3=BC?= ' \
+            'latin1: =?iso-8859-1?b?xNbc5Pb8?= ' \
+            'and =?iso-8859-1?Q?=C4=D6=DC=E4=F6=FC?='
+        expected = u'utf-8: ÄÖÜäöü again: ÄÖÜäöü latin1: ÄÖÜäöü and ÄÖÜäöü'
+        self._test(text, expected)
+
+    def test_tabs_are_expanded_to_align_with_eigth_spaces(self):
+        text = 'tab: \t'
+        expected = u'tab:    '
+        self._test(text, expected)
+
+    def test_newlines_are_not_touched_by_default(self):
+        text = 'first\nsecond\n third\n  fourth'
+        expected = u'first\nsecond\n third\n  fourth'
+        self._test(text, expected)
+
+    def test_continuation_newlines_can_be_normalized(self):
+        text = 'first\nsecond\n third\n\tfourth\n \t  fifth'
+        expected = u'first\nsecond third fourth fifth'
+        actual = utils.decode_header(text, normalize=True)
+        self.assertEqual(actual, expected)
