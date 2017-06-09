@@ -5,6 +5,7 @@
 from __future__ import absolute_import
 
 import email
+import email.header
 import os
 import os.path
 import unittest
@@ -148,3 +149,43 @@ class TestExtractHeader(unittest.TestCase):
         actual = utils.extract_headers(self.mail, ['x-quoted'])
         expected = u"x-quoted: param=utf-8''%C3%9Cmlaut; second=plain%C3%9C\n",
         self.assertEqual(actual, expected)
+
+
+class TestEncodeHeader(unittest.TestCase):
+
+    def test_only_value_is_used_in_output(self):
+        actual = utils.encode_header('x-key', 'value')
+        expected = email.header.Header('value')
+        self.assertEqual(actual, expected)
+
+    def test_unicode_chars_are_encoded(self):
+        actual = utils.encode_header('x-key', u'välüe')
+        expected = email.header.Header('=?utf-8?b?dsOkbMO8ZQ==?=')
+        self.assertEqual(actual, expected)
+
+    def test_space_around_email_address_is_striped(self):
+        address = '  someone <user@example.com>  '
+        actual = utils.encode_header('from', address)
+        expected = email.header.Header(address.strip())
+        self.assertEqual(actual, expected)
+
+    def test_spaces_in_user_names_are_accepted(self):
+        address = 'some one <user@example.com>'
+        actual = utils.encode_header('from', address)
+        expected = email.header.Header(address)
+        self.assertEqual(actual, expected)
+
+    def test_multible_addresses_can_be_given(self):
+        addresses = 'one <guy@example.com>, other <guy@example.com>, ' \
+            'last <guy@example.com>'
+        actual = utils.encode_header('from', addresses)
+        expected = email.header.Header(addresses)
+        self.assertEqual(actual, expected)
+
+    @unittest.expectedFailure
+    def test_comma_in_names_are_allowed(self):
+        addresses = '"last, first" <guy@example.com>, ' \
+            '"name, other" <guy@example.com>'
+        actual = utils.encode_header('from', addresses)
+        expected = email.header.Header(addresses)
+        self.assertEqual(str(actual), str(expected))
