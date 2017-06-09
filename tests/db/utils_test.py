@@ -5,6 +5,8 @@
 from __future__ import absolute_import
 
 import email
+import os
+import os.path
 import unittest
 
 from alot.db import utils
@@ -57,3 +59,35 @@ class TestGetParams(unittest.TestCase):
         expected = dict(failobj)
         self.assertEqual(actual, expected)
 
+
+class TestIsSubdirOf(unittest.TestCase):
+
+    def test_both_paths_absolute_matching(self):
+        superpath = '/a/b'
+        subpath = '/a/b/c/d.rst'
+        result = utils.is_subdir_of(subpath, superpath)
+        self.assertTrue(result)
+
+    def test_both_paths_absolute_not_matching(self):
+        superpath = '/a/z'
+        subpath = '/a/b/c/d.rst'
+        result = utils.is_subdir_of(subpath, superpath)
+        self.assertFalse(result)
+
+    def test_both_paths_relative_matching(self):
+        superpath = 'a/b'
+        subpath = 'a/b/c/d.rst'
+        result = utils.is_subdir_of(subpath, superpath)
+        self.assertTrue(result)
+
+    def test_both_paths_relative_not_matching(self):
+        superpath = 'a/z'
+        subpath = 'a/b/c/d.rst'
+        result = utils.is_subdir_of(subpath, superpath)
+        self.assertFalse(result)
+
+    def test_relative_path_and_absolute_path_matching(self):
+        superpath = 'a/b'
+        subpath = os.path.join(os.getcwd(), 'a/b/c/d.rst')
+        result = utils.is_subdir_of(subpath, superpath)
+        self.assertTrue(result)
