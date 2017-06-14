@@ -4,6 +4,7 @@
 # For further details see the COPYING file
 from __future__ import absolute_import
 
+import base64
 import email
 import email.header
 import os
@@ -193,6 +194,39 @@ class TestEncodeHeader(unittest.TestCase):
 
 class TestDecodeHeader(unittest.TestCase):
 
+    @staticmethod
+    def _quote(unicode_string, encoding):
+        """Turn a unicode string into a RFC2047 quoted ascii string
+
+        :param unicode_string: the string to encode
+        :type unicode_string: unicode
+        :param encoding: the encoding to use, 'utf-8', 'iso-8859-1', ...
+        :type encoding: str
+        :returns: the encoded string
+        :rtype: str
+        """
+        string = unicode_string.encode(encoding)
+        output = '=?' + encoding + '?Q?'
+        for byte in string:
+            output += '=' + byte.encode('hex').upper()
+        return output + '?='
+
+    @staticmethod
+    def _base64(unicode_string, encoding):
+        """Turn a unicode string into a RFC2047 base64 encoded ascii string
+
+        :param unicode_string: the string to encode
+        :type unicode_string: unicode
+        :param encoding: the encoding to use, 'utf-8', 'iso-8859-1', ...
+        :type encoding: str
+        :returns: the encoded string
+        :rtype: str
+        """
+        string = unicode_string.encode(encoding)
+        b64 = base64.encodestring(string).strip()
+        return '=?' + encoding + '?B?' + b64 + '?='
+
+
     def _test(self, teststring, expected):
         actual = utils.decode_header(teststring)
         self.assertEqual(actual, expected)
@@ -202,46 +236,48 @@ class TestDecodeHeader(unittest.TestCase):
         self._test(text, text)
 
     def test_basic_utf_8_quoted(self):
-        text = '=?utf-8?Q?=C3=84=C3=96=C3=9C=C3=A4=C3=B6=C3=BC?='
         expected = u'ÄÖÜäöü'
+        text = self._quote(expected, 'utf-8')
         self._test(text, expected)
 
     def test_basic_iso_8859_1_quoted(self):
-        text = '=?iso-8859-1?Q?=C4=D6=DC=E4=F6=FC?='
         expected = u'ÄÖÜäöü'
+        text = self._quote(expected, 'iso-8859-1')
         self._test(text, expected)
 
     def test_basic_windows_1252_quoted(self):
-        text = '=?windows-1252?Q?=C4=D6=DC=E4=F6=FC?='
         expected = u'ÄÖÜäöü'
+        text = self._quote(expected, 'windows-1252')
         self._test(text, expected)
 
     def test_basic_utf_8_base64(self):
-        text = '=?utf-8?b?w4TDlsOcw6TDtsO8?='
         expected = u'ÄÖÜäöü'
+        text = self._base64(expected, 'utf-8')
         self._test(text, expected)
 
     def test_basic_iso_8859_1_base64(self):
-        text = '=?iso-8859-1?b?xNbc5Pb8?='
         expected = u'ÄÖÜäöü'
+        text = self._base64(expected, 'iso-8859-1')
         self._test(text, expected)
 
     def test_basic_iso_1252_base64(self):
-        text = '=?windows-1252?b?xNbc5Pb8?='
         expected = u'ÄÖÜäöü'
+        text = self._base64(expected, 'windows-1252')
         self._test(text, expected)
 
     def test_quoted_words_can_be_interrupted(self):
-        text = '=?utf-8?b?w4TDlsOcw6TDtsO8?= and ' \
-            '=?utf-8?Q?=C3=84=C3=96=C3=9C=C3=A4=C3=B6=C3=BC?='
+        part = u'ÄÖÜäöü'
+        text = self._base64(part, 'utf-8') + ' and ' + \
+            self._quote(part, 'utf-8')
         expected = u'ÄÖÜäöü and ÄÖÜäöü'
         self._test(text, expected)
 
     def test_different_encodings_can_be_mixed(self):
-        text = 'utf-8: =?utf-8?b?w4TDlsOcw6TDtsO8?= ' \
-            'again: =?utf-8?Q?=C3=84=C3=96=C3=9C=C3=A4=C3=B6=C3=BC?= ' \
-            'latin1: =?iso-8859-1?b?xNbc5Pb8?= ' \
-            'and =?iso-8859-1?Q?=C4=D6=DC=E4=F6=FC?='
+        part = u'ÄÖÜäöü'
+        text = 'utf-8: ' + self._base64(part, 'utf-8') + \
+            ' again: ' + self._quote(part, 'utf-8') + \
+            ' latin1: ' + self._base64(part, 'iso-8859-1') + \
+            ' and ' + self._quote(part, 'iso-8859-1')
         expected = u'utf-8: ÄÖÜäöü again: ÄÖÜäöü latin1: ÄÖÜäöü and ÄÖÜäöü'
         self._test(text, expected)
 
