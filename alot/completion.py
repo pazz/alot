@@ -19,6 +19,7 @@ from .utils import argparse as cargparse
 from .helper import split_commandline
 from .addressbook import AddressbookError
 from .errors import CompletionError
+from .utils.cached_property import cached_property
 
 
 class Completer(object):
@@ -320,14 +321,35 @@ class CommandCompleter(Completer):
         self.mode = mode
         self.currentbuffer = currentbuffer
         self._commandnamecompleter = CommandNameCompleter(mode)
-        self._querycompleter = QueryCompleter(dbman)
-        self._tagcompleter = TagCompleter(dbman)
+
+    @cached_property
+    def _querycompleter(self):
+        return QueryCompleter(self.dbman)
+
+    @cached_property
+    def _tagcompleter(self):
+        return TagCompleter(self.dbman)
+
+    @cached_property
+    def _contactscompleter(self):
         abooks = settings.get_addressbooks()
-        self._contactscompleter = ContactsCompleter(abooks)
-        self._pathcompleter = PathCompleter()
-        self._accountscompleter = AccountCompleter()
-        self._secretkeyscompleter = CryptoKeyCompleter(private=True)
-        self._publickeyscompleter = CryptoKeyCompleter(private=False)
+        return ContactsCompleter(abooks)
+
+    @cached_property
+    def _pathcompleter(self):
+        return PathCompleter()
+
+    @cached_property
+    def _accountscompleter(self):
+        return AccountCompleter()
+
+    @cached_property
+    def _secretkeyscompleter(self):
+        return CryptoKeyCompleter(private=True)
+
+    @cached_property
+    def _publickeyscompleter(self):
+        return CryptoKeyCompleter(private=False)
 
     def complete(self, line, pos):
         # remember how many preceding space characters we see until the command
