@@ -34,6 +34,8 @@ class SettingsManager(object):
         :param notmuch_rc: path to notmuch's config file
         :type notmuch_rc: str
         """
+        assert alot_rc is None or (isinstance(alot_rc, basestring) and os.path.exists(alot_rc))
+        assert notmuch_rc is None or (isinstance(notmuch_rc, basestring) and os.path.exists(notmuch_rc))
         self.hooks = None
         self._mailcaps = mailcap.getcaps()
         self._config = ConfigObj()
@@ -41,23 +43,41 @@ class SettingsManager(object):
         self._theme = None
         self._accounts = None
         self._accountmap = None
-        bindings_path = os.path.join(DEFAULTSPATH, 'default.bindings')
-        self._bindings = ConfigObj(bindings_path)
-        if alot_rc is not None:
-            self.read_config(alot_rc)
-        if notmuch_rc is not None:
-            self.read_notmuch_config(notmuch_rc)
+        self.alot_rc_path = alot_rc
+        self.notmuch_rc_path = notmuch_rc
+        self._notmuchconfig = None
+        self._config = ConfigObj()
+        self._bindings = None
+        self.reload()
 
-    def read_notmuch_config(self, path):
+    def reload(self):
+        """Reload All configurations.
+
+        This first resets all configs to default (in case an overwritten
+        binding is removed from the user config), then reloads the notmuch
+        config, and finally reads the alot config.
+
+        Implementation Detail: this is the same code called by the constructor
+        to set bindings at alot startup.
+        """
+        self._bindings = ConfigObj(os.path.join(DEFAULTSPATH, 'default.bindings'))
+        self.read_notmuch_config()
+        self.read_config()
+
+    def read_notmuch_config(self):
         """parse notmuch's config file from path"""
-        spec = os.path.join(DEFAULTSPATH, 'notmuch.rc.spec')
-        self._notmuchconfig = read_config(path, spec)
+        if self.notmuch_rc_path is not None:
+            spec = os.path.join(DEFAULTSPATH, 'notmuch.rc.spec')
+            self._notmuchconfig = read_config(self.notmuch_rc_path, spec)
 
-    def read_config(self, path):
+    def read_config(self):
         """parse alot's config file from path"""
+        if self.alot_rc_path is None:
+            return
+
         spec = os.path.join(DEFAULTSPATH, 'alot.rc.spec')
         newconfig = read_config(
-            path, spec, checks={
+            self.alot_rc_path, spec, checks={
                 'mail_container': checks.mail_container,
                 'force_list': checks.force_list,
                 'align': checks.align_mode,
