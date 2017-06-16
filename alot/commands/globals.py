@@ -955,3 +955,12 @@ class MoveCommand(Command):
         else:
             ui.notify('unknown movement: ' + self.movement,
                       priority='error')
+
+
+@registerCommand(MODE, 'reload', help='Reload all configuration files')
+class ReloadCommand(Command):
+
+    """Reload configuration."""
+
+    def apply(self, ui):
+        settings.reload()
