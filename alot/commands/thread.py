@@ -68,7 +68,7 @@ def determine_sender(mail, action='reply'):
     # account X is the one selected and not account Y.
     candidate_headers = settings.get("reply_account_header_priority")
     for candidate_header in candidate_headers:
-        if realname is not None:
+        if matching_account is not None:
             break
         candidate_addresses = getaddresses(mail.get_all(candidate_header, []))
 
@@ -80,7 +80,7 @@ def determine_sender(mail, action='reply'):
             if account.alias_regexp is not None:
                 acc_addresses.append(account.alias_regexp)
             for alias in acc_addresses:
-                if realname is not None:
+                if matching_account is not None:
                     break
                 regex = re.compile('^' + alias + '$', flags=re.IGNORECASE)
                 for seen_name, seen_address in candidate_addresses:
@@ -97,7 +97,7 @@ def determine_sender(mail, action='reply'):
                         matching_account = account
 
     # revert to default account if nothing found
-    if realname is None:
+    if matching_account is None:
         matching_account = my_accounts[0]
         realname = matching_account.realname
         address = matching_account.address

@@ -171,7 +171,6 @@ class TestDetermineSender(unittest.TestCase):
         self._test(accounts=[account1, account2, account3], expected=expected,
                    force_realname=True)
 
-    @unittest.expectedFailure
     def test_doesnt_fail_with_force_realname_if_real_name_not_defined(self):
         account1 = _AccountTestClass(address='foo@example.com')
         account2 = _AccountTestClass(address='to@example.com')
