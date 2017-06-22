@@ -162,3 +162,20 @@ class TestDetermineSender(unittest.TestCase):
         account3 = _AccountTestClass(address='bar@example.com')
         expected = ('to@example.com', account2)
         self._test(accounts=[account1, account2, account3], expected=expected)
+
+    def test_force_realname_includes_real_name_in_returned_address_if_defined(self):
+        account1 = _AccountTestClass(address='foo@example.com')
+        account2 = _AccountTestClass(address='to@example.com', realname='Bar')
+        account3 = _AccountTestClass(address='baz@example.com')
+        expected = ('Bar <to@example.com>', account2)
+        self._test(accounts=[account1, account2, account3], expected=expected,
+                   force_realname=True)
+
+    @unittest.expectedFailure
+    def test_doesnt_fail_with_force_realname_if_real_name_not_defined(self):
+        account1 = _AccountTestClass(address='foo@example.com')
+        account2 = _AccountTestClass(address='to@example.com')
+        account3 = _AccountTestClass(address='bar@example.com')
+        expected = ('to@example.com', account2)
+        self._test(accounts=[account1, account2, account3], expected=expected,
+                   force_realname=True)
