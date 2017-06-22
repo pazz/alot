@@ -178,3 +178,50 @@ class TestDetermineSender(unittest.TestCase):
         expected = ('to@example.com', account2)
         self._test(accounts=[account1, account2, account3], expected=expected,
                    force_realname=True)
+
+    def test_with_force_address_main_address_is_used_regardless_of_matching_address(self):
+        # In python 3.4 this and the next test could be written as subtests.
+        account1 = _AccountTestClass(address='foo@example.com')
+        account2 = _AccountTestClass(address='bar@example.com',
+                                     aliases=['to@example.com'])
+        account3 = _AccountTestClass(address='bar@example.com')
+        expected = ('bar@example.com', account2)
+        self._test(accounts=[account1, account2, account3], expected=expected,
+                   force_address=True)
+
+    def test_without_force_address_matching_address_is_used(self):
+        # In python 3.4 this and the previous test could be written as
+        # subtests.
+        account1 = _AccountTestClass(address='foo@example.com')
+        account2 = _AccountTestClass(address='bar@example.com',
+                                     aliases=['to@example.com'])
+        account3 = _AccountTestClass(address='baz@example.com')
+        expected = ('to@example.com', account2)
+        self._test(accounts=[account1, account2, account3], expected=expected,
+                   force_address=False)
+
+    def test_uses_to_header_if_present(self):
+        account1 = _AccountTestClass(address='foo@example.com')
+        account2 = _AccountTestClass(address='to@example.com')
+        account3 = _AccountTestClass(address='bar@example.com')
+        expected = ('to@example.com', account2)
+        self._test(accounts=[account1, account2, account3], expected=expected)
+
+    def test_header_order_is_more_important_than_accounts_order(self):
+        account1 = _AccountTestClass(address='cc@example.com')
+        account2 = _AccountTestClass(address='to@example.com')
+        account3 = _AccountTestClass(address='bcc@example.com')
+        expected = ('to@example.com', account2)
+        self._test(accounts=[account1, account2, account3], expected=expected)
+
+    def test_accounts_can_be_found_by_alias_regex_setting(self):
+        account1 = _AccountTestClass(address='foo@example.com')
+        account2 = _AccountTestClass(address='to@example.com',
+                                     alias_regexp=r'to\+.*@example.com')
+        account3 = _AccountTestClass(address='bar@example.com')
+        mailstring = self.mailstring.replace('to@example.com',
+                                             'to+some_tag@example.com')
+        mail = email.message_from_string(mailstring)
+        expected = ('to+some_tag@example.com', account2)
+        self._test(accounts=[account1, account2, account3], expected=expected,
+                   mail=mail)
