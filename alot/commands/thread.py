@@ -54,6 +54,7 @@ def determine_sender(mail, action='reply'):
     assert action in ['reply', 'forward', 'bounce']
     realname = None
     address = None
+    matching_account = None
 
     # get accounts
     my_accounts = settings.get_accounts()
@@ -93,17 +94,18 @@ def determine_sender(mail, action='reply'):
                             address = account.address
                         else:
                             address = seen_address
+                        matching_account = account
 
     # revert to default account if nothing found
     if realname is None:
-        account = my_accounts[0]
-        realname = account.realname
-        address = account.address
+        matching_account = my_accounts[0]
+        realname = matching_account.realname
+        address = matching_account.address
     logging.debug('using realname: "%s"', realname)
     logging.debug('using address: %s', address)
 
     from_value = formataddr((realname, address))
-    return from_value, account
+    return from_value, matching_account
 
 
 @registerCommand(MODE, 'reply', arguments=[

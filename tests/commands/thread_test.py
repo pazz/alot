@@ -156,7 +156,6 @@ class TestDetermineSender(unittest.TestCase):
         expected = ('foo@example.com', account1)
         self._test(accounts=[account1, account2], expected=expected)
 
-    @unittest.expectedFailure
     def test_matching_address_and_account_are_returned(self):
         account1 = _AccountTestClass(address='foo@example.com')
         account2 = _AccountTestClass(address='to@example.com')
