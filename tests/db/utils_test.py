@@ -164,6 +164,26 @@ class TestEncodeHeader(unittest.TestCase):
         expected = email.header.Header('=?utf-8?b?dsOkbMO8ZQ==?=')
         self.assertEqual(actual, expected)
 
+    def test_plain_email_addresses_are_accepted(self):
+        address = 'user@example.com'
+        actual = utils.encode_header('from', address)
+        expected = email.header.Header(address)
+        self.assertEqual(actual, expected)
+
+    def test_email_addresses_with_realnames_are_accepted(self):
+        address = 'someone <user@example.com>'
+        actual = utils.encode_header('from', address)
+        expected = email.header.Header(address)
+        self.assertEqual(actual, expected)
+
+    @unittest.expectedFailure
+    def test_email_addresses_with_empty_realnames_are_treated_like_plain(self):
+        address = 'user@example.com'
+        empty_realname = '<'+address+'>'
+        actual = utils.encode_header('from', empty_realname)
+        expected = email.header.Header(address)
+        self.assertEqual(str(actual), str(expected))
+
     def test_space_around_email_address_is_striped(self):
         address = '  someone <user@example.com>  '
         actual = utils.encode_header('from', address)
@@ -190,6 +210,13 @@ class TestEncodeHeader(unittest.TestCase):
         actual = utils.encode_header('from', addresses)
         expected = email.header.Header(addresses)
         self.assertEqual(str(actual), str(expected))
+
+    def test_utf_8_chars_in_realnames_are_accepted(self):
+        address = u'Ümlaut <uemlaut@example.com>'
+        actual = utils.encode_header('from', address)
+        expected = email.header.Header(
+            '=?utf-8?q?=C3=9Cmlaut?= <uemlaut@example.com>')
+        self.assertEqual(actual, expected)
 
 
 class TestDecodeHeader(unittest.TestCase):
