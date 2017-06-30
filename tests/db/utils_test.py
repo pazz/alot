@@ -176,7 +176,6 @@ class TestEncodeHeader(unittest.TestCase):
         expected = email.header.Header(address)
         self.assertEqual(actual, expected)
 
-    @unittest.expectedFailure
     def test_email_addresses_with_empty_realnames_are_treated_like_plain(self):
         address = 'user@example.com'
         empty_realname = '<'+address+'>'
@@ -203,7 +202,6 @@ class TestEncodeHeader(unittest.TestCase):
         expected = email.header.Header(addresses)
         self.assertEqual(actual, expected)
 
-    @unittest.expectedFailure
     def test_comma_in_names_are_allowed(self):
         addresses = '"last, first" <guy@example.com>, ' \
             '"name, other" <guy@example.com>'
