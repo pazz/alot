@@ -570,3 +570,58 @@ class EncryptCommand(Command):
             envelope.encrypt_keys = {}
         # reload buffer
         ui.current_buffer.rebuild()
+
+
+@registerCommand(
+    MODE, 'tag', forced={'action': 'add'},
+    arguments=[(['tags'], {'help': 'comma separated list of tags'})],
+    help='add tags to message',
+)
+@registerCommand(
+    MODE, 'retag', forced={'action': 'set'},
+    arguments=[(['tags'], {'help': 'comma separated list of tags'})],
+    help='set message tags.',
+)
+@registerCommand(
+    MODE, 'untag', forced={'action': 'remove'},
+    arguments=[(['tags'], {'help': 'comma separated list of tags'})],
+    help='remove tags from message',
+)
+@registerCommand(
+    MODE, 'toggletags', forced={'action': 'toggle'},
+    arguments=[(['tags'], {'help': 'comma separated list of tags'})],
+    help='flip presence of tags on message',
+)
+class TagCommand(Command):
+
+    """manipulate message tags"""
+    repeatable = True
+
+    def __init__(self, tags=u'', action='add', **kwargs):
+        """
+        :param tags: comma separated list of tagstrings to set
+        :type tags: unicode
+        :param action: adds tags if 'add', removes them if 'remove', adds tags
+                       and removes all other if 'set' or toggle individually if
+                       'toggle'
+        :type action: str
+        """
+        assert isinstance(tags, unicode), 'tags should be a unicode string'
+        self.tagsstring = tags
+        self.action = action
+        Command.__init__(self, **kwargs)
+
+    def apply(self, ui):
+        ebuffer = ui.current_buffer
+        envelope = ebuffer.envelope
+        tags = {t for t in self.tagsstring.split(',') if t}
+        old = set(envelope.tags)
+        if self.action == 'add':
+            new = old.union(tags)
+        elif self.action == 'remove':
+            new = old.difference(tags)
+        elif self.action == 'set':
+            new = tags
+        elif self.action == 'toggle':
+            new = old.symmetric_difference(tags)
+        envelope.tags = sorted(new)
