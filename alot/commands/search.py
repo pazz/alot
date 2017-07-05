@@ -170,8 +170,8 @@ class TagCommand(Command):
                        and removes all other if 'set' or toggle individually if
                        'toggle'
         :type action: str
-        :param all: tag all messages in search result
-        :type all: bool
+        :param allmessages: tag all messages in search result
+        :type allmessages: bool
         :param flush: imediately write out to the index
         :type flush: bool
         """
