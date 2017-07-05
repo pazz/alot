@@ -26,6 +26,7 @@ import unittest
 import mock
 
 from alot.commands import envelope
+from alot.db.envelope import Envelope
 
 # When using an assert from a mock a TestCase method might not use self. That's
 # okay.
@@ -110,3 +111,49 @@ class TestAttachCommand(unittest.TestCase):
             cmd = envelope.AttachCommand(path=os.path.join(d, 'doesnt-exist'))
             cmd.apply(ui)
         ui.notify.assert_called()
+
+
+class TestTagCommands(unittest.TestCase):
+
+    def _test(self, tagstring, action, expected):
+        """Common steps for envelope.TagCommand tests
+
+        :param tagstring: the string to pass to the TagCommand
+        :type tagstring: str
+        :param action: the action to pass to the TagCommand
+        :type action: str
+        :param expected: the expected output to assert in the test
+        :type expected: list(str)
+        """
+        env = Envelope(tags=['one', 'two', 'three'])
+        ui = mock.Mock()
+        ui.current_buffer = mock.Mock()
+        ui.current_buffer.envelope = env
+        cmd = envelope.TagCommand(tags=tagstring, action=action)
+        cmd.apply(ui)
+        actual = env.tags
+        self.assertListEqual(sorted(actual), sorted(expected))
+
+    def test_add_new_tags(self):
+        self._test(u'four', 'add', ['one', 'two', 'three', 'four'])
+
+    def test_adding_existing_tags_has_no_effect(self):
+        self._test(u'one', 'add', ['one', 'two', 'three'])
+
+    def test_remove_existing_tags(self):
+        self._test(u'one', 'remove', ['two', 'three'])
+
+    def test_remove_non_existing_tags_has_no_effect(self):
+        self._test(u'four', 'remove', ['one', 'two', 'three'])
+
+    def test_set_tags(self):
+        self._test(u'a,b,c', 'set', ['a', 'b', 'c'])
+
+    def test_toggle_will_remove_existing_tags(self):
+        self._test(u'one', 'toggle', ['two', 'three'])
+
+    def test_toggle_will_add_new_tags(self):
+        self._test(u'four', 'toggle', ['one', 'two', 'three', 'four'])
+
+    def test_toggle_can_remove_and_add_in_one_run(self):
+        self._test(u'one,four', 'toggle', ['two', 'three', 'four'])
