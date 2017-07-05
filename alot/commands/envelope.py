@@ -625,3 +625,5 @@ class TagCommand(Command):
         elif self.action == 'toggle':
             new = old.symmetric_difference(tags)
         envelope.tags = sorted(new)
+        # reload buffer
+        ui.current_buffer.rebuild()
