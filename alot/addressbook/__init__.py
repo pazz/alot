@@ -34,12 +34,8 @@ class AddressBook(object):
     def lookup(self, query=''):
         """looks up all contacts where name or address match query"""
         res = []
-        query = '.*%s.*' % query
+        query = re.compile('.*%s.*' % query, self.reflags)
         for name, email in self.get_contacts():
-            try:
-                if re.match(query, name, self.reflags) or \
-                        re.match(query, email, self.reflags):
-                    res.append((name, email))
-            except:
-                pass
+            if query.match(name) or query.match(email):
+                res.append((name, email))
         return res
