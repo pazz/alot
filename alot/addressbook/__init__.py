@@ -36,10 +36,7 @@ class AddressBook(object):
         res = []
         query = '.*%s.*' % query
         for name, email in self.get_contacts():
-            try:
-                if re.match(query, name, self.reflags) or \
-                        re.match(query, email, self.reflags):
-                    res.append((name, email))
-            except:
-                pass
+            if re.match(query, name, self.reflags) or \
+                    re.match(query, email, self.reflags):
+                res.append((name, email))
         return res
