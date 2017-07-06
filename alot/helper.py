@@ -104,6 +104,14 @@ def string_sanitize(string, tab_width=8):
 def string_decode(string, enc='ascii'):
     """
     safely decodes string to unicode bytestring, respecting `enc` as a hint.
+
+    :param string: the string to decode
+    :type string: str or unicode
+    :param enc: a hint what encoding is used in string ('ascii', 'utf-8', ...)
+    :type enc: str
+    :returns: the unicode decoded input string
+    :rtype: unicode
+
     """
 
     if enc is None:

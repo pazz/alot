@@ -52,8 +52,6 @@ def determine_sender(mail, action='reply'):
     :type action: str
     """
     assert action in ['reply', 'forward', 'bounce']
-    realname = None
-    address = None
 
     # get accounts
     my_accounts = settings.get_accounts()
@@ -67,8 +65,6 @@ def determine_sender(mail, action='reply'):
     # account X is the one selected and not account Y.
     candidate_headers = settings.get("reply_account_header_priority")
     for candidate_header in candidate_headers:
-        if realname is not None:
-            break
         candidate_addresses = getaddresses(mail.get_all(candidate_header, []))
 
         logging.debug('candidate addresses: %s', candidate_addresses)
@@ -79,8 +75,6 @@ def determine_sender(mail, action='reply'):
             if account.alias_regexp is not None:
                 acc_addresses.append(account.alias_regexp)
             for alias in acc_addresses:
-                if realname is not None:
-                    break
                 regex = re.compile('^' + alias + '$', flags=re.IGNORECASE)
                 for seen_name, seen_address in candidate_addresses:
                     if regex.match(seen_address):
@@ -94,11 +88,16 @@ def determine_sender(mail, action='reply'):
                         else:
                             address = seen_address
 
+                        logging.debug('using realname: "%s"', realname)
+                        logging.debug('using address: %s', address)
+
+                        from_value = formataddr((realname, address))
+                        return from_value, account
+
     # revert to default account if nothing found
-    if realname is None:
-        account = my_accounts[0]
-        realname = account.realname
-        address = account.address
+    account = my_accounts[0]
+    realname = account.realname
+    address = account.address
     logging.debug('using realname: "%s"', realname)
     logging.debug('using address: %s', address)
 

@@ -8,6 +8,7 @@ import email
 import email.charset as charset
 from email.header import Header
 from email.iterators import typed_subpart_iterator
+import email.utils
 import tempfile
 import re
 import logging
@@ -398,17 +399,14 @@ def encode_header(key, value):
     """
     # handle list of "realname <email>" entries separately
     if key.lower() in ['from', 'to', 'cc', 'bcc']:
-        rawentries = value.split(',')
+        rawentries = email.utils.getaddresses([value])
         encodedentries = []
-        for entry in rawentries:
-            m = re.search(r'\s*(.*)\s+<(.*\@.*\.\w*)>\s*$', entry)
-            if m:  # If a realname part is contained
-                name, address = m.groups()
-                # try to encode as ascii, if that fails, revert to utf-8
-                # name must be a unicode string here
-                namepart = Header(name)
-                # append address part encoded as ascii
-                entry = '%s <%s>' % (namepart.encode(), address)
+        for name, address in rawentries:
+            # try to encode as ascii, if that fails, revert to utf-8
+            # name must be a unicode string here
+            namepart = Header(name)
+            # append address part encoded as ascii
+            entry = email.utils.formataddr((namepart.encode(), address))
             encodedentries.append(entry)
         value = Header(', '.join(encodedentries))
     else:
