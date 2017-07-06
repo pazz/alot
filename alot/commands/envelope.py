@@ -141,7 +141,7 @@ class SaveCommand(Command):
             ui.notify(msg + ' to %s' % path)
             logging.debug('adding new mail to index')
             try:
-                ui.dbman.add_message(path, account.draft_tags)
+                ui.dbman.add_message(path, account.draft_tags + envelope.tags)
                 ui.apply_command(globals.FlushCommand())
                 ui.apply_command(commands.globals.BufferCloseCommand())
             except DatabaseError as e:
