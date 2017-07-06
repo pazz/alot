@@ -167,15 +167,11 @@ class EnvelopeBuffer(Buffer):
                 description += ', with key '
             elif len(encrypt_keys) > 1:
                 description += ', with keys '
-            first_key = True
+            key_ids = []
             for key in encrypt_keys:
-                if key is not None:
-                    if first_key:
-                        first_key = False
-                    else:
-                        description += ', '
-                    if len(key.subkeys) > 0:
-                        description += key.uids[0].uid
+                if key is not None and key.subkeys:
+                    key_ids.append(key.uids[0].uid)
+            description += ', '.join(key_ids)
             lines.append(('GPG encrypt', description))
 
         if self.envelope.tags:
