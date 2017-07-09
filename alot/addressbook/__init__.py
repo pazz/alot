@@ -27,7 +27,7 @@ class AddressBook(object):
         self.reflags = re.IGNORECASE if ignorecase else 0
 
     @abc.abstractmethod
-    def get_contacts(self):
+    def get_contacts(self):  # pragma no cover
         """list all contacts tuples in this abook as (name, email) tuples"""
         return []
 
