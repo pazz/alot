@@ -489,9 +489,14 @@ class EditNewCommand(Command):
         if not self.message:
             self.message = ui.current_buffer.get_selected_message()
         mail = self.message.get_email()
+        # copy most tags to the envelope
+        tags = set(self.message.get_tags())
+        tags.difference_update({'inbox', 'sent', 'draft', 'killed', 'replied',
+                                'signed', 'encrypted', 'unread', 'attachment'})
+        tags = list(tags)
         # set body text
         mailcontent = self.message.accumulate_body()
-        envelope = Envelope(bodytext=mailcontent)
+        envelope = Envelope(bodytext=mailcontent, tags=tags)
 
         # copy selected headers
         to_copy = ['Subject', 'From', 'To', 'Cc', 'Bcc', 'In-Reply-To',
