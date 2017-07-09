@@ -30,6 +30,14 @@ class TestExternalAddressbookGetContacts(unittest.TestCase):
         expected = u'abook command "foobar" returned with return code 42'
         self.assertEqual(contextmgr.exception.args[0], expected)
 
+    def test_stderr_of_failing_command_is_part_of_exception_message(self):
+        stderr = 'some text printed on stderr of external command'
+        abook = external.ExternalAddressbook('foobar', '')
+        with self._patch_call_cmd(('', stderr, 42)):
+            with self.assertRaises(external.AddressbookError) as contextmgr:
+                abook.get_contacts()
+        self.assertIn(stderr, contextmgr.exception.args[0])
+
     def test_returns_empty_list_when_command_returns_no_output(self):
         abook = external.ExternalAddressbook('foobar', self.regex)
         with self._patch_call_cmd(('', '', 0)) as call_cmd:
