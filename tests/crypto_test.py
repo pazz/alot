@@ -88,7 +88,6 @@ class TestSignature(utilities.TestCaseClassCleanup):
         except GPGProblem:
             raise AssertionError
 
-    @unittest.expectedFailure
     def test_verify_signature_bad(self):
         to_sign = "this is some text.\nIt's something\n."
         similar = "this is some text.\r\n.It's something\r\n."
