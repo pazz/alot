@@ -140,8 +140,9 @@ def message_from_file(handle):
         sigs = []
         if not malformed:
             try:
-                sigs = crypto.verify_detached(m.get_payload(0).as_string(),
-                                              m.get_payload(1).get_payload())
+                sigs = crypto.verify_detached(
+                    helper.email_as_string(m.get_payload(0)),
+                    m.get_payload(1).get_payload())
             except GPGProblem as e:
                 malformed = unicode(e)
 
