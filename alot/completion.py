@@ -464,6 +464,11 @@ class CommandCompleter(Completer):
                                                          'rmencrypt',
                                                          'toggleencrypt']:
                     res = self._publickeyscompleter.complete(params, localpos)
+                elif self.mode == 'envelope' and cmd in ['tag', 'toggletags',
+                                                         'untag', 'retag']:
+                    localcomp = MultipleSelectionCompleter(self._tagcompleter,
+                                                           separator=',')
+                    res = localcomp.complete(params, localpos)
                 # thread
                 elif self.mode == 'thread' and cmd == 'save':
                     res = self._pathcompleter.complete(params, localpos)

@@ -178,6 +178,9 @@ class EnvelopeBuffer(Buffer):
                         description += key.uids[0].uid
             lines.append(('GPG encrypt', description))
 
+        if self.envelope.tags:
+            lines.append(('Tags', ','.join(self.envelope.tags)))
+
         # add header list widget iff header values exists
         if lines:
             key_att = settings.get_theming_attribute('envelope', 'header_key')

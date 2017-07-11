@@ -1,5 +1,6 @@
 next:
 * Add command to reload configuration files in running session
+* new command "tag" (and friends) in EnvelopeBuffer to add additional tags after sending
 
 0.5:
 * save command prompt, recipient and sender history across program restarts
