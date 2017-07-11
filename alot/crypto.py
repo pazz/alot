@@ -107,11 +107,10 @@ def get_key(keyid, validate=False, encrypt=False, sign=False,
                 if valid_key:
                     # we have already found one valid key and now we find
                     # another? We really received an ambiguous keyid
-                    raise GPGProblem(("More than one key found matching " +
-                                      "this filter. Please be more " +
-                                      "specific (use a key ID like " +
-                                      "4AC8EE1D)."),
-                                     code=GPGCode.AMBIGUOUS_NAME)
+                    raise GPGProblem(
+                        "More than one key found matching this filter. Please "
+                        "be more specific (use a key ID like 4AC8EE1D).",
+                        code=GPGCode.AMBIGUOUS_NAME)
                 valid_key = k
 
             if not valid_key:
@@ -119,18 +118,16 @@ def get_key(keyid, validate=False, encrypt=False, sign=False,
                 # given action (we don't have private key, they are expired
                 # etc)
                 raise GPGProblem(
-                    "Can not find usable key for \'" +
-                    keyid +
-                    "\'.",
+                    'Can not find usable key for "{}".'.format(keyid),
                     code=GPGCode.NOT_FOUND)
             return valid_key
         elif e.code == gpgme.ERR_INV_VALUE or e.code == gpgme.ERR_EOF:
-            raise GPGProblem("Can not find key for \'" + keyid + "\'.",
+            raise GPGProblem('Can not find key for "{}".'.format(keyid),
                              code=GPGCode.NOT_FOUND)
         else:
             raise e
     if signed_only and not check_uid_validity(key, keyid):
-        raise GPGProblem("Can not find a trusworthy key for '" + keyid + "'.",
+        raise GPGProblem('Can not find a trusworthy key for "{}".'.format(keyid),
                          code=GPGCode.NOT_FOUND)
     return key
 
@@ -261,20 +258,22 @@ def validate_key(key, sign=False, encrypt=False):
 
     """
     if key.revoked:
-        raise GPGProblem("The key \"" + key.uids[0].uid + "\" is revoked.",
+        raise GPGProblem('The key "{}" is revoked.'.format(key.uids[0].uid),
                          code=GPGCode.KEY_REVOKED)
     elif key.expired:
-        raise GPGProblem("The key \"" + key.uids[0].uid + "\" is expired.",
+        raise GPGProblem('The key "{}" is expired.'.format(key.uids[0].uid),
                          code=GPGCode.KEY_EXPIRED)
     elif key.invalid:
-        raise GPGProblem("The key \"" + key.uids[0].uid + "\" is invalid.",
+        raise GPGProblem('The key "{}" is invalid.'.format(key.uids[0].uid),
                          code=GPGCode.KEY_INVALID)
     if encrypt and not key.can_encrypt:
-        raise GPGProblem("The key \"" + key.uids[0].uid + "\" can not " +
-                         "encrypt.", code=GPGCode.KEY_CANNOT_ENCRYPT)
+        raise GPGProblem(
+            'The key "{}" cannot be used to encrypt'.format(key.uids[0].uid),
+            code=GPGCode.KEY_CANNOT_ENCRYPT)
     if sign and not key.can_sign:
-        raise GPGProblem("The key \"" + key.uids[0].uid + "\" can not sign.",
-                         code=GPGCode.KEY_CANNOT_SIGN)
+        raise GPGProblem(
+            'The key "{}" cannot be used to sign'.format(key.uids[0].uid),
+            code=GPGCode.KEY_CANNOT_SIGN)
 
 
 def check_uid_validity(key, email):
