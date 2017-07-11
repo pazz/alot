@@ -104,6 +104,13 @@ The following commands are available globally
     refresh the current buffer
 
 
+.. _cmd.global.reload:
+
+.. describe:: reload
+
+    Reload all configuration files
+
+
 .. _cmd.global.pyshell:
 
 .. describe:: pyshell

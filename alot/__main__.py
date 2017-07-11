@@ -95,14 +95,16 @@ def main():
         alotconfig = os.path.join(
             os.environ.get('XDG_CONFIG_HOME', os.path.expanduser('~/.config')),
             'alot', 'config')
-        if not os.path.exists(alotconfig):
-            alotconfig = None
+        if os.path.exists(alotconfig):
+            settings.alot_rc_path = alotconfig
     else:
-        alotconfig = options.config
+        settings.alot_rc_path = options.config
+
+    settings.notmuch_rc_path = options.notmuch_config
 
     try:
-        settings.read_config(alotconfig)
-        settings.read_notmuch_config(options.notmuch_config)
+        settings.read_config()
+        settings.read_notmuch_config()
     except (ConfigError, OSError, IOError) as e:
         sys.exit(e)
 
