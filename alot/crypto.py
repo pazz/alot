@@ -202,10 +202,11 @@ def verify_detached(message, signature):
     message_data = StringIO(message)
     signature_data = StringIO(signature)
     ctx = gpgme.Context()
-    try:
-        return ctx.verify(signature_data, message_data, None)
-    except gpgme.GpgmeError as e:
-        raise GPGProblem(e.message, code=e.code)
+
+    status = ctx.verify(signature_data, message_data, None)
+    if isinstance(status[0].status, gpgme.GpgmeError):
+        raise GPGProblem(status[0].status.message, code=status[0].status.code)
+    return status
 
 
 def decrypt_verify(encrypted):
