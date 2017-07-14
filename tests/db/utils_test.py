@@ -593,7 +593,6 @@ class TestMessageFromFile(TestCaseClassCleanup):
         self.assertIn('Malformed OpenPGP message:',
                       m.get_payload(2).get_payload())
 
-    @unittest.expectedFailure
     def test_signed_in_multipart_mixed(self):
         """It is valid to encapsulate a multipart/signed payload inside a
         multipart/mixed payload, verify that works.

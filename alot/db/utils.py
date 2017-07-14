@@ -29,6 +29,9 @@ charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 X_SIGNATURE_VALID_HEADER = 'X-Alot-OpenPGP-Signature-Valid'
 X_SIGNATURE_MESSAGE_HEADER = 'X-Alot-OpenPGP-Signature-Message'
 
+_APP_PGP_SIG = 'application/pgp-signature'
+_APP_PGP_ENC = 'application/pgp-encrypted'
+
 
 def add_signature_headers(mail, sigs, error_msg):
     '''Add pseudo headers to the mail indicating whether the signature
@@ -90,6 +93,51 @@ def get_params(mail, failobj=None, header='content-type', unquote=True):
     return {k.lower(): v for k, v in mail.get_params(failobj, header, unquote)}
 
 
+def _handle_signatures(original, message, params):
+    """Shared code for handling message signatures.
+
+    RFC 3156 is quite strict:
+    * exactly two messages
+    * the second is of type 'application/pgp-signature'
+    * the second contains the detached signature
+
+    :param original: The original top-level mail. This is required to attache
+        special headers to
+    :type original: :class:`email.message.Message`
+    :param message: The multipart/signed payload to verify
+    :type message: :class:`email.message.Message`
+    :param params: the message parameters as returned by :func:`get_params`
+    :type params: dict[str, str]
+    """
+    malformed = False
+    if len(message.get_payload()) != 2:
+        malformed = u'expected exactly two messages, got {0}'.format(
+            len(message.get_payload()))
+    else:
+        ct = message.get_payload(1).get_content_type()
+        if ct != _APP_PGP_SIG:
+            malformed = u'expected Content-Type: {0}, got: {1}'.format(
+                _APP_PGP_SIG, ct)
+
+    # TODO: RFC 3156 says the alg has to be lower case, but I've seen a message
+    # with 'PGP-'. maybe we should be more permissive here, or maybe not, this
+    # is crypto stuff...
+    if not params.get('micalg', 'nothing').startswith('pgp-'):
+        malformed = u'expected micalg=pgp-..., got: {0}'.format(
+            params.get('micalg', 'nothing'))
+
+    sigs = []
+    if not malformed:
+        try:
+            sigs = crypto.verify_detached(
+                helper.email_as_string(message.get_payload(0)),
+                message.get_payload(1).get_payload())
+        except GPGProblem as e:
+            malformed = unicode(e)
+
+    add_signature_headers(original, sigs, malformed)
+
+
 def message_from_file(handle):
     '''Reads a mail from the given file-like object and returns an email
     object, very much like email.message_from_file. In addition to
@@ -108,50 +156,25 @@ def message_from_file(handle):
     del m[X_SIGNATURE_MESSAGE_HEADER]
 
     p = get_params(m)
-    app_pgp_sig = 'application/pgp-signature'
-    app_pgp_enc = 'application/pgp-encrypted'
 
     # handle OpenPGP signed data
     if (m.is_multipart() and
             m.get_content_subtype() == 'signed' and
-            p.get('protocol') == app_pgp_sig):
-        # RFC 3156 is quite strict:
-        # * exactly two messages
-        # * the second is of type 'application/pgp-signature'
-        # * the second contains the detached signature
+            p.get('protocol') == _APP_PGP_SIG):
+        _handle_signatures(m, m, p)
+    elif (m.is_multipart() and m.get_content_subtype() == 'mixed' and
+          m.get_payload(0).get_content_subtype() == 'signed'):
+        p = get_params(m.get_payload(0))
+        if p.get('protocol') == _APP_PGP_SIG:
+            _handle_signatures(m, m.get_payload(0), p)
 
-        malformed = False
-        if len(m.get_payload()) != 2:
-            malformed = u'expected exactly two messages, got {0}'.format(
-                len(m.get_payload()))
-        else:
-            ct = m.get_payload(1).get_content_type()
-            if ct != app_pgp_sig:
-                malformed = u'expected Content-Type: {0}, got: {1}'.format(
-                    app_pgp_sig, ct)
-
-        # TODO: RFC 3156 says the alg has to be lower case, but I've
-        # seen a message with 'PGP-'. maybe we should be more
-        # permissive here, or maybe not, this is crypto stuff...
-        if not p.get('micalg', 'nothing').startswith('pgp-'):
-            malformed = u'expected micalg=pgp-..., got: {0}'.format(
-                p.get('micalg', 'nothing'))
-
-        sigs = []
-        if not malformed:
-            try:
-                sigs = crypto.verify_detached(
-                    helper.email_as_string(m.get_payload(0)),
-                    m.get_payload(1).get_payload())
-            except GPGProblem as e:
-                malformed = unicode(e)
-
-        add_signature_headers(m, sigs, malformed)
-
+    # XXX: It is presumably possible to put an encrypted message in a
+    # multipart/mixed, but I have no such examples and haven't looked through
+    # RFC's thuroughly
     # handle OpenPGP encrypted data
     elif (m.is_multipart() and
           m.get_content_subtype() == 'encrypted' and
-          p.get('protocol') == app_pgp_enc and
+          p.get('protocol') == _APP_PGP_ENC and
           'Version: 1' in m.get_payload(0).get_payload()):
         # RFC 3156 is quite strict:
         # * exactly two messages
@@ -162,9 +185,9 @@ def message_from_file(handle):
         malformed = False
 
         ct = m.get_payload(0).get_content_type()
-        if ct != app_pgp_enc:
+        if ct != _APP_PGP_ENC:
             malformed = u'expected Content-Type: {0}, got: {1}'.format(
-                app_pgp_enc, ct)
+                _APP_PGP_ENC, ct)
 
         want = 'application/octet-stream'
         ct = m.get_payload(1).get_content_type()
