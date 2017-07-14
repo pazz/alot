@@ -39,25 +39,28 @@ def add_signature_headers(mail, sigs, error_msg):
     :param error_msg: `str` containing an error message, the empty
                       string indicating no error
     '''
-    sig_from = ''
+    sig_from = u''
+
+    if isinstance(error_msg, str):
+        error_msg = error_msg.decode('utf-8')
 
     if len(sigs) == 0:
-        error_msg = error_msg or 'no signature found'
+        error_msg = error_msg or u'no signature found'
     else:
         try:
             key = crypto.get_key(sigs[0].fpr)
             for uid in key.uids:
                 if crypto.check_uid_validity(key, uid.email):
-                    sig_from = uid.uid
+                    sig_from = uid.uid.decode('utf-8')
                     uid_trusted = True
                     break
             else:
                 # No trusted uid found, we did not break but drop from the
                 # for loop.
                 uid_trusted = False
-                sig_from = key.uids[0].uid
+                sig_from = key.uids[0].uid.decode('utf-8')
         except:
-            sig_from = sigs[0].fpr
+            sig_from = sigs[0].fpr.decode('utf-8')
             uid_trusted = False
 
     mail.add_header(

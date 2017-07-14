@@ -342,7 +342,7 @@ class TestAddSignatureHeaders(unittest.TestCase):
                         mock.Mock(return_value=key)), \
                 mock.patch('alot.db.utils.crypto.check_uid_validity',
                            mock.Mock(return_value=valid)):
-            utils.add_signature_headers(mail, [mock.Mock(fpr=None)], u'')
+            utils.add_signature_headers(mail, [mock.Mock(fpr='')], u'')
 
         return mail
 
@@ -370,7 +370,6 @@ class TestAddSignatureHeaders(unittest.TestCase):
         self.assertIn(
             (utils.X_SIGNATURE_MESSAGE_HEADER, u'Untrusted: mocked'), mail.headers)
 
-    @unittest.expectedFailure
     def test_unicode_as_bytes(self):
         mail = self.FakeMail()
         key = make_key()
