@@ -134,11 +134,14 @@ def get_key(keyid, validate=False, encrypt=False, sign=False,
 
 def list_keys(hint=None, private=False):
     """
-    Returns a list of all keys containing keyid.
+    Returns a iterator of all keys containing the fingerprint, or all keys if
+    hint is None.
 
-    :param keyid: The part we search for
-    :param private: Whether secret keys are listed
-    :rtype: list
+    :param hint: Part of a fingerprint to usee to search
+    :type hint: str or None
+    :param private: Whether to return public keys or secret keys
+    :type private: bool
+    :rtype: :class:`gpgme.KeyIter`
     """
     ctx = gpgme.Context()
     return ctx.keylist(hint, private)
