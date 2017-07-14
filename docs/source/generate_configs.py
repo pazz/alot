@@ -1,12 +1,18 @@
 from __future__ import absolute_import
+
 import sys
 import os
-HERE = os.path.dirname(__file__)
-sys.path.insert(0, os.path.join(HERE, '..', '..'))
-from alot.commands import COMMANDS
+import re
+
 from configobj import ConfigObj
 from validate import Validator
-import re
+
+HERE = os.path.dirname(__file__)
+sys.path.insert(0, os.path.join(HERE, '..', '..'))
+
+from alot.commands import COMMANDS
+
+
 NOTE = """
 .. CAUTION: THIS FILE IS AUTO-GENERATED
     from the inline comments of specfile %s.
@@ -14,6 +20,8 @@ NOTE = """
     If you want to change its content make your changes
     to that spec to ensure they woun't be overwritten later.
 """
+
+
 def rewrite_entries(config, path, specpath, sec=None, sort=False):
     file = open(path, 'w')
     file.write(NOTE % specpath)
@@ -24,10 +32,6 @@ def rewrite_entries(config, path, specpath, sec=None, sort=False):
         sec.scalars.sort()
     for entry in sec.scalars:
         v = Validator()
-        #config.validate(v)
-        #print config[entry]
-        #etype = re.sub('\(.*\)','', config[entry])
-        ##if etype == 'option':
         etype, eargs, ekwargs, default = v._parse_check(sec[entry])
         if default is not None:
             default = config._quote(default)
@@ -49,22 +53,28 @@ def rewrite_entries(config, path, specpath, sec=None, sort=False):
             description += '\n    :type: %s\n' % etype
 
         if default is not None:
-            default = default.replace('*','\\*')
-            if etype in ['string', 'string_list', 'gpg_key_hint'] and default != 'None':
+            default = default.replace('*', '\\*')
+            if etype in ['string', 'string_list', 'gpg_key_hint'] and \
+                    default != 'None':
                 description += '    :default: "%s"\n\n' % (default)
             else:
                 description += '    :default: %s\n\n' % (default)
         file.write(description)
     file.close()
 
+
 if __name__ == "__main__":
-    specpath = os.path.join(HERE, '..','..', 'alot', 'defaults', 'alot.rc.spec')
-    config = ConfigObj(None, configspec=specpath, stringify=False, list_values=False)
+    specpath = os.path.join(HERE, '..', '..', 'alot', 'defaults',
+                            'alot.rc.spec')
+    config = ConfigObj(None, configspec=specpath, stringify=False,
+                       list_values=False)
     config.validate(Validator())
 
     alotrc_table_file = os.path.join(HERE, 'configuration', 'alotrc_table')
-    rewrite_entries(config.configspec, alotrc_table_file, 'defaults/alot.rc.spec', sort=True)
+    rewrite_entries(config.configspec, alotrc_table_file,
+                    'defaults/alot.rc.spec', sort=True)
 
-    rewrite_entries(config, os.path.join(HERE, 'configuration', 'accounts_table'),
+    rewrite_entries(config,
+                    os.path.join(HERE, 'configuration', 'accounts_table'),
                     'defaults/alot.rc.spec',
                     sec=config.configspec['accounts']['__many__'])
