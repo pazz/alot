@@ -6,6 +6,7 @@ next:
 * feature: option to use linewise focussing in thread mode
 * feature: add support to move to next or previous message matching a notmuch query in a thread buffer
 * feature: Convert from deprecated pygppme module to upstream gpg wrappers
+* feature: Verify signatures/decrypt messages in multipart/mixed payloads
 
 0.5:
 * save command prompt, recipient and sender history across program restarts

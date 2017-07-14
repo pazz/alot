@@ -1,4 +1,6 @@
+# encoding=utf-8
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
+# Copyright © 2017 Dylan Baker <dylan@pnwbakers.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 from __future__ import absolute_import
@@ -138,6 +140,78 @@ def _handle_signatures(original, message, params):
     add_signature_headers(original, sigs, malformed)
 
 
+def _handle_encrypted(original, message):
+    """Handle encrypted messages helper.
+
+    RFC 3156 is quite strict:
+    * exactly two messages
+    * the first is of type 'application/pgp-encrypted'
+    * the first contains 'Version: 1'
+    * the second is of type 'application/octet-stream'
+    * the second contains the encrypted and possibly signed data
+
+    :param original: The original top-level mail. This is required to attache
+        special headers to
+    :type original: :class:`email.message.Message`
+    :param message: The multipart/signed payload to verify
+    :type message: :class:`email.message.Message`
+    """
+    malformed = False
+
+    ct = message.get_payload(0).get_content_type()
+    if ct != _APP_PGP_ENC:
+        malformed = u'expected Content-Type: {0}, got: {1}'.format(
+            _APP_PGP_ENC, ct)
+
+    want = 'application/octet-stream'
+    ct = message.get_payload(1).get_content_type()
+    if ct != want:
+        malformed = u'expected Content-Type: {0}, got: {1}'.format(want, ct)
+
+    if not malformed:
+        try:
+            sigs, d = crypto.decrypt_verify(message.get_payload(1).get_payload())
+        except GPGProblem as e:
+            # signature verification failures end up here too if the combined
+            # method is used, currently this prevents the interpretation of the
+            # recovered plain text mail. maybe that's a feature.
+            malformed = unicode(e)
+        else:
+            n = message_from_string(d)
+
+            # add the decrypted message to message. note that n contains all
+            # the attachments, no need to walk over n here.
+            original.attach(n)
+
+            original.defects.extend(n.defects)
+
+            # there are two methods for both signed and encrypted data, one is
+            # called 'RFC 1847 Encapsulation' by RFC 3156, and one is the
+            # 'Combined method'.
+            if not sigs:
+                # 'RFC 1847 Encapsulation', the signature is a detached
+                # signature found in the recovered mime message of type
+                # multipart/signed.
+                if X_SIGNATURE_VALID_HEADER in n:
+                    for k in (X_SIGNATURE_VALID_HEADER,
+                              X_SIGNATURE_MESSAGE_HEADER):
+                        original[k] = n[k]
+            else:
+                # 'Combined method', the signatures are returned by the
+                # decrypt_verify function.
+
+                # note that if we reached this point, we know the signatures
+                # are valid. if they were not valid, the else block of the
+                # current try would not have been executed
+                add_signature_headers(original, sigs, '')
+
+    if malformed:
+        msg = u'Malformed OpenPGP message: {0}'.format(malformed)
+        content = email.message_from_string(msg.encode('utf-8'))
+        content.set_charset('utf-8')
+        original.attach(content)
+
+
 def message_from_file(handle):
     '''Reads a mail from the given file-like object and returns an email
     object, very much like email.message_from_file. In addition to
@@ -155,92 +229,34 @@ def message_from_file(handle):
     del m[X_SIGNATURE_VALID_HEADER]
     del m[X_SIGNATURE_MESSAGE_HEADER]
 
-    p = get_params(m)
+    if m.is_multipart():
+        p = get_params(m)
 
-    # handle OpenPGP signed data
-    if (m.is_multipart() and
-            m.get_content_subtype() == 'signed' and
-            p.get('protocol') == _APP_PGP_SIG):
-        _handle_signatures(m, m, p)
-    elif (m.is_multipart() and m.get_content_subtype() == 'mixed' and
-          m.get_payload(0).get_content_subtype() == 'signed'):
-        p = get_params(m.get_payload(0))
-        if p.get('protocol') == _APP_PGP_SIG:
-            _handle_signatures(m, m.get_payload(0), p)
+        # handle OpenPGP signed data
+        if (m.get_content_subtype() == 'signed' and
+                p.get('protocol') == _APP_PGP_SIG):
+            _handle_signatures(m, m, p)
 
-    # XXX: It is presumably possible to put an encrypted message in a
-    # multipart/mixed, but I have no such examples and haven't looked through
-    # RFC's thuroughly
-    # handle OpenPGP encrypted data
-    elif (m.is_multipart() and
-          m.get_content_subtype() == 'encrypted' and
-          p.get('protocol') == _APP_PGP_ENC and
-          'Version: 1' in m.get_payload(0).get_payload()):
-        # RFC 3156 is quite strict:
-        # * exactly two messages
-        # * the first is of type 'application/pgp-encrypted'
-        # * the first contains 'Version: 1'
-        # * the second is of type 'application/octet-stream'
-        # * the second contains the encrypted and possibly signed data
-        malformed = False
+        # handle OpenPGP encrypted data
+        elif (m.get_content_subtype() == 'encrypted' and
+              p.get('protocol') == _APP_PGP_ENC and
+              'Version: 1' in m.get_payload(0).get_payload()):
+            _handle_encrypted(m, m)
 
-        ct = m.get_payload(0).get_content_type()
-        if ct != _APP_PGP_ENC:
-            malformed = u'expected Content-Type: {0}, got: {1}'.format(
-                _APP_PGP_ENC, ct)
+        # It is also possible to put either of the abov into a multipart/mixed
+        # segment
+        elif m.get_content_subtype() == 'mixed':
+            sub = m.get_payload(0)
 
-        want = 'application/octet-stream'
-        ct = m.get_payload(1).get_content_type()
-        if ct != want:
-            malformed = u'expected Content-Type: {0}, got: {1}'.format(want,
-                                                                       ct)
+            if sub.is_multipart():
+                p = get_params(sub)
 
-        if not malformed:
-            try:
-                sigs, d = crypto.decrypt_verify(m.get_payload(1).get_payload())
-            except GPGProblem as e:
-                # signature verification failures end up here too if
-                # the combined method is used, currently this prevents
-                # the interpretation of the recovered plain text
-                # mail. maybe that's a feature.
-                malformed = unicode(e)
-            else:
-                # parse decrypted message
-                n = message_from_string(d)
-
-                # add the decrypted message to m. note that n contains
-                # all the attachments, no need to walk over n here.
-                m.attach(n)
-
-                # add any defects found
-                m.defects.extend(n.defects)
-
-                # there are two methods for both signed and encrypted
-                # data, one is called 'RFC 1847 Encapsulation' by
-                # RFC 3156, and one is the 'Combined method'.
-                if len(sigs) == 0:
-                    # 'RFC 1847 Encapsulation', the signature is a
-                    # detached signature found in the recovered mime
-                    # message of type multipart/signed.
-                    if X_SIGNATURE_VALID_HEADER in n:
-                        for k in (X_SIGNATURE_VALID_HEADER,
-                                  X_SIGNATURE_MESSAGE_HEADER):
-                            m[k] = n[k]
-                else:
-                    # 'Combined method', the signatures are returned
-                    # by the decrypt_verify function.
-
-                    # note that if we reached this point, we know the
-                    # signatures are valid. if they were not valid,
-                    # the else block of the current try would not have
-                    # been executed
-                    add_signature_headers(m, sigs, '')
-
-        if malformed:
-            msg = u'Malformed OpenPGP message: {0}'.format(malformed)
-            content = email.message_from_string(msg.encode('utf-8'))
-            content.set_charset('utf-8')
-            m.attach(content)
+                if (sub.get_content_subtype() == 'signed' and
+                        p.get('protocol') == _APP_PGP_SIG):
+                    _handle_signatures(m, sub, p)
+                elif (sub.get_content_subtype() == 'encrypted' and
+                      p.get('protocol') == _APP_PGP_ENC):
+                    _handle_encrypted(m, sub)
 
     return m
 

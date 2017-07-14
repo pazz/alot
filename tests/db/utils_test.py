@@ -603,7 +603,6 @@ class TestMessageFromFile(TestCaseClassCleanup):
         self.assertIn(utils.X_SIGNATURE_VALID_HEADER, m)
         self.assertIn(utils.X_SIGNATURE_MESSAGE_HEADER, m)
 
-    @unittest.expectedFailure
     def test_encrypted_unsigned_in_multipart_mixed(self):
         """It is valid to encapsulate a multipart/encrypted payload inside a
         multipart/mixed payload, verify that works.
@@ -615,7 +614,6 @@ class TestMessageFromFile(TestCaseClassCleanup):
         self.assertNotIn(utils.X_SIGNATURE_VALID_HEADER, m)
         self.assertNotIn(utils.X_SIGNATURE_MESSAGE_HEADER, m)
 
-    @unittest.expectedFailure
     def test_encrypted_signed_in_multipart_mixed(self):
         """It is valid to encapsulate a multipart/encrypted payload inside a
         multipart/mixed payload, verify that works when the multipart/encrypted
