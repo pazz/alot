@@ -265,9 +265,10 @@ def check_uid_validity(key, email):
     :returns: whether the key can be assumed to belong to the given email
     :rtype: bool
     """
-    for key_uid in key.uids:
-        if email == key_uid.email and not key_uid.revoked and \
-                not key_uid.invalid and \
-                key_uid.validity >= gpg.constants.validity.FULL:
-            return True
-    return False
+    def check(key_uid):
+        return (email == key_uid.email and
+                not key_uid.revoked and
+                not key_uid.invalid and
+                key_uid.validity >= gpg.constants.validity.FULL)
+
+    return any(check(u) for u in key.uids)
