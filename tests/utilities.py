@@ -98,3 +98,48 @@ class TestCaseClassCleanup(unittest.TestCase):
             # TODO: addCleanups success if part of the success of the test,
             # what should we do here?
             func(*args, **kwargs)
+
+
+class ModuleCleanup(object):
+    """Class for managing module level setup and teardown fixtures.
+
+    Because of the way unittest is implemented it's rather difficult to write
+    elegent fixtures because setUpModule and tearDownModule must exist when the
+    module is initialized, so you can't do things like assign the methods to
+    setUpModule and tearDownModule, nor can you just do some globals
+    manipulation.
+    """
+
+    def __init__(self):
+        self.__stack = []
+
+    def do_cleanups(self):
+        while self.__stack:
+            func, args, kwargs = self.__stack.pop()
+            func(*args, **kwargs)
+
+    def add_cleanup(self, func, *args, **kwargs):
+        self.__stack.append((func, args, kwargs))
+
+    def wrap_teardown(self, teardown):
+
+        @functools.wraps(teardown)
+        def wrapper():
+            try:
+                teardown()
+            finally:
+                self.do_cleanups()
+
+        return wrapper
+
+    def wrap_setup(self, setup):
+
+        @functools.wraps(setup)
+        def wrapper():
+            try:
+                setup()
+            except Exception:
+                self.do_cleanups()
+                raise
+
+        return wrapper
