@@ -472,7 +472,6 @@ class SignCommand(Command):
 
     def apply(self, ui):
         sign = None
-        key = None
         envelope = ui.current_buffer.envelope
         # sign status
         if self.action == 'sign':
@@ -483,17 +482,31 @@ class SignCommand(Command):
             sign = not envelope.sign
         envelope.sign = sign
 
-        # try to find key if hint given as parameter
         if sign:
-            if len(self.keyid) > 0:
+            if self.keyid:
+                # try to find key if hint given as parameter
                 keyid = str(' '.join(self.keyid))
                 try:
-                    key = crypto.get_key(keyid, validate=True, sign=True)
+                    envelope.sign_key = crypto.get_key(keyid, validate=True,
+                                                       sign=True)
                 except GPGProblem as e:
                     envelope.sign = False
                     ui.notify(e.message, priority='error')
                     return
-                envelope.sign_key = key
+            else:
+                _, addr = email.utils.parseaddr(envelope.headers['From'][0])
+                acc = settings.get_account_by_address(addr)
+                if not acc:
+                    envelope.sign = False
+                    ui.notify('Unable to find a matching account',
+                              priority='error')
+                    return
+                elif not acc.gpg_key:
+                    envelope.sign = False
+                    ui.notify('Account for {} has no gpg key'.format(acc.address),
+                              priority='error')
+                    return
+                envelope.sign_key = acc.gpg_key
         else:
             envelope.sign_key = None
 
