@@ -585,8 +585,7 @@ def RFC3156_canonicalize(text):
     This function works as follows (in that order):
 
     1. Convert all line endings to \\\\r\\\\n (DOS line endings).
-    2. Ensure the text ends with a newline (\\\\r\\\\n).
-    3. Encode all occurences of "From " at the beginning of a line
+    2. Encode all occurences of "From " at the beginning of a line
        to "From=20" in order to prevent other mail programs to replace
        this with "> From" (to avoid MBox conflicts) and thus invalidate
        the signature.
@@ -595,8 +594,6 @@ def RFC3156_canonicalize(text):
     :rtype: str
     """
     text = re.sub("\r?\n", "\r\n", text)
-    if not text.endswith("\r\n"):
-        text += "\r\n"
     text = re.sub("^From ", "From=20", text, flags=re.MULTILINE)
     return text
 
