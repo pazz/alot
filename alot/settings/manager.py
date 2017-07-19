@@ -4,10 +4,11 @@
 from __future__ import absolute_import
 
 import imp
+import itertools
+import logging
+import mailcap
 import os
 import re
-import mailcap
-import logging
 from configobj import ConfigObj, Section
 
 from ..account import SendmailAccount
@@ -23,6 +24,7 @@ from .theme import Theme
 
 
 DEFAULTSPATH = os.path.join(os.path.dirname(__file__), '..', 'defaults')
+DATA_DIRS = os.environ.get('XDG_DATA_DIRS', '/usr/local/share:/usr/share').split(':')
 
 
 class SettingsManager(object):
@@ -106,17 +108,31 @@ class SettingsManager(object):
         logging.debug(themes_dir)
 
         # if config contains theme string use that
+        data_dirs = [os.path.join(d, 'alot/themes') for d in DATA_DIRS]
         if themestring:
-            if not os.path.isdir(themes_dir):
-                err_msg = 'cannot find theme %s: themes_dir %s is missing'
-                raise ConfigError(err_msg % (themestring, themes_dir))
+            # This is a python for/else loop
+            # https://docs.python.org/3/reference/compound_stmts.html#for
+            # 
+            # tl/dr; If the loop loads a theme it breaks. If it doesn't break,
+            # then it raises a ConfigError.
+            for dir_ in itertools.chain([themes_dir], data_dirs):
+                if not os.path.isdir(dir_):
+                    logging.warning(
+                        'cannot find theme %s: themes_dir %s is missing',
+                        themestring, dir_)
+                else:
+                    theme_path = os.path.join(dir_, themestring)
+                    try:
+                        self._theme = Theme(theme_path)
+                    except ConfigError as e:
+                        logging.warning(
+                            'Theme file %s failed validation: %s',
+                            themestring, str(e.message))
+                    else:
+                        break
             else:
-                theme_path = os.path.join(themes_dir, themestring)
-                try:
-                    self._theme = Theme(theme_path)
-                except ConfigError as e:
-                    err_msg = 'Theme file %s failed validation:\n'
-                    raise ConfigError((err_msg % themestring) + str(e.message))
+                raise ConfigError('Cannot load theme {}, see log for more '
+                                  'information'.format(themestring))
 
         # if still no theme is set, resort to default
         if self._theme is None:
