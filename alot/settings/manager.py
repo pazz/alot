@@ -16,7 +16,7 @@ from ..addressbook.external import ExternalAddressbook
 from ..helper import pretty_datetime, string_decode
 from ..utils import configobj as checks
 
-from .errors import ConfigError
+from .errors import ConfigError, NoMatchingAccount
 from .utils import read_config
 from .utils import resolve_att
 from .theme import Theme
@@ -414,19 +414,27 @@ class SettingsManager(object):
         """
         return self._accounts
 
-    def get_account_by_address(self, address):
-        """
-        returns :class:`Account` for a given email address (str)
+    def get_account_by_address(self, address, return_default=False):
+        """returns :class:`Account` for a given email address (str)
 
-        :param address: address to look up
-        :type address: string
-        :rtype:  :class:`Account` or None
+        :param str address: address to look up
+        :param bool return_default: If True and no address can be found, then
+            the default account wil be returned
+        :rtype: :class:`Account`
+        :raises ~alot.settings.errors.NoMatchingAccount: If no account can be
+            found. Thsi includes if return_default is True and there are no
+            accounts defined.
         """
-
         for myad in self.get_addresses():
             if myad == address:
                 return self._accountmap[myad]
-        return None
+        if return_default:
+            try:
+                return self.get_accounts()[0]
+            except IndexError:
+                # Fall through
+                pass
+        raise NoMatchingAccount
 
     def get_main_addresses(self):
         """returns addresses of known accounts without its aliases"""

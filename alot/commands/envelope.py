@@ -16,7 +16,7 @@ from twisted.internet.defer import inlineCallbacks
 
 from . import Command, registerCommand
 from . import globals
-from .utils import set_encrypt
+from . import utils
 from .. import buffers
 from .. import commands
 from .. import crypto
@@ -26,6 +26,7 @@ from ..errors import GPGProblem
 from ..helper import email_as_string
 from ..helper import string_decode
 from ..settings import settings
+from ..settings.errors import NoMatchingAccount
 from ..utils import argparse as cargparse
 
 
@@ -114,18 +115,17 @@ class SaveCommand(Command):
         envelope = ui.current_buffer.envelope
 
         # determine account to use
-        _, saddr = email.Utils.parseaddr(envelope.get('From'))
-        account = settings.get_account_by_address(saddr)
-        if account is None:
-            if not settings.get_accounts():
-                ui.notify('no accounts set.', priority='error')
-                return
-            else:
-                account = settings.get_accounts()[0]
+        try:
+            account = settings.get_account_by_address(
+                envelope.get('From'), return_default=True)
+        except NoMatchingAccount:
+            ui.notify('no accounts set.', priority='error')
+            return
 
         if account.draft_box is None:
-            ui.notify('abort: account <%s> has no draft_box set.' % saddr,
-                      priority='error')
+            ui.notify(
+                'abort: account <%s> has no draft_box set.' % envelope.get('From'),
+                priority='error')
             return
 
         mail = envelope.construct_mail()
@@ -214,14 +214,12 @@ class SendCommand(Command):
         msg = self.mail
         if not isinstance(msg, email.message.Message):
             msg = email.message_from_string(self.mail)
-        _, saddr = email.Utils.parseaddr(msg.get('From', ''))
-        account = settings.get_account_by_address(saddr)
-        if account is None:
-            if not settings.get_accounts():
-                ui.notify('no accounts set', priority='error')
-                return
-            else:
-                account = settings.get_accounts()[0]
+        try:
+            account = settings.get_account_by_address(
+                msg.get('From', ''), return_default=True)
+        except NoMatchingAccount:
+            ui.notify('no accounts set', priority='error')
+            return
 
         # make sure self.mail is a string
         logging.debug(self.mail.__class__)
@@ -494,14 +492,15 @@ class SignCommand(Command):
                     ui.notify(e.message, priority='error')
                     return
             else:
-                _, addr = email.utils.parseaddr(envelope.headers['From'][0])
-                acc = settings.get_account_by_address(addr)
-                if not acc:
+                try:
+                    acc = settings.get_account_by_address(
+                        envelope.headers['From'][0])
+                except NoMatchingAccount:
                     envelope.sign = False
                     ui.notify('Unable to find a matching account',
                               priority='error')
                     return
-                elif not acc.gpg_key:
+                if not acc.gpg_key:
                     envelope.sign = False
                     ui.notify('Account for {} has no gpg key'.format(acc.address),
                               priority='error')
@@ -575,7 +574,7 @@ class EncryptCommand(Command):
         elif self.action == 'toggleencrypt':
             encrypt = not envelope.encrypt
         if encrypt:
-            yield set_encrypt(ui, envelope, signed_only=self.trusted)
+            yield utils.set_encrypt(ui, envelope, signed_only=self.trusted)
         envelope.encrypt = encrypt
         if not envelope.encrypt:
             # This is an extra conditional as it can even happen if encrypt is
