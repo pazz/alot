@@ -369,3 +369,15 @@ class TestAddSignatureHeaders(unittest.TestCase):
         self.assertIn((utils.X_SIGNATURE_VALID_HEADER, u'True'), mail.headers)
         self.assertIn(
             (utils.X_SIGNATURE_MESSAGE_HEADER, u'Untrusted: mocked'), mail.headers)
+
+    @unittest.expectedFailure
+    def test_unicode_as_bytes(self):
+        mail = self.FakeMail()
+        key = make_key()
+        key.uids = [make_uid('andreá@example.com',
+                             uid=u'Andreá'.encode('utf-8'))]
+        mail = self.check(key, True)
+
+        self.assertIn((utils.X_SIGNATURE_VALID_HEADER, u'True'), mail.headers)
+        self.assertIn(
+            (utils.X_SIGNATURE_MESSAGE_HEADER, u'Valid: Andreá'), mail.headers)
