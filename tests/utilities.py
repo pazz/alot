@@ -148,10 +148,21 @@ class ModuleCleanup(object):
         return wrapper
 
 
+def make_uid(email, revoked=False, invalid=False, validity=gpgme.VALIDITY_FULL):
+    uid = mock.Mock()
+    uid.email = email
+    uid.uid = u'mocked'
+    uid.revoked = revoked
+    uid.invalid = invalid
+    uid.validity = validity
+
+    return uid
+
+
 def make_key(revoked=False, expired=False, invalid=False, can_encrypt=True,
              can_sign=True):
     mock_key = mock.create_autospec(gpgme.Key)
-    mock_key.uids = [mock.Mock(uid=u'mocked')]
+    mock_key.uids = [make_uid(u'foo@example.com')]
     mock_key.revoked = revoked
     mock_key.expired = expired
     mock_key.invalid = invalid
@@ -159,13 +170,3 @@ def make_key(revoked=False, expired=False, invalid=False, can_encrypt=True,
     mock_key.can_sign = can_sign
 
     return mock_key
-
-
-def make_uid(email, revoked=False, invalid=False, validity=gpgme.VALIDITY_FULL):
-    uid = mock.Mock()
-    uid.email = email
-    uid.revoked = revoked
-    uid.invalid = invalid
-    uid.validity = validity
-
-    return uid
