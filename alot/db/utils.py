@@ -44,9 +44,9 @@ def add_signature_headers(mail, sigs, error_msg):
     if isinstance(error_msg, str):
         error_msg = error_msg.decode('utf-8')
 
-    if len(sigs) == 0:
+    if not sigs:
         error_msg = error_msg or u'no signature found'
-    else:
+    elif not error_msg:
         try:
             key = crypto.get_key(sigs[0].fpr)
             for uid in key.uids:
