@@ -14,7 +14,7 @@ import unittest
 import mock
 
 from alot.db import utils
-from ..crypto_test import make_key
+from ..utilities import make_key
 
 
 class TestGetParams(unittest.TestCase):
