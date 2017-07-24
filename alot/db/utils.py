@@ -63,18 +63,15 @@ def add_signature_headers(mail, sigs, error_msg):
             sig_from = sigs[0].fpr.decode('utf-8')
             uid_trusted = False
 
-    mail.add_header(
-        X_SIGNATURE_VALID_HEADER,
-        'False' if error_msg else 'True',
-    )
-    mail.add_header(
-        X_SIGNATURE_MESSAGE_HEADER,
-        u'Invalid: {0}'.format(error_msg)
-        if error_msg else
-        u'Valid: {0}'.format(sig_from)
-        if uid_trusted else
-        u'Untrusted: {0}'.format(sig_from)
-    )
+    if error_msg:
+        msg = u'Invalid: {}'.format(error_msg)
+    elif uid_trusted:
+        msg = u'Valid: {}'.format(sig_from)
+    else:
+        msg = u'Untrusted: {}'.format(sig_from)
+
+    mail.add_header(X_SIGNATURE_VALID_HEADER, 'False' if error_msg else 'True')
+    mail.add_header(X_SIGNATURE_MESSAGE_HEADER, msg)
 
 
 def get_params(mail, failobj=None, header='content-type', unquote=True):
