@@ -11,7 +11,10 @@ import os
 import os.path
 import unittest
 
+import mock
+
 from alot.db import utils
+from ..utilities import make_key, make_uid
 
 
 class TestGetParams(unittest.TestCase):
@@ -321,3 +324,59 @@ class TestDecodeHeader(unittest.TestCase):
         expected = u'first\nsecond third fourth fifth'
         actual = utils.decode_header(text, normalize=True)
         self.assertEqual(actual, expected)
+
+
+class TestAddSignatureHeaders(unittest.TestCase):
+
+    class FakeMail(object):
+        def __init__(self):
+            self.headers = []
+
+        def add_header(self, header, value):
+            self.headers.append((header, value))
+
+    def check(self, key, valid):
+        mail = self.FakeMail()
+
+        with mock.patch('alot.db.utils.crypto.get_key',
+                        mock.Mock(return_value=key)), \
+                mock.patch('alot.db.utils.crypto.check_uid_validity',
+                           mock.Mock(return_value=valid)):
+            utils.add_signature_headers(mail, [mock.Mock(fpr='')], u'')
+
+        return mail
+
+    def test_length_0(self):
+        mail = self.FakeMail()
+        utils.add_signature_headers(mail, [], u'')
+        self.assertIn((utils.X_SIGNATURE_VALID_HEADER, u'False'), mail.headers)
+        self.assertIn(
+            (utils.X_SIGNATURE_MESSAGE_HEADER, u'Invalid: no signature found'),
+            mail.headers)
+
+    def test_valid(self):
+        key = make_key()
+        mail = self.check(key, True)
+
+        self.assertIn((utils.X_SIGNATURE_VALID_HEADER, u'True'), mail.headers)
+        self.assertIn(
+            (utils.X_SIGNATURE_MESSAGE_HEADER, u'Valid: mocked'), mail.headers)
+
+    def test_untrusted(self):
+        key = make_key()
+        mail = self.check(key, False)
+
+        self.assertIn((utils.X_SIGNATURE_VALID_HEADER, u'True'), mail.headers)
+        self.assertIn(
+            (utils.X_SIGNATURE_MESSAGE_HEADER, u'Untrusted: mocked'), mail.headers)
+
+    def test_unicode_as_bytes(self):
+        mail = self.FakeMail()
+        key = make_key()
+        key.uids = [make_uid('andreá@example.com',
+                             uid=u'Andreá'.encode('utf-8'))]
+        mail = self.check(key, True)
+
+        self.assertIn((utils.X_SIGNATURE_VALID_HEADER, u'True'), mail.headers)
+        self.assertIn(
+            (utils.X_SIGNATURE_MESSAGE_HEADER, u'Valid: Andreá'), mail.headers)

@@ -39,39 +39,39 @@ def add_signature_headers(mail, sigs, error_msg):
     :param error_msg: `str` containing an error message, the empty
                       string indicating no error
     '''
-    sig_from = ''
+    sig_from = u''
 
-    if len(sigs) == 0:
-        error_msg = error_msg or 'no signature found'
-    else:
+    if isinstance(error_msg, str):
+        error_msg = error_msg.decode('utf-8')
+
+    if not sigs:
+        error_msg = error_msg or u'no signature found'
+    elif not error_msg:
         try:
             key = crypto.get_key(sigs[0].fpr)
             for uid in key.uids:
                 if crypto.check_uid_validity(key, uid.email):
-                    sig_from = uid.uid
+                    sig_from = uid.uid.decode('utf-8')
                     uid_trusted = True
                     break
             else:
                 # No trusted uid found, we did not break but drop from the
                 # for loop.
                 uid_trusted = False
-                sig_from = key.uids[0].uid
+                sig_from = key.uids[0].uid.decode('utf-8')
         except:
-            sig_from = sigs[0].fpr
+            sig_from = sigs[0].fpr.decode('utf-8')
             uid_trusted = False
 
-    mail.add_header(
-        X_SIGNATURE_VALID_HEADER,
-        'False' if error_msg else 'True',
-    )
-    mail.add_header(
-        X_SIGNATURE_MESSAGE_HEADER,
-        u'Invalid: {0}'.format(error_msg)
-        if error_msg else
-        u'Valid: {0}'.format(sig_from)
-        if uid_trusted else
-        u'Untrusted: {0}'.format(sig_from)
-    )
+    if error_msg:
+        msg = u'Invalid: {}'.format(error_msg)
+    elif uid_trusted:
+        msg = u'Valid: {}'.format(sig_from)
+    else:
+        msg = u'Untrusted: {}'.format(sig_from)
+
+    mail.add_header(X_SIGNATURE_VALID_HEADER, 'False' if error_msg else 'True')
+    mail.add_header(X_SIGNATURE_MESSAGE_HEADER, msg)
 
 
 def get_params(mail, failobj=None, header='content-type', unquote=True):

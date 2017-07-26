@@ -21,6 +21,9 @@ from __future__ import absolute_import
 import functools
 import unittest
 
+import gpgme
+import mock
+
 
 def _tear_down_class_wrapper(original, cls):
     """Ensure that doClassCleanups is called after tearDownClass."""
@@ -143,3 +146,28 @@ class ModuleCleanup(object):
                 raise
 
         return wrapper
+
+
+def make_uid(email, uid=u'mocked', revoked=False, invalid=False,
+             validity=gpgme.VALIDITY_FULL):
+    uid_ = mock.Mock()
+    uid_.email = email
+    uid_.uid = uid
+    uid_.revoked = revoked
+    uid_.invalid = invalid
+    uid_.validity = validity
+
+    return uid_
+
+
+def make_key(revoked=False, expired=False, invalid=False, can_encrypt=True,
+             can_sign=True):
+    mock_key = mock.create_autospec(gpgme.Key)
+    mock_key.uids = [make_uid(u'foo@example.com')]
+    mock_key.revoked = revoked
+    mock_key.expired = expired
+    mock_key.invalid = invalid
+    mock_key.can_encrypt = can_encrypt
+    mock_key.can_sign = can_sign
+
+    return mock_key

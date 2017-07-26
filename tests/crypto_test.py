@@ -66,29 +66,6 @@ def tearDownModule():
             os.kill(int(pid), signal.SIGKILL)
 
 
-def make_key(revoked=False, expired=False, invalid=False, can_encrypt=True,
-             can_sign=True):
-    mock_key = mock.create_autospec(gpgme.Key)
-    mock_key.uids = [mock.Mock(uid=u'mocked')]
-    mock_key.revoked = revoked
-    mock_key.expired = expired
-    mock_key.invalid = invalid
-    mock_key.can_encrypt = can_encrypt
-    mock_key.can_sign = can_sign
-
-    return mock_key
-
-
-def make_uid(email, revoked=False, invalid=False, validity=gpgme.VALIDITY_FULL):
-    uid = mock.Mock()
-    uid.email = email
-    uid.revoked = revoked
-    uid.invalid = invalid
-    uid.validity = validity
-
-    return uid
-
-
 class TestHashAlgorithmHelper(unittest.TestCase):
 
     """Test cases for the helper function RFC3156_canonicalize."""
@@ -154,49 +131,49 @@ class TestValidateKey(unittest.TestCase):
 
     def test_valid(self):
         try:
-            crypto.validate_key(make_key())
+            crypto.validate_key(utilities.make_key())
         except GPGProblem as e:
             raise AssertionError(e)
 
     def test_revoked(self):
         with self.assertRaises(GPGProblem) as caught:
-            crypto.validate_key(make_key(revoked=True))
+            crypto.validate_key(utilities.make_key(revoked=True))
 
         self.assertEqual(caught.exception.code, GPGCode.KEY_REVOKED)
 
     def test_expired(self):
         with self.assertRaises(GPGProblem) as caught:
-            crypto.validate_key(make_key(expired=True))
+            crypto.validate_key(utilities.make_key(expired=True))
 
         self.assertEqual(caught.exception.code, GPGCode.KEY_EXPIRED)
 
     def test_invalid(self):
         with self.assertRaises(GPGProblem) as caught:
-            crypto.validate_key(make_key(invalid=True))
+            crypto.validate_key(utilities.make_key(invalid=True))
 
         self.assertEqual(caught.exception.code, GPGCode.KEY_INVALID)
 
     def test_encrypt(self):
         with self.assertRaises(GPGProblem) as caught:
-            crypto.validate_key(make_key(can_encrypt=False), encrypt=True)
+            crypto.validate_key(utilities.make_key(can_encrypt=False), encrypt=True)
 
         self.assertEqual(caught.exception.code, GPGCode.KEY_CANNOT_ENCRYPT)
 
     def test_encrypt_no_check(self):
         try:
-            crypto.validate_key(make_key(can_encrypt=False))
+            crypto.validate_key(utilities.make_key(can_encrypt=False))
         except GPGProblem as e:
             raise AssertionError(e)
 
     def test_sign(self):
         with self.assertRaises(GPGProblem) as caught:
-            crypto.validate_key(make_key(can_sign=False), sign=True)
+            crypto.validate_key(utilities.make_key(can_sign=False), sign=True)
 
         self.assertEqual(caught.exception.code, GPGCode.KEY_CANNOT_SIGN)
 
     def test_sign_no_check(self):
         try:
-            crypto.validate_key(make_key(can_sign=False))
+            crypto.validate_key(utilities.make_key(can_sign=False))
         except GPGProblem as e:
             raise AssertionError(e)
 
@@ -204,43 +181,44 @@ class TestValidateKey(unittest.TestCase):
 class TestCheckUIDValidity(unittest.TestCase):
 
     def test_valid_single(self):
-        key = make_key()
-        key.uids[0] = make_uid(mock.sentinel.EMAIL)
+        key = utilities.make_key()
+        key.uids[0] = utilities.make_uid(mock.sentinel.EMAIL)
         ret = crypto.check_uid_validity(key, mock.sentinel.EMAIL)
         self.assertTrue(ret)
 
     def test_valid_multiple(self):
-        key = make_key()
+        key = utilities.make_key()
         key.uids = [
-            make_uid(mock.sentinel.EMAIL),
-            make_uid(mock.sentinel.EMAIL1),
+            utilities.make_uid(mock.sentinel.EMAIL),
+            utilities.make_uid(mock.sentinel.EMAIL1),
         ]
 
         ret = crypto.check_uid_validity(key, mock.sentinel.EMAIL1)
         self.assertTrue(ret)
 
     def test_invalid_email(self):
-        key = make_key()
-        key.uids[0] = make_uid(mock.sentinel.EMAIL)
+        key = utilities.make_key()
+        key.uids[0] = utilities.make_uid(mock.sentinel.EMAIL)
         ret = crypto.check_uid_validity(key, mock.sentinel.EMAIL1)
         self.assertFalse(ret)
 
     def test_invalid_revoked(self):
-        key = make_key()
-        key.uids[0] = make_uid(mock.sentinel.EMAIL, revoked=True)
+        key = utilities.make_key()
+        key.uids[0] = utilities.make_uid(mock.sentinel.EMAIL, revoked=True)
         ret = crypto.check_uid_validity(key, mock.sentinel.EMAIL)
         self.assertFalse(ret)
 
     def test_invalid_invalid(self):
-        key = make_key()
-        key.uids[0] = make_uid(mock.sentinel.EMAIL, invalid=True)
+        key = utilities.make_key()
+        key.uids[0] = utilities.make_uid(mock.sentinel.EMAIL, invalid=True)
         ret = crypto.check_uid_validity(key, mock.sentinel.EMAIL)
         self.assertFalse(ret)
 
     def test_invalid_not_enough_trust(self):
-        key = make_key()
-        key.uids[0] = make_uid(mock.sentinel.EMAIL,
-                               validity=gpgme.VALIDITY_UNDEFINED)
+        key = utilities.make_key()
+        key.uids[0] = utilities.make_uid(
+            mock.sentinel.EMAIL,
+            validity=gpgme.VALIDITY_UNDEFINED)
         ret = crypto.check_uid_validity(key, mock.sentinel.EMAIL)
         self.assertFalse(ret)
 
@@ -304,8 +282,8 @@ class TestGetKey(unittest.TestCase):
         return context_mock
 
     def test_ambiguous_one_valid(self):
-        invalid_key = make_key(invalid=True)
-        valid_key = make_key()
+        invalid_key = utilities.make_key(invalid=True)
+        valid_key = utilities.make_key()
 
         with mock.patch('alot.crypto.gpgme.Context',
                         mock.Mock(return_value=self._context_mock())), \
@@ -318,7 +296,8 @@ class TestGetKey(unittest.TestCase):
         with mock.patch('alot.crypto.gpgme.Context',
                         mock.Mock(return_value=self._context_mock())), \
                 mock.patch('alot.crypto.list_keys',
-                           mock.Mock(return_value=[make_key(), make_key()])):
+                           mock.Mock(return_value=[utilities.make_key(),
+                                                   utilities.make_key()])):
             with self.assertRaises(crypto.GPGProblem) as cm:
                 crypto.get_key('placeholder')
         self.assertEqual(cm.exception.code, GPGCode.AMBIGUOUS_NAME)
@@ -327,8 +306,9 @@ class TestGetKey(unittest.TestCase):
         with mock.patch('alot.crypto.gpgme.Context',
                         mock.Mock(return_value=self._context_mock())), \
                 mock.patch('alot.crypto.list_keys',
-                           mock.Mock(return_value=[make_key(invalid=True),
-                                                   make_key(invalid=True)])):
+                           mock.Mock(return_value=[
+                               utilities.make_key(invalid=True),
+                               utilities.make_key(invalid=True)])):
             with self.assertRaises(crypto.GPGProblem) as cm:
                 crypto.get_key('placeholder')
         self.assertEqual(cm.exception.code, GPGCode.NOT_FOUND)
