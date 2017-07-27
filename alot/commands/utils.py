@@ -5,6 +5,7 @@ from __future__ import absolute_import
 
 import re
 import logging
+
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from ..errors import GPGProblem, GPGCode

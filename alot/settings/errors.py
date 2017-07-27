@@ -6,3 +6,8 @@
 class ConfigError(Exception):
     """could not parse user config"""
     pass
+
+
+class NoMatchingAccount(ConfigError):
+    """No account matching requirements found."""
+    pass
