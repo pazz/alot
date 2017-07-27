@@ -592,3 +592,39 @@ class TestMessageFromFile(TestCaseClassCleanup):
         m = utils.message_from_file(io.BytesIO(m.as_string()))
         self.assertIn('Malformed OpenPGP message:',
                       m.get_payload(2).get_payload())
+
+    @unittest.expectedFailure
+    def test_signed_in_multipart_mixed(self):
+        """It is valid to encapsulate a multipart/signed payload inside a
+        multipart/mixed payload, verify that works.
+        """
+        s = self._make_signed()
+        m = email.mime.multipart.MIMEMultipart('mixed', None, [s])
+        m = utils.message_from_file(io.BytesIO(m.as_string()))
+        self.assertIn(utils.X_SIGNATURE_VALID_HEADER, m)
+        self.assertIn(utils.X_SIGNATURE_MESSAGE_HEADER, m)
+
+    @unittest.expectedFailure
+    def test_encrypted_unsigned_in_multipart_mixed(self):
+        """It is valid to encapsulate a multipart/encrypted payload inside a
+        multipart/mixed payload, verify that works.
+        """
+        s = self._make_encrypted()
+        m = email.mime.multipart.MIMEMultipart('mixed', None, [s])
+        m = utils.message_from_file(io.BytesIO(m.as_string()))
+        self.assertIn('This is some text', [n.get_payload() for n in m.walk()])
+        self.assertNotIn(utils.X_SIGNATURE_VALID_HEADER, m)
+        self.assertNotIn(utils.X_SIGNATURE_MESSAGE_HEADER, m)
+
+    @unittest.expectedFailure
+    def test_encrypted_signed_in_multipart_mixed(self):
+        """It is valid to encapsulate a multipart/encrypted payload inside a
+        multipart/mixed payload, verify that works when the multipart/encrypted
+        contains a multipart/signed.
+        """
+        s = self._make_encrypted(True)
+        m = email.mime.multipart.MIMEMultipart('mixed', None, [s])
+        m = utils.message_from_file(io.BytesIO(m.as_string()))
+        self.assertIn('This is some text', [n.get_payload() for n in m.walk()])
+        self.assertIn(utils.X_SIGNATURE_VALID_HEADER, m)
+        self.assertIn(utils.X_SIGNATURE_MESSAGE_HEADER, m)
