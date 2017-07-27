@@ -203,11 +203,6 @@ def message_from_file(handle):
                         for k in (X_SIGNATURE_VALID_HEADER,
                                   X_SIGNATURE_MESSAGE_HEADER):
                             m[k] = n[k]
-                    else:
-                        # an encrypted message without signatures
-                        # should arouse some suspicion, better warn
-                        # the user
-                        add_signature_headers(m, [], 'no signature found')
                 else:
                     # 'Combined method', the signatures are returned
                     # by the decrypt_verify function.

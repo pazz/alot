@@ -554,7 +554,6 @@ class TestMessageFromFile(TestCaseClassCleanup):
         # existence.
         self.assertIn('This is some text', [n.get_payload() for n in m.walk()])
 
-    @unittest.expectedFailure
     def test_encrypted_unsigned_doesnt_add_signed_headers(self):
         """Since the message isn't signed, it shouldn't have headers saying
         that there is a signature.
