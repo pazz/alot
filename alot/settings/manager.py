@@ -40,7 +40,6 @@ class SettingsManager(object):
         assert notmuch_rc is None or (isinstance(notmuch_rc, basestring) and os.path.exists(notmuch_rc))
         self.hooks = None
         self._mailcaps = mailcap.getcaps()
-        self._config = ConfigObj()
         self._notmuchconfig = None
         self._theme = None
         self._accounts = None
