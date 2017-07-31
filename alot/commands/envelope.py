@@ -11,6 +11,7 @@ import logging
 import os
 import re
 import tempfile
+import textwrap
 
 from twisted.internet.defer import inlineCallbacks
 
@@ -195,6 +196,17 @@ class SendCommand(Command):
             if self.envelope.sending:
                 logging.debug('sending this message already!')
                 return
+
+            # Before attempting to construct mail, ensure that we're not trying
+            # to encrypt a message with a BCC, since any BCC recipients will
+            # receive a message that they cannot read!
+            if self.envelope.headers.get('Bcc') and self.envelope.encrypt:
+                warning = textwrap.dedent("""\
+                    Any BCC recepients will not be able to decrypt this
+                    message. Do you want to send anyway?""").replace('\n', ' ')
+                if (yield ui.choice(warning, cancel='no',
+                                    msg_position='left')) == 'no':
+                    return
 
             clearme = ui.notify(u'constructing mail (GPG, attachments)\u2026',
                                 timeout=-1)
