@@ -1,6 +1,9 @@
 next:
-* Add command to reload configuration files in running session
-* new command "tag" (and friends) in EnvelopeBuffer to add additional tags after sending
+* feature: Add command to reload configuration files in running session
+* feature: new command "tag" (and friends) in EnvelopeBuffer to add additional tags after sending
+* feature: Themes can now be loaded from system locations
+* bug fix: GPG signatures are acutally verified
+* feature: option to use linewise focussing in thread mode
 
 0.5:
 * save command prompt, recipient and sender history across program restarts
