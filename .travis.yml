@@ -4,8 +4,7 @@ sudo: True
 # Cache pip objects to speed up next build
 cache:
   pip: True
-  directories:
-    - $HOME/.ccache
+  ccache: True
 
 
 # We need a newer version of zlib to build notmuch from source as is available
