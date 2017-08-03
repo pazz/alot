@@ -18,7 +18,7 @@ from cStringIO import StringIO
 from .. import crypto
 from .. import helper
 from ..errors import GPGProblem
-from ..settings import settings
+from ..settings.const import settings
 from ..helper import string_sanitize
 from ..helper import string_decode
 from ..helper import parse_mailcap_nametemplate

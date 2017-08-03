@@ -23,7 +23,7 @@ from .errors import NonexistantObjectError
 from .message import Message
 from .thread import Thread
 from .utils import is_subdir_of
-from ..settings import settings
+from ..settings.const import settings
 
 
 class FillPipeProcess(multiprocessing.Process):

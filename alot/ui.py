@@ -10,7 +10,7 @@ import signal
 from twisted.internet import reactor, defer, task
 import urwid
 
-from .settings import settings
+from .settings.const import settings
 from .buffers import BufferlistBuffer, SearchBuffer
 from .commands import globals
 from .commands import commandfactory

@@ -31,7 +31,7 @@ from ..db.utils import extract_body
 from ..db.envelope import Envelope
 from ..db.attachment import Attachment
 from ..db.errors import DatabaseROError
-from ..settings import settings
+from ..settings.const import settings
 from ..helper import parse_mailcap_nametemplate
 from ..helper import split_commandstring
 from ..helper import email_as_string

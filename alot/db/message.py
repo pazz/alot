@@ -14,7 +14,7 @@ from .utils import extract_body, message_from_file
 from .utils import decode_header
 from .attachment import Attachment
 from .. import helper
-from ..settings import settings
+from ..settings.const import settings
 
 charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 

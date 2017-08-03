@@ -14,7 +14,7 @@ import re
 from . import crypto
 from . import commands
 from .buffers import EnvelopeBuffer
-from .settings import settings
+from .settings.const import settings
 from .utils import argparse as cargparse
 from .helper import split_commandline
 from .addressbook import AddressbookError

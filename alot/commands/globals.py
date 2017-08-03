@@ -34,7 +34,7 @@ from ..completion import TagsCompleter
 from ..widgets.utils import DialogBox
 from ..db.errors import DatabaseLockedError
 from ..db.envelope import Envelope
-from ..settings import settings
+from ..settings.const import settings
 from ..utils import argparse as cargparse
 
 MODE = 'global'

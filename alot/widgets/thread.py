@@ -12,7 +12,7 @@ from urwidtrees import Tree, SimpleTree, CollapsibleTree
 
 from .globals import TagWidget
 from .globals import AttachmentWidget
-from ..settings import settings
+from ..settings.const import settings
 from ..db.utils import decode_header, X_SIGNATURE_MESSAGE_HEADER
 from ..db.utils import extract_body
 
