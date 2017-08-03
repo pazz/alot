@@ -1,4 +1,5 @@
 language: python
+sudo: True
 
 # Cache pip objects to speed up next build
 cache:
