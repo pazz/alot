@@ -49,7 +49,7 @@ before_install: |
     export PATH=/usr/lib/ccache:$PATH
 
     # Clone the notmuch repository and move into it.
-    git clone git://notmuchmail.org/git/notmuch
+    git clone git://notmuchmail.org/git/notmuch --depth 1
     cd notmuch
     # Make and install the library.  We install the library without sudo as we
     # might want to switch to the travis container later.
