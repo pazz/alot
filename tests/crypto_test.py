@@ -380,3 +380,5 @@ class TestDecrypt(unittest.TestCase):
         encrypted = crypto.encrypt(to_encrypt, keys=[crypto.get_key(FPR)])
         _, dec = crypto.decrypt_verify(encrypted)
         self.assertEqual(to_encrypt, dec)
+
+    # TODO: test for "combined" method
