@@ -25,9 +25,6 @@ env:
 addons:
   apt:
     packages:
-      # The gpgme build files are needed by the gpgme python module
-      # (a dependency of alot).
-      - libgpgme11-dev
       # The notmuch libs are needed to actually run alot.  But currently the
       # available version is not compatible with alot, so we have to build
       # from source.
@@ -37,6 +34,9 @@ addons:
       - libtalloc-dev
       - zlib1g-dev
       - libgmime-2.6-dev
+
+      # dependencies to build the python-gpg module from source
+      - swig
 
 # Build notmuch and the python notmuch libs manually.  The versions of the
 # notmuch library and the python module which are available in the 12.04 and
@@ -48,6 +48,10 @@ before_install: |
     # Build with ccache to speed up rebuilds.
     export PATH=/usr/lib/ccache:$PATH
 
+    # Set paths
+    export LD_LIBRARY_PATH=$HOME/.local/lib
+    export PKG_CONFIG_PATH=$HOME/.local/lib/pkgconfig
+
     # Clone the notmuch repository and move into it.
     git clone git://notmuchmail.org/git/notmuch --depth 1
     cd notmuch
@@ -57,7 +61,6 @@ before_install: |
     make -j3 -l2
     make install
     # Export the library search path.
-    export LD_LIBRARY_PATH=$HOME/.local/lib
     # Install the python bindings.
     cd bindings/python
     pip install .
@@ -66,6 +69,34 @@ before_install: |
     pip install coverage codacy-coverage
     # Move out of the notmuch dir again.
     cd ../../..
+
+    # Build GPGME since the version shipping is far too old
+
+    # needs a newer version of gpg-errors
+    curl https://gnupg.org/ftp/gcrypt/libgpg-error/libgpg-error-1.27.tar.bz2 -o gpgerror.tar.bz2
+    tar xvf gpgerror.tar.bz2
+    pushd libgpg-error-1.27
+    ./configure --prefix=$HOME/.local
+    make -j3 -l2
+    make install
+    popd
+
+    # and a newer version of libassaun
+    curl https://gnupg.org/ftp/gcrypt/libassuan/libassuan-2.4.3.tar.bz2 -o assuan.tar.bz2
+    tar xf assuan.tar.bz2
+    pushd libassuan-2.4.3
+    ./configure --prefix=$HOME/.local
+    make -j3 -l2
+    make install
+    popd
+
+    curl https://gnupg.org/ftp/gcrypt/gpgme/gpgme-1.9.0.tar.bz2 -o gpgme.tar.bz2
+    tar xf gpgme.tar.bz2
+    pushd gpgme-1.9.0
+    ./configure --prefix=$HOME/.local
+    make -j3 -l2
+    make install
+    popd
   fi
 
 # Prepare a minimal config file for the test.
