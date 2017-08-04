@@ -54,7 +54,7 @@ before_install: |
     # Make and install the library.  We install the library without sudo as we
     # might want to switch to the travis container later.
     ./configure --prefix=$HOME/.local
-    make
+    make -j3 -l2
     make install
     # Export the library search path.
     export LD_LIBRARY_PATH=$HOME/.local/lib
