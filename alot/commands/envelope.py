@@ -26,7 +26,7 @@ from ..db.errors import DatabaseError
 from ..errors import GPGProblem
 from ..helper import email_as_string
 from ..helper import string_decode
-from ..settings import settings
+from ..settings.const import settings
 from ..settings.errors import NoMatchingAccount
 from ..utils import argparse as cargparse
 

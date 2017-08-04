@@ -9,7 +9,7 @@ import os
 import sys
 
 import alot
-from alot.settings import settings
+from alot.settings.const import settings
 from alot.settings.errors import ConfigError
 from alot.db.manager import DBManager
 from alot.ui import UI

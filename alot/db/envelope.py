@@ -21,7 +21,7 @@ from .utils import encode_header
 from .. import __version__
 from .. import helper
 from .. import crypto
-from ..settings import settings
+from ..settings.const import settings
 from ..errors import GPGProblem, GPGCode
 
 charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')

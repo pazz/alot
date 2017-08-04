@@ -10,7 +10,7 @@ import urwid
 from urwidtrees import ArrowTree, TreeBox, NestedTree
 from notmuch import NotmuchError
 
-from .settings import settings
+from .settings.const import settings
 from . import commands
 from .walker import PipeWalker
 from .helper import shorten_author_string

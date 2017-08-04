@@ -6,7 +6,7 @@ from __future__ import absolute_import
 from datetime import datetime
 
 from .message import Message
-from ..settings import settings
+from ..settings.const import settings
 
 
 class Thread(object):

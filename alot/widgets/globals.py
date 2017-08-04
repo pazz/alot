@@ -13,7 +13,7 @@ import operator
 import urwid
 
 from ..helper import string_decode
-from ..settings import settings
+from ..settings.const import settings
 from ..db.attachment import Attachment
 from ..errors import CompletionError
 

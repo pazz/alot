@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 import urwid
 
-from ..settings import settings
+from ..settings.const import settings
 from ..helper import shorten_author_string
 from .utils import AttrFlipWidget
 from .globals import TagWidget

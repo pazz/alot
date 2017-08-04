@@ -9,7 +9,7 @@ import logging
 import os
 import re
 
-from ..settings import settings
+from ..settings.const import settings
 from ..helper import split_commandstring, string_decode
 
 
