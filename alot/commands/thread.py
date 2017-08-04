@@ -1000,7 +1000,11 @@ class OpenAttachmentCommand(Command):
     arguments=[
         (['movement'],
          {'nargs': argparse.REMAINDER,
-          'help': 'up, down, page up, page down, first, last'})])
+          'help': '''up, down, [half]page up, [half]page down, first, last, \
+                  parent, first reply, last reply, \
+                  next sibling, previous sibling, next, previous, \
+                  next unfolded, previous unfolded, \
+                  next NOTMUCH_QUERY, previous NOTMUCH_QUERY'''})])
 class MoveFocusCommand(MoveCommand):
 
     def apply(self, ui):
