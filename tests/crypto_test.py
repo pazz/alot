@@ -236,6 +236,16 @@ class TestListKeys(unittest.TestCase):
         values = crypto.list_keys(hint="ambig")
         self.assertEqual(len(list(values)), 2)
 
+    def test_list_keys_pub(self):
+        values = list(crypto.list_keys(hint="ambigu"))[0]
+        self.assertEqual(values.uids[0].email, u'amigbu@example.com')
+        self.assertFalse(values.secret)
+
+    def test_list_keys_private(self):
+        values = list(crypto.list_keys(hint="ambigu", private=True))[0]
+        self.assertEqual(values.uids[0].email, u'amigbu@example.com')
+        self.assertTrue(values.secret)
+
 
 class TestGetKey(unittest.TestCase):
 
