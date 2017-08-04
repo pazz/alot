@@ -26,8 +26,9 @@
     [[threadline]]
         normal = attrtriple
         focus = attrtriple
-        # order subwidgets are displayed. subset of {date,mailcount,tags,authors,subject,count}
-        # every element listed must have its own subsection below
+        # list of subwidgets to display. Every element listed must have its
+        # own subsection below. Valid elements are authors, content, date,
+        # mailcount, tags, and subject.
         parts = string_list(default=None)
         [[[__many__]]]
             normal = attrtriple

@@ -65,11 +65,12 @@ determines how to present a thread: here, :ref:`attributes <config.theming.attri
 'focus' provide fallback/spacer themes and 'parts' is a (string) list of displayed subwidgets.
 Possible part strings are:
 
+* authors
+* content
 * date
 * mailcount
-* tags
-* authors
 * subject
+* tags
 
 For every listed part there must be a subsection with the same name, defining
 
@@ -82,7 +83,7 @@ For every listed part there must be a subsection with the same name, defining
 :alignment: how to place the content string if the widget space is larger.
             This must be one of 'right', 'left' or 'center'.
 
-To "highlight" some thread lines (use different attributes than the defaults found in the
+To highlight some thread lines (use different attributes than the defaults found in the
 '[[threadline]]' section), one can define sections with prefix 'threadline'.
 Each one of those can redefine any part of the structure outlined above, the rest defaults to
 values defined in '[[threadline]]'.
