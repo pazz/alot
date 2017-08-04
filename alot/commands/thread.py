@@ -1024,6 +1024,12 @@ class MoveFocusCommand(MoveCommand):
             tbuffer.focus_next_unfolded()
         elif self.movement == 'previous unfolded':
             tbuffer.focus_prev_unfolded()
+        elif self.movement.startswith('next '):
+            query = self.movement[5:].strip()
+            tbuffer.focus_next_matching(query)
+        elif self.movement.startswith('previous '):
+            query = self.movement[9:].strip()
+            tbuffer.focus_prev_matching(query)
         else:
             MoveCommand.apply(self, ui)
         # TODO add 'next matching' if threadbuffer stores the original query
