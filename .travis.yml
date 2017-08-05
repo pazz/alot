@@ -61,6 +61,9 @@ before_install: |
     # Install the python bindings.
     cd bindings/python
     pip install .
+    # Install the coverage programs to generate a coverage report and upload
+    # it to codacy.com
+    pip install coverage codacy-coverage
     # Move out of the notmuch dir again.
     cd ../../..
   fi
@@ -109,7 +112,15 @@ script: |
     make -C docs html SPHINXBUILD='sphinx-build -W'
   else
     alot --config conf
-    python setup.py test
+    coverage run setup.py test
+  fi
+
+after_success: |
+  set -e
+  if [[ $JOB = tests ]]; then
+    coverage xml
+    export CODACY_PROJECT_TOKEN=df4443e7313e4ae599bcbbaf4835b00f
+    python-codacy-coverage -r coverage.xml
   fi
 
 notifications:
