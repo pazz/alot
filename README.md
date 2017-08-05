@@ -1,5 +1,7 @@
 [![Build Status][travis-img]][travis]
-[![Code Issues][quantcode-img]][quantcode]
+[![Code Climate][codeclimate-img]][codeclimate]
+[![Codacy Grade][codacy-grade-img]][codacy-grade]
+[![Codacy Coverage][codacy-coverage-img]][codacy-coverage]
 
 
 Alot is a terminal-based mail user agent based on the [notmuch mail indexer][notmuch].
@@ -54,8 +56,12 @@ See the [manual][docs] for more usage info.
 [wiki]: https://github.com/pazz/alot/wiki
 [FAQ]: http://alot.readthedocs.io/en/latest/faq.html
 [features]: https://github.com/pazz/alot/issues?labels=feature
-[travis]: https://travis-ci.org/pazz/alot
-[quantcode]: https://www.quantifiedcode.com/app/project/c5aaa4739c5b4f6eb75eaaf8c01da679
 
+[travis]: https://travis-ci.org/pazz/alot
 [travis-img]: https://travis-ci.org/pazz/alot.svg?branch=master
-[quantcode-img]: https://www.quantifiedcode.com/api/v1/project/c5aaa4739c5b4f6eb75eaaf8c01da679/badge.svg
+[codacy-coverage]: https://www.codacy.com/app/patricktotzke/alot?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=pazz/alot&amp;utm_campaign=Badge_Coverage
+[codacy-coverage-img]: https://api.codacy.com/project/badge/Coverage/fa7c4a567cd546568a12e88c57f9dbd6
+[codacy-grade]: https://www.codacy.com/app/patricktotzke/alot?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=pazz/alot&amp;utm_campaign=Badge_Grade
+[codacy-grade-img]: https://api.codacy.com/project/badge/Grade/fa7c4a567cd546568a12e88c57f9dbd6
+[codeclimate-img]: https://codeclimate.com/github/pazz/alot/badges/gpa.svg
+[codeclimate]: https://codeclimate.com/github/pazz/alot
