@@ -927,7 +927,7 @@ class ComposeCommand(Command):
     arguments=[
         (['movement'],
          {'nargs': argparse.REMAINDER,
-          'help': 'up, down, [half]page up, [half]page down, first'})])
+          'help': 'up, down, [half]page up, [half]page down, first, last'})])
 class MoveCommand(Command):
 
     """move in widget"""

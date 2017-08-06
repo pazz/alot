@@ -996,7 +996,11 @@ class OpenAttachmentCommand(Command):
     arguments=[
         (['movement'],
          {'nargs': argparse.REMAINDER,
-          'help': 'up, down, page up, page down, first, last'})])
+          'help': '''up, down, [half]page up, [half]page down, first, last, \
+                  parent, first reply, last reply, \
+                  next sibling, previous sibling, next, previous, \
+                  next unfolded, previous unfolded, \
+                  next NOTMUCH_QUERY, previous NOTMUCH_QUERY'''})])
 class MoveFocusCommand(MoveCommand):
 
     def apply(self, ui):
@@ -1020,6 +1024,12 @@ class MoveFocusCommand(MoveCommand):
             tbuffer.focus_next_unfolded()
         elif self.movement == 'previous unfolded':
             tbuffer.focus_prev_unfolded()
+        elif self.movement.startswith('next '):
+            query = self.movement[5:].strip()
+            tbuffer.focus_next_matching(query)
+        elif self.movement.startswith('previous '):
+            query = self.movement[9:].strip()
+            tbuffer.focus_prev_matching(query)
         else:
             MoveCommand.apply(self, ui)
         # TODO add 'next matching' if threadbuffer stores the original query

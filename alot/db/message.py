@@ -254,5 +254,5 @@ class Message(object):
 
     def matches(self, querystring):
         """tests if this messages is in the resultset for `querystring`"""
-        searchfor = querystring + ' AND id:' + self._id
+        searchfor = '( {} ) AND id:{}'.format(querystring, self._id)
         return self._dbman.count_messages(searchfor) > 0

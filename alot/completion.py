@@ -482,12 +482,14 @@ class CommandCompleter(Completer):
                                                            separator=',')
                     res = localcomp.complete(params, localpos)
                 elif cmd == 'move':
-                    directions = ['up', 'down', 'page up', 'page down']
+                    directions = ['up', 'down', 'page up', 'page down',
+                                  'halfpage up', 'halfpage down', 'first',
+                                  'last']
                     if self.mode == 'thread':
-                        directions += ['first', 'last', 'next', 'previous',
-                                       'last reply', 'first reply', 'parent',
-                                       'next unfolded', 'previous unfolded',
-                                       'next sibling', 'previous sibling']
+                        directions += ['parent', 'first reply', 'last reply',
+                                       'next sibling', 'previous sibling',
+                                       'next', 'previous', 'next unfolded',
+                                       'previous unfolded']
                     localcompleter = StringlistCompleter(directions)
                     res = localcompleter.complete(params, localpos)
 

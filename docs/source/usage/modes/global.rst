@@ -80,7 +80,7 @@ The following commands are available globally
     move focus in current buffer
 
     argument
-        up, down, [half]page up, [half]page down, first
+        up, down, [half]page up, [half]page down, first, last
 
 
 .. _cmd.global.shellescape:
