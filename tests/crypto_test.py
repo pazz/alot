@@ -266,6 +266,11 @@ class TestGetKey(unittest.TestCase):
 
     def test_missing_key(self):
         with self.assertRaises(GPGProblem) as caught:
+            crypto.get_key('foo@example.com')
+        self.assertEqual(caught.exception.code, GPGCode.NOT_FOUND)
+
+    def test_invalid_key(self):
+        with self.assertRaises(GPGProblem) as caught:
             crypto.get_key('z')
         self.assertEqual(caught.exception.code, GPGCode.NOT_FOUND)
 
