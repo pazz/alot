@@ -201,7 +201,7 @@ class Account(object):
                  signature_filename=None, signature_as_attachment=False,
                  sent_box=None, sent_tags=None, draft_box=None,
                  draft_tags=None, abook=None, sign_by_default=False,
-                 encrypt_by_default=u"none",
+                 encrypt_by_default=u"none", case_sensitive_username=False,
                  **_):
         sent_tags = sent_tags or []
         if 'sent' not in sent_tags:
@@ -210,8 +210,9 @@ class Account(object):
         if 'draft' not in draft_tags:
             draft_tags.append('draft')
 
-        self.address = address
-        self.aliases = aliases or []
+        self.address = Address.from_string(address, case_sensitive=case_sensitive_username)
+        self.aliases = [Address.from_string(a, case_sensitive=case_sensitive_username)
+                        for a in (aliases or [])]
         self.alias_regexp = alias_regexp
         self.realname = realname
         self.gpg_key = gpg_key

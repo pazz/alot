@@ -355,6 +355,14 @@ thread_focus_linewise = boolean(default=True)
         # use your default key.
         gpg_key = gpg_key_hint(default=None)
 
+        # Whether the server treats the address as case-senstive or
+        # case-insensitve (True for the former, False for the latter)
+        #
+        # .. note:: The vast majority (if not all) SMTP servers in modern use
+        #           treat usernames as case insenstive, you should only set
+        #           this if you know that you need it.
+        case_sensitive_username = boolean(default=False)
+
         # address book for this account
         [[[abook]]]
             # type identifier for address book
