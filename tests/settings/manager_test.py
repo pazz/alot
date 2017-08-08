@@ -147,3 +147,15 @@ class TestSettingsManagerGetAccountByAddress(utilities.TestCaseClassCleanup):
         acc = self.manager.get_account_by_address(
             'That Guy <a_dude@example.com>')
         self.assertEqual(acc.realname, 'A Dude')
+
+    @unittest.expectedFailure
+    def test_address_case(self):
+        """Some servers do not differentiate addresses by case.
+
+        So, for example, "foo@example.com" and "Foo@example.com" would be
+        considered the same. Among servers that do this gmail, yahoo, fastmail,
+        anything running Exchange (i.e., most large corporations), and others.
+        """
+        acc1 = self.manager.get_account_by_address('That_guy@example.com')
+        acc2 = self.manager.get_account_by_address('that_guy@example.com')
+        self.assertIs(acc1, acc2)
