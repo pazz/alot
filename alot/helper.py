@@ -34,10 +34,14 @@ def split_commandline(s, comments=False, posix=True):
     """
     splits semi-colon separated commandlines
     """
-    # shlex seems to remove unescaped quotes and backslashes
+    # shlex seems to remove unescaped quotes and backslashes.  At the same time
+    # quotes are used to protect parts of the input string to be broken up into
+    # tokens by the lexer.  But this is not true for escaped quotes.  So we
+    # have to escape the qutes in order to keep them in the resulting tokens
+    # and repeat them to retain their quoting feature.
     s = s.replace('\\', '\\\\')
-    s = s.replace('\'', '\\\'')
-    s = s.replace('\"', '\\\"')
+    s = s.replace('\'', '\\\'\'')
+    s = s.replace('\"', '\\\"\"')
     lex = shlex.shlex(s, posix=posix)
     lex.whitespace_split = True
     lex.whitespace = ';'
