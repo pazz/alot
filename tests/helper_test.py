@@ -133,6 +133,18 @@ class TestSplitCommandline(unittest.TestCase):
         expected = ['echo "foo"', 'sleep 1']
         self._test(base, expected)
 
+    @unittest.expectedFailure
+    def test_doublequoted_semicolons(self):
+        base = 'python -c "import alot; print(alot)"; echo "done"'
+        expected = ['python -c "import alot; print(alot)"', ' echo "done"']
+        self._test(base, expected)
+
+    @unittest.expectedFailure
+    def test_singlequoted_semicolons(self):
+        base = "python -c 'import alot; print(alot)'; echo 'done'"
+        expected = ["python -c 'import alot; print(alot)'", " echo 'done'"]
+        self._test(base, expected)
+
 
 class TestSplitCommandstring(unittest.TestCase):
 
