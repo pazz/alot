@@ -1,4 +1,6 @@
+# encoding=utf-8
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
+# Copyright © 2017 Dylan Baker
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 from __future__ import absolute_import
@@ -7,10 +9,150 @@ import abc
 import glob
 import logging
 import mailbox
+import operator
 import os
 
 from .helper import call_cmd_async
 from .helper import split_commandstring
+
+
+class Address(object):
+
+    """A class that represents an email address.
+
+    This class implements a number of RFC requirements (as explained in detail
+    below) specifically in the comparison of email addresses to each other.
+
+    This class abstracts the requirements of RFC 5321 § 2.4 on the user name
+    portion of the email:
+
+        local-part of a mailbox MUST BE treated as case sensitive. Therefore,
+        SMTP implementations MUST take care to preserve the case of mailbox
+        local-parts. In particular, for some hosts, the user "smith" is
+        different from the user "Smith".  However, exploiting the case
+        sensitivity of mailbox local-parts impedes interoperability and is
+        discouraged. Mailbox domains follow normal DNS rules and are hence not
+        case sensitive.
+
+    This is complicated by § 2.3.11 of the same RFC:
+
+        The standard mailbox naming convention is defined to be
+        "local-part@domain"; contemporary usage permits a much broader set of
+        applications than simple "user names". Consequently, and due to a long
+        history of problems when intermediate hosts have attempted to optimize
+        transport by modifying them, the local-part MUST be interpreted and
+        assigned semantics only by the host specified in the domain part of the
+        address.
+
+    And also the restrictions that RFC 1035 § 3.1 places on the domain name:
+
+        Name servers and resolvers must compare [domains] in a case-insensitive
+        manner
+
+    Because of RFC 6531 § 3.2, we take special care to ensure that unicode
+    names will work correctly:
+
+        An SMTP server that announces the SMTPUTF8 extension MUST be prepared
+        to accept a UTF-8 string [RFC3629] in any position in which RFC 5321
+        specifies that a <mailbox> can appear.  Although the characters in the
+        <local-part> are permitted to contain non-ASCII characters, the actual
+        parsing of the <local-part> and the delimiters used are unchanged from
+        the base email specification [RFC5321]
+
+    What this means is that the username can be either case-insensitive or not,
+    but only the receiving SMTP server can know what it's own rules are. The
+    consensus is that the vast majority (all?) of the SMTP servers in modern
+    usage treat user names as case-insensitve. Therefore we also, by default,
+    treat the user name as case insenstive.
+
+    :param unicode user: The "user name" portion of the address.
+    :param unicode domain: The domain name portion of the address.
+    :param bool case_sensitive: If False (the default) the user name portion of
+        the address will be compared to the other user name portion without
+        regard to case. If True then it will.
+    """
+
+    def __init__(self, user, domain, case_sensitive=False):
+        assert isinstance(user, unicode), 'Username must be unicode not bytes'
+        assert isinstance(domain, unicode), 'Domain name must be unicode not bytes'
+        self.username = user
+        self.domainname = domain
+        self.case_sensitive = case_sensitive
+
+    @classmethod
+    def from_string(cls, address, case_sensitive=False):
+        """Alternate constructor for building from a string.
+
+        :param unicode address: An email address in <user>@<domain> form
+        :param bool case_sensitive: passed directly to the constructor argument
+            of the same name.
+        :returns: An account from the given arguments
+        :rtype: :class:`Account`
+        """
+        assert isinstance(address, unicode), 'address must be unicode not bytes'
+        username, domainname = address.split(u'@')
+        return cls(username, domainname, case_sensitive=case_sensitive)
+
+    def __repr__(self):
+        return u'Address({!r}, {!r}, case_sensitive={})'.format(
+            self.username,
+            self.domainname,
+            unicode(self.case_sensitive))
+
+    def __unicode__(self):
+        return u'{}@{}'.format(self.username, self.domainname)
+
+    def __str__(self):
+        return u'{}@{}'.format(self.username, self.domainname).encode('utf-8')
+
+    def __cmp(self, other, comparitor):
+        """Shared helper for rich comparison operators.
+
+        This allows the comparison operators to be relatively simple and share
+        the complex logic.
+
+        If the username is not considered case sensitive then lower the
+        username of both self and the other, and handle that the other can be
+        either another :class:`~alot.account.Address`, or a `unicode` instance.
+
+        :param other: The other address to compare against
+        :type other: unicode or ~alot.account.Address
+        :param callable comparitor: A function with the a signature
+            (unicode, unicode) -> bool that will compare the two instance.
+            The intention is to use functions from the operator module.
+        """
+        if isinstance(other, unicode):
+            ouser, odomain = other.split(u'@')
+        elif isinstance(other, str):
+            ouser, odomain = other.decode('utf-8').split(u'@')
+        else:
+            ouser = other.username
+            odomain = other.domainname
+
+        if not self.case_sensitive:
+            ouser = ouser.lower()
+            username = self.username.lower()
+        else:
+            username = self.username
+
+        return (comparitor(username, ouser) and
+                comparitor(self.domainname.lower(), odomain.lower()))
+
+    def __eq__(self, other):
+        if not isinstance(other, (Address, basestring)):
+            raise TypeError('Cannot compare Address to any but Address or basestring')
+        return self.__cmp(other, operator.eq)
+
+    def __ne__(self, other):
+        if not isinstance(other, (Address, basestring)):
+            raise TypeError('Cannot compare Address to any but Address or basestring')
+        # != is the only rich comparitor that cannot be implemented using 'and'
+        # in self.__cmp, so it's implemented as not ==.
+        return not self.__cmp(other, operator.eq)
+
+    def __hash__(self):
+        return hash((self.username.lower(), self.domainname.lower(),
+                     self.case_sensitive))
 
 
 class SendingMailFailed(RuntimeError):
