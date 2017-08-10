@@ -22,6 +22,7 @@ import contextlib
 import shutil
 import tempfile
 import unittest
+import textwrap
 
 import mock
 
@@ -29,6 +30,7 @@ from alot.commands import envelope
 from alot.db.envelope import Envelope
 from alot.errors import GPGProblem
 from alot.settings.errors import NoMatchingAccount
+from alot.settings.manager import SettingsManager
 
 # When using an assert from a mock a TestCase method might not use self. That's
 # okay.
@@ -297,3 +299,60 @@ class TestSignCommand(unittest.TestCase):
         cmd.apply(ui)
         self.assertTrue(env.sign)
         self.assertIs(env.sign_key, mock.sentinel.keyid)
+
+    def _make_local_settings(self):
+        config = textwrap.dedent("""\
+            [accounts]
+                [[default]]
+                    realname = foo
+                    address = foo@example.com
+                    sendmail_commnd = /bin/true
+            """)
+
+        # Allow settings.reload to work by not deleting the file until the end
+        with tempfile.NamedTemporaryFile(delete=False) as f:
+            f.write(config)
+        self.addCleanup(os.unlink, f.name)
+
+        # Set the gpg_key separately to avoid validation failures
+        manager = SettingsManager(alot_rc=f.name)
+        manager.get_accounts()[0].gpg_key = mock.sentinel.gpg_key
+        return manager
+
+    def test_apply_from_email_only(self):
+        """Test that a key can be derived using a 'From' header that contains
+        only an email.
+
+        If the from header is in the form "foo@example.com" and a key exists it
+        should be used.
+        """
+        manager = self._make_local_settings()
+        env, ui = self._make_ui_mock()
+        env.headers = {'From': ['foo@example.com']}
+
+        cmd = envelope.SignCommand(action='sign')
+        with mock.patch('alot.commands.envelope.settings', manager):
+            cmd.apply(ui)
+
+        self.assertTrue(env.sign)
+        self.assertIs(env.sign_key, mock.sentinel.gpg_key)
+
+    @unittest.expectedFailure
+    def test_apply_from_user_and_email(self):
+        """This tests that a gpg key can be derived using a 'From' header that
+        contains a realname-email combo.
+
+        If the header is in the form "Foo <foo@example.com>", a key should be
+        derived.
+
+        See issue #1113
+        """
+        manager = self._make_local_settings()
+        env, ui = self._make_ui_mock()
+
+        cmd = envelope.SignCommand(action='sign')
+        with mock.patch('alot.commands.envelope.settings', manager):
+            cmd.apply(ui)
+
+        self.assertTrue(env.sign)
+        self.assertIs(env.sign_key, mock.sentinel.gpg_key)
