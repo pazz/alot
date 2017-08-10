@@ -25,11 +25,6 @@ import mock
 from alot.commands import globals as g_commands
 
 
-def expected_failure(func):
-    func.todo = 'Expected Failure'
-    return func
-
-
 class Stop(Exception):
     """exception for stopping testing of giant unmanagable functions."""
     pass
@@ -78,7 +73,6 @@ class TestComposeCommand(unittest.TestCase):
         self.assertTrue(envelope.sign)
         self.assertIs(envelope.sign_key, mock.sentinel.gpg_key)
 
-    @expected_failure  # sign_key is set even though sign is False
     @inlineCallbacks
     def test_apply_sign_by_default_false_doesnt_set_key(self):
         envelope = self._make_envelope_mock()
@@ -101,7 +95,6 @@ class TestComposeCommand(unittest.TestCase):
         self.assertFalse(envelope.sign)
         self.assertIs(envelope.sign_key, None)
 
-    @expected_failure  # sign is set even though there is no sign_key
     @inlineCallbacks
     def test_apply_sign_by_default_but_no_key(self):
         envelope = self._make_envelope_mock()
