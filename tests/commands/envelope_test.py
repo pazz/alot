@@ -337,7 +337,6 @@ class TestSignCommand(unittest.TestCase):
         self.assertTrue(env.sign)
         self.assertIs(env.sign_key, mock.sentinel.gpg_key)
 
-    @unittest.expectedFailure
     def test_apply_from_user_and_email(self):
         """This tests that a gpg key can be derived using a 'From' header that
         contains a realname-email combo.
