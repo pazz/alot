@@ -505,8 +505,8 @@ class SignCommand(Command):
                     return
             else:
                 try:
-                    acc = settings.get_account_by_address(
-                        envelope.headers['From'][0])
+                    _, addr = email.utils.parseaddr(envelope.headers['From'][0])
+                    acc = settings.get_account_by_address(addr)
                 except NoMatchingAccount:
                     envelope.sign = False
                     ui.notify('Unable to find a matching account',

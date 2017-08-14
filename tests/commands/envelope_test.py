@@ -22,11 +22,15 @@ import contextlib
 import shutil
 import tempfile
 import unittest
+import textwrap
 
 import mock
 
 from alot.commands import envelope
 from alot.db.envelope import Envelope
+from alot.errors import GPGProblem
+from alot.settings.errors import NoMatchingAccount
+from alot.settings.manager import SettingsManager
 
 # When using an assert from a mock a TestCase method might not use self. That's
 # okay.
@@ -157,3 +161,197 @@ class TestTagCommands(unittest.TestCase):
 
     def test_toggle_can_remove_and_add_in_one_run(self):
         self._test(u'one,four', 'toggle', ['two', 'three', 'four'])
+
+
+class TestSignCommand(unittest.TestCase):
+
+    """Tests for the SignCommand class."""
+
+    @staticmethod
+    def _make_ui_mock():
+        """Create a mock for the ui and envelope and return them."""
+        envelope = mock.Mock()
+        envelope.sign = mock.sentinel.default
+        envelope.sign_key = mock.sentinel.default
+        envelope.headers = {'From': ['foo <foo@example.com>']}
+        ui = mock.Mock(current_buffer=mock.Mock(envelope=envelope))
+        return envelope, ui
+
+    @mock.patch('alot.commands.envelope.crypto.get_key',
+                mock.Mock(return_value=mock.sentinel.keyid))
+    def test_apply_keyid_success(self):
+        """If there is a valid keyid then key and to sign should be set.
+        """
+        env, ui = self._make_ui_mock()
+        # The actual keyid doesn't matter, since it'll be mocked anyway
+        cmd = envelope.SignCommand(action='sign', keyid=['a'])
+        cmd.apply(ui)
+
+        self.assertTrue(env.sign)
+        self.assertEqual(env.sign_key, mock.sentinel.keyid)
+
+    @mock.patch('alot.commands.envelope.crypto.get_key',
+                mock.Mock(side_effect=GPGProblem('sentinel', 0)))
+    def test_apply_keyid_gpgproblem(self):
+        """If there is an invalid keyid then the signing key and to sign should
+        be set to false and default.
+        """
+        env, ui = self._make_ui_mock()
+        # The actual keyid doesn't matter, since it'll be mocked anyway
+        cmd = envelope.SignCommand(action='sign', keyid=['a'])
+        cmd.apply(ui)
+        self.assertFalse(env.sign)
+        self.assertEqual(env.sign_key, mock.sentinel.default)
+        ui.notify.assert_called_once()
+
+    @mock.patch('alot.commands.envelope.settings.get_account_by_address',
+                mock.Mock(side_effect=NoMatchingAccount))
+    def test_apply_no_keyid_nomatchingaccount(self):
+        """If there is a nokeyid and no account can be found to match the From,
+        then the envelope should not be marked to sign.
+        """
+        env, ui = self._make_ui_mock()
+        # The actual keyid doesn't matter, since it'll be mocked anyway
+        cmd = envelope.SignCommand(action='sign', keyid=None)
+        cmd.apply(ui)
+
+        self.assertFalse(env.sign)
+        self.assertEqual(env.sign_key, mock.sentinel.default)
+        ui.notify.assert_called_once()
+
+    def test_apply_no_keyid_no_gpg_key(self):
+        """If there is a nokeyid and the account has no gpg key then the
+        signing key and to sign should be set to false and default.
+        """
+        env, ui = self._make_ui_mock()
+
+        with mock.patch('alot.commands.envelope.settings.get_account_by_address',
+                        mock.Mock(return_value=mock.Mock(gpg_key=None))):
+            cmd = envelope.SignCommand(action='sign', keyid=None)
+            cmd.apply(ui)
+
+        self.assertFalse(env.sign)
+        self.assertEqual(env.sign_key, mock.sentinel.default)
+        ui.notify.assert_called_once()
+
+    def test_apply_no_keyid_default(self):
+        """If there is no keyid and the account has a gpg key, then that should
+        be used.
+        """
+        env, ui = self._make_ui_mock()
+
+        with mock.patch('alot.commands.envelope.settings.get_account_by_address',
+                        mock.Mock(return_value=mock.Mock(gpg_key='sentinel'))):
+            cmd = envelope.SignCommand(action='sign', keyid=None)
+            cmd.apply(ui)
+
+        self.assertTrue(env.sign)
+        self.assertEqual(env.sign_key, 'sentinel')
+
+    @mock.patch('alot.commands.envelope.crypto.get_key',
+                mock.Mock(return_value=mock.sentinel.keyid))
+    def test_apply_no_sign(self):
+        """If signing with a valid keyid and valid key then set sign and
+        sign_key.
+        """
+        env, ui = self._make_ui_mock()
+        # The actual keyid doesn't matter, since it'll be mocked anyway
+        cmd = envelope.SignCommand(action='sign', keyid=['a'])
+        cmd.apply(ui)
+
+        self.assertTrue(env.sign)
+        self.assertEqual(env.sign_key, mock.sentinel.keyid)
+
+    @mock.patch('alot.commands.envelope.crypto.get_key',
+                mock.Mock(return_value=mock.sentinel.keyid))
+    def test_apply_unsign(self):
+        """Test that settingun sign sets the sign to False if all other
+        conditions allow for it.
+        """
+        env, ui = self._make_ui_mock()
+        env.sign = True
+        env.sign_key = mock.sentinel
+        # The actual keyid doesn't matter, since it'll be mocked anyway
+        cmd = envelope.SignCommand(action='unsign', keyid=['a'])
+        cmd.apply(ui)
+
+        self.assertFalse(env.sign)
+        self.assertIs(env.sign_key, None)
+
+    @mock.patch('alot.commands.envelope.crypto.get_key',
+                mock.Mock(return_value=mock.sentinel.keyid))
+    def test_apply_togglesign(self):
+        """Test that toggling changes the sign and sign_key as approriate if
+        other condtiions allow for it
+        """
+        env, ui = self._make_ui_mock()
+        env.sign = True
+        env.sign_key = mock.sentinel.keyid
+
+        # The actual keyid doesn't matter, since it'll be mocked anyway
+        # Test that togling from true to false works
+        cmd = envelope.SignCommand(action='toggle', keyid=['a'])
+        cmd.apply(ui)
+        self.assertFalse(env.sign)
+        self.assertIs(env.sign_key, None)
+
+        # Test that toggling back to True works
+        cmd.apply(ui)
+        self.assertTrue(env.sign)
+        self.assertIs(env.sign_key, mock.sentinel.keyid)
+
+    def _make_local_settings(self):
+        config = textwrap.dedent("""\
+            [accounts]
+                [[default]]
+                    realname = foo
+                    address = foo@example.com
+                    sendmail_commnd = /bin/true
+            """)
+
+        # Allow settings.reload to work by not deleting the file until the end
+        with tempfile.NamedTemporaryFile(delete=False) as f:
+            f.write(config)
+        self.addCleanup(os.unlink, f.name)
+
+        # Set the gpg_key separately to avoid validation failures
+        manager = SettingsManager(alot_rc=f.name)
+        manager.get_accounts()[0].gpg_key = mock.sentinel.gpg_key
+        return manager
+
+    def test_apply_from_email_only(self):
+        """Test that a key can be derived using a 'From' header that contains
+        only an email.
+
+        If the from header is in the form "foo@example.com" and a key exists it
+        should be used.
+        """
+        manager = self._make_local_settings()
+        env, ui = self._make_ui_mock()
+        env.headers = {'From': ['foo@example.com']}
+
+        cmd = envelope.SignCommand(action='sign')
+        with mock.patch('alot.commands.envelope.settings', manager):
+            cmd.apply(ui)
+
+        self.assertTrue(env.sign)
+        self.assertIs(env.sign_key, mock.sentinel.gpg_key)
+
+    def test_apply_from_user_and_email(self):
+        """This tests that a gpg key can be derived using a 'From' header that
+        contains a realname-email combo.
+
+        If the header is in the form "Foo <foo@example.com>", a key should be
+        derived.
+
+        See issue #1113
+        """
+        manager = self._make_local_settings()
+        env, ui = self._make_ui_mock()
+
+        cmd = envelope.SignCommand(action='sign')
+        with mock.patch('alot.commands.envelope.settings', manager):
+            cmd.apply(ui)
+
+        self.assertTrue(env.sign)
+        self.assertIs(env.sign_key, mock.sentinel.gpg_key)
