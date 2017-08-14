@@ -857,8 +857,14 @@ class ComposeCommand(Command):
 
         # Figure out whether we should GPG sign messages by default
         # and look up key if so
-        self.envelope.sign = account.sign_by_default
-        self.envelope.sign_key = account.gpg_key
+        if account.sign_by_default:
+            if account.gpg_key:
+                self.envelope.sign = account.sign_by_default
+                self.envelope.sign_key = account.gpg_key
+            else:
+                msg = 'Cannot find gpg key for account {}'.format(account.address)
+                logging.warn(msg)
+                ui.notify(msg, priority='error')
 
         # get missing To header
         if 'To' not in self.envelope.headers:
