@@ -176,7 +176,8 @@ def encrypt(plaintext_str, keys=None):
     :rtype: str
     """
     ctx = gpg.core.Context(armor=True)
-    out = ctx.encrypt(plaintext_str, recipients=keys, always_trust=True)[0]
+    out = ctx.encrypt(plaintext_str, recipients=keys, sign=False,
+                      always_trust=True)[0]
     return out
 
 
