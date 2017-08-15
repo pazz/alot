@@ -9,6 +9,7 @@ import logging
 import mailcap
 import os
 import re
+import email
 from configobj import ConfigObj, Section
 
 from ..account import SendmailAccount
@@ -112,7 +113,7 @@ class SettingsManager(object):
         if themestring:
             # This is a python for/else loop
             # https://docs.python.org/3/reference/compound_stmts.html#for
-            # 
+            #
             # tl/dr; If the loop loads a theme it breaks. If it doesn't break,
             # then it raises a ConfigError.
             for dir_ in itertools.chain([themes_dir], data_dirs):
@@ -433,7 +434,7 @@ class SettingsManager(object):
     def get_account_by_address(self, address, return_default=False):
         """returns :class:`Account` for a given email address (str)
 
-        :param str address: address to look up
+        :param str address: address to look up. A realname part will be ignored.
         :param bool return_default: If True and no address can be found, then
             the default account wil be returned
         :rtype: :class:`Account`
@@ -441,6 +442,7 @@ class SettingsManager(object):
             found. Thsi includes if return_default is True and there are no
             accounts defined.
         """
+        _, address = email.utils.parseaddr(address)
         for myad in self.get_addresses():
             if myad == address:
                 return self._accountmap[myad]
