@@ -111,3 +111,8 @@ class TestSettingsManagerGetAccountByAddress(utilities.TestCaseClassCleanup):
         with self.assertRaises(NoMatchingAccount):
             settings.get_account_by_address('that_guy@example.com',
                                             return_default=True)
+
+    def test_real_name_will_be_stripped_before_matching(self):
+        acc = self.manager.get_account_by_address(
+            'That Guy <a_dude@example.com>')
+        self.assertEqual(acc.realname, 'A Dude')
