@@ -170,10 +170,10 @@ class TestSignCommand(unittest.TestCase):
     @staticmethod
     def _make_ui_mock():
         """Create a mock for the ui and envelope and return them."""
-        envelope = mock.Mock()
+        envelope = Envelope()
+        envelope['From'] = 'foo <foo@example.com>'
         envelope.sign = mock.sentinel.default
         envelope.sign_key = mock.sentinel.default
-        envelope.headers = {'From': ['foo <foo@example.com>']}
         ui = mock.Mock(current_buffer=mock.Mock(envelope=envelope))
         return envelope, ui
 
