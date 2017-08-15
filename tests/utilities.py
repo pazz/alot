@@ -21,7 +21,7 @@ from __future__ import absolute_import
 import functools
 import unittest
 
-import gpgme
+import gpg
 import mock
 
 
@@ -149,7 +149,7 @@ class ModuleCleanup(object):
 
 
 def make_uid(email, uid=u'mocked', revoked=False, invalid=False,
-             validity=gpgme.VALIDITY_FULL):
+             validity=gpg.constants.validity.FULL):
     uid_ = mock.Mock()
     uid_.email = email
     uid_.uid = uid
@@ -162,7 +162,7 @@ def make_uid(email, uid=u'mocked', revoked=False, invalid=False,
 
 def make_key(revoked=False, expired=False, invalid=False, can_encrypt=True,
              can_sign=True):
-    mock_key = mock.create_autospec(gpgme.Key)
+    mock_key = mock.Mock()
     mock_key.uids = [make_uid(u'foo@example.com')]
     mock_key.revoked = revoked
     mock_key.expired = expired

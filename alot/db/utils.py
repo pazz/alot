@@ -35,7 +35,7 @@ def add_signature_headers(mail, sigs, error_msg):
     verification was successful.
 
     :param mail: :class:`email.message.Message` the message to entitle
-    :param sigs: list of :class:`gpgme.Signature`
+    :param sigs: list of :class:`gpg.results.Signature`
     :param error_msg: `str` containing an error message, the empty
                       string indicating no error
     '''

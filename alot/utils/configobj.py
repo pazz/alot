@@ -136,7 +136,7 @@ def force_list(value, min=None, max=None):
 def gpg_key(value):
     """
     test if value points to a known gpg key
-    and return that key as :class:`pyme.pygpgme._gpgme_key`.
+    and return that key as a gpg key object.
     """
     try:
         return crypto.get_key(value)

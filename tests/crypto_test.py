@@ -10,7 +10,7 @@ import subprocess
 import tempfile
 import unittest
 
-import gpgme
+import gpg
 import mock
 
 from alot import crypto
@@ -43,15 +43,13 @@ def setUpModule():
     mock_home.start()
     MOD_CLEAN.add_cleanup(mock_home.stop)
 
-    ctx = gpgme.Context()
-    ctx.armor = True
-
-    # Add the public and private keys. They have no password
-    search_dir = os.path.join(os.path.dirname(__file__), 'static/gpg-keys')
-    for each in os.listdir(search_dir):
-        if os.path.splitext(each)[1] == '.gpg':
-            with open(os.path.join(search_dir, each)) as f:
-                ctx.import_(f)
+    with gpg.core.Context(armor=True) as ctx:
+        # Add the public and private keys. They have no password
+        search_dir = os.path.join(os.path.dirname(__file__), 'static/gpg-keys')
+        for each in os.listdir(search_dir):
+            if os.path.splitext(each)[1] == '.gpg':
+                with open(os.path.join(search_dir, each)) as f:
+                    ctx.op_import(f)
 
 
 @MOD_CLEAN.wrap_teardown
@@ -66,29 +64,54 @@ def tearDownModule():
             os.kill(int(pid), signal.SIGKILL)
 
 
+def make_key(revoked=False, expired=False, invalid=False, can_encrypt=True,
+             can_sign=True):
+    # This is ugly
+    mock_key = mock.create_autospec(gpg._gpgme._gpgme_key)
+    mock_key.uids = [mock.Mock(uid=u'mocked')]
+    mock_key.revoked = revoked
+    mock_key.expired = expired
+    mock_key.invalid = invalid
+    mock_key.can_encrypt = can_encrypt
+    mock_key.can_sign = can_sign
+
+    return mock_key
+
+
+def make_uid(email, revoked=False, invalid=False,
+             validity=gpg.constants.validity.FULL):
+    uid = mock.Mock()
+    uid.email = email
+    uid.revoked = revoked
+    uid.invalid = invalid
+    uid.validity = validity
+
+    return uid
+
+
 class TestHashAlgorithmHelper(unittest.TestCase):
 
     """Test cases for the helper function RFC3156_canonicalize."""
 
     def test_returned_string_starts_with_pgp(self):
-        result = crypto.RFC3156_micalg_from_algo(gpgme.MD_MD5)
+        result = crypto.RFC3156_micalg_from_algo(gpg.constants.md.MD5)
         self.assertTrue(result.startswith('pgp-'))
 
     def test_returned_string_is_lower_case(self):
-        result = crypto.RFC3156_micalg_from_algo(gpgme.MD_MD5)
+        result = crypto.RFC3156_micalg_from_algo(gpg.constants.md.MD5)
         self.assertTrue(result.islower())
 
     def test_raises_for_unknown_hash_name(self):
         with self.assertRaises(GPGProblem):
-            crypto.RFC3156_micalg_from_algo(gpgme.MD_NONE)
+            crypto.RFC3156_micalg_from_algo(gpg.constants.md.NONE)
 
 
 class TestDetachedSignatureFor(unittest.TestCase):
 
     def test_valid_signature_generated(self):
-        ctx = gpgme.Context()
         to_sign = "this is some text.\nit is more than nothing.\n"
-        _, detached = crypto.detached_signature_for(to_sign, ctx.get_key(FPR))
+        with gpg.core.Context() as ctx:
+            _, detached = crypto.detached_signature_for(to_sign, ctx.get_key(FPR))
 
         with tempfile.NamedTemporaryFile(delete=False) as f:
             f.write(detached)
@@ -108,9 +131,9 @@ class TestDetachedSignatureFor(unittest.TestCase):
 class TestVerifyDetached(unittest.TestCase):
 
     def test_verify_signature_good(self):
-        ctx = gpgme.Context()
         to_sign = "this is some text.\nIt's something\n."
-        _, detached = crypto.detached_signature_for(to_sign, ctx.get_key(FPR))
+        with gpg.core.Context() as ctx:
+            _, detached = crypto.detached_signature_for(to_sign, ctx.get_key(FPR))
 
         try:
             crypto.verify_detached(to_sign, detached)
@@ -118,10 +141,10 @@ class TestVerifyDetached(unittest.TestCase):
             raise AssertionError
 
     def test_verify_signature_bad(self):
-        ctx = gpgme.Context()
         to_sign = "this is some text.\nIt's something\n."
         similar = "this is some text.\r\n.It's something\r\n."
-        _, detached = crypto.detached_signature_for(to_sign, ctx.get_key(FPR))
+        with gpg.core.Context() as ctx:
+            _, detached = crypto.detached_signature_for(to_sign, ctx.get_key(FPR))
 
         with self.assertRaises(GPGProblem):
             crypto.verify_detached(similar, detached)
@@ -218,7 +241,7 @@ class TestCheckUIDValidity(unittest.TestCase):
         key = utilities.make_key()
         key.uids[0] = utilities.make_uid(
             mock.sentinel.EMAIL,
-            validity=gpgme.VALIDITY_UNDEFINED)
+            validity=gpg.constants.validity.UNDEFINED)
         ret = crypto.check_uid_validity(key, mock.sentinel.EMAIL)
         self.assertFalse(ret)
 
@@ -236,25 +259,40 @@ class TestListKeys(unittest.TestCase):
         values = crypto.list_keys(hint="ambig")
         self.assertEqual(len(list(values)), 2)
 
+    def test_list_keys_pub(self):
+        values = list(crypto.list_keys(hint="ambigu"))[0]
+        self.assertEqual(values.uids[0].email, u'amigbu@example.com')
+        self.assertFalse(values.secret)
+
+    def test_list_keys_private(self):
+        values = list(crypto.list_keys(hint="ambigu", private=True))[0]
+        self.assertEqual(values.uids[0].email, u'amigbu@example.com')
+        self.assertTrue(values.secret)
+
 
 class TestGetKey(unittest.TestCase):
 
     def test_plain(self):
         # Test the uid of the only identity attached to the key we generated.
-        ctx = gpgme.Context()
-        expected = ctx.get_key(FPR).uids[0].uid
+        with gpg.core.Context() as ctx:
+            expected = ctx.get_key(FPR).uids[0].uid
         actual = crypto.get_key(FPR).uids[0].uid
         self.assertEqual(expected, actual)
 
     def test_validate(self):
         # Since we already test validation we're only going to test validate
         # once.
-        ctx = gpgme.Context()
-        expected = ctx.get_key(FPR).uids[0].uid
+        with gpg.core.Context() as ctx:
+            expected = ctx.get_key(FPR).uids[0].uid
         actual = crypto.get_key(FPR, validate=True, encrypt=True, sign=True).uids[0].uid
         self.assertEqual(expected, actual)
 
     def test_missing_key(self):
+        with self.assertRaises(GPGProblem) as caught:
+            crypto.get_key('foo@example.com')
+        self.assertEqual(caught.exception.code, GPGCode.NOT_FOUND)
+
+    def test_invalid_key(self):
         with self.assertRaises(GPGProblem) as caught:
             crypto.get_key('z')
         self.assertEqual(caught.exception.code, GPGCode.NOT_FOUND)
@@ -274,10 +312,15 @@ class TestGetKey(unittest.TestCase):
 
     @staticmethod
     def _context_mock():
-        error = gpgme.GpgmeError()
-        error.code = gpgme.ERR_AMBIGUOUS_NAME
+        class CustomError(gpg.errors.GPGMEError):
+            """A custom GPGMEError class that always has an errors code of
+            AMBIGUOUS_NAME.
+            """
+            def getcode(self):
+                return gpg.errors.AMBIGUOUS_NAME
+
         context_mock = mock.Mock()
-        context_mock.get_key = mock.Mock(side_effect=error)
+        context_mock.get_key = mock.Mock(side_effect=CustomError)
 
         return context_mock
 
@@ -285,7 +328,7 @@ class TestGetKey(unittest.TestCase):
         invalid_key = utilities.make_key(invalid=True)
         valid_key = utilities.make_key()
 
-        with mock.patch('alot.crypto.gpgme.Context',
+        with mock.patch('alot.crypto.gpg.core.Context',
                         mock.Mock(return_value=self._context_mock())), \
                 mock.patch('alot.crypto.list_keys',
                            mock.Mock(return_value=[valid_key, invalid_key])):
@@ -293,7 +336,7 @@ class TestGetKey(unittest.TestCase):
         self.assertIs(key, valid_key)
 
     def test_ambiguous_two_valid(self):
-        with mock.patch('alot.crypto.gpgme.Context',
+        with mock.patch('alot.crypto.gpg.core.Context',
                         mock.Mock(return_value=self._context_mock())), \
                 mock.patch('alot.crypto.list_keys',
                            mock.Mock(return_value=[utilities.make_key(),
@@ -303,7 +346,7 @@ class TestGetKey(unittest.TestCase):
         self.assertEqual(cm.exception.code, GPGCode.AMBIGUOUS_NAME)
 
     def test_ambiguous_no_valid(self):
-        with mock.patch('alot.crypto.gpgme.Context',
+        with mock.patch('alot.crypto.gpg.core.Context',
                         mock.Mock(return_value=self._context_mock())), \
                 mock.patch('alot.crypto.list_keys',
                            mock.Mock(return_value=[
@@ -337,3 +380,5 @@ class TestDecrypt(unittest.TestCase):
         encrypted = crypto.encrypt(to_encrypt, keys=[crypto.get_key(FPR)])
         _, dec = crypto.decrypt_verify(encrypted)
         self.assertEqual(to_encrypt, dec)
+
+    # TODO: test for "combined" method
