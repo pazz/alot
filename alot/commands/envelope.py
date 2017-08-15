@@ -118,7 +118,7 @@ class SaveCommand(Command):
         # determine account to use
         try:
             account = settings.get_account_by_address(
-                envelope.get('From'), return_default=True)
+                envelope['From'], return_default=True)
         except NoMatchingAccount:
             ui.notify('no accounts set.', priority='error')
             return
@@ -226,12 +226,15 @@ class SendCommand(Command):
         msg = self.mail
         if not isinstance(msg, email.message.Message):
             msg = email.message_from_string(self.mail)
+        address = msg.get('From', '')
+        logging.debug("FROM: \"%s\"" % address)
         try:
-            account = settings.get_account_by_address(
-                msg.get('From', ''), return_default=True)
+            account = settings.get_account_by_address(address,
+                                                      return_default=True)
         except NoMatchingAccount:
             ui.notify('no accounts set', priority='error')
             return
+        logging.debug("ACCOUNT: \"%s\"" % account.address)
 
         # make sure self.mail is a string
         logging.debug(self.mail.__class__)
@@ -505,8 +508,7 @@ class SignCommand(Command):
                     return
             else:
                 try:
-                    _, addr = email.utils.parseaddr(envelope.headers['From'][0])
-                    acc = settings.get_account_by_address(addr)
+                    acc = settings.get_account_by_address(envelope['From'])
                 except NoMatchingAccount:
                     envelope.sign = False
                     ui.notify('Unable to find a matching account',
