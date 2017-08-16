@@ -12,7 +12,7 @@ import glob
 import logging
 import os
 import subprocess
-from StringIO import StringIO
+from io import StringIO
 
 import urwid
 from twisted.internet.defer import inlineCallbacks
