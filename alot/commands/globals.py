@@ -821,7 +821,7 @@ class ComposeCommand(Command):
 
         # find out the right account
         sender = self.envelope.get('From')
-        name, addr = email.Utils.parseaddr(sender)
+        name, addr = email.utils.parseaddr(sender)
         account = settings.get_account_by_address(addr)
         if account is None:
             accounts = settings.get_accounts()
