@@ -23,7 +23,9 @@ import os
 import shutil
 import tempfile
 import textwrap
-import unittest
+
+from twisted.trial import unittest
+from twisted.internet.defer import inlineCallbacks
 
 import mock
 
@@ -370,18 +372,20 @@ class TestSendCommand(unittest.TestCase):
         Foo Bar Baz
         """)
 
+    @inlineCallbacks
     def test_get_account_by_address_with_str(self):
         cmd = envelope.SendCommand(mail=self.mail)
         account = mock.Mock()
         with mock.patch(
                 'alot.commands.envelope.settings.get_account_by_address',
                 mock.Mock(return_value=account)) as get_account_by_address:
-            cmd.apply(mock.Mock())
+            yield cmd.apply(mock.Mock())
         get_account_by_address.assert_called_once_with('foo@example.com',
                                                        return_default=True)
         # check that the apply did run through till the end.
         account.send_mail.assert_called_once_with(self.mail)
 
+    @inlineCallbacks
     def test_get_account_by_address_with_email_message(self):
         mail = email.message_from_string(self.mail)
         cmd = envelope.SendCommand(mail=mail)
@@ -389,7 +393,7 @@ class TestSendCommand(unittest.TestCase):
         with mock.patch(
                 'alot.commands.envelope.settings.get_account_by_address',
                 mock.Mock(return_value=account)) as get_account_by_address:
-            cmd.apply(mock.Mock())
+            yield cmd.apply(mock.Mock())
         get_account_by_address.assert_called_once_with('foo@example.com',
                                                        return_default=True)
         # check that the apply did run through till the end.
