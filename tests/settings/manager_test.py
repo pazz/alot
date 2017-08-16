@@ -63,7 +63,6 @@ class TestSettingsManager(unittest.TestCase):
         actual = manager.get_notmuch_setting('maildir', 'synchronize_flags')
         self.assertTrue(actual)
 
-    @unittest.expectedFailure
     def test_read_config_doesnt_exist(self):
         """If there is not an alot config things don't break.
 
@@ -81,7 +80,6 @@ class TestSettingsManager(unittest.TestCase):
 
         manager.get_theming_attribute('global', 'body')
 
-    @unittest.expectedFailure
     def test_read_notmuch_config_doesnt_exist(self):
         with tempfile.NamedTemporaryFile(delete=False) as f:
             f.write(textwrap.dedent("""\

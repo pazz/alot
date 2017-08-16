@@ -67,15 +67,11 @@ class SettingsManager(object):
 
     def read_notmuch_config(self):
         """parse notmuch's config file from path"""
-        if self.notmuch_rc_path is not None:
-            spec = os.path.join(DEFAULTSPATH, 'notmuch.rc.spec')
-            self._notmuchconfig = read_config(self.notmuch_rc_path, spec)
+        spec = os.path.join(DEFAULTSPATH, 'notmuch.rc.spec')
+        self._notmuchconfig = read_config(self.notmuch_rc_path, spec)
 
     def read_config(self):
         """parse alot's config file from path"""
-        if self.alot_rc_path is None:
-            return
-
         spec = os.path.join(DEFAULTSPATH, 'alot.rc.spec')
         newconfig = read_config(
             self.alot_rc_path, spec, checks={
