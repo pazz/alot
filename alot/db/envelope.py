@@ -261,7 +261,7 @@ class Envelope(object):
         headers = self.headers.copy()
         # add Message-ID
         if 'Message-ID' not in headers:
-            headers['Message-ID'] = [email.Utils.make_msgid()]
+            headers['Message-ID'] = [email.utils.make_msgid()]
 
         if 'User-Agent' in headers:
             uastring_format = headers['User-Agent'][0]

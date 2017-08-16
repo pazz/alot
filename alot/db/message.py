@@ -155,7 +155,7 @@ class Message(object):
 
         :rtype: (str,str)
         """
-        return email.Utils.parseaddr(self._from)
+        return email.utils.parseaddr(self._from)
 
     def add_tags(self, tags, afterwards=None, remove_rest=False):
         """

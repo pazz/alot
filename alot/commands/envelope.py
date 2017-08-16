@@ -132,7 +132,7 @@ class SaveCommand(Command):
         mail = envelope.construct_mail()
         # store mail locally
         # add Date header
-        mail['Date'] = email.Utils.formatdate(localtime=True)
+        mail['Date'] = email.utils.formatdate(localtime=True)
         path = account.store_draft_mail(email_as_string(mail))
 
         msg = 'draft saved successfully'
@@ -213,7 +213,7 @@ class SendCommand(Command):
 
             try:
                 self.mail = self.envelope.construct_mail()
-                self.mail['Date'] = email.Utils.formatdate(localtime=True)
+                self.mail['Date'] = email.utils.formatdate(localtime=True)
                 self.mail = email_as_string(self.mail)
             except GPGProblem as e:
                 ui.clear_notify([clearme])
