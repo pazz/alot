@@ -236,11 +236,6 @@ class SendCommand(Command):
             return
         logging.debug("ACCOUNT: \"%s\"" % account.address)
 
-        # make sure self.mail is a string
-        logging.debug(self.mail.__class__)
-        if isinstance(self.mail, email.message.Message):
-            self.mail = str(self.mail)
-
         # define callback
         def afterwards(_):
             initial_tags = []

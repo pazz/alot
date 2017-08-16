@@ -193,7 +193,7 @@ class SendmailAccount(Account):
         """Pipe the given mail to the configured sendmail command.  Display a
         short message on success or a notification on error.
         :param mail: the mail to send out
-        :type mail: str
+        :type mail: :class:`email.message.Message` or string
         :returns: the deferred that calls the sendmail command
         :rtype: `twisted.internet.defer.Deferred`
         """
@@ -213,6 +213,9 @@ class SendmailAccount(Account):
             logging.error(failure.getTraceback())
             logging.error(failure.value.stderr)
             raise SendingMailFailed(errmsg)
+
+        # make sure self.mail is a string
+        mail = str(mail)
 
         d = call_cmd_async(cmdlist, stdin=mail)
         d.addCallback(cb)
