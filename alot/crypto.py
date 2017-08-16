@@ -196,7 +196,7 @@ def verify_detached(message, signature):
     except gpg.errors.BadSignatures as e:
         raise GPGProblem(str(e), code=GPGCode.BAD_SIGNATURE)
     except gpg.errors.GPGMEError as e:
-        raise GPGProblem(e.message, code=e.getcode())
+        raise GPGProblem(str(e), code=e.getcode())
 
 
 def decrypt_verify(encrypted):
@@ -212,7 +212,7 @@ def decrypt_verify(encrypted):
     try:
         (plaintext, _, verify_result) = ctx.decrypt(encrypted, verify=True)
     except gpg.errors.GPGMEError as e:
-        raise GPGProblem(e.message, code=e.getcode())
+        raise GPGProblem(str(e), code=e.getcode())
     # what if the signature is bad?
 
     return verify_result.signatures, plaintext
