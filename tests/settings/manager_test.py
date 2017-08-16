@@ -63,6 +63,39 @@ class TestSettingsManager(unittest.TestCase):
         actual = manager.get_notmuch_setting('maildir', 'synchronize_flags')
         self.assertTrue(actual)
 
+    @unittest.expectedFailure
+    def test_read_config_doesnt_exist(self):
+        """If there is not an alot config things don't break.
+
+        This specifically tests for issue #1094, which is caused by the
+        defaults not being loaded if there isn't an alot config files, and thus
+        calls like `get_theming_attribute` fail with strange exceptions.
+        """
+        with tempfile.NamedTemporaryFile(delete=False) as f:
+            f.write(textwrap.dedent("""\
+                [maildir]
+                synchronize_flags = true
+                """))
+        self.addCleanup(os.unlink, f.name)
+        manager = SettingsManager(notmuch_rc=f.name)
+
+        manager.get_theming_attribute('global', 'body')
+
+    @unittest.expectedFailure
+    def test_read_notmuch_config_doesnt_exist(self):
+        with tempfile.NamedTemporaryFile(delete=False) as f:
+            f.write(textwrap.dedent("""\
+                [accounts]
+                    [[default]]
+                        realname = That Guy
+                        address = thatguy@example.com
+                """))
+        self.addCleanup(os.unlink, f.name)
+        manager = SettingsManager(alot_rc=f.name)
+
+        setting = manager.get_notmuch_setting('foo', 'bar')
+        self.assertIsNone(setting)
+
 
 class TestSettingsManagerGetAccountByAddress(utilities.TestCaseClassCleanup):
     """Test the get_account_by_address helper."""
