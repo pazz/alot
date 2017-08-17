@@ -12,6 +12,17 @@ setup(
     author_email=alot.__author_email__,
     url=alot.__url__,
     license=alot.__copyright__,
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'Environment :: Console :: Curses',
+        'Framework :: Twisted',
+        'Intended Audience :: End Users/Desktop',
+        'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
+        'Operating System :: POSIX',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 2 :: Only',
+        'Topic :: Communications :: Email :: Email Clients (MUA)',
+    ],
     packages=find_packages(exclude=['tests*']),
     package_data={
         'alot': [
