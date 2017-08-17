@@ -22,6 +22,7 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 2 :: Only',
         'Topic :: Communications :: Email :: Email Clients (MUA)',
+        'Topic :: Database :: Front-Ends',
     ],
     packages=find_packages(exclude=['tests*']),
     package_data={
