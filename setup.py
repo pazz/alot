@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 from setuptools import setup, find_packages
 import alot
@@ -22,6 +22,7 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 2 :: Only',
         'Topic :: Communications :: Email :: Email Clients (MUA)',
+        'Topic :: Database :: Front-Ends',
     ],
     packages=find_packages(exclude=['tests*']),
     package_data={
