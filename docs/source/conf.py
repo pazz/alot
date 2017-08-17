@@ -36,7 +36,8 @@ MOCK_MODULES = ['twisted', 'twisted.internet',
                 'gpg',
                 'configobj',
                 'validate',
-                'argparse']
+                'argparse',
+                'alot.settings.const']
 MOCK_DIRTY = ['notmuch']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = MockModule()
