@@ -146,7 +146,7 @@ def list_keys(hint=None, private=False):
     return ctx.keylist(hint, private)
 
 
-def detached_signature_for(plaintext_str, key=None):
+def detached_signature_for(plaintext_str, keys):
     """
     Signs the given plaintext string and returns the detached signature.
 
@@ -154,14 +154,13 @@ def detached_signature_for(plaintext_str, key=None):
     a signature for the specified plaintext.
 
     :param str plaintext_str: text to sign
-    :param key: key to sign with
-    :type key: gpg.gpgme._gpgme_key
+    :param keys: list of one or more key to sign with.
+    :type keys: list[gpg.gpgme._gpgme_key]
     :returns: A list of signature and the signed blob of data
     :rtype: tuple[list[gpg.results.NewSignature], str]
     """
     ctx = gpg.core.Context(armor=True)
-    if key is not None:
-        ctx.signers = [key]
+    ctx.signers = keys
     (sigblob, sign_result) = ctx.sign(plaintext_str, mode=gpg.constants.SIG_MODE_DETACH)
     return sign_result.signatures, sigblob
 
@@ -176,7 +175,8 @@ def encrypt(plaintext_str, keys=None):
     :rtype: str
     """
     ctx = gpg.core.Context(armor=True)
-    out = ctx.encrypt(plaintext_str, recipients=keys, always_trust=True)[0]
+    out = ctx.encrypt(plaintext_str, recipients=keys, sign=False,
+                      always_trust=True)[0]
     return out
 
 

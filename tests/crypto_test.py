@@ -111,7 +111,7 @@ class TestDetachedSignatureFor(unittest.TestCase):
     def test_valid_signature_generated(self):
         to_sign = "this is some text.\nit is more than nothing.\n"
         with gpg.core.Context() as ctx:
-            _, detached = crypto.detached_signature_for(to_sign, ctx.get_key(FPR))
+            _, detached = crypto.detached_signature_for(to_sign, [ctx.get_key(FPR)])
 
         with tempfile.NamedTemporaryFile(delete=False) as f:
             f.write(detached)
@@ -133,7 +133,7 @@ class TestVerifyDetached(unittest.TestCase):
     def test_verify_signature_good(self):
         to_sign = "this is some text.\nIt's something\n."
         with gpg.core.Context() as ctx:
-            _, detached = crypto.detached_signature_for(to_sign, ctx.get_key(FPR))
+            _, detached = crypto.detached_signature_for(to_sign, [ctx.get_key(FPR)])
 
         try:
             crypto.verify_detached(to_sign, detached)
@@ -144,7 +144,7 @@ class TestVerifyDetached(unittest.TestCase):
         to_sign = "this is some text.\nIt's something\n."
         similar = "this is some text.\r\n.It's something\r\n."
         with gpg.core.Context() as ctx:
-            _, detached = crypto.detached_signature_for(to_sign, ctx.get_key(FPR))
+            _, detached = crypto.detached_signature_for(to_sign, [ctx.get_key(FPR)])
 
         with self.assertRaises(GPGProblem):
             crypto.verify_detached(similar, detached)

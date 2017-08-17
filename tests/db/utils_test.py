@@ -7,14 +7,21 @@ from __future__ import absolute_import
 import base64
 import email
 import email.header
+import email.mime.application
+import io
 import os
 import os.path
+import shutil
+import tempfile
 import unittest
 
+import gpg
 import mock
 
+from alot import crypto
+from alot import helper
 from alot.db import utils
-from ..utilities import make_key, make_uid
+from ..utilities import make_key, make_uid, TestCaseClassCleanup
 
 
 class TestGetParams(unittest.TestCase):
@@ -380,3 +387,241 @@ class TestAddSignatureHeaders(unittest.TestCase):
         self.assertIn((utils.X_SIGNATURE_VALID_HEADER, u'True'), mail.headers)
         self.assertIn(
             (utils.X_SIGNATURE_MESSAGE_HEADER, u'Valid: Andreá'), mail.headers)
+
+
+class TestMessageFromFile(TestCaseClassCleanup):
+
+    @classmethod
+    def setUpClass(cls):
+        home = tempfile.mkdtemp()
+        cls.addClassCleanup(shutil.rmtree, home)
+        mock_home = mock.patch.dict(os.environ, {'GNUPGHOME': home})
+        mock_home.start()
+        cls.addClassCleanup(mock_home.stop)
+
+        with gpg.core.Context() as ctx:
+            search_dir = os.path.join(os.path.dirname(__file__),
+                                      '../static/gpg-keys')
+            for each in os.listdir(search_dir):
+                if os.path.splitext(each)[1] == '.gpg':
+                    with open(os.path.join(search_dir, each)) as f:
+                        ctx.op_import(f)
+
+            cls.keys = [ctx.get_key("DD19862809A7573A74058FF255937AFBB156245D")]
+
+    def test_erase_alot_header_signature_valid(self):
+        """Alot uses special headers for passing certain kinds of information,
+        it's important that information isn't passed in from the original
+        message as a way to trick the user.
+        """
+        m = email.message.Message()
+        m.add_header(utils.X_SIGNATURE_VALID_HEADER, 'Bad')
+        message = utils.message_from_file(io.BytesIO(m.as_string()))
+        self.assertIs(message.get(utils.X_SIGNATURE_VALID_HEADER), None)
+
+    def test_erase_alot_header_message(self):
+        m = email.message.Message()
+        m.add_header(utils.X_SIGNATURE_MESSAGE_HEADER, 'Bad')
+        message = utils.message_from_file(io.BytesIO(m.as_string()))
+        self.assertIs(message.get(utils.X_SIGNATURE_MESSAGE_HEADER), None)
+
+    def test_plain_mail(self):
+        m = email.mime.text.MIMEText(u'This is some text', 'plain', 'utf-8')
+        m['Subject'] = 'test'
+        m['From'] = 'me'
+        m['To'] = 'Nobody'
+        message = utils.message_from_file(io.BytesIO(m.as_string()))
+        self.assertEqual(message.get_payload(), 'This is some text')
+
+    def _make_signed(self):
+        """Create a signed message that is multipart/signed."""
+        text = 'This is some text'
+        t = email.mime.text.MIMEText(text, 'plain', 'utf-8')
+        _, sig = crypto.detached_signature_for(
+            helper.email_as_string(t), self.keys)
+        s = email.mime.application.MIMEApplication(
+            sig, 'pgp-signature', email.encoders.encode_7or8bit)
+        m = email.mime.multipart.MIMEMultipart('signed', None, [t, s])
+        m.set_param('protocol', 'application/pgp-signature')
+        m.set_param('micalg', 'pgp-sha256')
+        return m
+
+    def test_signed_headers_included(self):
+        """Headers are added to the message."""
+        m = self._make_signed()
+        m = utils.message_from_file(io.BytesIO(m.as_string()))
+        self.assertIn(utils.X_SIGNATURE_VALID_HEADER, m)
+        self.assertIn(utils.X_SIGNATURE_MESSAGE_HEADER, m)
+
+    def test_signed_valid(self):
+        """Test that the signature is valid."""
+        m = self._make_signed()
+        m = utils.message_from_file(io.BytesIO(m.as_string()))
+        self.assertEqual(m[utils.X_SIGNATURE_VALID_HEADER], 'True')
+
+    def test_signed_correct_from(self):
+        """Test that the signature is valid."""
+        m = self._make_signed()
+        m = utils.message_from_file(io.BytesIO(m.as_string()))
+        # Don't test for valid/invalid since that might change
+        self.assertIn('ambig <ambig@example.com>', m[utils.X_SIGNATURE_MESSAGE_HEADER])
+
+    def test_signed_wrong_mimetype_second_payload(self):
+        m = self._make_signed()
+        m.get_payload(1).set_type('text/plain')
+        m = utils.message_from_file(io.BytesIO(m.as_string()))
+        self.assertIn('expected Content-Type: ',
+                      m[utils.X_SIGNATURE_MESSAGE_HEADER])
+
+    def test_signed_wrong_micalg(self):
+        m = self._make_signed()
+        m.set_param('micalg', 'foo')
+        m = utils.message_from_file(io.BytesIO(m.as_string()))
+        self.assertIn('expected micalg=pgp-...',
+                      m[utils.X_SIGNATURE_MESSAGE_HEADER])
+
+    def test_signed_micalg_cap(self):
+        """The micalg parameter should be normalized to lower case.
+
+        From RFC 3156 § 5
+
+            The "micalg" parameter for the "application/pgp-signature" protocol
+            MUST contain exactly one hash-symbol of the format "pgp-<hash-
+            identifier>", where <hash-identifier> identifies the Message
+            Integrity Check (MIC) algorithm used to generate the signature.
+            Hash-symbols are constructed from the text names registered in [1]
+            or according to the mechanism defined in that document by
+            converting the text name to lower case and prefixing it with the
+            four characters "pgp-".
+
+        The spec is pretty clear that this is supposed to be lower cased.
+        """
+        m = self._make_signed()
+        m.set_param('micalg', 'PGP-SHA1')
+        m = utils.message_from_file(io.BytesIO(m.as_string()))
+        self.assertIn('expected micalg=pgp-',
+                      m[utils.X_SIGNATURE_MESSAGE_HEADER])
+
+    def test_signed_more_than_two_messages(self):
+        """Per the spec only 2 payloads may be encapsulated inside the
+        multipart/signed payload, while it might be nice to cover more than 2
+        payloads (Postel's law), it would introduce serious complexity
+        since we would also need to cover those payloads being misordered.
+        Since getting the right number of payloads and getting them in the
+        right order should be fairly easy to implement correctly enforcing that
+        there are only two payloads seems reasonable.
+        """
+        m = self._make_signed()
+        m.attach(email.mime.text.MIMEText('foo'))
+        m = utils.message_from_file(io.BytesIO(m.as_string()))
+        self.assertIn('expected exactly two messages, got 3',
+                      m[utils.X_SIGNATURE_MESSAGE_HEADER])
+
+    # TODO: The case of more than two payloads, or the payloads being out of
+    # order. Also for the encrypted case.
+
+    def _make_encrypted(self, signed=False):
+        """Create an encrypted (and optionally signed) message."""
+        if signed:
+            t = self._make_signed()
+        else:
+            text = 'This is some text'
+            t = email.mime.text.MIMEText(text, 'plain', 'utf-8')
+        enc = crypto.encrypt(t.as_string(), self.keys)
+        e = email.mime.application.MIMEApplication(
+            enc, 'octet-stream', email.encoders.encode_7or8bit)
+
+        f = email.mime.application.MIMEApplication(
+            b'Version: 1', 'pgp-encrypted', email.encoders.encode_7or8bit)
+
+        m = email.mime.multipart.MIMEMultipart('encrypted', None, [f, e])
+        m.set_param('protocol', 'application/pgp-encrypted')
+
+        return m
+
+    def test_encrypted_length(self):
+        # It seems string that we just attach the unsigned message to the end
+        # of the mail, rather than replacing the whole encrypted payload with
+        # it's unencrypted equivalent
+        m = self._make_encrypted()
+        m = utils.message_from_file(io.BytesIO(m.as_string()))
+        self.assertEqual(len(m.get_payload()), 3)
+
+    def test_encrypted_unsigned_is_decrypted(self):
+        m = self._make_encrypted()
+        m = utils.message_from_file(io.BytesIO(m.as_string()))
+        # Check using m.walk, since we're not checking for ordering, just
+        # existence.
+        self.assertIn('This is some text', [n.get_payload() for n in m.walk()])
+
+    def test_encrypted_unsigned_doesnt_add_signed_headers(self):
+        """Since the message isn't signed, it shouldn't have headers saying
+        that there is a signature.
+        """
+        m = self._make_encrypted()
+        m = utils.message_from_file(io.BytesIO(m.as_string()))
+        self.assertNotIn(utils.X_SIGNATURE_VALID_HEADER, m)
+        self.assertNotIn(utils.X_SIGNATURE_MESSAGE_HEADER, m)
+
+    def test_encrypted_signed_is_decrypted(self):
+        m = self._make_encrypted(True)
+        m = utils.message_from_file(io.BytesIO(m.as_string()))
+        self.assertIn('This is some text', [n.get_payload() for n in m.walk()])
+
+    def test_encrypted_signed_headers(self):
+        """Since the message is signed, it should have headers saying that
+        there is a signature.
+        """
+        m = self._make_encrypted(True)
+        m = utils.message_from_file(io.BytesIO(m.as_string()))
+        self.assertIn(utils.X_SIGNATURE_MESSAGE_HEADER, m)
+        self.assertIn('ambig <ambig@example.com>', m[utils.X_SIGNATURE_MESSAGE_HEADER])
+
+    # TODO: tests for the RFC 2440 style combined signed/encrypted blob
+
+    def test_encrypted_wrong_mimetype_first_payload(self):
+        m = self._make_encrypted()
+        m.get_payload(0).set_type('text/plain')
+        m = utils.message_from_file(io.BytesIO(m.as_string()))
+        self.assertIn('Malformed OpenPGP message:',
+                      m.get_payload(2).get_payload())
+
+    def test_encrypted_wrong_mimetype_second_payload(self):
+        m = self._make_encrypted()
+        m.get_payload(1).set_type('text/plain')
+        m = utils.message_from_file(io.BytesIO(m.as_string()))
+        self.assertIn('Malformed OpenPGP message:',
+                      m.get_payload(2).get_payload())
+
+    def test_signed_in_multipart_mixed(self):
+        """It is valid to encapsulate a multipart/signed payload inside a
+        multipart/mixed payload, verify that works.
+        """
+        s = self._make_signed()
+        m = email.mime.multipart.MIMEMultipart('mixed', None, [s])
+        m = utils.message_from_file(io.BytesIO(m.as_string()))
+        self.assertIn(utils.X_SIGNATURE_VALID_HEADER, m)
+        self.assertIn(utils.X_SIGNATURE_MESSAGE_HEADER, m)
+
+    def test_encrypted_unsigned_in_multipart_mixed(self):
+        """It is valid to encapsulate a multipart/encrypted payload inside a
+        multipart/mixed payload, verify that works.
+        """
+        s = self._make_encrypted()
+        m = email.mime.multipart.MIMEMultipart('mixed', None, [s])
+        m = utils.message_from_file(io.BytesIO(m.as_string()))
+        self.assertIn('This is some text', [n.get_payload() for n in m.walk()])
+        self.assertNotIn(utils.X_SIGNATURE_VALID_HEADER, m)
+        self.assertNotIn(utils.X_SIGNATURE_MESSAGE_HEADER, m)
+
+    def test_encrypted_signed_in_multipart_mixed(self):
+        """It is valid to encapsulate a multipart/encrypted payload inside a
+        multipart/mixed payload, verify that works when the multipart/encrypted
+        contains a multipart/signed.
+        """
+        s = self._make_encrypted(True)
+        m = email.mime.multipart.MIMEMultipart('mixed', None, [s])
+        m = utils.message_from_file(io.BytesIO(m.as_string()))
+        self.assertIn('This is some text', [n.get_payload() for n in m.walk()])
+        self.assertIn(utils.X_SIGNATURE_VALID_HEADER, m)
+        self.assertIn(utils.X_SIGNATURE_MESSAGE_HEADER, m)

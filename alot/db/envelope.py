@@ -191,7 +191,7 @@ class Envelope(object):
 
             try:
                 signatures, signature_str = crypto.detached_signature_for(
-                    plaintext, self.sign_key)
+                    plaintext, [self.sign_key])
                 if len(signatures) != 1:
                     raise GPGProblem("Could not sign message (GPGME "
                                      "did not return a signature)",
