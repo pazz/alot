@@ -53,4 +53,5 @@ setup(
     ],
     provides=['alot'],
     test_suite="tests",
+    python_requires=">=2.7,<3.0",
 )
