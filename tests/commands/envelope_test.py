@@ -17,12 +17,15 @@
 """Tests for the alot.commands.envelope module."""
 
 from __future__ import absolute_import
-import os
 import contextlib
+import email
+import os
 import shutil
 import tempfile
-import unittest
 import textwrap
+
+from twisted.trial import unittest
+from twisted.internet.defer import inlineCallbacks
 
 import mock
 
@@ -170,10 +173,10 @@ class TestSignCommand(unittest.TestCase):
     @staticmethod
     def _make_ui_mock():
         """Create a mock for the ui and envelope and return them."""
-        envelope = mock.Mock()
+        envelope = Envelope()
+        envelope['From'] = 'foo <foo@example.com>'
         envelope.sign = mock.sentinel.default
         envelope.sign_key = mock.sentinel.default
-        envelope.headers = {'From': ['foo <foo@example.com>']}
         ui = mock.Mock(current_buffer=mock.Mock(envelope=envelope))
         return envelope, ui
 
@@ -355,3 +358,43 @@ class TestSignCommand(unittest.TestCase):
 
         self.assertTrue(env.sign)
         self.assertIs(env.sign_key, mock.sentinel.gpg_key)
+
+
+class TestSendCommand(unittest.TestCase):
+
+    """Tests for the SendCommand class."""
+
+    mail = textwrap.dedent("""\
+        From: foo@example.com
+        To: bar@example.com
+        Subject: FooBar
+
+        Foo Bar Baz
+        """)
+
+    @inlineCallbacks
+    def test_get_account_by_address_with_str(self):
+        cmd = envelope.SendCommand(mail=self.mail)
+        account = mock.Mock()
+        with mock.patch(
+                'alot.commands.envelope.settings.get_account_by_address',
+                mock.Mock(return_value=account)) as get_account_by_address:
+            yield cmd.apply(mock.Mock())
+        get_account_by_address.assert_called_once_with('foo@example.com',
+                                                       return_default=True)
+        # check that the apply did run through till the end.
+        account.send_mail.assert_called_once_with(self.mail)
+
+    @inlineCallbacks
+    def test_get_account_by_address_with_email_message(self):
+        mail = email.message_from_string(self.mail)
+        cmd = envelope.SendCommand(mail=mail)
+        account = mock.Mock()
+        with mock.patch(
+                'alot.commands.envelope.settings.get_account_by_address',
+                mock.Mock(return_value=account)) as get_account_by_address:
+            yield cmd.apply(mock.Mock())
+        get_account_by_address.assert_called_once_with('foo@example.com',
+                                                       return_default=True)
+        # check that the apply did run through till the end.
+        account.send_mail.assert_called_once_with(mail)
