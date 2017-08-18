@@ -274,7 +274,7 @@ class DBManager(object):
         """returns :class:`notmuch.database.Thread` with given id"""
         query = self.query('thread:' + tid)
         try:
-            return query.search_threads().next()
+            return next(query.search_threads())
         except StopIteration:
             errmsg = 'no thread with id %s exists!' % tid
             raise NonexistantObjectError(errmsg)
