@@ -149,11 +149,11 @@
                <cmd.envelope.toggleencrypt>`, :ref:`encrypt
                <cmd.envelope.encrypt>` and :ref:`unencrypt
                <cmd.envelope.unencrypt>` commands to encrypt it.
-     .. note:: The values `True` and `False` are interpreted as `all` and
-               `none` respectively.  They are kept for backwards
-               compatibility to give users a change to migrate to the new
-               option type.  They might become deprecated in future
-               versions.
+     .. deprecated:: 0.4
+               The values `True` and `False` are interpreted as `all` and
+               `none` respectively. `0`, `1`, `true`, `True`, `false`,
+               `False`, `yes`, `Yes`, `no`, `No`, will be removed before
+               1.0, please move to `all`, `none`, or `trusted`.
 
     :type: option, one of ['all', 'none', 'trusted', 'True', 'False', 'true', 'false', 'Yes', 'No', 'yes', 'no', '1', '0']
     :default: none
