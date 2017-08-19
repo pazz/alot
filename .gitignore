@@ -14,3 +14,4 @@ docs/build
 docs/source/configuration/*table.rst
 tags
 .eggs
+__pycache__
