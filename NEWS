@@ -1,4 +1,4 @@
-next:
+0.6:
 * feature: Add command to reload configuration files in running session
 * feature: new command "tag" (and friends) in EnvelopeBuffer to add additional tags after sending
 * feature: Themes can now be loaded from system locations
