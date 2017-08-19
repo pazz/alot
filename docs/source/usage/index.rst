@@ -4,10 +4,27 @@ Usage
 
 Commandline invocation
 ======================
+.. rubric:: Synopsis
 .. include:: synopsis.rst
 
-First Steps
-===========
+.. rubric:: Options
+.. include:: cli_options.rst
+
+.. rubric:: Commands
+
+alot can be invoked with an optional subcommand from the command line.
+Those have their own parameters (see e.g. `alot search --help`).
+The following commands are available.
+
+.. include:: cli_commands.rst
+
+UNIX Signals
+============
+.. include:: signals.rst
+
+
+First Steps in the UI
+=====================
 
 .. _usage.first_steps:
 .. include:: first_steps.rst
