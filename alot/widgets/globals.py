@@ -292,6 +292,7 @@ class TagWidget(urwid.AttrMap):
         self.translated = representation['translated']
         self.hidden = self.translated == ''
         self.txt = urwid.Text(self.translated, wrap='clip')
+        self.__hash = hash('{}_{}'.format(self.translated, self.txt))
         normal_att = representation['normal']
         focus_att = representation['focussed']
         self.attmaps = {'normal': normal_att, 'focus': focus_att}
@@ -343,3 +344,6 @@ class TagWidget(urwid.AttrMap):
         if not isinstance(other, TagWidget):
             return NotImplemented
         return self.translated.lower() != other.translated.lower()
+
+    def __hash__(self):
+        return self.__hash
