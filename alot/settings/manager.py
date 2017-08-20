@@ -15,6 +15,7 @@ from configobj import ConfigObj, Section
 from ..account import SendmailAccount
 from ..addressbook.abook import AbookAddressBook
 from ..addressbook.external import ExternalAddressbook
+from ..addressbook.vcard import VcardAddressbook
 from ..helper import pretty_datetime, string_decode
 from ..utils import configobj as checks
 
@@ -171,6 +172,9 @@ class SettingsManager(object):
                     contacts_path = abook['abook_contacts_file']
                     args['abook'] = AbookAddressBook(
                         contacts_path, ignorecase=abook['ignorecase'])
+                elif abook['type'] == 'vcard':
+                    contacts_path = abook['vcard_path']
+                    args['abook'] = VcardAddressbook(contacts_path)
                 else:
                     del args['abook']
 
