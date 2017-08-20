@@ -40,7 +40,6 @@ class TestTagWidget(unittest.TestCase):
                       sorted(globals_.TagWidget(x) for x in expected)]
             self.assertListEqual(actual, expected)
 
-    @unittest.expectedFailure
     def test_hash_for_unicode_representation(self):
         with mock.patch(
                 'alot.widgets.globals.settings.get_tagstring_representation',
