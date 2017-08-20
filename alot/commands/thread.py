@@ -14,7 +14,7 @@ from email.utils import getaddresses, parseaddr, formataddr
 from email.message import Message
 
 from twisted.internet.defer import inlineCallbacks
-from cStringIO import StringIO
+from io import BytesIO
 
 from . import Command, registerCommand
 from .globals import ExternalCommand
@@ -186,7 +186,7 @@ class ReplyCommand(Command):
         try:
             from_header, _ = determine_sender(mail, 'reply')
         except AssertionError as e:
-            ui.notify(e.message, priority='error')
+            ui.notify(str(e), priority='error')
             return
         envelope.add('From', from_header)
 
@@ -394,7 +394,7 @@ class ForwardCommand(Command):
         try:
             from_header, _ = determine_sender(mail, 'reply')
         except AssertionError as e:
-            ui.notify(e.message, priority='error')
+            ui.notify(str(e), priority='error')
             return
         envelope.add('From', from_header)
 
@@ -441,7 +441,7 @@ class BounceMailCommand(Command):
         try:
             resent_from_header, account = determine_sender(mail, 'bounce')
         except AssertionError as e:
-            ui.notify(e.message, priority='error')
+            ui.notify(str(e), priority='error')
             return
         mail['Resent-From'] = resent_from_header
 
@@ -970,7 +970,7 @@ class OpenAttachmentCommand(Command):
                 def afterwards():
                     os.unlink(tempfile_name)
             else:
-                handler_stdin = StringIO()
+                handler_stdin = BytesIO()
                 self.attachment.write(handler_stdin)
 
             # create handler command list

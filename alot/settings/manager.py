@@ -123,7 +123,7 @@ class SettingsManager(object):
                     except ConfigError as e:
                         logging.warning(
                             'Theme file %s failed validation: %s',
-                            themestring, str(e.message))
+                            themestring, e)
                     else:
                         break
             else:

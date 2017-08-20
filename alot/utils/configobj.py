@@ -47,7 +47,7 @@ def attr_triple(value):
         normal = AttrSpec(acc['16fg'], acc['16bg'], 16)
         high = AttrSpec(acc['256fg'], acc['256bg'], 256)
     except AttrSpecError as e:
-        raise ValidateError(e.message)
+        raise ValidateError(str(e))
     return mono, normal, high
 
 
@@ -141,4 +141,4 @@ def gpg_key(value):
     try:
         return crypto.get_key(value)
     except GPGProblem as e:
-        raise ValidateError(e.message)
+        raise ValidateError(str(e))

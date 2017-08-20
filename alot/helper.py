@@ -9,7 +9,7 @@ from __future__ import division
 from datetime import timedelta
 from datetime import datetime
 from collections import deque
-from cStringIO import StringIO
+from io import BytesIO
 import logging
 import mimetypes
 import os
@@ -315,8 +315,8 @@ def call_cmd_async(cmdlist, stdin=None, env=None):
     class _EverythingGetter(ProcessProtocol):
         def __init__(self, deferred):
             self.deferred = deferred
-            self.outBuf = StringIO()
-            self.errBuf = StringIO()
+            self.outBuf = BytesIO()
+            self.errBuf = BytesIO()
             self.outReceived = self.outBuf.write
             self.errReceived = self.errBuf.write
 
@@ -606,7 +606,7 @@ def email_as_string(mail):
     :param mail: email to convert to string
     :rtype: str
     """
-    fp = StringIO()
+    fp = BytesIO()
     g = Generator(fp, mangle_from_=False, maxheaderlen=78)
     g.flatten(mail)
     as_string = RFC3156_canonicalize(fp.getvalue())

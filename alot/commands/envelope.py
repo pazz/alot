@@ -146,8 +146,8 @@ class SaveCommand(Command):
                 ui.apply_command(globals.FlushCommand())
                 ui.apply_command(commands.globals.BufferCloseCommand())
             except DatabaseError as e:
-                logging.error(e.message)
-                ui.notify('could not index message:\n%s' % e.message,
+                logging.error(e)
+                ui.notify('could not index message:\n%s' % e,
                           priority='error',
                           block=True)
         else:
@@ -217,7 +217,7 @@ class SendCommand(Command):
                 self.mail = email_as_string(self.mail)
             except GPGProblem as e:
                 ui.clear_notify([clearme])
-                ui.notify(e.message, priority='error')
+                ui.notify(str(e), priority='error')
                 return
 
             ui.clear_notify([clearme])
@@ -499,7 +499,7 @@ class SignCommand(Command):
                                                        sign=True)
                 except GPGProblem as e:
                     envelope.sign = False
-                    ui.notify(e.message, priority='error')
+                    ui.notify(str(e), priority='error')
                     return
             else:
                 try:
@@ -571,7 +571,7 @@ class EncryptCommand(Command):
                     tmp_key = crypto.get_key(keyid)
                     del envelope.encrypt_keys[tmp_key.fpr]
             except GPGProblem as e:
-                ui.notify(e.message, priority='error')
+                ui.notify(str(e), priority='error')
             if not envelope.encrypt_keys:
                 envelope.encrypt = False
             ui.current_buffer.rebuild()

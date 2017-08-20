@@ -86,7 +86,7 @@ def _get_keys(ui, encrypt_keyids, block_error=False, signed_only=False):
                     encrypt_keyids.append(keyid)
                 continue
             else:
-                ui.notify(e.message, priority='error', block=block_error)
+                ui.notify(str(e), priority='error', block=block_error)
                 continue
         keys[key.fpr] = key
     returnValue(keys)
