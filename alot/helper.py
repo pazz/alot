@@ -10,6 +10,7 @@ from datetime import timedelta
 from datetime import datetime
 from collections import deque
 from io import BytesIO
+from cStringIO import StringIO
 import logging
 import mimetypes
 import os
@@ -606,7 +607,7 @@ def email_as_string(mail):
     :param mail: email to convert to string
     :rtype: str
     """
-    fp = BytesIO()
+    fp = StringIO()
     g = Generator(fp, mangle_from_=False, maxheaderlen=78)
     g.flatten(mail)
     as_string = RFC3156_canonicalize(fp.getvalue())

@@ -390,7 +390,6 @@ class TestEmailAsString(unittest.TestCase):
         expected = '\r\n'
         self.assertEqual(actual, expected)
 
-    @unittest.expectedFailure
     def test_empty_message_with_unicode_header(self):
         """Test if unicode header keys can be used in an email that is
         converted to string with email_as_string()."""
