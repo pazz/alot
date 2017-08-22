@@ -451,7 +451,6 @@ class TestCallCmdAsync(unittest.TestCase):
                 env={'foo': 'bar'})
         self.assertEqual(ret, 'bar')
 
-    @utilities.expected_failure
     @inlineCallbacks
     def test_env_doesnt_pollute(self):
         with mock.patch.dict(os.environ, {}, clear=True):

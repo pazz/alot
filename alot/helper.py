@@ -333,7 +333,7 @@ def call_cmd_async(cmdlist, stdin=None, env=None):
                 self.deferred.errback(terminated_obj)
 
     d = Deferred()
-    environment = os.environ
+    environment = os.environ.copy()
     if env is not None:
         environment.update(env)
     logging.debug('ENV = %s', environment)
