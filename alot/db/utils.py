@@ -298,16 +298,20 @@ def extract_headers(mail, headers=None):
 
 
 def extract_body(mail, types=None, field_key='copiousoutput'):
-    """
-    returns a body text string for given mail.
-    If types is `None`, `text/*` is used:
-    The exact preferred type is specified by the prefer_plaintext config option
-    which defaults to text/html.
+    """Returns a string view of a Message.
+
+    If the `types` argument is set then any encoding types there will be used
+    as the prefered encoding to extract. If `types` is None then
+    :ref:`prefer_plaintext <prefer-plaintext>` will be consulted; if it is True
+    then text/plain parts will be returned, if it is false then text/html will
+    be returned if present or text/plain if there are no text/html parts.
 
     :param mail: the mail to use
     :type mail: :class:`email.Message`
     :param types: mime content types to use for body string
-    :type types: list of str
+    :type types: list[str]
+    :returns: The combined text of any parts to be used
+    :rtype: str
     """
 
     preferred = 'text/plain' if settings.get(
