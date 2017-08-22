@@ -231,7 +231,7 @@ class Thread(object):
         """
         if not self._messages:  # if not already cached
             query = self._dbman.query('thread:' + self._id)
-            thread = query.search_threads().next()
+            thread = next(query.search_threads())
 
             def accumulate(acc, msg):
                 M = Message(self._dbman, msg, thread=self)

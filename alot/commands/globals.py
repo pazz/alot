@@ -863,7 +863,7 @@ class ComposeCommand(Command):
                 self.envelope.sign_key = account.gpg_key
             else:
                 msg = 'Cannot find gpg key for account {}'.format(account.address)
-                logging.warn(msg)
+                logging.warning(msg)
                 ui.notify(msg, priority='error')
 
         # get missing To header
