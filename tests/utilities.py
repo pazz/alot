@@ -171,3 +171,13 @@ def make_key(revoked=False, expired=False, invalid=False, can_encrypt=True,
     mock_key.can_sign = can_sign
 
     return mock_key
+
+
+def expected_failure(func):
+    """For marking expected failures for twisted.trial based unit tests.
+
+    The builtin unittest.expectedFailure does not work with twisted.trail,
+    there is an outstanding bug for this, but no one has ever fixed it.
+    """
+    func.todo = 'expected failure'
+    return func
