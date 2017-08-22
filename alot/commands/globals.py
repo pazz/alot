@@ -255,7 +255,7 @@ class ExternalCommand(Command):
 
         def afterwards(data):
             if data == 'success':
-                if callable(self.on_success):
+                if self.on_success is not None:
                     self.on_success()
             else:
                 ui.notify(data, priority='error')
