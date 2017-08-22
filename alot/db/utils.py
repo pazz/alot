@@ -45,6 +45,8 @@ def add_signature_headers(mail, sigs, error_msg):
                       string indicating no error
     '''
     sig_from = u''
+    sig_known = True
+    uid_trusted = False
 
     if isinstance(error_msg, str):
         error_msg = error_msg.decode('utf-8')
@@ -60,13 +62,11 @@ def add_signature_headers(mail, sigs, error_msg):
                     uid_trusted = True
                     break
             else:
-                # No trusted uid found, we did not break but drop from the
-                # for loop.
-                uid_trusted = False
+                # No trusted uid found, since we did not break from the loop.
                 sig_from = key.uids[0].uid.decode('utf-8')
-        except:
+        except GPGProblem:
             sig_from = sigs[0].fpr.decode('utf-8')
-            uid_trusted = False
+            sig_known = False
 
     if error_msg:
         msg = u'Invalid: {}'.format(error_msg)
@@ -75,7 +75,8 @@ def add_signature_headers(mail, sigs, error_msg):
     else:
         msg = u'Untrusted: {}'.format(sig_from)
 
-    mail.add_header(X_SIGNATURE_VALID_HEADER, 'False' if error_msg else 'True')
+    mail.add_header(X_SIGNATURE_VALID_HEADER,
+                    'False' if (error_msg or not sig_known) else 'True')
     mail.add_header(X_SIGNATURE_MESSAGE_HEADER, msg)
 
 

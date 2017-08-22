@@ -403,7 +403,6 @@ class TestAddSignatureHeaders(unittest.TestCase):
             (utils.X_SIGNATURE_MESSAGE_HEADER, u'Invalid: error message'),
             mail.headers)
 
-    @unittest.expectedFailure
     def test_get_key_fails(self):
         mail = self.FakeMail()
         with mock.patch('alot.db.utils.crypto.get_key',
