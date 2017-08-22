@@ -20,6 +20,7 @@
 from __future__ import absolute_import
 
 import datetime
+import email
 import errno
 import random
 import unittest
@@ -379,3 +380,25 @@ class TestCallCmd(unittest.TestCase):
         self.assertEqual(out, u'')
         self.assertEqual(err, u'foobar')
         self.assertEqual(code, 42)
+
+
+class TestEmailAsString(unittest.TestCase):
+
+    def test_empty_message(self):
+        message = email.message.Message()
+        actual = helper.email_as_string(message)
+        expected = '\r\n'
+        self.assertEqual(actual, expected)
+
+    def test_empty_message_with_unicode_header(self):
+        """Test if unicode header keys can be used in an email that is
+        converted to string with email_as_string()."""
+        # This is what alot.db.envelope.Envelope.construct_mail() currently
+        # does: It constructs a message object and then copies all headers from
+        # the envelope to the message object.  Some header names are stored as
+        # unicode in the envelope.
+        message = email.message.Message()
+        message[u'X-Unicode-Header'] = 'dummy value'
+        actual = helper.email_as_string(message)
+        expected = 'X-Unicode-Header: dummy value\r\n\r\n'
+        self.assertEqual(actual, expected)
