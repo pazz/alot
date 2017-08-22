@@ -18,16 +18,20 @@
 """Test suite for alot.helper module."""
 
 from __future__ import absolute_import
-
 import datetime
 import email
 import errno
+import os
 import random
-import unittest
 
 import mock
+from twisted.trial import unittest
+from twisted.internet.defer import inlineCallbacks
+from twisted.internet.error import ProcessTerminated
 
 from alot import helper
+
+from . import utilities
 
 # Descriptive names for tests often violate PEP8. That's not an issue, users
 # aren't meant to call these functions.
@@ -257,7 +261,7 @@ class TestPrettyDatetime(unittest.TestCase):
         self.assertEqual(actual, expected)
 
     # Returns 'just now', instead of 'from future' or something similar
-    @unittest.expectedFailure
+    @utilities.expected_failure
     def test_future_minutes(self):
         test = self.now + datetime.timedelta(minutes=5)
         actual = helper.pretty_datetime(test)
@@ -265,7 +269,7 @@ class TestPrettyDatetime(unittest.TestCase):
         self.assertEqual(actual, expected)
 
     # Returns 'just now', instead of 'from future' or something similar
-    @unittest.expectedFailure
+    @utilities.expected_failure
     def test_future_hours(self):
         test = self.now + datetime.timedelta(hours=1)
         actual = helper.pretty_datetime(test)
@@ -273,7 +277,7 @@ class TestPrettyDatetime(unittest.TestCase):
         self.assertEqual(actual, expected)
 
     # Returns 'just now', instead of 'from future' or something similar
-    @unittest.expectedFailure
+    @utilities.expected_failure
     def test_future_days(self):
         def make_expected():
             # Uses the hourfmt instead of the hourminfmt from pretty_datetime
@@ -290,7 +294,7 @@ class TestPrettyDatetime(unittest.TestCase):
         self.assertEqual(actual, expected)
 
     # Returns 'just now', instead of 'from future' or something similar
-    @unittest.expectedFailure
+    @utilities.expected_failure
     def test_future_week(self):
         test = self.now + datetime.timedelta(days=7)
         actual = helper.pretty_datetime(test)
@@ -298,7 +302,7 @@ class TestPrettyDatetime(unittest.TestCase):
         self.assertEqual(actual, expected)
 
     # Returns 'just now', instead of 'from future' or something similar
-    @unittest.expectedFailure
+    @utilities.expected_failure
     def test_future_month(self):
         test = self.now + datetime.timedelta(days=31)
         actual = helper.pretty_datetime(test)
@@ -306,7 +310,7 @@ class TestPrettyDatetime(unittest.TestCase):
         self.assertEqual(actual, expected)
 
     # Returns 'just now', instead of 'from future' or something similar
-    @unittest.expectedFailure
+    @utilities.expected_failure
     def test_future_year(self):
         test = self.now + datetime.timedelta(days=365)
         actual = helper.pretty_datetime(test)
@@ -420,3 +424,44 @@ class TestShorten(unittest.TestCase):
         expected = u'a long string…'
         actual = helper.shorten('a long string that is full of text', 14)
         self.assertEqual(expected, actual)
+
+
+class TestCallCmdAsync(unittest.TestCase):
+
+    @inlineCallbacks
+    def test_no_stdin(self):
+        ret = yield helper.call_cmd_async(['echo', '-n', 'foo'])
+        self.assertEqual(ret, 'foo')
+
+    @inlineCallbacks
+    def test_stdin(self):
+        ret = yield helper.call_cmd_async(['cat', '-'], stdin='foo')
+        self.assertEqual(ret, 'foo')
+
+    @inlineCallbacks
+    def test_env_set(self):
+        with mock.patch.dict(os.environ, {}, clear=True):
+            ret = yield helper.call_cmd_async(
+                # Thanks to the future import it doesn't matter if python is
+                # python2 or python3
+                ['python', '-c', 'from __future__ import print_function; '
+                                 'import os; '
+                                 'print(os.environ.get("foo", "fail"), end="")'
+                ],
+                env={'foo': 'bar'})
+        self.assertEqual(ret, 'bar')
+
+    @utilities.expected_failure
+    @inlineCallbacks
+    def test_env_doesnt_pollute(self):
+        with mock.patch.dict(os.environ, {}, clear=True):
+            yield helper.call_cmd_async(['echo', '-n', 'foo'],
+                                        env={'foo': 'bar'})
+            self.assertEqual(os.environ, {})
+
+    @inlineCallbacks
+    def test_command_fails(self):
+        with self.assertRaises(ProcessTerminated) as cm:
+            yield helper.call_cmd_async(['_____better_not_exist'])
+        self.assertEqual(cm.exception.exitCode, 1)
+        self.assertTrue(cm.exception.stderr)
