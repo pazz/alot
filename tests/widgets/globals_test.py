@@ -39,3 +39,15 @@ class TestTagWidget(unittest.TestCase):
             actual = [g.translated for g in
                       sorted(globals_.TagWidget(x) for x in expected)]
             self.assertListEqual(actual, expected)
+
+    def test_hash_for_unicode_representation(self):
+        with mock.patch(
+                'alot.widgets.globals.settings.get_tagstring_representation',
+                lambda _, __, ___: {'translated': u'✉', 'normal': None,
+                                    'focussed': None}):
+            # We don't have to assert anything, we just want the hash to be
+            # computed without an exception.  The implementation currently
+            # (2017-08-20) caches the hash value when __init__ is called.  This
+            # test should even test the correct thing if this is changed and
+            # the hash is only computed in __hash__.
+            hash(globals_.TagWidget('unread'))
