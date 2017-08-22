@@ -247,7 +247,7 @@ class ExternalCommand(Command):
         # set standard input for subcommand
         stdin = None
         if self.stdin is not None:
-            # wrap strings in StrinIO so that they behaves like a file
+            # wrap strings in StringIO so that they behave like files
             if isinstance(self.stdin, unicode):
                 stdin = StringIO(self.stdin)
             else:
