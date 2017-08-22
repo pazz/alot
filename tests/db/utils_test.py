@@ -21,6 +21,7 @@ import mock
 from alot import crypto
 from alot import helper
 from alot.db import utils
+from alot.errors import GPGProblem
 from ..utilities import make_key, make_uid, TestCaseClassCleanup
 
 
@@ -342,14 +343,14 @@ class TestAddSignatureHeaders(unittest.TestCase):
         def add_header(self, header, value):
             self.headers.append((header, value))
 
-    def check(self, key, valid):
+    def check(self, key, valid, error_msg=u''):
         mail = self.FakeMail()
 
         with mock.patch('alot.db.utils.crypto.get_key',
                         mock.Mock(return_value=key)), \
                 mock.patch('alot.db.utils.crypto.check_uid_validity',
                            mock.Mock(return_value=valid)):
-            utils.add_signature_headers(mail, [mock.Mock(fpr='')], u'')
+            utils.add_signature_headers(mail, [mock.Mock(fpr='')], error_msg)
 
         return mail
 
@@ -387,6 +388,31 @@ class TestAddSignatureHeaders(unittest.TestCase):
         self.assertIn((utils.X_SIGNATURE_VALID_HEADER, u'True'), mail.headers)
         self.assertIn(
             (utils.X_SIGNATURE_MESSAGE_HEADER, u'Valid: Andreá'), mail.headers)
+
+    def test_error_message_unicode(self):
+        mail = self.check(mock.Mock(), mock.Mock(), u'error message')
+        self.assertIn((utils.X_SIGNATURE_VALID_HEADER, u'False'), mail.headers)
+        self.assertIn(
+            (utils.X_SIGNATURE_MESSAGE_HEADER, u'Invalid: error message'),
+            mail.headers)
+
+    def test_error_message_bytes(self):
+        mail = self.check(mock.Mock(), mock.Mock(), b'error message')
+        self.assertIn((utils.X_SIGNATURE_VALID_HEADER, u'False'), mail.headers)
+        self.assertIn(
+            (utils.X_SIGNATURE_MESSAGE_HEADER, u'Invalid: error message'),
+            mail.headers)
+
+    @unittest.expectedFailure
+    def test_get_key_fails(self):
+        mail = self.FakeMail()
+        with mock.patch('alot.db.utils.crypto.get_key',
+                        mock.Mock(side_effect=GPGProblem(u'', 0))):
+            utils.add_signature_headers(mail, [mock.Mock(fpr='')], u'')
+        self.assertIn((utils.X_SIGNATURE_VALID_HEADER, u'False'), mail.headers)
+        self.assertIn(
+            (utils.X_SIGNATURE_MESSAGE_HEADER, u'Untrusted: '),
+            mail.headers)
 
 
 class TestMessageFromFile(TestCaseClassCleanup):
