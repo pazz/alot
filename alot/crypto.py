@@ -111,7 +111,7 @@ def get_key(keyid, validate=False, encrypt=False, sign=False,
                 'Can not find usable key for "{}".'.format(keyid),
                 code=GPGCode.NOT_FOUND)
         else:
-            raise e
+            raise e  # pragma: nocover
     if signed_only and not check_uid_validity(key, keyid):
         raise GPGProblem('Cannot find a trusworthy key for "{}".'.format(keyid),
                          code=GPGCode.NOT_FOUND)
