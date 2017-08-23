@@ -247,7 +247,7 @@ class ExternalCommand(Command):
         # set standard input for subcommand
         stdin = None
         if self.stdin is not None:
-            # wrap strings in StrinIO so that they behaves like a file
+            # wrap strings in StringIO so that they behave like files
             if isinstance(self.stdin, unicode):
                 stdin = StringIO(self.stdin)
             else:
@@ -255,7 +255,7 @@ class ExternalCommand(Command):
 
         def afterwards(data):
             if data == 'success':
-                if callable(self.on_success):
+                if self.on_success is not None:
                     self.on_success()
             else:
                 ui.notify(data, priority='error')
@@ -267,23 +267,16 @@ class ExternalCommand(Command):
 
         def thread_code(*_):
             try:
-                if stdin is None:
-                    proc = subprocess.Popen(self.cmdlist, shell=self.shell,
-                                            stderr=subprocess.PIPE)
-                    ret = proc.wait()
-                    err = proc.stderr.read()
-                else:
-                    proc = subprocess.Popen(self.cmdlist, shell=self.shell,
-                                            stdin=subprocess.PIPE,
-                                            stderr=subprocess.PIPE)
-                    _, err = proc.communicate(stdin.read())
-                    ret = proc.wait()
-                if ret == 0:
-                    return 'success'
-                else:
-                    return err.strip()
+                proc = subprocess.Popen(self.cmdlist, shell=self.shell,
+                                        stdin=subprocess.PIPE,
+                                        stderr=subprocess.PIPE)
             except OSError as e:
                 return str(e)
+
+            _, err = proc.communicate(stdin.read() if stdin else None)
+            if proc.returncode == 0:
+                return 'success'
+            return err.strip()
 
         if self.in_thread:
             d = threads.deferToThread(thread_code)

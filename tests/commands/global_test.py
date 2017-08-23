@@ -17,6 +17,7 @@
 """Tests for global commands."""
 
 from __future__ import absolute_import
+import os
 
 from twisted.trial import unittest
 from twisted.internet.defer import inlineCallbacks
@@ -116,3 +117,60 @@ class TestComposeCommand(unittest.TestCase):
 
         self.assertFalse(envelope.sign)
         self.assertIs(envelope.sign_key, None)
+
+
+class TestExternalCommand(unittest.TestCase):
+
+    class Success(Exception):
+        pass
+
+    def on_success(self):
+        raise self.Success
+
+    def test_no_spawn_no_stdin_success(self):
+        cmd = g_commands.ExternalCommand(
+            u'true',
+            refocus=False, on_success=self.on_success)
+        with self.assertRaises(self.Success):
+            cmd.apply(mock.Mock())
+
+    def test_no_spawn_stdin_success(self):
+        cmd = g_commands.ExternalCommand(
+            u"awk '{ exit $0 }'",
+            stdin=u'0', refocus=False, on_success=self.on_success)
+        with self.assertRaises(self.Success):
+            cmd.apply(mock.Mock())
+
+    def test_no_spawn_failure(self):
+        ui = mock.Mock()
+        cmd = g_commands.ExternalCommand(
+            u'false',
+            refocus=False, on_success=self.on_success)
+        cmd.apply(ui)
+        ui.notify.assert_called_once_with('', priority='error')
+
+    @mock.patch('alot.commands.globals.settings.get', mock.Mock(return_value=''))
+    @mock.patch.dict(os.environ, {'DISPLAY': ':0'})
+    def test_spawn_no_stdin_success(self):
+        ui = mock.Mock()
+        cmd = g_commands.ExternalCommand(u'true', refocus=False, spawn=True)
+        cmd.apply(ui)
+        ui.notify.assert_not_called()
+
+    @mock.patch('alot.commands.globals.settings.get', mock.Mock(return_value=''))
+    @mock.patch.dict(os.environ, {'DISPLAY': ':0'})
+    def test_spawn_stdin_success(self):
+        ui = mock.Mock()
+        cmd = g_commands.ExternalCommand(
+            u"awk '{ exit $0 }'",
+            stdin=u'0', refocus=False, spawn=True)
+        cmd.apply(ui)
+        ui.notify.assert_not_called()
+
+    @mock.patch('alot.commands.globals.settings.get', mock.Mock(return_value=''))
+    @mock.patch.dict(os.environ, {'DISPLAY': ':0'})
+    def test_spawn_failure(self):
+        ui = mock.Mock()
+        cmd = g_commands.ExternalCommand(u'false', refocus=False, spawn=True)
+        cmd.apply(ui)
+        ui.notify.assert_called_once_with('', priority='error')
