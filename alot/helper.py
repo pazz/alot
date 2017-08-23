@@ -129,7 +129,7 @@ def string_decode(string, enc='ascii'):
 def shorten(string, maxlen):
     """shortens string if longer than maxlen, appending ellipsis"""
     if 1 < maxlen < len(string):
-        string = string[:maxlen - 1] + u'\u2026'
+        string = string[:maxlen - 1] + u'…'
     return string[:maxlen]
 
 
@@ -333,7 +333,7 @@ def call_cmd_async(cmdlist, stdin=None, env=None):
                 self.deferred.errback(terminated_obj)
 
     d = Deferred()
-    environment = os.environ
+    environment = os.environ.copy()
     if env is not None:
         environment.update(env)
     logging.debug('ENV = %s', environment)
