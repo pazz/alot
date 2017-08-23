@@ -268,7 +268,7 @@ class ExternalCommand(Command):
         def thread_code(*_):
             try:
                 proc = subprocess.Popen(self.cmdlist, shell=self.shell,
-                                        stdin=subprocess.PIPE,
+                                        stdin=subprocess.PIPE if stdin else None,
                                         stderr=subprocess.PIPE)
             except OSError as e:
                 return str(e)

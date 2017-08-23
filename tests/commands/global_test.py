@@ -25,8 +25,6 @@ import mock
 
 from alot.commands import globals as g_commands
 
-from .. import utilities
-
 
 class Stop(Exception):
     """exception for stopping testing of giant unmanagable functions."""
@@ -136,7 +134,6 @@ class TestExternalCommand(unittest.TestCase):
         cmd.apply(ui)
         ui.notify.assert_not_called()
 
-    @utilities.expected_failure
     def test_no_spawn_no_stdin_attached(self):
         ui = mock.Mock()
         cmd = g_commands.ExternalCommand(u'test -t 0', refocus=False)
