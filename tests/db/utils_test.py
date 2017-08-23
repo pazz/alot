@@ -771,3 +771,21 @@ class TestExtractBody(unittest.TestCase):
         expected = '<!DOCTYPE html><html><body>This is an html email</body></html>'
 
         self.assertEqual(actual, expected)
+
+
+class TestMessageFromString(unittest.TestCase):
+
+    """Tests for message_from_string.
+
+    Because the implementation is that this is a wrapper around
+    message_from_file, it's not important to have a large swath of tests, just
+    enough to show that things are being passed correctly.
+    """
+
+    def test(self):
+        m = email.mime.text.MIMEText(u'This is some text', 'plain', 'utf-8')
+        m['Subject'] = 'test'
+        m['From'] = 'me'
+        m['To'] = 'Nobody'
+        message = utils.message_from_string(m.as_string())
+        self.assertEqual(message.get_payload(), 'This is some text')
