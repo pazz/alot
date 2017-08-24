@@ -121,31 +121,22 @@ class TestComposeCommand(unittest.TestCase):
 
 class TestExternalCommand(unittest.TestCase):
 
-    class Success(Exception):
-        pass
-
-    def on_success(self):
-        raise self.Success
-
     def test_no_spawn_no_stdin_success(self):
-        cmd = g_commands.ExternalCommand(
-            u'true',
-            refocus=False, on_success=self.on_success)
-        with self.assertRaises(self.Success):
-            cmd.apply(mock.Mock())
+        ui = mock.Mock()
+        cmd = g_commands.ExternalCommand(u'true', refocus=False)
+        cmd.apply(ui)
+        ui.notify.assert_not_called()
 
     def test_no_spawn_stdin_success(self):
-        cmd = g_commands.ExternalCommand(
-            u"awk '{ exit $0 }'",
-            stdin=u'0', refocus=False, on_success=self.on_success)
-        with self.assertRaises(self.Success):
-            cmd.apply(mock.Mock())
+        ui = mock.Mock()
+        cmd = g_commands.ExternalCommand(u"awk '{ exit $0 }'", stdin=u'0',
+                                         refocus=False)
+        cmd.apply(ui)
+        ui.notify.assert_not_called()
 
     def test_no_spawn_failure(self):
         ui = mock.Mock()
-        cmd = g_commands.ExternalCommand(
-            u'false',
-            refocus=False, on_success=self.on_success)
+        cmd = g_commands.ExternalCommand(u'false', refocus=False)
         cmd.apply(ui)
         ui.notify.assert_called_once_with('', priority='error')
 
