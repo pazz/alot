@@ -56,17 +56,27 @@ Both respect the `ignorecase` option which defaults to `True` and results in cas
           command = notmuch_abook.py lookup
           regexp = ^((?P<name>[^(\\s+\<)]*)\s+<)?(?P<email>[^@]+?@[^>]+)>?$
 
-    `notmuch address`
+    `notmuch address <https://notmuchmail.org/manpages/notmuch-address-1/>`_
         Since version `0.19`, notmuch itself offers a subcommand `address`, that
         returns email addresses found in the notmuch index.
         Combined with the `date:` syntax to query for mails within a certain
-        timeframe, this allows to search for all recently used contacts:
+        timeframe, this allows to search contacts that you've sent emails to
+        (output all addresses from the `To`, `Cc` and `Bcc` headers):
 
         .. code-block:: ini
 
            command = 'notmuch address --format=json --output=recipients date:1Y.. AND from:my@address.org'
            regexp = '\[?{"name": "(?P<name>.*)", "address": "(?P<email>.+)", "name-addr": ".*"}[,\]]?'
            shellcommand_external_filtering = False
+
+        If you want to search for senders in the `From` header (which should be
+        must faster according to `notmuch address docs
+        <https://notmuchmail.org/manpages/notmuch-address-1/>`_), then use the
+        following command:
+
+        .. code-block:: ini
+
+           command = 'notmuch address --format=json date:1Y..'
 
     Don't hesitate to send me your custom `regexp` values to list them here.
 
