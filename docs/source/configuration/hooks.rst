@@ -28,7 +28,7 @@ Consider this pre-hook for the exit command, that logs a personalized goodbye
 message::
 
     import logging
-    from alot.settings import settings
+    from alot.settings.const import settings
     def pre_global_exit(**kwargs):
         accounts = settings.get_accounts()
         if accounts:
