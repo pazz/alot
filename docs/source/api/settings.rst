@@ -54,6 +54,8 @@ Accounts
 
 .. module:: alot.account
 
+.. autoclass:: Address
+    :members:
 .. autoclass:: Account
     :members:
 .. autoclass:: SendmailAccount
