@@ -1,10 +1,6 @@
----
 engines:
-  duplication:
+  pep8:
     enabled: true
-    config:
-      languages:
-      - python
   fixme:
     enabled: true
   radon:
