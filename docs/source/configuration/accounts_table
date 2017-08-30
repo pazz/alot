@@ -169,3 +169,18 @@
     :type: string
     :default: None
 
+
+.. _case-sensitive-username:
+
+.. describe:: case_sensitive_username
+
+     Whether the server treats the address as case-senstive or
+     case-insensitve (True for the former, False for the latter)
+
+     .. note:: The vast majority (if not all) SMTP servers in modern use
+               treat usernames as case insenstive, you should only set
+               this if you know that you need it.
+
+    :type: boolean
+    :default: False
+

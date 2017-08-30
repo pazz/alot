@@ -151,77 +151,77 @@ class TestDetermineSender(unittest.TestCase):
         self.assertTupleEqual(cm2.exception.args, expected)
 
     def test_default_account_is_used_if_no_match_is_found(self):
-        account1 = _AccountTestClass(address='foo@example.com')
-        account2 = _AccountTestClass(address='bar@example.com')
-        expected = ('foo@example.com', account1)
+        account1 = _AccountTestClass(address=u'foo@example.com')
+        account2 = _AccountTestClass(address=u'bar@example.com')
+        expected = (u'foo@example.com', account1)
         self._test(accounts=[account1, account2], expected=expected)
 
     def test_matching_address_and_account_are_returned(self):
-        account1 = _AccountTestClass(address='foo@example.com')
-        account2 = _AccountTestClass(address='to@example.com')
-        account3 = _AccountTestClass(address='bar@example.com')
-        expected = ('to@example.com', account2)
+        account1 = _AccountTestClass(address=u'foo@example.com')
+        account2 = _AccountTestClass(address=u'to@example.com')
+        account3 = _AccountTestClass(address=u'bar@example.com')
+        expected = (u'to@example.com', account2)
         self._test(accounts=[account1, account2, account3], expected=expected)
 
     def test_force_realname_includes_real_name_in_returned_address_if_defined(self):
-        account1 = _AccountTestClass(address='foo@example.com')
-        account2 = _AccountTestClass(address='to@example.com', realname='Bar')
-        account3 = _AccountTestClass(address='baz@example.com')
-        expected = ('Bar <to@example.com>', account2)
+        account1 = _AccountTestClass(address=u'foo@example.com')
+        account2 = _AccountTestClass(address=u'to@example.com', realname='Bar')
+        account3 = _AccountTestClass(address=u'baz@example.com')
+        expected = (u'Bar <to@example.com>', account2)
         self._test(accounts=[account1, account2, account3], expected=expected,
                    force_realname=True)
 
     def test_doesnt_fail_with_force_realname_if_real_name_not_defined(self):
-        account1 = _AccountTestClass(address='foo@example.com')
-        account2 = _AccountTestClass(address='to@example.com')
-        account3 = _AccountTestClass(address='bar@example.com')
-        expected = ('to@example.com', account2)
+        account1 = _AccountTestClass(address=u'foo@example.com')
+        account2 = _AccountTestClass(address=u'to@example.com')
+        account3 = _AccountTestClass(address=u'bar@example.com')
+        expected = (u'to@example.com', account2)
         self._test(accounts=[account1, account2, account3], expected=expected,
                    force_realname=True)
 
     def test_with_force_address_main_address_is_used_regardless_of_matching_address(self):
         # In python 3.4 this and the next test could be written as subtests.
-        account1 = _AccountTestClass(address='foo@example.com')
-        account2 = _AccountTestClass(address='bar@example.com',
-                                     aliases=['to@example.com'])
-        account3 = _AccountTestClass(address='bar@example.com')
-        expected = ('bar@example.com', account2)
+        account1 = _AccountTestClass(address=u'foo@example.com')
+        account2 = _AccountTestClass(address=u'bar@example.com',
+                                     aliases=[u'to@example.com'])
+        account3 = _AccountTestClass(address=u'bar@example.com')
+        expected = (u'bar@example.com', account2)
         self._test(accounts=[account1, account2, account3], expected=expected,
                    force_address=True)
 
     def test_without_force_address_matching_address_is_used(self):
         # In python 3.4 this and the previous test could be written as
         # subtests.
-        account1 = _AccountTestClass(address='foo@example.com')
-        account2 = _AccountTestClass(address='bar@example.com',
-                                     aliases=['to@example.com'])
-        account3 = _AccountTestClass(address='baz@example.com')
-        expected = ('to@example.com', account2)
+        account1 = _AccountTestClass(address=u'foo@example.com')
+        account2 = _AccountTestClass(address=u'bar@example.com',
+                                     aliases=[u'to@example.com'])
+        account3 = _AccountTestClass(address=u'baz@example.com')
+        expected = (u'to@example.com', account2)
         self._test(accounts=[account1, account2, account3], expected=expected,
                    force_address=False)
 
     def test_uses_to_header_if_present(self):
-        account1 = _AccountTestClass(address='foo@example.com')
-        account2 = _AccountTestClass(address='to@example.com')
-        account3 = _AccountTestClass(address='bar@example.com')
-        expected = ('to@example.com', account2)
+        account1 = _AccountTestClass(address=u'foo@example.com')
+        account2 = _AccountTestClass(address=u'to@example.com')
+        account3 = _AccountTestClass(address=u'bar@example.com')
+        expected = (u'to@example.com', account2)
         self._test(accounts=[account1, account2, account3], expected=expected)
 
     def test_header_order_is_more_important_than_accounts_order(self):
-        account1 = _AccountTestClass(address='cc@example.com')
-        account2 = _AccountTestClass(address='to@example.com')
-        account3 = _AccountTestClass(address='bcc@example.com')
-        expected = ('to@example.com', account2)
+        account1 = _AccountTestClass(address=u'cc@example.com')
+        account2 = _AccountTestClass(address=u'to@example.com')
+        account3 = _AccountTestClass(address=u'bcc@example.com')
+        expected = (u'to@example.com', account2)
         self._test(accounts=[account1, account2, account3], expected=expected)
 
     def test_accounts_can_be_found_by_alias_regex_setting(self):
-        account1 = _AccountTestClass(address='foo@example.com')
-        account2 = _AccountTestClass(address='to@example.com',
+        account1 = _AccountTestClass(address=u'foo@example.com')
+        account2 = _AccountTestClass(address=u'to@example.com',
                                      alias_regexp=r'to\+.*@example.com')
-        account3 = _AccountTestClass(address='bar@example.com')
-        mailstring = self.mailstring.replace('to@example.com',
-                                             'to+some_tag@example.com')
+        account3 = _AccountTestClass(address=u'bar@example.com')
+        mailstring = self.mailstring.replace(u'to@example.com',
+                                             u'to+some_tag@example.com')
         mail = email.message_from_string(mailstring)
-        expected = ('to+some_tag@example.com', account2)
+        expected = (u'to+some_tag@example.com', account2)
         self._test(accounts=[account1, account2, account3], expected=expected,
                    mail=mail)
