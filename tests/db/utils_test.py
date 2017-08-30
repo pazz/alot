@@ -1,5 +1,6 @@
 # encoding: utf-8
 # Copyright (C) 2017 Lucas Hoffmann
+# Copyright © 2017 Dylan Baker
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 from __future__ import absolute_import
@@ -21,6 +22,7 @@ import mock
 from alot import crypto
 from alot import helper
 from alot.db import utils
+from alot.errors import GPGProblem
 from ..utilities import make_key, make_uid, TestCaseClassCleanup
 
 
@@ -342,14 +344,14 @@ class TestAddSignatureHeaders(unittest.TestCase):
         def add_header(self, header, value):
             self.headers.append((header, value))
 
-    def check(self, key, valid):
+    def check(self, key, valid, error_msg=u''):
         mail = self.FakeMail()
 
         with mock.patch('alot.db.utils.crypto.get_key',
                         mock.Mock(return_value=key)), \
                 mock.patch('alot.db.utils.crypto.check_uid_validity',
                            mock.Mock(return_value=valid)):
-            utils.add_signature_headers(mail, [mock.Mock(fpr='')], u'')
+            utils.add_signature_headers(mail, [mock.Mock(fpr='')], error_msg)
 
         return mail
 
@@ -387,6 +389,30 @@ class TestAddSignatureHeaders(unittest.TestCase):
         self.assertIn((utils.X_SIGNATURE_VALID_HEADER, u'True'), mail.headers)
         self.assertIn(
             (utils.X_SIGNATURE_MESSAGE_HEADER, u'Valid: Andreá'), mail.headers)
+
+    def test_error_message_unicode(self):
+        mail = self.check(mock.Mock(), mock.Mock(), u'error message')
+        self.assertIn((utils.X_SIGNATURE_VALID_HEADER, u'False'), mail.headers)
+        self.assertIn(
+            (utils.X_SIGNATURE_MESSAGE_HEADER, u'Invalid: error message'),
+            mail.headers)
+
+    def test_error_message_bytes(self):
+        mail = self.check(mock.Mock(), mock.Mock(), b'error message')
+        self.assertIn((utils.X_SIGNATURE_VALID_HEADER, u'False'), mail.headers)
+        self.assertIn(
+            (utils.X_SIGNATURE_MESSAGE_HEADER, u'Invalid: error message'),
+            mail.headers)
+
+    def test_get_key_fails(self):
+        mail = self.FakeMail()
+        with mock.patch('alot.db.utils.crypto.get_key',
+                        mock.Mock(side_effect=GPGProblem(u'', 0))):
+            utils.add_signature_headers(mail, [mock.Mock(fpr='')], u'')
+        self.assertIn((utils.X_SIGNATURE_VALID_HEADER, u'False'), mail.headers)
+        self.assertIn(
+            (utils.X_SIGNATURE_MESSAGE_HEADER, u'Untrusted: '),
+            mail.headers)
 
 
 class TestMessageFromFile(TestCaseClassCleanup):
@@ -625,3 +651,141 @@ class TestMessageFromFile(TestCaseClassCleanup):
         self.assertIn('This is some text', [n.get_payload() for n in m.walk()])
         self.assertIn(utils.X_SIGNATURE_VALID_HEADER, m)
         self.assertIn(utils.X_SIGNATURE_MESSAGE_HEADER, m)
+
+
+class TestExtractBody(unittest.TestCase):
+
+    @staticmethod
+    def _set_basic_headers(mail):
+        mail['Subject'] = 'Test email'
+        mail['To'] = 'foo@example.com'
+        mail['From'] = 'bar@example.com'
+
+    def test_single_text_plain(self):
+        mail = email.mime.text.MIMEText('This is an email')
+        self._set_basic_headers(mail)
+        actual = utils.extract_body(mail)
+
+        expected = 'This is an email'
+
+        self.assertEqual(actual, expected)
+
+    def test_two_text_plain(self):
+        mail = email.mime.multipart.MIMEMultipart()
+        self._set_basic_headers(mail)
+        mail.attach(email.mime.text.MIMEText('This is an email'))
+        mail.attach(email.mime.text.MIMEText('This is a second part'))
+
+        actual = utils.extract_body(mail)
+        expected = 'This is an email\n\nThis is a second part'
+
+        self.assertEqual(actual, expected)
+
+    def test_text_plain_and_other(self):
+        mail = email.mime.multipart.MIMEMultipart()
+        self._set_basic_headers(mail)
+        mail.attach(email.mime.text.MIMEText('This is an email'))
+        mail.attach(email.mime.application.MIMEApplication(b'1'))
+
+        actual = utils.extract_body(mail)
+        expected = 'This is an email'
+
+        self.assertEqual(actual, expected)
+
+    def test_text_plain_with_attachment_text(self):
+        mail = email.mime.multipart.MIMEMultipart()
+        self._set_basic_headers(mail)
+        mail.attach(email.mime.text.MIMEText('This is an email'))
+        attachment = email.mime.text.MIMEText('this shouldnt be displayed')
+        attachment['Content-Disposition'] = 'attachment'
+        mail.attach(attachment)
+
+        actual = utils.extract_body(mail)
+        expected = 'This is an email'
+
+        self.assertEqual(actual, expected)
+
+    def _make_mixed_plain_html(self):
+        mail = email.mime.multipart.MIMEMultipart()
+        self._set_basic_headers(mail)
+        mail.attach(email.mime.text.MIMEText('This is an email'))
+        mail.attach(email.mime.text.MIMEText(
+            '<!DOCTYPE html><html><body>This is an html email</body></html>',
+            'html'))
+        return mail
+
+    @mock.patch('alot.db.utils.settings.get', mock.Mock(return_value=True))
+    def test_prefer_plaintext(self):
+        expected = 'This is an email'
+        mail = self._make_mixed_plain_html()
+        actual = utils.extract_body(mail)
+
+        self.assertEqual(actual, expected)
+
+    # Mock the handler to cat, so that no transformations of the html are made
+    # making the result non-deterministic
+    @mock.patch('alot.db.utils.settings.get', mock.Mock(return_value=False))
+    @mock.patch('alot.db.utils.settings.mailcap_find_match',
+                mock.Mock(return_value=(None, {'view': 'cat'})))
+    def test_prefer_html(self):
+        expected = '<!DOCTYPE html><html><body>This is an html email</body></html>'
+        mail = self._make_mixed_plain_html()
+        actual = utils.extract_body(mail)
+
+        self.assertEqual(actual, expected)
+
+    @mock.patch('alot.db.utils.settings.get', mock.Mock(return_value=False))
+    @mock.patch('alot.db.utils.settings.mailcap_find_match',
+                mock.Mock(return_value=(None, {'view': 'cat'})))
+    def test_types_provided(self):
+        # This should not return html, even though html is set to preferred
+        # since a types variable is passed
+        expected = 'This is an email'
+        mail = self._make_mixed_plain_html()
+        actual = utils.extract_body(mail, types=['text/plain'])
+
+        self.assertEqual(actual, expected)
+
+    @mock.patch('alot.db.utils.settings.mailcap_find_match',
+                mock.Mock(return_value=(None, {'view': 'cat'})))
+    def test_require_mailcap_stdin(self):
+        mail = email.mime.multipart.MIMEMultipart()
+        self._set_basic_headers(mail)
+        mail.attach(email.mime.text.MIMEText(
+            '<!DOCTYPE html><html><body>This is an html email</body></html>',
+            'html'))
+        actual = utils.extract_body(mail)
+        expected = '<!DOCTYPE html><html><body>This is an html email</body></html>'
+
+        self.assertEqual(actual, expected)
+
+    @mock.patch('alot.db.utils.settings.mailcap_find_match',
+                mock.Mock(return_value=(None, {'view': 'cat %s'})))
+    def test_require_mailcap_file(self):
+        mail = email.mime.multipart.MIMEMultipart()
+        self._set_basic_headers(mail)
+        mail.attach(email.mime.text.MIMEText(
+            '<!DOCTYPE html><html><body>This is an html email</body></html>',
+            'html'))
+        actual = utils.extract_body(mail)
+        expected = '<!DOCTYPE html><html><body>This is an html email</body></html>'
+
+        self.assertEqual(actual, expected)
+
+
+class TestMessageFromString(unittest.TestCase):
+
+    """Tests for message_from_string.
+
+    Because the implementation is that this is a wrapper around
+    message_from_file, it's not important to have a large swath of tests, just
+    enough to show that things are being passed correctly.
+    """
+
+    def test(self):
+        m = email.mime.text.MIMEText(u'This is some text', 'plain', 'utf-8')
+        m['Subject'] = 'test'
+        m['From'] = 'me'
+        m['To'] = 'Nobody'
+        message = utils.message_from_string(m.as_string())
+        self.assertEqual(message.get_payload(), 'This is some text')

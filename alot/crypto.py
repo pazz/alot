@@ -81,31 +81,22 @@ def get_key(keyid, validate=False, encrypt=False, sign=False,
 
             valid_key = None
 
-            # Catching exceptions for list_keys
-            try:
-                for k in list_keys(hint=keyid):
-                    try:
-                        validate_key(k, encrypt=encrypt, sign=sign)
-                    except GPGProblem:
-                        # if the key is invalid for given action skip it
-                        continue
+            for k in list_keys(hint=keyid):
+                try:
+                    validate_key(k, encrypt=encrypt, sign=sign)
+                except GPGProblem:
+                    # if the key is invalid for given action skip it
+                    continue
 
-                    if valid_key:
-                        # we have already found one valid key and now we find
-                        # another? We really received an ambiguous keyid
-                        raise GPGProblem(
-                            "More than one key found matching this filter. "
-                            "Please be more specific "
-                            "(use a key ID like 4AC8EE1D).",
-                            code=GPGCode.AMBIGUOUS_NAME)
-                    valid_key = k
-            except gpg.errors.GPGMEError as e:
-                # This if will be triggered if there is no key matching at all.
-                if e.getcode() == gpg.errors.AMBIGUOUS_NAME:
+                if valid_key:
+                    # we have already found one valid key and now we find
+                    # another? We really received an ambiguous keyid
                     raise GPGProblem(
-                        'Can not find any key for "{}".'.format(keyid),
-                        code=GPGCode.NOT_FOUND)
-                raise
+                        "More than one key found matching this filter. "
+                        "Please be more specific "
+                        "(use a key ID like 4AC8EE1D).",
+                        code=GPGCode.AMBIGUOUS_NAME)
+                valid_key = k
 
             if not valid_key:
                 # there were multiple keys found but none of them are valid for
@@ -120,7 +111,7 @@ def get_key(keyid, validate=False, encrypt=False, sign=False,
                 'Can not find usable key for "{}".'.format(keyid),
                 code=GPGCode.NOT_FOUND)
         else:
-            raise e
+            raise e  # pragma: nocover
     if signed_only and not check_uid_validity(key, keyid):
         raise GPGProblem('Cannot find a trusworthy key for "{}".'.format(keyid),
                          code=GPGCode.NOT_FOUND)
