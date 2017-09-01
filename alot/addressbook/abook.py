@@ -16,7 +16,8 @@ class AbookAddressBook(AddressBook):
         :type path: str
         """
         AddressBook.__init__(self, **kwargs)
-        DEFAULTSPATH = os.path.join(os.path.dirname(__file__), '..', 'defaults')
+        DEFAULTSPATH = os.path.join(os.path.dirname(__file__), '..',
+                                    'defaults')
         self._spec = os.path.join(DEFAULTSPATH, 'abook_contacts.spec')
         path = os.path.expanduser(path)
         self._config = read_config(path, self._spec)

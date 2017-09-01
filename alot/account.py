@@ -73,8 +73,8 @@ class Address(object):
     """
 
     def __init__(self, user, domain, case_sensitive=False):
-        assert isinstance(user, unicode), 'Username must be unicode not bytes'
-        assert isinstance(domain, unicode), 'Domain name must be unicode not bytes'
+        assert isinstance(user, unicode), 'Username must be unicode'
+        assert isinstance(domain, unicode), 'Domain name must be unicode'
         self.username = user
         self.domainname = domain
         self.case_sensitive = case_sensitive
@@ -89,7 +89,7 @@ class Address(object):
         :returns: An account from the given arguments
         :rtype: :class:`Account`
         """
-        assert isinstance(address, unicode), 'address must be unicode not bytes'
+        assert isinstance(address, unicode), 'address must be unicode'
         username, domainname = address.split(u'@')
         return cls(username, domainname, case_sensitive=case_sensitive)
 
@@ -140,12 +140,12 @@ class Address(object):
 
     def __eq__(self, other):
         if not isinstance(other, (Address, basestring)):
-            raise TypeError('Cannot compare Address to any but Address or basestring')
+            raise TypeError('Address must be compared to Address or basestring')
         return self.__cmp(other, operator.eq)
 
     def __ne__(self, other):
         if not isinstance(other, (Address, basestring)):
-            raise TypeError('Cannot compare Address to any but Address or basestring')
+            raise TypeError('Address must be compared to Address or basestring')
         # != is the only rich comparitor that cannot be implemented using 'and'
         # in self.__cmp, so it's implemented as not ==.
         return not self.__cmp(other, operator.eq)

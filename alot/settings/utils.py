@@ -9,6 +9,7 @@ from urwid import AttrSpec
 
 from .errors import ConfigError
 
+
 def read_config(configpath=None, specpath=None, checks=None):
     """
     get a (validated) config object for given config file path.

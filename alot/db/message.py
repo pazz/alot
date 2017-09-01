@@ -116,8 +116,7 @@ class Message(object):
 
     def get_tags(self):
         """returns tags attached to this message as list of strings"""
-        l = sorted(self._tags)
-        return l
+        return sorted(self._tags)
 
     def get_thread(self):
         """returns the :class:`~alot.db.Thread` this msg belongs to"""

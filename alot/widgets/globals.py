@@ -86,8 +86,8 @@ class CompleteEdit(urwid.Edit):
 
     The interpretation of some keypresses is hard-wired:
         :enter: calls 'on_exit' callback with current value
-        :esc/ctrl g: calls 'on_exit' with value `None`, which can be interpreted
-              as cancelation
+        :esc/ctrl g: calls 'on_exit' with value `None`, which can be
+                     interpreted as cancelation
         :tab: calls the completer and tabs forward in the result list
         :shift tab: tabs backward in the result list
         :up/down: move in the local input history

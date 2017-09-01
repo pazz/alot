@@ -152,7 +152,8 @@ def detached_signature_for(plaintext_str, keys):
     """
     ctx = gpg.core.Context(armor=True)
     ctx.signers = keys
-    (sigblob, sign_result) = ctx.sign(plaintext_str, mode=gpg.constants.SIG_MODE_DETACH)
+    (sigblob, sign_result) = ctx.sign(plaintext_str,
+                                      mode=gpg.constants.SIG_MODE_DETACH)
     return sign_result.signatures, sigblob
 
 

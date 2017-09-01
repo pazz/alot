@@ -78,7 +78,8 @@ class ExitCommand(Command):
 
         if ui.db_was_locked:
             msg = 'Database locked. Exit without saving?'
-            if (yield ui.choice(msg, msg_position='left', cancel='no')) == 'no':
+            response = yield ui.choice(msg, msg_position='left', cancel='no')
+            if response == 'no':
                 return
             ui.exit()
 
@@ -855,7 +856,8 @@ class ComposeCommand(Command):
                 self.envelope.sign = account.sign_by_default
                 self.envelope.sign_key = account.gpg_key
             else:
-                msg = 'Cannot find gpg key for account {}'.format(account.address)
+                msg = 'Cannot find gpg key for account {}'
+                msg = msg.format(account.address)
                 logging.warning(msg)
                 ui.notify(msg, priority='error')
 
@@ -910,7 +912,8 @@ class ComposeCommand(Command):
             logging.debug("Trying to encrypt message because "
                           "account.encrypt_by_default=%s",
                           account.encrypt_by_default)
-            yield set_encrypt(ui, self.envelope, block_error=self.encrypt, signed_only=True)
+            yield set_encrypt(ui, self.envelope, block_error=self.encrypt,
+                              signed_only=True)
         else:
             logging.debug("No encryption by default, encrypt_by_default=%s",
                           account.encrypt_by_default)
