@@ -434,7 +434,7 @@ class SettingsManager(object):
             the default account wil be returned
         :rtype: :class:`Account`
         :raises ~alot.settings.errors.NoMatchingAccount: If no account can be
-            found. Thsi includes if return_default is True and there are no
+            found. This includes if return_default is True and there are no
             accounts defined.
         """
         _, address = email.utils.parseaddr(address)

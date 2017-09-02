@@ -129,7 +129,7 @@ class QueryCompleter(Completer):
     """completion for a notmuch query string"""
     def __init__(self, dbman):
         """
-        :param dbman: used to look up avaliable tagstrings
+        :param dbman: used to look up available tagstrings
         :type dbman: :class:`~alot.db.DBManager`
         """
         self.dbman = dbman
@@ -172,7 +172,7 @@ class TagCompleter(StringlistCompleter):
 
     def __init__(self, dbman):
         """
-        :param dbman: used to look up avaliable tagstrings
+        :param dbman: used to look up available tagstrings
         :type dbman: :class:`~alot.db.DBManager`
         """
         resultlist = dbman.get_all_tags()
@@ -184,7 +184,7 @@ class TagsCompleter(MultipleSelectionCompleter):
 
     def __init__(self, dbman):
         """
-        :param dbman: used to look up avaliable tagstrings
+        :param dbman: used to look up available tagstrings
         :type dbman: :class:`~alot.db.DBManager`
         """
         self._completer = TagCompleter(dbman)
@@ -308,7 +308,7 @@ class CommandCompleter(Completer):
 
     def __init__(self, dbman, mode, currentbuffer=None):
         """
-        :param dbman: used to look up avaliable tagstrings
+        :param dbman: used to look up available tagstrings
         :type dbman: :class:`~alot.db.DBManager`
         :param mode: mode identifier
         :type mode: str
@@ -508,7 +508,7 @@ class CommandLineCompleter(Completer):
 
     def __init__(self, dbman, mode, currentbuffer=None):
         """
-        :param dbman: used to look up avaliable tagstrings
+        :param dbman: used to look up available tagstrings
         :type dbman: :class:`~alot.db.DBManager`
         :param mode: mode identifier
         :type mode: str

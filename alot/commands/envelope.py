@@ -202,7 +202,7 @@ class SendCommand(Command):
             # receive a message that they cannot read!
             if self.envelope.headers.get('Bcc') and self.envelope.encrypt:
                 warning = textwrap.dedent("""\
-                    Any BCC recepients will not be able to decrypt this
+                    Any BCC recipients will not be able to decrypt this
                     message. Do you want to send anyway?""").replace('\n', ' ')
                 if (yield ui.choice(warning, cancel='no',
                                     msg_position='left')) == 'no':

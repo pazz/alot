@@ -172,7 +172,7 @@ class Account(object):
         :param mail: the mail to send
         :type mail: :class:`email.message.Message` or string
         :returns: a `Deferred` that errs back with a class:`SendingMailFailed`,
-                  containing a reason string if an error occured.
+                  containing a reason string if an error occurred.
         """
         pass
 

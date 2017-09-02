@@ -225,7 +225,7 @@ def message_from_file(handle):
     '''
     m = email.message_from_file(handle)
 
-    # make sure noone smuggles a token in (data from m is untrusted)
+    # make sure no one smuggles a token in (data from m is untrusted)
     del m[X_SIGNATURE_VALID_HEADER]
     del m[X_SIGNATURE_MESSAGE_HEADER]
 

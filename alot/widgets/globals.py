@@ -87,7 +87,7 @@ class CompleteEdit(urwid.Edit):
     The interpretation of some keypresses is hard-wired:
         :enter: calls 'on_exit' callback with current value
         :esc/ctrl g: calls 'on_exit' with value `None`, which can be interpreted
-              as cancelation
+              as cancellation
         :tab: calls the completer and tabs forward in the result list
         :shift tab: tabs backward in the result list
         :up/down: move in the local input history
@@ -278,7 +278,7 @@ class TagWidget(urwid.AttrMap):
     It looks up the string it displays in the `tags` section
     of the config as well as custom theme settings for its tag.
 
-    Atributes that should be considered publicly readable:
+    Attributes that should be considered publicly readable:
         :attr tag: the notmuch tag
         :type tag: str
     """

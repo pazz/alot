@@ -118,7 +118,7 @@ def force_list(value, min=None, max=None):
     a list with one member.
 
     You can optionally specify the minimum and maximum number of members.
-    A minumum of greater than one will fail if the user only supplies a
+    A minimum of greater than one will fail if the user only supplies a
     string.
 
     The difference to :func:`validate.force_list` is that this test

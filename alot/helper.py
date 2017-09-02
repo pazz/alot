@@ -586,7 +586,7 @@ def RFC3156_canonicalize(text):
     This function works as follows (in that order):
 
     1. Convert all line endings to \\\\r\\\\n (DOS line endings).
-    2. Encode all occurences of "From " at the beginning of a line
+    2. Encode all occurrences of "From " at the beginning of a line
        to "From=20" in order to prevent other mail programs to replace
        this with "> From" (to avoid MBox conflicts) and thus invalidate
        the signature.
