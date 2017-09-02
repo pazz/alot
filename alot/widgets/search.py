@@ -115,8 +115,9 @@ class ThreadlineWidget(urwid.AttrMap):
             if self.thread:
                 fallback_normal = struct[name]['normal']
                 fallback_focus = struct[name]['focus']
-                tag_widgets = sorted(TagWidget(t, fallback_normal, fallback_focus)
-                                     for t in self.thread.get_tags())
+                tag_widgets = sorted(
+                    TagWidget(t, fallback_normal, fallback_focus)
+                    for t in self.thread.get_tags())
             else:
                 tag_widgets = []
             cols = []

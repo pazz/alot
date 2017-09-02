@@ -52,3 +52,114 @@ class TestAccount(unittest.TestCase):
             acct = _AccountTestClass(address=u'foo@example.com',
                                      encrypt_by_default=each)
             self.assertEqual(acct.encrypt_by_default, u'none')
+
+
+class TestAddress(unittest.TestCase):
+
+    """Tests for the Address class."""
+
+    def test_constructor_bytes(self):
+        with self.assertRaises(AssertionError):
+            account.Address(b'username', b'domainname')
+
+    def test_from_string_bytes(self):
+        with self.assertRaises(AssertionError):
+            account.Address.from_string(b'user@example.com')
+
+    def test_from_string(self):
+        addr = account.Address.from_string(u'user@example.com')
+        self.assertEqual(addr.username, u'user')
+        self.assertEqual(addr.domainname, u'example.com')
+
+    def test_unicode(self):
+        addr = account.Address(u'ušer', u'example.com')
+        self.assertEqual(unicode(addr), u'ušer@example.com')
+
+    def test_str(self):
+        addr = account.Address(u'ušer', u'example.com')
+        self.assertEqual(str(addr), u'ušer@example.com'.encode('utf-8'))
+
+    def test_eq_unicode(self):
+        addr = account.Address(u'ušer', u'example.com')
+        self.assertEqual(addr, u'ušer@example.com')
+
+    def test_eq_address(self):
+        addr = account.Address(u'ušer', u'example.com')
+        addr2 = account.Address(u'ušer', u'example.com')
+        self.assertEqual(addr, addr2)
+
+    def test_ne_unicode(self):
+        addr = account.Address(u'ušer', u'example.com')
+        self.assertNotEqual(addr, u'user@example.com')
+
+    def test_ne_address(self):
+        addr = account.Address(u'ušer', u'example.com')
+        addr2 = account.Address(u'user', u'example.com')
+        self.assertNotEqual(addr, addr2)
+
+    def test_eq_unicode_case(self):
+        addr = account.Address(u'UŠer', u'example.com')
+        self.assertEqual(addr, u'ušer@example.com')
+
+    def test_ne_unicode_case(self):
+        addr = account.Address(u'ušer', u'example.com')
+        self.assertEqual(addr, u'uŠer@example.com')
+
+    def test_ne_address_case(self):
+        addr = account.Address(u'ušer', u'example.com')
+        addr2 = account.Address(u'uŠer', u'example.com')
+        self.assertEqual(addr, addr2)
+
+    def test_eq_address_case(self):
+        addr = account.Address(u'UŠer', u'example.com')
+        addr2 = account.Address(u'ušer', u'example.com')
+        self.assertEqual(addr, addr2)
+
+    def test_eq_unicode_case_sensitive(self):
+        addr = account.Address(u'UŠer', u'example.com', case_sensitive=True)
+        self.assertNotEqual(addr, u'ušer@example.com')
+
+    def test_eq_address_case_sensitive(self):
+        addr = account.Address(u'UŠer', u'example.com', case_sensitive=True)
+        addr2 = account.Address(u'ušer', u'example.com')
+        self.assertNotEqual(addr, addr2)
+
+    def test_eq_str(self):
+        addr = account.Address(u'user', u'example.com', case_sensitive=True)
+        with self.assertRaises(TypeError):
+            addr == 1  # pylint: disable=pointless-statement
+
+    def test_ne_str(self):
+        addr = account.Address(u'user', u'example.com', case_sensitive=True)
+        with self.assertRaises(TypeError):
+            addr != 1  # pylint: disable=pointless-statement
+
+    def test_repr(self):
+        addr = account.Address(u'user', u'example.com', case_sensitive=True)
+        self.assertEqual(
+            repr(addr),
+            "Address(u'user', u'example.com', case_sensitive=True)")
+
+    def test_domain_name_ne(self):
+        addr = account.Address(u'user', u'example.com')
+        self.assertNotEqual(addr, u'user@example.org')
+
+    def test_domain_name_eq_case(self):
+        addr = account.Address(u'user', u'example.com')
+        self.assertEqual(addr, u'user@Example.com')
+
+    def test_domain_name_ne_unicode(self):
+        addr = account.Address(u'user', u'éxample.com')
+        self.assertNotEqual(addr, u'user@example.com')
+
+    def test_domain_name_eq_unicode(self):
+        addr = account.Address(u'user', u'éxample.com')
+        self.assertEqual(addr, u'user@Éxample.com')
+
+    def test_domain_name_eq_case_sensitive(self):
+        addr = account.Address(u'user', u'example.com', case_sensitive=True)
+        self.assertEqual(addr, u'user@Example.com')
+
+    def test_domain_name_eq_unicode_sensitive(self):
+        addr = account.Address(u'user', u'éxample.com', case_sensitive=True)
+        self.assertEqual(addr, u'user@Éxample.com')

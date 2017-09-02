@@ -66,17 +66,17 @@ class Message(object):
 
     def __eq__(self, other):
         if isinstance(other, type(self)):
-            return self.get_message_id() == other.get_message_id()
+            return self._id == other.get_message_id()
         return NotImplemented
 
     def __ne__(self, other):
         if isinstance(other, type(self)):
-            return self.get_message_id() != other.get_message_id()
+            return self._id != other.get_message_id()
         return NotImplemented
 
     def __lt__(self, other):
         if isinstance(other, type(self)):
-            return self.get_message_id() < other.get_message_id()
+            return self._id < other.get_message_id()
         return NotImplemented
 
     def get_email(self):
@@ -116,8 +116,7 @@ class Message(object):
 
     def get_tags(self):
         """returns tags attached to this message as list of strings"""
-        l = sorted(self._tags)
-        return l
+        return sorted(self._tags)
 
     def get_thread(self):
         """returns the :class:`~alot.db.Thread` this msg belongs to"""

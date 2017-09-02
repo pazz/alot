@@ -123,17 +123,17 @@ class TestSettingsManagerGetAccountByAddress(utilities.TestCaseClassCleanup):
         cls.manager = SettingsManager(alot_rc=f.name)
 
     def test_exists_addr(self):
-        acc = self.manager.get_account_by_address('that_guy@example.com')
+        acc = self.manager.get_account_by_address(u'that_guy@example.com')
         self.assertEqual(acc.realname, 'That Guy')
 
     def test_doesnt_exist_return_default(self):
-        acc = self.manager.get_account_by_address('doesntexist@example.com',
+        acc = self.manager.get_account_by_address(u'doesntexist@example.com',
                                                   return_default=True)
         self.assertEqual(acc.realname, 'That Guy')
 
     def test_doesnt_exist_raise(self):
         with self.assertRaises(NoMatchingAccount):
-            self.manager.get_account_by_address('doesntexist@example.com')
+            self.manager.get_account_by_address(u'doesntexist@example.com')
 
     def test_doesnt_exist_no_default(self):
         with tempfile.NamedTemporaryFile() as f:
@@ -147,3 +147,14 @@ class TestSettingsManagerGetAccountByAddress(utilities.TestCaseClassCleanup):
         acc = self.manager.get_account_by_address(
             'That Guy <a_dude@example.com>')
         self.assertEqual(acc.realname, 'A Dude')
+
+    def test_address_case(self):
+        """Some servers do not differentiate addresses by case.
+
+        So, for example, "foo@example.com" and "Foo@example.com" would be
+        considered the same. Among servers that do this gmail, yahoo, fastmail,
+        anything running Exchange (i.e., most large corporations), and others.
+        """
+        acc1 = self.manager.get_account_by_address('That_guy@example.com')
+        acc2 = self.manager.get_account_by_address('that_guy@example.com')
+        self.assertIs(acc1, acc2)

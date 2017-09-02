@@ -124,9 +124,8 @@ class SaveCommand(Command):
             return
 
         if account.draft_box is None:
-            ui.notify(
-                'abort: account <%s> has no draft_box set.' % envelope.get('From'),
-                priority='error')
+            msg = 'abort: Account for {} has no draft_box'
+            ui.notify(msg.format(account.address), priority='error')
             return
 
         mail = envelope.construct_mail()
@@ -511,8 +510,8 @@ class SignCommand(Command):
                     return
                 if not acc.gpg_key:
                     envelope.sign = False
-                    ui.notify('Account for {} has no gpg key'.format(acc.address),
-                              priority='error')
+                    msg = 'Account for {} has no gpg key'
+                    ui.notify(msg.format(acc.address), priority='error')
                     return
                 envelope.sign_key = acc.gpg_key
         else:

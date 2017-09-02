@@ -377,7 +377,8 @@ class DBManager(object):
         :param sort: Sort order. one of ['oldest_first', 'newest_first',
                      'message_id', 'unsorted']
         :type query: str
-        :param exclude_tags: Tags to exclude by default unless included in the search
+        :param exclude_tags: Tags to exclude by default unless included in the
+                             search
         :type exclude_tags: list of str
         :returns: a pipe together with the process that asynchronously
                   writes to it.

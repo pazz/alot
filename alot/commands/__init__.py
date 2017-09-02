@@ -34,6 +34,7 @@ class CommandCanceled(Exception):
     """
     pass
 
+
 COMMANDS = {
     'search': {},
     'envelope': {},
