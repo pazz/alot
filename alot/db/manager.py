@@ -125,7 +125,7 @@ class DBManager(object):
                     cmd, afterwards = current_item[:2]
                     logging.debug('cmd created')
 
-                    # aquire a writeable db handler
+                    # acquire a writeable db handler
                     try:
                         mode = Database.MODE.READ_WRITE
                         db = Database(path=self.path, mode=mode)
@@ -364,7 +364,7 @@ class DBManager(object):
         os.close(stderr[1])
 
         # closing the sending end in this (receiving) process guarantees
-        # that here the apropriate EOFError is raised upon .recv in the walker
+        # that here the appropriate EOFError is raised upon .recv in the walker
         sender.close()
         return receiver, process
 

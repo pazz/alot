@@ -733,7 +733,7 @@ class PipeCommand(Command):
         if self.shell:
             self.cmd = [' '.join(self.cmd)]
 
-        # do teh monkey
+        # do the monkey
         for mail in pipestrings:
             if self.background:
                 logging.debug('call in background: %s', self.cmd)
@@ -1110,7 +1110,7 @@ class TagCommand(Command):
         :type action: str
         :param all: tag all messages in thread
         :type all: bool
-        :param flush: imediately write out to the index
+        :param flush: immediately write out to the index
         :type flush: bool
         """
         self.tagsstring = tags

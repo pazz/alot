@@ -52,7 +52,7 @@ def parser():
                         action=cargparse.ValidatedStoreAction,
                         validator=cargparse.optional_file_like,
                         help='logfile [default: %(default)s]')
-    # We will handle the subcommands in a seperate run of argparse as argparse
+    # We will handle the subcommands in a separate run of argparse as argparse
     # does not support optional subcommands until now.
     parser.add_argument('command', nargs=argparse.REMAINDER,
                         help='possible subcommands are {}'.format(

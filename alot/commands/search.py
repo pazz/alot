@@ -172,7 +172,7 @@ class TagCommand(Command):
         :type action: str
         :param allmessages: tag all messages in search result
         :type allmessages: bool
-        :param flush: imediately write out to the index
+        :param flush: immediately write out to the index
         :type flush: bool
         """
         self.tagsstring = tags
