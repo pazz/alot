@@ -51,6 +51,8 @@ class Message(object):
 
         try:
             sender = decode_header(msg.get_header('From'))
+            if not sender:
+                sender = decode_header(msg.get_header('Sender'))
         except NullPointerError:
             sender = None
         if sender:

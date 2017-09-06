@@ -78,7 +78,6 @@ class TestMessage(unittest.TestCase):
             MockNotmuchMessage({'From': '"User Name" <user@example.com>'}))
         self.assertEqual(msg.get_author(), ('User Name', 'user@example.com'))
 
-    @unittest.expectedFailure
     def test_get_author_sender(self):
         """Message._from is populated using the 'Sender' header when no 'From'
         header is present.
