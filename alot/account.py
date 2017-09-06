@@ -122,9 +122,15 @@ class Address(object):
             The intention is to use functions from the operator module.
         """
         if isinstance(other, unicode):
-            ouser, odomain = other.split(u'@')
+            try:
+                ouser, odomain = other.split(u'@')
+            except ValueError:
+                ouser, odomain = u'', u''
         elif isinstance(other, str):
-            ouser, odomain = other.decode('utf-8').split(u'@')
+            try:
+                ouser, odomain = other.decode('utf-8').split(u'@')
+            except ValueError:
+                ouser, odomain = '', ''
         else:
             ouser = other.username
             odomain = other.domainname

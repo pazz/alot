@@ -164,7 +164,6 @@ class TestAddress(unittest.TestCase):
         addr = account.Address(u'user', u'éxample.com', case_sensitive=True)
         self.assertEqual(addr, u'user@Éxample.com')
 
-    @unittest.expectedFailure
     def test_cmp_empty(self):
         addr = account.Address(u'user', u'éxample.com')
         self.assertNotEqual(addr, u'')
