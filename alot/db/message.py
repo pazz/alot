@@ -45,13 +45,21 @@ class Message(object):
         except ValueError:
             self._datetime = None
         self._filename = msg.get_filename()
-        try:
-            self._from = decode_header(msg.get_header('From'))
-        except NullPointerError:
-            self._from = ''
         self._email = None  # will be read upon first use
         self._attachments = None  # will be read upon first use
         self._tags = set(msg.get_tags())
+
+        try:
+            sender = decode_header(msg.get_header('From'))
+        except NullPointerError:
+            sender = None
+        if sender:
+            self._from = sender
+        elif 'draft' in self._tags:
+            acc = settings.get_accounts()[0]
+            self._from = '"{}" <{}>'.format(acc.realname, unicode(acc.address))
+        else:
+            self._from = '"Unknown" <>'
 
     def __str__(self):
         """prettyprint the message"""

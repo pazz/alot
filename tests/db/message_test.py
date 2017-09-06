@@ -88,7 +88,6 @@ class TestMessage(unittest.TestCase):
             MockNotmuchMessage({'Sender': '"User Name" <user@example.com>'}))
         self.assertEqual(msg.get_author(), ('User Name', 'user@example.com'))
 
-    @unittest.expectedFailure
     def test_get_author_no_name_draft(self):
         """Message._from is populated from the default account if the draft tag
         is present.
@@ -102,7 +101,6 @@ class TestMessage(unittest.TestCase):
                 mock.Mock(), MockNotmuchMessage(tags=['draft']))
         self.assertEqual(msg.get_author(), ('User Name', 'user@example.com'))
 
-    @unittest.expectedFailure
     def test_get_author_no_name(self):
         """Message._from is set to 'Unkown' if there is no relavent header and
         the message is not a draft.
