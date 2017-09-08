@@ -163,3 +163,7 @@ class TestAddress(unittest.TestCase):
     def test_domain_name_eq_unicode_sensitive(self):
         addr = account.Address(u'user', u'éxample.com', case_sensitive=True)
         self.assertEqual(addr, u'user@Éxample.com')
+
+    def test_cmp_empty(self):
+        addr = account.Address(u'user', u'éxample.com')
+        self.assertNotEqual(addr, u'')
