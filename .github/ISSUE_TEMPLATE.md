@@ -11,6 +11,8 @@ Software Versions
 
 Python version:
 
+Notmuch version:
+
 Alot version (either a number or sha for master):
 
 Observed behavior
