@@ -9,6 +9,8 @@ import logging
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from ..errors import GPGProblem, GPGCode
+from ..settings.const import settings
+from ..settings.errors import NoMatchingAccount
 from .. import crypto
 
 
@@ -46,6 +48,19 @@ def set_encrypt(ui, envelope, block_error=False, signed_only=False):
     if keys:
         envelope.encrypt_keys.update(keys)
         envelope.encrypt = True
+
+        if 'From' in envelope.headers:
+            try:
+                acc = settings.get_account_by_address(envelope['From'])
+                if acc.encrypt_to_self:
+                    if acc.gpg_key:
+                        logging.debug('encrypt to self: %s', acc.gpg_key.fpr)
+                        envelope.encrypt_keys[acc.gpg_key.fpr] = acc.gpg_key
+                    else:
+                        logging.debug('encrypt to self: no gpg_key in account')
+            except NoMatchingAccount:
+                logging.debug('encrypt to self: no account found')
+
     else:
         envelope.encrypt = False
 
