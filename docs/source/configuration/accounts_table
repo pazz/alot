@@ -159,12 +159,26 @@
     :default: none
 
 
+.. _encrypt-to-self:
+
+.. describe:: encrypt_to_self
+
+     If this is true when encrypting a message it will also be encrypted
+     with the key defined for this account.
+
+     .. warning::
+
+        Before 0.6 this was controlled via gpg.conf.
+
+    :type: boolean
+    :default: True
+
+
 .. _gpg-key:
 
 .. describe:: gpg_key
 
-     The GPG key ID you want to use with this account. If unset, alot will
-     use your default key.
+     The GPG key ID you want to use with this account.
 
     :type: string
     :default: None
