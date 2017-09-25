@@ -126,6 +126,12 @@ class TestGetKeys(unittest.TestCase):
         ui.choice.assert_called_once()
 
 
+class _Account(object):
+    def __init__(self, encrypt_to_self=True, gpg_key=None):
+        self.encrypt_to_self = encrypt_to_self
+        self.gpg_key = gpg_key
+
+
 class TestSetEncrypt(unittest.TestCase):
 
     @inlineCallbacks
@@ -169,3 +175,32 @@ class TestSetEncrypt(unittest.TestCase):
         yield utils.set_encrypt(ui, envelope)
         self.assertFalse(envelope.encrypt)
         self.assertEqual(envelope.encrypt_keys, {})
+
+    @inlineCallbacks
+    def test_encrypt_to_self_true(self):
+        ui = mock.Mock()
+        envelope = Envelope()
+        envelope['From'] = 'test@example.com'
+        envelope['To'] = 'ambig@example.com'
+        gpg_key = crypto.get_key(FPR)
+        account = _Account(encrypt_to_self=True, gpg_key=gpg_key)
+        with mock.patch('alot.commands.thread.settings.get_account_by_address',
+                        mock.Mock(return_value=account)):
+            yield utils.set_encrypt(ui, envelope)
+        self.assertTrue(envelope.encrypt)
+        self.assertIn(FPR, envelope.encrypt_keys)
+        self.assertEqual(gpg_key, envelope.encrypt_keys[FPR])
+
+    @inlineCallbacks
+    def test_encrypt_to_self_false(self):
+        ui = mock.Mock()
+        envelope = Envelope()
+        envelope['From'] = 'test@example.com'
+        envelope['To'] = 'ambig@example.com'
+        gpg_key = crypto.get_key(FPR)
+        account = _Account(encrypt_to_self=False, gpg_key=gpg_key)
+        with mock.patch('alot.commands.thread.settings.get_account_by_address',
+                        mock.Mock(return_value=account)):
+            yield utils.set_encrypt(ui, envelope)
+        self.assertTrue(envelope.encrypt)
+        self.assertNotIn(FPR, envelope.encrypt_keys)
