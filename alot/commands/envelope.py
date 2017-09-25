@@ -582,7 +582,12 @@ class EncryptCommand(Command):
         elif self.action == 'toggleencrypt':
             encrypt = not envelope.encrypt
         if encrypt:
-            yield utils.set_encrypt(ui, envelope, signed_only=self.trusted)
+            if self.encrypt_keys:
+                for keyid in self.encrypt_keys:
+                    tmp_key = crypto.get_key(keyid)
+                    envelope.encrypt_keys[tmp_key.fpr] = tmp_key
+            else:
+                yield utils.set_encrypt(ui, envelope, signed_only=self.trusted)
         envelope.encrypt = encrypt
         if not envelope.encrypt:
             # This is an extra conditional as it can even happen if encrypt is
