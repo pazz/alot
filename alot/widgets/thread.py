@@ -207,7 +207,7 @@ class MessageTree(CollapsibleTree):
 
             bodytree = self._get_body()
             if bodytree is not None:
-                mainstruct.append((self._get_body(), None))
+                mainstruct.append((bodytree, None))
 
         structure = [
             (self._get_summary(), mainstruct)
