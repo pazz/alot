@@ -190,6 +190,8 @@ class Account(object):
     """regex matching alternative addresses"""
     realname = None
     """real name used to format from-headers"""
+    encrypt_to_self = None
+    """encrypt outgoing encrypted emails to this account's private key"""
     gpg_key = None
     """gpg fingerprint for this account's private key"""
     signature = None
@@ -207,8 +209,8 @@ class Account(object):
                  signature_filename=None, signature_as_attachment=False,
                  sent_box=None, sent_tags=None, draft_box=None,
                  draft_tags=None, abook=None, sign_by_default=False,
-                 encrypt_by_default=u"none", case_sensitive_username=False,
-                 **_):
+                 encrypt_by_default=u"none", encrypt_to_self=None,
+                 case_sensitive_username=False, **_):
         sent_tags = sent_tags or []
         if 'sent' not in sent_tags:
             sent_tags.append('sent')
@@ -221,6 +223,7 @@ class Account(object):
                         for a in (aliases or [])]
         self.alias_regexp = alias_regexp
         self.realname = realname
+        self.encrypt_to_self = encrypt_to_self
         self.gpg_key = gpg_key
         self.signature = signature
         self.signature_filename = signature_filename

@@ -351,8 +351,15 @@ thread_focus_linewise = boolean(default=True)
         #           1.0, please move to `all`, `none`, or `trusted`.
         encrypt_by_default = option('all', 'none', 'trusted', 'True', 'False', 'true', 'false', 'Yes', 'No', 'yes', 'no', '1', '0', default='none')
 
-        # The GPG key ID you want to use with this account. If unset, alot will
-        # use your default key.
+        # If this is true when encrypting a message it will also be encrypted
+        # with the key defined for this account.
+        #
+        # .. warning::
+        #   
+        #    Before 0.6 this was controlled via gpg.conf.
+        encrypt_to_self = boolean(default=True)
+
+        # The GPG key ID you want to use with this account.
         gpg_key = gpg_key_hint(default=None)
 
         # Whether the server treats the address as case-senstive or

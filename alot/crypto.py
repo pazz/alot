@@ -157,7 +157,7 @@ def detached_signature_for(plaintext_str, keys):
     return sign_result.signatures, sigblob
 
 
-def encrypt(plaintext_str, keys=None):
+def encrypt(plaintext_str, keys):
     """Encrypt data and return the encrypted form.
 
     :param str plaintext_str: the mail to encrypt
@@ -166,6 +166,7 @@ def encrypt(plaintext_str, keys=None):
     :returns: encrypted mail
     :rtype: str
     """
+    assert keys, 'Must provide at least one key to encrypt with'
     ctx = gpg.core.Context(armor=True)
     out = ctx.encrypt(plaintext_str, recipients=keys, sign=False,
                       always_trust=True)[0]
