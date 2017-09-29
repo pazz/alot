@@ -21,6 +21,7 @@ from .. import crypto
 from .. import helper
 from ..errors import GPGProblem
 from ..settings.const import settings
+from ..settings.errors import NoMailcapEntry
 from ..helper import string_sanitize
 from ..helper import string_decode
 from ..helper import parse_mailcap_nametemplate
@@ -346,6 +347,8 @@ def extract_body(mail, types=None, field_key='copiousoutput'):
         else:
             # get mime handler
             _, entry = settings.mailcap_find_match(ctype, key=field_key)
+            if entry is None:
+                raise NoMailcapEntry(ctype)
             tempfile_name = None
             stdin = None
 

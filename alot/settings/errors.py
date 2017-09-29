@@ -11,3 +11,15 @@ class ConfigError(Exception):
 class NoMatchingAccount(ConfigError):
     """No account matching requirements found."""
     pass
+
+
+class NoMailcapEntry(ConfigError):
+    """No mailcap entry found."""
+    def __init__(self, ctype):
+
+        msg = "Could not render content of type \"{}\" " \
+              "due to a missing mailcap entry.".format(ctype)
+        if ctype == 'text/html':
+            msg += " Please check out item 5 in our FAQ."
+
+        super(NoMailcapEntry, self).__init__(msg)
