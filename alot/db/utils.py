@@ -326,6 +326,10 @@ def extract_body(mail, types=None, field_key='copiousoutput'):
 
     body_parts = []
     for part in mail.walk():
+        # skip non-leaf nodes in the mail tree
+        if part.is_multipart():
+            continue
+
         ctype = part.get_content_type()
 
         if types is not None:
