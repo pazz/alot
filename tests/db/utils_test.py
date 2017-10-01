@@ -23,6 +23,7 @@ from alot import crypto
 from alot import helper
 from alot.db import utils
 from alot.errors import GPGProblem
+from alot.settings.errors import NoMailcapEntry
 from ..utilities import make_key, make_uid, TestCaseClassCleanup
 
 
@@ -681,16 +682,15 @@ class TestExtractBody(unittest.TestCase):
 
         self.assertEqual(actual, expected)
 
-    def test_text_plain_and_other(self):
+    def test_unknown_part(self):
         mail = email.mime.multipart.MIMEMultipart()
         self._set_basic_headers(mail)
-        mail.attach(email.mime.text.MIMEText('This is an email'))
+        # add an "application/octet-stream" part without marking it with
+        # content-Disposition attachment.
         mail.attach(email.mime.application.MIMEApplication(b'1'))
 
-        actual = utils.extract_body(mail)
-        expected = 'This is an email'
-
-        self.assertEqual(actual, expected)
+        # this will fail to find a mailcap entry for rendeting octet-stream.
+        self.assertRaises(NoMailcapEntry, utils.extract_body, mail)
 
     def test_text_plain_with_attachment_text(self):
         mail = email.mime.multipart.MIMEMultipart()
