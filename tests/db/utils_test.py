@@ -722,9 +722,9 @@ class TestExtractBody(unittest.TestCase):
 
         self.assertEqual(actual, expected)
 
-    # Mock the handler to cat, so that no transformations of the html are made
-    # making the result non-deterministic
+    # make sure to behave as if prefer_plaintext config option is set to false.
     @mock.patch('alot.db.utils.settings.get', mock.Mock(return_value=False))
+    # Mock the handler to cat, so that no transformations of the html are made
     @mock.patch('alot.db.utils.settings.mailcap_find_match',
                 mock.Mock(return_value=(None, {'view': 'cat'})))
     def test_prefer_html(self):
