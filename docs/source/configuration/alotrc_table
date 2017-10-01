@@ -234,6 +234,17 @@
     :default: [{buffer_no}: envelope], {input_queue} total messages: {total_messages}
 
 
+.. _exclude-tags:
+
+.. describe:: exclude_tags
+
+     A list of tags that will be excluded from search results by default. Using an excluded tag in a query will override that exclusion.
+     .. note:: this config setting is equivalent to, but independent of, the 'search.exclude_tags' in the notmuch config.
+
+    :type: string list
+    :default: ,
+
+
 .. _flush-retry-timeout:
 
 .. describe:: flush_retry_timeout
