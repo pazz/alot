@@ -689,14 +689,14 @@ class TestExtractBody(unittest.TestCase):
         # content-Disposition attachment.
         mail.attach(email.mime.application.MIMEApplication(b'1'))
 
-        # this will fail to find a mailcap entry for rendeting octet-stream.
+        # this will fail to find a mailcap entry for rendering octet-stream.
         self.assertRaises(NoMailcapEntry, utils.extract_body, mail)
 
     def test_text_plain_with_attachment_text(self):
         mail = email.mime.multipart.MIMEMultipart()
         self._set_basic_headers(mail)
         mail.attach(email.mime.text.MIMEText('This is an email'))
-        attachment = email.mime.text.MIMEText('this shouldnt be displayed')
+        attachment = email.mime.text.MIMEText('this should not be displayed')
         attachment['Content-Disposition'] = 'attachment'
         mail.attach(attachment)
 
@@ -725,6 +725,7 @@ class TestExtractBody(unittest.TestCase):
     # make sure to behave as if prefer_plaintext config option is set to false.
     @mock.patch('alot.db.utils.settings.get', mock.Mock(return_value=False))
     # Mock the handler to cat, so that no transformations of the html are made
+    @mock.patch('alot.db.utils.settings.get', mock.Mock(return_value=False))
     @mock.patch('alot.db.utils.settings.mailcap_find_match',
                 mock.Mock(return_value=(None, {'view': 'cat'})))
     def test_prefer_html(self):
@@ -745,6 +746,13 @@ class TestExtractBody(unittest.TestCase):
         actual = utils.extract_body(mail, types=['text/plain'])
 
         self.assertEqual(actual, expected)
+
+    @mock.patch('alot.db.utils.settings.mailcap_find_match',
+                mock.Mock(return_value=(None, None)))
+    def test_no_mailcap_entry_for_html(self):
+        mail = email.mime.text.MIMEText('', 'html')
+        # this will fail to find a mailcap entry for rendeting octet-stream.
+        self.assertRaises(NoMailcapEntry, utils.extract_body, mail)
 
     @mock.patch('alot.db.utils.settings.mailcap_find_match',
                 mock.Mock(return_value=(None, {'view': 'cat'})))
