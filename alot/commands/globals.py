@@ -34,6 +34,7 @@ from ..completion import TagsCompleter
 from ..widgets.utils import DialogBox
 from ..db.errors import DatabaseLockedError
 from ..db.envelope import Envelope
+from ..db.account import Account
 from ..settings.const import settings
 from ..utils import argparse as cargparse
 
@@ -527,6 +528,21 @@ class OpenBufferlistCommand(Command):
         else:
             bl = buffers.BufferlistBuffer(ui, self.filtfun)
             ui.buffer_open(bl)
+
+
+@registerCommand(MODE, 'folders')
+class OpenFolderlistCommand(Command):
+    """ display a tree view of maildir folders """
+    def apply(self, ui):
+        f_buffers = ui.get_buffers_of_type(buffers.FolderTreeBuffer)
+        if f_buffers:
+            ui.buffer_focus(f_buffers[0])
+        else:
+            account = Account(
+                ui.dbman,
+            )
+            folder_buffer = buffers.FolderTreeBuffer(ui, account)
+            ui.buffer_open(folder_buffer)
 
 
 @registerCommand(MODE, 'taglist', arguments=[

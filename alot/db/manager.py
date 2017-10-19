@@ -305,6 +305,49 @@ class DBManager(object):
         db = Database(path=self.path)
         return [t for t in db.get_all_tags()]
 
+    def get_all_folders(self):
+        """
+        query notmuch and return list of all maildir folders
+
+        :return: list of folders
+        """
+        mode = Database.MODE.READ_ONLY
+        db = Database(path=self.path, mode=mode)
+        root_dir_path = db.get_path()
+        logging.info("root directory is %r", root_dir_path)
+
+        result = []
+
+        IMAP_FOLDERS = {"cur", "new", "tmp"}
+
+        def recursive_search(root_dir, relative_path):
+            child_dirs = list_child_dirs(root_dir, relative_path)
+            for child_dir in child_dirs:
+                path = os.path.join(relative_path, child_dir)
+                logging.debug("recursive search in %s", path)
+                recursive_search(root_dir, path)
+
+        def list_child_dirs(root_dir, relative_path):
+            abs_path = os.path.join(root_dir, relative_path)
+            nm_dir = db.get_directory(abs_path)
+            l = []
+            if nm_dir:
+                filenames = nm_dir.get_child_directories()
+                folder_set = set(filenames)
+                # notmuch returns {cur,new,tmp} folders for root folders of
+                # account
+                if not folder_set.issubset(IMAP_FOLDERS):
+                    for f in folder_set:
+                        folder_rel_path = os.path.join(relative_path, f)
+                        logging.debug("new folder: %s", folder_rel_path)
+                        result.append(folder_rel_path)
+                        l.append(folder_rel_path)
+            return l
+
+        recursive_search(root_dir_path, "")
+
+        return result
+
     def async(self, cbl, fun):
         """
         return a pair (pipe, process) so that the process writes
