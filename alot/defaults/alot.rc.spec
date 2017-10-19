@@ -118,6 +118,11 @@ show_statusbar = boolean(default=True)
 # * `{pending_writes}`: number of pending write operations to the index
 bufferlist_statusbar = mixed_list(string, string, default=list('[{buffer_no}: bufferlist]','{input_queue} total messages: {total_messages}'))
 
+
+# * `{folders_count}`: number of matching messages
+# * `{folders_count_positive}`: 's' if result count is greater than 0.
+folders_statusbar = mixed_list(string, string, default=list(' ', '{folders_count} folders'))
+
 # Format of the status-bar in search mode.
 # This is a pair of strings to be left and right aligned in the status-bar.
 # Apart from the global variables listed at :ref:`bufferlist_statusbar <bufferlist-statusbar>`

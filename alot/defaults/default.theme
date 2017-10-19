@@ -20,6 +20,12 @@
     line_focus = 'standout','','yellow','light gray','#ff8','g58'
     line_even = 'default','','light gray','black','default','g3'
     line_odd = 'default','','light gray','black','default','default'
+[folders]
+    line_focus = 'standout','','yellow','light gray','#ff8','g58'
+    line_empty = 'default','','light gray','black','#888','default'
+    line = 'default','','light gray','black','light gray','default'
+    arrow_heads = '','','light red','','#c00',''
+    arrow_bars = '','','light red','','#a00',''
 [taglist]
     line_focus = 'standout','','yellow','light gray','#ff8','g58'
     line_even = 'default','','light gray','black','default','g3'
