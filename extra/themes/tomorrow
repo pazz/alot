@@ -79,6 +79,12 @@ error = 'dark red'
     line_focus = 'standout','default','%(16_focus_fg)s','%(16_focus_bg)s','%(256_focus_fg)s','%(256_focus_bg)s'
     line_even = 'default','default','%(16_text_fg)s','%(16_normal_bg)s','%(256_text_fg)s','%(256_normal_bg)s'
     line_odd = 'default','default','%(16_text_fg)s','%(16_normal_bg)s','%(256_text_fg)s','%(256_normal_bg)s'
+[folders]
+    line_focus = 'standout','default','%(16_focus_fg)s','%(16_focus_bg)s','%(256_focus_fg)s','%(256_focus_bg)s'
+    line_empty = 'default','default','%(16_text_fg)s','%(16_normal_bg)s','%(256_text_fg)s','%(256_normal_bg)s'
+    line = 'default','default','%(16_text_fg)s','%(16_normal_bg)s','%(256_text_fg)s','%(256_normal_bg)s'
+    arrow_bars = 'default','default','%(16_tags_fg)s','%(16_tags_bg)s','%(256_tags_fg)s','%(256_tags_bg)s'
+    arrow_heads = 'default','default','%(16_tags_fg)s','%(16_tags_bg)s','%(256_tags_fg)s','%(256_tags_bg)s'
 [thread]
     attachment = 'default','default','%(16_text_fg)s','%(16_text_bg)s','%(256_text_fg)s','%(256_text_bg)s'
     attachment_focus = 'underline','default','%(16_gray_bg)s','%(16_alternate)s','%(256_gray_bg)s','%(256_alternate)s'

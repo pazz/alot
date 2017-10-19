@@ -25,6 +25,12 @@
     line_even = '','','light gray','black','light gray','g0'
     line_odd = '','','light gray','black','light gray','g0'
     line_focus = 'standout','','black','dark cyan','black','dark cyan'
+[folders]
+    line_focus = 'standout','','black','dark cyan','black','dark cyan'
+    line_empty = '','','light gray','black','light gray','g0'
+    line = '','','light gray','black','light gray','g0'
+    arrow_heads = '','','black','black','g0','g0'
+    arrow_bars = '','','black','black','g0','g0'
 [thread]
     arrow_heads = '','','black','black','g0','g0'
     arrow_bars = '','','black','black','g0','g0'

@@ -50,6 +50,12 @@ green = 'dark green'
     line_even = 'default','default','%(base0)s','%(base02)s','%(base0)s','%(base02)s'
     line_focus = 'standout','default','%(base1)s','%(base01)s','%(base1)s','%(base01)s'
     line_odd = 'default','default','%(base0)s','%(base03)s','%(base0)s','%(base03)s'
+[folders]
+    line_focus = 'standout','default','%(16_base02)s','%(16_yellow)s','%(256_base02)s','%(256_yellow)s'
+    line_empty = 'default','default','%(16_base0)s','%(16_base03)s','%(256_base0)s','%(256_base03)s'
+    line = 'default','default','%(16_base3)s','%(16_base03)s','%(256_base3)s','%(256_base03)s'
+    arrow_bars = 'default','default','%(16_orange)s','%(16_base03)s','%(256_orange)s','%(256_base03)s'
+    arrow_heads = 'default','default','%(16_orange)s','%(16_base03)s','%(256_orange)s','%(256_base03)s'
 [thread]
     attachment = 'default','default','%(base0)s','%(base03)s','%(base0)s','%(base03)s'
     attachment_focus = 'underline','default','%(base02)s','%(yellow)s','%(base02)s','%(yellow)s'

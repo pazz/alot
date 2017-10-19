@@ -36,6 +36,12 @@ DUMMY_THEME = """\
     line_even = '', '', '', '', '', ''
     line_focus = '', '', '', '', '', ''
     line_odd = '', '', '', '', '', ''
+[folders]
+    line_focus = '','','','','',''
+    line_empty = '','','','','',''
+    line = '','','','','',''
+    arrow_heads = '','','','','',''
+    arrow_bars = '','','','','',''
 [search]
     focus = '', '', '', '', '', ''
     normal = '', '', '', '', '', ''
