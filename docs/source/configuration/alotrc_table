@@ -245,6 +245,17 @@
     :default: 5
 
 
+.. _folders-statusbar:
+
+.. describe:: folders_statusbar
+
+     * `{folders_count}`: number of matching messages
+     * `{folders_count_positive}`: 's' if result count is greater than 0.
+
+    :type: mixed_list
+    :default:  , {folders_count} folders
+
+
 .. _followup-to:
 
 .. describe:: followup_to
