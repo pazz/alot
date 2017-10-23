@@ -173,6 +173,22 @@ def encrypt(plaintext_str, keys):
     return out
 
 
+NO_ERROR = None
+
+
+def bad_signatures_to_str(error):
+    """
+    Convert a bad signature exception to a text message.
+    This is a workaround for gpg not handling non-ascii data correctly.
+
+    :param BadSignatures error: BadSignatures exception
+    """
+    return ", ".join("{}: {}".format(s.fpr,
+                                     "Bad signature for key(s)")
+                     for s in error.result.signatures
+                     if s.status != NO_ERROR)
+
+
 def verify_detached(message, signature):
     """Verifies whether the message is authentic by checking the signature.
 
@@ -187,7 +203,7 @@ def verify_detached(message, signature):
         verify_results = ctx.verify(message, signature)[1]
         return verify_results.signatures
     except gpg.errors.BadSignatures as e:
-        raise GPGProblem(str(e), code=GPGCode.BAD_SIGNATURE)
+        raise GPGProblem(bad_signatures_to_str(e), code=GPGCode.BAD_SIGNATURE)
     except gpg.errors.GPGMEError as e:
         raise GPGProblem(str(e), code=e.getcode())
 
