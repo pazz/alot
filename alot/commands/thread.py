@@ -573,12 +573,14 @@ class ChangeDisplaymodeCommand(Command):
         # set message/reply indentation if changed
         if self.indent is not None:
             if self.indent == '+':
-                tbuffer._indent_width += 1
+                newindent = tbuffer._indent_width + 1
             elif self.indent == '-':
-                tbuffer._indent_width -= 1
+                newindent = tbuffer._indent_width - 1
             else:
                 # argparse validation guarantees that self.indent is an integer
-                tbuffer._indent_width = self.indent
+                newindent = self.indent
+            # make sure indent remains non-negative
+            tbuffer._indent_width = max(newindent, 0)
             tbuffer.rebuild()
             tbuffer.collapse_all()
             ui.update()
