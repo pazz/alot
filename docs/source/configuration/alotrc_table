@@ -645,6 +645,16 @@
     :default: True
 
 
+.. _thread-indent-replies:
+
+.. describe:: thread_indent_replies
+
+     number of characters used to indent replies relative to original messages in thread mode
+
+    :type: integer
+    :default: 2
+
+
 .. _thread-statusbar:
 
 .. describe:: thread_statusbar
