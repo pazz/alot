@@ -577,8 +577,9 @@ class ChangeDisplaymodeCommand(Command):
             elif self.indent == '-':
                 newindent = tbuffer._indent_width - 1
             else:
-                # argparse validation guarantees that self.indent is an integer
-                newindent = self.indent
+                # argparse validation guarantees that self.indent
+                # can be cast to an integer
+                newindent = int(self.indent)
             # make sure indent remains non-negative
             tbuffer._indent_width = max(newindent, 0)
             tbuffer.rebuild()
