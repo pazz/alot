@@ -97,6 +97,16 @@ def require_dir(path):
         raise ValidationFailed('{} is not a valid directory.'.format(path))
 
 
+def is_int_or_pm(value):
+    """Validator to assert that value is '+', '-', or an integer"""
+    if value not in ['+', '-']:
+        try:
+            value = int(value)
+        except ValueError:
+            raise ValidationFailed('value must be an integer or "+" or "-".')
+    return value
+
+
 class BooleanAction(argparse.Action):
     """Argparse action that can be used to store boolean values."""
     def __init__(self, *args, **kwargs):

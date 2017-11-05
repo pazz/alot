@@ -537,7 +537,8 @@ class EditNewCommand(Command):
                             'nargs': '*'})])
 @registerCommand(
     MODE, 'indent', help='change message/reply indentation',
-    arguments=[(['indent'], {})])
+    arguments=[(['indent'], {'action': cargparse.ValidatedStoreAction,
+                             'validator': cargparse.is_int_or_pm})])
 class ChangeDisplaymodeCommand(Command):
 
     """fold or unfold messages"""
@@ -576,8 +577,8 @@ class ChangeDisplaymodeCommand(Command):
             elif self.indent == '-':
                 tbuffer._indent_width -= 1
             else:
-                # TODO: I'm dangerous
-                tbuffer._indent_width = int(self.indent)
+                # argparse validation guarantees that self.indent is an integer
+                tbuffer._indent_width = self.indent
             tbuffer.rebuild()
             tbuffer.collapse_all()
             ui.update()
