@@ -401,6 +401,14 @@ class DBManager(object):
         :type query: str.
         :returns: :class:`notmuch.Query` -- the query object.
         """
+        exclude_tags = settings.get_notmuch_setting('search', 'exclude_tags')
+        if querystring != '*' and exclude_tags:
+            exclude_tags = exclude_tags.split(';')
+            unspecified_tags = ' OR '.join('tag:%s' % t.strip()
+                for t in exclude_tags
+                if 'tag:%s' % t not in querystring)
+            if unspecified_tags:
+                querystring += " AND NOT (%s)" % unspecified_tags
         mode = Database.MODE.READ_ONLY
         db = Database(path=self.path, mode=mode)
         return db.create_query(querystring)
