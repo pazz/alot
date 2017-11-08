@@ -403,7 +403,11 @@ class DBManager(object):
         """
         mode = Database.MODE.READ_ONLY
         db = Database(path=self.path, mode=mode)
-        return db.create_query(querystring)
+        q = db.create_query(querystring)
+        # add configured exclude tags
+        for tag in settings.get('exclude_tags'):
+            q.exclude_tag(tag)
+        return q
 
     def add_message(self, path, tags=None, afterwards=None):
         """
