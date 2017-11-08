@@ -163,3 +163,18 @@ class TestOptionalFileLike(unittest.TestCase):
             path = os.path.join(d, 'fifo')
             os.mkfifo(path)
             cargparse.optional_file_like(path)
+
+
+class TestIntOrPlusOrMinus(unittest.TestCase):
+    """Tests for the is_int_or_pm validator."""
+
+    def test_int(self):
+        self.assertTrue(cargparse.is_int_or_pm('5'))
+
+    def test_pm(self):
+        self.assertTrue(cargparse.is_int_or_pm('+'))
+        self.assertTrue(cargparse.is_int_or_pm('-'))
+
+    def test_rubbish(self):
+        with self.assertRaises(cargparse.ValidationFailed):
+            cargparse.is_int_or_pm('XX')

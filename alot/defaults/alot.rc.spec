@@ -74,6 +74,9 @@ thread_subject = option('oldest', 'notmuch', default='notmuch')
 # author's first or latest message in thread
 thread_authors_order_by = option('first_message', 'latest_message', default='first_message')
 
+# number of characters used to indent replies relative to original messages in thread mode 
+thread_indent_replies = integer(default=2)
+
 # set terminal command used for spawning shell commands
 terminal_cmd = string(default='x-terminal-emulator -e')
 

@@ -535,13 +535,17 @@ class EditNewCommand(Command):
     forced={'all_headers': 'toggle'},
     arguments=[(['query'], {'help': 'query used to filter messages to affect',
                             'nargs': '*'})])
+@registerCommand(
+    MODE, 'indent', help='change message/reply indentation',
+    arguments=[(['indent'], {'action': cargparse.ValidatedStoreAction,
+                             'validator': cargparse.is_int_or_pm})])
 class ChangeDisplaymodeCommand(Command):
 
     """fold or unfold messages"""
     repeatable = True
 
     def __init__(self, query=None, visible=None, raw=None, all_headers=None,
-                 **kwargs):
+                 indent=None, **kwargs):
         """
         :param query: notmuch query string used to filter messages to affect
         :type query: str
@@ -551,6 +555,8 @@ class ChangeDisplaymodeCommand(Command):
         :type raw: True, False, 'toggle' or None
         :param all_headers: show all headers (only visible if not in raw mode)
         :type all_headers: True, False, 'toggle' or None
+        :param indent: message/reply indentation
+        :type indent: '+', '-', or int
         """
         self.query = None
         if query:
@@ -558,10 +564,28 @@ class ChangeDisplaymodeCommand(Command):
         self.visible = visible
         self.raw = raw
         self.all_headers = all_headers
+        self.indent = indent
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
         tbuffer = ui.current_buffer
+
+        # set message/reply indentation if changed
+        if self.indent is not None:
+            if self.indent == '+':
+                newindent = tbuffer._indent_width + 1
+            elif self.indent == '-':
+                newindent = tbuffer._indent_width - 1
+            else:
+                # argparse validation guarantees that self.indent
+                # can be cast to an integer
+                newindent = int(self.indent)
+            # make sure indent remains non-negative
+            tbuffer._indent_width = max(newindent, 0)
+            tbuffer.rebuild()
+            tbuffer.collapse_all()
+            ui.update()
+
         logging.debug('matching lines %s...', self.query)
         if self.query is None:
             messagetrees = [tbuffer.get_selected_messagetree()]

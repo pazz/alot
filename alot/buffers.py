@@ -337,6 +337,7 @@ class ThreadBuffer(Buffer):
         self._auto_unread_dont_touch_mids = set([])
         self._auto_unread_writing = False
 
+        self._indent_width = settings.get('thread_indent_replies')
         self.rebuild()
         Buffer.__init__(self, ui, self.body)
 
@@ -367,14 +368,29 @@ class ThreadBuffer(Buffer):
 
         self._tree = ThreadTree(self.thread)
 
-        bars_att = settings.get_theming_attribute('thread', 'arrow_bars')
-        heads_att = settings.get_theming_attribute('thread', 'arrow_heads')
-        A = ArrowTree(
-            self._tree,
-            indent=2,
-            childbar_offset=0,
-            arrow_tip_att=heads_att,
-            arrow_att=bars_att)
+        # define A to be the tree to be wrapped by a NestedTree and displayed.
+        # We wrap the thread tree into an ArrowTree for decoration if
+        # indentation was requested and otherwise use it as is.
+        if self._indent_width == 0:
+            A = self._tree
+        else:
+            # we want decoration.
+            bars_att = settings.get_theming_attribute('thread', 'arrow_bars')
+            # only add arrow heads if there is space (indent > 1).
+            heads_char = None
+            heads_att = None
+            if self._indent_width > 1:
+                heads_char = u'\u27a4'
+                heads_att = settings.get_theming_attribute('thread',
+                                                           'arrow_heads')
+            A = ArrowTree(
+                self._tree,
+                indent=self._indent_width,
+                childbar_offset=0,
+                arrow_tip_att=heads_att,
+                arrow_tip_char=heads_char,
+                arrow_att=bars_att)
+
         self._nested_tree = NestedTree(A, interpret_covered=True)
         self.body = TreeBox(self._nested_tree)
         self.message_count = self.thread.get_total_messages()

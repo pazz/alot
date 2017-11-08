@@ -43,18 +43,15 @@ The following commands are available in thread mode
         up, down, [half]page up, [half]page down, first, last,                   parent, first reply, last reply,                   next sibling, previous sibling, next, previous,                   next unfolded, previous unfolded,                   next NOTMUCH_QUERY, previous NOTMUCH_QUERY
 
 
-.. _cmd.thread.untag:
+.. _cmd.thread.indent:
 
-.. describe:: untag
+.. describe:: indent
 
-    remove tags from message(s)
+    change message/reply indentation
 
     argument
-        comma separated list of tags
+        None
 
-    optional arguments
-        :---all: tag all messages in thread.
-        :---no-flush: postpone a writeout to the index (Defaults to: 'True').
 
 .. _cmd.thread.toggleheaders:
 
@@ -65,6 +62,19 @@ The following commands are available in thread mode
     argument
         query used to filter messages to affect
 
+
+.. _cmd.thread.retag:
+
+.. describe:: retag
+
+    set message(s) tags.
+
+    argument
+        comma separated list of tags
+
+    optional arguments
+        :---all: tag all messages in thread.
+        :---no-flush: postpone a writeout to the index (Defaults to: 'True').
 
 .. _cmd.thread.print:
 
@@ -95,11 +105,11 @@ The following commands are available in thread mode
         query used to filter messages to affect
 
 
-.. _cmd.thread.retag:
+.. _cmd.thread.untag:
 
-.. describe:: retag
+.. describe:: untag
 
-    set message(s) tags.
+    remove tags from message(s)
 
     argument
         comma separated list of tags
