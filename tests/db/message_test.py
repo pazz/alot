@@ -57,6 +57,9 @@ class MockNotmuchMessage(object):
     def get_tags(self):
         return self.mock_tags
 
+    def get_properties(self, prop, exact=False):
+        return []
+
 
 class TestMessage(unittest.TestCase):
 

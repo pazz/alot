@@ -54,6 +54,11 @@ class Message(object):
         self._attachments = None  # will be read upon first use
         self._tags = set(msg.get_tags())
 
+        self._session_keys = []
+        for name, value in msg.get_properties("session-key", exact=True):
+            if name == "session-key":
+                self._session_keys.append(value)
+
         try:
             sender = decode_header(msg.get_header('From'))
             if not sender:
@@ -102,7 +107,8 @@ class Message(object):
         if not self._email:
             try:
                 with open(path, 'rb') as f:
-                    self._email = utils.decrypted_message_from_bytes(f.read())
+                    self._email = utils.decrypted_message_from_bytes(
+                            f.read(), self._session_keys)
             except IOError:
                 self._email = email.message_from_string(
                     warning, policy=email.policy.SMTP)

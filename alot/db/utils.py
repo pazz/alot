@@ -140,7 +140,7 @@ def _handle_signatures(original, message, params):
     add_signature_headers(original, sigs, malformed)
 
 
-def _handle_encrypted(original, message):
+def _handle_encrypted(original, message, session_keys=None):
     """Handle encrypted messages helper.
 
     RFC 3156 is quite strict:
@@ -155,6 +155,8 @@ def _handle_encrypted(original, message):
     :type original: :class:`email.message.Message`
     :param message: The multipart/signed payload to verify
     :type message: :class:`email.message.Message`
+    :param session_keys: a list OpenPGP session keys
+    :type session_keys: [str]
     """
     malformed = False
 
@@ -172,14 +174,14 @@ def _handle_encrypted(original, message):
         # This should be safe because PGP uses US-ASCII characters only
         payload = message.get_payload(1).get_payload().encode('ascii')
         try:
-            sigs, d = crypto.decrypt_verify(payload)
+            sigs, d = crypto.decrypt_verify(payload, session_keys)
         except GPGProblem as e:
             # signature verification failures end up here too if the combined
             # method is used, currently this prevents the interpretation of the
             # recovered plain text mail. maybe that's a feature.
             malformed = str(e)
         else:
-            n = decrypted_message_from_bytes(d)
+            n = decrypted_message_from_bytes(d, session_keys)
 
             # add the decrypted message to message. note that n contains all
             # the attachments, no need to walk over n here.
@@ -214,7 +216,7 @@ def _handle_encrypted(original, message):
         original.attach(content)
 
 
-def decrypted_message_from_file(handle):
+def decrypted_message_from_file(handle, session_keys=None):
     '''Reads a mail from the given file-like object and returns an email
     object, very much like email.message_from_file. In addition to
     that OpenPGP encrypted data is detected and decrypted. If this
@@ -222,18 +224,21 @@ def decrypted_message_from_file(handle):
     message are added to the returned message object.
 
     :param handle: a file-like object
+    :param session_keys: a list OpenPGP session keys
     :returns: :class:`email.message.Message` possibly augmented with
               decrypted data
     '''
-    return decrypted_message_from_message(email.message_from_file(handle))
+    return decrypted_message_from_message(email.message_from_file(handle),
+                                          session_keys)
 
 
-def decrypted_message_from_message(m):
+def decrypted_message_from_message(m, session_keys=None):
     '''Detect and decrypt OpenPGP encrypted data in an email object. If this
     succeeds, any mime messages found in the recovered plaintext
     message are added to the returned message object.
 
     :param m: an email object
+    :param session_keys: a list OpenPGP session keys
     :returns: :class:`email.message.Message` possibly augmented with
               decrypted data
     '''
@@ -253,7 +258,7 @@ def decrypted_message_from_message(m):
         elif (m.get_content_subtype() == 'encrypted' and
               p.get('protocol') == _APP_PGP_ENC and
               'Version: 1' in m.get_payload(0).get_payload()):
-            _handle_encrypted(m, m)
+            _handle_encrypted(m, m, session_keys)
 
         # It is also possible to put either of the abov into a multipart/mixed
         # segment
@@ -268,12 +273,12 @@ def decrypted_message_from_message(m):
                     _handle_signatures(m, sub, p)
                 elif (sub.get_content_subtype() == 'encrypted' and
                       p.get('protocol') == _APP_PGP_ENC):
-                    _handle_encrypted(m, sub)
+                    _handle_encrypted(m, sub, session_keys)
 
     return m
 
 
-def decrypted_message_from_string(s):
+def decrypted_message_from_string(s, session_keys=None):
     '''Reads a mail from the given string. This is the equivalent of
     :func:`email.message_from_string` which does nothing but to wrap
     the given string in a StringIO object and to call
@@ -283,16 +288,18 @@ def decrypted_message_from_string(s):
     details.
 
     '''
-    return decrypted_message_from_file(io.StringIO(s))
+    return decrypted_message_from_file(io.StringIO(s), session_keys)
 
 
-def decrypted_message_from_bytes(bytestring):
+def decrypted_message_from_bytes(bytestring, session_keys=None):
     """Create a Message from bytes.
 
     :param bytes bytestring: an email message as raw bytes
+    :param session_keys: a list OpenPGP session keys
     """
     return decrypted_message_from_message(
-        email.message_from_bytes(bytestring, policy=email.policy.SMTP))
+        email.message_from_bytes(bytestring, policy=email.policy.SMTP),
+        session_keys)
 
 
 def extract_headers(mail, headers=None):
