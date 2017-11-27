@@ -13,7 +13,7 @@ A full list of dependencies is below:
 * `libnotmuch <http://notmuchmail.org/>`_ and it's python bindings, ≥ `0.13`
 * `urwid <http://excess.org/urwid/>`_ toolkit, ≥ `1.1.0`
 * `urwidtrees <https://github.com/pazz/urwidtrees>`_, ≥ `1.0`
-* `gpg <https://pypi.python.org/pypi/gpg>`_
+* `gpg <http://www.gnupg.org/related_software/gpgme>`_ and it's python bindings, ≥ `1.9.0`
 
 .. note:: urwidtrees was only recently detached from alot and is not widely
           available as a separate package. You can install it e.g., via
