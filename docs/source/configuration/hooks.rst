@@ -5,7 +5,8 @@ Hooks
 Hooks are python callables that live in a module specified by `hooksfile` in
 the config. Per default this points to :file:`~/.config/alot/hooks.py`.
 
-.. rubric:: Pre/Post Command Hooks
+Pre/Post Command Hooks
+----------------------
 
 For every :ref:`COMMAND <usage.commands>` in mode :ref:`MODE <modes>`, the
 callables :func:`pre_MODE_COMMAND` and :func:`post_MODE_COMMAND` -- if defined
@@ -36,7 +37,8 @@ message::
         else:
             logging.info('goodbye!')
 
-.. rubric:: Other Hooks
+Other Hooks
+-----------
 
 Apart from command pre- and posthooks, the following hooks will be interpreted:
 

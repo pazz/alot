@@ -58,8 +58,8 @@ underlined bold red text on a bright green background:
     #        v                 v   v                             v              v                             v
     footer = 'bold,underline', '', 'light red, bold, underline', 'light green', 'light red, bold, underline', '#8f6'
 
-Highlighting Thread lines in Search Mode
-----------------------------------------
+Search mode thread ines
+-------------------------
 The subsection '[[threadline]]' of the '[search]' section in :ref:`Theme Files <config.theming.themefiles>`
 determines how to present a thread: here, :ref:`attributes <config.theming.attributes>` 'normal' and
 'focus' provide fallback/spacer themes and 'parts' is a (string) list of displayed subwidgets.
@@ -83,6 +83,8 @@ For every listed part there must be a subsection with the same name, defining
 :alignment: how to place the content string if the widget space is larger.
             This must be one of 'right', 'left' or 'center'.
 
+Dynamic theming of thread lines based on query matching
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 To highlight some thread lines (use different attributes than the defaults found in the
 '[[threadline]]' section), one can define sections with prefix 'threadline'.
 Each one of those can redefine any part of the structure outlined above, the rest defaults to
@@ -133,8 +135,8 @@ and just bold if the thread has unread but no flagged messages:
 
 .. _config.theming.tags:
 
-Custom Tagstring Formatting
----------------------------
+Tagstring Formatting
+--------------------
 
 One can specify how a particular tagstring is displayed throughout the interface. To use this
 feature, add a section `[tags]` to you alot config (not the theme file)
