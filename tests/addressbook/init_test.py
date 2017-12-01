@@ -65,3 +65,12 @@ class TestAddressBook(unittest.TestCase):
         actual = abook.lookup('Own')
         expected = [contacts[1]]
         self.assertListEqual(actual, expected)
+
+    def test_lookup_can_handle_special_regex_chars(self):
+        contacts = [('name [work]', 'email@example.com'),
+                    ('My Own Name', 'other@example.com'),
+                    ('someone', 'someone@example.com')]
+        abook = _AddressBook(contacts)
+        actual = abook.lookup('[wor')
+        expected = [contacts[0]]
+        self.assertListEqual(actual, expected)

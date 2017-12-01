@@ -87,3 +87,12 @@ class AbooksCompleterTest(unittest.TestCase):
         expected = [(r""""all 'fanzy' \"stuff\" at, once" <all@example.com>""",
                      50)]
         self._assert_only_one_list_entry(actual, expected)
+
+
+class StringlistCompleterTest(unittest.TestCase):
+    def test_dont_choke_on_special_regex_characters(self):
+        tags = ['[match]', 'nomatch']
+        completer = completion.StringlistCompleter(tags)
+        actual = completer.complete('[', 1)
+        expected = [(tags[0], len(tags[0]))]
+        self.assertListEqual(actual, expected)

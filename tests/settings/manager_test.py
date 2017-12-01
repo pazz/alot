@@ -94,6 +94,18 @@ class TestSettingsManager(unittest.TestCase):
         setting = manager.get_notmuch_setting('foo', 'bar')
         self.assertIsNone(setting)
 
+    def test_dont_choke_on_regex_special_chars_in_tagstring(self):
+        tag = 'to**do'
+        with tempfile.NamedTemporaryFile(delete=False) as f:
+            f.write(textwrap.dedent("""\
+                [tags]
+                    [[{tag}]]
+                        normal = '','', 'white','light red', 'white','#d66'
+                """.format(tag=tag)))
+        self.addCleanup(os.unlink, f.name)
+        manager = SettingsManager(alot_rc=f.name)
+        manager.get_tagstring_representation(tag)
+
 
 class TestSettingsManagerGetAccountByAddress(utilities.TestCaseClassCleanup):
     """Test the get_account_by_address helper."""

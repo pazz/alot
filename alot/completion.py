@@ -75,7 +75,7 @@ class StringlistCompleter(Completer):
         re_prefix = '.*' if self.match_anywhere else ''
 
         def match(s, m):
-            r = re_prefix + m + '.*'
+            r = '{}{}.*'.format(re_prefix, re.escape(m))
             return re.match(r, s, flags=self.flags) is not None
 
         return [(a, len(a)) for a in self.resultlist if match(a, pref)]
