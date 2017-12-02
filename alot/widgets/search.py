@@ -18,13 +18,15 @@ class ThreadlineWidget(urwid.AttrMap):
     """
     selectable line widget that represents a :class:`~alot.db.Thread`
     in the :class:`~alot.buffers.SearchBuffer`.
+    :param list hidden_tags: list of tag names that should be hidden
     """
-    def __init__(self, tid, dbman):
+    def __init__(self, tid, dbman, hidden_tags=None):
         self.dbman = dbman
         self.tid = tid
         self.thread = None  # will be set by refresh()
         self.tag_widgets = []
         self.structure = None
+        self.hidden_tags = [] if hidden_tags is None else hidden_tags
         self.rebuild()
         normal = self.structure['normal']
         focussed = self.structure['focus']
@@ -71,6 +73,7 @@ class ThreadlineWidget(urwid.AttrMap):
             mailcount_w = AttrFlipWidget(urwid.Text(mailcountstring),
                                          struct['mailcount'])
             part = mailcount_w
+
         elif name == 'authors':
             if self.thread:
                 authors = self.thread.get_authors_string() or '(None)'
@@ -111,13 +114,15 @@ class ThreadlineWidget(urwid.AttrMap):
                                        struct['content'])
             width = len(contentstring)
             part = content_w
+
         elif name == 'tags':
             if self.thread:
                 fallback_normal = struct[name]['normal']
                 fallback_focus = struct[name]['focus']
                 tag_widgets = sorted(
-                    TagWidget(t, fallback_normal, fallback_focus)
-                    for t in self.thread.get_tags())
+                        TagWidget(t, fallback_normal, fallback_focus)
+                        for t in self.thread.get_tags()
+                        if t not in self.hidden_tags)
             else:
                 tag_widgets = []
             cols = []
