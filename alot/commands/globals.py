@@ -35,6 +35,7 @@ from ..widgets.utils import DialogBox
 from ..db.errors import DatabaseLockedError
 from ..db.envelope import Envelope
 from ..settings.const import settings
+from ..settings.errors import NoMatchingAccount
 from ..utils import argparse as cargparse
 
 MODE = 'global'
@@ -816,7 +817,14 @@ class ComposeCommand(Command):
         # find out the right account
         sender = self.envelope.get('From')
         name, addr = email.utils.parseaddr(sender)
-        account = settings.get_account_by_address(addr)
+        try:
+            account = settings.get_account_by_address(addr)
+        except NoMatchingAccount:
+            msg = 'Cannot compose mail - no account found for `%s`' % addr
+            logging.error(msg)
+            ui.notify(msg, priority='error')
+            raise CommandCanceled()
+
         if account is None:
             accounts = settings.get_accounts()
             if not accounts:
