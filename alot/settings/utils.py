@@ -3,6 +3,8 @@
 # For further details see the COPYING file
 from __future__ import absolute_import
 
+import logging
+
 from configobj import ConfigObj, ConfigObjError, flatten_errors
 from validate import Validator
 from urwid import AttrSpec
@@ -30,7 +32,9 @@ def read_config(configpath=None, specpath=None, checks=None):
         config = ConfigObj(infile=configpath, configspec=specpath,
                            file_error=True, encoding='UTF8')
     except ConfigObjError as e:
-        raise ConfigError(e)
+        msg = 'Error when parsing `%s`:\n%s' % (configpath, e)
+        logging.error(msg)
+        raise ConfigError(msg)
     except IOError:
         raise ConfigError('Could not read %s and/or %s'
                           % (configpath, specpath))

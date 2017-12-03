@@ -106,6 +106,8 @@ def main():
         settings.read_config()
         settings.read_notmuch_config()
     except (ConfigError, OSError, IOError) as e:
+        print('Error when parsing a config file. '
+              'See log for potential details.')
         sys.exit(e)
 
     # store options given by config swiches to the settingsManager:
