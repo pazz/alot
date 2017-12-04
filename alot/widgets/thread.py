@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
@@ -7,6 +8,7 @@ Widgets specific to thread mode
 from __future__ import absolute_import
 
 import logging
+import re
 import urwid
 from urwidtrees import Tree, SimpleTree, CollapsibleTree
 
@@ -21,6 +23,13 @@ class MessageSummaryWidget(urwid.WidgetWrap):
     """
     one line summary of a :class:`~alot.db.message.Message`.
     """
+
+    pat_blank_line = re.compile(r'^\s*$')
+    pat_quote_header_line = re.compile(
+        r'^(?:On .*, .* wrote:|----- Original Message -----)'
+    )
+    pat_quote_line = re.compile(r'^\s*>')
+    body_filters = (pat_blank_line, pat_quote_header_line, pat_quote_line)
 
     def __init__(self, message, even=True):
         """
@@ -40,7 +49,7 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         cols = []
 
         sumstr = self.__str__()
-        txt = urwid.Text(sumstr)
+        txt = urwid.Text(sumstr, wrap='clip')
         cols.append(txt)
 
         if settings.get('msg_summary_hides_threadwide_tags'):
@@ -58,12 +67,38 @@ class MessageSummaryWidget(urwid.WidgetWrap):
                              focus_att)
         urwid.WidgetWrap.__init__(self, line)
 
+    def body_summary(self):
+        bodylines = extract_body(
+            mail=self.message.get_email(),
+            types=['text/plain'],
+        ).split('\n')
+        bodysummary = []
+        lines_skipped = 0
+        for line in bodylines:
+            # Add all significant lines to summary
+            if all(p.match(line) is None for p in self.body_filters):
+                # Add elipsis when skipping over something in the body
+                if lines_skipped > 1:
+                    bodysummary.append(u'…')
+                lines_skipped = 0
+                bodysummary.append(line.strip())
+            else:
+                lines_skipped += 1
+            # Assume top-posting if we have a significant amount of content
+            # already and we see a quote header.
+            if (len(bodysummary) > 1 and
+                    self.pat_quote_header_line.match(line) is not None):
+                break
+        return " ".join(bodysummary)
+
     def __str__(self):
         author, address = self.message.get_author()
         date = self.message.get_datestring()
         rep = author if author != '' else address
         if date is not None:
             rep += " (%s)" % date
+        if settings.get('thread_content_summary'):
+            rep += " %s" % self.body_summary()
         return rep
 
     def selectable(self):
