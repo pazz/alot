@@ -116,22 +116,19 @@ class SettingsManager(object):
             # tl/dr; If the loop loads a theme it breaks. If it doesn't break,
             # then it raises a ConfigError.
             for dir_ in itertools.chain([themes_dir], data_dirs):
-                if not os.path.isdir(dir_):
-                    logging.warning(
-                        'cannot find theme %s: themes_dir %s is missing',
-                        themestring, dir_)
+                theme_path = os.path.join(dir_, themestring)
+                if not os.path.exists(os.path.expanduser(theme_path)):
+                    logging.warning('Theme `%s` does not exist.', theme_path)
                 else:
-                    theme_path = os.path.join(dir_, themestring)
                     try:
                         self._theme = Theme(theme_path)
                     except ConfigError as e:
-                        logging.warning(
-                            'Theme file %s failed validation: %s',
-                            themestring, e)
+                        raise ConfigError('Theme file `%s` failed '
+                                          'validation:\n%s' % (theme_path, e))
                     else:
                         break
             else:
-                raise ConfigError('Cannot load theme {}, see log for more '
+                raise ConfigError('Could not find theme {}, see log for more '
                                   'information'.format(themestring))
 
         # if still no theme is set, resort to default
