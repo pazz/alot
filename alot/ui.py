@@ -481,8 +481,8 @@ class UI(object):
             self._notificationbar = None
         self.update()
 
-    def choice(self, message, choices=None, choices_to_return=None,
-               select=None, cancel=None, msg_position='above'):
+    def choice(self, message, choices=None, select=None, cancel=None,
+               msg_position='above', choices_to_return=None):
         """
         prompt user to make a choice.
 
