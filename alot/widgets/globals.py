@@ -44,8 +44,8 @@ class AttachmentWidget(urwid.WidgetWrap):
 
 
 class ChoiceWidget(urwid.Text):
-    def __init__(self, choices, callback, choices_to_return=None,
-                 cancel=None, select=None, separator=' '):
+    def __init__(self, choices, callback, cancel=None, select=None,
+                 separator=' ', choices_to_return=None):
         self.choices = choices
         self.choices_to_return = choices_to_return or {}
         self.callback = callback
