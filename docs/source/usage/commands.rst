@@ -23,6 +23,8 @@ See the sections below for which commands are available in which (UI) mode.
     commands while listing active buffers
 :doc:`modes/taglist`
     commands while listing all tagstrings present in the notmuch database
+:doc:`modes/namedqueries`
+    commands while listing named queries present in the notmuch database
 
 .. toctree::
    :maxdepth: 2
@@ -34,4 +36,5 @@ See the sections below for which commands are available in which (UI) mode.
    modes/envelope
    modes/bufferlist
    modes/taglist
+   modes/namedqueries
 

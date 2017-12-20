@@ -551,6 +551,30 @@ class TagListCommand(Command):
             ui.buffer_open(buffers.TagListBuffer(ui, tags, self.filtfun))
 
 
+@registerCommand(MODE, 'namedqueries', arguments=[
+    (['--queries'], {'nargs': '+', 'help': 'named queries to display'}),
+])
+class NamedQueriesCommand(Command):
+    """opens named queries buffer"""
+    def __init__(self, queries=None, **kwargs):
+        """
+        :param queries: list of names of the named queries to display
+        """
+        self.queries = queries
+        Command.__init__(self, **kwargs)
+
+    def apply(self, ui):
+        queries = self.queries or ui.dbman.list_named_queries()
+        qlists = ui.get_buffers_of_type(buffers.NamedQueriesBuffer)
+        if qlists:
+            buf = qlists[0]
+            buf.queries = queries
+            buf.rebuild()
+            ui.buffer_focus(buf)
+        else:
+            ui.buffer_open(buffers.NamedQueriesBuffer(ui, queries))
+
+
 @registerCommand(MODE, 'flush')
 class FlushCommand(Command):
 

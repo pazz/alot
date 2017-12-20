@@ -97,6 +97,15 @@ The following commands are available globally
         :---thread: run in separate thread.
         :---refocus: refocus current buffer after command has finished.
 
+.. _cmd.global.namedqueries:
+
+.. describe:: namedqueries
+
+    opens named queries buffer
+
+    optional arguments
+        :---queries: named queries to display.
+
 .. _cmd.global.refresh:
 
 .. describe:: refresh
