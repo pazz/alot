@@ -71,6 +71,13 @@ The following commands are available in search mode
         :---no-flush: postpone a writeout to the index (Defaults to: 'True').
         :---all: retag all messages in search result.
 
+.. _cmd.search.togglequerytags:
+
+.. describe:: togglequerytags
+
+    Hide/don't hide tags that are explicitly mentioned in the search query.
+
+
 .. _cmd.search.refine:
 
 .. describe:: refine

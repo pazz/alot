@@ -221,6 +221,7 @@ class SearchBuffer(Buffer):
         self.sort_order = sort_order or default_order
         self.result_count = 0
         self.isinitialized = False
+        self.hide_query_tags = settings.get('hide_search_tags')
         self.proc = None  # process that fills our pipe
         self.rebuild()
         Buffer.__init__(self, ui, self.body)
@@ -275,7 +276,7 @@ class SearchBuffer(Buffer):
             self.body = self.listbox
             return
 
-        if settings.get('hide_search_tags'):
+        if self.hide_query_tags:
             hidden_tags = self._get_tags_in_query(self.querystring)
         else:
             hidden_tags = []
