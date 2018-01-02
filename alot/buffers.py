@@ -253,7 +253,6 @@ class SearchBuffer(Buffer):
         self.reversed = reverse
         self.kill_filler_process()
 
-        self.result_count = self.dbman.count_messages(self.querystring)
         if reverse:
             order = self._REVERSE[self.sort_order]
         else:
@@ -264,6 +263,7 @@ class SearchBuffer(Buffer):
             exclude_tags = [t for t in exclude_tags.split(';') if t]
 
         try:
+            self.result_count = self.dbman.count_messages(self.querystring)
             self.pipe, self.proc = self.dbman.get_threads(self.querystring,
                                                           order,
                                                           exclude_tags)
