@@ -346,10 +346,11 @@ def extract_body(mail, types=None, field_key='copiousoutput'):
         else:
             # get mime handler
             _, entry = settings.mailcap_find_match(ctype, key=field_key)
-            tempfile_name = None
-            stdin = None
-
-            if entry:
+            if entry is None:
+                part.add_header('Content-Disposition', 'attachment; ' + cd)
+            else:
+                tempfile_name = None
+                stdin = None
                 handler_raw_commandstring = entry['view']
                 # in case the mailcap defined command contains no '%s',
                 # we pipe the files content to the handling command via stdin
