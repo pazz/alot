@@ -35,7 +35,7 @@ from ..widgets.utils import DialogBox
 from ..db.errors import DatabaseLockedError
 from ..db.envelope import Envelope
 from ..settings.const import settings
-from ..settings.errors import NoMatchingAccount
+from ..settings.errors import ConfigError, NoMatchingAccount
 from ..utils import argparse as cargparse
 
 MODE = 'global'
@@ -973,4 +973,8 @@ class ReloadCommand(Command):
     """Reload configuration."""
 
     def apply(self, ui):
-        settings.reload()
+        try:
+            settings.reload()
+        except ConfigError as e:
+            ui.notify('Error when reloading config files:\n {}'.format(e),
+                      priority='error')
