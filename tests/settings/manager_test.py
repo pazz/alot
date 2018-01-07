@@ -117,7 +117,7 @@ class TestSettingsManagerGetAccountByAddress(utilities.TestCaseClassCleanup):
                 [[default]]
                     realname = That Guy
                     address = that_guy@example.com
-                    sendmail_commnd = /bin/true
+                    sendmail_command = /bin/true
 
                 [[other]]
                     realname = A Dude
