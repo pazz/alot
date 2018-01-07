@@ -79,7 +79,7 @@ class SettingsManager(object):
         """parse alot's config file from path"""
         spec = os.path.join(DEFAULTSPATH, 'alot.rc.spec')
         newconfig = read_config(
-            self.alot_rc_path, spec, checks={
+            self.alot_rc_path, spec, report_extra=True, checks={
                 'mail_container': checks.mail_container,
                 'force_list': checks.force_list,
                 'align': checks.align_mode,

@@ -11,6 +11,8 @@ import tempfile
 import textwrap
 import unittest
 
+import mock
+
 from alot.settings.manager import SettingsManager
 from alot.settings.errors import ConfigError, NoMatchingAccount
 
@@ -79,6 +81,40 @@ class TestSettingsManager(unittest.TestCase):
         manager = SettingsManager(notmuch_rc=f.name)
 
         manager.get_theming_attribute('global', 'body')
+
+    def test_unknown_settings_in_config_are_logged(self):
+        # todo: For py3, don't mock the logger, use assertLogs
+        unknown_settings = ['templates_dir', 'unknown_section', 'unknown_1',
+                            'unknown_2']
+        with tempfile.NamedTemporaryFile(delete=False) as f:
+            f.write(textwrap.dedent("""\
+                {x[0]} = /templates/dir
+                [{x[1]}]
+                    # Values in unknown sections are not reported.
+                    barfoo = barfoo
+                [tags]
+                    [[foobar]]
+                        {x[2]} = baz
+                        translated = translation
+                        {x[3]} = bar
+                """.format(x=unknown_settings)))
+        self.addCleanup(os.unlink, f.name)
+
+        with mock.patch('alot.settings.utils.logging') as mock_logger:
+            SettingsManager(alot_rc=f.name)
+            success = False
+            for call_args in mock_logger.info.call_args_list:
+                msg = call_args[0][0]
+                if all([s in msg for s in unknown_settings]):
+                    success = True
+                    break
+            else:
+                print('Could not find all unknown settings in logging.info.\n'
+                      'Unknown settings:')
+                print(unknown_settings)
+                print('Calls to mocked logging.info:')
+                print(mock_logger.info.call_args_list)
+        self.assertTrue(success)
 
     def test_read_notmuch_config_doesnt_exist(self):
         with tempfile.NamedTemporaryFile(delete=False) as f:
