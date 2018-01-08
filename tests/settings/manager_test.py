@@ -102,12 +102,12 @@ class TestSettingsManager(unittest.TestCase):
 
         with mock.patch('alot.settings.utils.logging') as mock_logger:
             SettingsManager(alot_rc=f.name)
-            success = False
-            for call_args in mock_logger.info.call_args_list:
-                msg = call_args[0][0]
-                if all([s in msg for s in unknown_settings]):
-                    success = True
-                    break
+        success = False
+        for call_args in mock_logger.info.call_args_list:
+            msg = call_args[0][0]
+            if all([s in msg for s in unknown_settings]):
+                success = True
+                break
         self.assertTrue(success, msg='Could not find all unknown settings in '
                         'logging.info.\nUnknown settings:\n{}\nCalls to mocked'
                         ' logging.info:\n{}'.format(
