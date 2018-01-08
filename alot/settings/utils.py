@@ -3,14 +3,18 @@
 # For further details see the COPYING file
 from __future__ import absolute_import
 
-from configobj import ConfigObj, ConfigObjError, flatten_errors
+import logging
+
+from configobj import (ConfigObj, ConfigObjError, flatten_errors,
+                       get_extra_values)
 from validate import Validator
 from urwid import AttrSpec
 
 from .errors import ConfigError
 
 
-def read_config(configpath=None, specpath=None, checks=None):
+def read_config(configpath=None, specpath=None, checks=None,
+                report_extra=False):
     """
     get a (validated) config object for given config file path.
 
@@ -21,6 +25,8 @@ def read_config(configpath=None, specpath=None, checks=None):
     :param checks: custom checks to use for validator.
         see `validate docs <http://www.voidspace.org.uk/python/validate.html>`_
     :type checks: dict str->callable,
+    :param report_extra: log if a setting is not present in the spec file
+    :type report_extra: boolean
     :raises: :class:`~alot.settings.errors.ConfigError`
     :rtype: `configobj.ConfigObj`
     """
@@ -30,7 +36,9 @@ def read_config(configpath=None, specpath=None, checks=None):
         config = ConfigObj(infile=configpath, configspec=specpath,
                            file_error=True, encoding='UTF8')
     except ConfigObjError as e:
-        raise ConfigError(e)
+        msg = 'Error when parsing `%s`:\n%s' % (configpath, e)
+        logging.error(msg)
+        raise ConfigError(msg)
     except IOError:
         raise ConfigError('Could not read %s and/or %s'
                           % (configpath, specpath))
@@ -61,6 +69,18 @@ def read_config(configpath=None, specpath=None, checks=None):
                     msg = 'section "%s" is missing' % '.'.join(section_list)
                 error_msg += msg + '\n'
             raise ConfigError(error_msg)
+
+        extra_values = get_extra_values(config) if report_extra else None
+        if extra_values:
+            msg = ['Unknown values were found in `%s`. Please check for '
+                   'typos if a specified setting does not seem to work:'
+                   % configpath]
+            for sections, val in extra_values:
+                if sections:
+                    msg.append('%s: %s' % ('->'.join(sections), val))
+                else:
+                    msg.append(str(val))
+            logging.info('\n'.join(msg))
     return config
 
 

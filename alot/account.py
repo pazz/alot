@@ -359,11 +359,11 @@ class SendmailAccount(Account):
         def errb(failure):
             """The callback used on error."""
             termobj = failure.value
-            errmsg = '%s failed with code %s:\n%s' % \
-                (self.cmd, termobj.exitCode, str(failure.value))
+            errmsg = '%s failed with code %s:\n%s\nProcess stderr:\n%s' % \
+                     (self.cmd, termobj.exitCode, str(failure.value),
+                      failure.value.stderr)
             logging.error(errmsg)
             logging.error(failure.getTraceback())
-            logging.error(failure.value.stderr)
             raise SendingMailFailed(errmsg)
 
         # make sure self.mail is a string

@@ -22,7 +22,7 @@ class Theme(object):
         :raises: :class:`~alot.settings.errors.ConfigError`
         """
         self._spec = os.path.join(DEFAULTSPATH, 'theme.spec')
-        self._config = read_config(path, self._spec,
+        self._config = read_config(path, self._spec, report_extra=True,
                                    checks={'align': checks.align_mode,
                                            'widthtuple': checks.width_tuple,
                                            'force_list': checks.force_list,

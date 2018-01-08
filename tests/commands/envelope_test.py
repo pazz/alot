@@ -309,7 +309,7 @@ class TestSignCommand(unittest.TestCase):
                 [[default]]
                     realname = foo
                     address = foo@example.com
-                    sendmail_commnd = /bin/true
+                    sendmail_command = /bin/true
             """)
 
         # Allow settings.reload to work by not deleting the file until the end
