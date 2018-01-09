@@ -102,19 +102,12 @@ class TestSettingsManager(unittest.TestCase):
 
         with mock.patch('alot.settings.utils.logging') as mock_logger:
             SettingsManager(alot_rc=f.name)
-            success = False
-            for call_args in mock_logger.info.call_args_list:
-                msg = call_args[0][0]
-                if all([s in msg for s in unknown_settings]):
-                    success = True
-                    break
-            else:
-                print('Could not find all unknown settings in logging.info.\n'
-                      'Unknown settings:')
-                print(unknown_settings)
-                print('Calls to mocked logging.info:')
-                print(mock_logger.info.call_args_list)
-        self.assertTrue(success)
+        success = any(all([s in call_args[0][0] for s in unknown_settings])
+                      for call_args in mock_logger.info.call_args_list)
+        self.assertTrue(success, msg='Could not find all unknown settings in '
+                        'logging.info.\nUnknown settings:\n{}\nCalls to mocked'
+                        ' logging.info:\n{}'.format(
+                            unknown_settings, mock_logger.info.call_args_list))
 
     def test_read_notmuch_config_doesnt_exist(self):
         with tempfile.NamedTemporaryFile(delete=False) as f:
