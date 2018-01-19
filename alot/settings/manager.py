@@ -96,6 +96,15 @@ class SettingsManager(object):
             newbindings = newconfig['bindings']
             if isinstance(newbindings, Section):
                 self._bindings.merge(newbindings)
+
+        tempdir = self._config.get('template_dir')
+        if tempdir:
+            tempdir = os.path.expanduser(tempdir)
+        else:
+            xdgdir = os.environ.get('XDG_CONFIG_HOME',
+                                    os.path.expanduser('~/.config'))
+            tempdir = os.path.join(xdgdir, 'alot', 'templates')
+
         # themes
         themestring = newconfig['theme']
         themes_dir = self._config.get('themes_dir')
