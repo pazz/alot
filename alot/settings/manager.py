@@ -97,12 +97,12 @@ class SettingsManager(object):
             if isinstance(newbindings, Section):
                 self._bindings.merge(newbindings)
 
-        tempdir = self._process_xdg_default('template_dir', 'alot/templates')
+        tempdir = self._process_xdg_default('template_dir')
         logging.debug('template directory: `{}`'.format(tempdir))
 
         # themes
         themestring = newconfig['theme']
-        themes_dir = self._process_xdg_default('themes_dir', 'alot/themes')
+        themes_dir = self._process_xdg_default('themes_dir')
         logging.debug('themes directory: `{}`'.format(themes_dir))
 
         # if config contains theme string use that
@@ -137,7 +137,7 @@ class SettingsManager(object):
         self._accounts = self._parse_accounts(self._config)
         self._accountmap = self._account_table(self._accounts)
 
-    def _process_xdg_default(self, setting_name, fallback):
+    def _process_xdg_default(self, setting_name):
         """
         Processes setting that uses $XDG_CONFIG_HOME in the default value.
 
@@ -147,20 +147,18 @@ class SettingsManager(object):
 
         :param setting_name: name of setting to be processed
         :type setting_name: str
-        :param fallback: fallback path relative to ~/.config if the setting
-        is not set by the user.
-        :type fallback: str
         :returns: path
         :rvalue: str
         """
         path = self._config.get(setting_name)
-        if path:
-            path = os.path.expanduser(path)
-        else:
-            xdgdir = get_env('XDG_CONFIG_HOME',
-                             os.path.expanduser('~/.config'))
-            path = os.path.join(xdgdir, fallback)
+        if path.startswith('$XDG_CONFIG_HOME'):
+            if os.environ.get('XDG_CONFIG_HOME', False):
+                xdg_expanded = os.environ['XDG_CONFIG_HOME']
+            else:
+                xdg_expanded = '~/.config'
+            path = path.replace('$XDG_CONFIG_HOME', xdg_expanded)
 
+        path = os.path.expanduser(path)
         self._config[setting_name] = path
         return path
 

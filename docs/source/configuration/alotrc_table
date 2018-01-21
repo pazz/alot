@@ -576,10 +576,9 @@
 
      templates directory that contains your message templates.
      It will be used if you give `compose --template` a filename without a path prefix.
-     The default path is `$XDG_CONFIG_HOME/alot/temmplates`.
 
     :type: string
-    :default: None
+    :default: "$XDG_CONFIG_HOME/alot/templates"
 
 
 .. _terminal-cmd:
@@ -607,10 +606,9 @@
 .. describe:: themes_dir
 
      directory containing theme files.
-     The default path is `$XDG_CONFIG_HOME/alot/themes`.
 
     :type: string
-    :default: None
+    :default: "$XDG_CONFIG_HOME/alot/themes"
 
 
 .. _thread-authors-me:
