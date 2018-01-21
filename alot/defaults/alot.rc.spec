@@ -31,9 +31,11 @@ tabwidth = integer(default=8)
 
 # templates directory that contains your message templates.
 # It will be used if you give `compose --template` a filename without a path prefix.
+# The default path is `$XDG_CONFIG_HOME/alot/temmplates`.
 template_dir = string(default=None)
 
-# directory containing theme files
+# directory containing theme files.
+# The default path is `$XDG_CONFIG_HOME/alot/themes`.
 themes_dir = string(default=None)
 
 # name of the theme to use
