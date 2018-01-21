@@ -97,23 +97,12 @@ class SettingsManager(object):
             if isinstance(newbindings, Section):
                 self._bindings.merge(newbindings)
 
-        tempdir = self._config.get('template_dir')
-        if tempdir:
-            tempdir = os.path.expanduser(tempdir)
-        else:
-            xdgdir = os.environ.get('XDG_CONFIG_HOME',
-                                    os.path.expanduser('~/.config'))
-            tempdir = os.path.join(xdgdir, 'alot', 'templates')
+        tempdir = self._process_xdg_default('template_dir', 'alot/templates')
+        logging.debug(tempdir)
 
         # themes
         themestring = newconfig['theme']
-        themes_dir = self._config.get('themes_dir')
-        if themes_dir:
-            themes_dir = os.path.expanduser(themes_dir)
-        else:
-            configdir = os.environ.get('XDG_CONFIG_HOME',
-                                       os.path.expanduser('~/.config'))
-            themes_dir = os.path.join(configdir, 'alot', 'themes')
+        themes_dir = self._process_xdg_default('themes_dir', 'alot/themes')
         logging.debug(themes_dir)
 
         # if config contains theme string use that
@@ -147,6 +136,33 @@ class SettingsManager(object):
 
         self._accounts = self._parse_accounts(self._config)
         self._accountmap = self._account_table(self._accounts)
+
+    def _process_xdg_default(self, setting_name, fallback):
+        """
+        Processes setting that uses $XDG_CONFIG_HOME in the default value.
+
+        Setting should be set as None in alot.rc.default.
+
+        Expands home directory (~) and updates the path in _config object.
+
+        :param setting_name: name of setting to be processed
+        :type setting_name: str
+        :param fallback: fallback path relative to ~/.config if the setting
+        is not set by the user.
+        :type fallback: str
+        :returns: path
+        :rvalue: str
+        """
+        path = self._config.get(setting_name)
+        if path:
+            path = os.path.expanduser(path)
+        else:
+            xdgdir = os.environ.get('XDG_CONFIG_HOME',
+                                    os.path.expanduser('~/.config'))
+            path = os.path.join(xdgdir, fallback)
+
+        self._config[setting_name] = path
+        return path
 
     @staticmethod
     def _parse_accounts(config):

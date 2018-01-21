@@ -136,6 +136,57 @@ class TestSettingsManager(unittest.TestCase):
         manager.get_tagstring_representation(tag)
 
 
+class TestSettingsManagerProcessXDG(unittest.TestCase):
+    """ Tests SettingsManager._process_xdg_default """
+    setting_name = 'template_dir'
+    def_relative = 'alot/templates'
+    default = os.path.join('$XDG_CONFIG_HOME', def_relative)
+    xdg_fallback = '~/.config'
+    xdg_config_home = '/foo/bar/.config'
+    default_expanded = default.replace('$XDG_CONFIG_HOME', xdg_fallback)
+
+    def test_no_user_setting_and_env_not_set(self):
+        with mock.patch.dict('os.environ'):
+            if 'XDG_CONFIG_HOME' in os.environ:
+                del os.environ['XDG_CONFIG_HOME']
+            manager = SettingsManager()
+            manager._process_xdg_default(self.setting_name, self.def_relative)
+            self.assertEqual(manager._config.get(self.setting_name),
+                             os.path.expanduser(self.default_expanded))
+
+    def test_no_user_setting_and_env_empty(self):
+        with mock.patch.dict('os.environ'):
+            os.environ['XDG_CONFIG_HOME'] = ''
+            manager = SettingsManager()
+            manager._process_xdg_default(self.setting_name, self.def_relative)
+            self.assertEqual(manager._config.get(self.setting_name),
+                             os.path.expanduser(self.default_expanded))
+
+    def test_no_user_setting_and_env_not_empty(self):
+        with mock.patch.dict('os.environ'):
+            os.environ['XDG_CONFIG_HOME'] = self.xdg_config_home
+            manager = SettingsManager()
+            manager._process_xdg_default(self.setting_name, self.def_relative)
+            actual = manager._config.get(self.setting_name)
+            expected = self.default.replace('$XDG_CONFIG_HOME',
+                                            self.xdg_config_home)
+            self.assertEqual(actual, expected)
+
+    def test_user_setting_and_env_not_empty(self):
+        user_setting = '/path/to/template/dir'
+
+        with mock.patch.dict('os.environ'):
+            os.environ['XDG_CONFIG_HOME'] = self.xdg_config_home
+            with tempfile.NamedTemporaryFile(delete=False) as f:
+                f.write('template_dir = {}'.format(user_setting))
+            self.addCleanup(os.unlink, f.name)
+
+            manager = SettingsManager(alot_rc=f.name)
+            manager._process_xdg_default(self.setting_name, self.def_relative)
+            self.assertEqual(manager._config.get(self.setting_name),
+                             os.path.expanduser(user_setting))
+
+
 class TestSettingsManagerGetAccountByAddress(utilities.TestCaseClassCleanup):
     """Test the get_account_by_address helper."""
 
