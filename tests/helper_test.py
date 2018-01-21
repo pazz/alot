@@ -464,3 +464,29 @@ class TestCallCmdAsync(unittest.TestCase):
             yield helper.call_cmd_async(['_____better_not_exist'])
         self.assertEqual(cm.exception.exitCode, 1)
         self.assertTrue(cm.exception.stderr)
+
+
+class TestGetEnv(unittest.TestCase):
+    env_name = 'XDG_CONFIG_HOME'
+    default = '~/.config'
+
+    def test_env_not_set(self):
+        with mock.patch.dict('os.environ'):
+            if self.env_name in os.environ:
+                del os.environ[self.env_name]
+            self.assertEqual(helper.get_env(self.env_name, self.default),
+                             self.default)
+
+    def test_env_empty(self):
+        with mock.patch.dict('os.environ'):
+            os.environ[self.env_name] = ''
+            self.assertEqual(helper.get_env(self.env_name, self.default),
+                             self.default)
+
+    def test_env_not_empty(self):
+        custom_path = '/my/personal/config/home'
+
+        with mock.patch.dict('os.environ'):
+            os.environ[self.env_name] = custom_path
+            self.assertEqual(helper.get_env(self.env_name, self.default),
+                             custom_path)

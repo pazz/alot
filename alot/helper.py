@@ -625,3 +625,9 @@ def email_as_string(mail):
                            as_string, flags=re.MULTILINE)
 
     return as_string
+
+
+def get_env(env_name, fallback):
+    """ Gets environment variable and returns fallback if unset or empty """
+    env = os.environ.get(env_name)
+    return env if env else fallback

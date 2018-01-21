@@ -15,7 +15,7 @@ from configobj import ConfigObj, Section
 from ..account import SendmailAccount
 from ..addressbook.abook import AbookAddressBook
 from ..addressbook.external import ExternalAddressbook
-from ..helper import pretty_datetime, string_decode
+from ..helper import pretty_datetime, string_decode, get_env
 from ..utils import configobj as checks
 
 from .errors import ConfigError, NoMatchingAccount
@@ -25,8 +25,8 @@ from .theme import Theme
 
 
 DEFAULTSPATH = os.path.join(os.path.dirname(__file__), '..', 'defaults')
-DATA_DIRS = os.environ.get('XDG_DATA_DIRS',
-                           '/usr/local/share:/usr/share').split(':')
+DATA_DIRS = get_env('XDG_DATA_DIRS',
+                    '/usr/local/share:/usr/share').split(':')
 
 
 class SettingsManager(object):
@@ -157,8 +157,8 @@ class SettingsManager(object):
         if path:
             path = os.path.expanduser(path)
         else:
-            xdgdir = os.environ.get('XDG_CONFIG_HOME',
-                                    os.path.expanduser('~/.config'))
+            xdgdir = get_env('XDG_CONFIG_HOME',
+                             os.path.expanduser('~/.config'))
             path = os.path.join(xdgdir, fallback)
 
         self._config[setting_name] = path
