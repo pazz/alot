@@ -98,12 +98,12 @@ class SettingsManager(object):
                 self._bindings.merge(newbindings)
 
         tempdir = self._process_xdg_default('template_dir', 'alot/templates')
-        logging.debug(tempdir)
+        logging.debug('template directory: `{}`'.format(tempdir))
 
         # themes
         themestring = newconfig['theme']
         themes_dir = self._process_xdg_default('themes_dir', 'alot/themes')
-        logging.debug(themes_dir)
+        logging.debug('themes directory: `{}`'.format(themes_dir))
 
         # if config contains theme string use that
         data_dirs = [os.path.join(d, 'alot/themes') for d in DATA_DIRS]
