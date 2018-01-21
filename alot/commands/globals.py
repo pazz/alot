@@ -756,8 +756,9 @@ class ComposeCommand(Command):
         if self.template is not None:
             # get location of tempsdir, containing msg templates
             tempdir = settings.get('template_dir')
-            tempdir = os.path.expanduser(tempdir)
-            if not tempdir:
+            if tempdir:
+                tempdir = os.path.expanduser(tempdir)
+            else:
                 xdgdir = os.environ.get('XDG_CONFIG_HOME',
                                         os.path.expanduser('~/.config'))
                 tempdir = os.path.join(xdgdir, 'alot', 'templates')

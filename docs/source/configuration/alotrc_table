@@ -578,7 +578,7 @@
      It will be used if you give `compose --template` a filename without a path prefix.
 
     :type: string
-    :default: "$XDG_CONFIG_HOME/alot/templates"
+    :default: None
 
 
 .. _terminal-cmd:
