@@ -86,8 +86,7 @@ class SettingsManager(object):
                 'attrtriple': checks.attr_triple,
                 'gpg_key_hint': checks.gpg_key})
         self._config.merge(newconfig)
-        self._config.walk(self._expand_config_values,
-                          expand_fct=self._expand_environment_and_home)
+        self._config.walk(self._expand_config_values)
 
         hooks_path = os.path.expanduser(self._config.get('hooksfile'))
         try:
@@ -139,56 +138,56 @@ class SettingsManager(object):
         self._accounts = self._parse_accounts(self._config)
         self._accountmap = self._account_table(self._accounts)
 
-    @staticmethod
-    def _expand_environment_and_home(value):
-        """
-        Expands environment variables and the home directory (~).
-
-        Only acts on string input values.
-
-        $FOO and ${FOO}-style environment variables are expanded, if they
-        exist. If they do not exist, they are left unchanged.
-        The exception are the following $XDG_* variables that are
-        expanded to fallback values, if they are empty or not set:
-        $XDG_CONFIG_HOME
-        $XDG_CACHE_HOME
-
-        :param value: configuration string
-        :type value: str
-        """
-        xdg_vars = {'XDG_CONFIG_HOME': '~/.config',
-                    'XDG_CACHE_HOME': '~/.cache'}
-
-        for xdg_name, fallback in xdg_vars.items():
-            if xdg_name in value:
-                xdg_value = get_xdg_env(xdg_name, fallback)
-                value = value.replace('$%s' % xdg_name, xdg_value)\
-                             .replace('${%s}' % xdg_name, xdg_value)
-        return os.path.expanduser(os.path.expandvars(value))
 
     @staticmethod
-    def _expand_config_values(section, key, expand_fct):
+    def _expand_config_values(section, key):
         """
         Walker function for ConfigObj.walk
 
-        Applies _expand_environment_and_home to all configuration values that
+        Applies expand_environment_and_home to all configuration values that
         are strings (or strings that are elements of tuples/lists)
 
         :param section: as passed by ConfigObj.walk
         :param key: as passed by ConfigObj.walk
-        :param expand_fct: function to expand a configuration string
-        :type expand_fct: function
+        :param expansion_fct: function to expand a configuration string
+        :type expansion_fct: function
         """
+
+        def expand_environment_and_home(value):
+            """
+            Expands environment variables and the home directory (~).
+
+            Only acts on string input values.
+
+            $FOO and ${FOO}-style environment variables are expanded, if they
+            exist. If they do not exist, they are left unchanged.
+            The exception are the following $XDG_* variables that are
+            expanded to fallback values, if they are empty or not set:
+            $XDG_CONFIG_HOME
+            $XDG_CACHE_HOME
+
+            :param value: configuration string
+            :type value: str
+            """
+            xdg_vars = {'XDG_CONFIG_HOME': '~/.config',
+                        'XDG_CACHE_HOME': '~/.cache'}
+
+            for xdg_name, fallback in xdg_vars.items():
+                if xdg_name in value:
+                    xdg_value = get_xdg_env(xdg_name, fallback)
+                    value = value.replace('$%s' % xdg_name, xdg_value)\
+                                 .replace('${%s}' % xdg_name, xdg_value)
+            return os.path.expanduser(os.path.expandvars(value))
 
         value = section[key]
 
         if isinstance(value, (str, unicode)):
-            section[key] = expand_fct(value)
+            section[key] = expand_environment_and_home(value)
         elif isinstance(value, (list, tuple)):
             new = list()
             for item in value:
                 if isinstance(item, (str, unicode)):
-                    new.append(expand_fct(item))
+                    new.append(expand_environment_and_home(item))
                 else:
                     new.append(item)
             section[key] = new
