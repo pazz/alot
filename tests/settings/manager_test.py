@@ -136,8 +136,8 @@ class TestSettingsManager(unittest.TestCase):
         manager.get_tagstring_representation(tag)
 
 
-class TestSettingsManagerProcessXDG(unittest.TestCase):
-    """ Tests SettingsManager._process_xdg_default """
+class TestSettingsManagerExpandEnvironment(unittest.TestCase):
+    """ Tests SettingsManager._expand_config_values """
     setting_name = 'template_dir'
     xdg_name = 'XDG_CONFIG_HOME'
     default = '$%s/alot/templates' % xdg_name
@@ -150,21 +150,18 @@ class TestSettingsManagerProcessXDG(unittest.TestCase):
             if self.xdg_name in os.environ:
                 del os.environ[self.xdg_name]
             manager = SettingsManager()
-            manager._process_xdg_default(self.setting_name)
             self.assertEqual(manager._config.get(self.setting_name),
                              os.path.expanduser(self.default_expanded))
 
     def test_no_user_setting_and_env_empty(self):
         with mock.patch.dict('os.environ', {self.xdg_name: ''}):
             manager = SettingsManager()
-            manager._process_xdg_default(self.setting_name)
             self.assertEqual(manager._config.get(self.setting_name),
                              os.path.expanduser(self.default_expanded))
 
     def test_no_user_setting_and_env_not_empty(self):
         with mock.patch.dict('os.environ', {self.xdg_name: self.xdg_custom}):
             manager = SettingsManager()
-            manager._process_xdg_default(self.setting_name)
             actual = manager._config.get(self.setting_name)
             expected = self.default.replace('$%s' % self.xdg_name,
                                             self.xdg_custom)
@@ -179,9 +176,30 @@ class TestSettingsManagerProcessXDG(unittest.TestCase):
             self.addCleanup(os.unlink, f.name)
 
             manager = SettingsManager(alot_rc=f.name)
-            manager._process_xdg_default(self.setting_name)
             self.assertEqual(manager._config.get(self.setting_name),
                              os.path.expanduser(user_setting))
+
+    def test_configobj_and_env_expansion(self):
+        """ Three expansion styles:
+            %(FOO)s - expanded by ConfigObj (string interpolation)
+            $FOO and ${FOO} - should be expanded with environment variable
+        """
+        foo_env = 'foo_set_from_env'
+        with mock.patch.dict('os.environ', {self.xdg_name: self.xdg_custom,
+                                            'foo': foo_env}):
+            foo_in_config = 'foo_set_in_config'
+            with tempfile.NamedTemporaryFile(delete=False) as f:
+                f.write(textwrap.dedent("""\
+                foo = {}
+                template_dir = ${{XDG_CONFIG_HOME}}/$foo/%(foo)s/${{foo}}
+                """.format(foo_in_config)))
+            self.addCleanup(os.unlink, f.name)
+
+            manager = SettingsManager(alot_rc=f.name)
+            self.assertEqual(manager._config.get(self.setting_name),
+                             os.path.join(self.xdg_custom, foo_env,
+                                          foo_in_config, foo_env))
+
 
 
 class TestSettingsManagerGetAccountByAddress(utilities.TestCaseClassCleanup):

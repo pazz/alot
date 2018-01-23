@@ -86,6 +86,8 @@ class SettingsManager(object):
                 'attrtriple': checks.attr_triple,
                 'gpg_key_hint': checks.gpg_key})
         self._config.merge(newconfig)
+        self._config.walk(self._expand_config_values,
+                          expand_fct=self._expand_environment_and_home)
 
         hooks_path = os.path.expanduser(self._config.get('hooksfile'))
         try:
@@ -97,13 +99,13 @@ class SettingsManager(object):
             if isinstance(newbindings, Section):
                 self._bindings.merge(newbindings)
 
-        tempdir = self._process_xdg_default('template_dir')
-        logging.debug('template directory: `{}`'.format(tempdir))
+        tempdir = self._config.get('template_dir')
+        logging.debug('template directory: `%s`' % tempdir)
 
         # themes
         themestring = newconfig['theme']
-        themes_dir = self._process_xdg_default('themes_dir')
-        logging.debug('themes directory: `{}`'.format(themes_dir))
+        themes_dir = self._config.get('themes_dir')
+        logging.debug('themes directory: `%s`' % themes_dir)
 
         # if config contains theme string use that
         data_dirs = [os.path.join(d, 'alot/themes') for d in DATA_DIRS]
@@ -137,30 +139,59 @@ class SettingsManager(object):
         self._accounts = self._parse_accounts(self._config)
         self._accountmap = self._account_table(self._accounts)
 
-    def _process_xdg_default(self, setting_name):
+    @staticmethod
+    def _expand_environment_and_home(value):
         """
-        Processes setting that uses $XDG_CONFIG_HOME in the default value.
+        Expands environment variables and the home directory (~).
 
-        Setting should be set as None in alot.rc.default.
+        Only acts on string input values.
 
-        Expands home directory (~) and updates the path in _config object.
+        $FOO and ${FOO}-style environment variables are expanded, if they
+        exist. If they do not exist, they are left unchanged.
+        The exception are the following $XDG_* variables that are
+        expanded to fallback values, if they are empty or not set:
+        $XDG_CONFIG_HOME
+        $XDG_CACHE_HOME
 
-        :param setting_name: name of setting to be processed
-        :type setting_name: str
-        :returns: path
-        :rvalue: str
+        :param value: configuration string
+        :type value: str
         """
-        path = self._config.get(setting_name)
-        if path.startswith('$XDG_CONFIG_HOME'):
-            if os.environ.get('XDG_CONFIG_HOME', False):
-                xdg_expanded = os.environ['XDG_CONFIG_HOME']
-            else:
-                xdg_expanded = '~/.config'
-            path = path.replace('$XDG_CONFIG_HOME', xdg_expanded)
+        xdg_vars = {'XDG_CONFIG_HOME': '~/.config',
+                    'XDG_CACHE_HOME': '~/.cache'}
 
-        path = os.path.expanduser(path)
-        self._config[setting_name] = path
-        return path
+        for xdg_name, fallback in xdg_vars.items():
+            if xdg_name in value:
+                xdg_value = get_xdg_env(xdg_name, fallback)
+                value = value.replace('$%s' % xdg_name, xdg_value)\
+                             .replace('${%s}' % xdg_name, xdg_value)
+        return os.path.expanduser(os.path.expandvars(value))
+
+    @staticmethod
+    def _expand_config_values(section, key, expand_fct):
+        """
+        Walker function for ConfigObj.walk
+
+        Applies _expand_environment_and_home to all configuration values that
+        are strings (or strings that are elements of tuples/lists)
+
+        :param section: as passed by ConfigObj.walk
+        :param key: as passed by ConfigObj.walk
+        :param expand_fct: function to expand a configuration string
+        :type expand_fct: function
+        """
+
+        value = section[key]
+
+        if isinstance(value, (str, unicode)):
+            section[key] = expand_fct(value)
+        elif isinstance(value, (list, tuple)):
+            new = list()
+            for item in value:
+                if isinstance(item, (str, unicode)):
+                    new.append(expand_fct(item))
+                else:
+                    new.append(item)
+            section[key] = new
 
     @staticmethod
     def _parse_accounts(config):
