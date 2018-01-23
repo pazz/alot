@@ -139,43 +139,41 @@ class TestSettingsManager(unittest.TestCase):
 class TestSettingsManagerProcessXDG(unittest.TestCase):
     """ Tests SettingsManager._process_xdg_default """
     setting_name = 'template_dir'
-    default = '$XDG_CONFIG_HOME/alot/templates'
+    xdg_name = 'XDG_CONFIG_HOME'
+    default = '$%s/alot/templates' % xdg_name
     xdg_fallback = '~/.config'
-    xdg_config_home = '/foo/bar/.config'
-    default_expanded = default.replace('$XDG_CONFIG_HOME', xdg_fallback)
+    xdg_custom = '/foo/bar/.config'
+    default_expanded = default.replace('$%s' % xdg_name, xdg_fallback)
 
     def test_no_user_setting_and_env_not_set(self):
         with mock.patch.dict('os.environ'):
-            if 'XDG_CONFIG_HOME' in os.environ:
-                del os.environ['XDG_CONFIG_HOME']
+            if self.xdg_name in os.environ:
+                del os.environ[self.xdg_name]
             manager = SettingsManager()
             manager._process_xdg_default(self.setting_name)
             self.assertEqual(manager._config.get(self.setting_name),
                              os.path.expanduser(self.default_expanded))
 
     def test_no_user_setting_and_env_empty(self):
-        with mock.patch.dict('os.environ'):
-            os.environ['XDG_CONFIG_HOME'] = ''
+        with mock.patch.dict('os.environ', {self.xdg_name: ''}):
             manager = SettingsManager()
             manager._process_xdg_default(self.setting_name)
             self.assertEqual(manager._config.get(self.setting_name),
                              os.path.expanduser(self.default_expanded))
 
     def test_no_user_setting_and_env_not_empty(self):
-        with mock.patch.dict('os.environ'):
-            os.environ['XDG_CONFIG_HOME'] = self.xdg_config_home
+        with mock.patch.dict('os.environ', {self.xdg_name: self.xdg_custom}):
             manager = SettingsManager()
             manager._process_xdg_default(self.setting_name)
             actual = manager._config.get(self.setting_name)
-            expected = self.default.replace('$XDG_CONFIG_HOME',
-                                            self.xdg_config_home)
+            expected = self.default.replace('$%s' % self.xdg_name,
+                                            self.xdg_custom)
             self.assertEqual(actual, expected)
 
     def test_user_setting_and_env_not_empty(self):
         user_setting = '/path/to/template/dir'
 
-        with mock.patch.dict('os.environ'):
-            os.environ['XDG_CONFIG_HOME'] = self.xdg_config_home
+        with mock.patch.dict('os.environ', {self.xdg_name: self.xdg_custom}):
             with tempfile.NamedTemporaryFile(delete=False) as f:
                 f.write('template_dir = {}'.format(user_setting))
             self.addCleanup(os.unlink, f.name)

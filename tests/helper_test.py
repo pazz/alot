@@ -478,15 +478,13 @@ class TestGetEnv(unittest.TestCase):
                              self.default)
 
     def test_env_empty(self):
-        with mock.patch.dict('os.environ'):
-            os.environ[self.env_name] = ''
+        with mock.patch.dict('os.environ', {self.env_name: ''}):
             self.assertEqual(helper.get_xdg_env(self.env_name, self.default),
                              self.default)
 
     def test_env_not_empty(self):
         custom_path = '/my/personal/config/home'
 
-        with mock.patch.dict('os.environ'):
-            os.environ[self.env_name] = custom_path
+        with mock.patch.dict('os.environ', {self.env_name: custom_path}):
             self.assertEqual(helper.get_xdg_env(self.env_name, self.default),
                              custom_path)
