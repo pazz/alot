@@ -627,7 +627,7 @@ def email_as_string(mail):
     return as_string
 
 
-def get_env(env_name, fallback):
-    """ Gets environment variable and returns fallback if unset or empty """
+def get_xdg_env(env_name, fallback):
+    """ Used for XDG_* env variables to return fallback if unset *or* empty """
     env = os.environ.get(env_name)
     return env if env else fallback

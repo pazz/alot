@@ -474,13 +474,13 @@ class TestGetEnv(unittest.TestCase):
         with mock.patch.dict('os.environ'):
             if self.env_name in os.environ:
                 del os.environ[self.env_name]
-            self.assertEqual(helper.get_env(self.env_name, self.default),
+            self.assertEqual(helper.get_xdg_env(self.env_name, self.default),
                              self.default)
 
     def test_env_empty(self):
         with mock.patch.dict('os.environ'):
             os.environ[self.env_name] = ''
-            self.assertEqual(helper.get_env(self.env_name, self.default),
+            self.assertEqual(helper.get_xdg_env(self.env_name, self.default),
                              self.default)
 
     def test_env_not_empty(self):
@@ -488,5 +488,5 @@ class TestGetEnv(unittest.TestCase):
 
         with mock.patch.dict('os.environ'):
             os.environ[self.env_name] = custom_path
-            self.assertEqual(helper.get_env(self.env_name, self.default),
+            self.assertEqual(helper.get_xdg_env(self.env_name, self.default),
                              custom_path)
