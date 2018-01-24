@@ -21,6 +21,7 @@ from .. import crypto
 from .. import helper
 from ..errors import GPGProblem
 from ..settings.const import settings
+from ..settings.errors import NoMailcapEntry
 from ..helper import string_sanitize
 from ..helper import string_decode
 from ..helper import parse_mailcap_nametemplate
@@ -325,6 +326,10 @@ def extract_body(mail, types=None, field_key='copiousoutput'):
 
     body_parts = []
     for part in mail.walk():
+        # skip non-leaf nodes in the mail tree
+        if part.is_multipart():
+            continue
+
         ctype = part.get_content_type()
 
         if types is not None:
@@ -346,6 +351,8 @@ def extract_body(mail, types=None, field_key='copiousoutput'):
         else:
             # get mime handler
             _, entry = settings.mailcap_find_match(ctype, key=field_key)
+            if entry is None:
+                raise NoMailcapEntry(ctype)
             tempfile_name = None
             stdin = None
 
