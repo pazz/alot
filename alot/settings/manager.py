@@ -138,7 +138,6 @@ class SettingsManager(object):
         self._accounts = self._parse_accounts(self._config)
         self._accountmap = self._account_table(self._accounts)
 
-
     @staticmethod
     def _expand_config_values(section, key):
         """
@@ -149,15 +148,11 @@ class SettingsManager(object):
 
         :param section: as passed by ConfigObj.walk
         :param key: as passed by ConfigObj.walk
-        :param expansion_fct: function to expand a configuration string
-        :type expansion_fct: function
         """
 
         def expand_environment_and_home(value):
             """
             Expands environment variables and the home directory (~).
-
-            Only acts on string input values.
 
             $FOO and ${FOO}-style environment variables are expanded, if they
             exist. If they do not exist, they are left unchanged.
