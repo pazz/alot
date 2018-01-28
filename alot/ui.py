@@ -6,6 +6,7 @@ from __future__ import absolute_import
 import logging
 import os
 import signal
+import codecs
 
 from twisted.internet import reactor, defer, task
 import urwid
@@ -730,7 +731,7 @@ class UI(object):
         if size == 0:
             return []
         if os.path.exists(path):
-            with open(path) as histfile:
+            with codecs.open(path, 'r', encoding='utf-8') as histfile:
                 lines = [line.rstrip('\n') for line in histfile]
             if size > 0:
                 lines = lines[-size:]
@@ -760,7 +761,7 @@ class UI(object):
         if not os.path.exists(directory):
             os.makedirs(directory)
         # Write linewise to avoid building a large string in menory.
-        with open(path, 'w') as histfile:
+        with codecs.open(path, 'w', encoding='utf-8') as histfile:
             for line in history:
                 histfile.write(line)
                 histfile.write('\n')
