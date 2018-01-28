@@ -605,10 +605,10 @@
 
 .. describe:: themes_dir
 
-     directory containing theme files
+     directory containing theme files.
 
     :type: string
-    :default: None
+    :default: "$XDG_CONFIG_HOME/alot/themes"
 
 
 .. _thread-authors-me:

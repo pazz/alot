@@ -18,6 +18,7 @@ from .commands import CommandCanceled
 from .commands import CommandParseError
 from .helper import split_commandline
 from .helper import string_decode
+from .helper import get_xdg_env
 from .widgets.globals import CompleteEdit
 from .widgets.globals import ChoiceWidget
 
@@ -83,7 +84,7 @@ class UI(object):
 
         # load histories
         self._cache = os.path.join(
-            os.environ.get('XDG_CACHE_HOME', os.path.expanduser('~/.cache')),
+            get_xdg_env('XDG_CACHE_HOME', os.path.expanduser('~/.cache')),
             'alot', 'history')
         self._cmd_hist_file = os.path.join(self._cache, 'commands')
         self._sender_hist_file = os.path.join(self._cache, 'senders')

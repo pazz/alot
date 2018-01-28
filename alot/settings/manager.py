@@ -15,7 +15,7 @@ from configobj import ConfigObj, Section
 from ..account import SendmailAccount
 from ..addressbook.abook import AbookAddressBook
 from ..addressbook.external import ExternalAddressbook
-from ..helper import pretty_datetime, string_decode
+from ..helper import pretty_datetime, string_decode, get_xdg_env
 from ..utils import configobj as checks
 
 from .errors import ConfigError, NoMatchingAccount
@@ -25,8 +25,8 @@ from .theme import Theme
 
 
 DEFAULTSPATH = os.path.join(os.path.dirname(__file__), '..', 'defaults')
-DATA_DIRS = os.environ.get('XDG_DATA_DIRS',
-                           '/usr/local/share:/usr/share').split(':')
+DATA_DIRS = get_xdg_env('XDG_DATA_DIRS',
+                        '/usr/local/share:/usr/share').split(':')
 
 
 class SettingsManager(object):
@@ -86,6 +86,7 @@ class SettingsManager(object):
                 'attrtriple': checks.attr_triple,
                 'gpg_key_hint': checks.gpg_key})
         self._config.merge(newconfig)
+        self._config.walk(self._expand_config_values)
 
         hooks_path = os.path.expanduser(self._config.get('hooksfile'))
         try:
@@ -96,16 +97,14 @@ class SettingsManager(object):
             newbindings = newconfig['bindings']
             if isinstance(newbindings, Section):
                 self._bindings.merge(newbindings)
+
+        tempdir = self._config.get('template_dir')
+        logging.debug('template directory: `%s`' % tempdir)
+
         # themes
         themestring = newconfig['theme']
         themes_dir = self._config.get('themes_dir')
-        if themes_dir:
-            themes_dir = os.path.expanduser(themes_dir)
-        else:
-            configdir = os.environ.get('XDG_CONFIG_HOME',
-                                       os.path.expanduser('~/.config'))
-            themes_dir = os.path.join(configdir, 'alot', 'themes')
-        logging.debug(themes_dir)
+        logging.debug('themes directory: `%s`' % themes_dir)
 
         # if config contains theme string use that
         data_dirs = [os.path.join(d, 'alot/themes') for d in DATA_DIRS]
@@ -138,6 +137,55 @@ class SettingsManager(object):
 
         self._accounts = self._parse_accounts(self._config)
         self._accountmap = self._account_table(self._accounts)
+
+    @staticmethod
+    def _expand_config_values(section, key):
+        """
+        Walker function for ConfigObj.walk
+
+        Applies expand_environment_and_home to all configuration values that
+        are strings (or strings that are elements of tuples/lists)
+
+        :param section: as passed by ConfigObj.walk
+        :param key: as passed by ConfigObj.walk
+        """
+
+        def expand_environment_and_home(value):
+            """
+            Expands environment variables and the home directory (~).
+
+            $FOO and ${FOO}-style environment variables are expanded, if they
+            exist. If they do not exist, they are left unchanged.
+            The exception are the following $XDG_* variables that are
+            expanded to fallback values, if they are empty or not set:
+            $XDG_CONFIG_HOME
+            $XDG_CACHE_HOME
+
+            :param value: configuration string
+            :type value: str
+            """
+            xdg_vars = {'XDG_CONFIG_HOME': '~/.config',
+                        'XDG_CACHE_HOME': '~/.cache'}
+
+            for xdg_name, fallback in xdg_vars.items():
+                if xdg_name in value:
+                    xdg_value = get_xdg_env(xdg_name, fallback)
+                    value = value.replace('$%s' % xdg_name, xdg_value)\
+                                 .replace('${%s}' % xdg_name, xdg_value)
+            return os.path.expanduser(os.path.expandvars(value))
+
+        value = section[key]
+
+        if isinstance(value, (str, unicode)):
+            section[key] = expand_environment_and_home(value)
+        elif isinstance(value, (list, tuple)):
+            new = list()
+            for item in value:
+                if isinstance(item, (str, unicode)):
+                    new.append(expand_environment_and_home(item))
+                else:
+                    new.append(item)
+            section[key] = new
 
     @staticmethod
     def _parse_accounts(config):

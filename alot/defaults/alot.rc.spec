@@ -33,8 +33,8 @@ tabwidth = integer(default=8)
 # It will be used if you give `compose --template` a filename without a path prefix.
 template_dir = string(default='$XDG_CONFIG_HOME/alot/templates')
 
-# directory containing theme files
-themes_dir = string(default=None)
+# directory containing theme files.
+themes_dir = string(default='$XDG_CONFIG_HOME/alot/themes')
 
 # name of the theme to use
 theme = string(default=None)

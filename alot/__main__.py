@@ -11,6 +11,7 @@ import sys
 import alot
 from alot.settings.const import settings
 from alot.settings.errors import ConfigError
+from alot.helper import get_xdg_env
 from alot.db.manager import DBManager
 from alot.ui import UI
 from alot.commands import *
@@ -92,9 +93,9 @@ def main():
 
     # locate alot config files
     if options.config is None:
-        alotconfig = os.path.join(
-            os.environ.get('XDG_CONFIG_HOME', os.path.expanduser('~/.config')),
-            'alot', 'config')
+        xdg_dir = get_xdg_env('XDG_CONFIG_HOME',
+                              os.path.expanduser('~/.config'))
+        alotconfig = os.path.join(xdg_dir, 'alot', 'config')
         if os.path.exists(alotconfig):
             settings.alot_rc_path = alotconfig
     else:

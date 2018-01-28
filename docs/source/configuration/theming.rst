@@ -11,7 +11,8 @@ To make it easier to switch between or share different such themes, they are def
 files (see below for the exact format).
 To specify the theme to use, set the :ref:`theme <theme>` config option to the name of a theme-file.
 A file by that name will be looked up in the path given by the :ref:`themes_dir <themes-dir>` config setting
-which defaults to :file:`~/.config/alot/themes/`. If the themes_dir is not
+which defaults to $XDG_CONFIG_HOME/alot/themes, and :file:`~/.config/alot/themes/`,
+if XDG_CONFIG_HOME is empty or not set. If the themes_dir is not
 present then the contents of $XDG_DATA_DIRS/alot/themes will be tried in order.
 This defaults to :file:`/usr/local/share/alot/themes` and :file:`/usr/share/alot/themes`, in that order.
 These locations are meant to be used by distro packages to put themes in.
