@@ -18,6 +18,11 @@ from ..settings.const import settings
 
 charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 
+MISSING_HTML_MSG = ("This message contains a text/html part that was not "
+                    "rendered due to a missing mailcap entry. "
+                    "Please refer to item 5 in our FAQ: "
+                    "http://alot.rtfd.io/en/latest/faq.html")
+
 
 @functools.total_ordering
 class Message(object):
@@ -256,7 +261,14 @@ class Message(object):
         returns bodystring extracted from this mail
         """
         # TODO: allow toggle commands to decide which part is considered body
-        return extract_body(self.get_email())
+        eml = self.get_email()
+        bodytext = extract_body(eml)
+
+        # check if extracted body is empty but msg contains html parts
+        if (not bodytext and
+           'text/html' in (part.get_content_type() for part in eml.walk())):
+            return MISSING_HTML_MSG
+        return bodytext
 
     def get_text_content(self):
         return extract_body(self.get_email(), types=['text/plain'])

@@ -14,7 +14,6 @@ from .globals import TagWidget
 from .globals import AttachmentWidget
 from ..settings.const import settings
 from ..db.utils import decode_header, X_SIGNATURE_MESSAGE_HEADER
-from ..db.utils import extract_body
 
 
 class MessageSummaryWidget(urwid.WidgetWrap):
@@ -238,7 +237,7 @@ class MessageTree(CollapsibleTree):
 
     def _get_body(self):
         if self._bodytree is None:
-            bodytxt = extract_body(self._message.get_email())
+            bodytxt = self._message.accumulate_body()
             if bodytxt:
                 att = settings.get_theming_attribute('thread', 'body')
                 att_focus = settings.get_theming_attribute(
