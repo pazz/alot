@@ -180,23 +180,29 @@ class Envelope:
 
     def construct_mail(self):
         """
-        compiles the information contained in this envelope into a
+        Compiles the information contained in this envelope into a
         :class:`email.Message`.
         """
         # Build body text part. To properly sign/encrypt messages later on, we
         # convert the text to its canonical format (as per RFC 2015).
         canonical_format = self.body_txt.encode('utf-8')
         textpart = MIMEText(canonical_format, 'plain', 'utf-8')
+        inner_msg = textpart
 
-        # wrap it in a multipart container if necessary
-        if self.attachments:
-            inner_msg = MIMEMultipart()
+        if self.body_html:
+            htmlpart = MIMEText(self.body_html, 'html', 'utf-8')
+            inner_msg = MIMEMultipart('alternative')
             inner_msg.attach(textpart)
+            inner_msg.attach(htmlpart)
+
+        # wrap everything in a multipart container if there are attachments
+        if self.attachments:
+            msg = MIMEMultipart('mixed')
+            msg.attach(inner_msg)
             # add attachments
             for a in self.attachments:
-                inner_msg.attach(a.get_mime_representation())
-        else:
-            inner_msg = textpart
+                msg.attach(a.get_mime_representation())
+            inner_msg = msg
 
         if self.sign:
             plaintext = inner_msg.as_bytes(policy=email.policy.SMTP)
