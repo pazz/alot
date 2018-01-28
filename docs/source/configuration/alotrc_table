@@ -736,6 +736,18 @@
     :default: None
 
 
+.. _txt2html-converter:
+
+.. describe:: txt2html_converter
+
+     Use this command to construct a html alternative from the messages body before sendout.
+     The command will receive the plaintex on stdin and should produce html as stdout
+     (as `pandoc -t html` for example). If unset, we send only the plaintext part.
+
+    :type: string
+    :default: None
+
+
 .. _user-agent:
 
 .. describe:: user_agent

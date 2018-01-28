@@ -257,6 +257,17 @@ auto_replyto_mailinglist = boolean(default=False)
 # prefer plaintext alternatives over html content in multipart/alternative
 prefer_plaintext = boolean(default=False)
 
+# Use this command to construct a html alternative message body text in envelope mode.
+# If unset, we send only the plaintext part, without html alternative.
+# The command will receive the plaintex on stdin and should produce html on stdout.
+# (as `pandoc -t html` does for example).
+envelope_txt2html = string(default=None)
+
+# Use this command to turn a html message body to plaintext in envelope mode.
+# The command will receive the html on stdin and should produce text on stdout
+# (as `pandoc -f html -t markdown` does for example).
+envelope_html2txt = string(default=None)
+
 # In a thread buffer, hide from messages summaries tags that are commom to all
 # messages in that thread.
 msg_summary_hides_threadwide_tags = boolean(default=True)
