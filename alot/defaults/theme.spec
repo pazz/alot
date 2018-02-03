@@ -53,9 +53,17 @@
     attachment_focus = attrtriple
     body = attrtriple
     body_focus = attrtriple(default=None)
+    diff_add = attrtriple
+    diff_del = attrtriple
+    diff_head = attrtriple
     header = attrtriple
     header_key = attrtriple
     header_value = attrtriple
+    nested1 = attrtriple
+    nested2 = attrtriple
+    nested3 = attrtriple
+    nested4 = attrtriple
+    nested5 = attrtriple
     [[summary]]
         even = attrtriple
         odd = attrtriple

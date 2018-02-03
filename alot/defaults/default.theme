@@ -31,9 +31,17 @@
     attachment_focus = 'underline','','light gray','light green','light gray','light green'
     body = 'default','','light gray','default','light gray','default'
     body_focus = 'default','','light gray','default','white','default'
+    diff_add = 'default','','light gray','default','light gray','default'
+    diff_del = 'default','','light gray','default','light gray','default'
+    diff_head = 'default','','light gray','default','light gray','default'
     header = 'default','','white','dark gray','white','dark gray'
     header_key = 'default','','white','dark gray','white','dark gray'
     header_value = 'default','','light gray','dark gray','light gray','dark gray'
+    nested1 = 'default','','light gray','default','light gray','default'
+    nested2 = 'default','','light gray','default','light gray','default'
+    nested3 = 'default','','light gray','default','light gray','default'
+    nested4 = 'default','','light gray','default','light gray','default'
+    nested5 = 'default','','light gray','default','light gray','default'
 
     [[summary]]
         even = 'default','','white','light blue','white','#006'
