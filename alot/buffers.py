@@ -5,6 +5,7 @@ from __future__ import absolute_import
 
 import logging
 import os
+import re
 
 import urwid
 from urwidtrees import ArrowTree, TreeBox, NestedTree
@@ -220,6 +221,7 @@ class SearchBuffer(Buffer):
         self.sort_order = sort_order or default_order
         self.result_count = 0
         self.isinitialized = False
+        self.hide_query_tags = settings.get('hide_search_tags')
         self.proc = None  # process that fills our pipe
         self.rebuild()
         Buffer.__init__(self, ui, self.body)
@@ -274,12 +276,32 @@ class SearchBuffer(Buffer):
             self.body = self.listbox
             return
 
+        if self.hide_query_tags:
+            hidden_tags = self._get_tags_in_query(self.querystring)
+        else:
+            hidden_tags = []
+
         self.threadlist = PipeWalker(self.pipe, ThreadlineWidget,
                                      dbman=self.dbman,
-                                     reverse=reverse)
+                                     reverse=reverse,
+                                     hidden_tags=hidden_tags)
 
         self.listbox = urwid.ListBox(self.threadlist)
         self.body = self.listbox
+
+    @staticmethod
+    def _get_tags_in_query(querystring):
+        """Returns list of tag names in query string"""
+        # gets tags in tag:" spaces ", is:" spaces ", tag:no_space, is:no_space
+        # and ignores regular expressions: tag:/a tag * regex/
+        space_tag = r'[^"]*(?=")'
+        tag = r'[^"\/][\S]*'
+        return re.findall((r'(?<=tag:"){space}'
+                           r'|(?<=is:"){space}'
+                           r'|(?<=tag:){no_space}'
+                           r'|(?<=is:){no_space}').format(space=space_tag,
+                                                          no_space=tag),
+                          querystring)
 
     def get_selected_threadline(self):
         """

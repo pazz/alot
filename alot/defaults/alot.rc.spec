@@ -17,6 +17,11 @@ input_timeout = float(default=1.0)
 # .. note:: this config setting is equivalent to, but independent of, the 'search.exclude_tags' in the notmuch config.
 exclude_tags = force_list(default=list())
 
+# Do not display tags in the threadline that are used in the search query.
+# E.g., `search: tag:google and tag:sent` would not show the `google` and
+# `sent` tags after each subject in the search buffer.
+hide_search_tags = boolean(default=False)
+
 # confirm exit
 bug_on_exit = boolean(default=False)
 

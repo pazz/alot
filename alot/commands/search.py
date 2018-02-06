@@ -258,3 +258,17 @@ class MoveFocusCommand(MoveCommand):
             ui.update()
         else:
             MoveCommand.apply(self, ui)
+
+
+@registerCommand(
+    MODE, 'togglequerytags',
+    help=('Hide/don\'t hide tags that are explicitly mentioned in the search '
+          'query.')
+)
+class ToggleQueryTags(Command):
+
+    def apply(self, ui):
+        sbuffer = ui.current_buffer
+        sbuffer.hide_query_tags = not sbuffer.hide_query_tags
+        sbuffer.rebuild()
+        ui.update()

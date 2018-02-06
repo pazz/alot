@@ -315,6 +315,18 @@
     :default: False
 
 
+.. _hide-search-tags:
+
+.. describe:: hide_search_tags
+
+     Do not display tags in the threadline that are used in the search query.
+     E.g., `search: tag:google and tag:sent` would not show the `google` and
+     `sent` tags after each subject in the search buffer.
+
+    :type: boolean
+    :default: False
+
+
 .. _history-size:
 
 .. describe:: history_size
