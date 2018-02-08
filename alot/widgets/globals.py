@@ -45,12 +45,14 @@ class AttachmentWidget(urwid.WidgetWrap):
 
 class ChoiceWidget(urwid.Text):
     def __init__(self, choices, callback, cancel=None, select=None,
-                 separator=' '):
+                 separator=' ', return_value='value'):
         self.choices = choices
         self.callback = callback
         self.cancel = cancel
         self.select = select
         self.separator = separator
+        assert return_value in ['key', 'value']
+        self.return_value = return_value
 
         items = []
         for k, v in choices.iteritems():
@@ -70,7 +72,11 @@ class ChoiceWidget(urwid.Text):
         elif key == 'esc' and self.cancel is not None:
             self.callback(self.cancel)
         elif key in self.choices:
-            self.callback(self.choices[key])
+            if self.return_value == 'value':
+                rt = self.choices[key]
+            else:
+                rt = key
+            self.callback(rt)
         else:
             return key
 

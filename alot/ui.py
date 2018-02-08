@@ -484,7 +484,7 @@ class UI(object):
         self.update()
 
     def choice(self, message, choices=None, select=None, cancel=None,
-               msg_position='above'):
+               msg_position='above', return_index=False):
         """
         prompt user to make a choice.
 
@@ -501,12 +501,16 @@ class UI(object):
         :param msg_position: determines if `message` is above or left of the
                              prompt. Must be `above` or `left`.
         :type msg_position: str
+        :param return_index: Return the (0 based) index of the option instead
+                             of the value
+        :type return_index: bool
         :rtype:  :class:`twisted.defer.Deferred`
         """
         choices = choices or {'y': 'yes', 'n': 'no'}
         assert select is None or select in choices.itervalues()
         assert cancel is None or cancel in choices.itervalues()
         assert msg_position in ['left', 'above']
+        assert isinstance(return_index, bool)
 
         d = defer.Deferred()  # create return deferred
         oldroot = self.mainloop.widget
@@ -520,8 +524,12 @@ class UI(object):
 
         # set up widgets
         msgpart = urwid.Text(message)
-        choicespart = ChoiceWidget(choices, callback=select_or_cancel,
-                                   select=select, cancel=cancel)
+        choicespart = ChoiceWidget(
+            choices,
+            callback=select_or_cancel,
+            select=select,
+            cancel=cancel,
+            return_value='key' if return_index else 'value')
 
         # build widget
         if msg_position == 'left':
