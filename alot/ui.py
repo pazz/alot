@@ -484,7 +484,7 @@ class UI(object):
         self.update()
 
     def choice(self, message, choices=None, select=None, cancel=None,
-               msg_position='above'):
+               msg_position='above', choices_to_return=None):
         """
         prompt user to make a choice.
 
@@ -492,6 +492,9 @@ class UI(object):
         :type message: unicode
         :param choices: dict of possible choices
         :type choices: dict: keymap->choice (both str)
+        :param choices_to_return: dict of possible choices to return for the
+                                  choices of the choices of paramter
+        :type choices: dict: keymap->choice key is  str and value is any obj)
         :param select: choice to return if enter/return is hit. Ignored if set
                        to `None`.
         :type select: str
@@ -504,6 +507,7 @@ class UI(object):
         :rtype:  :class:`twisted.defer.Deferred`
         """
         choices = choices or {'y': 'yes', 'n': 'no'}
+        choices_to_return = choices_to_return or {}
         assert select is None or select in choices.itervalues()
         assert cancel is None or cancel in choices.itervalues()
         assert msg_position in ['left', 'above']
@@ -520,8 +524,10 @@ class UI(object):
 
         # set up widgets
         msgpart = urwid.Text(message)
-        choicespart = ChoiceWidget(choices, callback=select_or_cancel,
-                                   select=select, cancel=cancel)
+        choicespart = ChoiceWidget(choices,
+                                   choices_to_return=choices_to_return,
+                                   callback=select_or_cancel, select=select,
+                                   cancel=cancel)
 
         # build widget
         if msg_position == 'left':
