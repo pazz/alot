@@ -75,6 +75,9 @@ class UI(object):
         # alarm handle for callback that clears input queue (to cancel alarm)
         self._alarm = None
 
+        # force urwid to pass key events as unicode, independent of LANG
+        urwid.set_encoding('utf-8')
+
         # create root widget
         global_att = settings.get_theming_attribute('global', 'body')
         mainframe = urwid.Frame(urwid.SolidFill())
