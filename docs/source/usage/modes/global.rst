@@ -130,6 +130,7 @@ The following commands are available globally
     optional arguments
         :---sender: sender.
         :---template: path to a template message file.
+        :---tags: comma-separated list of tags to apply to message.
         :---subject: subject line.
         :---to: recipients.
         :---cc: copy to.
