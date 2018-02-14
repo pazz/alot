@@ -770,8 +770,11 @@ class ComposeCommand(Command):
                           priority='error')
                 return
             try:
-                with open(path) as f:
-                    self.envelope.parse_template(f.read())
+                with open(path, 'rb') as f:
+                    blob = f.read()
+                encoding = helper.guess_encoding(blob)
+                logging.debug('template encoding: `%s`' % encoding)
+                self.envelope.parse_template(blob.decode(encoding))
             except Exception as e:
                 ui.notify(str(e), priority='error')
                 return
