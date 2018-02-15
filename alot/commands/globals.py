@@ -675,6 +675,8 @@ class HelpCommand(Command):
     (['--sender'], {'nargs': '?', 'help': 'sender'}),
     (['--template'], {'nargs': '?',
                       'help': 'path to a template message file'}),
+    (['--tags'], {'nargs': '?',
+                  'help': 'comma-separated list of tags to apply to message'}),
     (['--subject'], {'nargs': '?', 'help': 'subject line'}),
     (['--to'], {'nargs': '+', 'help': 'recipients'}),
     (['--cc'], {'nargs': '+', 'help': 'copy to'}),
@@ -690,7 +692,7 @@ class ComposeCommand(Command):
 
     """compose a new email"""
     def __init__(self, envelope=None, headers=None, template=None, sender=u'',
-                 subject=u'', to=None, cc=None, bcc=None, attach=None,
+                 tags=None, subject=u'', to=None, cc=None, bcc=None, attach=None,
                  omit_signature=False, spawn=None, rest=None, encrypt=False,
                  **kwargs):
         """
@@ -704,6 +706,8 @@ class ComposeCommand(Command):
         :type template: str
         :param sender: From-header value
         :type sender: str
+        :param tags: Comma-separated list of tags to apply to message
+        :type tags: list(str)
         :param subject: Subject-header value
         :type subject: str
         :param to: To-header value
@@ -741,6 +745,7 @@ class ComposeCommand(Command):
         self.force_spawn = spawn
         self.rest = ' '.join(rest or [])
         self.encrypt = encrypt
+        self.tags = tags
 
     @inlineCallbacks
     def apply(self, ui):
@@ -791,6 +796,8 @@ class ComposeCommand(Command):
             self.envelope.add('Cc', ','.join(self.cc))
         if self.bcc:
             self.envelope.add('Bcc', ','.join(self.bcc))
+        if self.tags:
+            self.envelope.tags = [t for t in self.tags.split(',') if t]
 
         # get missing From header
         if 'From' not in self.envelope.headers:
@@ -892,7 +899,8 @@ class ComposeCommand(Command):
 
         if settings.get('compose_ask_tags'):
             comp = TagsCompleter(ui.dbman)
-            tagsstring = yield ui.prompt('Tags', completer=comp)
+            tags = ','.join(self.tags) if self.tags else ''
+            tagsstring = yield ui.prompt('Tags', text=tags, completer=comp)
             tags = [t for t in tagsstring.split(',') if t]
             if tags is None:
                 raise CommandCanceled()
