@@ -175,6 +175,7 @@ def make_key(revoked=False, expired=False, invalid=False, can_encrypt=True,
 
 def make_ui(**kwargs):
     ui = mock.Mock(**kwargs)
+    ui.paused.return_value = mock.MagicMock()
 
     return ui
 

@@ -7,6 +7,7 @@ import logging
 import os
 import signal
 import codecs
+import contextlib
 
 from twisted.internet import reactor, defer, task
 import urwid
@@ -362,6 +363,24 @@ class UI(object):
         except Exception as e:
             exit_msg = 'Could not stop reactor: {}.'.format(e)
             logging.error('%s\nShutting down anyway..', exit_msg)
+
+    @contextlib.contextmanager
+    def paused(self):
+        """
+        context manager that pauses the UI to allow running external commands.
+
+        If an exception occurs, the UI will be started before the exception is
+        re-raised.
+        """
+        self.mainloop.stop()
+        try:
+            yield
+        finally:
+            self.mainloop.start()
+
+            # make sure urwid renders its canvas at the correct size
+            self.mainloop.screen_size = None
+            self.mainloop.draw_screen()
 
     def buffer_open(self, buf):
         """register and focus new :class:`~alot.buffers.Buffer`."""

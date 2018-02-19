@@ -284,13 +284,8 @@ class ExternalCommand(Command):
             d = threads.deferToThread(thread_code)
             d.addCallback(afterwards)
         else:
-            ui.mainloop.stop()
-            ret = thread_code()
-            ui.mainloop.start()
-
-            # make sure urwid renders its canvas at the correct size
-            ui.mainloop.screen_size = None
-            ui.mainloop.draw_screen()
+            with ui.paused():
+                ret = thread_code()
 
             afterwards(ret)
 
@@ -348,9 +343,8 @@ class PythonShellCommand(Command):
     repeatable = True
 
     def apply(self, ui):
-        ui.mainloop.stop()
-        code.interact(local=locals())
-        ui.mainloop.start()
+        with ui.paused():
+            code.interact(local=locals())
 
 
 @registerCommand(MODE, 'repeat')
