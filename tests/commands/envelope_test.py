@@ -35,6 +35,8 @@ from alot.errors import GPGProblem
 from alot.settings.errors import NoMatchingAccount
 from alot.settings.manager import SettingsManager
 
+from .. import utilities
+
 # When using an assert from a mock a TestCase method might not use self. That's
 # okay.
 # pylint: disable=no-self-use
@@ -64,7 +66,7 @@ class TestAttachCommand(unittest.TestCase):
 
     def test_single_path(self):
         """A test for an existing single path."""
-        ui = mock.Mock()
+        ui = utilities.make_ui()
 
         with temporary_directory() as d:
             testfile = os.path.join(d, 'foo')
@@ -77,7 +79,7 @@ class TestAttachCommand(unittest.TestCase):
 
     def test_user(self):
         """A test for an existing single path prefaced with ~/."""
-        ui = mock.Mock()
+        ui = utilities.make_ui()
 
         with temporary_directory() as d:
             # This mock replaces expanduser to replace "~/" with a path to the
@@ -96,7 +98,7 @@ class TestAttachCommand(unittest.TestCase):
 
     def test_glob(self):
         """A test using a glob."""
-        ui = mock.Mock()
+        ui = utilities.make_ui()
 
         with temporary_directory() as d:
             testfile1 = os.path.join(d, 'foo')
@@ -112,7 +114,7 @@ class TestAttachCommand(unittest.TestCase):
 
     def test_no_match(self):
         """A test for a file that doesn't exist."""
-        ui = mock.Mock()
+        ui = utilities.make_ui()
 
         with temporary_directory() as d:
             cmd = envelope.AttachCommand(path=os.path.join(d, 'doesnt-exist'))
@@ -133,7 +135,7 @@ class TestTagCommands(unittest.TestCase):
         :type expected: list(str)
         """
         env = Envelope(tags=['one', 'two', 'three'])
-        ui = mock.Mock()
+        ui = utilities.make_ui()
         ui.current_buffer = mock.Mock()
         ui.current_buffer.envelope = env
         cmd = envelope.TagCommand(tags=tagstring, action=action)
@@ -177,7 +179,7 @@ class TestSignCommand(unittest.TestCase):
         envelope['From'] = 'foo <foo@example.com>'
         envelope.sign = mock.sentinel.default
         envelope.sign_key = mock.sentinel.default
-        ui = mock.Mock(current_buffer=mock.Mock(envelope=envelope))
+        ui = utilities.make_ui(current_buffer=mock.Mock(envelope=envelope))
         return envelope, ui
 
     @mock.patch('alot.commands.envelope.crypto.get_key',

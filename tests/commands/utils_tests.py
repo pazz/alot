@@ -78,7 +78,7 @@ class TestGetKeys(unittest.TestCase):
         """Test that getting keys works when all keys are present."""
         expected = crypto.get_key(FPR, validate=True, encrypt=True,
                                   signed_only=False)
-        ui = mock.Mock()
+        ui = utilities.make_ui()
         ids = [FPR]
         actual = yield utils._get_keys(ui, ids)
         self.assertIn(FPR, actual)
@@ -89,7 +89,7 @@ class TestGetKeys(unittest.TestCase):
         """Test that getting keys works when some keys are missing."""
         expected = crypto.get_key(FPR, validate=True, encrypt=True,
                                   signed_only=False)
-        ui = mock.Mock()
+        ui = utilities.make_ui()
         ids = [FPR, "6F6B15509CF8E59E6E469F327F438280EF8D349F"]
         actual = yield utils._get_keys(ui, ids)
         self.assertIn(FPR, actual)
@@ -98,7 +98,7 @@ class TestGetKeys(unittest.TestCase):
     @inlineCallbacks
     def test_get_keys_signed_only(self):
         """Test gettings keys when signed only is required."""
-        ui = mock.Mock()
+        ui = utilities.make_ui()
         ids = [FPR]
         actual = yield utils._get_keys(ui, ids, signed_only=True)
         self.assertEqual(actual, {})
@@ -107,7 +107,7 @@ class TestGetKeys(unittest.TestCase):
     def test_get_keys_ambiguous(self):
         """Test gettings keys when when the key is ambiguous."""
         key = crypto.get_key(FPR, validate=True, encrypt=True, signed_only=False)
-        ui = mock.Mock()
+        ui = utilities.make_ui()
 
         # Creat a ui.choice object that can satisfy twisted, but can also be
         # queried for calls as a mock
@@ -136,7 +136,7 @@ class TestSetEncrypt(unittest.TestCase):
 
     @inlineCallbacks
     def test_get_keys_from_to(self):
-        ui = mock.Mock()
+        ui = utilities.make_ui()
         envelope = Envelope()
         envelope['To'] = 'ambig@example.com, test@example.com'
         yield utils.set_encrypt(ui, envelope)
@@ -147,7 +147,7 @@ class TestSetEncrypt(unittest.TestCase):
 
     @inlineCallbacks
     def test_get_keys_from_cc(self):
-        ui = mock.Mock()
+        ui = utilities.make_ui()
         envelope = Envelope()
         envelope['Cc'] = 'ambig@example.com, test@example.com'
         yield utils.set_encrypt(ui, envelope)
@@ -158,7 +158,7 @@ class TestSetEncrypt(unittest.TestCase):
 
     @inlineCallbacks
     def test_get_partial_keys(self):
-        ui = mock.Mock()
+        ui = utilities.make_ui()
         envelope = Envelope()
         envelope['Cc'] = 'foo@example.com, test@example.com'
         yield utils.set_encrypt(ui, envelope)
@@ -169,7 +169,7 @@ class TestSetEncrypt(unittest.TestCase):
 
     @inlineCallbacks
     def test_get_no_keys(self):
-        ui = mock.Mock()
+        ui = utilities.make_ui()
         envelope = Envelope()
         envelope['To'] = 'foo@example.com'
         yield utils.set_encrypt(ui, envelope)
@@ -178,7 +178,7 @@ class TestSetEncrypt(unittest.TestCase):
 
     @inlineCallbacks
     def test_encrypt_to_self_true(self):
-        ui = mock.Mock()
+        ui = utilities.make_ui()
         envelope = Envelope()
         envelope['From'] = 'test@example.com'
         envelope['To'] = 'ambig@example.com'
@@ -193,7 +193,7 @@ class TestSetEncrypt(unittest.TestCase):
 
     @inlineCallbacks
     def test_encrypt_to_self_false(self):
-        ui = mock.Mock()
+        ui = utilities.make_ui()
         envelope = Envelope()
         envelope['From'] = 'test@example.com'
         envelope['To'] = 'ambig@example.com'
