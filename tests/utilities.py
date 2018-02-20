@@ -173,6 +173,13 @@ def make_key(revoked=False, expired=False, invalid=False, can_encrypt=True,
     return mock_key
 
 
+def make_ui(**kwargs):
+    ui = mock.Mock(**kwargs)
+    ui.paused.return_value = mock.MagicMock()
+
+    return ui
+
+
 def expected_failure(func):
     """For marking expected failures for twisted.trial based unit tests.
 
