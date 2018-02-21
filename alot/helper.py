@@ -412,6 +412,17 @@ def guess_encoding(blob):
         raise Exception('Unknown magic API')
 
 
+def try_decode(blob):
+    """Guess the encoding of blob and try to decode it into a str.
+
+    :param bytes blob: The bytes to decode
+    :returns: the decoded blob
+    :rtype: str
+    """
+    assert isinstance(blob, bytes), 'cannot decode a str or non-bytes object'
+    return blob.decode(guess_encoding(blob))
+
+
 def libmagic_version_at_least(version):
     """
     checks if the libmagic library installed is more recent than a given
