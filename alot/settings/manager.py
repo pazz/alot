@@ -176,12 +176,12 @@ class SettingsManager(object):
 
         value = section[key]
 
-        if isinstance(value, (str, unicode)):
+        if isinstance(value, str):
             section[key] = expand_environment_and_home(value)
         elif isinstance(value, (list, tuple)):
             new = list()
             for item in value:
-                if isinstance(item, (str, unicode)):
+                if isinstance(item, str):
                     new.append(expand_environment_and_home(item))
                 else:
                     new.append(item)
@@ -529,7 +529,7 @@ class SettingsManager(object):
 
     def represent_datetime(self, d):
         """
-        turns a given datetime obj into a unicode string representation.
+        turns a given datetime obj into a string representation.
         This will:
 
         1) look if a fixed 'timestamp_format' is given in the config
