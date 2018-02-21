@@ -1,3 +1,13 @@
+0.7:
+* info: missing html mailcap entry now reported as mail body text
+* feature: Allow regex special characters in tagstrings
+* feature: configurable thread mode message indentation
+* new thread buffer command "indent" (bound to '[' and ']')
+* config: new option thread_indent_replies
+* config: new option exclude_tags
+* config: new option encrypt_to_self
+* config: update behaviour of encrypt_by_default
+
 0.6:
 * feature: Add command to reload configuration files in running session
 * feature: new command "tag" (and friends) in EnvelopeBuffer to add additional tags after sending
