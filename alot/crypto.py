@@ -8,6 +8,7 @@ from __future__ import absolute_import
 import gpg
 
 from .errors import GPGProblem, GPGCode
+from . import helper
 
 
 def RFC3156_micalg_from_algo(hash_algo):
@@ -152,9 +153,9 @@ def detached_signature_for(plaintext_str, keys):
     """
     ctx = gpg.core.Context(armor=True)
     ctx.signers = keys
-    (sigblob, sign_result) = ctx.sign(plaintext_str,
+    (sigblob, sign_result) = ctx.sign(plaintext_str.encode('utf-8'),
                                       mode=gpg.constants.SIG_MODE_DETACH)
-    return sign_result.signatures, sigblob
+    return sign_result.signatures, sigblob.decode('ascii')
 
 
 def encrypt(plaintext_str, keys):
@@ -168,9 +169,9 @@ def encrypt(plaintext_str, keys):
     """
     assert keys, 'Must provide at least one key to encrypt with'
     ctx = gpg.core.Context(armor=True)
-    out = ctx.encrypt(plaintext_str, recipients=keys, sign=False,
+    out = ctx.encrypt(plaintext_str.encode('utf-8'), recipients=keys, sign=False,
                       always_trust=True)[0]
-    return out
+    return out.decode('ascii')
 
 
 NO_ERROR = None
@@ -200,7 +201,7 @@ def verify_detached(message, signature):
     """
     ctx = gpg.core.Context()
     try:
-        verify_results = ctx.verify(message, signature)[1]
+        verify_results = ctx.verify(message.encode('utf-8'), signature.encode('ascii'))[1]
         return verify_results.signatures
     except gpg.errors.BadSignatures as e:
         raise GPGProblem(bad_signatures_to_str(e), code=GPGCode.BAD_SIGNATURE)
@@ -219,12 +220,13 @@ def decrypt_verify(encrypted):
     """
     ctx = gpg.core.Context()
     try:
-        (plaintext, _, verify_result) = ctx.decrypt(encrypted, verify=True)
+        (plaintext, _, verify_result) = ctx.decrypt(
+            encrypted.encode('utf-8'), verify=True)
     except gpg.errors.GPGMEError as e:
         raise GPGProblem(str(e), code=e.getcode())
     # what if the signature is bad?
 
-    return verify_result.signatures, plaintext
+    return verify_result.signatures, helper.try_decode(plaintext)
 
 
 def validate_key(key, sign=False, encrypt=False):

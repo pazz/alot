@@ -14,6 +14,7 @@ import gpg
 import mock
 
 from alot import crypto
+from alot import helper
 from alot.errors import GPGProblem, GPGCode
 
 from . import utilities
@@ -57,7 +58,8 @@ def tearDownModule():
     # Kill any gpg-agent's that have been opened
     lookfor = 'gpg-agent --homedir {}'.format(os.environ['GNUPGHOME'])
 
-    out = subprocess.check_output(['ps', 'xo', 'pid,cmd'], stderr=DEVNULL)
+    out = helper.try_decode(
+        subprocess.check_output(['ps', 'xo', 'pid,cmd'], stderr=DEVNULL))
     for each in out.strip().split('\n'):
         pid, cmd = each.strip().split(' ', 1)
         if cmd.startswith(lookfor):
@@ -113,12 +115,12 @@ class TestDetachedSignatureFor(unittest.TestCase):
         with gpg.core.Context() as ctx:
             _, detached = crypto.detached_signature_for(to_sign, [ctx.get_key(FPR)])
 
-        with tempfile.NamedTemporaryFile(delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
             f.write(detached)
             sig = f.name
         self.addCleanup(os.unlink, f.name)
 
-        with tempfile.NamedTemporaryFile(delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
             f.write(to_sign)
             text = f.name
         self.addCleanup(os.unlink, f.name)
@@ -363,13 +365,13 @@ class TestEncrypt(unittest.TestCase):
         to_encrypt = "this is a string\nof data."
         encrypted = crypto.encrypt(to_encrypt, keys=[crypto.get_key(FPR)])
 
-        with tempfile.NamedTemporaryFile(delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
             f.write(encrypted)
             enc_file = f.name
         self.addCleanup(os.unlink, enc_file)
 
-        dec = subprocess.check_output(['gpg', '--decrypt', enc_file],
-                                      stderr=DEVNULL)
+        dec = helper.try_decode(subprocess.check_output(
+            ['gpg', '--decrypt', enc_file], stderr=DEVNULL))
         self.assertEqual(to_encrypt, dec)
 
 
