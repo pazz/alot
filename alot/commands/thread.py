@@ -71,12 +71,12 @@ def determine_sender(mail, action='reply'):
         # pick the most important account that has an address in candidates
         # and use that accounts realname and the address found here
         for account in my_accounts:
-            acc_addresses = [re.escape(unicode(a)) for a in account.get_addresses()]
+            acc_addresses = [re.escape(str(a)) for a in account.get_addresses()]
             if account.alias_regexp is not None:
                 acc_addresses.append(account.alias_regexp)
             for alias in acc_addresses:
                 regex = re.compile(
-                    u'^' + unicode(alias) + u'$',
+                    u'^' + str(alias) + u'$',
                     flags=re.IGNORECASE if not account.address.case_sensitive else 0)
                 for seen_name, seen_address in candidate_addresses:
                     if regex.match(seen_address):
@@ -93,7 +93,7 @@ def determine_sender(mail, action='reply'):
                         logging.debug('using realname: "%s"', realname)
                         logging.debug('using address: %s', address)
 
-                        from_value = formataddr((realname, address))
+                        from_value = formataddr((realname, str(address)))
                         return from_value, account
 
     # revert to default account if nothing found
@@ -103,7 +103,7 @@ def determine_sender(mail, action='reply'):
     logging.debug('using realname: "%s"', realname)
     logging.debug('using address: %s', address)
 
-    from_value = formataddr((realname, address))
+    from_value = formataddr((realname, str(address)))
     return from_value, account
 
 
@@ -301,7 +301,7 @@ class ReplyCommand(Command):
         new_value = []
         for name, address in getaddresses(value):
             if address not in my_addresses:
-                new_value.append(formataddr((name, address)))
+                new_value.append(formataddr((name, str(address))))
         return new_value
 
     @staticmethod
@@ -313,7 +313,7 @@ class ReplyCommand(Command):
         res = dict()
         for name, address in getaddresses(recipients):
             res[address] = name
-        urecipients = [formataddr((n, a)) for a, n in res.items()]
+        urecipients = [formataddr((n, str(a))) for a, n in res.items()]
         return sorted(urecipients)
 
 
