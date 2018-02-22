@@ -12,7 +12,7 @@ import glob
 import logging
 import os
 import subprocess
-from io import StringIO
+from io import BytesIO
 
 import urwid
 from twisted.internet.defer import inlineCallbacks
@@ -251,7 +251,9 @@ class ExternalCommand(Command):
         if self.stdin is not None:
             # wrap strings in StrinIO so that they behaves like a file
             if isinstance(self.stdin, str):
-                stdin = StringIO(self.stdin)
+                # XXX: is utf-8 always safe to use here, or do we need to check
+                # the terminal encoding first?
+                stdin = BytesIO(self.stdin.encode('utf-8'))
             else:
                 stdin = self.stdin
 
@@ -278,7 +280,7 @@ class ExternalCommand(Command):
             _, err = proc.communicate(stdin.read() if stdin else None)
             if proc.returncode == 0:
                 return 'success'
-            return err.strip()
+            return helper.try_decode(err).strip()
 
         if self.in_thread:
             d = threads.deferToThread(thread_code)
