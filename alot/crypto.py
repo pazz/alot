@@ -1,6 +1,5 @@
-# encoding=utf-8
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
-# Copyright © 2017 Dylan Baker <dylan@pnwbakers.com>
+# Copyright © 2017-2018 Dylan Baker <dylan@pnwbakers.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 from __future__ import absolute_import
@@ -8,7 +7,6 @@ from __future__ import absolute_import
 import gpg
 
 from .errors import GPGProblem, GPGCode
-from . import helper
 
 
 def RFC3156_micalg_from_algo(hash_algo):
@@ -145,7 +143,7 @@ def detached_signature_for(plaintext_str, keys):
     A detached signature in GPG speak is a separate blob of data containing
     a signature for the specified plaintext.
 
-    :param str plaintext_str: text to sign
+    :param bytes plaintext_str: bytestring to sign
     :param keys: list of one or more key to sign with.
     :type keys: list[gpg.gpgme._gpgme_key]
     :returns: A list of signature and the signed blob of data
@@ -153,15 +151,15 @@ def detached_signature_for(plaintext_str, keys):
     """
     ctx = gpg.core.Context(armor=True)
     ctx.signers = keys
-    (sigblob, sign_result) = ctx.sign(plaintext_str.encode('utf-8'),
+    (sigblob, sign_result) = ctx.sign(plaintext_str,
                                       mode=gpg.constants.SIG_MODE_DETACH)
-    return sign_result.signatures, sigblob.decode('ascii')
+    return sign_result.signatures, sigblob
 
 
 def encrypt(plaintext_str, keys):
     """Encrypt data and return the encrypted form.
 
-    :param str plaintext_str: the mail to encrypt
+    :param bytes plaintext_str: the mail to encrypt
     :param key: optionally, a list of keys to encrypt with
     :type key: list[gpg.gpgme.gpgme_key_t] or None
     :returns: encrypted mail
@@ -169,9 +167,9 @@ def encrypt(plaintext_str, keys):
     """
     assert keys, 'Must provide at least one key to encrypt with'
     ctx = gpg.core.Context(armor=True)
-    out = ctx.encrypt(plaintext_str.encode('utf-8'), recipients=keys, sign=False,
+    out = ctx.encrypt(plaintext_str, recipients=keys, sign=False,
                       always_trust=True)[0]
-    return out.decode('ascii')
+    return out
 
 
 NO_ERROR = None
@@ -193,15 +191,15 @@ def bad_signatures_to_str(error):
 def verify_detached(message, signature):
     """Verifies whether the message is authentic by checking the signature.
 
-    :param str message: The message to be verified, in canonical form.
-    :param str signature: the OpenPGP signature to verify
+    :param bytes message: The message to be verified, in canonical form.
+    :param bytes signature: the OpenPGP signature to verify
     :returns: a list of signatures
     :rtype: list[gpg.results.Signature]
     :raises: :class:`~alot.errors.GPGProblem` if the verification fails
     """
     ctx = gpg.core.Context()
     try:
-        verify_results = ctx.verify(message.encode('utf-8'), signature.encode('ascii'))[1]
+        verify_results = ctx.verify(message, signature)[1]
         return verify_results.signatures
     except gpg.errors.BadSignatures as e:
         raise GPGProblem(bad_signatures_to_str(e), code=GPGCode.BAD_SIGNATURE)
@@ -213,7 +211,7 @@ def decrypt_verify(encrypted):
     """Decrypts the given ciphertext string and returns both the
     signatures (if any) and the plaintext.
 
-    :param str encrypted: the mail to decrypt
+    :param bytes encrypted: the mail to decrypt
     :returns: the signatures and decrypted plaintext data
     :rtype: tuple[list[gpg.resuit.Signature], str]
     :raises: :class:`~alot.errors.GPGProblem` if the decryption fails
@@ -221,12 +219,12 @@ def decrypt_verify(encrypted):
     ctx = gpg.core.Context()
     try:
         (plaintext, _, verify_result) = ctx.decrypt(
-            encrypted.encode('utf-8'), verify=True)
+            encrypted, verify=True)
     except gpg.errors.GPGMEError as e:
         raise GPGProblem(str(e), code=e.getcode())
     # what if the signature is bad?
 
-    return verify_result.signatures, helper.try_decode(plaintext)
+    return verify_result.signatures, plaintext
 
 
 def validate_key(key, sign=False, encrypt=False):

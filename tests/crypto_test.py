@@ -111,16 +111,16 @@ class TestHashAlgorithmHelper(unittest.TestCase):
 class TestDetachedSignatureFor(unittest.TestCase):
 
     def test_valid_signature_generated(self):
-        to_sign = "this is some text.\nit is more than nothing.\n"
+        to_sign = b"this is some text.\nit is more than nothing.\n"
         with gpg.core.Context() as ctx:
             _, detached = crypto.detached_signature_for(to_sign, [ctx.get_key(FPR)])
 
-        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
+        with tempfile.NamedTemporaryFile(delete=False) as f:
             f.write(detached)
             sig = f.name
         self.addCleanup(os.unlink, f.name)
 
-        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
+        with tempfile.NamedTemporaryFile(delete=False) as f:
             f.write(to_sign)
             text = f.name
         self.addCleanup(os.unlink, f.name)
@@ -133,7 +133,7 @@ class TestDetachedSignatureFor(unittest.TestCase):
 class TestVerifyDetached(unittest.TestCase):
 
     def test_verify_signature_good(self):
-        to_sign = "this is some text.\nIt's something\n."
+        to_sign = b"this is some text.\nIt's something\n."
         with gpg.core.Context() as ctx:
             _, detached = crypto.detached_signature_for(to_sign, [ctx.get_key(FPR)])
 
@@ -143,8 +143,8 @@ class TestVerifyDetached(unittest.TestCase):
             raise AssertionError
 
     def test_verify_signature_bad(self):
-        to_sign = "this is some text.\nIt's something\n."
-        similar = "this is some text.\r\n.It's something\r\n."
+        to_sign = b"this is some text.\nIt's something\n."
+        similar = b"this is some text.\r\n.It's something\r\n."
         with gpg.core.Context() as ctx:
             _, detached = crypto.detached_signature_for(to_sign, [ctx.get_key(FPR)])
 
@@ -362,23 +362,22 @@ class TestGetKey(unittest.TestCase):
 class TestEncrypt(unittest.TestCase):
 
     def test_encrypt(self):
-        to_encrypt = "this is a string\nof data."
+        to_encrypt = b"this is a string\nof data."
         encrypted = crypto.encrypt(to_encrypt, keys=[crypto.get_key(FPR)])
 
-        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
+        with tempfile.NamedTemporaryFile(delete=False) as f:
             f.write(encrypted)
             enc_file = f.name
         self.addCleanup(os.unlink, enc_file)
 
-        dec = helper.try_decode(subprocess.check_output(
-            ['gpg', '--decrypt', enc_file], stderr=DEVNULL))
+        dec = subprocess.check_output(['gpg', '--decrypt', enc_file], stderr=DEVNULL)
         self.assertEqual(to_encrypt, dec)
 
 
 class TestDecrypt(unittest.TestCase):
 
     def test_decrypt(self):
-        to_encrypt = "this is a string\nof data."
+        to_encrypt = b"this is a string\nof data."
         encrypted = crypto.encrypt(to_encrypt, keys=[crypto.get_key(FPR)])
         _, dec = crypto.decrypt_verify(encrypted)
         self.assertEqual(to_encrypt, dec)
