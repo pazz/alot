@@ -64,7 +64,7 @@ class Message(object):
             self._from = sender
         elif 'draft' in self._tags:
             acc = settings.get_accounts()[0]
-            self._from = '"{}" <{}>'.format(acc.realname, unicode(acc.address))
+            self._from = '"{}" <{}>'.format(acc.realname, str(acc.address))
         else:
             self._from = '"Unknown" <>'
 
