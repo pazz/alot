@@ -97,7 +97,8 @@ def _get_keys(ui, encrypt_keyids, block_error=False, signed_only=False):
                                   crypto.list_keys(hint=keyid)], 1)}
                 choosen_key = yield ui.choice("ambiguous keyid! Which " +
                                               "key do you want to use?",
-                                              choices, keys_to_return)
+                                              choices=choices,
+                                              choices_to_return=keys_to_return)
                 if choosen_key:
                     keys[choosen_key.fpr] = choosen_key
                 continue
