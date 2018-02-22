@@ -45,7 +45,7 @@ class TestThreadGetAuthor(unittest.TestCase):
             m.get_author = mock.Mock(return_value=a)
             get_messages.append(m)
         gm = mock.Mock()
-        gm.iterkeys = mock.Mock(return_value=get_messages)
+        gm.keys = mock.Mock(return_value=get_messages)
 
         cls.__patchers.extend([
             mock.patch('alot.db.thread.Thread.get_messages',
