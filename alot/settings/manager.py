@@ -38,9 +38,9 @@ class SettingsManager(object):
         :param notmuch_rc: path to notmuch's config file
         :type notmuch_rc: str
         """
-        assert alot_rc is None or (isinstance(alot_rc, basestring) and
+        assert alot_rc is None or (isinstance(alot_rc, str) and
                                    os.path.exists(alot_rc))
-        assert notmuch_rc is None or (isinstance(notmuch_rc, basestring) and
+        assert notmuch_rc is None or (isinstance(notmuch_rc, str) and
                                       os.path.exists(notmuch_rc))
         self.hooks = None
         self._mailcaps = mailcap.getcaps()

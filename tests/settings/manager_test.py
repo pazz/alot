@@ -22,7 +22,7 @@ from .. import utilities
 class TestSettingsManager(unittest.TestCase):
 
     def test_reading_synchronize_flags_from_notmuch_config(self):
-        with tempfile.NamedTemporaryFile(delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
             f.write(textwrap.dedent("""\
                 [maildir]
                 synchronize_flags = true
@@ -34,7 +34,7 @@ class TestSettingsManager(unittest.TestCase):
         self.assertTrue(actual)
 
     def test_parsing_notmuch_config_with_non_bool_synchronize_flag_fails(self):
-        with tempfile.NamedTemporaryFile(delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
             f.write(textwrap.dedent("""\
                 [maildir]
                 synchronize_flags = not bool
@@ -45,7 +45,7 @@ class TestSettingsManager(unittest.TestCase):
             SettingsManager(notmuch_rc=f.name)
 
     def test_reload_notmuch_config(self):
-        with tempfile.NamedTemporaryFile(delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
             f.write(textwrap.dedent("""\
                 [maildir]
                 synchronize_flags = false
@@ -53,7 +53,7 @@ class TestSettingsManager(unittest.TestCase):
         self.addCleanup(os.unlink, f.name)
         manager = SettingsManager(notmuch_rc=f.name)
 
-        with tempfile.NamedTemporaryFile(delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
             f.write(textwrap.dedent("""\
                 [maildir]
                 synchronize_flags = true
@@ -72,7 +72,7 @@ class TestSettingsManager(unittest.TestCase):
         defaults not being loaded if there isn't an alot config files, and thus
         calls like `get_theming_attribute` fail with strange exceptions.
         """
-        with tempfile.NamedTemporaryFile(delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
             f.write(textwrap.dedent("""\
                 [maildir]
                 synchronize_flags = true
@@ -86,7 +86,7 @@ class TestSettingsManager(unittest.TestCase):
         # todo: For py3, don't mock the logger, use assertLogs
         unknown_settings = ['templates_dir', 'unknown_section', 'unknown_1',
                             'unknown_2']
-        with tempfile.NamedTemporaryFile(delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
             f.write(textwrap.dedent("""\
                 {x[0]} = /templates/dir
                 [{x[1]}]
@@ -110,7 +110,7 @@ class TestSettingsManager(unittest.TestCase):
                             unknown_settings, mock_logger.info.call_args_list))
 
     def test_read_notmuch_config_doesnt_exist(self):
-        with tempfile.NamedTemporaryFile(delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
             f.write(textwrap.dedent("""\
                 [accounts]
                     [[default]]
@@ -125,7 +125,7 @@ class TestSettingsManager(unittest.TestCase):
 
     def test_dont_choke_on_regex_special_chars_in_tagstring(self):
         tag = 'to**do'
-        with tempfile.NamedTemporaryFile(delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
             f.write(textwrap.dedent("""\
                 [tags]
                     [[{tag}]]
@@ -171,7 +171,7 @@ class TestSettingsManagerExpandEnvironment(unittest.TestCase):
         user_setting = '/path/to/template/dir'
 
         with mock.patch.dict('os.environ', {self.xdg_name: self.xdg_custom}):
-            with tempfile.NamedTemporaryFile(delete=False) as f:
+            with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
                 f.write('template_dir = {}'.format(user_setting))
             self.addCleanup(os.unlink, f.name)
 
@@ -188,7 +188,7 @@ class TestSettingsManagerExpandEnvironment(unittest.TestCase):
         with mock.patch.dict('os.environ', {self.xdg_name: self.xdg_custom,
                                             'foo': foo_env}):
             foo_in_config = 'foo_set_in_config'
-            with tempfile.NamedTemporaryFile(delete=False) as f:
+            with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
                 f.write(textwrap.dedent("""\
                 foo = {}
                 template_dir = ${{XDG_CONFIG_HOME}}/$foo/%(foo)s/${{foo}}
@@ -221,7 +221,7 @@ class TestSettingsManagerGetAccountByAddress(utilities.TestCaseClassCleanup):
             """)
 
         # Allow settings.reload to work by not deleting the file until the end
-        with tempfile.NamedTemporaryFile(delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
             f.write(config)
         cls.addClassCleanup(os.unlink, f.name)
 
@@ -244,7 +244,7 @@ class TestSettingsManagerGetAccountByAddress(utilities.TestCaseClassCleanup):
 
     def test_doesnt_exist_no_default(self):
         with tempfile.NamedTemporaryFile() as f:
-            f.write('')
+            f.write(b'')
             settings = SettingsManager(alot_rc=f.name)
         with self.assertRaises(NoMatchingAccount):
             settings.get_account_by_address('that_guy@example.com',
