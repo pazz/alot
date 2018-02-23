@@ -315,7 +315,7 @@ class TestSignCommand(unittest.TestCase):
             """)
 
         # Allow settings.reload to work by not deleting the file until the end
-        with tempfile.NamedTemporaryFile(delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
             f.write(config)
         self.addCleanup(os.unlink, f.name)
 
