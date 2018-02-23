@@ -276,8 +276,11 @@ def call_cmd(cmdlist, stdin=None):
     :param stdin: string to pipe to the process
     :type stdin: str
     :return: triple of stdout, stderr, return value of the shell command
-    :rtype: str, str, int
+    :rtype: str, str, intd
     """
+    termenc = urwid.util.detected_encoding
+    if stdin:
+        stdin = stdin.encode(termenc)
     try:
         proc = subprocess.Popen(
             cmdlist,
@@ -292,8 +295,8 @@ def call_cmd(cmdlist, stdin=None):
         out, err = proc.communicate(stdin)
         ret = proc.returncode
 
-    out = string_decode(out, urwid.util.detected_encoding)
-    err = string_decode(err, urwid.util.detected_encoding)
+    out = string_decode(out, termenc)
+    err = string_decode(err, termenc)
     return out, err, ret
 
 
@@ -308,6 +311,8 @@ def call_cmd_async(cmdlist, stdin=None, env=None):
              return value of the shell command
     :rtype: `twisted.internet.defer.Deferred`
     """
+    termenc = urwid.util.detected_encoding
+    cmdlist = [s.encode(termenc) for s in cmdlist]
 
     class _EverythingGetter(ProcessProtocol):
         def __init__(self, deferred):
@@ -318,7 +323,6 @@ def call_cmd_async(cmdlist, stdin=None, env=None):
             self.errReceived = self.errBuf.write
 
         def processEnded(self, status):
-            termenc = urwid.util.detected_encoding
             out = string_decode(self.outBuf.getvalue(), termenc)
             err = string_decode(self.errBuf.getvalue(), termenc)
             if status.value.exitCode == 0:
@@ -339,7 +343,7 @@ def call_cmd_async(cmdlist, stdin=None, env=None):
                                 args=cmdlist)
     if stdin:
         logging.debug('writing to stdin')
-        proc.write(stdin)
+        proc.write(stdin.encode(termenc))
         proc.closeStdin()
     return d
 

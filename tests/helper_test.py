@@ -143,13 +143,13 @@ class TestSplitCommandstring(unittest.TestCase):
         self.assertListEqual(actual, expected)
 
     def test_bytes(self):
-        base = b'echo "foo bar"'
-        expected = [b'echo', b'foo bar']
+        base = 'echo "foo bar"'
+        expected = ['echo', 'foo bar']
         self._test(base, expected)
 
     def test_unicode(self):
-        base = u'echo "foo €"'
-        expected = [b'echo', u'foo €'.encode('utf-8')]
+        base = 'echo "foo €"'
+        expected = ['echo', 'foo €']
         self._test(base, expected)
 
 
@@ -251,7 +251,7 @@ class TestPrettyDatetime(unittest.TestCase):
             expected = test.strftime('%I:%M%p').lower()
         else:
             expected = test.strftime('%H:%M')
-        expected = expected.decode('utf-8')
+        expected = expected
         return expected
 
     def test_future_seconds(self):
