@@ -352,7 +352,8 @@ def extract_body(mail, types=None, field_key='copiousoutput'):
             continue
 
         enc = part.get_content_charset() or 'ascii'
-        raw_payload = part.get_payload()
+        raw_payload = part.get_payload(decode=True).decode(enc)
+
         if ctype == 'text/plain':
             body_parts.append(string_sanitize(raw_payload))
         else:
@@ -437,7 +438,7 @@ def decode_header(header, normalize=False):
     for v, enc in valuelist:
         v = string_decode(v, enc)
         decoded_list.append(string_sanitize(v))
-    value = u' '.join(decoded_list)
+    value = ''.join(decoded_list)
     if normalize:
         value = re.sub(r'\n\s+', r' ', value)
     return value
