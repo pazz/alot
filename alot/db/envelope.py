@@ -186,7 +186,7 @@ class Envelope(object):
             inner_msg = textpart
 
         if self.sign:
-            plaintext = helper.email_as_string(inner_msg)
+            plaintext = helper.email_as_bytes(inner_msg)
             logging.debug('signing plaintext: %s', plaintext)
 
             try:
@@ -216,7 +216,7 @@ class Envelope(object):
 
             # wrap signature in MIMEcontainter
             stype = 'pgp-signature; name="signature.asc"'
-            signature_mime = MIMEApplication(_data=signature_str,
+            signature_mime = MIMEApplication(_data=signature_str.decode('ascii'),
                                              _subtype=stype,
                                              _encoder=encode_7or8bit)
             signature_mime['Content-Description'] = 'signature'
