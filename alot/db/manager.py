@@ -145,8 +145,7 @@ class DBManager(object):
                         msg.freeze()
                         logging.debug('freeze')
                         for tag in tags:
-                            msg.add_tag(tag.encode(DB_ENC),
-                                        sync_maildir_flags=sync)
+                            msg.add_tag(tag, sync_maildir_flags=sync)
                         logging.debug('added tags ')
                         msg.thaw()
                         logging.debug('thaw')
@@ -162,17 +161,14 @@ class DBManager(object):
                             msg.freeze()
                             if cmd == 'tag':
                                 for tag in tags:
-                                    msg.add_tag(tag.encode(DB_ENC),
-                                                sync_maildir_flags=sync)
+                                    msg.add_tag(tag, sync_maildir_flags=sync)
                             if cmd == 'set':
                                 msg.remove_all_tags()
                                 for tag in tags:
-                                    msg.add_tag(tag.encode(DB_ENC),
-                                                sync_maildir_flags=sync)
+                                    msg.add_tag(tag, sync_maildir_flags=sync)
                             elif cmd == 'untag':
                                 for tag in tags:
-                                    msg.remove_tag(tag.encode(DB_ENC),
-                                                   sync_maildir_flags=sync)
+                                    msg.remove_tag(tag, sync_maildir_flags=sync)
                             msg.thaw()
 
                     logging.debug('ended atomic')
