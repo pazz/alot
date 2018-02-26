@@ -656,7 +656,7 @@ def email_as_bytes(mail):
             # If we get here and the assert triggers it means that different
             # parts of the email are encoded differently. I don't think we're
             # likely to see that, but it's possible
-            assert {'utf-8', 'ascii'}.issuperset(charsets), 'This needs different handling.'
+            assert {'utf-8', 'ascii', 'us-ascii'}.issuperset(charsets), charsets
             charset = 'utf-8'  # It's a strict super-set
         else:
             charset = 'utf-8'

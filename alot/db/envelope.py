@@ -230,12 +230,12 @@ class Envelope(object):
             unencrypted_msg = inner_msg
 
         if self.encrypt:
-            plaintext = helper.email_as_string(unencrypted_msg)
+            plaintext = helper.email_as_bytes(unencrypted_msg)
             logging.debug('encrypting plaintext: %s', plaintext)
 
             try:
-                encrypted_str = crypto.encrypt(plaintext,
-                                               self.encrypt_keys.values())
+                encrypted_str = crypto.encrypt(
+                    plaintext, list(self.encrypt_keys.values()))
             except gpg.errors.GPGMEError as e:
                 raise GPGProblem(str(e), code=GPGCode.KEY_CANNOT_ENCRYPT)
 
@@ -248,7 +248,7 @@ class Envelope(object):
                                               _encoder=encode_7or8bit)
             encryption_mime.set_charset('us-ascii')
 
-            encrypted_mime = MIMEApplication(_data=encrypted_str,
+            encrypted_mime = MIMEApplication(_data=encrypted_str.decode('ascii'),
                                              _subtype='octet-stream',
                                              _encoder=encode_7or8bit)
             encrypted_mime.set_charset('us-ascii')
