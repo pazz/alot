@@ -15,7 +15,7 @@ import tempfile
 import re
 import logging
 import mailcap
-from io import StringIO
+import io
 
 from .. import crypto
 from .. import helper
@@ -44,12 +44,11 @@ def add_signature_headers(mail, sigs, error_msg):
     :param error_msg: `str` containing an error message, the empty
                       string indicating no error
     '''
-    sig_from = u''
+    sig_from = ''
     sig_known = True
     uid_trusted = False
 
-    if isinstance(error_msg, str):
-        error_msg = error_msg.decode('utf-8')
+    assert isinstance(error_msg, (str, bool))
 
     if not sigs:
         error_msg = error_msg or u'no signature found'
@@ -58,22 +57,22 @@ def add_signature_headers(mail, sigs, error_msg):
             key = crypto.get_key(sigs[0].fpr)
             for uid in key.uids:
                 if crypto.check_uid_validity(key, uid.email):
-                    sig_from = uid.uid.decode('utf-8')
+                    sig_from = uid.uid
                     uid_trusted = True
                     break
             else:
                 # No trusted uid found, since we did not break from the loop.
-                sig_from = key.uids[0].uid.decode('utf-8')
+                sig_from = key.uids[0].uid
         except GPGProblem:
-            sig_from = sigs[0].fpr.decode('utf-8')
+            sig_from = sigs[0].fpr
             sig_known = False
 
     if error_msg:
-        msg = u'Invalid: {}'.format(error_msg)
+        msg = 'Invalid: {}'.format(error_msg)
     elif uid_trusted:
-        msg = u'Valid: {}'.format(sig_from)
+        msg = 'Valid: {}'.format(sig_from)
     else:
-        msg = u'Untrusted: {}'.format(sig_from)
+        msg = 'Untrusted: {}'.format(sig_from)
 
     mail.add_header(X_SIGNATURE_VALID_HEADER,
                     'False' if (error_msg or not sig_known) else 'True')
@@ -133,10 +132,11 @@ def _handle_signatures(original, message, params):
     if not malformed:
         try:
             sigs = crypto.verify_detached(
-                helper.email_as_string(message.get_payload(0)),
-                message.get_payload(1).get_payload())
+                helper.email_as_bytes(message.get_payload(0)),
+                message.get_payload(1).get_payload().encode('ascii'))
+            # XXX: I think ascii is the right thing to use for the pgp signature
         except GPGProblem as e:
-            malformed = unicode(e)
+            malformed = str(e)
 
     add_signature_headers(original, sigs, malformed)
 
@@ -170,15 +170,17 @@ def _handle_encrypted(original, message):
         malformed = u'expected Content-Type: {0}, got: {1}'.format(want, ct)
 
     if not malformed:
+        # This should be safe because PGP uses US-ASCII characters only
+        payload = message.get_payload(1).get_payload().encode('ascii')
         try:
-            sigs, d = crypto.decrypt_verify(message.get_payload(1).get_payload())
+            sigs, d = crypto.decrypt_verify(payload)
         except GPGProblem as e:
             # signature verification failures end up here too if the combined
             # method is used, currently this prevents the interpretation of the
             # recovered plain text mail. maybe that's a feature.
-            malformed = unicode(e)
+            malformed = str(e)
         else:
-            n = message_from_string(d)
+            n = message_from_bytes(d)
 
             # add the decrypted message to message. note that n contains all
             # the attachments, no need to walk over n here.
@@ -208,7 +210,7 @@ def _handle_encrypted(original, message):
 
     if malformed:
         msg = u'Malformed OpenPGP message: {0}'.format(malformed)
-        content = email.message_from_string(msg.encode('utf-8'))
+        content = email.message_from_string(msg)
         content.set_charset('utf-8')
         original.attach(content)
 
@@ -272,7 +274,14 @@ def message_from_string(s):
     details.
 
     '''
-    return message_from_file(StringIO(s))
+    return message_from_file(io.StringIO(s))
+
+
+def message_from_bytes(bytestring):
+    """Read mail from given bytes string. Works like message_from_string, but
+    for bytes.
+    """
+    return message_from_file(io.StringIO(helper.try_decode(bytestring)))
 
 
 def extract_headers(mail, headers=None):
@@ -343,9 +352,8 @@ def extract_body(mail, types=None, field_key='copiousoutput'):
             continue
 
         enc = part.get_content_charset() or 'ascii'
-        raw_payload = part.get_payload(decode=True)
+        raw_payload = part.get_payload()
         if ctype == 'text/plain':
-            raw_payload = string_decode(raw_payload, enc)
             body_parts.append(string_sanitize(raw_payload))
         else:
             # get mime handler
@@ -363,7 +371,8 @@ def extract_body(mail, types=None, field_key='copiousoutput'):
                     nametemplate = entry.get('nametemplate', '%s')
                     prefix, suffix = parse_mailcap_nametemplate(nametemplate)
                     with tempfile.NamedTemporaryFile(
-                            delete=False, prefix=prefix, suffix=suffix) \
+                            mode='w+', delete=False, prefix=prefix,
+                            suffix=suffix) \
                             as tmpfile:
                         tmpfile.write(raw_payload)
                         tempfile_name = tmpfile.name

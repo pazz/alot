@@ -638,6 +638,32 @@ def email_as_string(mail):
     return as_string
 
 
+def email_as_bytes(mail):
+    string = email_as_string(mail)
+    charset = mail.get_charset()
+    if charset:
+        charset = str(charset)
+    else:
+        charsets = set(mail.get_charsets())
+        if None in charsets:
+            # None is equal to US-ASCII
+            charsets.discard(None)
+            charsets.add('ascii')
+
+        if len(charsets) == 1:
+            charset = list(charsets)[0]
+        elif 'ascii' in charsets:
+            # If we get here and the assert triggers it means that different
+            # parts of the email are encoded differently. I don't think we're
+            # likely to see that, but it's possible
+            assert {'utf-8', 'ascii'}.issuperset(charsets), 'This needs different handling.'
+            charset = 'utf-8'  # It's a strict super-set
+        else:
+            charset = 'utf-8'
+
+    return string.encode(charset)
+
+
 def get_xdg_env(env_name, fallback):
     """ Used for XDG_* env variables to return fallback if unset *or* empty """
     env = os.environ.get(env_name)
