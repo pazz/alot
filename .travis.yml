@@ -15,8 +15,6 @@ python:
   # We can add more version strings here when we support other python
   # versions.
   - "2.7"
-  - "3.3"
-  - "3.4"
   - "3.5"
   - "3.6"
 
@@ -34,8 +32,6 @@ env:
 # python version 2.7 above.
 jobs:
   allow_failures:
-    - python: "3.3"
-    - python: "3.4"
     - python: "3.5"
     - python: "3.6"
 
