@@ -10,7 +10,8 @@ from datetime import datetime
 
 from notmuch import NullPointerError
 
-from .utils import extract_body, message_from_file
+from . import utils
+from .utils import extract_body
 from .utils import decode_header
 from .attachment import Attachment
 from .. import helper
@@ -101,8 +102,8 @@ class Message(object):
                   "Message file is no longer accessible:\n%s" % path
         if not self._email:
             try:
-                with open(path) as f:
-                    self._email = message_from_file(f)
+                with open(path, 'rb') as f:
+                    self._email = utils.message_from_bytes(f.read())
             except IOError:
                 self._email = email.message_from_string(warning)
         return self._email
