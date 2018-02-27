@@ -621,7 +621,7 @@ class HelpCommand(Command):
             globalmaps, modemaps = settings.get_keybindings(ui.mode)
 
             # build table
-            maxkeylength = len(max((modemaps).keys() + globalmaps.keys(),
+            maxkeylength = len(max(list(modemaps.keys()) + list(globalmaps.keys()),
                                    key=len))
             keycolumnwidth = maxkeylength + 2
 
