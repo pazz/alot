@@ -352,7 +352,7 @@ def extract_body(mail, types=None, field_key='copiousoutput'):
             continue
 
         enc = part.get_content_charset() or 'ascii'
-        raw_payload = part.get_payload(decode=True).decode(enc, errors='replace')
+        raw_payload = part.get_payload(decode=True).decode(enc)
 
         if ctype == 'text/plain':
             body_parts.append(string_sanitize(raw_payload))
