@@ -352,7 +352,16 @@ def extract_body(mail, types=None, field_key='copiousoutput'):
             continue
 
         enc = part.get_content_charset() or 'ascii'
-        raw_payload = part.get_payload(decode=True).decode(enc)
+        raw_payload = part.get_payload(decode=True)
+        try:
+            raw_payload = raw_payload.decode(enc)
+        except UnicodeDecodeError:
+            # If the message is not formatted ascii then get_payload with
+            # decode=True will convert to raw-unicode-escape. if the encoding
+            # that the message specifies doesn't work try this. It might be
+            # better to handle the base64 and quoted-printable oursevles
+            # instead of having to clean up like this.
+            raw_payload = raw_payload.decode('raw-unicode-escape')
 
         if ctype == 'text/plain':
             body_parts.append(string_sanitize(raw_payload))
