@@ -5,6 +5,68 @@ Commands in `thread` mode
 -------------------------
 The following commands are available in thread mode
 
+.. _cmd.thread.indent:
+
+.. describe:: indent
+
+    change message/reply indentation
+
+    argument
+        None
+
+
+.. _cmd.thread.unfold:
+
+.. describe:: unfold
+
+    unfold message(s)
+
+    argument
+        query used to filter messages to affect
+
+
+.. _cmd.thread.toggleheaders:
+
+.. describe:: toggleheaders
+
+    display all headers
+
+    argument
+        query used to filter messages to affect
+
+
+.. _cmd.thread.editnew:
+
+.. describe:: editnew
+
+    edit message in as new
+
+    optional arguments
+        :---spawn: open editor in new window.
+
+.. _cmd.thread.tag:
+
+.. describe:: tag
+
+    add tags to message(s)
+
+    argument
+        comma separated list of tags
+
+    optional arguments
+        :---all: tag all messages in thread.
+        :---no-flush: postpone a writeout to the index (Defaults to: 'True').
+
+.. _cmd.thread.forward:
+
+.. describe:: forward
+
+    forward message
+
+    optional arguments
+        :---attach: attach original mail.
+        :---spawn: open editor in new window.
+
 .. _cmd.thread.pipeto:
 
 .. describe:: pipeto
@@ -24,40 +86,53 @@ The following commands are available in thread mode
         :---notify_stdout: display cmd's stdout as notification.
         :---field_key: mailcap field key for decoding (Defaults to: 'copiousoutput').
 
-.. _cmd.thread.editnew:
+.. _cmd.thread.untag:
 
-.. describe:: editnew
+.. describe:: untag
 
-    edit message in as new
+    remove tags from message(s)
+
+    argument
+        comma separated list of tags
 
     optional arguments
+        :---all: tag all messages in thread.
+        :---no-flush: postpone a writeout to the index (Defaults to: 'True').
+
+.. _cmd.thread.remove:
+
+.. describe:: remove
+
+    remove message(s) from the index
+
+    optional arguments
+        :---all: remove whole thread.
+
+.. _cmd.thread.reply:
+
+.. describe:: reply
+
+    reply to message
+
+    optional arguments
+        :---all: reply to all.
+        :---list: reply to list.
         :---spawn: open editor in new window.
 
-.. _cmd.thread.move:
+.. _cmd.thread.select:
 
-.. describe:: move
+.. describe:: select
 
-    move focus in current buffer
-
-    argument
-        up, down, [half]page up, [half]page down, first, last,                   parent, first reply, last reply,                   next sibling, previous sibling, next, previous,                   next unfolded, previous unfolded,                   next NOTMUCH_QUERY, previous NOTMUCH_QUERY
-
-
-.. _cmd.thread.indent:
-
-.. describe:: indent
-
-    change message/reply indentation
-
-    argument
-        None
+    select focussed element. The fired action depends on the focus:
+        - if message summary, this toggles visibility of the message,
+        - if attachment line, this opens the attachment
 
 
-.. _cmd.thread.toggleheaders:
+.. _cmd.thread.fold:
 
-.. describe:: toggleheaders
+.. describe:: fold
 
-    display all headers
+    fold message(s)
 
     argument
         query used to filter messages to affect
@@ -76,6 +151,13 @@ The following commands are available in thread mode
         :---all: tag all messages in thread.
         :---no-flush: postpone a writeout to the index (Defaults to: 'True').
 
+.. _cmd.thread.bounce:
+
+.. describe:: bounce
+
+    directly re-send selected message
+
+
 .. _cmd.thread.print:
 
 .. describe:: print
@@ -88,13 +170,6 @@ The following commands are available in thread mode
         :---separately: call print command once for each message.
         :---add_tags: add 'Tags' header to the message.
 
-.. _cmd.thread.bounce:
-
-.. describe:: bounce
-
-    directly re-send selected message
-
-
 .. _cmd.thread.togglesource:
 
 .. describe:: togglesource
@@ -104,94 +179,6 @@ The following commands are available in thread mode
     argument
         query used to filter messages to affect
 
-
-.. _cmd.thread.untag:
-
-.. describe:: untag
-
-    remove tags from message(s)
-
-    argument
-        comma separated list of tags
-
-    optional arguments
-        :---all: tag all messages in thread.
-        :---no-flush: postpone a writeout to the index (Defaults to: 'True').
-
-.. _cmd.thread.fold:
-
-.. describe:: fold
-
-    fold message(s)
-
-    argument
-        query used to filter messages to affect
-
-
-.. _cmd.thread.tag:
-
-.. describe:: tag
-
-    add tags to message(s)
-
-    argument
-        comma separated list of tags
-
-    optional arguments
-        :---all: tag all messages in thread.
-        :---no-flush: postpone a writeout to the index (Defaults to: 'True').
-
-.. _cmd.thread.remove:
-
-.. describe:: remove
-
-    remove message(s) from the index
-
-    optional arguments
-        :---all: remove whole thread.
-
-.. _cmd.thread.unfold:
-
-.. describe:: unfold
-
-    unfold message(s)
-
-    argument
-        query used to filter messages to affect
-
-
-.. _cmd.thread.forward:
-
-.. describe:: forward
-
-    forward message
-
-    optional arguments
-        :---attach: attach original mail.
-        :---spawn: open editor in new window.
-
-.. _cmd.thread.reply:
-
-.. describe:: reply
-
-    reply to message
-
-    optional arguments
-        :---all: reply to all.
-        :---list: reply to list.
-        :---spawn: open editor in new window.
-
-.. _cmd.thread.save:
-
-.. describe:: save
-
-    save attachment(s)
-
-    argument
-        path to save to
-
-    optional arguments
-        :---all: save all attachments.
 
 .. _cmd.thread.toggletags:
 
@@ -206,12 +193,25 @@ The following commands are available in thread mode
         :---all: tag all messages in thread.
         :---no-flush: postpone a writeout to the index (Defaults to: 'True').
 
-.. _cmd.thread.select:
+.. _cmd.thread.save:
 
-.. describe:: select
+.. describe:: save
 
-    select focussed element. The fired action depends on the focus:
-        - if message summary, this toggles visibility of the message,
-        - if attachment line, this opens the attachment
+    save attachment(s)
+
+    argument
+        path to save to
+
+    optional arguments
+        :---all: save all attachments.
+
+.. _cmd.thread.move:
+
+.. describe:: move
+
+    move focus in current buffer
+
+    argument
+        up, down, [half]page up, [half]page down, first, last,                   parent, first reply, last reply,                   next sibling, previous sibling, next, previous,                   next unfolded, previous unfolded,                   next NOTMUCH_QUERY, previous NOTMUCH_QUERY
 
 

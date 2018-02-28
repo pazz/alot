@@ -5,21 +5,40 @@ Global Commands
 ---------------
 The following commands are available globally
 
-.. _cmd.global.bclose:
+.. _cmd.global.call:
 
-.. describe:: bclose
+.. describe:: call
 
-    close a buffer
+    Executes python code
 
-    optional arguments
-        :---redraw: redraw current buffer after command has finished.
-        :---force: never ask for confirmation.
+    argument
+        python command string to call
 
-.. _cmd.global.bprevious:
 
-.. describe:: bprevious
+.. _cmd.global.refresh:
 
-    focus previous buffer
+.. describe:: refresh
+
+    refresh the current buffer
+
+
+.. _cmd.global.exit:
+
+.. describe:: exit
+
+    Shut down cleanly.
+
+    The _prompt variable is for internal use only, it's used to control
+    prompting to close without sending, and is used by the BufferCloseCommand
+    if settings change after yielding to the UI.
+    
+
+
+.. _cmd.global.flush:
+
+.. describe:: flush
+
+    flush write operations or retry until committed
 
 
 .. _cmd.global.search:
@@ -35,44 +54,6 @@ The following commands are available globally
     optional arguments
         :---sort: sort order. Valid choices are: \`oldest_first\`,\`newest_first\`,\`message_id\`,\`unsorted\`.
 
-.. _cmd.global.repeat:
-
-.. describe:: repeat
-
-    Repeats the command executed last time
-
-
-.. _cmd.global.prompt:
-
-.. describe:: prompt
-
-    prompts for commandline and interprets it upon select
-
-    argument
-        initial content
-
-
-.. _cmd.global.help:
-
-.. describe:: help
-
-    display help for a command. Use 'bindings' to display all keybings
-    interpreted in current mode.'
-
-    argument
-        command or 'bindings'
-
-
-.. _cmd.global.buffer:
-
-.. describe:: buffer
-
-    focus buffer with given index
-
-    argument
-        buffer index to focus
-
-
 .. _cmd.global.move:
 
 .. describe:: move
@@ -83,39 +64,20 @@ The following commands are available globally
         up, down, [half]page up, [half]page down, first, last
 
 
-.. _cmd.global.shellescape:
+.. _cmd.global.taglist:
 
-.. describe:: shellescape
+.. describe:: taglist
 
-    run external command
-
-    argument
-        command line to execute
+    opens taglist buffer
 
     optional arguments
-        :---spawn: run in terminal window.
-        :---thread: run in separate thread.
-        :---refocus: refocus current buffer after command has finished.
+        :---tags: tags to display.
 
-.. _cmd.global.refresh:
+.. _cmd.global.bufferlist:
 
-.. describe:: refresh
+.. describe:: bufferlist
 
-    refresh the current buffer
-
-
-.. _cmd.global.reload:
-
-.. describe:: reload
-
-    Reload all configuration files
-
-
-.. _cmd.global.pyshell:
-
-.. describe:: pyshell
-
-    open an interactive python shell for introspection
+    open a list of active buffers
 
 
 .. _cmd.global.compose:
@@ -139,40 +101,63 @@ The following commands are available globally
         :---omit_signature: do not add signature.
         :---spawn: spawn editor in new terminal.
 
-.. _cmd.global.exit:
+.. _cmd.global.shellescape:
 
-.. describe:: exit
+.. describe:: shellescape
 
-    Shut down cleanly.
-
-    The _prompt variable is for internal use only, it's used to control
-    prompting to close without sending, and is used by the BufferCloseCommand
-    if settings change after yielding to the UI.
-    
-
-
-.. _cmd.global.flush:
-
-.. describe:: flush
-
-    flush write operations or retry until committed
-
-
-.. _cmd.global.bufferlist:
-
-.. describe:: bufferlist
-
-    open a list of active buffers
-
-
-.. _cmd.global.call:
-
-.. describe:: call
-
-    Executes python code
+    run external command
 
     argument
-        python command string to call
+        command line to execute
+
+    optional arguments
+        :---spawn: run in terminal window.
+        :---thread: run in separate thread.
+        :---refocus: refocus current buffer after command has finished.
+
+.. _cmd.global.bprevious:
+
+.. describe:: bprevious
+
+    focus previous buffer
+
+
+.. _cmd.global.prompt:
+
+.. describe:: prompt
+
+    prompts for commandline and interprets it upon select
+
+    argument
+        initial content
+
+
+.. _cmd.global.help:
+
+.. describe:: help
+
+    display help for a command. Use 'bindings' to display all keybings
+    interpreted in current mode.'
+
+    argument
+        command or 'bindings'
+
+
+.. _cmd.global.bclose:
+
+.. describe:: bclose
+
+    close a buffer
+
+    optional arguments
+        :---redraw: redraw current buffer after command has finished.
+        :---force: never ask for confirmation.
+
+.. _cmd.global.repeat:
+
+.. describe:: repeat
+
+    Repeats the command executed last time
 
 
 .. _cmd.global.bnext:
@@ -182,12 +167,27 @@ The following commands are available globally
     focus next buffer
 
 
-.. _cmd.global.taglist:
+.. _cmd.global.buffer:
 
-.. describe:: taglist
+.. describe:: buffer
 
-    opens taglist buffer
+    focus buffer with given index
 
-    optional arguments
-        :---tags: tags to display.
+    argument
+        buffer index to focus
+
+
+.. _cmd.global.reload:
+
+.. describe:: reload
+
+    Reload all configuration files
+
+
+.. _cmd.global.pyshell:
+
+.. describe:: pyshell
+
+    open an interactive python shell for introspection
+
 
