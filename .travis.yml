@@ -14,34 +14,14 @@ dist: trusty
 python:
   # We can add more version strings here when we support other python
   # versions.
-  - "2.7"
   - "3.5"
   - "3.6"
 
 # We start two containers in parallel, one to check and build the docs and the
 # other to run the test suite.
 env:
+  - JOB=docs
   - JOB=tests
-  # This job is temporarily included in the build matrix directly in order to
-  # only check the docs on python2 for now.  When we finished switching to
-  # python3 we can put this back here and remove matrix.include.
-  #- JOB=docs
-
-# Until the switch to python3 is complete we allow the tests to fail with
-# python3.  When merging a working python3 version wen can remove this and the
-# python version 2.7 above.
-jobs:
-  allow_failures:
-    - python: "3.5"
-    - python: "3.6"
-
-# Check the docs only on python2 until we really support python3.  See "env"
-# above and
-# https://docs.travis-ci.com/user/customizing-the-build/#Explicitly-Including-Jobs
-matrix:
-  include:
-    - python: 2.7
-      env: JOB=docs
 
 addons:
   apt:
