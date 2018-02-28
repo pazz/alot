@@ -142,7 +142,7 @@ class TestSetEncrypt(unittest.TestCase):
         yield utils.set_encrypt(ui, envelope)
         self.assertTrue(envelope.encrypt)
         self.assertEqual(
-            [f.fpr for f in envelope.encrypt_keys.itervalues()],
+            [f.fpr for f in envelope.encrypt_keys.values()],
             [crypto.get_key(FPR).fpr, crypto.get_key(EXTRA_FPRS[0]).fpr])
 
     @inlineCallbacks
@@ -153,7 +153,7 @@ class TestSetEncrypt(unittest.TestCase):
         yield utils.set_encrypt(ui, envelope)
         self.assertTrue(envelope.encrypt)
         self.assertEqual(
-            [f.fpr for f in envelope.encrypt_keys.itervalues()],
+            [f.fpr for f in envelope.encrypt_keys.values()],
             [crypto.get_key(FPR).fpr, crypto.get_key(EXTRA_FPRS[0]).fpr])
 
     @inlineCallbacks
@@ -164,7 +164,7 @@ class TestSetEncrypt(unittest.TestCase):
         yield utils.set_encrypt(ui, envelope)
         self.assertTrue(envelope.encrypt)
         self.assertEqual(
-            [f.fpr for f in envelope.encrypt_keys.itervalues()],
+            [f.fpr for f in envelope.encrypt_keys.values()],
             [crypto.get_key(FPR).fpr])
 
     @inlineCallbacks
