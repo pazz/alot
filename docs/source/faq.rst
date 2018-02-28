@@ -67,7 +67,9 @@ FAQ
 
 .. _faq_7:
 
-7. Why doesn't alot run on python3?
+7. I thought alot ran on Python 2?
 
-   We're on it. Check out the `py3k milestone <https://github.com/pazz/alot/issues?q=is%3Aopen+is%3Aissue+milestone%3A%22full+py3k+compatibility%22>`_
+   It used to. When we made the transition to Python 3 we didn't maintain
+   Python 2 support. If you still need Python 2 support the 0.7 release is your
+   best bet.
 
