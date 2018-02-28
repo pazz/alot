@@ -5,14 +5,50 @@ Commands in `thread` mode
 -------------------------
 The following commands are available in thread mode
 
-.. _cmd.thread.toggleheaders:
+.. _cmd.thread.bounce:
 
-.. describe:: toggleheaders
+.. describe:: bounce
 
-    display all headers
+    directly re-send selected message
+
+
+.. _cmd.thread.editnew:
+
+.. describe:: editnew
+
+    edit message in as new
+
+    optional arguments
+        :---spawn: open editor in new window.
+
+.. _cmd.thread.fold:
+
+.. describe:: fold
+
+    fold message(s)
 
     argument
         query used to filter messages to affect
+
+
+.. _cmd.thread.forward:
+
+.. describe:: forward
+
+    forward message
+
+    optional arguments
+        :---attach: attach original mail.
+        :---spawn: open editor in new window.
+
+.. _cmd.thread.indent:
+
+.. describe:: indent
+
+    change message/reply indentation
+
+    argument
+        None
 
 
 .. _cmd.thread.move:
@@ -25,24 +61,45 @@ The following commands are available in thread mode
         up, down, [half]page up, [half]page down, first, last,                   parent, first reply, last reply,                   next sibling, previous sibling, next, previous,                   next unfolded, previous unfolded,                   next NOTMUCH_QUERY, previous NOTMUCH_QUERY
 
 
-.. _cmd.thread.unfold:
+.. _cmd.thread.pipeto:
 
-.. describe:: unfold
+.. describe:: pipeto
 
-    unfold message(s)
+    pipe message(s) to stdin of a shellcommand
 
     argument
-        query used to filter messages to affect
-
-
-.. _cmd.thread.editnew:
-
-.. describe:: editnew
-
-    edit message in as new
+        shellcommand to pipe to
 
     optional arguments
-        :---spawn: open editor in new window.
+        :---all: pass all messages.
+        :---format: output format. Valid choices are: \`raw\`,\`decoded\`,\`id\`,\`filepath\` (Defaults to: 'raw').
+        :---separately: call command once for each message.
+        :---background: don't stop the interface.
+        :---add_tags: add 'Tags' header to the message.
+        :---shell: let the shell interpret the command.
+        :---notify_stdout: display cmd's stdout as notification.
+        :---field_key: mailcap field key for decoding (Defaults to: 'copiousoutput').
+
+.. _cmd.thread.print:
+
+.. describe:: print
+
+    print message(s)
+
+    optional arguments
+        :---all: print all messages.
+        :---raw: pass raw mail string.
+        :---separately: call print command once for each message.
+        :---add_tags: add 'Tags' header to the message.
+
+.. _cmd.thread.remove:
+
+.. describe:: remove
+
+    remove message(s) from the index
+
+    optional arguments
+        :---all: remove whole thread.
 
 .. _cmd.thread.reply:
 
@@ -55,31 +112,18 @@ The following commands are available in thread mode
         :---list: reply to list.
         :---spawn: open editor in new window.
 
-.. _cmd.thread.forward:
+.. _cmd.thread.retag:
 
-.. describe:: forward
+.. describe:: retag
 
-    forward message
+    set message(s) tags.
+
+    argument
+        comma separated list of tags
 
     optional arguments
-        :---attach: attach original mail.
-        :---spawn: open editor in new window.
-
-.. _cmd.thread.bounce:
-
-.. describe:: bounce
-
-    directly re-send selected message
-
-
-.. _cmd.thread.select:
-
-.. describe:: select
-
-    select focussed element. The fired action depends on the focus:
-        - if message summary, this toggles visibility of the message,
-        - if attachment line, this opens the attachment
-
+        :---all: tag all messages in thread.
+        :---no-flush: postpone a writeout to the index (Defaults to: 'True').
 
 .. _cmd.thread.save:
 
@@ -93,30 +137,20 @@ The following commands are available in thread mode
     optional arguments
         :---all: save all attachments.
 
-.. _cmd.thread.fold:
+.. _cmd.thread.select:
 
-.. describe:: fold
+.. describe:: select
 
-    fold message(s)
+    select focussed element. The fired action depends on the focus:
+        - if message summary, this toggles visibility of the message,
+        - if attachment line, this opens the attachment
 
-    argument
-        query used to filter messages to affect
 
+.. _cmd.thread.tag:
 
-.. _cmd.thread.remove:
+.. describe:: tag
 
-.. describe:: remove
-
-    remove message(s) from the index
-
-    optional arguments
-        :---all: remove whole thread.
-
-.. _cmd.thread.untag:
-
-.. describe:: untag
-
-    remove tags from message(s)
+    add tags to message(s)
 
     argument
         comma separated list of tags
@@ -124,6 +158,16 @@ The following commands are available in thread mode
     optional arguments
         :---all: tag all messages in thread.
         :---no-flush: postpone a writeout to the index (Defaults to: 'True').
+
+.. _cmd.thread.toggleheaders:
+
+.. describe:: toggleheaders
+
+    display all headers
+
+    argument
+        query used to filter messages to affect
+
 
 .. _cmd.thread.togglesource:
 
@@ -148,11 +192,21 @@ The following commands are available in thread mode
         :---all: tag all messages in thread.
         :---no-flush: postpone a writeout to the index (Defaults to: 'True').
 
-.. _cmd.thread.tag:
+.. _cmd.thread.unfold:
 
-.. describe:: tag
+.. describe:: unfold
 
-    add tags to message(s)
+    unfold message(s)
+
+    argument
+        query used to filter messages to affect
+
+
+.. _cmd.thread.untag:
+
+.. describe:: untag
+
+    remove tags from message(s)
 
     argument
         comma separated list of tags
@@ -160,58 +214,4 @@ The following commands are available in thread mode
     optional arguments
         :---all: tag all messages in thread.
         :---no-flush: postpone a writeout to the index (Defaults to: 'True').
-
-.. _cmd.thread.retag:
-
-.. describe:: retag
-
-    set message(s) tags.
-
-    argument
-        comma separated list of tags
-
-    optional arguments
-        :---all: tag all messages in thread.
-        :---no-flush: postpone a writeout to the index (Defaults to: 'True').
-
-.. _cmd.thread.print:
-
-.. describe:: print
-
-    print message(s)
-
-    optional arguments
-        :---all: print all messages.
-        :---raw: pass raw mail string.
-        :---separately: call print command once for each message.
-        :---add_tags: add 'Tags' header to the message.
-
-.. _cmd.thread.indent:
-
-.. describe:: indent
-
-    change message/reply indentation
-
-    argument
-        None
-
-
-.. _cmd.thread.pipeto:
-
-.. describe:: pipeto
-
-    pipe message(s) to stdin of a shellcommand
-
-    argument
-        shellcommand to pipe to
-
-    optional arguments
-        :---all: pass all messages.
-        :---format: output format. Valid choices are: \`raw\`,\`decoded\`,\`id\`,\`filepath\` (Defaults to: 'raw').
-        :---separately: call command once for each message.
-        :---background: don't stop the interface.
-        :---add_tags: add 'Tags' header to the message.
-        :---shell: let the shell interpret the command.
-        :---notify_stdout: display cmd's stdout as notification.
-        :---field_key: mailcap field key for decoding (Defaults to: 'copiousoutput').
 
