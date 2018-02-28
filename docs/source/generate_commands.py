@@ -100,7 +100,7 @@ def get_mode_docs():
 if __name__ == "__main__":
 
     modes = []
-    for mode, modecommands in COMMANDS.items():
+    for mode, modecommands in sorted(COMMANDS.items()):
         modefilename = mode+'.rst'
         modefile = open(os.path.join(HERE, 'usage', 'modes', modefilename),
                         'w')
