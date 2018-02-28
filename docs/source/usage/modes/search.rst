@@ -15,6 +15,13 @@ The following commands are available in search mode
         sort order. valid choices are: \`oldest_first\`,\`newest_first\`,\`message_id\`,\`unsorted\`.
 
 
+.. _cmd.search.retagprompt:
+
+.. describe:: retagprompt
+
+    prompt to retag selected threads' tags
+
+
 .. _cmd.search.untag:
 
 .. describe:: untag
@@ -38,25 +45,17 @@ The following commands are available in search mode
         last
 
 
-.. _cmd.search.retag:
+.. _cmd.search.toggletags:
 
-.. describe:: retag
+.. describe:: toggletags
 
-    set tags of all messages in the thread that match the current query
+    flip presence of tags on this thread. A tag is considered present if at least one message contained in this thread is tagged with it. In that case this command will remove the tag from every message in the thread.
 
     argument
         comma separated list of tags
 
     optional arguments
         :---no-flush: postpone a writeout to the index (Defaults to: 'True').
-        :---all: retag all messages in search result.
-
-.. _cmd.search.refineprompt:
-
-.. describe:: refineprompt
-
-    prompt to change this buffers querystring
-
 
 .. _cmd.search.tag:
 
@@ -83,24 +82,25 @@ The following commands are available in search mode
     optional arguments
         :---sort: sort order. Valid choices are: \`oldest_first\`,\`newest_first\`,\`message_id\`,\`unsorted\`.
 
-.. _cmd.search.retagprompt:
+.. _cmd.search.refineprompt:
 
-.. describe:: retagprompt
+.. describe:: refineprompt
 
-    prompt to retag selected threads' tags
+    prompt to change this buffers querystring
 
 
-.. _cmd.search.toggletags:
+.. _cmd.search.retag:
 
-.. describe:: toggletags
+.. describe:: retag
 
-    flip presence of tags on this thread. A tag is considered present if at least one message contained in this thread is tagged with it. In that case this command will remove the tag from every message in the thread.
+    set tags of all messages in the thread that match the current query
 
     argument
         comma separated list of tags
 
     optional arguments
         :---no-flush: postpone a writeout to the index (Defaults to: 'True').
+        :---all: retag all messages in search result.
 
 .. _cmd.search.select:
 
