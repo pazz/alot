@@ -115,7 +115,7 @@ if __name__ == "__main__":
             header = 'Global Commands'
             modefile.write('%s\n%s\n' % (header, '-' * len(header)))
             modefile.write('The following commands are available globally\n\n')
-        for cmdstring, struct in modecommands.items():
+        for cmdstring, struct in sorted(modecommands.items()):
             cls, parser, forced_args = struct
             labelline = '.. _cmd.%s.%s:\n\n' % (mode, cmdstring.replace('_',
                                                                         '-'))
