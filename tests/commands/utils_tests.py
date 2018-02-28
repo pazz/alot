@@ -141,7 +141,7 @@ class TestSetEncrypt(unittest.TestCase):
         envelope['To'] = 'ambig@example.com, test@example.com'
         yield utils.set_encrypt(ui, envelope)
         self.assertTrue(envelope.encrypt)
-        self.assertEqual(
+        self.assertCountEqual(
             [f.fpr for f in envelope.encrypt_keys.values()],
             [crypto.get_key(FPR).fpr, crypto.get_key(EXTRA_FPRS[0]).fpr])
 
@@ -152,7 +152,7 @@ class TestSetEncrypt(unittest.TestCase):
         envelope['Cc'] = 'ambig@example.com, test@example.com'
         yield utils.set_encrypt(ui, envelope)
         self.assertTrue(envelope.encrypt)
-        self.assertEqual(
+        self.assertCountEqual(
             [f.fpr for f in envelope.encrypt_keys.values()],
             [crypto.get_key(FPR).fpr, crypto.get_key(EXTRA_FPRS[0]).fpr])
 
@@ -163,7 +163,7 @@ class TestSetEncrypt(unittest.TestCase):
         envelope['Cc'] = 'foo@example.com, test@example.com'
         yield utils.set_encrypt(ui, envelope)
         self.assertTrue(envelope.encrypt)
-        self.assertEqual(
+        self.assertCountEqual(
             [f.fpr for f in envelope.encrypt_keys.values()],
             [crypto.get_key(FPR).fpr])
 
