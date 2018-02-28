@@ -19,8 +19,9 @@ setup(
         'Intended Audience :: End Users/Desktop',
         'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
         'Operating System :: POSIX',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 2 :: Only',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3 :: Only',
         'Topic :: Communications :: Email :: Email Clients (MUA)',
         'Topic :: Database :: Front-Ends',
     ],
@@ -54,5 +55,5 @@ setup(
     ],
     provides=['alot'],
     test_suite="tests",
-    python_requires=">=2.7",
+    python_requires=">=3.5",
 )
