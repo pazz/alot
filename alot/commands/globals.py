@@ -280,7 +280,7 @@ class ExternalCommand(Command):
             _, err = proc.communicate(stdin.read() if stdin else None)
             if proc.returncode == 0:
                 return 'success'
-            return helper.try_decode(err).strip()
+            return helper.try_decode(err).strip() if err else ''
 
         if self.in_thread:
             d = threads.deferToThread(thread_code)
