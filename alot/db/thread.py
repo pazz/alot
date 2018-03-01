@@ -15,7 +15,7 @@ class Thread:
     directly provide contained messages as :class:`~alot.db.message.Message`.
     """
 
-    def __init__(self, dbman, thread):
+    def __init__(self, dbman, thread, querystring=None):
         """
         :param dbman: db manager that is used for further lookups
         :type dbman: :class:`~alot.db.DBManager`
@@ -26,6 +26,7 @@ class Thread:
         self._authors = None
         self._id = thread.threadid
         self._messages = {}
+        self._querystring = querystring
         self._tags = set()
 
         self.refresh(thread)
@@ -33,7 +34,7 @@ class Thread:
     def refresh(self, thread=None):
         """refresh thread metadata from the index"""
         if not thread:
-            with self._dbman._with_notmuch_thread(self._id) as thread:
+            with self._dbman._with_notmuch_thread(self._id, self._querystring) as thread:
                 self._refresh(thread)
         else:
             self._refresh(thread)

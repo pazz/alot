@@ -245,18 +245,22 @@ class DBManager:
                                 exclude_tags=settings.get('exclude_tags'))
 
     @contextlib.contextmanager
-    def _with_notmuch_thread(self, tid):
+    def _with_notmuch_thread(self, tid, querystring=None):
         """returns :class:`notmuch2.Thread` with given id"""
+        if querystring:
+            query = 'thread:' + tid + ' AND (' + querystring + ')'
+        else:
+            query = 'thread:' + tid
         with Database(path=self.path, mode=Database.MODE.READ_ONLY) as db:
             try:
-                yield next(db.threads('thread:' + tid))
+                yield next(db.threads(query))
             except NotmuchError:
                 errmsg = 'no thread with id %s exists!' % tid
                 raise NonexistantObjectError(errmsg)
 
-    def get_thread(self, tid):
+    def get_thread(self, tid, querystring=None):
         """returns :class:`Thread` with given thread id (str)"""
-        with self._with_notmuch_thread(tid) as thread:
+        with self._with_notmuch_thread(tid, querystring) as thread:
             return Thread(self, thread)
 
     @contextlib.contextmanager

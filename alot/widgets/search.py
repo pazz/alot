@@ -17,19 +17,21 @@ class ThreadlineWidget(urwid.AttrMap):
     selectable line widget that represents a :class:`~alot.db.Thread`
     in the :class:`~alot.buffers.SearchBuffer`.
     """
-    def __init__(self, tid, dbman):
+
+    def __init__(self, tid, dbman, querystring=None):
         self.dbman = dbman
         self.tid = tid
         self.thread = None  # will be set by refresh()
         self.tag_widgets = []
         self.structure = None
+        self.querystring = querystring
         self.rebuild()
         normal = self.structure['normal']
         focussed = self.structure['focus']
         urwid.AttrMap.__init__(self, self.columns, normal, focussed)
 
     def rebuild(self):
-        self.thread = self.dbman.get_thread(self.tid)
+        self.thread = self.dbman.get_thread(self.tid, self.querystring)
         self.widgets = []
         self.structure = settings.get_threadline_theming(self.thread)
 
