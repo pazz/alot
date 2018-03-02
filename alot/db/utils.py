@@ -381,10 +381,10 @@ def extract_body(mail, types=None, field_key='copiousoutput'):
                     nametemplate = entry.get('nametemplate', '%s')
                     prefix, suffix = parse_mailcap_nametemplate(nametemplate)
                     with tempfile.NamedTemporaryFile(
-                            mode='w+', delete=False, prefix=prefix,
+                            delete=False, prefix=prefix,
                             suffix=suffix) \
                             as tmpfile:
-                        tmpfile.write(raw_payload)
+                        tmpfile.write(raw_payload.encode(enc))
                         tempfile_name = tmpfile.name
                 else:
                     stdin = raw_payload
