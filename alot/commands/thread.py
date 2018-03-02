@@ -14,6 +14,7 @@ from email.utils import getaddresses, parseaddr, formataddr
 from email.message import Message
 
 from twisted.internet.defer import inlineCallbacks
+import urwid
 from io import StringIO
 
 from . import Command, registerCommand
@@ -759,13 +760,14 @@ class PipeCommand(Command):
 
         # do the monkey
         for mail in pipestrings:
+            encoded_mail = mail.encode(urwid.util.detected_encoding)
             if self.background:
                 logging.debug('call in background: %s', self.cmd)
                 proc = subprocess.Popen(self.cmd,
                                         shell=True, stdin=subprocess.PIPE,
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.PIPE)
-                out, err = proc.communicate(mail)
+                out, err = proc.communicate(encoded_mail)
                 if self.notify_stdout:
                     ui.notify(out)
             else:
@@ -777,7 +779,7 @@ class PipeCommand(Command):
                                             stdin=subprocess.PIPE,
                                             # stdout=subprocess.PIPE,
                                             stderr=subprocess.PIPE)
-                    out, err = proc.communicate(mail)
+                    out, err = proc.communicate(encoded_mail)
             if err:
                 ui.notify(err, priority='error')
                 return
