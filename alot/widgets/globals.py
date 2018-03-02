@@ -167,7 +167,7 @@ class CompleteEdit(urwid.Edit):
                 if self.historypos is None:
                     self.history.append(self.edit_text)
                     self.historypos = len(self.history) - 1
-                if key == 'cursor up':
+                if key == 'up':
                     self.historypos = (self.historypos + 1) % len(self.history)
                 else:
                     self.historypos = (self.historypos - 1) % len(self.history)
