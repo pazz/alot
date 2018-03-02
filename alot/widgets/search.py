@@ -172,7 +172,7 @@ def prepare_date_string(thread):
 
 
 def prepare_mailcount_string(thread):
-    return "(%d)" % thread.get_total_messages()
+    return "(%d/%d)" % (thread.get_matched_messages(), thread.get_total_messages())
 
 
 def prepare_authors_string(thread):

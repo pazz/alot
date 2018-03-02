@@ -42,6 +42,7 @@ class Thread:
     def _refresh(self, thread):
         self._total_messages = len(thread)
         self._notmuch_authors_string = thread.authors
+        self._matched_messages = thread.matched
 
         subject_type = settings.get('thread_subject')
         if subject_type == 'notmuch':
@@ -282,6 +283,10 @@ class Thread:
     def get_total_messages(self):
         """returns number of contained messages"""
         return self._total_messages
+
+    def get_matched_messages(self):
+        """returns number of contained messages"""
+        return self._matched_messages
 
     def matches(self, query):
         """
