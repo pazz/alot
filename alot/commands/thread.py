@@ -160,7 +160,7 @@ class ReplyCommand(Command):
             for line in self.message.accumulate_body().splitlines():
                 mailcontent += quote_prefix + line + '\n'
 
-        envelope = Envelope(bodytext=mailcontent)
+        envelope = Envelope(bodytext=mailcontent, replied=self.message)
 
         # copy subject
         subject = decode_header(mail.get('Subject', ''))
@@ -346,7 +346,7 @@ class ForwardCommand(Command):
             self.message = ui.current_buffer.get_selected_message()
         mail = self.message.get_email()
 
-        envelope = Envelope()
+        envelope = Envelope(passed=self.message)
 
         if self.inline:  # inline mode
             # set body text

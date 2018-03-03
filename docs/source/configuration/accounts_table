@@ -100,6 +100,26 @@
     :default: draft
 
 
+.. _replied-tags:
+
+.. describe:: replied_tags
+
+     list of tags to automatically add to replied messages
+
+    :type: string list
+    :default: replied
+
+
+.. _passed-tags:
+
+.. describe:: passed_tags
+
+     list of tags to automatically add to passed messages
+
+    :type: string list
+    :default: passed
+
+
 .. _signature:
 
 .. describe:: signature

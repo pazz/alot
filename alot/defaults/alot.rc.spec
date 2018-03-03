@@ -327,6 +327,12 @@ thread_focus_linewise = boolean(default=True)
         # list of tags to automatically add to draft messages
         draft_tags = force_list(default='draft')
 
+        # list of tags to automatically add to replied messages
+        replied_tags = force_list(default='replied')
+
+        # list of tags to automatically add to passed messages
+        passed_tags = force_list(default='passed')
+
         # path to signature file that gets attached to all outgoing mails from this account, optionally
         # renamed to :ref:`signature_filename <signature-filename>`.
         signature = string(default=None)
