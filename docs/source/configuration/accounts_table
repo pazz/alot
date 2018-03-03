@@ -90,6 +90,16 @@
     :default: sent
 
 
+.. _draft-tags:
+
+.. describe:: draft_tags
+
+     list of tags to automatically add to draft messages
+
+    :type: string list
+    :default: draft
+
+
 .. _signature:
 
 .. describe:: signature
