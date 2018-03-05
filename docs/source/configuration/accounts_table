@@ -87,7 +87,7 @@
      list of tags to automatically add to outgoing messages
 
     :type: string list
-    :default: sent,
+    :default: sent
 
 
 .. _signature:

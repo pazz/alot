@@ -322,7 +322,7 @@ thread_focus_linewise = boolean(default=True)
         draft_box = mail_container(default=None)
 
         # list of tags to automatically add to outgoing messages
-        sent_tags = force_list(default=list('sent'))
+        sent_tags = force_list(default='sent')
 
         # path to signature file that gets attached to all outgoing mails from this account, optionally
         # renamed to :ref:`signature_filename <signature-filename>`.
