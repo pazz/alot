@@ -1,3 +1,6 @@
+0.8:
+* Port to python 3. Python 2.x no longer supported
+
 0.7:
 * info: missing html mailcap entry now reported as mail body text
 * feature: Allow regex special characters in tagstrings
