@@ -63,6 +63,16 @@
     :default: None
 
 
+.. _draft-tags:
+
+.. describe:: draft_tags
+
+     list of tags to automatically add to draft messages
+
+    :type: string list
+    :default: draft
+
+
 .. _encrypt-by-default:
 
 .. describe:: encrypt_by_default
@@ -114,6 +124,16 @@
     :default: None
 
 
+.. _passed-tags:
+
+.. describe:: passed_tags
+
+     list of tags to automatically add to passed messages
+
+    :type: string list
+    :default: passed
+
+
 .. _realname:
 
 .. describe:: realname
@@ -121,6 +141,16 @@
      used to format the (proposed) From-header in outgoing mails
 
     :type: string
+
+.. _replied-tags:
+
+.. describe:: replied_tags
+
+     list of tags to automatically add to replied messages
+
+    :type: string list
+    :default: replied
+
 
 .. _sendmail-command:
 
@@ -153,7 +183,7 @@
      list of tags to automatically add to outgoing messages
 
     :type: string list
-    :default: sent,
+    :default: sent
 
 
 .. _sign-by-default:

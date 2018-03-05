@@ -248,6 +248,10 @@ class SendCommand(Command):
                 cmd = commands.globals.BufferCloseCommand(self.envelope_buffer)
                 ui.apply_command(cmd)
             ui.notify('mail sent successfully')
+            if self.envelope.replied:
+                self.envelope.replied.add_tags(account.replied_tags)
+            if self.envelope.passed:
+                self.envelope.passed.add_tags(account.passed_tags)
 
             # store mail locally
             # This can raise StoreMailError

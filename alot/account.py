@@ -208,7 +208,8 @@ class Account(object):
                  realname=None, gpg_key=None, signature=None,
                  signature_filename=None, signature_as_attachment=False,
                  sent_box=None, sent_tags=None, draft_box=None,
-                 draft_tags=None, abook=None, sign_by_default=False,
+                 draft_tags=None, replied_tags=None, passed_tags=None,
+                 abook=None, sign_by_default=False,
                  encrypt_by_default=u"none", encrypt_to_self=None,
                  case_sensitive_username=False, **_):
         sent_tags = sent_tags or []
@@ -217,6 +218,8 @@ class Account(object):
         draft_tags = draft_tags or []
         if 'draft' not in draft_tags:
             draft_tags.append('draft')
+        replied_tags = replied_tags or []
+        passed_tags = passed_tags or []
 
         self.address = Address.from_string(address, case_sensitive=case_sensitive_username)
         self.aliases = [Address.from_string(a, case_sensitive=case_sensitive_username)
@@ -233,6 +236,8 @@ class Account(object):
         self.sent_tags = sent_tags
         self.draft_box = draft_box
         self.draft_tags = draft_tags
+        self.replied_tags = replied_tags
+        self.passed_tags = passed_tags
         self.abook = abook
         # Handle encrypt_by_default in an backwards compatible way.  The
         # logging info call can later be upgraded to warning or error.
