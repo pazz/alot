@@ -214,3 +214,15 @@ Apart from command pre- and posthooks, the following hooks will be interpreted:
 
     :param ui: the main user interface
     :type ui: :class:`alot.ui.UI`
+
+.. py:function:: get_account(mail, ui)
+
+    Custom logic to control the account replied, forwareded, or bounched from.
+    This function must be a coroutine, either by returning a
+    :class:`twisted.internet.defer.Deferred` or by decaration as a
+    :func:`twisted.internet.defer.inlineCallbacks`.
+
+    :param mail: The message being acted on
+    :type mail: :class:`email.Message`
+    :param ui: the main user interface
+    :type ui: :class:`alot.ui.UI`

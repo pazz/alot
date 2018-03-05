@@ -7,9 +7,10 @@
 from __future__ import absolute_import
 
 import email
-import unittest
 
 import mock
+from twisted.trial import unittest
+from twisted.internet.defer import inlineCallbacks, returnValue
 
 from alot.commands import thread
 from alot.account import Account
@@ -117,6 +118,7 @@ class TestDetermineSender(unittest.TestCase):
         ])
     mail = email.message_from_string(mailstring)
 
+    @inlineCallbacks
     def _test(self, accounts=(), expected=(), mail=None, header_priority=None,
               force_realname=False, force_address=False):
         """This method collects most of the steps that need to be done for most
@@ -138,47 +140,53 @@ class TestDetermineSender(unittest.TestCase):
         with mock.patch('alot.commands.thread.settings.get_accounts',
                         mock.Mock(return_value=accounts)):
             with mock.patch('alot.commands.thread.settings.get', settings_get):
-                actual = thread.determine_sender(mail)
+                actual = yield thread.determine_sender(mail, mock.Mock())
         self.assertTupleEqual(actual, expected)
 
+    @inlineCallbacks
     def test_assert_that_some_accounts_are_defined(self):
         with mock.patch('alot.commands.thread.settings.get_accounts',
                         mock.Mock(return_value=[])) as cm1:
             with self.assertRaises(AssertionError) as cm2:
-                thread.determine_sender(None)
+                yield thread.determine_sender(None, mock.Mock())
         expected = ('no accounts set!',)
         cm1.assert_called_once_with()
         self.assertTupleEqual(cm2.exception.args, expected)
 
+    @inlineCallbacks
     def test_default_account_is_used_if_no_match_is_found(self):
         account1 = _AccountTestClass(address=u'foo@example.com')
         account2 = _AccountTestClass(address=u'bar@example.com')
         expected = (u'foo@example.com', account1)
-        self._test(accounts=[account1, account2], expected=expected)
+        yield self._test(accounts=[account1, account2], expected=expected)
 
+    @inlineCallbacks
     def test_matching_address_and_account_are_returned(self):
         account1 = _AccountTestClass(address=u'foo@example.com')
         account2 = _AccountTestClass(address=u'to@example.com')
         account3 = _AccountTestClass(address=u'bar@example.com')
         expected = (u'to@example.com', account2)
-        self._test(accounts=[account1, account2, account3], expected=expected)
+        yield self._test(accounts=[account1, account2, account3], expected=expected)
 
+    @inlineCallbacks
     def test_force_realname_includes_real_name_in_returned_address_if_defined(self):
         account1 = _AccountTestClass(address=u'foo@example.com')
         account2 = _AccountTestClass(address=u'to@example.com', realname='Bar')
         account3 = _AccountTestClass(address=u'baz@example.com')
         expected = (u'Bar <to@example.com>', account2)
-        self._test(accounts=[account1, account2, account3], expected=expected,
+        yield self._test(accounts=[account1, account2, account3], expected=expected,
                    force_realname=True)
 
+    @inlineCallbacks
     def test_doesnt_fail_with_force_realname_if_real_name_not_defined(self):
         account1 = _AccountTestClass(address=u'foo@example.com')
         account2 = _AccountTestClass(address=u'to@example.com')
         account3 = _AccountTestClass(address=u'bar@example.com')
         expected = (u'to@example.com', account2)
-        self._test(accounts=[account1, account2, account3], expected=expected,
+        yield self._test(accounts=[account1, account2, account3], expected=expected,
                    force_realname=True)
 
+    @inlineCallbacks
     def test_with_force_address_main_address_is_used_regardless_of_matching_address(self):
         # In python 3.4 this and the next test could be written as subtests.
         account1 = _AccountTestClass(address=u'foo@example.com')
@@ -186,9 +194,10 @@ class TestDetermineSender(unittest.TestCase):
                                      aliases=[u'to@example.com'])
         account3 = _AccountTestClass(address=u'bar@example.com')
         expected = (u'bar@example.com', account2)
-        self._test(accounts=[account1, account2, account3], expected=expected,
+        yield self._test(accounts=[account1, account2, account3], expected=expected,
                    force_address=True)
 
+    @inlineCallbacks
     def test_without_force_address_matching_address_is_used(self):
         # In python 3.4 this and the previous test could be written as
         # subtests.
@@ -197,23 +206,26 @@ class TestDetermineSender(unittest.TestCase):
                                      aliases=[u'to@example.com'])
         account3 = _AccountTestClass(address=u'baz@example.com')
         expected = (u'to@example.com', account2)
-        self._test(accounts=[account1, account2, account3], expected=expected,
+        yield self._test(accounts=[account1, account2, account3], expected=expected,
                    force_address=False)
 
+    @inlineCallbacks
     def test_uses_to_header_if_present(self):
         account1 = _AccountTestClass(address=u'foo@example.com')
         account2 = _AccountTestClass(address=u'to@example.com')
         account3 = _AccountTestClass(address=u'bar@example.com')
         expected = (u'to@example.com', account2)
-        self._test(accounts=[account1, account2, account3], expected=expected)
+        yield self._test(accounts=[account1, account2, account3], expected=expected)
 
+    @inlineCallbacks
     def test_header_order_is_more_important_than_accounts_order(self):
         account1 = _AccountTestClass(address=u'cc@example.com')
         account2 = _AccountTestClass(address=u'to@example.com')
         account3 = _AccountTestClass(address=u'bcc@example.com')
         expected = (u'to@example.com', account2)
-        self._test(accounts=[account1, account2, account3], expected=expected)
+        yield self._test(accounts=[account1, account2, account3], expected=expected)
 
+    @inlineCallbacks
     def test_accounts_can_be_found_by_alias_regex_setting(self):
         account1 = _AccountTestClass(address=u'foo@example.com')
         account2 = _AccountTestClass(address=u'to@example.com',
@@ -223,5 +235,43 @@ class TestDetermineSender(unittest.TestCase):
                                              u'to+some_tag@example.com')
         mail = email.message_from_string(mailstring)
         expected = (u'to+some_tag@example.com', account2)
-        self._test(accounts=[account1, account2, account3], expected=expected,
+        yield self._test(accounts=[account1, account2, account3], expected=expected,
                    mail=mail)
+
+    @inlineCallbacks
+    def test_get_account_hook_undefined(self):
+        """Test that if the hook is undefined an address is found."""
+        account1 = _AccountTestClass(address=u'foo@example.com')
+        account2 = _AccountTestClass(address=u'bar@example.com')
+        expected = (u'foo@example.com', account1)
+
+        with mock.patch('alot.commands.thread.settings.get_hook',
+                        mock.Mock(return_value=None)):
+            yield self._test(accounts=[account1, account2], expected=expected)
+
+    @inlineCallbacks
+    def test_get_account_hook_returns_none(self):
+        """Test that if the hook returns None an address is found."""
+        account1 = _AccountTestClass(address=u'foo@example.com')
+        account2 = _AccountTestClass(address=u'bar@example.com')
+        expected = (u'foo@example.com', account1)
+
+        with mock.patch('alot.commands.thread.settings.get_hook',
+                        mock.Mock(return_value=mock.Mock(return_value=None))):
+            yield self._test(accounts=[account1, account2], expected=expected)
+
+    @inlineCallbacks
+    def test_get_account_hook_is_used(self):
+        """Test that if the hook returns an address that is used."""
+        account1 = _AccountTestClass(address=u'foo@example.com')
+        account2 = _AccountTestClass(address=u'bar@example.com')
+        expected = (u'bar@example.com', account2)
+
+        @inlineCallbacks
+        def hook(*_):
+            yield
+            returnValue(account2)
+
+        with mock.patch('alot.commands.thread.settings.get_hook',
+                        mock.Mock(return_value=hook)):
+            yield self._test(accounts=[account1, account2], expected=expected)
