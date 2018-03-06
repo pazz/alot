@@ -772,10 +772,8 @@ class ComposeCommand(Command):
                 return
             try:
                 with open(path, 'rb') as f:
-                    blob = f.read()
-                encoding = helper.guess_encoding(blob)
-                logging.debug('template encoding: `%s`' % encoding)
-                self.envelope.parse_template(blob.decode(encoding))
+                    template = helper.try_decode(f.read())
+                self.envelope.parse_template(template)
             except Exception as e:
                 ui.notify(str(e), priority='error')
                 return
@@ -846,10 +844,9 @@ class ComposeCommand(Command):
                 else:
                     with open(sig) as f:
                         sigcontent = f.read()
-                    enc = helper.guess_encoding(sigcontent)
                     mimetype = helper.guess_mimetype(sigcontent)
                     if mimetype.startswith('text'):
-                        sigcontent = helper.string_decode(sigcontent, enc)
+                        sigcontent = helper.try_decode(sigcontent)
                         self.envelope.body += '\n' + sigcontent
             else:
                 ui.notify('could not locate signature: %s' % sig,
