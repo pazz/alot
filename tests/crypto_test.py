@@ -12,9 +12,9 @@ import unittest
 
 import gpg
 import mock
+import urwid
 
 from alot import crypto
-from alot import helper
 from alot.errors import GPGProblem, GPGCode
 
 from . import utilities
@@ -58,8 +58,8 @@ def tearDownModule():
     # Kill any gpg-agent's that have been opened
     lookfor = 'gpg-agent --homedir {}'.format(os.environ['GNUPGHOME'])
 
-    out = helper.try_decode(
-        subprocess.check_output(['ps', 'xo', 'pid,cmd'], stderr=DEVNULL))
+    out = subprocess.check_output(
+        ['ps', 'xo', 'pid,cmd'], stderr=DEVNULL).decode(urwid.util.detected_encoding)
     for each in out.strip().split('\n'):
         pid, cmd = each.strip().split(' ', 1)
         if cmd.startswith(lookfor):
