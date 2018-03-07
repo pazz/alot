@@ -41,14 +41,14 @@ def add_signature_headers(mail, sigs, error_msg):
 
     :param mail: :class:`email.message.Message` the message to entitle
     :param sigs: list of :class:`gpg.results.Signature`
-    :param error_msg: `str` containing an error message, the empty
-                      string indicating no error
+    :param error_msg: An error message if there is one, or None
+    :type error_msg: :class:`str` or `None`
     '''
     sig_from = ''
     sig_known = True
     uid_trusted = False
 
-    assert isinstance(error_msg, (str, bool))
+    assert error_msg is None or isinstance(error_msg, str)
 
     if not sigs:
         error_msg = error_msg or u'no signature found'
@@ -111,7 +111,7 @@ def _handle_signatures(original, message, params):
     :param params: the message parameters as returned by :func:`get_params`
     :type params: dict[str, str]
     """
-    malformed = False
+    malformed = None
     if len(message.get_payload()) != 2:
         malformed = u'expected exactly two messages, got {0}'.format(
             len(message.get_payload()))
