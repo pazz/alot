@@ -277,8 +277,11 @@ def message_from_string(s):
 
 
 def message_from_bytes(bytestring):
-    """Read mail from given bytes string. Works like message_from_string, but
-    for bytes.
+    """Create a Message from bytes.
+
+    Attempt to guess the encoding of the bytestring.
+
+    :param bytes bytestring: an email message as raw bytes
     """
     return message_from_file(io.StringIO(helper.try_decode(bytestring)))
 
