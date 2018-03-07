@@ -58,14 +58,6 @@ class TestAddress(unittest.TestCase):
 
     """Tests for the Address class."""
 
-    def test_constructor_bytes(self):
-        with self.assertRaises(AssertionError):
-            account.Address(b'username', b'domainname')
-
-    def test_from_string_bytes(self):
-        with self.assertRaises(AssertionError):
-            account.Address.from_string(b'user@example.com')
-
     def test_from_string(self):
         addr = account.Address.from_string('user@example.com')
         self.assertEqual(addr.username, 'user')
@@ -74,10 +66,6 @@ class TestAddress(unittest.TestCase):
     def test_str(self):
         addr = account.Address('ušer', 'example.com')
         self.assertEqual(str(addr), 'ušer@example.com')
-
-    def test_bytes(self):
-        addr = account.Address('ušer', 'example.com')
-        self.assertEqual(bytes(addr), 'ušer@example.com'.encode('utf-8'))
 
     def test_eq_unicode(self):
         addr = account.Address('ušer', 'example.com')
