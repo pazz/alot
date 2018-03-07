@@ -102,9 +102,6 @@ class Address(object):
     def __str__(self):
         return '{}@{}'.format(self.username, self.domainname)
 
-    def __bytes__(self):
-        return '{}@{}'.format(self.username, self.domainname).encode('utf-8')
-
     def __cmp(self, other, comparitor):
         """Shared helper for rich comparison operators.
 
@@ -126,11 +123,6 @@ class Address(object):
                 ouser, odomain = other.split('@')
             except ValueError:
                 ouser, odomain = '', ''
-        elif isinstance(other, bytes):
-            try:
-                ouser, odomain = other.decode('utf-8').split('@')
-            except ValueError:
-                ouser, odomain = b'', b''
         else:
             ouser = other.username
             odomain = other.domainname
@@ -145,13 +137,13 @@ class Address(object):
                 comparitor(self.domainname.lower(), odomain.lower()))
 
     def __eq__(self, other):
-        if not isinstance(other, (Address, (str, bytes))):
-            raise TypeError('Address must be compared to Address, str, or bytes')
+        if not isinstance(other, (Address, str)):
+            raise TypeError('Address must be compared to Address or str')
         return self.__cmp(other, operator.eq)
 
     def __ne__(self, other):
-        if not isinstance(other, (Address, (str, bytes))):
-            raise TypeError('Address must be compared to Address,str, or bytes')
+        if not isinstance(other, (Address, str)):
+            raise TypeError('Address must be compared to Address or str')
         # != is the only rich comparitor that cannot be implemented using 'and'
         # in self.__cmp, so it's implemented as not ==.
         return not self.__cmp(other, operator.eq)
