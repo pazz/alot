@@ -9,13 +9,16 @@ from .globals import PromptCommand
 
 class RetagPromptCommand(Command):
 
-    """prompt to retag selected threads\' tags"""
+    """prompt to retag selected thread's or message's tags"""
     def apply(self, ui):
-        thread = ui.current_buffer.get_selected_thread()
-        if not thread:
+        get_selected_item = getattr(ui.current_buffer, {
+                'search': 'get_selected_thread',
+                'thread': 'get_selected_message'}[ui.mode])
+        item = get_selected_item()
+        if not item:
             return
         tags = []
-        for tag in thread.get_tags():
+        for tag in item.get_tags():
             if ' ' in tag:
                 tags.append('"%s"' % tag)
             # skip empty tags

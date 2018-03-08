@@ -21,6 +21,7 @@ from .globals import FlushCommand
 from .globals import ComposeCommand
 from .globals import MoveCommand
 from .globals import CommandCanceled
+from .common import RetagPromptCommand
 from .envelope import SendCommand
 from ..completion import ContactsCompleter, PathCompleter
 from ..db.utils import decode_header
@@ -1078,6 +1079,9 @@ class ThreadSelectCommand(Command):
             ui.apply_command(OpenAttachmentCommand(focus.get_attachment()))
         else:
             ui.apply_command(ChangeDisplaymodeCommand(visible='toggle'))
+
+
+RetagPromptCommand = registerCommand(MODE, 'retagprompt')(RetagPromptCommand)
 
 
 @registerCommand(

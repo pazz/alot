@@ -51,7 +51,7 @@ The following commands are available in search mode
 
 .. describe:: retagprompt
 
-    prompt to retag selected threads' tags
+    prompt to retag selected thread's or message's tags
 
 
 .. _cmd.search.select:
