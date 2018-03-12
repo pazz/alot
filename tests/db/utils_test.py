@@ -248,7 +248,7 @@ class TestDecodeHeader(unittest.TestCase):
         output = b'=?' + encoding.encode('ascii') + b'?Q?'
         for byte in string:
             output += b'=' + codecs.encode(bytes([byte]), 'hex').upper()
-        return output + b'?='
+        return (output + b'?=').decode('ascii')
 
     @staticmethod
     def _base64(unicode_string, encoding):
@@ -263,7 +263,7 @@ class TestDecodeHeader(unittest.TestCase):
         """
         string = unicode_string.encode(encoding)
         b64 = base64.encodebytes(string).strip()
-        return b'=?' + encoding.encode('utf-8') + b'?B?' + b64 + b'?='
+        return (b'=?' + encoding.encode('utf-8') + b'?B?' + b64 + b'?=').decode('ascii')
 
 
     def _test(self, teststring, expected):
@@ -306,17 +306,17 @@ class TestDecodeHeader(unittest.TestCase):
 
     def test_quoted_words_can_be_interrupted(self):
         part = u'ÄÖÜäöü'
-        text = self._base64(part, 'utf-8') + b' and ' + \
+        text = self._base64(part, 'utf-8') + ' and ' + \
             self._quote(part, 'utf-8')
         expected = u'ÄÖÜäöü and ÄÖÜäöü'
         self._test(text, expected)
 
     def test_different_encodings_can_be_mixed(self):
         part = u'ÄÖÜäöü'
-        text = b'utf-8: ' + self._base64(part, 'utf-8') + \
-            b' again: ' + self._quote(part, 'utf-8') + \
-            b' latin1: ' + self._base64(part, 'iso-8859-1') + \
-            b' and ' + self._quote(part, 'iso-8859-1')
+        text = 'utf-8: ' + self._base64(part, 'utf-8') + \
+            ' again: ' + self._quote(part, 'utf-8') + \
+            ' latin1: ' + self._base64(part, 'iso-8859-1') + \
+            ' and ' + self._quote(part, 'iso-8859-1')
         expected = u'utf-8: ÄÖÜäöü again: ÄÖÜäöü latin1: ÄÖÜäöü and ÄÖÜäöü'
         self._test(text, expected)
 
