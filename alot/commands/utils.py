@@ -46,7 +46,7 @@ def set_encrypt(ui, envelope, block_error=False, signed_only=False):
     keys = yield _get_keys(ui, encrypt_keys, block_error=block_error,
                            signed_only=signed_only)
     if keys:
-        envelope.encrypt_keys.update(keys)
+        envelope.encrypt_keys = keys
         envelope.encrypt = True
 
         if 'From' in envelope.headers:
