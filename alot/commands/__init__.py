@@ -24,7 +24,7 @@ class Command(object):
         self.undoable = False
         self.help = self.__doc__
 
-    def apply(self, caller):
+    def apply(self, ui):
         """code that gets executed when this command is applied"""
         pass
 

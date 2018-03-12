@@ -218,13 +218,15 @@ def decrypt_verify(encrypted):
     """
     ctx = gpg.core.Context()
     try:
-        (plaintext, _, verify_result) = ctx.decrypt(
-            encrypted, verify=True)
+        plaintext, _, verify_result = ctx.decrypt(encrypted, verify=True)
+        sigs = verify_result.signatures
     except gpg.errors.GPGMEError as e:
         raise GPGProblem(str(e), code=e.getcode())
-    # what if the signature is bad?
+    except gpg.errors.BadSignatures as e:
+        plaintext, _, _ = ctx.decrypt(encrypted, verify=False)
+        sigs = e.result.signatures
 
-    return verify_result.signatures, plaintext
+    return sigs, plaintext
 
 
 def validate_key(key, sign=False, encrypt=False):
