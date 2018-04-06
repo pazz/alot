@@ -395,6 +395,8 @@ def guess_encoding(blob):
     :rtype: str
     """
     info = chardet.detect(blob)
+    logging.debug('Encoding %s with confidence %f',
+                  info['encoding'], info['confidence'])
     return info['encoding']
 
 
