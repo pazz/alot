@@ -16,6 +16,8 @@ import re
 import logging
 import mailcap
 import io
+import base64
+import quopri
 
 from .. import crypto
 from .. import helper
@@ -354,19 +356,21 @@ def extract_body(mail, types=None, field_key='copiousoutput'):
             continue
 
         enc = part.get_content_charset() or 'ascii'
-        raw_payload = part.get_payload(decode=True)
-        try:
-            raw_payload = raw_payload.decode(enc)
-        except UnicodeDecodeError:
-            # If the message is not formatted ascii then get_payload with
-            # decode=True will convert to raw-unicode-escape. if the encoding
-            # that the message specifies doesn't work try this. It might be
-            # better to handle the base64 and quoted-printable oursevles
-            # instead of having to clean up like this.
-            raw_payload = raw_payload.decode('raw-unicode-escape')
+        cte = str(part.get('content-transfer-encoding', '7bit')).lower()
+        payload = part.get_payload()
+        if cte not in ['7bit', '8bit']:
+            if cte == 'quoted-printable':
+                raw_payload = quopri.decodestring(payload.encode('ascii'))
+            elif cte == 'base64':
+                raw_payload = base64.b64decode(payload)
+            else:
+                raise Exception('Unknown Content-Transfer-Encoding {}'.format(cte))
+            # message.get_payload(decode=True) also handles a number of unicode
+            # encodindigs. maybe those are useful?
+            payload = raw_payload.decode(enc)
 
         if ctype == 'text/plain':
-            body_parts.append(string_sanitize(raw_payload))
+            body_parts.append(string_sanitize(payload))
         else:
             # get mime handler
             _, entry = settings.mailcap_find_match(ctype, key=field_key)
@@ -383,13 +387,12 @@ def extract_body(mail, types=None, field_key='copiousoutput'):
                     nametemplate = entry.get('nametemplate', '%s')
                     prefix, suffix = parse_mailcap_nametemplate(nametemplate)
                     with tempfile.NamedTemporaryFile(
-                            delete=False, prefix=prefix,
-                            suffix=suffix) \
-                            as tmpfile:
-                        tmpfile.write(raw_payload.encode(enc))
+                            'wt', delete=False, prefix=prefix, suffix=suffix,
+                            encoding=enc) as tmpfile:
+                        tmpfile.write(payload)
                         tempfile_name = tmpfile.name
                 else:
-                    stdin = raw_payload
+                    stdin = payload
 
                 # read parameter, create handler command
                 parms = tuple('='.join(p) for p in part.get_params())
