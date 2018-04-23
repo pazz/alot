@@ -163,7 +163,7 @@ class TestDetermineSender(unittest.TestCase):
         expected = (u'to@example.com', account2)
         self._test(accounts=[account1, account2, account3], expected=expected)
 
-    def test_force_realname_includes_real_name_in_returned_address_if_defined(self):
+    def test_force_realname_has_real_name_in_returned_address_if_defined(self):
         account1 = _AccountTestClass(address=u'foo@example.com')
         account2 = _AccountTestClass(address=u'to@example.com', realname='Bar')
         account3 = _AccountTestClass(address=u'baz@example.com')
@@ -179,7 +179,7 @@ class TestDetermineSender(unittest.TestCase):
         self._test(accounts=[account1, account2, account3], expected=expected,
                    force_realname=True)
 
-    def test_with_force_address_main_address_is_used_regardless_of_matching_address(self):
+    def test_with_force_address_main_address_is_always_used(self):
         # In python 3.4 this and the next test could be written as subtests.
         account1 = _AccountTestClass(address=u'foo@example.com')
         account2 = _AccountTestClass(address=u'bar@example.com',
