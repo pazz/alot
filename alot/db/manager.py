@@ -160,15 +160,14 @@ class DBManager(object):
                         for msg in query.search_messages():
                             msg.freeze()
                             if cmd == 'tag':
-                                for tag in tags:
-                                    msg.add_tag(tag, sync_maildir_flags=sync)
+                                strategy = msg.add_tag
                             if cmd == 'set':
                                 msg.remove_all_tags()
-                                for tag in tags:
-                                    msg.add_tag(tag, sync_maildir_flags=sync)
+                                strategy = msg.add_tag
                             elif cmd == 'untag':
-                                for tag in tags:
-                                    msg.remove_tag(tag, sync_maildir_flags=sync)
+                                strategy = msg.remove_tag
+                            for tag in tags:
+                                strategy(tag, sync_maildir_flags=sync)
                             msg.thaw()
 
                     logging.debug('ended atomic')
