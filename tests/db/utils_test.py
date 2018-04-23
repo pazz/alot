@@ -263,7 +263,9 @@ class TestDecodeHeader(unittest.TestCase):
         """
         string = unicode_string.encode(encoding)
         b64 = base64.encodebytes(string).strip()
-        return (b'=?' + encoding.encode('utf-8') + b'?B?' + b64 + b'?=').decode('ascii')
+        result_bytes = b'=?' + encoding.encode('utf-8') + b'?B?' + b64 + b'?='
+        result = result_bytes.decode('ascii')
+        return result
 
 
     def _test(self, teststring, expected):
@@ -317,7 +319,11 @@ class TestDecodeHeader(unittest.TestCase):
             ' again: ' + self._quote(part, 'utf-8') + \
             ' latin1: ' + self._base64(part, 'iso-8859-1') + \
             ' and ' + self._quote(part, 'iso-8859-1')
-        expected = u'utf-8: ÄÖÜäöü again: ÄÖÜäöü latin1: ÄÖÜäöü and ÄÖÜäöü'
+        expected = u' '.join([
+            u'utf-8: ÄÖÜäöü',
+            u'again: ÄÖÜäöü',
+            u'latin1: ÄÖÜäöü and ÄÖÜäöü',
+        ])
         self._test(text, expected)
 
     def test_tabs_are_expanded_to_align_with_eigth_spaces(self):
