@@ -65,8 +65,8 @@ def rstify_parser(parser):
         for index, a in enumerate(parser._positionals._group_actions):
             out += "        %s: %s" % (index, a.help)
             if a.choices:
-                out += ". valid choices are: %s." % ','.join(['\`%s\`' % s for s
-                                                              in a.choices])
+                out += ". valid choices are: %s." % ','.join(
+                    ['\`%s\`' % s for s in a.choices])
             if a.default:
                 out += ". defaults to: '%s'." % a.default
             out += '\n'
