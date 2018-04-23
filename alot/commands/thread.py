@@ -83,22 +83,23 @@ def determine_sender(mail, action='reply'):
                         re.IGNORECASE if not account.address.case_sensitive
                         else 0))
                 for seen_name, seen_address in candidate_addresses:
-                    if regex.match(seen_address):
-                        logging.debug("match!: '%s' '%s'", seen_address, alias)
-                        if settings.get(action + '_force_realname'):
-                            realname = account.realname
-                        else:
-                            realname = seen_name
-                        if settings.get(action + '_force_address'):
-                            address = account.address
-                        else:
-                            address = seen_address
+                    if not regex.match(seen_address):
+                        continue
+                    logging.debug("match!: '%s' '%s'", seen_address, alias)
+                    if settings.get(action + '_force_realname'):
+                        realname = account.realname
+                    else:
+                        realname = seen_name
+                    if settings.get(action + '_force_address'):
+                        address = account.address
+                    else:
+                        address = seen_address
 
-                        logging.debug('using realname: "%s"', realname)
-                        logging.debug('using address: %s', address)
+                    logging.debug('using realname: "%s"', realname)
+                    logging.debug('using address: %s', address)
 
-                        from_value = formataddr((realname, str(address)))
-                        return from_value, account
+                    from_value = formataddr((realname, str(address)))
+                    return from_value, account
 
     # revert to default account if nothing found
     account = my_accounts[0]
