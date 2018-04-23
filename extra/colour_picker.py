@@ -1,8 +1,9 @@
 #!/usr/bin/python
 #
 # COLOUR PICKER.
-# This is a lightly modified version of urwids palette_test.py example script as
-# found at https://raw.github.com/wardi/urwid/master/examples/palette_test.py
+# This is a lightly modified version of urwids palette_test.py example
+# script as found at
+# https://raw.github.com/wardi/urwid/master/examples/palette_test.py
 #
 # This version simply omits resetting the screens default colour palette,
 # and therefore displays the colour attributes as alot would render them in
