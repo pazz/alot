@@ -223,9 +223,10 @@ class Envelope(object):
 
             # wrap signature in MIMEcontainter
             stype = 'pgp-signature; name="signature.asc"'
-            signature_mime = MIMEApplication(_data=signature_str.decode('ascii'),
-                                             _subtype=stype,
-                                             _encoder=encode_7or8bit)
+            signature_mime = MIMEApplication(
+                _data=signature_str.decode('ascii'),
+                _subtype=stype,
+                _encoder=encode_7or8bit)
             signature_mime['Content-Description'] = 'signature'
             signature_mime.set_charset('us-ascii')
 
@@ -255,9 +256,10 @@ class Envelope(object):
                                               _encoder=encode_7or8bit)
             encryption_mime.set_charset('us-ascii')
 
-            encrypted_mime = MIMEApplication(_data=encrypted_str.decode('ascii'),
-                                             _subtype='octet-stream',
-                                             _encoder=encode_7or8bit)
+            encrypted_mime = MIMEApplication(
+                _data=encrypted_str.decode('ascii'),
+                _subtype='octet-stream',
+                _encoder=encode_7or8bit)
             encrypted_mime.set_charset('us-ascii')
             outer_msg.attach(encryption_mime)
             outer_msg.attach(encrypted_mime)

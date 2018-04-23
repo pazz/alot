@@ -103,11 +103,12 @@ class UI(object):
             self._recipients_hist_file, size=size)
 
         # set up main loop
-        self.mainloop = urwid.MainLoop(self.root_widget,
-                                       handle_mouse=settings.get('handle_mouse'),
-                                       event_loop=urwid.TwistedEventLoop(),
-                                       unhandled_input=self._unhandled_input,
-                                       input_filter=self._input_filter)
+        self.mainloop = urwid.MainLoop(
+            self.root_widget,
+            handle_mouse=settings.get('handle_mouse'),
+            event_loop=urwid.TwistedEventLoop(),
+            unhandled_input=self._unhandled_input,
+            input_filter=self._input_filter)
 
         # Create a defered that calls the loop_hook
         loop_hook = settings.get_hook('loop_hook')

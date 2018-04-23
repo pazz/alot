@@ -364,7 +364,8 @@ def extract_body(mail, types=None, field_key='copiousoutput'):
             elif cte == 'base64':
                 raw_payload = base64.b64decode(payload)
             else:
-                raise Exception('Unknown Content-Transfer-Encoding {}'.format(cte))
+                raise Exception(
+                    'Unknown Content-Transfer-Encoding {}'.format(cte))
             # message.get_payload(decode=True) also handles a number of unicode
             # encodindigs. maybe those are useful?
             payload = raw_payload.decode(enc)

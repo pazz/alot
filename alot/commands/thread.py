@@ -72,13 +72,16 @@ def determine_sender(mail, action='reply'):
         # pick the most important account that has an address in candidates
         # and use that accounts realname and the address found here
         for account in my_accounts:
-            acc_addresses = [re.escape(str(a)) for a in account.get_addresses()]
+            acc_addresses = [
+                re.escape(str(a)) for a in account.get_addresses()]
             if account.alias_regexp is not None:
                 acc_addresses.append(account.alias_regexp)
             for alias in acc_addresses:
                 regex = re.compile(
                     u'^' + str(alias) + u'$',
-                    flags=re.IGNORECASE if not account.address.case_sensitive else 0)
+                    flags=(
+                        re.IGNORECASE if not account.address.case_sensitive
+                        else 0))
                 for seen_name, seen_address in candidate_addresses:
                     if regex.match(seen_address):
                         logging.debug("match!: '%s' '%s'", seen_address, alias)
@@ -241,7 +244,11 @@ class ReplyCommand(Command):
             # Reply-To is standart reply target RFC 2822:, RFC 1036: 2.2.1
             # X-BeenThere is needed by sourceforge ML also winehq
             # X-Mailing-List is also standart and is used by git-send-mail
-            to = mail['Reply-To'] or mail['X-BeenThere'] or mail['X-Mailing-List']
+            to = (
+                mail['Reply-To']
+                or mail['X-BeenThere']
+                or mail['X-Mailing-List']
+            )
             # Some mail server (gmail) will not resend you own mail, so you
             # have to deal with the one in sent
             if to is None:

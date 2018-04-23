@@ -385,7 +385,8 @@ class TestAddSignatureHeaders(unittest.TestCase):
 
         self.assertIn((utils.X_SIGNATURE_VALID_HEADER, u'True'), mail.headers)
         self.assertIn(
-            (utils.X_SIGNATURE_MESSAGE_HEADER, u'Untrusted: mocked'), mail.headers)
+            (utils.X_SIGNATURE_MESSAGE_HEADER, u'Untrusted: mocked'),
+            mail.headers)
 
     def test_unicode_as_bytes(self):
         mail = self.FakeMail()
@@ -395,7 +396,8 @@ class TestAddSignatureHeaders(unittest.TestCase):
 
         self.assertIn((utils.X_SIGNATURE_VALID_HEADER, u'True'), mail.headers)
         self.assertIn(
-            (utils.X_SIGNATURE_MESSAGE_HEADER, u'Valid: Andreá'), mail.headers)
+            (utils.X_SIGNATURE_MESSAGE_HEADER, u'Valid: Andreá'),
+            mail.headers)
 
     def test_error_message_unicode(self):
         mail = self.check(mock.Mock(), mock.Mock(), u'error message')
@@ -433,7 +435,8 @@ class TestMessageFromFile(TestCaseClassCleanup):
                     with open(os.path.join(search_dir, each)) as f:
                         ctx.op_import(f)
 
-            cls.keys = [ctx.get_key("DD19862809A7573A74058FF255937AFBB156245D")]
+            cls.keys = [
+                ctx.get_key("DD19862809A7573A74058FF255937AFBB156245D")]
 
     def test_erase_alot_header_signature_valid(self):
         """Alot uses special headers for passing certain kinds of information,
@@ -490,7 +493,8 @@ class TestMessageFromFile(TestCaseClassCleanup):
         m = self._make_signed()
         m = utils.message_from_file(io.StringIO(m.as_string()))
         # Don't test for valid/invalid since that might change
-        self.assertIn('ambig <ambig@example.com>', m[utils.X_SIGNATURE_MESSAGE_HEADER])
+        self.assertIn(
+            'ambig <ambig@example.com>', m[utils.X_SIGNATURE_MESSAGE_HEADER])
 
     def test_signed_wrong_mimetype_second_payload(self):
         m = self._make_signed()
@@ -601,7 +605,8 @@ class TestMessageFromFile(TestCaseClassCleanup):
         m = self._make_encrypted(True)
         m = utils.message_from_file(io.StringIO(m.as_string()))
         self.assertIn(utils.X_SIGNATURE_MESSAGE_HEADER, m)
-        self.assertIn('ambig <ambig@example.com>', m[utils.X_SIGNATURE_MESSAGE_HEADER])
+        self.assertIn(
+            'ambig <ambig@example.com>', m[utils.X_SIGNATURE_MESSAGE_HEADER])
 
     # TODO: tests for the RFC 2440 style combined signed/encrypted blob
 
@@ -728,7 +733,8 @@ class TestExtractBody(unittest.TestCase):
     @mock.patch('alot.db.utils.settings.mailcap_find_match',
                 mock.Mock(return_value=(None, {'view': 'cat'})))
     def test_prefer_html(self):
-        expected = '<!DOCTYPE html><html><body>This is an html email</body></html>'
+        expected = (
+            '<!DOCTYPE html><html><body>This is an html email</body></html>')
         mail = self._make_mixed_plain_html()
         actual = utils.extract_body(mail)
 
@@ -755,7 +761,8 @@ class TestExtractBody(unittest.TestCase):
             '<!DOCTYPE html><html><body>This is an html email</body></html>',
             'html'))
         actual = utils.extract_body(mail)
-        expected = '<!DOCTYPE html><html><body>This is an html email</body></html>'
+        expected = (
+            '<!DOCTYPE html><html><body>This is an html email</body></html>')
 
         self.assertEqual(actual, expected)
 
@@ -768,7 +775,8 @@ class TestExtractBody(unittest.TestCase):
             '<!DOCTYPE html><html><body>This is an html email</body></html>',
             'html'))
         actual = utils.extract_body(mail)
-        expected = '<!DOCTYPE html><html><body>This is an html email</body></html>'
+        expected = (
+            '<!DOCTYPE html><html><body>This is an html email</body></html>')
 
         self.assertEqual(actual, expected)
 

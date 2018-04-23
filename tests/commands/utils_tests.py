@@ -57,7 +57,8 @@ def setUpModule():
 
     with gpg.core.Context(armor=True) as ctx:
         # Add the public and private keys. They have no password
-        search_dir = os.path.join(os.path.dirname(__file__), '../static/gpg-keys')
+        search_dir = os.path.join(
+            os.path.dirname(__file__), '../static/gpg-keys')
         for each in os.listdir(search_dir):
             if os.path.splitext(each)[1] == '.gpg':
                 with open(os.path.join(search_dir, each)) as f:
@@ -106,7 +107,8 @@ class TestGetKeys(unittest.TestCase):
     @inlineCallbacks
     def test_get_keys_ambiguous(self):
         """Test gettings keys when when the key is ambiguous."""
-        key = crypto.get_key(FPR, validate=True, encrypt=True, signed_only=False)
+        key = crypto.get_key(
+            FPR, validate=True, encrypt=True, signed_only=False)
         ui = utilities.make_ui()
 
         # Creat a ui.choice object that can satisfy twisted, but can also be
