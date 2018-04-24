@@ -213,9 +213,11 @@ class Account(object):
         replied_tags = replied_tags or []
         passed_tags = passed_tags or []
 
-        self.address = Address.from_string(address, case_sensitive=case_sensitive_username)
-        self.aliases = [Address.from_string(a, case_sensitive=case_sensitive_username)
-                        for a in (aliases or [])]
+        self.address = Address.from_string(
+            address, case_sensitive=case_sensitive_username)
+        self.aliases = [
+            Address.from_string(a, case_sensitive=case_sensitive_username)
+            for a in (aliases or [])]
         self.alias_regexp = alias_regexp
         self.realname = realname
         self.encrypt_to_self = encrypt_to_self

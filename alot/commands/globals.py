@@ -271,9 +271,10 @@ class ExternalCommand(Command):
 
         def thread_code(*_):
             try:
-                proc = subprocess.Popen(self.cmdlist, shell=self.shell,
-                                        stdin=subprocess.PIPE if stdin else None,
-                                        stderr=subprocess.PIPE)
+                proc = subprocess.Popen(
+                    self.cmdlist, shell=self.shell,
+                    stdin=subprocess.PIPE if stdin else None,
+                    stderr=subprocess.PIPE)
             except OSError as e:
                 return str(e)
 
@@ -623,8 +624,8 @@ class HelpCommand(Command):
             globalmaps, modemaps = settings.get_keybindings(ui.mode)
 
             # build table
-            maxkeylength = len(max(list(modemaps.keys()) + list(globalmaps.keys()),
-                                   key=len))
+            maxkeylength = len(
+                max(list(modemaps.keys()) + list(globalmaps.keys()), key=len))
             keycolumnwidth = maxkeylength + 2
 
             linewidgets = []
@@ -689,10 +690,12 @@ class HelpCommand(Command):
 class ComposeCommand(Command):
 
     """compose a new email"""
-    def __init__(self, envelope=None, headers=None, template=None, sender=u'',
-                 tags=None, subject=u'', to=None, cc=None, bcc=None, attach=None,
-                 omit_signature=False, spawn=None, rest=None, encrypt=False,
-                 **kwargs):
+    def __init__(
+            self,
+            envelope=None, headers=None, template=None, sender=u'',
+            tags=None, subject=u'', to=None, cc=None, bcc=None, attach=None,
+            omit_signature=False, spawn=None, rest=None, encrypt=False,
+            **kwargs):
         """
         :param envelope: use existing envelope
         :type envelope: :class:`~alot.db.envelope.Envelope`

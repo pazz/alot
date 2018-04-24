@@ -57,7 +57,8 @@ class AbooksCompleterTest(unittest.TestCase):
         self.assertTupleEqual(actual[0], expected[0])
 
     def test_empty_real_name_returns_plain_email_address(self):
-        actual = self.__class__.example_abook_completer.complete("real-name", 9)
+        actual = self.__class__.example_abook_completer.complete(
+            "real-name", 9)
         expected = [("no-real-name@example.com", 24)]
         self._assert_only_one_list_entry(actual, expected)
 
@@ -79,7 +80,8 @@ class AbooksCompleterTest(unittest.TestCase):
     def test_real_name_double_quotes(self):
         actual = self.__class__.example_abook_completer.complete("dquote", 6)
         expected = [("", 0)]
-        expected = [(r""""double \"quote\" person" <dquote@example.com>""", 46)]
+        expected = [
+            (r""""double \"quote\" person" <dquote@example.com>""", 46)]
         self._assert_only_one_list_entry(actual, expected)
 
     def test_real_name_with_quotes_and_comma(self):

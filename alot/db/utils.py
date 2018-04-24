@@ -359,6 +359,17 @@ def extract_body(mail, types=None, field_key='copiousoutput'):
         cte = str(part.get('content-transfer-encoding', '7bit')).lower()
         payload = part.get_payload()
         if cte == '8bit':
+            if cte == 'quoted-printable':
+                raw_payload = quopri.decodestring(payload.encode('ascii'))
+            elif cte == 'base64':
+                raw_payload = base64.b64decode(payload)
+            else:
+                raise Exception(
+                    'Unknown Content-Transfer-Encoding {}'.format(cte))
+            # message.get_payload(decode=True) also handles a number of unicode
+            # encodindigs. maybe those are useful?
+            payload = raw_payload.decode(enc)
+        elif cte == '8bit':
             # Python's mail library may decode 8bit as raw-unicode-escape, so
             # we need to encode that back to bytes so we can decode it using
             # the correct encoding, or it might not, in which case assume that
