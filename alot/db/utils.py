@@ -19,6 +19,8 @@ import io
 import base64
 import quopri
 
+from urwid.util import detected_encoding
+
 from .. import crypto
 from .. import helper
 from ..errors import GPGProblem
@@ -310,6 +312,108 @@ def extract_headers(mail, headers=None):
     return headertext
 
 
+def render_part(part, field_key='copiousoutput'):
+    """
+    renders a non-multipart email part into displayable plaintext by piping its
+    payload through an external script. The handler itself is determined by
+    the mailcap entry for this part's ctype.
+    """
+    ctype = part.get_content_type()
+    raw_payload = remove_cte(part)
+    rendered_payload = None
+    # get mime handler
+    _, entry = settings.mailcap_find_match(ctype, key=field_key)
+    if entry is not None:
+        tempfile_name = None
+        stdin = None
+        handler_raw_commandstring = entry['view']
+        # in case the mailcap defined command contains no '%s',
+        # we pipe the files content to the handling command via stdin
+        if '%s' in handler_raw_commandstring:
+            # open tempfile, respect mailcaps nametemplate
+            nametemplate = entry.get('nametemplate', '%s')
+            prefix, suffix = parse_mailcap_nametemplate(nametemplate)
+            with tempfile.NamedTemporaryFile(
+                    delete=False, prefix=prefix, suffix=suffix) \
+                    as tmpfile:
+                tmpfile.write(raw_payload)
+                tempfile_name = tmpfile.name
+        else:
+            stdin = raw_payload
+
+        # read parameter, create handler command
+        parms = tuple('='.join(p) for p in part.get_params())
+
+        # create and call external command
+        cmd = mailcap.subst(entry['view'], ctype,
+                            filename=tempfile_name, plist=parms)
+        logging.debug('command: %s', cmd)
+        logging.debug('parms: %s', str(parms))
+        cmdlist = split_commandstring(cmd)
+        # call handler
+        stdout, _, _ = helper.call_cmd(cmdlist, stdin=stdin)
+        if stdout:
+            rendered_payload = stdout
+
+        # remove tempfile
+        if tempfile_name:
+            os.unlink(tempfile_name)
+
+    return rendered_payload
+
+
+def remove_cte(part, as_string=False):
+    """Decodes any Content-Transfer-Encodings.
+
+    Can return a string for display, or bytes to be passed to an external
+    program.
+
+    :param email.Message part: The part to decode
+    :param bool as_string: If true return a str, otherwise return bytes
+    :returns: The mail with any Content-Transfer-Encoding removed
+    :rtype: Union[str, bytes]
+    """
+    enc = part.get_content_charset() or 'ascii'
+    cte = str(part.get('content-transfer-encoding', '7bit')).lower()
+    payload = part.get_payload()
+    if cte == '8bit':
+        # Python's mail library may decode 8bit as raw-unicode-escape, so
+        # we need to encode that back to bytes so we can decode it using
+        # the correct encoding, or it might not, in which case assume that
+        # the str representation we got is correct.
+        raw_payload = payload.encode('raw-unicode-escape')
+        if not as_string:
+            return raw_payload
+        try:
+            return raw_payload.decode(enc)
+        except LookupError:
+            # In this case the email has an unknown encoding, fall back to
+            # guessing
+            return helper.try_decode(raw_payload)
+        except UnicodeDecodeError:
+            if not as_string:
+                return raw_payload
+            return helper.try_decode(raw_payload)
+    elif cte == '7bit':
+        if as_string:
+            return payload
+        return payload.encode('utf-8')
+    else:
+        if cte == 'quoted-printable':
+            raw_payload = quopri.decodestring(payload.encode('ascii'))
+        elif cte == 'base64':
+            raw_payload = base64.b64decode(payload)
+        else:
+            raise Exception(
+                'Unknown Content-Transfer-Encoding {}'.format(cte))
+        # message.get_payload(decode=True) also handles a number of unicode
+        # encodindigs. maybe those are useful?
+        if not as_string:
+            return raw_payload
+        return raw_payload.decode(enc)
+    raise Exception('Unreachable')
+
+
 def extract_body(mail, types=None, field_key='copiousoutput'):
     """Returns a string view of a Message.
 
@@ -355,79 +459,14 @@ def extract_body(mail, types=None, field_key='copiousoutput'):
         if has_preferred and ctype != preferred:
             continue
 
-        enc = part.get_content_charset() or 'ascii'
-        cte = str(part.get('content-transfer-encoding', '7bit')).lower()
-        payload = part.get_payload()
-        if cte == '7bit':
-            if cte == 'quoted-printable':
-                raw_payload = quopri.decodestring(payload.encode('ascii'))
-            elif cte == 'base64':
-                raw_payload = base64.b64decode(payload)
-            else:
-                raise Exception(
-                    'Unknown Content-Transfer-Encoding {}'.format(cte))
-            # message.get_payload(decode=True) also handles a number of unicode
-            # encodindigs. maybe those are useful?
-            payload = raw_payload.decode(enc)
-        elif cte == '8bit':
-            # Python's mail library may decode 8bit as raw-unicode-escape, so
-            # we need to encode that back to bytes so we can decode it using
-            # the correct encoding, or it might not, in which case assume that
-            # the str representation we got is correct.
-            raw_payload = payload.encode('raw-unicode-escape')
-            try:
-                payload = raw_payload.decode(enc)
-            except LookupError:
-                # In this case the email has an unknown encoding, fall back to
-                # guessing
-                enc = helper.guess_encoding(raw_payload)
-                payload = raw_payload.decode(enc)
-            except UnicodeDecodeError:
-                pass
-
         if ctype == 'text/plain':
-            body_parts.append(string_sanitize(payload))
+            body_parts.append(string_sanitize(remove_cte(part, as_string=True)))
         else:
-            # get mime handler
-            _, entry = settings.mailcap_find_match(ctype, key=field_key)
-            if entry is None:
+            rendered_payload = render_part(part)
+            if rendered_payload:  # handler had output
+                body_parts.append(string_sanitize(rendered_payload))
+            else:  # mark as attachment
                 part.add_header('Content-Disposition', 'attachment; ' + cd)
-            else:
-                tempfile_name = None
-                stdin = None
-                handler_raw_commandstring = entry['view']
-                # in case the mailcap defined command contains no '%s',
-                # we pipe the files content to the handling command via stdin
-                if '%s' in handler_raw_commandstring:
-                    # open tempfile, respect mailcaps nametemplate
-                    nametemplate = entry.get('nametemplate', '%s')
-                    prefix, suffix = parse_mailcap_nametemplate(nametemplate)
-                    with tempfile.NamedTemporaryFile(
-                            'wt', delete=False, prefix=prefix, suffix=suffix,
-                            encoding=enc) as tmpfile:
-                        tmpfile.write(payload)
-                        tempfile_name = tmpfile.name
-                else:
-                    stdin = payload
-
-                # read parameter, create handler command
-                parms = tuple('='.join(p) for p in part.get_params())
-
-                # create and call external command
-                cmd = mailcap.subst(entry['view'], ctype,
-                                    filename=tempfile_name, plist=parms)
-                logging.debug('command: %s', cmd)
-                logging.debug('parms: %s', str(parms))
-                cmdlist = split_commandstring(cmd)
-                # call handler
-                rendered_payload, _, _ = helper.call_cmd(cmdlist, stdin=stdin)
-
-                # remove tempfile
-                if tempfile_name:
-                    os.unlink(tempfile_name)
-
-                if rendered_payload:  # handler had output
-                    body_parts.append(string_sanitize(rendered_payload))
     return u'\n\n'.join(body_parts)
 
 
