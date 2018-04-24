@@ -319,11 +319,11 @@ class TestDecodeHeader(unittest.TestCase):
             ' again: ' + self._quote(part, 'utf-8') + \
             ' latin1: ' + self._base64(part, 'iso-8859-1') + \
             ' and ' + self._quote(part, 'iso-8859-1')
-        expected = u' '.join([
-            u'utf-8: ÄÖÜäöü',
-            u'again: ÄÖÜäöü',
-            u'latin1: ÄÖÜäöü and ÄÖÜäöü',
-        ])
+        expected = (
+            u'utf-8: ÄÖÜäöü'
+            u'again: ÄÖÜäöü'
+            u'latin1: ÄÖÜäöü and ÄÖÜäöü'
+        )
         self._test(text, expected)
 
     def test_tabs_are_expanded_to_align_with_eigth_spaces(self):

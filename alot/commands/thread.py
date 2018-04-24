@@ -245,11 +245,8 @@ class ReplyCommand(Command):
             # Reply-To is standart reply target RFC 2822:, RFC 1036: 2.2.1
             # X-BeenThere is needed by sourceforge ML also winehq
             # X-Mailing-List is also standart and is used by git-send-mail
-            to = (
-                mail['Reply-To']
-                or mail['X-BeenThere']
-                or mail['X-Mailing-List']
-            )
+            to = mail['Reply-To'] or mail['X-BeenThere'] or mail['X-Mailing-List']
+
             # Some mail server (gmail) will not resend you own mail, so you
             # have to deal with the one in sent
             if to is None:
