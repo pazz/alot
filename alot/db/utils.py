@@ -366,6 +366,11 @@ def extract_body(mail, types=None, field_key='copiousoutput'):
             raw_payload = payload.encode('raw-unicode-escape')
             try:
                 payload = raw_payload.decode(enc)
+            except LookupError:
+                # In this case the email has an unknown encoding, fall back to
+                # guessing
+                enc = helper.guess_encoding(raw_payload)
+                payload = raw_payload.decode(enc)
             except UnicodeDecodeError:
                 pass
         elif cte != '7bit':
