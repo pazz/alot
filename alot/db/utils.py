@@ -297,6 +297,59 @@ def extract_headers(mail, headers=None):
     return headertext
 
 
+
+
+
+def render_part(part, field_key='copiousoutput'):
+    """
+    renders a non-multipart email part into displayable plaintext by piping its
+    payload through an external script. The handler itself is determined by
+    the mailcap entry for this part's ctype.
+    """
+    ctype = part.get_content_type()
+    raw_payload = part.get_payload(decode=True)
+    rendered_payload = None
+    # get mime handler
+    _, entry = settings.mailcap_find_match(ctype, key=field_key)
+    if entry is not None:
+        tempfile_name = None
+        stdin = None
+        handler_raw_commandstring = entry['view']
+        # in case the mailcap defined command contains no '%s',
+        # we pipe the files content to the handling command via stdin
+        if '%s' in handler_raw_commandstring:
+            # open tempfile, respect mailcaps nametemplate
+            nametemplate = entry.get('nametemplate', '%s')
+            prefix, suffix = parse_mailcap_nametemplate(nametemplate)
+            with tempfile.NamedTemporaryFile(
+                    delete=False, prefix=prefix, suffix=suffix) \
+                    as tmpfile:
+                tmpfile.write(raw_payload)
+                tempfile_name = tmpfile.name
+        else:
+            stdin = raw_payload
+
+        # read parameter, create handler command
+        parms = tuple('='.join(p) for p in part.get_params())
+
+        # create and call external command
+        cmd = mailcap.subst(entry['view'], ctype,
+                            filename=tempfile_name, plist=parms)
+        logging.debug('command: %s', cmd)
+        logging.debug('parms: %s', str(parms))
+        cmdlist = split_commandstring(cmd)
+        # call handler
+        stdout, _, _ = helper.call_cmd(cmdlist, stdin=stdin)
+        if stdout:
+            rendered_payload = stdout
+
+        # remove tempfile
+        if tempfile_name:
+            os.unlink(tempfile_name)
+
+    return rendered_payload
+
+
 def extract_body(mail, types=None, field_key='copiousoutput'):
     """Returns a string view of a Message.
 
@@ -342,52 +395,16 @@ def extract_body(mail, types=None, field_key='copiousoutput'):
         if has_preferred and ctype != preferred:
             continue
 
-        enc = part.get_content_charset() or 'ascii'
-        raw_payload = part.get_payload(decode=True)
         if ctype == 'text/plain':
-            raw_payload = string_decode(raw_payload, enc)
+            enc = part.get_content_charset() or 'ascii'
+            raw_payload = string_decode(part.get_payload(decode=True), enc)
             body_parts.append(string_sanitize(raw_payload))
         else:
-            # get mime handler
-            _, entry = settings.mailcap_find_match(ctype, key=field_key)
-            if entry is None:
+            rendered_payload = render_part(part)
+            if rendered_payload:  # handler had output
+                body_parts.append(string_sanitize(rendered_payload))
+            else:  # mark as attachment
                 part.add_header('Content-Disposition', 'attachment; ' + cd)
-            else:
-                tempfile_name = None
-                stdin = None
-                handler_raw_commandstring = entry['view']
-                # in case the mailcap defined command contains no '%s',
-                # we pipe the files content to the handling command via stdin
-                if '%s' in handler_raw_commandstring:
-                    # open tempfile, respect mailcaps nametemplate
-                    nametemplate = entry.get('nametemplate', '%s')
-                    prefix, suffix = parse_mailcap_nametemplate(nametemplate)
-                    with tempfile.NamedTemporaryFile(
-                            delete=False, prefix=prefix, suffix=suffix) \
-                            as tmpfile:
-                        tmpfile.write(raw_payload)
-                        tempfile_name = tmpfile.name
-                else:
-                    stdin = raw_payload
-
-                # read parameter, create handler command
-                parms = tuple('='.join(p) for p in part.get_params())
-
-                # create and call external command
-                cmd = mailcap.subst(entry['view'], ctype,
-                                    filename=tempfile_name, plist=parms)
-                logging.debug('command: %s', cmd)
-                logging.debug('parms: %s', str(parms))
-                cmdlist = split_commandstring(cmd)
-                # call handler
-                rendered_payload, _, _ = helper.call_cmd(cmdlist, stdin=stdin)
-
-                # remove tempfile
-                if tempfile_name:
-                    os.unlink(tempfile_name)
-
-                if rendered_payload:  # handler had output
-                    body_parts.append(string_sanitize(rendered_payload))
     return u'\n\n'.join(body_parts)
 
 
