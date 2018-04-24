@@ -230,10 +230,8 @@ class TestSignCommand(unittest.TestCase):
         """
         env, ui = self._make_ui_mock()
 
-        func_patcher = mock.patch(
-            'alot.commands.envelope.settings.get_account_by_address',
-            mock.Mock(return_value=mock.Mock(gpg_key=None)))
-        with func_patcher:
+        with mock.patch('alot.commands.envelope.settings.get_account_by_address',
+                        mock.Mock(return_value=mock.Mock(gpg_key=None))):
             cmd = envelope.SignCommand(action='sign', keyid=None)
             cmd.apply(ui)
 
@@ -247,10 +245,8 @@ class TestSignCommand(unittest.TestCase):
         """
         env, ui = self._make_ui_mock()
 
-        func_patcher = mock.patch(
-            'alot.commands.envelope.settings.get_account_by_address',
-            mock.Mock(return_value=mock.Mock(gpg_key='sentinel')))
-        with func_patcher:
+        with mock.patch('alot.commands.envelope.settings.get_account_by_address',
+                        mock.Mock(return_value=mock.Mock(gpg_key='sentinel'))):
             cmd = envelope.SignCommand(action='sign', keyid=None)
             cmd.apply(ui)
 

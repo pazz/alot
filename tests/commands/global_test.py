@@ -17,8 +17,6 @@
 """Tests for global commands."""
 
 from __future__ import absolute_import
-
-import contextlib
 import os
 import tempfile
 
@@ -66,21 +64,16 @@ class TestComposeCommand(unittest.TestCase):
 
         # This whole mess is required becasue ComposeCommand.apply is waaaaay
         # too complicated, it needs to be split into more manageable segments.
-        func_patcher_get_account_by_address = mock.patch(
-            'alot.commands.globals.settings.get_account_by_address',
-            mock.Mock(return_value=account))
-        func_patcher_get_accounts = mock.patch(
-            'alot.commands.globals.settings.get_accounts',
-            mock.Mock(return_value=[account]))
-        func_patcher_get_addressbooks = mock.patch(
-            'alot.commands.globals.settings.get_addressbooks',
-            mock.Mock(side_effect=Stop))
-        with contextlib.ExitStack() as stack:
-            stack.enter_context(func_patcher_get_account_by_address)
-            stack.enter_context(func_patcher_get_accounts)
-            stack.enter_context(func_patcher_get_addressbooks)
-            with self.assertRaises(Stop):
-                yield cmd.apply(mock.Mock())
+        with mock.patch('alot.commands.globals.settings.get_account_by_address',
+                        mock.Mock(return_value=account)):
+            with mock.patch('alot.commands.globals.settings.get_accounts',
+                            mock.Mock(return_value=[account])):
+                with mock.patch('alot.commands.globals.settings.get_addressbooks',
+                                mock.Mock(side_effect=Stop)):
+                    try:
+                        yield cmd.apply(mock.Mock())
+                    except Stop:
+                        pass
 
         self.assertTrue(envelope.sign)
         self.assertIs(envelope.sign_key, mock.sentinel.gpg_key)
@@ -93,21 +86,16 @@ class TestComposeCommand(unittest.TestCase):
 
         # This whole mess is required becasue ComposeCommand.apply is waaaaay
         # too complicated, it needs to be split into more manageable segments.
-        func_patcher_get_account_by_address = mock.patch(
-            'alot.commands.globals.settings.get_account_by_address',
-            mock.Mock(return_value=account))
-        func_patcher_get_accounts = mock.patch(
-            'alot.commands.globals.settings.get_accounts',
-            mock.Mock(return_value=[account]))
-        func_patcher_get_addressbooks = mock.patch(
-            'alot.commands.globals.settings.get_addressbooks',
-            mock.Mock(side_effect=Stop))
-        with contextlib.ExitStack() as stack:
-            stack.enter_context(func_patcher_get_account_by_address)
-            stack.enter_context(func_patcher_get_accounts)
-            stack.enter_context(func_patcher_get_addressbooks)
-            with self.assertRaises(Stop):
-                yield cmd.apply(mock.Mock())
+        with mock.patch('alot.commands.globals.settings.get_account_by_address',
+                        mock.Mock(return_value=account)):
+            with mock.patch('alot.commands.globals.settings.get_accounts',
+                            mock.Mock(return_value=[account])):
+                with mock.patch('alot.commands.globals.settings.get_addressbooks',
+                                mock.Mock(side_effect=Stop)):
+                    try:
+                        yield cmd.apply(mock.Mock())
+                    except Stop:
+                        pass
 
         self.assertFalse(envelope.sign)
         self.assertIs(envelope.sign_key, None)
@@ -120,21 +108,16 @@ class TestComposeCommand(unittest.TestCase):
 
         # This whole mess is required becasue ComposeCommand.apply is waaaaay
         # too complicated, it needs to be split into more manageable segments.
-        func_patcher_get_account_by_address = mock.patch(
-            'alot.commands.globals.settings.get_account_by_address',
-            mock.Mock(return_value=account))
-        func_patcher_get_accounts = mock.patch(
-            'alot.commands.globals.settings.get_accounts',
-            mock.Mock(return_value=[account]))
-        func_patcher_get_addressbooks = mock.patch(
-            'alot.commands.globals.settings.get_addressbooks',
-            mock.Mock(side_effect=Stop))
-        with contextlib.ExitStack() as stack:
-            stack.enter_context(func_patcher_get_account_by_address)
-            stack.enter_context(func_patcher_get_accounts)
-            stack.enter_context(func_patcher_get_addressbooks)
-            with self.assertRaises(Stop):
-                yield cmd.apply(mock.Mock())
+        with mock.patch('alot.commands.globals.settings.get_account_by_address',
+                        mock.Mock(return_value=account)):
+            with mock.patch('alot.commands.globals.settings.get_accounts',
+                            mock.Mock(return_value=[account])):
+                with mock.patch('alot.commands.globals.settings.get_addressbooks',
+                                mock.Mock(side_effect=Stop)):
+                    try:
+                        yield cmd.apply(mock.Mock())
+                    except Stop:
+                        pass
 
         self.assertFalse(envelope.sign)
         self.assertIs(envelope.sign_key, None)
