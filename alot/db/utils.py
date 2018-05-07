@@ -394,7 +394,7 @@ def remove_cte(part, as_string=False):
             if not as_string:
                 return raw_payload
             return helper.try_decode(raw_payload)
-    elif cte == '7bit':
+    elif cte in ['7bit', 'binary']:
         if as_string:
             return payload
         return payload.encode('utf-8')
