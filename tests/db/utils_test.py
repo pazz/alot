@@ -320,8 +320,8 @@ class TestDecodeHeader(unittest.TestCase):
             ' latin1: ' + self._base64(part, 'iso-8859-1') + \
             ' and ' + self._quote(part, 'iso-8859-1')
         expected = (
-            u'utf-8: ÄÖÜäöü'
-            u'again: ÄÖÜäöü'
+            u'utf-8: ÄÖÜäöü '
+            u'again: ÄÖÜäöü '
             u'latin1: ÄÖÜäöü and ÄÖÜäöü'
         )
         self._test(text, expected)
