@@ -19,7 +19,8 @@ COMMAND_OPTION_TABLES = source/usage/modes/bufferlist.rst \
 			source/usage/modes/global.rst \
 			source/usage/modes/search.rst \
 			source/usage/modes/taglist.rst \
-			source/usage/modes/thread.rst
+			source/usage/modes/thread.rst \
+			source/usage/modes/folders.rst
 
 
 .PHONY: html help clean dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest

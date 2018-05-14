@@ -32,6 +32,15 @@ q = exit
     x = close
     enter = open
 
+[folders]
+    enter = open
+    c = fold
+    e = unfold
+    s = mark_as_read
+    n = move unread next
+    N = move unread previous
+    'g h' = move parent
+
 [search]
     enter = select
     a = toggletags inbox

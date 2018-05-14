@@ -17,6 +17,12 @@
     line_focus = attrtriple
     line_even = attrtriple
     line_odd = attrtriple
+[folders]
+    line_focus = attrtriple
+    line_empty = attrtriple
+    line = attrtriple
+    arrow_bars = attrtriple
+    arrow_heads = attrtriple
 
 [taglist]
     line_focus = attrtriple

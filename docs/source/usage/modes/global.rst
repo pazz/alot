@@ -73,6 +73,13 @@ The following commands are available globally
         buffer index to focus
 
 
+.. _cmd.global.folders:
+
+.. describe:: folders
+
+     display a tree view of maildir folders 
+
+
 .. _cmd.global.move:
 
 .. describe:: move

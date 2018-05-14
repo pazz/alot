@@ -7,7 +7,7 @@ import logging
 import os
 
 import urwid
-from urwidtrees import ArrowTree, TreeBox, NestedTree
+from urwidtrees import ArrowTree, TreeBox, NestedTree, CollapsibleArrowTree
 from notmuch import NotmuchError
 
 from .settings.const import settings
@@ -21,6 +21,7 @@ from .widgets.globals import AttachmentWidget
 from .widgets.bufferlist import BufferlineWidget
 from .widgets.search import ThreadlineWidget
 from .widgets.thread import ThreadTree
+from .widgets.folders import FoldersTree
 
 
 class Buffer(object):
@@ -115,6 +116,98 @@ class BufferlistBuffer(Buffer):
     def focus_first(self):
         """Focus the first line in the buffer list."""
         self.body.set_focus(0)
+
+
+class FolderTreeBuffer(Buffer):
+    """list folders in a tree"""
+
+    modename = 'folders'
+
+    def __init__(self, ui, account):
+        """
+        :param ui: main UI
+        :type ui: :class:`~alot.ui.UI`
+        :param account: account to display
+        :type account: :class:`~alot.db.account.Account`
+        """
+        self.ui = ui
+        self.isinitialized = False
+        self.folder_list = None
+        self.account = account
+        self.rebuild()
+        Buffer.__init__(self, ui, self.body)
+
+    def get_info(self):
+        """ for status bar """
+        info = {}
+        info['folders_count'] = self.account.get_folders_count()
+        info['folders_count_positive'] = 's' * \
+            (not (self.account.get_folders_count() == 1))
+        return info
+
+    def rebuild(self):
+        logging.debug("Rebuild folders.")
+        focused_now = self.get_focused()
+        self.account.refresh()
+
+        self._tree = FoldersTree(self.account)
+
+        bars_att = settings.get_theming_attribute('folders', 'arrow_bars')
+        heads_att = settings.get_theming_attribute('folders', 'arrow_heads')
+        self._arrow_tree = CollapsibleArrowTree(
+            self._tree,
+            arrow_tip_att=heads_att,
+            arrow_att=bars_att,
+        )
+        self.body = TreeBox(self._arrow_tree)
+        if focused_now:
+            self.body.set_focus(focused_now)
+
+    def refresh(self):
+        """refresh buffer with updated information"""
+        self.body.refresh()
+
+    def get_focused(self):
+        try:
+            focused_now = self.body.get_focus()[1]
+        except AttributeError:
+            return None
+        else:
+            logging.debug("Focused now: %s", repr(focused_now))
+            return focused_now
+
+    def get_current_folder(self):
+        focused = self.get_focused()
+        if focused is not None:
+            folder = self._tree[focused].folder
+            return folder
+
+    def focus_first(self):
+        self.body.set_focus(self._arrow_tree.root)
+
+    def focus_last(self):
+        self.body.set_focus(next(self._arrow_tree.positions(reverse=True)))
+
+    def focus_parent(self):
+        """move focus to parent of currently focussed folder"""
+        newpos = self._tree.parent_position(self.get_focused())
+        if newpos is not None:
+            self.body.set_focus(newpos)
+
+    def focus_next_unread(self):
+        self.body.set_focus(self._tree.next_unread(self.get_focused()))
+
+    def focus_previous_unread(self):
+        self.body.set_focus(self._tree.previous_unread(self.get_focused()))
+
+    def is_collapsed(self, pos):
+        return self._arrow_tree.is_collapsed(pos)
+
+    def collapse(self):
+        return self._arrow_tree.collapse(self.body.get_focus()[1])
+
+    def expand(self):
+        return self._arrow_tree.expand(self.body.get_focus()[1])
 
 
 class EnvelopeBuffer(Buffer):
