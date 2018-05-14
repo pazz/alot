@@ -13,7 +13,7 @@ import tempfile
 from email.utils import getaddresses, parseaddr, formataddr
 from email.message import Message
 
-from twisted.internet.defer import inlineCallbacks
+from twisted.internet.defer import inlineCallbacks, returnValue
 from io import BytesIO
 
 from . import Command, registerCommand
@@ -41,13 +41,16 @@ from ..widgets.globals import AttachmentWidget
 MODE = 'thread'
 
 
-def determine_sender(mail, action='reply'):
+@inlineCallbacks
+def determine_sender(mail, ui, action='reply'):
     """
     Inspect a given mail to reply/forward/bounce and find the most appropriate
     account to act from and construct a suitable From-Header to use.
 
     :param mail: the email to inspect
     :type mail: `email.message.Message`
+    :param ui: The UI instance in use
+    :type ui: :class:`alot.ui.UI`
     :param action: intended use case: one of "reply", "forward" or "bounce"
     :type action: str
     """
@@ -56,6 +59,14 @@ def determine_sender(mail, action='reply'):
     # get accounts
     my_accounts = settings.get_accounts()
     assert my_accounts, 'no accounts set!'
+
+    # Try to use the get_account hook to get the account to send with.
+    hook = settings.get_hook('get_account')
+    if hook:
+        account = yield hook(mail, ui)
+        if account:
+            from_value = formataddr((account.realname, account.address))
+            returnValue((from_value, account))
 
     # extract list of addresses to check for my address
     # X-Envelope-To and Envelope-To are used to store the recipient address
@@ -94,7 +105,7 @@ def determine_sender(mail, action='reply'):
                         logging.debug('using address: %s', address)
 
                         from_value = formataddr((realname, address))
-                        return from_value, account
+                        returnValue((from_value, account))
 
     # revert to default account if nothing found
     account = my_accounts[0]
@@ -104,7 +115,7 @@ def determine_sender(mail, action='reply'):
     logging.debug('using address: %s', address)
 
     from_value = formataddr((realname, address))
-    return from_value, account
+    returnValue((from_value, account))
 
 
 @registerCommand(MODE, 'reply', arguments=[
@@ -137,6 +148,7 @@ class ReplyCommand(Command):
         self.force_spawn = spawn
         Command.__init__(self, **kwargs)
 
+    @inlineCallbacks
     def apply(self, ui):
         # get message to reply to if not given in constructor
         if not self.message:
@@ -186,7 +198,7 @@ class ReplyCommand(Command):
 
         # set From-header and sending account
         try:
-            from_header, _ = determine_sender(mail, 'reply')
+            from_header, _ = yield determine_sender(mail, ui, 'reply')
         except AssertionError as e:
             ui.notify(str(e), priority='error')
             return
@@ -340,6 +352,7 @@ class ForwardCommand(Command):
         self.force_spawn = spawn
         Command.__init__(self, **kwargs)
 
+    @inlineCallbacks
     def apply(self, ui):
         # get message to forward if not given in constructor
         if not self.message:
@@ -394,7 +407,7 @@ class ForwardCommand(Command):
 
         # set From-header and sending account
         try:
-            from_header, _ = determine_sender(mail, 'reply')
+            from_header, _ = yield determine_sender(mail, ui, 'reply')
         except AssertionError as e:
             ui.notify(str(e), priority='error')
             return
@@ -441,7 +454,7 @@ class BounceMailCommand(Command):
 
         # set Resent-From-header and sending account
         try:
-            resent_from_header, account = determine_sender(mail, 'bounce')
+            resent_from_header, account = yield determine_sender(mail, ui, 'bounce')
         except AssertionError as e:
             ui.notify(str(e), priority='error')
             return
