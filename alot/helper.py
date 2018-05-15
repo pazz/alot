@@ -275,12 +275,12 @@ def call_cmd(cmdlist, stdin=None):
                     by :meth:`subprocess.Popen`
     :type cmdlist: list of str
     :param stdin: string to pipe to the process
-    :type stdin: str
+    :type stdin: str, bytes, or None
     :return: triple of stdout, stderr, return value of the shell command
-    :rtype: str, str, intd
+    :rtype: str, str, int
     """
     termenc = urwid.util.detected_encoding
-    if stdin:
+    if isinstance(stdin, str):
         stdin = stdin.encode(termenc)
     try:
         proc = subprocess.Popen(
