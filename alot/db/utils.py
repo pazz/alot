@@ -19,8 +19,6 @@ import io
 import base64
 import quopri
 
-from urwid.util import detected_encoding
-
 from .. import crypto
 from .. import helper
 from ..errors import GPGProblem
