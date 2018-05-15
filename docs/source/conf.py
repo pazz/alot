@@ -37,7 +37,6 @@ MOCK_MODULES = ['twisted', 'twisted.internet',
                 'configobj',
                 'validate',
                 'argparse',
-                'urwid.util',
                 'alot.settings.const']
 MOCK_DIRTY = ['notmuch']
 for mod_name in MOCK_MODULES:
