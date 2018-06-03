@@ -1,0 +1,786 @@
+Message-ID: <5B07DA6E.7000204@ed.ac.uk>
+Date: Fri, 25 May 2018 10:42:06 +0100
+From: Sender <sender@ed.ac.uk>
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64;
+ rv:24.0) Gecko/20100101 Thunderbird/24.3.0
+MIME-Version: 1.0
+To: research-staff@inf.ed.ac.uk, research-students@inf.ed.ac.uk
+References: <5E81DC0D-5DC5-4AB6-ABFA-0F85BDE60D4A@glasgow.ac.uk>
+In-Reply-To: <5E81DC0D-5DC5-4AB6-ABFA-0F85BDE60D4A@glasgow.ac.uk>
+X-Forwarded-Message-Id: <5E81DC0D-5DC5-4AB6-ABFA-0F85BDE60D4A@glasgow.ac.uk>
+Content-Type: multipart/mixed; boundary="------------060605050009090304090404"
+Cc: CC-ed Person <ccp@ed.ac.uk>
+Subject: [research-staff] =?windows-1252?q?Fwd=3A_=5Bsicsa-sga-admin=5D_Su?=
+ =?windows-1252?q?bmission_Deadline_Extended=3A_SICSA_AI_Theme_workshop=3A?=
+ =?windows-1252?q?_ReaLX=9218=3A_Reasoning=2C_Learning_=26__Explainability?=
+ =?windows-1252?q?_in_AI_-_27th_Jun?=
+X-BeenThere: research-staff@inf.ed.ac.uk
+
+This is a multi-part message in MIME format.
+--------------060605050009090304090404
+Content-Type: multipart/alternative;
+ boundary="------------090404080303040908040703"
+
+
+--------------090404080303040908040703
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
+
+***************************
+
+Description: cid:image005.jpg@01CFC049.4017A230
+
+*************************
+
+*Submission deadline now extended to 30 May 2018***
+
+**
+
+*SICSA Workshop Call for Papers - ReaLX‚??18: Reasoning, Learning & 
+Explainability in AI https://sites.google.com/view/realx18/home*
+
+*SICSA AI Workshop co-located with the SICSA PhD conference 27th Jun 
+2018, Aberdeen*
+
+Reasoning, Learning and Explainability are key to AI systems that must 
+interact naturally to support users in decision making. Systems need to 
+be capable of explaining their output. Regulations increasingly support 
+users rights to fair and transparent processing in automated 
+decision-making systems. Addressing this challenge is steadily becoming 
+more urgent as the increasing reliance on learned models in deployed 
+applications continues to be driven by the recent success of deep 
+learning and other data-driven systems.
+
+Though models learned directly from data offer improved accuracy, 
+mapping these concepts to facilitate human reasoning is difficult. In 
+contrast, reasoning systems can offer transparency through logical 
+alignment of representation and reasoning methods to allow the necessary 
+insight into the decision-making process. This is a core principle 
+behind explainability and is critical if we are to use AI with the 
+intent of improving user performance and experience.
+
+The ReaLX‚??18 workshop will provide a forum to share exciting research 
+on real AI methods, highlighting and documenting promising approaches, 
+and encouraging further work, thereby fostering connections among SICSA 
+researchers interested in AI. We expect to draw interest from AI 
+researchers working in a number of related areas including NLP, ML, 
+reasoning systems, intelligent user interfaces, conversational AI and 
+adaptive user interfaces, causal modelling, computational analogy, 
+constraint reasoning and cognitive theories of explanation and transparency.
+
+Submission Topics:
+
+-----------------
+
+The ReaLX‚??18 workshop Organisation Committee invites submissions of 
+original, theoretical and applied research on all aspects related to AI 
+with focus on the synergies to be had between reasoning, learning and 
+explainable AI. Example submission areas include, but are not limited to 
+addressing issues such as:
+
+1. AI in human-in-the-loop systems
+
+    - Practical cons ideration for real AI Applications
+
+    - User interfaces for explainable AI
+
+2. Mechanisms for explainability
+
+    - Generation of post-hoc explanations
+
+    - Architecture for interpretable systems 3. Evaluating explainable 
+systems
+
+    - Evaluation paradigms for explainable algorithms
+
+    - Evaluation metrics for explainable algorithms
+
+Paper Submission Instructions:
+
+-----------------------------
+
+Paper submissions should be formatted according to Springer instructions 
+(see 
+https://www.springer.com/gp/computer-science/lncs/conference-proceedings-guidelines). 
+You have the following submission options:
+
+- Short paper: 5 pages to describe preliminary work, present an overview 
+of existing work or to be accompanied by a demonstration.
+
+- Position paper: Maximum of 2 pages to present an idea, discuss 
+challenges or identify the landscape in this area of research.
+
+Workshop submissions will be subject to review by at least two reviewers 
+who will be members of the Programme Committee. Researchers who submit 
+demo systems will be required to provide access to the software in 
+advance to facilitate evaluation.
+
+To submit a paper, please send a PDF version of your paper to 
+realx@rgu.ac.uk <mailto:realx@rgu.ac.uk> with the title "ReaLX Workshop 
+Submission".
+
+Please note that the programme committee will assign the most suitable 
+presentation method (either poster or oral presentation), but if any 
+author should have a preference then please state this in the email.
+
+Publishing:
+
+-----------
+
+Accepted short papers will be considered for publication through CEUR. 
+CEUR is a free open-access publications service operated under RWTH 
+Aachen University. For more information, see:
+
+http://ceur-ws.org/
+
+Unfortunately, we cannot consider position papers for publication.
+
+Important dates:
+
+Submission Deadline: May 30, 2018
+
+Notification Date:  June 8, 2018
+
+Camera-Ready Deadline:  June 15, 2018
+
+Workshop Date:  June 27th, 2018
+
+Workshop Chairs:
+
+Prof Leslie Smith l.s.smith@cs.stir.ac.uk 
+<mailto:l.s.smith@cs.stir.ac.uk> Prof Emma Hart e.hart@napier.ac.uk 
+<mailto:e.hart@napier.ac.uk> Prof Nirmalie Wiratunga, 
+n.wiratunga@rgu.ac.uk <mailto:n.wiratunga@rgu.ac.uk> Local Organisers:
+
+Dr Sadiq Sani (s.sani@rgu.ac.uk <mailto:s.sani@rgu.ac.uk>)
+
+Mr Kyle Martin (k.martin@rgu.ac.uk <mailto:k.martin@rgu.ac.uk>)
+
+To submit a paper, please send a PDF version of your paper to 
+realx@rgu.ac.uk <mailto:realx@rgu.ac.uk> with the title "ReaLX 
+Workshop Submission‚?ù.
+
+Leslie Smith
+
+l.s.smith@cs.stir.ac.uk <mailto:l.s.smith@cs.stir.ac.uk>
+
+Professor of Computing,
+
+Computing Science and Mathematics,
+
+University of Stirling
+
+Stirling FK9 4LA,
+
+Scotland, UK
+
+http://www.cs.stir.ac.uk/~lss <http://www.cs.stir.ac.uk/%7Elss>
+
+Office: +44 (0) 1786 467435
+
+Lab: +44 (0) 1786 467449
+
+Blog: https://lestheprof.com
+
+=
+
+
+Image removed by sender. University of Glasgow: The Times Scottish 
+University of the Year 2018
+
+
+University of Glasgow: The Times Scottish University of the Year 2018
+
+
+
+--------------090404080303040908040703
+Content-Type: multipart/related;
+ boundary="------------090807050906090307080706"
+
+
+--------------090807050906090307080706
+Content-Type: text/html; charset=windows-1252
+Content-Transfer-Encoding: 8bit
+
+<html>
+  <head>
+    <meta content="text/html; charset=windows-1252"
+      http-equiv="Content-Type">
+  </head>
+  <body text="#000000" bgcolor="#FFFFFF">
+    <div class="moz-forward-container">
+      <div class="WordSection1">***************************<o:p></o:p>
+        <p class="MsoNormal"><img style="width:6.0104in;height:.9583in"
+            id="Picture_x0020_4"
+            src="cid:part1.01060406.03040407@ed.ac.uk" alt="Description:
+            cid:image005.jpg@01CFC049.4017A230" width="577" height="92"><o:p></o:p></p>
+        <p class="MsoPlainText">†<o:p></o:p></p>
+        <p class="MsoPlainText"><span style="color:black">†</span><o:p></o:p></p>
+        <p class="MsoPlainText">*************************<o:p></o:p></p>
+        <p class="MsoPlainText"><b><span
+style="font-size:12.0pt;font-family:&quot;Arial&quot;,sans-serif;background:yellow;mso-highlight:yellow">Submission
+              deadline now extended to 30 May 2018</span></b><b><span
+              style="font-size:12.0pt;font-family:&quot;Arial&quot;,sans-serif"><o:p></o:p></span></b></p>
+        <p class="MsoPlainText"><b><o:p>†</o:p></b></p>
+        <p class="MsoPlainText"><b><span
+              style="font-size:12.0pt;font-family:&quot;Arial&quot;,sans-serif">SICSA
+              Workshop Call for Papers - ReaLX‚&#128;&#153;18: Reasoning, Learning
+              &amp; Explainability in AI
+              <a moz-do-not-send="true"
+                href="https://sites.google.com/view/realx18/home"><span
+                  style="color:windowtext;text-decoration:none">https://sites.google.com/view/realx18/home</span></a></span></b><o:p></o:p></p>
+        <p class="MsoPlainText"><b><span
+              style="font-size:12.0pt;font-family:&quot;Arial&quot;,sans-serif">SICSA
+              AI Workshop co-located with the SICSA PhD conference 27th
+              Jun 2018, Aberdeen</span></b><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">†</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">Reasoning,
+            Learning and Explainability are key to AI systems that must
+            interact naturally to support users in decision making.
+            Systems need to be capable of explaining their output.
+            Regulations increasingly support users rights to fair and
+            transparent processing in automated decision-making systems.
+            Addressing this challenge is steadily becoming more urgent
+            as the increasing reliance on learned models in deployed
+            applications continues to be driven by the recent success of
+            deep learning and other data-driven systems.</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">†</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">Though
+            models learned directly from data offer improved accuracy,
+            mapping these concepts to facilitate human reasoning is
+            difficult. In contrast, reasoning systems can offer
+            transparency through logical alignment of representation and
+            reasoning methods to allow the necessary insight into the
+            decision-making process. This is a core principle behind
+            explainability and is critical if we are to use AI with the
+            intent of improving user performance and experience.</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">†</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">The
+            ReaLX‚&#128;&#153;18 workshop will provide a forum to share exciting
+            research on real AI methods, highlighting and documenting
+            promising approaches, and encouraging further work, thereby
+            fostering connections among SICSA researchers interested in
+            AI. We expect to draw interest from AI researchers working
+            in a number of related areas including NLP, ML, reasoning
+            systems, intelligent user interfaces, conversational AI and
+            adaptive user interfaces, causal modelling, computational
+            analogy, constraint reasoning and cognitive theories of
+            explanation and transparency.</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">†</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">Submission
+            Topics:</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">-----------------</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">The
+            ReaLX‚&#128;&#153;18 workshop Organisation Committee invites
+            submissions of original, theoretical and applied research on
+            all aspects related to AI with focus on the synergies to be
+            had between reasoning, learning and explainable AI. Example
+            submission areas include, but are not limited to addressing
+            issues such as:</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">1. AI in
+            human-in-the-loop systems</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">†† -
+            Practical cons ideration for real AI Applications</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">†† - User
+            interfaces for explainable AI</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">2.
+            Mechanisms for explainability</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">†† -
+            Generation of post-hoc explanations</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">†† -
+            Architecture for interpretable systems 3. Evaluating
+            explainable systems</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">†† -
+            Evaluation paradigms for explainable algorithms</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">†† -
+            Evaluation metrics for explainable algorithms</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">†</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">Paper
+            Submission Instructions:</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">-----------------------------</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">Paper
+            submissions should be formatted according to Springer
+            instructions (see
+            <a moz-do-not-send="true"
+href="https://www.springer.com/gp/computer-science/lncs/conference-proceedings-guidelines"><span
+                style="color:windowtext;text-decoration:none">https://www.springer.com/gp/computer-science/lncs/conference-proceedings-guidelines</span></a>).
+            You have the following submission options:</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">- Short
+            paper: 5 pages to describe preliminary work, present an
+            overview of existing work or to be accompanied by a
+            demonstration.</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">- Position
+            paper: Maximum of 2 pages to present an idea, discuss
+            challenges or identify the landscape in this area of
+            research.</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">†</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">Workshop
+            submissions will be subject to review by at least two
+            reviewers who will be members of the Programme Committee.
+            Researchers who submit demo systems will be required to
+            provide access to the software in advance to facilitate
+            evaluation.</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">†</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">To submit a
+            paper, please send a PDF version of your paper to
+            <a moz-do-not-send="true" href="mailto:realx@rgu.ac.uk"><span
+                style="color:windowtext;text-decoration:none">realx@rgu.ac.uk</span></a>
+            with the title "ReaLX Workshop Submission".</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">Please note
+            that the programme committee will assign the most suitable
+            presentation method (either poster or oral presentation),
+            but if any author should have a preference then please state
+            this in the email.</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">†</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">Publishing:</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">-----------</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">Accepted
+            short papers will be considered for publication through
+            CEUR. CEUR is a free open-access publications service
+            operated under RWTH Aachen University. For more information,
+            see:</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif"><a
+              moz-do-not-send="true" href="http://ceur-ws.org/"><span
+                style="color:windowtext;text-decoration:none">http://ceur-ws.org/</span></a></span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">Unfortunately,
+            we cannot consider position papers for publication.</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">Important
+            dates:</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+style="font-family:&quot;Arial&quot;,sans-serif;background:yellow;mso-highlight:yellow">Submission
+            Deadline: May 30, 2018</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">Notification
+            Date:† June 8, 2018</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">Camera-Ready
+            Deadline:† June 15, 2018</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">Workshop
+            Date:† June 27th, 2018</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">†</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">Workshop
+            Chairs:</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">Prof Leslie
+            Smith
+            <a moz-do-not-send="true"
+              href="mailto:l.s.smith@cs.stir.ac.uk"><span
+                style="color:windowtext;text-decoration:none">l.s.smith@cs.stir.ac.uk</span></a>
+            Prof Emma Hart
+            <a moz-do-not-send="true" href="mailto:e.hart@napier.ac.uk"><span
+                style="color:windowtext;text-decoration:none">e.hart@napier.ac.uk</span></a>
+            Prof Nirmalie Wiratunga,
+            <a moz-do-not-send="true"
+              href="mailto:n.wiratunga@rgu.ac.uk"><span
+                style="color:windowtext;text-decoration:none">n.wiratunga@rgu.ac.uk</span></a>
+            Local Organisers:</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">Dr Sadiq
+            Sani (<a moz-do-not-send="true"
+              href="mailto:s.sani@rgu.ac.uk"><span
+                style="color:windowtext;text-decoration:none">s.sani@rgu.ac.uk</span></a>)</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">Mr Kyle
+            Martin (<a moz-do-not-send="true"
+              href="mailto:k.martin@rgu.ac.uk"><span
+                style="color:windowtext;text-decoration:none">k.martin@rgu.ac.uk</span></a>)</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">To submit a
+            paper, please send a PDF version of your paper to
+            <a moz-do-not-send="true" href="mailto:realx@rgu.ac.uk"><span
+                style="color:windowtext;text-decoration:none">realx@rgu.ac.uk</span></a>
+            with the title "ReaLX Workshop Submission‚&#128;ù.</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">†</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">Leslie
+            Smith</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif"><a
+              moz-do-not-send="true"
+              href="mailto:l.s.smith@cs.stir.ac.uk"><span
+                style="color:windowtext;text-decoration:none">l.s.smith@cs.stir.ac.uk</span></a></span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">Professor
+            of Computing,</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">Computing
+            Science and Mathematics,</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">University
+            of Stirling</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">Stirling
+            FK9 4LA,</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">Scotland,
+            UK</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif"><a
+              moz-do-not-send="true"
+              href="http://www.cs.stir.ac.uk/%7Elss"><span
+                style="color:windowtext;text-decoration:none">http://www.cs.stir.ac.uk/~lss</span></a></span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">Office: +44
+            (0) 1786 467435</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">Lab: +44
+            (0) 1786 467449</span><o:p></o:p></p>
+        <p class="MsoPlainText"><span
+            style="font-family:&quot;Arial&quot;,sans-serif">Blog: <a
+              moz-do-not-send="true" href="https://lestheprof.com">
+              <span style="color:windowtext;text-decoration:none">https://lestheprof.com</span></a></span><o:p></o:p></p>
+        <p class="MsoPlainText">=<o:p></o:p></p>
+        <div>
+          <p class="MsoNormal"><br>
+            <span style="border:solid windowtext 1.0pt;padding:0cm"><img
+                moz-do-not-send="true"
+                style="width:.3333in;height:.3333in" id="_x0000_i1025"
+                src="cid:%7EWRD000.jpg" alt="Image removed by sender.
+                University of Glasgow: The Times Scottish University of
+                the Year 2018" width="32" border="0" height="32"></span><o:p></o:p></p>
+        </div>
+      </div>
+      <div><br>
+        <img moz-do-not-send="true" alt="University of Glasgow: The
+          Times Scottish University of the Year 2018"
+src="http://www.gla.ac.uk/feeds/img/UofGscottishuniversityoftheyear2018.png"></div>
+      <br>
+    </div>
+    <br>
+  </body>
+</html>
+
+--------------090807050906090307080706
+Content-Type: image/jpeg
+Content-Transfer-Encoding: base64
+Content-ID: <part1.01060406.03040407@ed.ac.uk>
+
+/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAoHBwkHBgoJCAkLCwoMDxkQDw4O
+Dx4WFxIZJCAmJSMgIyIoLTkwKCo2KyIjMkQyNjs9QEBAJjBGS0U+Sjk/QD3/
+2wBDAQsLCw8NDx0QEB09KSMpPT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT3/wAARCABcAkEDASIAAhEBAxEB/8QA
+HwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUF
+BAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkK
+FhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1
+dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXG
+x8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEB
+AQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAEC
+AxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRom
+JygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOE
+hYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU
+1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD2aiiigAoo
+ooAKKKKAEooriPH/AI1n8PNFZ6eq/aZBuZ2GQg+lXTpyqS5YkTmoR5mdvRXj
+Oj/E3V7bUIzfutxbMwDrjBHuK9kjcSRK6/dYAirrUJUnaRNKtGqvdHUtJS1i
+ahRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAlLRSUAFLSUZBOM80ANkkS
+KNpJGCooySegFYem+NdF1bUDZ2t1mbOFDDAf6etS+L0aTwlqSoxVjCcEdq8V
+8JKT4s0sL97zxjFdVChGpCUn0OatWcJqK6n0JSUUZBPBFcp0i0UlLQAUUUUA
+FFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAU
+UUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFNZlRSzEADqScYoAWiuZ1L
+4h6BpshR7ozOpwRCu7BrL/4Wzo3/ADxuv++K1VCo1dRMnWprRs7uiuSsfiX4
+fvGCtPJAT1MqYA/Gumtbu3vYFltZkljboyHIqZU5Q+JFRnGWzJq87+JXhO+1
+S4i1HTozOyLskiX73sRXolZeveIrDw7aifUJCN3CIoyzfQVVGcoTThuKrGMo
+tS2PG9G8E61qeoRxPZS28YYF5JBgKK91hjEMKRr0RQo/CuY0b4i6NrF8tpG0
+kMr8J5q4DH0z611VaYmpUm1zqxnh6cIr3HcKWkqlqOsWGkReZf3UUK9tx5Nc
+6TbsjdtLVl2iuKuPiroUTlYluZSO4jwKhh+LWjt/roLlOey5rX6vV35TL29P
+ud3RWRpPirSNawLK8jaQjPlscMPwrXrKUXF2ZqpKWqFopKiubqCzhaa5lSKN
+RksxwBSGS0tcfe/E7QLSQokss5HeJMr+dVf+FtaLnmG6x/uVssPVf2TJ16a6
+nc0tczp3xB0DUmCpd+Sx4AmGwmukR1kQMjBlPQg5FZyhKPxKxcZxlsx1FFJU
+lBRWRqvirSNGJF5eRrIP+WanLflXOzfFjRU3CKK5fHTKYzWkaNSWqRnKrCO7
+O5org4vi3pJH723uV+i5rX034gaDqbhI7vyXJwBMNmTTlQqR1cRKtTezNXX7
+i6tdBvZrFd1ykRMYx3rwuDxTrVtdGdNRuBKTlgzdfqK+gwVdQVIZT3HINYWq
+eCtE1cs1xZqkjcmSP5WNaYetCndTV7mdelKdnFnGaf8AE6O/0+ay1yHY0kZU
+TRDgnHcdq4/wpfWmmeI7e9vSRDAS/wAoySe1avjfw7ovh2VYLG6lkuW5MTHd
+sHqTXJYIAJB2nv616VKnTcW46JnBUnNSSlujutf+KV/fFotKT7JD08w8uff2
+rO8Ia/rT+KbRY7qecTSYkRjkMPeui8JeB/Dmt2CXa3E87D78e7btPoRXf6bo
+enaQmLCzih4xlV5P41yVKtGmnCMdTphSq1GpykXxS0lFeed4tFJS0AFFFFAB
+RRRQAUUUUAFFFFABRSUtABRRSUALRSUUALRSUUALRSUUALRRRQAUUUUAFFFF
+ABSUtFABRRRQAlLSUUALRSUUALRSUtABRRRQAhOBk9BXjXj/AMY3Gq6lLp9n
+MyWMLbTsOPMPr9K9evSwsZymd3ltjH0r5ufmRyeu4/zrvwNNSk5PocWMm4pR
+XUktLOe+uVgtIXmmfoqDJNdGvw38QtD5n2aMcZ2l/m/Krnwz1rTtJ1W4TUCs
+bzgCKVui46jPbNexxyxyoGjdWU8gqc1tiMVOnLlS0MqGHhUjds+b77T7rTbk
+297A8Mo6q4xV3QfEd94dvVns5W2Z/eRE5Vh9K9m8W+FbfxNppjYKl0gzFLjk
+H0PtXkzeAfEIuzb/AGBzzjzB9z65q6eJp1YWmROhOlK8D23StRi1bTIL2A/u
+5kDD29q8r+LMrt4igjZiUSIFR6Z616V4Z0ltE0C1spG3SRr85HTPfFeZfFj/
+AJGeL/riK5MIl7fTY6sS37HU4qJmSeNkJDBwQR25r6Rs2L2cDNySikn8K+bU
+/wBYn+8P519H2riPS4XY4CxAn8q2zBfCZYHqc9438Yp4Zs1jtwHvpvuKeij1
+NeL31/dalcvcXszzSscksc1c8SavJrmvXN7ISVZtsYP8KjoKi0XSZtb1aCxg
+4aVvmb+6O5rehRjRhzPcwrVZVZ2WxUhgluZBHBE8jnsgzUlxYXdooNxbSxA9
+2U19AaL4fsNCs0t7OBVwPmcjLMfUmrs9pBdQtFPCkkbjBVhnNYPMNdFobrBa
+avU+bI3aNw8bFGByGU4Ir074f+PJrq5j0nVpN7txDM3Vj6Guf8feDv8AhHrs
+XdkrGwmPT/nm3p9K5WyMov7c224zCRdm3rnNdE1TxFO5zxc6FSx9G3t5FYWU
+11O22KJSzH0FeDeJfE974k1B5Z5GW3BxFCD8qj/GvWPHrSjwPddQxQbwPTvX
+ho6CufAUlrNm+MqO6ii7pei32szmLT7Z5mH3io4X61t3Hw68Q28JkNqsgA+7
+G2T+VdZ8Ltc02HSm06R0hvPMLfNx5gPTBr0UMGGVII9qK+LqQm4pBRw0Jwu2
+fNEsTwytHMhSRDhlYYINdV4K8Z3WhahFbXErSafK21lY52Z7iu48d+Bv7eUX
+unKiXyDDKeBIP8a4PS/h/rt5qEcc1m9tEHBeSTgAA9vWtfb0q1P3zP2VSlP3
+T3FWDKCOhGRXnvxG8aT6ZINK019k7LmWUdUB7D3r0GKMRQpGOiqAK8O+IGn3
+Vr4supJon8uY743wSCK4cJCMqnvHZiZSjT0OZdmkYvIxZicksck1p2PhrWNS
+jElpp08kZ6Pt4rpPhz4R/te9Oo38RNnAcIrDiRv8BXsKIqKFRQqjgADGK7K+
+M9m+WCOWjhXUXNI+fbzwrrdhCZbjTZ1jXkuFyBWRxX0yyqykMAQeoNeB+NNO
+i0vxVeQQBREx8xVXoM9qrDYl1W4yROIw6pLmTOm+GXiqeLUF0e8lLwSj9yWO
+Sreldx4x8SL4a0V51G64k+SJff1+leJaJO1rrllOn3kmUivcPFHhmDxTpS20
+shikUho5AM7TXPiqcIVk3szfDzlKm0t0eHwxXmv6ykZZprq6k5Y8nmvSfGPg
+iOLwhbiwjBn09cnA5kH8X41r+EvAVt4ZuHuXnN1csNquV2hR7CusKhlIYAg8
+EHvU1sVea5NkVSw3uvn3Z8++GPEdx4a1VLqElom4mjzww/xr3uyu4r+yhuoD
+mKZA6n2NcNqnwns73VHuLW7a2gkbc8ITI98HtXc2NnFp9jDaQAiKFAig+gqM
+VVp1LSjuVhqc6d1LYfLcwwECWaNCegZgM1H9vtP+fmH/AL7FUNX8L6Zrc6zX
+0JeRBgEMRxXE+EPCml6peaxHdxO629zsjG88Csowg4uTexrKclKyR6Us8Tye
+WsiF8btoPOPWpK81ur+Pw78THSG3nmVdPSGCCLkk9h/9euo0PxamqahLp93Z
+zWN9Gu/ypR1X1zSlSaV12CNVN2Z0VFcpP43aS6nj0nS7q/jtyVlljGFBHXHr
+WxoWu2uv2AurQsADtdHGGQjsRUuEkrtFKcW7I0iQASSAB3NQRX1rNIY4riJ3
+XqquCRXJ/Eq4nh0m1QNKlnJOq3LRddvpVGfw5oOq6Wj+F7uKPUIsNE6zYJI7
+NVxppxUmyJVGpWSPQaWsDU/EaeHrC0jvg1xqEyhVhiGTI3fHtUGn+MfN1SKw
+1TT59Pnn/wBT5vSQ+mfWo5JWuXzxvY6akNczqPjNYdUk0/TLC41C5h/1oiHC
+fj60weMI9T0HUJLS2uBeWylZbcjDocdaapy7C9pE6jIxnIxQWUDJYAepNeYa
+b4gvh8OLlPsl47gMouR0APfPtV46tDdeAbNtYsrwRo0SK27aZT2YH0qnQafz
+JVZNHoVIzBVLMQAOST2rn9V8UjT9SXTLGymvbwRh2jT+BexJqtL4ij1rQdVg
+a3ltby3iIlhkGCMjqD3qFTkW6kTqI5ElQPGwZG5BByDT6828M+MZNP8ADFus
+Ol3l1DbgiadR8q/413ul6nb6vp0V5aMWilGRnqPY06lKUHqKFRTRYeWONlV3
+VSxwoJ6mn1xfjMkeKvDgBIHnnvV3VvG8Ola5JpQs57i5WNWjWIZLk9qFSbSa
+D2iTdzp6ha8t1nEDTxiU8hCwzXO6f41F6bu2k025h1G3j8z7Iw+Zx7VyvhF7
+a813U77VNPmLJOZftEhO23x/CfQ1Souzb6EuqrpI9TorjR4+aSN7u30e8l01
+Dg3IXqO5ArR1LxlY2GiWuqpumtbiQICvUZ9qn2Ur2sX7SO9zoaK5SPxs/wDZ
+l9e3Gk3dvFbJ5imQYEi5/nVVviPGkUd2+lXi6c+AborwDQqU30F7WHc7WiuN
+b4hxRzxSS6Zdpp0zhI7tl+VienFaWseK49P1BNPs7Sa+vmTzPKiHCr6k9qTp
+yXQftIvqb9JkevSue0nxaL++n0+6sZ7W+ij83yXGdy+xrnfBmt3d1rOuxXVt
+dPFJOSS3S3GD8p9KapSs2+gnVjdWPQ1YMMqQR6ilrkNA1zSdI8GNfIssNokz
+qqO292bPQfWlXx20LQy6jpF3aWUzBVuHHAz0z6UeylfQPaRtqddRXPar4sW0
+1FdP0+zmv7woJGSLoqnoSasaF4ji1p54Ht5rW8tyBLDKuCM9x6ipcJJXKU4t
+2NmoTe2wuBAZ4vNPOzcM064Dm2lERw5Q7T744rxqD7JcaVJZ+TPN4o+1Eb0J
+JB3dc+laUqXPdkVKnJY9ppagslmSygW5YNMEAcjucc1NWJoLRRRQMaRuBB6H
+ivGfHPgm50e+lvbOJpbGVi3yjJjPofavZ6pTarp0dwLWa7gErceWzDJrahVl
+SleJjWpRqKzPnKr1jrWpaaf9CvZ4fZW4r2XVvh9oerM0htzBK3O+E7cn3rkd
+Q+EV1GGbT75JPRJBt/WvSji6U1aRwSwtSGsTO074pa1aMouhFdRDqCMMfxru
+vD/xE0rWmWGVjaXLcBJDwT6A15Lq/hzVNDb/AE+1eNCcCQDKn8ay+hB6EdCO
+1OWFpVVeIo4irTdpH00PWvHfix/yM8X/AFxFdX8MvEc+saZLZ3jl57QgBz1Z
+T0/KuU+LH/Izxf8AXEVyYWDp1+VnTiJqdHmRxKf61P8AeH86971y4Nr4IuZl
+zlLTPH0rwRP9an+8P5171r0DXPga6iXq1pgflW+N+KBlhPhkeB5z+PNegfCO
+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
+
+--------------090807050906090307080706--
+
+--------------090404080303040908040703--
+
+--------------060605050009090304090404
+Content-Type: text/plain; charset=windows-1252;
+ name="Attached Message Part"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="Attached Message Part"
+
+
+_______________________________________________
+sicsa-sga-admin mailing list
+sga-admin@sicsa.ac.uk
+http://lists.inf.ed.ac.uk/mailman/listinfo/sicsa-sga-admin
+
+--------------060605050009090304090404
+Content-Type: text/plain
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
+Content-Description: Edinburgh University charitable status
+
+The University of Edinburgh is a charitable body, registered in
+Scotland, with registration number SC005336.
+
+--------------060605050009090304090404
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+research-staff mailing list
+research-staff@inf.ed.ac.uk
+http://lists.inf.ed.ac.uk/mailman/listinfo/research-staff
+--------------060605050009090304090404
+Content-Type: text/plain
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
+Content-Description: Edinburgh University charitable status
+
+The University of Edinburgh is a charitable body, registered in
+Scotland, with registration number SC005336.
+
+--------------060605050009090304090404--
+

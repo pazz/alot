@@ -1,0 +1,9 @@
+[database]
+path=/home/pazz/projects/alot/tests/static/corpus
+
+[user]
+name=User Name
+primary_email=user@example.org
+
+[new]
+tags=new;
