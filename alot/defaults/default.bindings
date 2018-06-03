@@ -58,6 +58,9 @@ q = exit
 [taglist]
     enter = select
 
+[namedqueries]
+    enter = select
+
 [thread]
     enter = select
     C = fold *

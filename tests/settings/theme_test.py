@@ -36,6 +36,10 @@ DUMMY_THEME = """\
     line_even = '', '', '', '', '', ''
     line_focus = '', '', '', '', '', ''
     line_odd = '', '', '', '', '', ''
+[namedqueries]
+    line_even = '', '', '', '', '', ''
+    line_focus = '', '', '', '', '', ''
+    line_odd = '', '', '', '', '', ''
 [search]
     focus = '', '', '', '', '', ''
     normal = '', '', '', '', '', ''

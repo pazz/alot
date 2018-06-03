@@ -152,6 +152,12 @@ thread_statusbar = mixed_list(string, string, default=list('[{buffer_no}: thread
 # that will be substituted accordingly.
 taglist_statusbar = mixed_list(string, string, default=list('[{buffer_no}: taglist]','{input_queue} total messages: {total_messages}'))
 
+# Format of the status-bar in named query list mode.
+# This is a pair of strings to be left and right aligned in the status-bar.
+# These strings may contain variables listed at :ref:`bufferlist_statusbar <bufferlist-statusbar>`
+# that will be substituted accordingly.
+namedqueries_statusbar = mixed_list(string, string, default=list('[{buffer_no}: namedqueries]','{query_count} named queries'))
+
 # Format of the status-bar in envelope mode.
 # This is a pair of strings to be left and right aligned in the status-bar.
 # Apart from the global variables listed at :ref:`bufferlist_statusbar <bufferlist-statusbar>`
