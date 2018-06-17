@@ -52,7 +52,7 @@ def _path_factory(check):
 
     @functools.wraps(check)
     def validator(paths):
-        if isinstance(paths, basestring):
+        if isinstance(paths, str):
             check(paths)
         elif isinstance(paths, collections.Sequence):
             for path in paths:

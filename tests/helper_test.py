@@ -143,13 +143,13 @@ class TestSplitCommandstring(unittest.TestCase):
         self.assertListEqual(actual, expected)
 
     def test_bytes(self):
-        base = b'echo "foo bar"'
-        expected = [b'echo', b'foo bar']
+        base = 'echo "foo bar"'
+        expected = ['echo', 'foo bar']
         self._test(base, expected)
 
     def test_unicode(self):
-        base = u'echo "foo €"'
-        expected = [b'echo', u'foo €'.encode('utf-8')]
+        base = 'echo "foo €"'
+        expected = ['echo', 'foo €']
         self._test(base, expected)
 
 
@@ -221,20 +221,20 @@ class TestPrettyDatetime(unittest.TestCase):
             p.stop()
 
     def test_just_now(self):
-        for i in (self.random.randint(0, 60) for _ in xrange(5)):
+        for i in (self.random.randint(0, 60) for _ in range(5)):
             test = self.now - datetime.timedelta(seconds=i)
             actual = helper.pretty_datetime(test)
             self.assertEquals(actual, u'just now')
 
     def test_x_minutes_ago(self):
-        for i in (self.random.randint(60, 3600) for _ in xrange(10)):
+        for i in (self.random.randint(60, 3600) for _ in range(10)):
             test = self.now - datetime.timedelta(seconds=i)
             actual = helper.pretty_datetime(test)
             self.assertEquals(
                 actual, u'{}min ago'.format((self.now - test).seconds // 60))
 
     def test_x_hours_ago(self):
-        for i in (self.random.randint(3600, 3600 * 6) for _ in xrange(10)):
+        for i in (self.random.randint(3600, 3600 * 6) for _ in range(10)):
             test = self.now - datetime.timedelta(seconds=i)
             actual = helper.pretty_datetime(test)
             self.assertEquals(
@@ -251,7 +251,7 @@ class TestPrettyDatetime(unittest.TestCase):
             expected = test.strftime('%I:%M%p').lower()
         else:
             expected = test.strftime('%H:%M')
-        expected = expected.decode('utf-8')
+        expected = expected
         return expected
 
     def test_future_seconds(self):

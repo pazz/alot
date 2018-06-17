@@ -145,8 +145,8 @@ class SaveCommand(Command):
                 ui.apply_command(globals.FlushCommand())
                 ui.apply_command(commands.globals.BufferCloseCommand())
             except DatabaseError as e:
-                logging.error(e)
-                ui.notify('could not index message:\n%s' % e,
+                logging.error(str(e))
+                ui.notify('could not index message:\n%s' % str(e),
                           priority='error',
                           block=True)
         else:
@@ -629,13 +629,13 @@ class TagCommand(Command):
     def __init__(self, tags=u'', action='add', **kwargs):
         """
         :param tags: comma separated list of tagstrings to set
-        :type tags: unicode
+        :type tags: str
         :param action: adds tags if 'add', removes them if 'remove', adds tags
                        and removes all other if 'set' or toggle individually if
                        'toggle'
         :type action: str
         """
-        assert isinstance(tags, unicode), 'tags should be a unicode string'
+        assert isinstance(tags, str), 'tags should be a unicode string'
         self.tagsstring = tags
         self.action = action
         Command.__init__(self, **kwargs)

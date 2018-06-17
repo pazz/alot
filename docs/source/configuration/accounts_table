@@ -13,13 +13,15 @@
 
     :type: string
 
-.. _realname:
+.. _alias-regexp:
 
-.. describe:: realname
+.. describe:: alias_regexp
 
-     used to format the (proposed) From-header in outgoing mails
+     a regex for catching further aliases (like + extensions).
 
     :type: string
+    :default: None
+
 
 .. _aliases:
 
@@ -31,38 +33,19 @@
     :default: ,
 
 
-.. _alias-regexp:
+.. _case-sensitive-username:
 
-.. describe:: alias_regexp
+.. describe:: case_sensitive_username
 
-     a regex for catching further aliases (like + extensions).
+     Whether the server treats the address as case-senstive or
+     case-insensitve (True for the former, False for the latter)
 
-    :type: string
-    :default: None
+     .. note:: The vast majority (if not all) SMTP servers in modern use
+               treat usernames as case insenstive, you should only set
+               this if you know that you need it.
 
-
-.. _sendmail-command:
-
-.. describe:: sendmail_command
-
-     sendmail command. This is the shell command used to send out mails via the sendmail protocol
-
-    :type: string
-    :default: "sendmail -t"
-
-
-.. _sent-box:
-
-.. describe:: sent_box
-
-     where to store outgoing mails, e.g. `maildir:///home/you/mail/Sent`.
-     You can use mbox, maildir, mh, babyl and mmdf in the protocol part of the URL.
-
-     .. note:: If you want to add outgoing mails automatically to the notmuch index
-               you must use maildir in a path within your notmuch database path.
-
-    :type: mail_container
-    :default: None
+    :type: boolean
+    :default: False
 
 
 .. _draft-box:
@@ -80,16 +63,6 @@
     :default: None
 
 
-.. _sent-tags:
-
-.. describe:: sent_tags
-
-     list of tags to automatically add to outgoing messages
-
-    :type: string list
-    :default: sent
-
-
 .. _draft-tags:
 
 .. describe:: draft_tags
@@ -98,69 +71,6 @@
 
     :type: string list
     :default: draft
-
-
-.. _replied-tags:
-
-.. describe:: replied_tags
-
-     list of tags to automatically add to replied messages
-
-    :type: string list
-    :default: replied
-
-
-.. _passed-tags:
-
-.. describe:: passed_tags
-
-     list of tags to automatically add to passed messages
-
-    :type: string list
-    :default: passed
-
-
-.. _signature:
-
-.. describe:: signature
-
-     path to signature file that gets attached to all outgoing mails from this account, optionally
-     renamed to :ref:`signature_filename <signature-filename>`.
-
-    :type: string
-    :default: None
-
-
-.. _signature-as-attachment:
-
-.. describe:: signature_as_attachment
-
-     attach signature file if set to True, append its content (mimetype text)
-     to the body text if set to False.
-
-    :type: boolean
-    :default: False
-
-
-.. _signature-filename:
-
-.. describe:: signature_filename
-
-     signature file's name as it appears in outgoing mails if
-     :ref:`signature_as_attachment <signature-as-attachment>` is set to True
-
-    :type: string
-    :default: None
-
-
-.. _sign-by-default:
-
-.. describe:: sign_by_default
-
-     Outgoing messages will be GPG signed by default if this is set to True.
-
-    :type: boolean
-    :default: False
 
 
 .. _encrypt-by-default:
@@ -214,17 +124,107 @@
     :default: None
 
 
-.. _case-sensitive-username:
+.. _passed-tags:
 
-.. describe:: case_sensitive_username
+.. describe:: passed_tags
 
-     Whether the server treats the address as case-senstive or
-     case-insensitve (True for the former, False for the latter)
+     list of tags to automatically add to passed messages
 
-     .. note:: The vast majority (if not all) SMTP servers in modern use
-               treat usernames as case insenstive, you should only set
-               this if you know that you need it.
+    :type: string list
+    :default: passed
+
+
+.. _realname:
+
+.. describe:: realname
+
+     used to format the (proposed) From-header in outgoing mails
+
+    :type: string
+
+.. _replied-tags:
+
+.. describe:: replied_tags
+
+     list of tags to automatically add to replied messages
+
+    :type: string list
+    :default: replied
+
+
+.. _sendmail-command:
+
+.. describe:: sendmail_command
+
+     sendmail command. This is the shell command used to send out mails via the sendmail protocol
+
+    :type: string
+    :default: "sendmail -t"
+
+
+.. _sent-box:
+
+.. describe:: sent_box
+
+     where to store outgoing mails, e.g. `maildir:///home/you/mail/Sent`.
+     You can use mbox, maildir, mh, babyl and mmdf in the protocol part of the URL.
+
+     .. note:: If you want to add outgoing mails automatically to the notmuch index
+               you must use maildir in a path within your notmuch database path.
+
+    :type: mail_container
+    :default: None
+
+
+.. _sent-tags:
+
+.. describe:: sent_tags
+
+     list of tags to automatically add to outgoing messages
+
+    :type: string list
+    :default: sent
+
+
+.. _sign-by-default:
+
+.. describe:: sign_by_default
+
+     Outgoing messages will be GPG signed by default if this is set to True.
 
     :type: boolean
     :default: False
+
+
+.. _signature:
+
+.. describe:: signature
+
+     path to signature file that gets attached to all outgoing mails from this account, optionally
+     renamed to :ref:`signature_filename <signature-filename>`.
+
+    :type: string
+    :default: None
+
+
+.. _signature-as-attachment:
+
+.. describe:: signature_as_attachment
+
+     attach signature file if set to True, append its content (mimetype text)
+     to the body text if set to False.
+
+    :type: boolean
+    :default: False
+
+
+.. _signature-filename:
+
+.. describe:: signature_filename
+
+     signature file's name as it appears in outgoing mails if
+     :ref:`signature_as_attachment <signature-as-attachment>` is set to True
+
+    :type: string
+    :default: None
 

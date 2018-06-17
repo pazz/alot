@@ -38,9 +38,9 @@ class SettingsManager(object):
         :param notmuch_rc: path to notmuch's config file
         :type notmuch_rc: str
         """
-        assert alot_rc is None or (isinstance(alot_rc, basestring) and
+        assert alot_rc is None or (isinstance(alot_rc, str) and
                                    os.path.exists(alot_rc))
-        assert notmuch_rc is None or (isinstance(notmuch_rc, basestring) and
+        assert notmuch_rc is None or (isinstance(notmuch_rc, str) and
                                       os.path.exists(notmuch_rc))
         self.hooks = None
         self._mailcaps = mailcap.getcaps()
@@ -176,12 +176,12 @@ class SettingsManager(object):
 
         value = section[key]
 
-        if isinstance(value, (str, unicode)):
+        if isinstance(value, str):
             section[key] = expand_environment_and_home(value)
         elif isinstance(value, (list, tuple)):
             new = list()
             for item in value:
-                if isinstance(item, (str, unicode)):
+                if isinstance(item, str):
                     new.append(expand_environment_and_home(item))
                 else:
                     new.append(item)
@@ -395,7 +395,7 @@ class SettingsManager(object):
     def get_mapped_input_keysequences(self, mode='global', prefix=u''):
         # get all bindings in this mode
         globalmaps, modemaps = self.get_keybindings(mode)
-        candidates = globalmaps.keys() + modemaps.keys()
+        candidates = list(globalmaps.keys()) + list(modemaps.keys())
         if prefix is not None:
             prefixes = prefix + ' '
             cand = [c for c in candidates if c.startswith(prefixes)]
@@ -433,7 +433,7 @@ class SettingsManager(object):
                 if value and value != '':
                     globalmaps[key] = value
         # get rid of empty commands left in mode bindings
-        for k, v in modemaps.items():
+        for k, v in list(modemaps.items()):
             if not v:
                 del modemaps[k]
 
@@ -504,7 +504,7 @@ class SettingsManager(object):
 
     def get_addresses(self):
         """returns addresses of known accounts including all their aliases"""
-        return self._accountmap.keys()
+        return list(self._accountmap.keys())
 
     def get_addressbooks(self, order=None, append_remaining=True):
         """returns list of all defined :class:`AddressBook` objects"""
@@ -529,7 +529,7 @@ class SettingsManager(object):
 
     def represent_datetime(self, d):
         """
-        turns a given datetime obj into a unicode string representation.
+        turns a given datetime obj into a string representation.
         This will:
 
         1) look if a fixed 'timestamp_format' is given in the config

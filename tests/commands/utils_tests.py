@@ -57,7 +57,8 @@ def setUpModule():
 
     with gpg.core.Context(armor=True) as ctx:
         # Add the public and private keys. They have no password
-        search_dir = os.path.join(os.path.dirname(__file__), '../static/gpg-keys')
+        search_dir = os.path.join(
+            os.path.dirname(__file__), '../static/gpg-keys')
         for each in os.listdir(search_dir):
             if os.path.splitext(each)[1] == '.gpg':
                 with open(os.path.join(search_dir, each)) as f:
@@ -106,7 +107,8 @@ class TestGetKeys(unittest.TestCase):
     @inlineCallbacks
     def test_get_keys_ambiguous(self):
         """Test gettings keys when when the key is ambiguous."""
-        key = crypto.get_key(FPR, validate=True, encrypt=True, signed_only=False)
+        key = crypto.get_key(
+            FPR, validate=True, encrypt=True, signed_only=False)
         ui = utilities.make_ui()
 
         # Creat a ui.choice object that can satisfy twisted, but can also be
@@ -141,8 +143,8 @@ class TestSetEncrypt(unittest.TestCase):
         envelope['To'] = 'ambig@example.com, test@example.com'
         yield utils.set_encrypt(ui, envelope)
         self.assertTrue(envelope.encrypt)
-        self.assertEqual(
-            [f.fpr for f in envelope.encrypt_keys.itervalues()],
+        self.assertCountEqual(
+            [f.fpr for f in envelope.encrypt_keys.values()],
             [crypto.get_key(FPR).fpr, crypto.get_key(EXTRA_FPRS[0]).fpr])
 
     @inlineCallbacks
@@ -152,8 +154,8 @@ class TestSetEncrypt(unittest.TestCase):
         envelope['Cc'] = 'ambig@example.com, test@example.com'
         yield utils.set_encrypt(ui, envelope)
         self.assertTrue(envelope.encrypt)
-        self.assertEqual(
-            [f.fpr for f in envelope.encrypt_keys.itervalues()],
+        self.assertCountEqual(
+            [f.fpr for f in envelope.encrypt_keys.values()],
             [crypto.get_key(FPR).fpr, crypto.get_key(EXTRA_FPRS[0]).fpr])
 
     @inlineCallbacks
@@ -163,8 +165,8 @@ class TestSetEncrypt(unittest.TestCase):
         envelope['Cc'] = 'foo@example.com, test@example.com'
         yield utils.set_encrypt(ui, envelope)
         self.assertTrue(envelope.encrypt)
-        self.assertEqual(
-            [f.fpr for f in envelope.encrypt_keys.itervalues()],
+        self.assertCountEqual(
+            [f.fpr for f in envelope.encrypt_keys.values()],
             [crypto.get_key(FPR).fpr])
 
     @inlineCallbacks

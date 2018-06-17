@@ -68,11 +68,11 @@ class Attachment(object):
         if os.path.isdir(path):
             if filename:
                 basename = os.path.basename(filename)
-                file_ = open(os.path.join(path, basename), "w")
+                file_ = open(os.path.join(path, basename), "wb")
             else:
                 file_ = tempfile.NamedTemporaryFile(delete=False, dir=path)
         else:
-            file_ = open(path, "w")  # this throws IOErrors for invalid path
+            file_ = open(path, "wb")  # this throws IOErrors for invalid path
         self.write(file_)
         file_.close()
         return file_.name

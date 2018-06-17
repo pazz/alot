@@ -162,7 +162,7 @@ class Envelope(object):
 
         if isinstance(attachment, Attachment):
             self.attachments.append(attachment)
-        elif isinstance(attachment, basestring):
+        elif isinstance(attachment, str):
             path = os.path.expanduser(attachment)
             part = helper.mimewrap(path, filename, ctype)
             self.attachments.append(Attachment(part))
@@ -193,7 +193,7 @@ class Envelope(object):
             inner_msg = textpart
 
         if self.sign:
-            plaintext = helper.email_as_string(inner_msg)
+            plaintext = helper.email_as_bytes(inner_msg)
             logging.debug('signing plaintext: %s', plaintext)
 
             try:
@@ -223,9 +223,10 @@ class Envelope(object):
 
             # wrap signature in MIMEcontainter
             stype = 'pgp-signature; name="signature.asc"'
-            signature_mime = MIMEApplication(_data=signature_str,
-                                             _subtype=stype,
-                                             _encoder=encode_7or8bit)
+            signature_mime = MIMEApplication(
+                _data=signature_str.decode('ascii'),
+                _subtype=stype,
+                _encoder=encode_7or8bit)
             signature_mime['Content-Description'] = 'signature'
             signature_mime.set_charset('us-ascii')
 
@@ -237,12 +238,12 @@ class Envelope(object):
             unencrypted_msg = inner_msg
 
         if self.encrypt:
-            plaintext = helper.email_as_string(unencrypted_msg)
+            plaintext = helper.email_as_bytes(unencrypted_msg)
             logging.debug('encrypting plaintext: %s', plaintext)
 
             try:
-                encrypted_str = crypto.encrypt(plaintext,
-                                               self.encrypt_keys.values())
+                encrypted_str = crypto.encrypt(
+                    plaintext, list(self.encrypt_keys.values()))
             except gpg.errors.GPGMEError as e:
                 raise GPGProblem(str(e), code=GPGCode.KEY_CANNOT_ENCRYPT)
 
@@ -255,9 +256,10 @@ class Envelope(object):
                                               _encoder=encode_7or8bit)
             encryption_mime.set_charset('us-ascii')
 
-            encrypted_mime = MIMEApplication(_data=encrypted_str,
-                                             _subtype='octet-stream',
-                                             _encoder=encode_7or8bit)
+            encrypted_mime = MIMEApplication(
+                _data=encrypted_str.decode('ascii'),
+                _subtype='octet-stream',
+                _encoder=encode_7or8bit)
             encrypted_mime.set_charset('us-ascii')
             outer_msg.attach(encryption_mime)
             outer_msg.attach(encrypted_mime)
@@ -279,7 +281,7 @@ class Envelope(object):
             headers['User-Agent'] = [uastring]
 
         # copy headers from envelope to mail
-        for k, vlist in headers.iteritems():
+        for k, vlist in headers.items():
             for v in vlist:
                 outer_msg[k] = encode_header(k, v)
 

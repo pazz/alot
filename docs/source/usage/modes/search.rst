@@ -5,29 +5,6 @@ Commands in `search` mode
 -------------------------
 The following commands are available in search mode
 
-.. _cmd.search.sort:
-
-.. describe:: sort
-
-    set sort order
-
-    argument
-        sort order. valid choices are: \`oldest_first\`,\`newest_first\`,\`message_id\`,\`unsorted\`.
-
-
-.. _cmd.search.untag:
-
-.. describe:: untag
-
-    remove tags from all messages in the thread that match the query
-
-    argument
-        comma separated list of tags
-
-    optional arguments
-        :---no-flush: postpone a writeout to the index (Defaults to: 'True').
-        :---all: retag all messages in search result.
-
 .. _cmd.search.move:
 
 .. describe:: move
@@ -36,6 +13,25 @@ The following commands are available in search mode
 
     argument
         last
+
+
+.. _cmd.search.refine:
+
+.. describe:: refine
+
+    refine query
+
+    argument
+        search string
+
+    optional arguments
+        :---sort: sort order. Valid choices are: \`oldest_first\`,\`newest_first\`,\`message_id\`,\`unsorted\`.
+
+.. _cmd.search.refineprompt:
+
+.. describe:: refineprompt
+
+    prompt to change this buffers querystring
 
 
 .. _cmd.search.retag:
@@ -51,11 +47,28 @@ The following commands are available in search mode
         :---no-flush: postpone a writeout to the index (Defaults to: 'True').
         :---all: retag all messages in search result.
 
-.. _cmd.search.refineprompt:
+.. _cmd.search.retagprompt:
 
-.. describe:: refineprompt
+.. describe:: retagprompt
 
-    prompt to change this buffers querystring
+    prompt to retag selected threads' tags
+
+
+.. _cmd.search.select:
+
+.. describe:: select
+
+    open thread in a new buffer
+
+
+.. _cmd.search.sort:
+
+.. describe:: sort
+
+    set sort order
+
+    argument
+        sort order. valid choices are: \`oldest_first\`,\`newest_first\`,\`message_id\`,\`unsorted\`.
 
 
 .. _cmd.search.tag:
@@ -71,25 +84,6 @@ The following commands are available in search mode
         :---no-flush: postpone a writeout to the index (Defaults to: 'True').
         :---all: retag all messages in search result.
 
-.. _cmd.search.refine:
-
-.. describe:: refine
-
-    refine query
-
-    argument
-        search string
-
-    optional arguments
-        :---sort: sort order. Valid choices are: \`oldest_first\`,\`newest_first\`,\`message_id\`,\`unsorted\`.
-
-.. _cmd.search.retagprompt:
-
-.. describe:: retagprompt
-
-    prompt to retag selected threads' tags
-
-
 .. _cmd.search.toggletags:
 
 .. describe:: toggletags
@@ -102,10 +96,16 @@ The following commands are available in search mode
     optional arguments
         :---no-flush: postpone a writeout to the index (Defaults to: 'True').
 
-.. _cmd.search.select:
+.. _cmd.search.untag:
 
-.. describe:: select
+.. describe:: untag
 
-    open thread in a new buffer
+    remove tags from all messages in the thread that match the query
 
+    argument
+        comma separated list of tags
+
+    optional arguments
+        :---no-flush: postpone a writeout to the index (Defaults to: 'True').
+        :---all: retag all messages in search result.
 

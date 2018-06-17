@@ -65,8 +65,8 @@ def rstify_parser(parser):
         for index, a in enumerate(parser._positionals._group_actions):
             out += "        %s: %s" % (index, a.help)
             if a.choices:
-                out += ". valid choices are: %s." % ','.join(['\`%s\`' % s for s
-                                                              in a.choices])
+                out += ". valid choices are: %s." % ','.join(
+                    ['\`%s\`' % s for s in a.choices])
             if a.default:
                 out += ". defaults to: '%s'." % a.default
             out += '\n'
@@ -100,7 +100,7 @@ def get_mode_docs():
 if __name__ == "__main__":
 
     modes = []
-    for mode, modecommands in COMMANDS.items():
+    for mode, modecommands in sorted(COMMANDS.items()):
         modefilename = mode+'.rst'
         modefile = open(os.path.join(HERE, 'usage', 'modes', modefilename),
                         'w')
@@ -115,7 +115,7 @@ if __name__ == "__main__":
             header = 'Global Commands'
             modefile.write('%s\n%s\n' % (header, '-' * len(header)))
             modefile.write('The following commands are available globally\n\n')
-        for cmdstring, struct in modecommands.items():
+        for cmdstring, struct in sorted(modecommands.items()):
             cls, parser, forced_args = struct
             labelline = '.. _cmd.%s.%s:\n\n' % (mode, cmdstring.replace('_',
                                                                         '-'))

@@ -1,6 +1,5 @@
-# encoding=utf-8
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
-# Copyright © 2017 Dylan Baker <dylan@pnwbakers.com>
+# Copyright © 2017-2018 Dylan Baker <dylan@pnwbakers.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 from __future__ import absolute_import
@@ -113,8 +112,9 @@ def get_key(keyid, validate=False, encrypt=False, sign=False,
         else:
             raise e  # pragma: nocover
     if signed_only and not check_uid_validity(key, keyid):
-        raise GPGProblem('Cannot find a trusworthy key for "{}".'.format(keyid),
-                         code=GPGCode.NOT_FOUND)
+        raise GPGProblem(
+            'Cannot find a trusworthy key for "{}".'.format(keyid),
+            code=GPGCode.NOT_FOUND)
     return key
 
 
@@ -144,7 +144,7 @@ def detached_signature_for(plaintext_str, keys):
     A detached signature in GPG speak is a separate blob of data containing
     a signature for the specified plaintext.
 
-    :param str plaintext_str: text to sign
+    :param bytes plaintext_str: bytestring to sign
     :param keys: list of one or more key to sign with.
     :type keys: list[gpg.gpgme._gpgme_key]
     :returns: A list of signature and the signed blob of data
@@ -160,7 +160,7 @@ def detached_signature_for(plaintext_str, keys):
 def encrypt(plaintext_str, keys):
     """Encrypt data and return the encrypted form.
 
-    :param str plaintext_str: the mail to encrypt
+    :param bytes plaintext_str: the mail to encrypt
     :param key: optionally, a list of keys to encrypt with
     :type key: list[gpg.gpgme.gpgme_key_t] or None
     :returns: encrypted mail
@@ -192,8 +192,8 @@ def bad_signatures_to_str(error):
 def verify_detached(message, signature):
     """Verifies whether the message is authentic by checking the signature.
 
-    :param str message: The message to be verified, in canonical form.
-    :param str signature: the OpenPGP signature to verify
+    :param bytes message: The message to be verified, in canonical form.
+    :param bytes signature: the OpenPGP signature to verify
     :returns: a list of signatures
     :rtype: list[gpg.results.Signature]
     :raises: :class:`~alot.errors.GPGProblem` if the verification fails
@@ -212,7 +212,7 @@ def decrypt_verify(encrypted):
     """Decrypts the given ciphertext string and returns both the
     signatures (if any) and the plaintext.
 
-    :param str encrypted: the mail to decrypt
+    :param bytes encrypted: the mail to decrypt
     :returns: the signatures and decrypted plaintext data
     :rtype: tuple[list[gpg.resuit.Signature], str]
     :raises: :class:`~alot.errors.GPGProblem` if the decryption fails

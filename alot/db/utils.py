@@ -15,7 +15,9 @@ import tempfile
 import re
 import logging
 import mailcap
-from io import BytesIO
+import io
+import base64
+import quopri
 
 from .. import crypto
 from .. import helper
@@ -41,15 +43,14 @@ def add_signature_headers(mail, sigs, error_msg):
 
     :param mail: :class:`email.message.Message` the message to entitle
     :param sigs: list of :class:`gpg.results.Signature`
-    :param error_msg: `str` containing an error message, the empty
-                      string indicating no error
+    :param error_msg: An error message if there is one, or None
+    :type error_msg: :class:`str` or `None`
     '''
-    sig_from = u''
+    sig_from = ''
     sig_known = True
     uid_trusted = False
 
-    if isinstance(error_msg, str):
-        error_msg = error_msg.decode('utf-8')
+    assert error_msg is None or isinstance(error_msg, str)
 
     if not sigs:
         error_msg = error_msg or u'no signature found'
@@ -58,22 +59,22 @@ def add_signature_headers(mail, sigs, error_msg):
             key = crypto.get_key(sigs[0].fpr)
             for uid in key.uids:
                 if crypto.check_uid_validity(key, uid.email):
-                    sig_from = uid.uid.decode('utf-8')
+                    sig_from = uid.uid
                     uid_trusted = True
                     break
             else:
                 # No trusted uid found, since we did not break from the loop.
-                sig_from = key.uids[0].uid.decode('utf-8')
+                sig_from = key.uids[0].uid
         except GPGProblem:
-            sig_from = sigs[0].fpr.decode('utf-8')
+            sig_from = sigs[0].fpr
             sig_known = False
 
     if error_msg:
-        msg = u'Invalid: {}'.format(error_msg)
+        msg = 'Invalid: {}'.format(error_msg)
     elif uid_trusted:
-        msg = u'Valid: {}'.format(sig_from)
+        msg = 'Valid: {}'.format(sig_from)
     else:
-        msg = u'Untrusted: {}'.format(sig_from)
+        msg = 'Untrusted: {}'.format(sig_from)
 
     mail.add_header(X_SIGNATURE_VALID_HEADER,
                     'False' if (error_msg or not sig_known) else 'True')
@@ -112,7 +113,7 @@ def _handle_signatures(original, message, params):
     :param params: the message parameters as returned by :func:`get_params`
     :type params: dict[str, str]
     """
-    malformed = False
+    malformed = None
     if len(message.get_payload()) != 2:
         malformed = u'expected exactly two messages, got {0}'.format(
             len(message.get_payload()))
@@ -133,10 +134,10 @@ def _handle_signatures(original, message, params):
     if not malformed:
         try:
             sigs = crypto.verify_detached(
-                helper.email_as_string(message.get_payload(0)),
-                message.get_payload(1).get_payload())
+                helper.email_as_bytes(message.get_payload(0)),
+                message.get_payload(1).get_payload(decode=True))
         except GPGProblem as e:
-            malformed = unicode(e)
+            malformed = str(e)
 
     add_signature_headers(original, sigs, malformed)
 
@@ -170,15 +171,17 @@ def _handle_encrypted(original, message):
         malformed = u'expected Content-Type: {0}, got: {1}'.format(want, ct)
 
     if not malformed:
+        # This should be safe because PGP uses US-ASCII characters only
+        payload = message.get_payload(1).get_payload().encode('ascii')
         try:
-            sigs, d = crypto.decrypt_verify(message.get_payload(1).get_payload())
+            sigs, d = crypto.decrypt_verify(payload)
         except GPGProblem as e:
             # signature verification failures end up here too if the combined
             # method is used, currently this prevents the interpretation of the
             # recovered plain text mail. maybe that's a feature.
-            malformed = unicode(e)
+            malformed = str(e)
         else:
-            n = message_from_string(d)
+            n = message_from_bytes(d)
 
             # add the decrypted message to message. note that n contains all
             # the attachments, no need to walk over n here.
@@ -208,7 +211,7 @@ def _handle_encrypted(original, message):
 
     if malformed:
         msg = u'Malformed OpenPGP message: {0}'.format(malformed)
-        content = email.message_from_string(msg.encode('utf-8'))
+        content = email.message_from_string(msg)
         content.set_charset('utf-8')
         original.attach(content)
 
@@ -265,14 +268,24 @@ def message_from_file(handle):
 def message_from_string(s):
     '''Reads a mail from the given string. This is the equivalent of
     :func:`email.message_from_string` which does nothing but to wrap
-    the given string in a BytesIO object and to call
+    the given string in a StringIO object and to call
     :func:`email.message_from_file`.
 
     Please refer to the documentation of :func:`message_from_file` for
     details.
 
     '''
-    return message_from_file(BytesIO(s))
+    return message_from_file(io.StringIO(s))
+
+
+def message_from_bytes(bytestring):
+    """Create a Message from bytes.
+
+    Attempt to guess the encoding of the bytestring.
+
+    :param bytes bytestring: an email message as raw bytes
+    """
+    return message_from_file(io.StringIO(helper.try_decode(bytestring)))
 
 
 def extract_headers(mail, headers=None):
@@ -297,9 +310,6 @@ def extract_headers(mail, headers=None):
     return headertext
 
 
-
-
-
 def render_part(part, field_key='copiousoutput'):
     """
     renders a non-multipart email part into displayable plaintext by piping its
@@ -307,7 +317,7 @@ def render_part(part, field_key='copiousoutput'):
     the mailcap entry for this part's ctype.
     """
     ctype = part.get_content_type()
-    raw_payload = part.get_payload(decode=True)
+    raw_payload = remove_cte(part)
     rendered_payload = None
     # get mime handler
     _, entry = settings.mailcap_find_match(ctype, key=field_key)
@@ -348,6 +358,58 @@ def render_part(part, field_key='copiousoutput'):
             os.unlink(tempfile_name)
 
     return rendered_payload
+
+
+def remove_cte(part, as_string=False):
+    """Decodes any Content-Transfer-Encodings.
+
+    Can return a string for display, or bytes to be passed to an external
+    program.
+
+    :param email.Message part: The part to decode
+    :param bool as_string: If true return a str, otherwise return bytes
+    :returns: The mail with any Content-Transfer-Encoding removed
+    :rtype: Union[str, bytes]
+    """
+    enc = part.get_content_charset() or 'ascii'
+    cte = str(part.get('content-transfer-encoding', '7bit')).lower()
+    payload = part.get_payload()
+    if cte == '8bit':
+        # Python's mail library may decode 8bit as raw-unicode-escape, so
+        # we need to encode that back to bytes so we can decode it using
+        # the correct encoding, or it might not, in which case assume that
+        # the str representation we got is correct.
+        raw_payload = payload.encode('raw-unicode-escape')
+        if not as_string:
+            return raw_payload
+        try:
+            return raw_payload.decode(enc)
+        except LookupError:
+            # In this case the email has an unknown encoding, fall back to
+            # guessing
+            return helper.try_decode(raw_payload)
+        except UnicodeDecodeError:
+            if not as_string:
+                return raw_payload
+            return helper.try_decode(raw_payload)
+    elif cte in ['7bit', 'binary']:
+        if as_string:
+            return payload
+        return payload.encode('utf-8')
+    else:
+        if cte == 'quoted-printable':
+            raw_payload = quopri.decodestring(payload.encode('ascii'))
+        elif cte == 'base64':
+            raw_payload = base64.b64decode(payload)
+        else:
+            raise Exception(
+                'Unknown Content-Transfer-Encoding: "{}"'.format(cte))
+        # message.get_payload(decode=True) also handles a number of unicode
+        # encodindigs. maybe those are useful?
+        if not as_string:
+            return raw_payload
+        return raw_payload.decode(enc)
+    raise Exception('Unreachable')
 
 
 def extract_body(mail, types=None, field_key='copiousoutput'):
@@ -396,9 +458,7 @@ def extract_body(mail, types=None, field_key='copiousoutput'):
             continue
 
         if ctype == 'text/plain':
-            enc = part.get_content_charset() or 'ascii'
-            raw_payload = string_decode(part.get_payload(decode=True), enc)
-            body_parts.append(string_sanitize(raw_payload))
+            body_parts.append(string_sanitize(remove_cte(part, as_string=True)))
         else:
             rendered_payload = render_part(part)
             if rendered_payload:  # handler had output
@@ -420,22 +480,13 @@ def decode_header(header, normalize=False):
     :type header: str
     :param normalize: replace trailing spaces after newlines
     :type normalize: bool
-    :rtype: unicode
+    :rtype: str
     """
-
-    # If the value isn't ascii as RFC2822 prescribes,
-    # we just return the unicode bytestring as is
-    value = string_decode(header)  # convert to unicode
-    try:
-        value = value.encode('ascii')
-    except UnicodeEncodeError:
-        return value
-
     # some mailers send out incorrectly escaped headers
     # and double quote the escaped realname part again. remove those
     # RFC: 2047
     regex = r'"(=\?.+?\?.+?\?[^ ?]+\?=)"'
-    value = re.sub(regex, r'\1', value)
+    value = re.sub(regex, r'\1', header)
     logging.debug("unquoted header: |%s|", value)
 
     # otherwise we interpret RFC2822 encoding escape sequences
@@ -444,7 +495,7 @@ def decode_header(header, normalize=False):
     for v, enc in valuelist:
         v = string_decode(v, enc)
         decoded_list.append(string_sanitize(v))
-    value = u' '.join(decoded_list)
+    value = ''.join(decoded_list)
     if normalize:
         value = re.sub(r'\n\s+', r' ', value)
     return value

@@ -103,11 +103,12 @@ class UI(object):
             self._recipients_hist_file, size=size)
 
         # set up main loop
-        self.mainloop = urwid.MainLoop(self.root_widget,
-                                       handle_mouse=settings.get('handle_mouse'),
-                                       event_loop=urwid.TwistedEventLoop(),
-                                       unhandled_input=self._unhandled_input,
-                                       input_filter=self._input_filter)
+        self.mainloop = urwid.MainLoop(
+            self.root_widget,
+            handle_mouse=settings.get('handle_mouse'),
+            event_loop=urwid.TwistedEventLoop(),
+            unhandled_input=self._unhandled_input,
+            input_filter=self._input_filter)
 
         # Create a defered that calls the loop_hook
         loop_hook = settings.get_hook('loop_hook')
@@ -317,7 +318,7 @@ class UI(object):
 
         def cerror(e):
             logging.error(e)
-            self.notify('completion error: %s' % e.message,
+            self.notify('completion error: %s' % str(e),
                         priority='error')
             self.update()
 
@@ -329,7 +330,7 @@ class UI(object):
                                 edit_text=text, history=history,
                                 on_error=cerror)
 
-        for _ in xrange(tab):  # hit some tabs
+        for _ in range(tab):  # hit some tabs
             editpart.keypress((0,), 'tab')
 
         # build promptwidget
@@ -529,9 +530,8 @@ class UI(object):
         :rtype:  :class:`twisted.defer.Deferred`
         """
         choices = choices or {'y': 'yes', 'n': 'no'}
-        choices_to_return = choices_to_return or {}
-        assert select is None or select in choices.itervalues()
-        assert cancel is None or cancel in choices.itervalues()
+        assert select is None or select in choices.values()
+        assert cancel is None or cancel in choices.values()
         assert msg_position in ['left', 'above']
 
         d = defer.Deferred()  # create return deferred

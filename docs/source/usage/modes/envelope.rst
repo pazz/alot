@@ -5,11 +5,80 @@ Commands in `envelope` mode
 ---------------------------
 The following commands are available in envelope mode
 
-.. _cmd.envelope.unencrypt:
+.. _cmd.envelope.attach:
 
-.. describe:: unencrypt
+.. describe:: attach
 
-    remove request to encrypt message before sending
+    attach files to the mail
+
+    argument
+        file(s) to attach (accepts wildcads)
+
+
+.. _cmd.envelope.edit:
+
+.. describe:: edit
+
+    edit mail
+
+    optional arguments
+        :---spawn: spawn editor in new terminal.
+        :---refocus: refocus envelope after editing (Defaults to: 'True').
+
+.. _cmd.envelope.encrypt:
+
+.. describe:: encrypt
+
+    request encryption of message before sendout
+
+    argument
+        keyid of the key to encrypt with
+
+    optional arguments
+        :---trusted: only add trusted keys.
+
+.. _cmd.envelope.refine:
+
+.. describe:: refine
+
+    prompt to change the value of a header
+
+    argument
+        header to refine
+
+
+.. _cmd.envelope.retag:
+
+.. describe:: retag
+
+    set message tags.
+
+    argument
+        comma separated list of tags
+
+
+.. _cmd.envelope.rmencrypt:
+
+.. describe:: rmencrypt
+
+    do not encrypt to given recipient key
+
+    argument
+        keyid of the key to encrypt with
+
+
+.. _cmd.envelope.save:
+
+.. describe:: save
+
+    save draft
+
+
+.. _cmd.envelope.send:
+
+.. describe:: send
+
+    send mail
 
 
 .. _cmd.envelope.set:
@@ -26,72 +95,6 @@ The following commands are available in envelope mode
     optional arguments
         :---append: keep previous values.
 
-.. _cmd.envelope.encrypt:
-
-.. describe:: encrypt
-
-    request encryption of message before sendout
-
-    argument
-        keyid of the key to encrypt with
-
-    optional arguments
-        :---trusted: only add trusted keys.
-
-.. _cmd.envelope.togglesign:
-
-.. describe:: togglesign
-
-    toggle sign status
-
-    argument
-        which key id to use
-
-
-.. _cmd.envelope.toggleheaders:
-
-.. describe:: toggleheaders
-
-    toggle display of all headers
-
-
-.. _cmd.envelope.edit:
-
-.. describe:: edit
-
-    edit mail
-
-    optional arguments
-        :---spawn: spawn editor in new terminal.
-        :---refocus: refocus envelope after editing (Defaults to: 'True').
-
-.. _cmd.envelope.retag:
-
-.. describe:: retag
-
-    set message tags.
-
-    argument
-        comma separated list of tags
-
-
-.. _cmd.envelope.tag:
-
-.. describe:: tag
-
-    add tags to message
-
-    argument
-        comma separated list of tags
-
-
-.. _cmd.envelope.send:
-
-.. describe:: send
-
-    send mail
-
-
 .. _cmd.envelope.sign:
 
 .. describe:: sign
@@ -102,54 +105,14 @@ The following commands are available in envelope mode
         which key id to use
 
 
-.. _cmd.envelope.untag:
+.. _cmd.envelope.tag:
 
-.. describe:: untag
+.. describe:: tag
 
-    remove tags from message
+    add tags to message
 
     argument
         comma separated list of tags
-
-
-.. _cmd.envelope.attach:
-
-.. describe:: attach
-
-    attach files to the mail
-
-    argument
-        file(s) to attach (accepts wildcads)
-
-
-.. _cmd.envelope.unattach:
-
-.. describe:: unattach
-
-    remove attachments from current envelope
-
-    argument
-        which attached file to remove
-
-
-.. _cmd.envelope.rmencrypt:
-
-.. describe:: rmencrypt
-
-    do not encrypt to given recipient key
-
-    argument
-        keyid of the key to encrypt with
-
-
-.. _cmd.envelope.refine:
-
-.. describe:: refine
-
-    prompt to change the value of a header
-
-    argument
-        header to refine
 
 
 .. _cmd.envelope.toggleencrypt:
@@ -164,18 +127,21 @@ The following commands are available in envelope mode
     optional arguments
         :---trusted: only add trusted keys.
 
-.. _cmd.envelope.save:
+.. _cmd.envelope.toggleheaders:
 
-.. describe:: save
+.. describe:: toggleheaders
 
-    save draft
+    toggle display of all headers
 
 
-.. _cmd.envelope.unsign:
+.. _cmd.envelope.togglesign:
 
-.. describe:: unsign
+.. describe:: togglesign
 
-    mark mail not to be signed before sending
+    toggle sign status
+
+    argument
+        which key id to use
 
 
 .. _cmd.envelope.toggletags:
@@ -188,6 +154,23 @@ The following commands are available in envelope mode
         comma separated list of tags
 
 
+.. _cmd.envelope.unattach:
+
+.. describe:: unattach
+
+    remove attachments from current envelope
+
+    argument
+        which attached file to remove
+
+
+.. _cmd.envelope.unencrypt:
+
+.. describe:: unencrypt
+
+    remove request to encrypt message before sending
+
+
 .. _cmd.envelope.unset:
 
 .. describe:: unset
@@ -196,5 +179,22 @@ The following commands are available in envelope mode
 
     argument
         header to refine
+
+
+.. _cmd.envelope.unsign:
+
+.. describe:: unsign
+
+    mark mail not to be signed before sending
+
+
+.. _cmd.envelope.untag:
+
+.. describe:: untag
+
+    remove tags from message
+
+    argument
+        comma separated list of tags
 
 

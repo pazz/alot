@@ -12,7 +12,7 @@ import glob
 import logging
 import os
 import subprocess
-from io import StringIO
+from io import BytesIO
 
 import urwid
 from twisted.internet.defer import inlineCallbacks
@@ -211,7 +211,7 @@ class ExternalCommand(Command):
         """
         logging.debug({'spawn': spawn})
         # make sure cmd is a list of str
-        if isinstance(cmd, unicode):
+        if isinstance(cmd, str):
             # convert cmdstring to list: in case shell==True,
             # Popen passes only the first item in the list to $SHELL
             cmd = [cmd] if shell else split_commandstring(cmd)
@@ -249,9 +249,11 @@ class ExternalCommand(Command):
         # set standard input for subcommand
         stdin = None
         if self.stdin is not None:
-            # wrap strings in StringIO so that they behave like files
-            if isinstance(self.stdin, unicode):
-                stdin = StringIO(self.stdin)
+            # wrap strings in StrinIO so that they behaves like a file
+            if isinstance(self.stdin, str):
+                # XXX: is utf-8 always safe to use here, or do we need to check
+                # the terminal encoding first?
+                stdin = BytesIO(self.stdin.encode('utf-8'))
             else:
                 stdin = self.stdin
 
@@ -269,16 +271,19 @@ class ExternalCommand(Command):
 
         def thread_code(*_):
             try:
-                proc = subprocess.Popen(self.cmdlist, shell=self.shell,
-                                        stdin=subprocess.PIPE if stdin else None,
-                                        stderr=subprocess.PIPE)
+                proc = subprocess.Popen(
+                    self.cmdlist, shell=self.shell,
+                    stdin=subprocess.PIPE if stdin else None,
+                    stderr=subprocess.PIPE)
             except OSError as e:
                 return str(e)
 
             _, err = proc.communicate(stdin.read() if stdin else None)
             if proc.returncode == 0:
                 return 'success'
-            return err.strip()
+            if err:
+                return err.decode(urwid.util.detected_encoding)
+            return ''
 
         if self.in_thread:
             d = threads.deferToThread(thread_code)
@@ -381,7 +386,7 @@ class CallCommand(Command):
             hooks = settings.hooks
             if hooks:
                 env = {'ui': ui, 'settings': settings}
-                for k, v in env.iteritems():
+                for k, v in env.items():
                     if k not in hooks.__dict__:
                         hooks.__dict__[k] = v
 
@@ -619,8 +624,8 @@ class HelpCommand(Command):
             globalmaps, modemaps = settings.get_keybindings(ui.mode)
 
             # build table
-            maxkeylength = len(max((modemaps).keys() + globalmaps.keys(),
-                                   key=len))
+            maxkeylength = len(
+                max(list(modemaps.keys()) + list(globalmaps.keys()), key=len))
             keycolumnwidth = maxkeylength + 2
 
             linewidgets = []
@@ -628,7 +633,7 @@ class HelpCommand(Command):
             if modemaps:
                 txt = (section_att, '\n%s-mode specific maps' % ui.mode)
                 linewidgets.append(urwid.Text(txt))
-                for (k, v) in modemaps.iteritems():
+                for (k, v) in modemaps.items():
                     line = urwid.Columns([('fixed', keycolumnwidth,
                                            urwid.Text((text_att, k))),
                                           urwid.Text((text_att, v))])
@@ -636,7 +641,7 @@ class HelpCommand(Command):
 
             # global maps
             linewidgets.append(urwid.Text((section_att, '\nglobal maps')))
-            for (k, v) in globalmaps.iteritems():
+            for (k, v) in globalmaps.items():
                 if k not in modemaps:
                     line = urwid.Columns(
                         [('fixed', keycolumnwidth, urwid.Text((text_att, k))),
@@ -685,10 +690,12 @@ class HelpCommand(Command):
 class ComposeCommand(Command):
 
     """compose a new email"""
-    def __init__(self, envelope=None, headers=None, template=None, sender=u'',
-                 tags=None, subject=u'', to=None, cc=None, bcc=None, attach=None,
-                 omit_signature=False, spawn=None, rest=None, encrypt=False,
-                 **kwargs):
+    def __init__(
+            self,
+            envelope=None, headers=None, template=None, sender=u'',
+            tags=None, subject=u'', to=None, cc=None, bcc=None, attach=None,
+            omit_signature=False, spawn=None, rest=None, encrypt=False,
+            **kwargs):
         """
         :param envelope: use existing envelope
         :type envelope: :class:`~alot.db.envelope.Envelope`
@@ -770,16 +777,14 @@ class ComposeCommand(Command):
                 return
             try:
                 with open(path, 'rb') as f:
-                    blob = f.read()
-                encoding = helper.guess_encoding(blob)
-                logging.debug('template encoding: `%s`' % encoding)
-                self.envelope.parse_template(blob.decode(encoding))
+                    template = helper.try_decode(f.read())
+                self.envelope.parse_template(template)
             except Exception as e:
                 ui.notify(str(e), priority='error')
                 return
 
         # set forced headers
-        for key, value in self.headers.iteritems():
+        for key, value in self.headers.items():
             self.envelope.add(key, value)
 
         # set forced headers for separate parameters
@@ -844,10 +849,9 @@ class ComposeCommand(Command):
                 else:
                     with open(sig) as f:
                         sigcontent = f.read()
-                    enc = helper.guess_encoding(sigcontent)
                     mimetype = helper.guess_mimetype(sigcontent)
                     if mimetype.startswith('text'):
-                        sigcontent = helper.string_decode(sigcontent, enc)
+                        sigcontent = helper.try_decode(sigcontent)
                         self.envelope.body += '\n' + sigcontent
             else:
                 ui.notify('could not locate signature: %s' % sig,

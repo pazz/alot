@@ -277,7 +277,7 @@ class AccountCompleter(StringlistCompleter):
 
     def __init__(self, **kwargs):
         accounts = settings.get_accounts()
-        resultlist = [email.utils.formataddr((a.realname, a.address))
+        resultlist = [email.utils.formataddr((a.realname, str(a.address)))
                       for a in accounts]
         StringlistCompleter.__init__(self, resultlist, match_anywhere=True,
                                      **kwargs)

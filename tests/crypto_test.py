@@ -12,6 +12,7 @@ import unittest
 
 import gpg
 import mock
+import urwid
 
 from alot import crypto
 from alot.errors import GPGProblem, GPGCode
@@ -57,7 +58,9 @@ def tearDownModule():
     # Kill any gpg-agent's that have been opened
     lookfor = 'gpg-agent --homedir {}'.format(os.environ['GNUPGHOME'])
 
-    out = subprocess.check_output(['ps', 'xo', 'pid,cmd'], stderr=DEVNULL)
+    out = subprocess.check_output(
+        ['ps', 'xo', 'pid,cmd'],
+        stderr=DEVNULL).decode(urwid.util.detected_encoding)
     for each in out.strip().split('\n'):
         pid, cmd = each.strip().split(' ', 1)
         if cmd.startswith(lookfor):
@@ -109,9 +112,10 @@ class TestHashAlgorithmHelper(unittest.TestCase):
 class TestDetachedSignatureFor(unittest.TestCase):
 
     def test_valid_signature_generated(self):
-        to_sign = "this is some text.\nit is more than nothing.\n"
+        to_sign = b"this is some text.\nit is more than nothing.\n"
         with gpg.core.Context() as ctx:
-            _, detached = crypto.detached_signature_for(to_sign, [ctx.get_key(FPR)])
+            _, detached = crypto.detached_signature_for(
+                to_sign, [ctx.get_key(FPR)])
 
         with tempfile.NamedTemporaryFile(delete=False) as f:
             f.write(detached)
@@ -131,9 +135,10 @@ class TestDetachedSignatureFor(unittest.TestCase):
 class TestVerifyDetached(unittest.TestCase):
 
     def test_verify_signature_good(self):
-        to_sign = "this is some text.\nIt's something\n."
+        to_sign = b"this is some text.\nIt's something\n."
         with gpg.core.Context() as ctx:
-            _, detached = crypto.detached_signature_for(to_sign, [ctx.get_key(FPR)])
+            _, detached = crypto.detached_signature_for(
+                to_sign, [ctx.get_key(FPR)])
 
         try:
             crypto.verify_detached(to_sign, detached)
@@ -141,10 +146,11 @@ class TestVerifyDetached(unittest.TestCase):
             raise AssertionError
 
     def test_verify_signature_bad(self):
-        to_sign = "this is some text.\nIt's something\n."
-        similar = "this is some text.\r\n.It's something\r\n."
+        to_sign = b"this is some text.\nIt's something\n."
+        similar = b"this is some text.\r\n.It's something\r\n."
         with gpg.core.Context() as ctx:
-            _, detached = crypto.detached_signature_for(to_sign, [ctx.get_key(FPR)])
+            _, detached = crypto.detached_signature_for(
+                to_sign, [ctx.get_key(FPR)])
 
         with self.assertRaises(GPGProblem):
             crypto.verify_detached(similar, detached)
@@ -178,7 +184,8 @@ class TestValidateKey(unittest.TestCase):
 
     def test_encrypt(self):
         with self.assertRaises(GPGProblem) as caught:
-            crypto.validate_key(utilities.make_key(can_encrypt=False), encrypt=True)
+            crypto.validate_key(
+                utilities.make_key(can_encrypt=False), encrypt=True)
 
         self.assertEqual(caught.exception.code, GPGCode.KEY_CANNOT_ENCRYPT)
 
@@ -284,7 +291,8 @@ class TestGetKey(unittest.TestCase):
         # once.
         with gpg.core.Context() as ctx:
             expected = ctx.get_key(FPR).uids[0].uid
-        actual = crypto.get_key(FPR, validate=True, encrypt=True, sign=True).uids[0].uid
+        actual = crypto.get_key(
+            FPR, validate=True, encrypt=True, sign=True).uids[0].uid
         self.assertEqual(expected, actual)
 
     def test_missing_key(self):
@@ -304,7 +312,8 @@ class TestGetKey(unittest.TestCase):
         except GPGProblem as e:
             raise AssertionError(e)
 
-    @mock.patch('alot.crypto.check_uid_validity', mock.Mock(return_value=False))
+    @mock.patch(
+        'alot.crypto.check_uid_validity', mock.Mock(return_value=False))
     def test_signed_only_false(self):
         with self.assertRaises(GPGProblem) as e:
             crypto.get_key(FPR, signed_only=True)
@@ -360,7 +369,7 @@ class TestGetKey(unittest.TestCase):
 class TestEncrypt(unittest.TestCase):
 
     def test_encrypt(self):
-        to_encrypt = "this is a string\nof data."
+        to_encrypt = b"this is a string\nof data."
         encrypted = crypto.encrypt(to_encrypt, keys=[crypto.get_key(FPR)])
 
         with tempfile.NamedTemporaryFile(delete=False) as f:
@@ -368,15 +377,15 @@ class TestEncrypt(unittest.TestCase):
             enc_file = f.name
         self.addCleanup(os.unlink, enc_file)
 
-        dec = subprocess.check_output(['gpg', '--decrypt', enc_file],
-                                      stderr=DEVNULL)
+        dec = subprocess.check_output(
+            ['gpg', '--decrypt', enc_file], stderr=DEVNULL)
         self.assertEqual(to_encrypt, dec)
 
 
 class TestDecrypt(unittest.TestCase):
 
     def test_decrypt(self):
-        to_encrypt = "this is a string\nof data."
+        to_encrypt = b"this is a string\nof data."
         encrypted = crypto.encrypt(to_encrypt, keys=[crypto.get_key(FPR)])
         _, dec = crypto.decrypt_verify(encrypted)
         self.assertEqual(to_encrypt, dec)

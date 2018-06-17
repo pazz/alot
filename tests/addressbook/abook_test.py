@@ -29,7 +29,7 @@ class TestAbookAddressBook(unittest.TestCase):
         name = you
         email = you@other.domain, you@example.com
         """
-        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as tmp:
             tmp.write(data)
             path = tmp.name
             self.addCleanup(os.unlink, path)

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 from setuptools import setup, find_packages
 import alot
@@ -17,10 +17,13 @@ setup(
         'Environment :: Console :: Curses',
         'Framework :: Twisted',
         'Intended Audience :: End Users/Desktop',
-        'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
+        (
+            'License :: OSI Approved'
+            ':: GNU General Public License v3 or later (GPLv3+)'),
         'Operating System :: POSIX',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 2 :: Only',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3 :: Only',
         'Topic :: Communications :: Email :: Email Clients (MUA)',
         'Topic :: Database :: Front-Ends',
     ],
@@ -47,12 +50,13 @@ setup(
         'twisted>=10.2.0',
         'python-magic',
         'configobj>=4.7.0',
-        'gpg'
+        'gpg',
+        'chardet',
     ],
     tests_require=[
         'mock',
     ],
     provides=['alot'],
     test_suite="tests",
-    python_requires=">=2.7",
+    python_requires=">=3.5",
 )

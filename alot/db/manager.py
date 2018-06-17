@@ -145,8 +145,7 @@ class DBManager(object):
                         msg.freeze()
                         logging.debug('freeze')
                         for tag in tags:
-                            msg.add_tag(tag.encode(DB_ENC),
-                                        sync_maildir_flags=sync)
+                            msg.add_tag(tag, sync_maildir_flags=sync)
                         logging.debug('added tags ')
                         msg.thaw()
                         logging.debug('thaw')
@@ -161,18 +160,14 @@ class DBManager(object):
                         for msg in query.search_messages():
                             msg.freeze()
                             if cmd == 'tag':
-                                for tag in tags:
-                                    msg.add_tag(tag.encode(DB_ENC),
-                                                sync_maildir_flags=sync)
+                                strategy = msg.add_tag
                             if cmd == 'set':
                                 msg.remove_all_tags()
-                                for tag in tags:
-                                    msg.add_tag(tag.encode(DB_ENC),
-                                                sync_maildir_flags=sync)
+                                strategy = msg.add_tag
                             elif cmd == 'untag':
-                                for tag in tags:
-                                    msg.remove_tag(tag.encode(DB_ENC),
-                                                   sync_maildir_flags=sync)
+                                strategy = msg.remove_tag
+                            for tag in tags:
+                                strategy(tag, sync_maildir_flags=sync)
                             msg.thaw()
 
                     logging.debug('ended atomic')
@@ -195,7 +190,7 @@ class DBManager(object):
                 except (XapianError, NotmuchError) as e:
                     logging.exception(e)
                     self.writequeue.appendleft(current_item)
-                    raise DatabaseError(unicode(e))
+                    raise DatabaseError(str(e))
                 except DatabaseLockedError as e:
                     logging.debug('index temporarily locked')
                     self.writequeue.appendleft(current_item)

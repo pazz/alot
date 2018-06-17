@@ -5,7 +5,7 @@ from __future__ import absolute_import
 
 import mailbox
 import re
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 from validate import VdtTypeError
 from validate import is_list

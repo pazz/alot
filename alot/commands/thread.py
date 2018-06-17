@@ -14,6 +14,7 @@ from email.utils import getaddresses, parseaddr, formataddr
 from email.message import Message
 
 from twisted.internet.defer import inlineCallbacks
+import urwid
 from io import BytesIO
 
 from . import Command, registerCommand
@@ -71,30 +72,34 @@ def determine_sender(mail, action='reply'):
         # pick the most important account that has an address in candidates
         # and use that accounts realname and the address found here
         for account in my_accounts:
-            acc_addresses = [re.escape(unicode(a)) for a in account.get_addresses()]
+            acc_addresses = [
+                re.escape(str(a)) for a in account.get_addresses()]
             if account.alias_regexp is not None:
                 acc_addresses.append(account.alias_regexp)
             for alias in acc_addresses:
                 regex = re.compile(
-                    u'^' + unicode(alias) + u'$',
-                    flags=re.IGNORECASE if not account.address.case_sensitive else 0)
+                    u'^' + str(alias) + u'$',
+                    flags=(
+                        re.IGNORECASE if not account.address.case_sensitive
+                        else 0))
                 for seen_name, seen_address in candidate_addresses:
-                    if regex.match(seen_address):
-                        logging.debug("match!: '%s' '%s'", seen_address, alias)
-                        if settings.get(action + '_force_realname'):
-                            realname = account.realname
-                        else:
-                            realname = seen_name
-                        if settings.get(action + '_force_address'):
-                            address = account.address
-                        else:
-                            address = seen_address
+                    if not regex.match(seen_address):
+                        continue
+                    logging.debug("match!: '%s' '%s'", seen_address, alias)
+                    if settings.get(action + '_force_realname'):
+                        realname = account.realname
+                    else:
+                        realname = seen_name
+                    if settings.get(action + '_force_address'):
+                        address = account.address
+                    else:
+                        address = seen_address
 
-                        logging.debug('using realname: "%s"', realname)
-                        logging.debug('using address: %s', address)
+                    logging.debug('using realname: "%s"', realname)
+                    logging.debug('using address: %s', address)
 
-                        from_value = formataddr((realname, address))
-                        return from_value, account
+                    from_value = formataddr((realname, str(address)))
+                    return from_value, account
 
     # revert to default account if nothing found
     account = my_accounts[0]
@@ -103,7 +108,7 @@ def determine_sender(mail, action='reply'):
     logging.debug('using realname: "%s"', realname)
     logging.debug('using address: %s', address)
 
-    from_value = formataddr((realname, address))
+    from_value = formataddr((realname, str(address)))
     return from_value, account
 
 
@@ -241,6 +246,7 @@ class ReplyCommand(Command):
             # X-BeenThere is needed by sourceforge ML also winehq
             # X-Mailing-List is also standart and is used by git-send-mail
             to = mail['Reply-To'] or mail['X-BeenThere'] or mail['X-Mailing-List']
+
             # Some mail server (gmail) will not resend you own mail, so you
             # have to deal with the one in sent
             if to is None:
@@ -301,7 +307,7 @@ class ReplyCommand(Command):
         new_value = []
         for name, address in getaddresses(value):
             if address not in my_addresses:
-                new_value.append(formataddr((name, address)))
+                new_value.append(formataddr((name, str(address))))
         return new_value
 
     @staticmethod
@@ -313,7 +319,7 @@ class ReplyCommand(Command):
         res = dict()
         for name, address in getaddresses(recipients):
             res[address] = name
-        urecipients = [formataddr((n, a)) for a, n in res.iteritems()]
+        urecipients = [formataddr((n, str(a))) for a, n in res.items()]
         return sorted(urecipients)
 
 
@@ -689,7 +695,7 @@ class PipeCommand(Command):
         :type field_key: str
         """
         Command.__init__(self, **kwargs)
-        if isinstance(cmd, unicode):
+        if isinstance(cmd, str):
             cmd = split_commandstring(cmd)
         self.cmd = cmd
         self.whole_thread = all
@@ -759,13 +765,14 @@ class PipeCommand(Command):
 
         # do the monkey
         for mail in pipestrings:
+            encoded_mail = mail.encode(urwid.util.detected_encoding)
             if self.background:
                 logging.debug('call in background: %s', self.cmd)
                 proc = subprocess.Popen(self.cmd,
                                         shell=True, stdin=subprocess.PIPE,
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.PIPE)
-                out, err = proc.communicate(mail)
+                out, err = proc.communicate(encoded_mail)
                 if self.notify_stdout:
                     ui.notify(out)
             else:
@@ -777,7 +784,7 @@ class PipeCommand(Command):
                                             stdin=subprocess.PIPE,
                                             # stdout=subprocess.PIPE,
                                             stderr=subprocess.PIPE)
-                    out, err = proc.communicate(mail)
+                    out, err = proc.communicate(encoded_mail)
             if err:
                 ui.notify(err, priority='error')
                 return

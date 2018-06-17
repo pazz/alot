@@ -22,15 +22,13 @@ NOTE = """
 """
 
 
-def rewrite_entries(config, path, specpath, sec=None, sort=False):
+def rewrite_entries(config, path, specpath, sec=None):
     file = open(path, 'w')
     file.write(NOTE % specpath)
 
     if sec is None:
         sec = config
-    if sort:
-        sec.scalars.sort()
-    for entry in sec.scalars:
+    for entry in sorted(sec.scalars):
         v = Validator()
         etype, eargs, ekwargs, default = v._parse_check(sec[entry])
         if default is not None:
@@ -72,7 +70,7 @@ if __name__ == "__main__":
 
     alotrc_table_file = os.path.join(HERE, 'configuration', 'alotrc_table')
     rewrite_entries(config.configspec, alotrc_table_file,
-                    'defaults/alot.rc.spec', sort=True)
+                    'defaults/alot.rc.spec')
 
     rewrite_entries(config,
                     os.path.join(HERE, 'configuration', 'accounts_table'),

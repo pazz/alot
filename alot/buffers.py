@@ -147,7 +147,7 @@ class EnvelopeBuffer(Buffer):
         hidden = settings.get('envelope_headers_blacklist')
         # build lines
         lines = []
-        for (k, vlist) in self.envelope.headers.iteritems():
+        for (k, vlist) in self.envelope.headers.items():
             if (k not in hidden) or self.all_headers:
                 for value in vlist:
                     lines.append((k, value))
@@ -662,7 +662,7 @@ class TagListBuffer(Buffer):
 
         lines = list()
         displayedtags = sorted((t for t in self.tags if self.filtfun(t)),
-                               key=unicode.lower)
+                               key=str.lower)
         for (num, b) in enumerate(displayedtags):
             if (num % 2) == 0:
                 attr = settings.get_theming_attribute('taglist', 'line_even')

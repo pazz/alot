@@ -10,7 +10,7 @@ from datetime import timedelta
 from datetime import datetime
 from collections import deque
 from io import BytesIO
-from cStringIO import StringIO
+from io import StringIO
 import logging
 import mimetypes
 import os
@@ -25,6 +25,7 @@ from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+import chardet
 import urwid
 import magic
 from twisted.internet import reactor
@@ -40,9 +41,6 @@ def split_commandline(s, comments=False, posix=True):
     s = s.replace('\\', '\\\\')
     s = s.replace('\'', '\\\'')
     s = s.replace('\"', '\\\"')
-    # encode s to utf-8 for shlex
-    if isinstance(s, unicode):
-        s = s.encode('utf-8')
     lex = shlex.shlex(s, posix=posix)
     lex.whitespace_split = True
     lex.whitespace = ';'
@@ -57,8 +55,7 @@ def split_commandstring(cmdstring):
     and the like. This simply calls shlex.split but works also with unicode
     bytestrings.
     """
-    if isinstance(cmdstring, unicode):
-        cmdstring = cmdstring.encode('utf-8', errors='ignore')
+    assert isinstance(cmdstring, str)
     return shlex.split(cmdstring)
 
 
@@ -118,10 +115,10 @@ def string_decode(string, enc='ascii'):
     if enc is None:
         enc = 'ascii'
     try:
-        string = unicode(string, enc, errors='replace')
+        string = str(string, enc, errors='replace')
     except LookupError:  # malformed enc string
         string = string.decode('ascii', errors='replace')
-    except TypeError:  # already unicode
+    except TypeError:  # already str
         pass
     return string
 
@@ -278,10 +275,13 @@ def call_cmd(cmdlist, stdin=None):
                     by :meth:`subprocess.Popen`
     :type cmdlist: list of str
     :param stdin: string to pipe to the process
-    :type stdin: str
+    :type stdin: str, bytes, or None
     :return: triple of stdout, stderr, return value of the shell command
     :rtype: str, str, int
     """
+    termenc = urwid.util.detected_encoding
+    if isinstance(stdin, str):
+        stdin = stdin.encode(termenc)
     try:
         proc = subprocess.Popen(
             cmdlist,
@@ -296,8 +296,8 @@ def call_cmd(cmdlist, stdin=None):
         out, err = proc.communicate(stdin)
         ret = proc.returncode
 
-    out = string_decode(out, urwid.util.detected_encoding)
-    err = string_decode(err, urwid.util.detected_encoding)
+    out = string_decode(out, termenc)
+    err = string_decode(err, termenc)
     return out, err, ret
 
 
@@ -312,6 +312,8 @@ def call_cmd_async(cmdlist, stdin=None, env=None):
              return value of the shell command
     :rtype: `twisted.internet.defer.Deferred`
     """
+    termenc = urwid.util.detected_encoding
+    cmdlist = [s.encode(termenc) for s in cmdlist]
 
     class _EverythingGetter(ProcessProtocol):
         def __init__(self, deferred):
@@ -322,7 +324,6 @@ def call_cmd_async(cmdlist, stdin=None, env=None):
             self.errReceived = self.errBuf.write
 
         def processEnded(self, status):
-            termenc = urwid.util.detected_encoding
             out = string_decode(self.outBuf.getvalue(), termenc)
             err = string_decode(self.errBuf.getvalue(), termenc)
             if status.value.exitCode == 0:
@@ -343,7 +344,7 @@ def call_cmd_async(cmdlist, stdin=None, env=None):
                                 args=cmdlist)
     if stdin:
         logging.debug('writing to stdin')
-        proc.write(stdin)
+        proc.write(stdin.encode(termenc))
         proc.closeStdin()
     return d
 
@@ -386,34 +387,28 @@ def guess_mimetype(blob):
 
 
 def guess_encoding(blob):
-    """
-    uses file magic to determine the encoding of the given data blob.
+    """Use chardet to guess the encoding of a given data blob
 
-    :param blob: file content as read by file.read()
-    :type blob: data
+    :param blob: A blob of bytes
+    :type blob: bytes
     :returns: encoding
     :rtype: str
     """
-    # this is a bit of a hack to support different versions of python magic.
-    # Hopefully at some point this will no longer be necessary
-    #
-    # the version with open() is the bindings shipped with the file source from
-    # http://darwinsys.com/file/ - this is what is used by the python-magic
-    # package on Debian/Ubuntu.  However it is not available on pypi/via pip.
-    #
-    # the version with from_buffer() is available at
-    # https://github.com/ahupp/python-magic and directly installable via pip.
-    #
-    # for more detail see https://github.com/pazz/alot/pull/588
-    if hasattr(magic, 'open'):
-        m = magic.open(magic.MAGIC_MIME_ENCODING)
-        m.load()
-        return m.buffer(blob)
-    elif hasattr(magic, 'from_buffer'):
-        m = magic.Magic(mime_encoding=True)
-        return m.from_buffer(blob)
-    else:
-        raise Exception('Unknown magic API')
+    info = chardet.detect(blob)
+    logging.debug('Encoding %s with confidence %f',
+                  info['encoding'], info['confidence'])
+    return info['encoding']
+
+
+def try_decode(blob):
+    """Guess the encoding of blob and try to decode it into a str.
+
+    :param bytes blob: The bytes to decode
+    :returns: the decoded blob
+    :rtype: str
+    """
+    assert isinstance(blob, bytes), 'cannot decode a str or non-bytes object'
+    return blob.decode(guess_encoding(blob))
 
 
 def libmagic_version_at_least(version):
@@ -625,6 +620,34 @@ def email_as_string(mail):
                            as_string, flags=re.MULTILINE)
 
     return as_string
+
+
+def email_as_bytes(mail):
+    string = email_as_string(mail)
+    charset = mail.get_charset()
+    if charset:
+        charset = str(charset)
+    else:
+        charsets = set(mail.get_charsets())
+        if None in charsets:
+            # None is equal to US-ASCII
+            charsets.discard(None)
+            charsets.add('ascii')
+
+        if len(charsets) == 1:
+            charset = list(charsets)[0]
+        elif 'ascii' in charsets:
+            # If we get here and the assert triggers it means that different
+            # parts of the email are encoded differently. I don't think we're
+            # likely to see that, but it's possible
+            if not {'utf-8', 'ascii', 'us-ascii'}.issuperset(charsets):
+                raise RuntimeError(
+                    "different encodings detected: {}".format(charsets))
+            charset = 'utf-8'  # It's a strict super-set
+        else:
+            charset = 'utf-8'
+
+    return string.encode(charset)
 
 
 def get_xdg_env(env_name, fallback):
