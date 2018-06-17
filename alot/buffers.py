@@ -16,6 +16,7 @@ from .walker import PipeWalker
 from .helper import shorten_author_string
 from .db.errors import NonexistantObjectError
 from .widgets.globals import TagWidget
+from .widgets.namedqueries import QuerylineWidget
 from .widgets.globals import HeadersList
 from .widgets.globals import AttachmentWidget
 from .widgets.bufferlist import BufferlineWidget
@@ -700,3 +701,73 @@ class TagListBuffer(Buffer):
         cols, _ = self.taglist.get_focus()
         tagwidget = cols.original_widget.get_focus()
         return tagwidget.tag
+
+
+class NamedQueriesBuffer(Buffer):
+    """lists named queries present in the notmuch database"""
+
+    modename = 'namedqueries'
+
+    def __init__(self, ui, queries=None):
+        self.ui = ui
+        self.queries = queries or []
+        self.isinitialized = False
+        self.rebuild()
+        Buffer.__init__(self, ui, self.body)
+
+    def rebuild(self, new_queries=None):
+        if new_queries:
+            self.queries = new_queries
+        self.queries = sorted(self.queries, key=unicode.lower)
+
+        if self.isinitialized:
+            focusposition = self.querylist.get_focus()[1]
+        else:
+            focusposition = 0
+
+        lines = []
+        for (num, q) in enumerate(self.queries):
+            if (num % 2) == 0:
+                attr = settings.get_theming_attribute('namedqueries',
+                                                      'line_even')
+            else:
+                attr = settings.get_theming_attribute('namedqueries',
+                                                      'line_odd')
+            focus_att = settings.get_theming_attribute('namedqueries',
+                                                       'line_focus')
+
+            count = self.ui.dbman.count_messages('query:"%s"' % q)
+            count_unread = self.ui.dbman.count_messages('query:"%s" and '
+                                                        'tag:unread' % q)
+
+            line = urwid.AttrMap(QuerylineWidget(q, count, count_unread),
+                                 attr, focus_att)
+            lines.append(line)
+
+        self.querylist = urwid.ListBox(urwid.SimpleListWalker(lines))
+        self.body = self.querylist
+
+        self.querylist.set_focus(focusposition % len(self.queries))
+
+        self.isinitialized = True
+
+    def focus_first(self):
+        """Focus the first line in the query list."""
+        self.body.set_focus(0)
+
+    def focus_last(self):
+        allpos = self.querylist.body.positions(reverse=True)
+        if allpos:
+            lastpos = allpos[0]
+            self.body.set_focus(lastpos)
+
+    def get_selected_query(self):
+        """returns selected query"""
+        return self.querylist.get_focus()[0].original_widget.query
+
+    def get_info(self):
+        info = {}
+
+        info['query_count'] = len(self.queries)
+
+        return info

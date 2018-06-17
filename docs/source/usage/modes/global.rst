@@ -53,7 +53,41 @@ The following commands are available globally
     Executes python code
 
     argument
-        python command string to call
+        command line to execute
+
+    optional arguments
+        :---spawn: run in terminal window.
+        :---thread: run in separate thread.
+        :---refocus: refocus current buffer after command has finished.
+
+.. _cmd.global.namedqueries:
+
+.. describe:: namedqueries
+
+    opens named queries buffer
+
+    optional arguments
+        :---queries: named queries to display.
+
+.. _cmd.global.refresh:
+
+.. describe:: refresh
+
+    refresh the current buffer
+
+
+.. _cmd.global.reload:
+
+.. describe:: reload
+
+    Reload all configuration files
+
+
+.. _cmd.global.pyshell:
+
+.. describe:: pyshell
+
+    open an interactive python shell for introspection
 
 
 .. _cmd.global.compose:
