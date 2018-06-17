@@ -718,7 +718,7 @@ class NamedQueriesBuffer(Buffer):
     def rebuild(self, new_queries=None):
         if new_queries:
             self.queries = new_queries
-        self.queries = sorted(self.queries, key=unicode.lower)
+        self.queries = sorted(self.queries, key=str.lower)
 
         if self.isinitialized:
             focusposition = self.querylist.get_focus()[1]
