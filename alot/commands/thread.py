@@ -756,7 +756,7 @@ class PipeCommand(Command):
                     headertext = extract_headers(mail)
                     bodytext = extract_body(mail, field_key=self.field_key)
                     msgtext = '%s\n\n%s' % (headertext, bodytext)
-                    pipestrings.append(msgtext.encode('utf-8'))
+                    pipestrings.append(msgtext)
 
         if not self.separately:
             pipestrings = [separator.join(pipestrings)]
