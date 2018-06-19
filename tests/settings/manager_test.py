@@ -27,7 +27,8 @@ class TestSettingsManager(unittest.TestCase):
                 """))
         self.addCleanup(os.unlink, f.name)
 
-        manager = SettingsManager(notmuch_rc=f.name)
+        manager = SettingsManager()
+        manager.read_notmuch_config(f.name)
         actual = manager.get_notmuch_setting('maildir', 'synchronize_flags')
         self.assertTrue(actual)
 
@@ -40,7 +41,8 @@ class TestSettingsManager(unittest.TestCase):
         self.addCleanup(os.unlink, f.name)
 
         with self.assertRaises(ConfigError):
-            SettingsManager(notmuch_rc=f.name)
+            manager = SettingsManager()
+            manager.read_notmuch_config(f.name)
 
     def test_reload_notmuch_config(self):
         with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
@@ -49,7 +51,8 @@ class TestSettingsManager(unittest.TestCase):
                 synchronize_flags = false
                 """))
         self.addCleanup(os.unlink, f.name)
-        manager = SettingsManager(notmuch_rc=f.name)
+        manager = SettingsManager()
+        manager.read_notmuch_config(f.name)
 
         with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
             f.write(textwrap.dedent("""\
@@ -58,8 +61,7 @@ class TestSettingsManager(unittest.TestCase):
                 """))
         self.addCleanup(os.unlink, f.name)
 
-        manager.notmuch_rc_path = f.name
-        manager.reload()
+        manager.read_notmuch_config(f.name)
         actual = manager.get_notmuch_setting('maildir', 'synchronize_flags')
         self.assertTrue(actual)
 
@@ -76,7 +78,8 @@ class TestSettingsManager(unittest.TestCase):
                 synchronize_flags = true
                 """))
         self.addCleanup(os.unlink, f.name)
-        manager = SettingsManager(notmuch_rc=f.name)
+        manager = SettingsManager()
+        manager.read_config(f.name)
 
         manager.get_theming_attribute('global', 'body')
 
@@ -99,7 +102,9 @@ class TestSettingsManager(unittest.TestCase):
         self.addCleanup(os.unlink, f.name)
 
         with mock.patch('alot.settings.utils.logging') as mock_logger:
-            SettingsManager(alot_rc=f.name)
+            manager = SettingsManager()
+            manager.read_config(f.name)
+
         success = any(all([s in call_args[0][0] for s in unknown_settings])
                       for call_args in mock_logger.info.call_args_list)
         self.assertTrue(success, msg='Could not find all unknown settings in '
@@ -116,7 +121,8 @@ class TestSettingsManager(unittest.TestCase):
                         address = thatguy@example.com
                 """))
         self.addCleanup(os.unlink, f.name)
-        manager = SettingsManager(alot_rc=f.name)
+        manager = SettingsManager()
+        manager.read_notmuch_config(f.name)
 
         setting = manager.get_notmuch_setting('foo', 'bar')
         self.assertIsNone(setting)
@@ -130,7 +136,8 @@ class TestSettingsManager(unittest.TestCase):
                         normal = '','', 'white','light red', 'white','#d66'
                 """.format(tag=tag)))
         self.addCleanup(os.unlink, f.name)
-        manager = SettingsManager(alot_rc=f.name)
+        manager = SettingsManager()
+        manager.read_config(f.name)
         manager.get_tagstring_representation(tag)
 
 
@@ -143,28 +150,6 @@ class TestSettingsManagerExpandEnvironment(unittest.TestCase):
     xdg_custom = '/foo/bar/.config'
     default_expanded = default.replace('$%s' % xdg_name, xdg_fallback)
 
-    def test_no_user_setting_and_env_not_set(self):
-        with mock.patch.dict('os.environ'):
-            if self.xdg_name in os.environ:
-                del os.environ[self.xdg_name]
-            manager = SettingsManager()
-            self.assertEqual(manager._config.get(self.setting_name),
-                             os.path.expanduser(self.default_expanded))
-
-    def test_no_user_setting_and_env_empty(self):
-        with mock.patch.dict('os.environ', {self.xdg_name: ''}):
-            manager = SettingsManager()
-            self.assertEqual(manager._config.get(self.setting_name),
-                             os.path.expanduser(self.default_expanded))
-
-    def test_no_user_setting_and_env_not_empty(self):
-        with mock.patch.dict('os.environ', {self.xdg_name: self.xdg_custom}):
-            manager = SettingsManager()
-            actual = manager._config.get(self.setting_name)
-            expected = self.default.replace('$%s' % self.xdg_name,
-                                            self.xdg_custom)
-            self.assertEqual(actual, expected)
-
     def test_user_setting_and_env_not_empty(self):
         user_setting = '/path/to/template/dir'
 
@@ -173,7 +158,8 @@ class TestSettingsManagerExpandEnvironment(unittest.TestCase):
                 f.write('template_dir = {}'.format(user_setting))
             self.addCleanup(os.unlink, f.name)
 
-            manager = SettingsManager(alot_rc=f.name)
+            manager = SettingsManager()
+            manager.read_config(f.name)
             self.assertEqual(manager._config.get(self.setting_name),
                              os.path.expanduser(user_setting))
 
@@ -193,7 +179,8 @@ class TestSettingsManagerExpandEnvironment(unittest.TestCase):
                 """.format(foo_in_config)))
             self.addCleanup(os.unlink, f.name)
 
-            manager = SettingsManager(alot_rc=f.name)
+            manager = SettingsManager()
+            manager.read_config(f.name)
             self.assertEqual(manager._config.get(self.setting_name),
                              os.path.join(self.xdg_custom, foo_env,
                                           foo_in_config, foo_env))
@@ -225,7 +212,8 @@ class TestSettingsManagerGetAccountByAddress(utilities.TestCaseClassCleanup):
 
         # Replace the actual settings object with our own using mock, but
         # ensure it's put back afterwards
-        cls.manager = SettingsManager(alot_rc=f.name)
+        cls.manager = SettingsManager()
+        cls.manager.read_config(f.name)
 
     def test_exists_addr(self):
         acc = self.manager.get_account_by_address(u'that_guy@example.com')
@@ -243,7 +231,8 @@ class TestSettingsManagerGetAccountByAddress(utilities.TestCaseClassCleanup):
     def test_doesnt_exist_no_default(self):
         with tempfile.NamedTemporaryFile() as f:
             f.write(b'')
-            settings = SettingsManager(alot_rc=f.name)
+            settings = SettingsManager()
+            settings.read_config(f.name)
         with self.assertRaises(NoMatchingAccount):
             settings.get_account_by_address('that_guy@example.com',
                                             return_default=True)
