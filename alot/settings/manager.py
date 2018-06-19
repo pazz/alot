@@ -3,7 +3,7 @@
 # For further details see the COPYING file
 from __future__ import absolute_import
 
-import imp
+import importlib.util
 import itertools
 import logging
 import mailcap
@@ -90,7 +90,9 @@ class SettingsManager(object):
 
         hooks_path = os.path.expanduser(self._config.get('hooksfile'))
         try:
-            self.hooks = imp.load_source('hooks', hooks_path)
+            spec = importlib.util.spec_from_file_location('hooks', hooks_path)
+            self.hooks = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(self.hooks)
         except:
             logging.exception('unable to load hooks file:%s', hooks_path)
         if 'bindings' in newconfig:
