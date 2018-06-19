@@ -11,7 +11,8 @@ from twisted.internet import reactor, defer, task
 import urwid
 
 from .settings.const import settings
-from .buffers import BufferlistBuffer, SearchBuffer
+from .buffers import BufferlistBuffer
+from .buffers import SearchBuffer
 from .commands import globals
 from .commands import commandfactory
 from .commands import CommandCanceled
