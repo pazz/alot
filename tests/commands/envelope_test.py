@@ -16,7 +16,6 @@
 
 """Tests for the alot.commands.envelope module."""
 
-from __future__ import absolute_import
 import contextlib
 import email
 import os

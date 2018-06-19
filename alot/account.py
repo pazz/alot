@@ -3,8 +3,6 @@
 # Copyright © 2017 Dylan Baker
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
-from __future__ import absolute_import
-
 import abc
 import glob
 import logging

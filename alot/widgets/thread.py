@@ -4,8 +4,6 @@
 """
 Widgets specific to thread mode
 """
-from __future__ import absolute_import
-
 import logging
 import urwid
 from urwidtrees import Tree, SimpleTree, CollapsibleTree

@@ -16,8 +16,6 @@
 
 """Tests for the alot.widgets.globals module."""
 
-from __future__ import absolute_import
-
 import unittest
 
 import mock

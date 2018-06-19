@@ -4,8 +4,6 @@
 # For further details see the COPYING file
 
 """Test suite for alot.commands.thread module."""
-from __future__ import absolute_import
-
 import email
 import unittest
 

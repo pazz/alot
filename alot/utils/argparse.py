@@ -17,8 +17,6 @@
 
 """Custom extensions of the argparse module."""
 
-from __future__ import absolute_import
-
 import argparse
 import collections
 import functools

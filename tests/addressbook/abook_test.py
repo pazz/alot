@@ -1,8 +1,6 @@
 # Copyright (C) 2017  Lucas Hoffmann
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
-from __future__ import absolute_import
-
 import os
 import tempfile
 import unittest

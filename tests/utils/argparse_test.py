@@ -16,8 +16,6 @@
 
 """Tests for alot.utils.argparse"""
 
-from __future__ import absolute_import
-
 import argparse
 import contextlib
 import os
