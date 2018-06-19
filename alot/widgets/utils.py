@@ -5,8 +5,6 @@
 """
 Utility Widgets not specific to alot
 """
-from __future__ import absolute_import
-
 import urwid
 
 

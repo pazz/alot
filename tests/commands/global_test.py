@@ -16,7 +16,6 @@
 
 """Tests for global commands."""
 
-from __future__ import absolute_import
 import os
 import tempfile
 

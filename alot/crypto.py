@@ -2,8 +2,6 @@
 # Copyright © 2017-2018 Dylan Baker <dylan@pnwbakers.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
-from __future__ import absolute_import
-
 import gpg
 
 from .errors import GPGProblem, GPGCode

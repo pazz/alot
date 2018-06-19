@@ -4,8 +4,6 @@
 
 """Test suite for alot.settings.manager module."""
 
-from __future__ import absolute_import
-
 import os
 import tempfile
 import textwrap

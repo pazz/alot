@@ -32,10 +32,7 @@
 Palette test.  Shows the available foreground and background settings
 in monochrome, 16 color, 88 color and 256 color modes.
 """
-from __future__ import absolute_import
-
 import re
-import sys
 
 import urwid
 import urwid.raw_display

@@ -15,8 +15,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """Tests for the alot.db.thread module."""
-from __future__ import absolute_import
-
 import datetime
 import unittest
 

@@ -17,7 +17,6 @@
 
 """Test suite for alot.helper module."""
 
-from __future__ import absolute_import
 import datetime
 import email
 import errno
