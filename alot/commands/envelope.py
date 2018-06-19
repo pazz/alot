@@ -416,12 +416,19 @@ class SetCommand(Command):
         self.reset = not append
         Command.__init__(self, **kwargs)
 
+    @inlineCallbacks
     def apply(self, ui):
         envelope = ui.current_buffer.envelope
         if self.reset:
             if self.key in envelope:
                 del envelope[self.key]
         envelope.add(self.key, self.value)
+        # FIXME: handle BCC as well
+        # Currently we don't handle bcc because it creates a side channel leak,
+        # as the key of the person BCC'd will be available to other recievers,
+        # defeating the purpose of BCCing them
+        if self.key.lower() in ['to', 'from', 'cc']:
+            yield utils.set_encrypt(ui, ui.current_buffer.envelope)
         ui.current_buffer.rebuild()
 
 
@@ -437,8 +444,15 @@ class UnsetCommand(Command):
         self.key = key
         Command.__init__(self, **kwargs)
 
+    @inlineCallbacks
     def apply(self, ui):
         del ui.current_buffer.envelope[self.key]
+        # FIXME: handle BCC as well
+        # Currently we don't handle bcc because it creates a side channel leak,
+        # as the key of the person BCC'd will be available to other recievers,
+        # defeating the purpose of BCCing them
+        if self.key.lower() in ['to', 'from', 'cc']:
+            yield utils.set_encrypt(ui, ui.current_buffer.envelope)
         ui.current_buffer.rebuild()
 
 
