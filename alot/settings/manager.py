@@ -29,55 +29,46 @@ DATA_DIRS = get_xdg_env('XDG_DATA_DIRS',
 
 class SettingsManager(object):
     """Organizes user settings"""
-    def __init__(self, alot_rc=None, notmuch_rc=None):
-        """
-        :param alot_rc: path to alot's config file
-        :type alot_rc: str
-        :param notmuch_rc: path to notmuch's config file
-        :type notmuch_rc: str
-        """
-        assert alot_rc is None or (isinstance(alot_rc, str) and
-                                   os.path.exists(alot_rc))
-        assert notmuch_rc is None or (isinstance(notmuch_rc, str) and
-                                      os.path.exists(notmuch_rc))
+    def __init__(self):
         self.hooks = None
         self._mailcaps = mailcap.getcaps()
         self._notmuchconfig = None
         self._theme = None
         self._accounts = None
         self._accountmap = None
-        self.alot_rc_path = alot_rc
-        self.notmuch_rc_path = notmuch_rc
         self._notmuchconfig = None
         self._config = ConfigObj()
         self._bindings = None
-        self.reload()
 
     def reload(self):
-        """Reload All configurations.
+        """Reload notmuch and alot config files"""
+        self.read_notmuch_config(self._notmuchconfig.filename)
+        self.read_config(self._config.filename)
 
-        This first resets all configs to default (in case an overwritten
-        binding is removed from the user config), then reloads the notmuch
-        config, and finally reads the alot config.
-
-        Implementation Detail: this is the same code called by the constructor
-        to set bindings at alot startup.
+    def read_notmuch_config(self, path):
         """
+        parse notmuch's config file
+        :param path: path to notmuch's config file
+        :type path: str
+        """
+        spec = os.path.join(DEFAULTSPATH, 'notmuch.rc.spec')
+        self._notmuchconfig = read_config(path, spec)
+
+    def _update_bindings(self, newbindings):
+        assert isinstance(newbindings, Section)
+
         self._bindings = ConfigObj(os.path.join(DEFAULTSPATH,
                                                 'default.bindings'))
-        self.read_notmuch_config()
-        self.read_config()
+        self._bindings.merge(newbindings)
 
-    def read_notmuch_config(self):
-        """parse notmuch's config file from path"""
-        spec = os.path.join(DEFAULTSPATH, 'notmuch.rc.spec')
-        self._notmuchconfig = read_config(self.notmuch_rc_path, spec)
-
-    def read_config(self):
-        """parse alot's config file from path"""
+    def read_config(self, path):
+        """
+        parse alot's config file
+        :param path: path to alot's config file
+        :type path: str
+        """
         spec = os.path.join(DEFAULTSPATH, 'alot.rc.spec')
-        newconfig = read_config(
-            self.alot_rc_path, spec, report_extra=True, checks={
+        newconfig = read_config(path, spec, report_extra=True, checks={
                 'mail_container': checks.mail_container,
                 'force_list': checks.force_list,
                 'align': checks.align_mode,
@@ -94,9 +85,7 @@ class SettingsManager(object):
         except:
             logging.exception('unable to load hooks file:%s', hooks_path)
         if 'bindings' in newconfig:
-            newbindings = newconfig['bindings']
-            if isinstance(newbindings, Section):
-                self._bindings.merge(newbindings)
+            self._update_bindings(newconfig['bindings'])
 
         tempdir = self._config.get('template_dir')
         logging.debug('template directory: `%s`' % tempdir)

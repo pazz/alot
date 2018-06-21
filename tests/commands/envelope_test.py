@@ -319,7 +319,8 @@ class TestSignCommand(unittest.TestCase):
         self.addCleanup(os.unlink, f.name)
 
         # Set the gpg_key separately to avoid validation failures
-        manager = SettingsManager(alot_rc=f.name)
+        manager = SettingsManager()
+        manager.read_config(f.name)
         manager.get_accounts()[0].gpg_key = mock.sentinel.gpg_key
         return manager
 

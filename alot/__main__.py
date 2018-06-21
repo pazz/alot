@@ -90,20 +90,17 @@ def main():
                         filemode='w', format=logformat)
 
     # locate alot config files
+    cpath = options.config
     if options.config is None:
         xdg_dir = get_xdg_env('XDG_CONFIG_HOME',
                               os.path.expanduser('~/.config'))
         alotconfig = os.path.join(xdg_dir, 'alot', 'config')
         if os.path.exists(alotconfig):
-            settings.alot_rc_path = alotconfig
-    else:
-        settings.alot_rc_path = options.config
-
-    settings.notmuch_rc_path = options.notmuch_config
+            cpath = alotconfig
 
     try:
-        settings.read_config()
-        settings.read_notmuch_config()
+        settings.read_config(cpath)
+        settings.read_notmuch_config(options.notmuch_config)
     except (ConfigError, OSError, IOError) as e:
         print('Error when parsing a config file. '
               'See log for potential details.')
