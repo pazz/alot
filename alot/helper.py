@@ -10,6 +10,7 @@ from io import BytesIO
 from io import StringIO
 import logging
 import mimetypes
+import io
 import os
 import re
 import shlex
@@ -22,7 +23,7 @@ from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-import chardet
+from chardet.universaldetector import UniversalDetector
 import urwid
 import magic
 from twisted.internet import reactor
@@ -391,9 +392,18 @@ def guess_encoding(blob):
     :returns: encoding
     :rtype: str
     """
-    info = chardet.detect(blob)
-    logging.debug('Encoding %s with confidence %f',
-                  info['encoding'], info['confidence'])
+    detector = UniversalDetector()
+    blobstream = io.BytesIO(blob)
+    n = 0
+    for line in blobstream:
+        detector.feed(line)
+        n += 1
+        if detector.done or n >= 1024:
+            break
+    detector.close()
+    info = detector.result
+    logging.debug('Encoding %s with confidence %f after %d lines',
+                  info['encoding'], info['confidence'], n)
     return info['encoding']
 
 
