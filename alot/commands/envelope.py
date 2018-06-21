@@ -427,8 +427,8 @@ class SetCommand(Command):
         # Currently we don't handle bcc because it creates a side channel leak,
         # as the key of the person BCC'd will be available to other recievers,
         # defeating the purpose of BCCing them
-        if self.key.lower() in ['to', 'from', 'cc']:
-            yield utils.update_keys(ui, ui.current_buffer.envelope)
+        if self.key.lower() in ['to', 'from', 'cc'] and envelope.encrypt:
+            yield utils.update_keys(ui, envelope)
         ui.current_buffer.rebuild()
 
 
