@@ -8,6 +8,7 @@ from .buffer import Buffer
 from ..settings.const import settings
 from ..widgets.globals import HeadersList
 from ..widgets.globals import AttachmentWidget
+from ..helper import shorten_author_string
 
 
 class EnvelopeBuffer(Buffer):
