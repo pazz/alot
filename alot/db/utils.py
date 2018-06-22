@@ -179,7 +179,7 @@ def _handle_encrypted(original, message):
             # recovered plain text mail. maybe that's a feature.
             malformed = str(e)
         else:
-            n = message_from_bytes(d)
+            n = email.message_from_bytes(d)
 
             # add the decrypted message to message. note that n contains all
             # the attachments, no need to walk over n here.
@@ -274,16 +274,6 @@ def message_from_string(s):
 
     '''
     return message_from_file(io.StringIO(s))
-
-
-def message_from_bytes(bytestring):
-    """Create a Message from bytes.
-
-    Attempt to guess the encoding of the bytestring.
-
-    :param bytes bytestring: an email message as raw bytes
-    """
-    return message_from_file(io.StringIO(helper.try_decode(bytestring)))
 
 
 def extract_headers(mail, headers=None):
