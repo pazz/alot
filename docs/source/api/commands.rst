@@ -73,6 +73,12 @@ Taglist
 .. automodule:: alot.commands.taglist
   :members:
 
+Namedqueries
+------------
+
+.. automodule:: alot.commands.namedqueries
+  :members:
+
 Thread
 --------
 
