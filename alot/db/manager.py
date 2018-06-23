@@ -298,6 +298,14 @@ class DBManager(object):
         db = Database(path=self.path)
         return [t for t in db.get_all_tags()]
 
+    def get_named_queries(self):
+        """
+        returns the named queries stored in the database.
+        :rtype: dict (str -> str) mapping alias to full query string
+        """
+        db = Database(path=self.path)
+        return {k[6:]: v for k, v in db.get_configs('query.')}
+
     def async(self, cbl, fun):
         """
         return a pair (pipe, process) so that the process writes
