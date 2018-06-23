@@ -391,6 +391,19 @@
     :default: True
 
 
+.. _namedqueries-statusbar:
+
+.. describe:: namedqueries_statusbar
+
+     Format of the status-bar in named query list mode.
+     This is a pair of strings to be left and right aligned in the status-bar.
+     These strings may contain variables listed at :ref:`bufferlist_statusbar <bufferlist-statusbar>`
+     that will be substituted accordingly.
+
+    :type: mixed_list
+    :default: [{buffer_no}: namedqueries], {query_count} named queries
+
+
 .. _notify-timeout:
 
 .. describe:: notify_timeout

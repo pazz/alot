@@ -54,6 +54,20 @@ The following commands are available in search mode
     prompt to retag selected thread's or message's tags
 
 
+.. _cmd.search.savequery:
+
+.. describe:: savequery
+
+    store query string as a "named query" in the database. This falls back to the current search query in search buffers.
+
+    positional arguments
+        0: alias to use for query string
+        1: query string to store
+
+
+    optional arguments
+        :---no-flush: postpone a writeout to the index (Defaults to: 'True').
+
 .. _cmd.search.select:
 
 .. describe:: select
