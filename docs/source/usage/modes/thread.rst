@@ -125,6 +125,13 @@ The following commands are available in thread mode
         :---all: tag all messages in thread.
         :---no-flush: postpone a writeout to the index (Defaults to: 'True').
 
+.. _cmd.thread.retagprompt:
+
+.. describe:: retagprompt
+
+    prompt to retag selected thread's or message's tags
+
+
 .. _cmd.thread.save:
 
 .. describe:: save
