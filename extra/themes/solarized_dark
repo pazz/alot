@@ -42,6 +42,10 @@ green = 'dark green'
     section = 'underline','default','%(cyan)s,bold','%(base02)s','%(cyan)s,bold','%(base02)s'
     title = 'standout','default','%(yellow)s','%(base02)s','%(yellow)s','%(base02)s'
     frame = 'standout','default','%(base1)s','%(base02)s','%(base1)s,bold','%(base02)s'
+[namedqueries]
+    line_even = 'default','default','%(base0)s','%(base02)s','%(base0)s','%(base02)s'
+    line_focus = 'standout','default','%(base1)s','%(base01)s','%(base1)s','%(base01)s'
+    line_odd = 'default','default','%(base0)s','%(base03)s','%(base0)s','%(base03)s'
 [taglist]
     line_even = 'default','default','%(base0)s','%(base02)s','%(base0)s','%(base02)s'
     line_focus = 'standout','default','%(base1)s','%(base01)s','%(base1)s','%(base01)s'

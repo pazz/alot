@@ -58,6 +58,10 @@
     text = 'default','default','%(16_base00)s','%(16_base2)s','%(256_base00)s','%(256_base2)s'
     section = 'underline','default','%(16_base01)s,underline','%(16_base2)s','%(256_base01)s,underline','%(256_base2)s'
     title = 'standout','default','%(16_base01)s','%(16_base2)s','%(256_base01)s','%(256_base2)s'
+[namedqueries]
+    line_focus = 'standout','default','%(16_base2)s','%(16_yellow)s','%(256_base2)s','%(256_yellow)s'
+    line_even = 'default','default','%(16_base00)s','%(16_base3)s','%(256_base00)s','%(256_base3)s'
+    line_odd = 'default','default','%(16_base00)s','%(16_base2)s','%(256_base00)s','%(256_base2)s'
 [taglist]
     line_focus = 'standout','default','%(16_base2)s','%(16_yellow)s','%(256_base2)s','%(256_yellow)s'
     line_even = 'default','default','%(16_base00)s','%(16_base3)s','%(256_base00)s','%(256_base3)s'
