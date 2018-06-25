@@ -152,6 +152,11 @@ class DBManager(object):
                         path = current_item[2]
                         db.remove_message(path)
 
+                    elif cmd == 'setconfig':
+                        key = current_item[2]
+                        value = current_item[3]
+                        db.set_config(key, value)
+
                     else:  # tag/set/untag
                         querystring, tags = current_item[2:]
                         query = db.create_query(querystring)
@@ -446,3 +451,36 @@ class DBManager(object):
             raise DatabaseROError()
         path = message.get_filename()
         self.writequeue.append(('remove', afterwards, path))
+
+    def save_named_query(self, alias, querystring, afterwards=None):
+        """
+        add an alias for a query string.
+
+        These are stored in the notmuch database and can be used as part of
+        more complex queries using the syntax "query:alias".
+        See :manpage:`notmuch-search-terms(7)` for more info.
+
+        :param alias: name of shortcut
+        :type alias: str
+        :param querystring: value, i.e., the full query string
+        :type querystring: str
+        :param afterwards: callback to trigger after adding the alias
+        :type afterwards: callable or None
+        """
+        if self.ro:
+            raise DatabaseROError()
+        self.writequeue.append(('setconfig', afterwards, 'query.' + alias,
+                                querystring))
+
+    def remove_named_query(self, alias, afterwards=None):
+        """
+        remove a named query from the notmuch database.
+
+        :param alias: name of shortcut
+        :type alias: str
+        :param afterwards: callback to trigger after adding the alias
+        :type afterwards: callable or None
+        """
+        if self.ro:
+            raise DatabaseROError()
+        self.writequeue.append(('setconfig', afterwards, 'query.' + alias, ''))
