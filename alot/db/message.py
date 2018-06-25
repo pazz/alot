@@ -101,7 +101,7 @@ class Message(object):
         if not self._email:
             try:
                 with open(path, 'rb') as f:
-                    self._email = utils.message_from_bytes(f.read())
+                    self._email = utils.decrypted_message_from_bytes(f.read())
             except IOError:
                 self._email = email.message_from_string(warning)
         return self._email
