@@ -1004,7 +1004,7 @@ class ReloadCommand(Command):
                           'help': 'postpone a writeout to the index'}),
         (['alias'], {'help': 'alias to use for query string'}),
         (['query'], {'help': 'query string to store',
-                     'nargs': argparse.REMAINDER})
+                     'nargs': '+'})
     ],
     help='store query string as a "named query" in the database')
 class SaveQueryCommand(Command):
@@ -1030,13 +1030,52 @@ class SaveQueryCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        searchbuffer = ui.current_buffer
-        query = searchbuffer.querystring
         msg = 'saved alias "%s" for query string "%s"' % (self.alias,
                                                           self.query)
 
         try:
             ui.dbman.save_named_query(self.alias, self.query)
+            logging.debug(msg)
+            ui.notify(msg)
+        except DatabaseROError:
+            ui.notify('index in read-only mode', priority='error')
+            return
+
+        # flush index
+        if self.flush:
+            ui.apply_command(commands.globals.FlushCommand())
+
+
+@registerCommand(
+    MODE, 'removequery',
+    arguments=[
+        (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
+                          'default': 'True',
+                          'help': 'postpone a writeout to the index'}),
+        (['alias'], {'help': 'alias to remove'}),
+    ],
+    help='removes a "named query" from the database')
+class RemoveQueryCommand(Command):
+
+    """remove named query string for given alias"""
+    repeatable = False
+
+    def __init__(self, alias, flush=True, **kwargs):
+        """
+        :param alias: name to use for query string
+        :type alias: str
+        :param flush: immediately write out to the index
+        :type flush: bool
+        """
+        self.alias = alias
+        self.flush = flush
+        Command.__init__(self, **kwargs)
+
+    def apply(self, ui):
+        msg = 'removed alias "%s"' % (self.alias)
+
+        try:
+            ui.dbman.remove_named_query(self.alias)
             logging.debug(msg)
             ui.notify(msg)
         except DatabaseROError:
