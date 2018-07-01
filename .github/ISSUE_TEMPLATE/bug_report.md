@@ -10,7 +10,6 @@ Before you submit a bug report, please make sure that the issue still exists on 
 A clear and concise description of what the bug is.
 
 **Software Versions**
------------------
 - Python version:
 - Notmuch version: [if relevant]
 - Alot version:
