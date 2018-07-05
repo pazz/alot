@@ -98,13 +98,12 @@ class ThreadlineWidget(urwid.AttrMap):
 
         elif name == 'content':
             if self.thread:
-                msgs = self.thread.get_messages().keys()
+                msgs = sorted(self.thread.get_messages().keys(),
+                              key=lambda msg: msg.get_date(), reverse=True)
+                lastcontent = ' '.join(m.get_text_content() for m in msgs)
+                contentstring = pad(lastcontent.replace('\n', ' ').strip())
             else:
-                msgs = []
-            # sort the most recent messages first
-            msgs.sort(key=lambda msg: msg.get_date(), reverse=True)
-            lastcontent = ' '.join([m.get_text_content() for m in msgs])
-            contentstring = pad(lastcontent.replace('\n', ' ').strip())
+                contentstring = pad('')
             content_w = AttrFlipWidget(urwid.Text(contentstring, wrap='clip'),
                                        struct['content'])
             width = len(contentstring)
