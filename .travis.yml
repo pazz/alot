@@ -157,6 +157,4 @@ after_success: |
 
 notifications:
   irc: "chat.freenode.net#alot"
-    template:
-      - "[%{branch}]: %{message}. (%{build_url})"
-    on_success: change
+  on_success: change
