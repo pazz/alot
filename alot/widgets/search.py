@@ -193,13 +193,12 @@ def build_text_part(name, thread, struct, minw, maxw, align):
         content = pad(subjectstring)
     elif name == 'content':
         if thread:
-            msgs = thread.get_messages().keys()
+            msgs = sorted(thread.get_messages().keys(), key=lambda msg:
+                          msg.get_date(), reverse=True)
+            lastcontent = ' '.join(m.get_text_content() for m in msgs)
+            content = pad(lastcontent.replace('\n', ' ').strip())
         else:
-            msgs = []
-        # sort the most recent messages first
-        msgs.sort(key=lambda msg: msg.get_date(), reverse=True)
-        lastcontent = ' '.join([m.get_text_content() for m in msgs])
-        content = pad(lastcontent.replace('\n', ' ').strip())
+            content = pad('')
 
     # define width and part_w in case the above produced a content string
     if content:
