@@ -56,8 +56,9 @@ class ThreadlineWidget(urwid.AttrMap):
                 if newest is not None:
                     datestring = settings.represent_datetime(newest)
             datestring = pad(datestring)
-            width = len(datestring)
-            part = AttrFlipWidget(urwid.Text(datestring), struct['date'])
+            text = urwid.Text(datestring)
+            width = text.pack()[0]
+            part = AttrFlipWidget(text, struct['date'])
 
         elif name == 'mailcount':
             if self.thread:
@@ -65,8 +66,9 @@ class ThreadlineWidget(urwid.AttrMap):
             else:
                 mailcountstring = "(?)"
             mailcountstring = pad(mailcountstring)
-            width = len(mailcountstring)
-            mailcount_w = AttrFlipWidget(urwid.Text(mailcountstring),
+            text = urwid.Text(mailcountstring)
+            width = text.pack()[0]
+            mailcount_w = AttrFlipWidget(text,
                                          struct['mailcount'])
             part = mailcount_w
         elif name == 'authors':
@@ -75,9 +77,10 @@ class ThreadlineWidget(urwid.AttrMap):
             else:
                 authors = '(None)'
             authorsstring = pad(authors, shorten_author_string)
-            authors_w = AttrFlipWidget(urwid.Text(authorsstring),
+            text = urwid.Text(authorsstring)
+            width = text.pack()[0]
+            authors_w = AttrFlipWidget(text,
                                        struct['authors'])
-            width = len(authorsstring)
             part = authors_w
 
         elif name == 'subject':
@@ -90,10 +93,12 @@ class ThreadlineWidget(urwid.AttrMap):
             subjectstring = subjectstring.replace('\r', '')
             subjectstring = pad(subjectstring)
 
-            subject_w = AttrFlipWidget(urwid.Text(subjectstring, wrap='clip'),
+            text = urwid.Text(subjectstring, wrap='clip')
+            width = text.pack()[0]
+
+            subject_w = AttrFlipWidget(text,
                                        struct['subject'])
             if subjectstring:
-                width = len(subjectstring)
                 part = subject_w
 
         elif name == 'content':
@@ -105,9 +110,10 @@ class ThreadlineWidget(urwid.AttrMap):
             msgs.sort(key=lambda msg: msg.get_date(), reverse=True)
             lastcontent = ' '.join([m.get_text_content() for m in msgs])
             contentstring = pad(lastcontent.replace('\n', ' ').strip())
-            content_w = AttrFlipWidget(urwid.Text(contentstring, wrap='clip'),
+            text = urwid.Text(contentstring, wrap='clip'),
+            width = text.pack()[0]
+            content_w = AttrFlipWidget(text,
                                        struct['content'])
-            width = len(contentstring)
             part = content_w
         elif name == 'tags':
             if self.thread:
