@@ -46,8 +46,9 @@ class ThreadlineWidget(urwid.AttrMap):
                         string = string.rjust(minw)
             return string
 
-        part = None
+        part_w = None
         width = None
+        content = None
         if name == 'date':
             newest = None
             datestring = ''
@@ -55,34 +56,19 @@ class ThreadlineWidget(urwid.AttrMap):
                 newest = self.thread.get_newest_date()
                 if newest is not None:
                     datestring = settings.represent_datetime(newest)
-            datestring = pad(datestring)
-            text = urwid.Text(datestring)
-            width = text.pack()[0]
-            part = AttrFlipWidget(text, struct['date'])
-
+            content = pad(datestring)
         elif name == 'mailcount':
             if self.thread:
                 mailcountstring = "(%d)" % self.thread.get_total_messages()
             else:
                 mailcountstring = "(?)"
-            mailcountstring = pad(mailcountstring)
-            text = urwid.Text(mailcountstring)
-            width = text.pack()[0]
-            mailcount_w = AttrFlipWidget(text,
-                                         struct['mailcount'])
-            part = mailcount_w
+            content = pad(mailcountstring)
         elif name == 'authors':
             if self.thread:
                 authors = self.thread.get_authors_string() or '(None)'
             else:
                 authors = '(None)'
-            authorsstring = pad(authors, shorten_author_string)
-            text = urwid.Text(authorsstring)
-            width = text.pack()[0]
-            authors_w = AttrFlipWidget(text,
-                                       struct['authors'])
-            part = authors_w
-
+            content = pad(authors, shorten_author_string)
         elif name == 'subject':
             if self.thread:
                 subjectstring = self.thread.get_subject() or ' '
@@ -91,16 +77,7 @@ class ThreadlineWidget(urwid.AttrMap):
             # sanitize subject string:
             subjectstring = subjectstring.replace('\n', ' ')
             subjectstring = subjectstring.replace('\r', '')
-            subjectstring = pad(subjectstring)
-
-            text = urwid.Text(subjectstring, wrap='clip')
-            width = text.pack()[0]
-
-            subject_w = AttrFlipWidget(text,
-                                       struct['subject'])
-            if subjectstring:
-                part = subject_w
-
+            content = pad(subjectstring)
         elif name == 'content':
             if self.thread:
                 msgs = self.thread.get_messages().keys()
@@ -109,13 +86,19 @@ class ThreadlineWidget(urwid.AttrMap):
             # sort the most recent messages first
             msgs.sort(key=lambda msg: msg.get_date(), reverse=True)
             lastcontent = ' '.join([m.get_text_content() for m in msgs])
-            contentstring = pad(lastcontent.replace('\n', ' ').strip())
-            text = urwid.Text(contentstring, wrap='clip'),
+            content = pad(lastcontent.replace('\n', ' ').strip())
+
+        # define width and part_w in case the above produced a content string
+        if content:
+            text = urwid.Text(content, wrap='clip')
             width = text.pack()[0]
-            content_w = AttrFlipWidget(text,
-                                       struct['content'])
-            part = content_w
-        elif name == 'tags':
+            part_w = AttrFlipWidget(text, struct[name])
+
+        # the above dealt with plain text parts, which result in (wrapped)
+        # urwid.Text widgets. Below we deal with the special case of taglist
+        # parts, which are text in an urwid.Colums widget.
+
+        if name == 'tags':
             if self.thread:
                 fallback_normal = struct[name]['normal']
                 fallback_focus = struct[name]['focus']
@@ -133,9 +116,9 @@ class ThreadlineWidget(urwid.AttrMap):
                     cols.append(('fixed', tag_width, wrapped_tagwidget))
                     length += tag_width + 1
             if cols:
-                part = urwid.Columns(cols, dividechars=1)
+                part_w = urwid.Columns(cols, dividechars=1)
                 width = length
-        return width, part
+        return width, part_w
 
     def rebuild(self):
         self.thread = self.dbman.get_thread(self.tid)
