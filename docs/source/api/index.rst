@@ -6,7 +6,6 @@ API and Development
     :maxdepth: 1
 
     overview
-    contributing
     database
     interface
     settings
