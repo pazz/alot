@@ -53,7 +53,7 @@ To ensure timely and painless reviews please keep the following in mind.
 [Github]: https://github.com/pazz/alot
 [Issues]: https://github.com/pazz/alot/issues
 [Freenode]: https://freenode.net
-[GLP3]: https://www.gnu.org/licenses/gpl-3.0.en.html
+[GPL3]: https://www.gnu.org/licenses/gpl-3.0.en.html
 [PEP8]: https://www.python.org/dev/peps/pep-0008/
 [pycodestyle]:https://github.com/PyCQA/pycodestyle
 [sphinx]: http://sphinx.pocoo.org/domains.html#info-field-lists
