@@ -163,12 +163,3 @@ class ThreadlineWidget(urwid.AttrMap):
 
     def get_thread(self):
         return self.thread
-
-    @staticmethod
-    def _get_theme(component, focus=False):
-        path = ['search', 'threadline', component]
-        if focus:
-            path.append('focus')
-        else:
-            path.append('normal')
-        return settings.get_theming_attribute(path)
