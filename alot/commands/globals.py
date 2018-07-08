@@ -844,7 +844,7 @@ class ComposeCommand(Command):
                     self.envelope.attach(sig, filename=name)
                     logging.debug('attached')
                 else:
-                    with open(sig) as f:
+                    with open(sig, 'rb') as f:
                         sigcontent = f.read()
                     mimetype = helper.guess_mimetype(sigcontent)
                     if mimetype.startswith('text'):
