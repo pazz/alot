@@ -31,8 +31,18 @@ class ThreadlineWidget(urwid.AttrMap):
     def rebuild(self):
         self.thread = self.dbman.get_thread(self.tid)
         self.widgets = []
-        columns = []
         self.structure = settings.get_threadline_theming(self.thread)
+
+        columns = []
+
+        # combine width info and widget into an urwid.Column entry
+        def add_column(width, part):
+            width_tuple = self.structure[partname]['width']
+            if width_tuple[0] == 'weight':
+                columnentry = width_tuple + (part,)
+            else:
+                columnentry = ('fixed', width, part)
+            columns.append(columnentry)
 
         # create a column for every part of the threadline
         for partname in self.structure['parts']:
@@ -42,20 +52,15 @@ class ThreadlineWidget(urwid.AttrMap):
                 width, part = build_tags_part(self.thread.get_tags(),
                                               self.structure['tags']['normal'],
                                               self.structure['tags']['focus'])
-                for w in part.widget_list:
-                    self.widgets.append(w)
+                if part:
+                    add_column(width, part)
+                    for w in part.widget_list:
+                        self.widgets.append(w)
             else:
                 width, part = build_text_part(partname, self.thread,
                                               self.structure[partname])
+                add_column(width, part)
                 self.widgets.append(part)
-
-            # combine width info and widget into an urwid.Column entry
-            width_tuple = self.structure[partname]['width']
-            if width_tuple[0] == 'weight':
-                columnentry = width_tuple + (part,)
-            else:
-                columnentry = ('fixed', width, part)
-            columns.append(columnentry)
 
         self.columns = urwid.Columns(columns, dividechars=1)
         self.original_widget = self.columns
