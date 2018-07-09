@@ -36,14 +36,6 @@ class ThreadlineWidget(urwid.AttrMap):
 
         # create a column for every part of the threadline
         for partname in self.structure['parts']:
-            # extract min/max width, overall width, and alignment parameters
-            minw = maxw = None
-            width_tuple = self.structure[partname]['width']
-            if width_tuple is not None:
-                if width_tuple[0] == 'fit':
-                    minw, maxw = width_tuple[1:]
-            alignment = self.structure[partname]['alignment']
-
             # build widget(s) around this part's content and remember them so
             # that self.render() may change local attributes.
             if partname == 'tags':
@@ -54,11 +46,11 @@ class ThreadlineWidget(urwid.AttrMap):
                     self.widgets.append(w)
             else:
                 width, part = build_text_part(partname, self.thread,
-                                              self.structure[partname], minw,
-                                              maxw, alignment)
+                                              self.structure[partname])
                 self.widgets.append(part)
 
             # combine width info and widget into an urwid.Column entry
+            width_tuple = self.structure[partname]['width']
             if width_tuple[0] == 'weight':
                 columnentry = width_tuple + (part,)
             else:
@@ -116,7 +108,7 @@ def build_tags_part(tags, attr_normal, attr_focus):
     return width, part_w
 
 
-def build_text_part(name, thread, struct, minw, maxw, align):
+def build_text_part(name, thread, struct):
     """
     create an urwid.Text widget (wrapped in approproate Attributes)
     to display a plain text parts in a threadline.
@@ -130,26 +122,29 @@ def build_text_part(name, thread, struct, minw, maxw, align):
     :param struct: theming attributes for this part, as provided by
                    :class:`alot.settings.theme.Theme.get_threadline_theming`
     :type struct: dict
-    :param minw: minimal width to use
-    :type minw: int
-    :param maxw: maximal width to use
-    :type maxw: int
-    :param align: alignment of content in displayed string, if shorter.
-                  must be "left", "right", or "center".
-    :type align: str
     :return: overall width (in characters) and a widget.
     :rtype: tuple[int, AttrFliwWidget]
     """
 
     part_w = None
     width = None
+
+    # extract min and max allowed width from theme
+    minw = 0
+    maxw = None
+    width_tuple = struct['width']
+    if width_tuple is not None:
+        if width_tuple[0] == 'fit':
+            minw, maxw = width_tuple[1:]
+
     content = prepare_string(name, thread, maxw)
 
     # pad content if not long enough
     if minw:
-        if align == 'left':
+        alignment = struct['alignment']
+        if alignment == 'left':
             content = content.ljust(minw)
-        elif align == 'center':
+        elif alignment == 'center':
             content = content.center(minw)
         else:
             content = content.rjust(minw)
