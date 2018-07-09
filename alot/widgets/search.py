@@ -141,69 +141,84 @@ def build_text_part(name, thread, struct, minw, maxw, align):
     :rtype: tuple[int, AttrFliwWidget]
     """
 
-    # local string padding function
-    def pad(string, shorten=None):
-        if maxw:
-            if len(string) > maxw:
-                if shorten:
-                    string = shorten(string, maxw)
-                else:
-                    string = string[:maxw]
-        if minw:
-            if len(string) < minw:
-                if align == 'left':
-                    string = string.ljust(minw)
-                elif align == 'center':
-                    string = string.center(minw)
-                else:
-                    string = string.rjust(minw)
-        return string
-
     part_w = None
     width = None
-    content = None
-    if name == 'date':
-        newest = None
-        datestring = ''
-        if thread:
-            newest = thread.get_newest_date()
-            if newest is not None:
-                datestring = settings.represent_datetime(newest)
-        content = pad(datestring)
-    elif name == 'mailcount':
-        if thread:
-            mailcountstring = "(%d)" % thread.get_total_messages()
-        else:
-            mailcountstring = "(?)"
-        content = pad(mailcountstring)
-    elif name == 'authors':
-        if thread:
-            authors = thread.get_authors_string() or '(None)'
-        else:
-            authors = '(None)'
-        content = pad(authors, shorten_author_string)
-    elif name == 'subject':
-        if thread:
-            subjectstring = thread.get_subject() or ' '
-        else:
-            subjectstring = ' '
-        # sanitize subject string:
-        subjectstring = subjectstring.replace('\n', ' ')
-        subjectstring = subjectstring.replace('\r', '')
-        content = pad(subjectstring)
-    elif name == 'content':
-        if thread:
-            msgs = sorted(thread.get_messages().keys(), key=lambda msg:
-                          msg.get_date(), reverse=True)
-            lastcontent = ' '.join(m.get_text_content() for m in msgs)
-            content = pad(lastcontent.replace('\n', ' ').strip())
-        else:
-            content = pad('')
+    content = prepare_string(name, thread, maxw)
 
-    # define width and part_w in case the above produced a content string
-    if content:
-        text = urwid.Text(content, wrap='clip')
-        width = text.pack()[0]
-        part_w = AttrFlipWidget(text, struct)
+    # pad content if not long enough
+    if minw:
+        if align == 'left':
+            content = content.ljust(minw)
+        elif align == 'center':
+            content = content.center(minw)
+        else:
+            content = content.rjust(minw)
+
+    # define width and part_w
+    text = urwid.Text(content, wrap='clip')
+    width = text.pack()[0]
+    part_w = AttrFlipWidget(text, struct)
 
     return width, part_w
+
+
+def prepare_date_string(thread):
+    newest = None
+    newest = thread.get_newest_date()
+    if newest is not None:
+        datestring = settings.represent_datetime(newest)
+    return datestring
+
+
+def prepare_mailcount_string(thread):
+    return "(%d)" % thread.get_total_messages()
+
+
+def prepare_authors_string(thread):
+    return thread.get_authors_string() or '(None)'
+
+
+def prepare_subject_string(thread):
+    return thread.get_subject() or ' '
+
+
+def prepare_content_string(thread):
+    msgs = sorted(thread.get_messages().keys(),
+                  key=lambda msg: msg.get_date(), reverse=True)
+    lastcontent = ' '.join(m.get_text_content() for m in msgs)
+    return lastcontent
+
+
+def prepare_string(partname, thread, maxw):
+    """
+    extract a content string for part 'partname' from 'thread' of maximal
+    length 'maxw'.
+    """
+    # map part names to function extracting content string and custom shortener
+    prep = {
+        'mailcount': (prepare_mailcount_string, None),
+        'date': (prepare_date_string, None),
+        'authors': (prepare_authors_string, shorten_author_string),
+        'subject': (prepare_subject_string, None),
+        'content': (prepare_content_string, None),
+    }
+
+    s = ' '  # fallback value
+    if thread:
+        # get extractor and shortener
+        content, shortener = prep[partname]
+
+        # get string
+        s = content(thread)
+
+    # sanitize
+    s = s.replace('\n', ' ')
+    s = s.replace('\r', '')
+
+    # shorten if max width is requested
+    if maxw:
+        if len(s) > maxw and shortener:
+            s = shortener(s, maxw)
+        else:
+            s = s[:maxw]
+    return s
