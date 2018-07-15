@@ -487,3 +487,15 @@ class TestGetEnv(unittest.TestCase):
         with mock.patch.dict('os.environ', {self.env_name: custom_path}):
             self.assertEqual(helper.get_xdg_env(self.env_name, self.default),
                              custom_path)
+
+
+class TestParseMailto(unittest.TestCase):
+
+    def test_parsing_working(self):
+        uri = 'mailto:test%40example.org?Subject=Re%3A%20Hello\
+&In-Reply-To=%3CC8CE9EFD-CB23-4BC0-B70D-9B7FEAD59F8C%40example.org%3E'
+        actual = helper.parse_mailto(uri)
+        expected = ({'To': ['test@example.org'],
+                     'Subject': ['Re: Hello'],
+                     'In-reply-to': ['<C8CE9EFD-CB23-4BC0-B70D-9B7FEAD59F8C@example.org>']}, '')
+        self.assertEqual(actual, expected)
