@@ -11,8 +11,6 @@ import re
 import tempfile
 import textwrap
 
-from twisted.internet.defer import inlineCallbacks
-
 from . import Command, registerCommand
 from . import globals
 from . import utils
@@ -167,8 +165,7 @@ class SendCommand(Command):
         self.envelope = envelope
         self.envelope_buffer = None
 
-    @inlineCallbacks
-    def apply(self, ui):
+    async def apply(self, ui):
         if self.mail is None:
             if self.envelope is None:
                 # needed to close later
@@ -184,7 +181,7 @@ class SendCommand(Command):
                 warning = 'A modified version of ' * mod
                 warning += 'this message has been sent at %s.' % when
                 warning += ' Do you want to resend?'
-                if (yield ui.choice(warning, cancel='no',
+                if (await ui.choice(warning, cancel='no',
                                     msg_position='left')) == 'no':
                     return
 
@@ -201,7 +198,7 @@ class SendCommand(Command):
                 warning = textwrap.dedent("""\
                     Any BCC recipients will not be able to decrypt this
                     message. Do you want to send anyway?""").replace('\n', ' ')
-                if (yield ui.choice(warning, cancel='no',
+                if (await ui.choice(warning, cancel='no',
                                     msg_position='left')) == 'no':
                     return
 
@@ -417,8 +414,7 @@ class SetCommand(Command):
         self.reset = not append
         Command.__init__(self, **kwargs)
 
-    @inlineCallbacks
-    def apply(self, ui):
+    async def apply(self, ui):
         envelope = ui.current_buffer.envelope
         if self.reset:
             if self.key in envelope:
@@ -429,7 +425,7 @@ class SetCommand(Command):
         # as the key of the person BCC'd will be available to other recievers,
         # defeating the purpose of BCCing them
         if self.key.lower() in ['to', 'from', 'cc'] and envelope.encrypt:
-            yield utils.update_keys(ui, envelope)
+            await utils.update_keys(ui, envelope)
         ui.current_buffer.rebuild()
 
 
@@ -445,15 +441,14 @@ class UnsetCommand(Command):
         self.key = key
         Command.__init__(self, **kwargs)
 
-    @inlineCallbacks
-    def apply(self, ui):
+    async def apply(self, ui):
         del ui.current_buffer.envelope[self.key]
         # FIXME: handle BCC as well
         # Currently we don't handle bcc because it creates a side channel leak,
         # as the key of the person BCC'd will be available to other recievers,
         # defeating the purpose of BCCing them
         if self.key.lower() in ['to', 'from', 'cc']:
-            yield utils.update_keys(ui, ui.current_buffer.envelope)
+            await utils.update_keys(ui, ui.current_buffer.envelope)
         ui.current_buffer.rebuild()
 
 
@@ -578,8 +573,7 @@ class EncryptCommand(Command):
         self.trusted = trusted
         Command.__init__(self, **kwargs)
 
-    @inlineCallbacks
-    def apply(self, ui):
+    async def apply(self, ui):
         envelope = ui.current_buffer.envelope
         if self.action == 'rmencrypt':
             try:
@@ -604,7 +598,7 @@ class EncryptCommand(Command):
                     tmp_key = crypto.get_key(keyid)
                     envelope.encrypt_keys[tmp_key.fpr] = tmp_key
             else:
-                yield utils.update_keys(ui, envelope, signed_only=self.trusted)
+                await utils.update_keys(ui, envelope, signed_only=self.trusted)
         envelope.encrypt = encrypt
         if not envelope.encrypt:
             # This is an extra conditional as it can even happen if encrypt is

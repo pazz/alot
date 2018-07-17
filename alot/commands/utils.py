@@ -4,16 +4,13 @@
 import re
 import logging
 
-from twisted.internet.defer import inlineCallbacks, returnValue
-
 from ..errors import GPGProblem, GPGCode
 from ..settings.const import settings
 from ..settings.errors import NoMatchingAccount
 from .. import crypto
 
 
-@inlineCallbacks
-def update_keys(ui, envelope, block_error=False, signed_only=False):
+async def update_keys(ui, envelope, block_error=False, signed_only=False):
     """Find and set the encryption keys in an envolope.
 
     :param ui: the main user interface object
@@ -41,7 +38,7 @@ def update_keys(ui, envelope, block_error=False, signed_only=False):
             encrypt_keys.append(recipient)
 
     logging.debug("encryption keys: " + str(encrypt_keys))
-    keys = yield _get_keys(ui, encrypt_keys, block_error=block_error,
+    keys = await _get_keys(ui, encrypt_keys, block_error=block_error,
                            signed_only=signed_only)
     if keys:
         envelope.encrypt_keys = keys
@@ -63,8 +60,7 @@ def update_keys(ui, envelope, block_error=False, signed_only=False):
         envelope.encrypt = False
 
 
-@inlineCallbacks
-def _get_keys(ui, encrypt_keyids, block_error=False, signed_only=False):
+async def _get_keys(ui, encrypt_keyids, block_error=False, signed_only=False):
     """Get several keys from the GPG keyring.  The keys are selected by keyid
     and are checked if they can be used for encryption.
 
@@ -93,7 +89,7 @@ def _get_keys(ui, encrypt_keyids, block_error=False, signed_only=False):
                 choices = {str(i): t for i, t in enumerate(tmp_choices, 1)}
                 keys_to_return = {str(i): t for i, t in enumerate([k for k in
                                   crypto.list_keys(hint=keyid)], 1)}
-                choosen_key = yield ui.choice("ambiguous keyid! Which " +
+                choosen_key = await ui.choice("ambiguous keyid! Which " +
                                               "key do you want to use?",
                                               choices=choices,
                                               choices_to_return=keys_to_return)
@@ -104,4 +100,4 @@ def _get_keys(ui, encrypt_keyids, block_error=False, signed_only=False):
                 ui.notify(str(e), priority='error', block=block_error)
                 continue
         keys[key.fpr] = key
-    returnValue(keys)
+    return keys

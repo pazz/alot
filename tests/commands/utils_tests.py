@@ -21,7 +21,7 @@ import shutil
 import gpg
 import mock
 from twisted.trial import unittest
-from twisted.internet.defer import inlineCallbacks
+from twisted.internet.defer import inlineCallbacks, ensureDeferred
 
 from alot import crypto
 from alot import errors
@@ -80,7 +80,7 @@ class TestGetKeys(unittest.TestCase):
                                   signed_only=False)
         ui = utilities.make_ui()
         ids = [FPR]
-        actual = yield utils._get_keys(ui, ids)
+        actual = yield ensureDeferred(utils._get_keys(ui, ids))
         self.assertIn(FPR, actual)
         self.assertEqual(actual[FPR].fpr, expected.fpr)
 
@@ -91,7 +91,7 @@ class TestGetKeys(unittest.TestCase):
                                   signed_only=False)
         ui = utilities.make_ui()
         ids = [FPR, "6F6B15509CF8E59E6E469F327F438280EF8D349F"]
-        actual = yield utils._get_keys(ui, ids)
+        actual = yield ensureDeferred(utils._get_keys(ui, ids))
         self.assertIn(FPR, actual)
         self.assertEqual(actual[FPR].fpr, expected.fpr)
 
@@ -100,7 +100,7 @@ class TestGetKeys(unittest.TestCase):
         """Test gettings keys when signed only is required."""
         ui = utilities.make_ui()
         ids = [FPR]
-        actual = yield utils._get_keys(ui, ids, signed_only=True)
+        actual = yield ensureDeferred(utils._get_keys(ui, ids, signed_only=True))
         self.assertEqual(actual, {})
 
     @inlineCallbacks
@@ -123,7 +123,7 @@ class TestGetKeys(unittest.TestCase):
                             'test', errors.GPGCode.AMBIGUOUS_NAME))):
             with mock.patch('alot.commands.utils.crypto.list_keys',
                             mock.Mock(return_value=[key])):
-                yield utils._get_keys(ui, ids, signed_only=False)
+                yield ensureDeferred(utils._get_keys(ui, ids, signed_only=False))
         ui.choice.assert_called_once()
 
 
@@ -140,7 +140,7 @@ class TestSetEncrypt(unittest.TestCase):
         ui = utilities.make_ui()
         envelope = Envelope()
         envelope['To'] = 'ambig@example.com, test@example.com'
-        yield utils.update_keys(ui, envelope)
+        yield ensureDeferred(utils.update_keys(ui, envelope))
         self.assertTrue(envelope.encrypt)
         self.assertCountEqual(
             [f.fpr for f in envelope.encrypt_keys.values()],
@@ -151,7 +151,7 @@ class TestSetEncrypt(unittest.TestCase):
         ui = utilities.make_ui()
         envelope = Envelope()
         envelope['Cc'] = 'ambig@example.com, test@example.com'
-        yield utils.update_keys(ui, envelope)
+        yield ensureDeferred(utils.update_keys(ui, envelope))
         self.assertTrue(envelope.encrypt)
         self.assertCountEqual(
             [f.fpr for f in envelope.encrypt_keys.values()],
@@ -162,7 +162,7 @@ class TestSetEncrypt(unittest.TestCase):
         ui = utilities.make_ui()
         envelope = Envelope()
         envelope['Cc'] = 'foo@example.com, test@example.com'
-        yield utils.update_keys(ui, envelope)
+        yield ensureDeferred(utils.update_keys(ui, envelope))
         self.assertTrue(envelope.encrypt)
         self.assertCountEqual(
             [f.fpr for f in envelope.encrypt_keys.values()],
@@ -173,7 +173,7 @@ class TestSetEncrypt(unittest.TestCase):
         ui = utilities.make_ui()
         envelope = Envelope()
         envelope['To'] = 'foo@example.com'
-        yield utils.update_keys(ui, envelope)
+        yield ensureDeferred(utils.update_keys(ui, envelope))
         self.assertFalse(envelope.encrypt)
         self.assertEqual(envelope.encrypt_keys, {})
 
@@ -187,7 +187,7 @@ class TestSetEncrypt(unittest.TestCase):
         account = _Account(encrypt_to_self=True, gpg_key=gpg_key)
         with mock.patch('alot.commands.thread.settings.get_account_by_address',
                         mock.Mock(return_value=account)):
-            yield utils.update_keys(ui, envelope)
+            yield ensureDeferred(utils.update_keys(ui, envelope))
         self.assertTrue(envelope.encrypt)
         self.assertIn(FPR, envelope.encrypt_keys)
         self.assertEqual(gpg_key, envelope.encrypt_keys[FPR])
@@ -202,6 +202,6 @@ class TestSetEncrypt(unittest.TestCase):
         account = _Account(encrypt_to_self=False, gpg_key=gpg_key)
         with mock.patch('alot.commands.thread.settings.get_account_by_address',
                         mock.Mock(return_value=account)):
-            yield utils.update_keys(ui, envelope)
+            yield ensureDeferred(utils.update_keys(ui, envelope))
         self.assertTrue(envelope.encrypt)
         self.assertNotIn(FPR, envelope.encrypt_keys)
