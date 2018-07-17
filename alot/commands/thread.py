@@ -11,7 +11,6 @@ import tempfile
 from email.utils import getaddresses, parseaddr, formataddr
 from email.message import Message
 
-from twisted.internet.defer import inlineCallbacks
 import urwid
 from io import BytesIO
 
@@ -424,8 +423,7 @@ class BounceMailCommand(Command):
         self.message = message
         Command.__init__(self, **kwargs)
 
-    @inlineCallbacks
-    def apply(self, ui):
+    async def apply(self, ui):
         # get mail to bounce
         if not self.message:
             self.message = ui.current_buffer.get_selected_message()
@@ -462,7 +460,7 @@ class BounceMailCommand(Command):
             completer = ContactsCompleter(abooks)
         else:
             completer = None
-        to = yield ui.prompt('To', completer=completer,
+        to = await ui.prompt('To', completer=completer,
                              history=ui.recipienthistory)
         if to is None:
             raise CommandCanceled()
@@ -709,8 +707,7 @@ class PipeCommand(Command):
         self.done_msg = done_msg
         self.field_key = field_key
 
-    @inlineCallbacks
-    def apply(self, ui):
+    async def apply(self, ui):
         # abort if command unset
         if not self.cmd:
             ui.notify(self.noop_msg, priority='error')
@@ -727,7 +724,7 @@ class PipeCommand(Command):
 
         # ask for confirmation if needed
         if self.confirm_msg:
-            if (yield ui.choice(self.confirm_msg, select='yes',
+            if (await ui.choice(self.confirm_msg, select='yes',
                                 cancel='no')) == 'no':
                 return
 
@@ -790,7 +787,7 @@ class PipeCommand(Command):
 
         # display 'done' message
         if self.done_msg:
-            ui.notify(self.done_msg)
+            await ui.notify(self.done_msg)
 
 
 @registerCommand(MODE, 'remove', arguments=[
@@ -808,8 +805,7 @@ class RemoveCommand(Command):
         Command.__init__(self, **kwargs)
         self.all = all
 
-    @inlineCallbacks
-    def apply(self, ui):
+    async def apply(self, ui):
         threadbuffer = ui.current_buffer
         # get messages and notification strings
         if self.all:
@@ -825,7 +821,7 @@ class RemoveCommand(Command):
             ok_msg = 'removed message: %s' % msg.get_message_id()
 
         # ask for confirmation
-        if (yield ui.choice(confirm_msg, select='yes', cancel='no')) == 'no':
+        if (await ui.choice(confirm_msg, select='yes', cancel='no')) == 'no':
             return
 
         # notify callback
@@ -907,14 +903,13 @@ class SaveAttachmentCommand(Command):
         self.all = all
         self.path = path
 
-    @inlineCallbacks
-    def apply(self, ui):
+    async def apply(self, ui):
         pcomplete = PathCompleter()
         savedir = settings.get('attachment_prefix', '~')
         if self.all:
             msg = ui.current_buffer.get_selected_message()
             if not self.path:
-                self.path = yield ui.prompt('save attachments to',
+                self.path = await ui.prompt('save attachments to',
                                             text=os.path.join(savedir, ''),
                                             completer=pcomplete)
             if self.path:
@@ -939,7 +934,7 @@ class SaveAttachmentCommand(Command):
                 if not self.path:
                     msg = 'save attachment (%s) to ' % filename
                     initialtext = os.path.join(savedir, filename)
-                    self.path = yield ui.prompt(msg,
+                    self.path = await ui.prompt(msg,
                                                 completer=pcomplete,
                                                 text=initialtext)
                 if self.path:
