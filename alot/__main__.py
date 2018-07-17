@@ -6,6 +6,9 @@ import logging
 import os
 import sys
 
+from twisted.internet import asyncioreactor
+asyncioreactor.install()
+
 import alot
 from alot.settings.const import settings
 from alot.settings.errors import ConfigError

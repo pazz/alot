@@ -6,8 +6,9 @@ import os
 import signal
 import codecs
 import contextlib
+import asyncio
 
-from twisted.internet import reactor, defer, task
+from twisted.internet import defer, task
 import urwid
 
 from .settings.const import settings
@@ -105,7 +106,7 @@ class UI(object):
         self.mainloop = urwid.MainLoop(
             self.root_widget,
             handle_mouse=settings.get('handle_mouse'),
-            event_loop=urwid.TwistedEventLoop(),
+            event_loop=urwid.AsyncioEventLoop(),
             unhandled_input=self._unhandled_input,
             input_filter=self._input_filter)
 
@@ -359,10 +360,11 @@ class UI(object):
         """
         exit_msg = None
         try:
-            reactor.stop()
+            loop = asyncio.get_event_loop()
+            loop.stop()
         except Exception as e:
-            exit_msg = 'Could not stop reactor: {}.'.format(e)
-            logging.error('%s\nShutting down anyway..', exit_msg)
+            logging.error('Could not stop loop: %s\nShutting down anyway..',
+                          str(e))
 
     @contextlib.contextmanager
     def paused(self):
