@@ -707,6 +707,8 @@ class UI(object):
 
             # call cmd.apply
             def call_apply(_):
+                if asyncio.iscoroutinefunction(cmd.apply):
+                    return defer.ensureDeferred(cmd.apply(self))
                 return defer.maybeDeferred(cmd.apply, self)
 
             prehook = cmd.prehook or (lambda **kwargs: None)
