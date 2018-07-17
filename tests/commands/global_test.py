@@ -20,7 +20,7 @@ import os
 import tempfile
 
 from twisted.trial import unittest
-from twisted.internet.defer import inlineCallbacks
+from twisted.internet.defer import inlineCallbacks, ensureDeferred
 import mock
 
 from alot.commands import globals as g_commands
@@ -70,7 +70,7 @@ class TestComposeCommand(unittest.TestCase):
                 with mock.patch('alot.commands.globals.settings.get_addressbooks',
                                 mock.Mock(side_effect=Stop)):
                     try:
-                        yield cmd.apply(mock.Mock())
+                        yield ensureDeferred(cmd.apply(mock.Mock()))
                     except Stop:
                         pass
 
@@ -92,7 +92,7 @@ class TestComposeCommand(unittest.TestCase):
                 with mock.patch('alot.commands.globals.settings.get_addressbooks',
                                 mock.Mock(side_effect=Stop)):
                     try:
-                        yield cmd.apply(mock.Mock())
+                        yield ensureDeferred(cmd.apply(mock.Mock()))
                     except Stop:
                         pass
 
@@ -114,7 +114,7 @@ class TestComposeCommand(unittest.TestCase):
                 with mock.patch('alot.commands.globals.settings.get_addressbooks',
                                 mock.Mock(side_effect=Stop)):
                     try:
-                        yield cmd.apply(mock.Mock())
+                        yield ensureDeferred(cmd.apply(mock.Mock()))
                     except Stop:
                         pass
 
@@ -140,7 +140,7 @@ class TestComposeCommand(unittest.TestCase):
                 'alot.commands.globals.settings.get_account_by_address',
                 mock.Mock(side_effect=Stop)):
             try:
-                yield cmd.apply(mock.Mock())
+                yield ensureDeferred(cmd.apply(mock.Mock()))
             except Stop:
                 pass
 
@@ -168,7 +168,7 @@ class TestComposeCommand(unittest.TestCase):
                 with mock.patch('alot.commands.globals.settings.get_addressbooks',
                                 mock.Mock(side_effect=Stop)):
                     try:
-                        yield cmd.apply(mock.Mock())
+                        yield ensureDeferred(cmd.apply(mock.Mock()))
                     except Stop:
                         pass
 

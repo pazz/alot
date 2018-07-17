@@ -10,9 +10,9 @@ import logging
 import os
 import subprocess
 from io import BytesIO
+import asyncio
 
 import urwid
-from twisted.internet.defer import inlineCallbacks
 from twisted.internet import threads
 
 from . import Command, registerCommand
@@ -53,11 +53,10 @@ class ExitCommand(Command):
         super(ExitCommand, self).__init__(**kwargs)
         self.prompt_to_send = _prompt
 
-    @inlineCallbacks
-    def apply(self, ui):
+    async def apply(self, ui):
         if settings.get('bug_on_exit'):
             msg = 'really quit?'
-            if (yield ui.choice(msg, select='yes', cancel='no',
+            if (await ui.choice(msg, select='yes', cancel='no',
                                 msg_position='left')) == 'no':
                 return
 
@@ -67,7 +66,7 @@ class ExitCommand(Command):
                 if (isinstance(buffer, buffers.EnvelopeBuffer) and
                         not buffer.envelope.sent_time):
                     msg = 'quit without sending message?'
-                    if (yield ui.choice(msg, cancel='no',
+                    if (await ui.choice(msg, cancel='no',
                                         msg_position='left')) == 'no':
                         raise CommandCanceled()
 
@@ -78,7 +77,7 @@ class ExitCommand(Command):
 
         if ui.db_was_locked:
             msg = 'Database locked. Exit without saving?'
-            response = yield ui.choice(msg, msg_position='left', cancel='no')
+            response = await ui.choice(msg, msg_position='left', cancel='no')
             if response == 'no':
                 return
             ui.exit()
@@ -141,12 +140,11 @@ class PromptCommand(Command):
         self.startwith = startwith
         Command.__init__(self, **kwargs)
 
-    @inlineCallbacks
-    def apply(self, ui):
+    async def apply(self, ui):
         logging.info('open command shell')
         mode = ui.mode or 'global'
         cmpl = CommandLineCompleter(ui.dbman, mode, ui.current_buffer)
-        cmdline = yield ui.prompt(
+        cmdline = await ui.prompt(
             '',
             text=self.startwith,
             completer=cmpl,
@@ -419,8 +417,7 @@ class BufferCloseCommand(Command):
         self.redraw = redraw
         Command.__init__(self, **kwargs)
 
-    @inlineCallbacks
-    def apply(self, ui):
+    async def apply(self, ui):
         def one_buffer(prompt=True):
             """Helper to handle the case on only one buffer being opened.
 
@@ -450,12 +447,12 @@ class BufferCloseCommand(Command):
         if (isinstance(self.buffer, buffers.EnvelopeBuffer) and
                 not self.buffer.envelope.sent_time):
             msg = 'close without sending?'
-            if (not self.force and (yield ui.choice(msg, cancel='no',
+            if (not self.force and (await ui.choice(msg, cancel='no',
                                                     msg_position='left')) ==
                     'no'):
                 raise CommandCanceled()
 
-        # Because we yield above it is possible that the settings or the number
+        # Because we await above it is possible that the settings or the number
         # of buffers chould change, so retest.
         if len(ui.buffers) == 1:
             one_buffer(prompt=False)
@@ -762,8 +759,7 @@ class ComposeCommand(Command):
         self.encrypt = encrypt
         self.tags = tags
 
-    @inlineCallbacks
-    def apply(self, ui):
+    async def apply(self, ui):
         if self.envelope is None:
             if self.rest:
                 if self.rest.startswith('mailto'):
@@ -825,7 +821,7 @@ class ComposeCommand(Command):
                 self.envelope.add('From', fromstring)
             else:
                 cmpl = AccountCompleter()
-                fromaddress = yield ui.prompt('From', completer=cmpl,
+                fromaddress = await ui.prompt('From', completer=cmpl,
                                               tab=1, history=ui.senderhistory)
                 if fromaddress is None:
                     raise CommandCanceled()
@@ -871,7 +867,7 @@ class ComposeCommand(Command):
             else:
                 ui.notify('could not locate signature: %s' % sig,
                           priority='error')
-                if (yield ui.choice('send without signature?', 'yes',
+                if (await ui.choice('send without signature?', 'yes',
                                     'no')) == 'no':
                     return
 
@@ -895,7 +891,7 @@ class ComposeCommand(Command):
                                                append_remaining=allbooks)
             logging.debug(abooks)
             completer = ContactsCompleter(abooks)
-            to = yield ui.prompt('To', completer=completer,
+            to = await ui.prompt('To', completer=completer,
                                  history=ui.recipienthistory)
             if to is None:
                 raise CommandCanceled()
@@ -906,7 +902,7 @@ class ComposeCommand(Command):
 
         if settings.get('ask_subject') and \
                 'Subject' not in self.envelope.headers:
-            subject = yield ui.prompt('Subject')
+            subject = await ui.prompt('Subject')
             logging.debug('SUBJECT: "%s"', subject)
             if subject is None:
                 raise CommandCanceled()
@@ -916,7 +912,7 @@ class ComposeCommand(Command):
         if settings.get('compose_ask_tags'):
             comp = TagsCompleter(ui.dbman)
             tags = ','.join(self.tags) if self.tags else ''
-            tagsstring = yield ui.prompt('Tags', text=tags, completer=comp)
+            tagsstring = await ui.prompt('Tags', text=tags, completer=comp)
             tags = [t for t in tagsstring.split(',') if t]
             if tags is None:
                 raise CommandCanceled()
@@ -934,12 +930,12 @@ class ComposeCommand(Command):
             logging.debug("Trying to encrypt message because encrypt=%s and "
                           "encrypt_by_default=%s", self.encrypt,
                           account.encrypt_by_default)
-            yield update_keys(ui, self.envelope, block_error=self.encrypt)
+            await update_keys(ui, self.envelope, block_error=self.encrypt)
         elif account.encrypt_by_default == u"trusted":
             logging.debug("Trying to encrypt message because "
                           "account.encrypt_by_default=%s",
                           account.encrypt_by_default)
-            yield update_keys(ui, self.envelope, block_error=self.encrypt,
+            await update_keys(ui, self.envelope, block_error=self.encrypt,
                               signed_only=True)
         else:
             logging.debug("No encryption by default, encrypt_by_default=%s",
