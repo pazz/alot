@@ -179,7 +179,7 @@ def _handle_encrypted(original, message):
             # recovered plain text mail. maybe that's a feature.
             malformed = str(e)
         else:
-            n = message_from_bytes(d)
+            n = decrypted_message_from_bytes(d)
 
             # add the decrypted message to message. note that n contains all
             # the attachments, no need to walk over n here.
@@ -214,7 +214,7 @@ def _handle_encrypted(original, message):
         original.attach(content)
 
 
-def message_from_file(handle):
+def decrypted_message_from_file(handle):
     '''Reads a mail from the given file-like object and returns an email
     object, very much like email.message_from_file. In addition to
     that OpenPGP encrypted data is detected and decrypted. If this
@@ -225,8 +225,18 @@ def message_from_file(handle):
     :returns: :class:`email.message.Message` possibly augmented with
               decrypted data
     '''
-    m = email.message_from_file(handle)
+    return decrypted_message_from_message(email.message_from_file(handle))
 
+
+def decrypted_message_from_message(m):
+    '''Detect and decrypt OpenPGP encrypted data in an email object. If this
+    succeeds, any mime messages found in the recovered plaintext
+    message are added to the returned message object.
+
+    :param m: an email object
+    :returns: :class:`email.message.Message` possibly augmented with
+              decrypted data
+    '''
     # make sure no one smuggles a token in (data from m is untrusted)
     del m[X_SIGNATURE_VALID_HEADER]
     del m[X_SIGNATURE_MESSAGE_HEADER]
@@ -263,7 +273,7 @@ def message_from_file(handle):
     return m
 
 
-def message_from_string(s):
+def decrypted_message_from_string(s):
     '''Reads a mail from the given string. This is the equivalent of
     :func:`email.message_from_string` which does nothing but to wrap
     the given string in a StringIO object and to call
@@ -273,17 +283,15 @@ def message_from_string(s):
     details.
 
     '''
-    return message_from_file(io.StringIO(s))
+    return decrypted_message_from_file(io.StringIO(s))
 
 
-def message_from_bytes(bytestring):
+def decrypted_message_from_bytes(bytestring):
     """Create a Message from bytes.
-
-    Attempt to guess the encoding of the bytestring.
 
     :param bytes bytestring: an email message as raw bytes
     """
-    return message_from_file(io.StringIO(helper.try_decode(bytestring)))
+    return decrypted_message_from_message(email.message_from_bytes(bytestring))
 
 
 def extract_headers(mail, headers=None):

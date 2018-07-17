@@ -22,7 +22,6 @@ from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-import chardet
 import urwid
 import magic
 from twisted.internet import reactor
@@ -384,17 +383,34 @@ def guess_mimetype(blob):
 
 
 def guess_encoding(blob):
-    """Use chardet to guess the encoding of a given data blob
+    """
+    uses file magic to determine the encoding of the given data blob.
 
-    :param blob: A blob of bytes
-    :type blob: bytes
+    :param blob: file content as read by file.read()
+    :type blob: data
     :returns: encoding
     :rtype: str
     """
-    info = chardet.detect(blob)
-    logging.debug('Encoding %s with confidence %f',
-                  info['encoding'], info['confidence'])
-    return info['encoding']
+    # this is a bit of a hack to support different versions of python magic.
+    # Hopefully at some point this will no longer be necessary
+    #
+    # the version with open() is the bindings shipped with the file source from
+    # http://darwinsys.com/file/ - this is what is used by the python-magic
+    # package on Debian/Ubuntu.  However it is not available on pypi/via pip.
+    #
+    # the version with from_buffer() is available at
+    # https://github.com/ahupp/python-magic and directly installable via pip.
+    #
+    # for more detail see https://github.com/pazz/alot/pull/588
+    if hasattr(magic, 'open'):
+        m = magic.open(magic.MAGIC_MIME_ENCODING)
+        m.load()
+        return m.buffer(blob)
+    elif hasattr(magic, 'from_buffer'):
+        m = magic.Magic(mime_encoding=True)
+        return m.from_buffer(blob)
+    else:
+        raise Exception('Unknown magic API')
 
 
 def try_decode(blob):
