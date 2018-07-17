@@ -11,9 +11,9 @@ import os
 import subprocess
 from io import BytesIO
 import asyncio
+import shlex
 
 import urwid
-from twisted.internet import threads
 
 from . import Command, registerCommand
 from . import CommandCanceled
@@ -239,7 +239,7 @@ class ExternalCommand(Command):
         self.on_success = on_success
         Command.__init__(self, **kwargs)
 
-    def apply(self, ui):
+    async def apply(self, ui):
         logging.debug('cmdlist: %s', self.cmdlist)
         callerbuffer = ui.current_buffer
 
@@ -254,42 +254,59 @@ class ExternalCommand(Command):
             else:
                 stdin = self.stdin
 
-        def afterwards(data):
-            if data == 'success':
-                if self.on_success is not None:
-                    self.on_success()
-            else:
-                ui.notify(data, priority='error')
-            if self.refocus and callerbuffer in ui.buffers:
-                logging.info('refocussing')
-                ui.buffer_focus(callerbuffer)
-
         logging.info('calling external command: %s', self.cmdlist)
 
-        def thread_code(*_):
-            try:
-                proc = subprocess.Popen(
-                    self.cmdlist, shell=self.shell,
-                    stdin=subprocess.PIPE if stdin else None,
-                    stderr=subprocess.PIPE)
-            except OSError as e:
-                return str(e)
-
-            _, err = proc.communicate(stdin.read() if stdin else None)
-            if proc.returncode == 0:
-                return 'success'
-            if err:
-                return err.decode(urwid.util.detected_encoding)
-            return ''
-
+        ret = ''
+        # TODO: these can probably be refactored in terms of helper.call_cmd
+        # and helper.call_cmd_async
         if self.in_thread:
-            d = threads.deferToThread(thread_code)
-            d.addCallback(afterwards)
+            try:
+                if self.shell:
+                    _cmd = asyncio.create_subprocess_shell
+                    # The shell function wants a single string or bytestring,
+                    # we could just join it, but lets be extra safe and use
+                    # shlex.quote to avoid suprises.
+                    cmdlist = [shlex.quote(' '.join(self.cmdlist))]
+                else:
+                    _cmd = asyncio.create_subprocess_exec
+                    cmdlist = self.cmdlist
+                proc = await _cmd(
+                    *cmdlist,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    stdin=subprocess.PIPE if stdin else None)
+            except OSError as e:
+                ret = str(e)
+            else:
+                _, err = await proc.communicate(stdin.read() if stdin else None)
+            if proc.returncode == 0:
+                ret = 'success'
+            elif err:
+                ret = err.decode(urwid.util.detected_encoding)
         else:
             with ui.paused():
-                ret = thread_code()
+                try:
+                    proc = subprocess.Popen(
+                        self.cmdlist, shell=self.shell,
+                        stdin=subprocess.PIPE if stdin else None,
+                        stderr=subprocess.PIPE)
+                except OSError as e:
+                    ret = str(e)
+                else:
+                    _, err = proc.communicate(stdin.read() if stdin else None)
+                if proc.returncode == 0:
+                    ret = 'success'
+                elif err:
+                    ret = err.decode(urwid.util.detected_encoding)
 
-            afterwards(ret)
+        if ret == 'success':
+            if self.on_success is not None:
+                self.on_success()
+        else:
+            ui.notify(ret, priority='error')
+        if self.refocus and callerbuffer in ui.buffers:
+            logging.info('refocussing')
+            ui.buffer_focus(callerbuffer)
 
 
 class EditCommand(ExternalCommand):

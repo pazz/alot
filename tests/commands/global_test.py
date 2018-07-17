@@ -176,47 +176,54 @@ class TestComposeCommand(unittest.TestCase):
 
 class TestExternalCommand(unittest.TestCase):
 
+    @inlineCallbacks
     def test_no_spawn_no_stdin_success(self):
         ui = utilities.make_ui()
         cmd = g_commands.ExternalCommand(u'true', refocus=False)
-        cmd.apply(ui)
+        yield ensureDeferred(cmd.apply(ui))
         ui.notify.assert_not_called()
 
+    @inlineCallbacks
     def test_no_spawn_stdin_success(self):
         ui = utilities.make_ui()
         cmd = g_commands.ExternalCommand(u"awk '{ exit $0 }'", stdin=u'0',
                                          refocus=False)
-        cmd.apply(ui)
+        yield ensureDeferred(cmd.apply(ui))
         ui.notify.assert_not_called()
 
+    @inlineCallbacks
     def test_no_spawn_no_stdin_attached(self):
         ui = utilities.make_ui()
         cmd = g_commands.ExternalCommand(u'test -t 0', refocus=False)
-        cmd.apply(ui)
+        yield ensureDeferred(cmd.apply(ui))
         ui.notify.assert_not_called()
 
+    @inlineCallbacks
     def test_no_spawn_stdin_attached(self):
         ui = utilities.make_ui()
         cmd = g_commands.ExternalCommand(
             u"test -t 0", stdin=u'0', refocus=False)
-        cmd.apply(ui)
+        yield ensureDeferred(cmd.apply(ui))
         ui.notify.assert_called_once_with('', priority='error')
 
+    @inlineCallbacks
     def test_no_spawn_failure(self):
         ui = utilities.make_ui()
         cmd = g_commands.ExternalCommand(u'false', refocus=False)
-        cmd.apply(ui)
+        yield ensureDeferred(cmd.apply(ui))
         ui.notify.assert_called_once_with('', priority='error')
 
+    @inlineCallbacks
     @mock.patch(
         'alot.commands.globals.settings.get', mock.Mock(return_value=''))
     @mock.patch.dict(os.environ, {'DISPLAY': ':0'})
     def test_spawn_no_stdin_success(self):
         ui = utilities.make_ui()
         cmd = g_commands.ExternalCommand(u'true', refocus=False, spawn=True)
-        cmd.apply(ui)
+        yield ensureDeferred(cmd.apply(ui))
         ui.notify.assert_not_called()
 
+    @inlineCallbacks
     @mock.patch(
         'alot.commands.globals.settings.get', mock.Mock(return_value=''))
     @mock.patch.dict(os.environ, {'DISPLAY': ':0'})
@@ -225,14 +232,15 @@ class TestExternalCommand(unittest.TestCase):
         cmd = g_commands.ExternalCommand(
             u"awk '{ exit $0 }'",
             stdin=u'0', refocus=False, spawn=True)
-        cmd.apply(ui)
+        yield ensureDeferred(cmd.apply(ui))
         ui.notify.assert_not_called()
 
+    @inlineCallbacks
     @mock.patch(
         'alot.commands.globals.settings.get', mock.Mock(return_value=''))
     @mock.patch.dict(os.environ, {'DISPLAY': ':0'})
     def test_spawn_failure(self):
         ui = utilities.make_ui()
         cmd = g_commands.ExternalCommand(u'false', refocus=False, spawn=True)
-        cmd.apply(ui)
+        yield ensureDeferred(cmd.apply(ui))
         ui.notify.assert_called_once_with('', priority='error')
