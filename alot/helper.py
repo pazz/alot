@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
-# Copyright © 2017 Dylan Baker
+# Copyright © 2017-2018 Dylan Baker
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 from datetime import timedelta
@@ -21,12 +21,10 @@ from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import asyncio
 
 import urwid
 import magic
-from twisted.internet import reactor
-from twisted.internet.protocol import ProcessProtocol
-from twisted.internet.defer import Deferred
 
 
 def split_commandline(s, comments=False, posix=True):
@@ -297,52 +295,42 @@ def call_cmd(cmdlist, stdin=None):
     return out, err, ret
 
 
-def call_cmd_async(cmdlist, stdin=None, env=None):
-    """
-    get a shell commands output, error message and return value as a deferred.
+async def call_cmd_async(cmdlist, stdin=None, env=None):
+    """Given a command, call that command asynchronously and return the output.
+
+    This function only handles `OSError` when creating the subprocess, any
+    other exceptions raised either durring subprocess creation or while
+    exchanging data with the subprocess are the caller's responsibility to
+    handle.
+
+    If such an `OSError` is caught, then returncode will be set to 1, and the
+    error value will be set to the str() method fo the exception.
 
     :type cmdlist: list of str
     :param stdin: string to pipe to the process
     :type stdin: str
-    :return: deferred that calls back with triple of stdout, stderr and
-             return value of the shell command
-    :rtype: `twisted.internet.defer.Deferred`
+    :return: Tuple of stdout, stderr, returncode
+    :rtype: tuple[str, str, int]
     """
     termenc = urwid.util.detected_encoding
     cmdlist = [s.encode(termenc) for s in cmdlist]
 
-    class _EverythingGetter(ProcessProtocol):
-        def __init__(self, deferred):
-            self.deferred = deferred
-            self.outBuf = BytesIO()
-            self.errBuf = BytesIO()
-            self.outReceived = self.outBuf.write
-            self.errReceived = self.errBuf.write
-
-        def processEnded(self, status):
-            out = string_decode(self.outBuf.getvalue(), termenc)
-            err = string_decode(self.errBuf.getvalue(), termenc)
-            if status.value.exitCode == 0:
-                self.deferred.callback(out)
-            else:
-                terminated_obj = status.value
-                terminated_obj.stderr = err
-                self.deferred.errback(terminated_obj)
-
-    d = Deferred()
     environment = os.environ.copy()
     if env is not None:
         environment.update(env)
     logging.debug('ENV = %s', environment)
     logging.debug('CMD = %s', cmdlist)
-    proc = reactor.spawnProcess(_EverythingGetter(d), executable=cmdlist[0],
-                                env=environment,
-                                args=cmdlist)
-    if stdin:
-        logging.debug('writing to stdin')
-        proc.write(stdin.encode(termenc))
-        proc.closeStdin()
-    return d
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            *cmdlist,
+            env=environment,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            stdin=asyncio.subprocess.PIPE if stdin else None)
+    except OSError as e:
+        return ('', str(e), 1)
+    out, err = await proc.communicate(stdin.encode(termenc) if stdin else None)
+    return (out.decode(termenc), err.decode(termenc), proc.returncode)
 
 
 def guess_mimetype(blob):
