@@ -140,20 +140,7 @@ class UI(object):
         # start urwids mainloop
         self.mainloop.run()
 
-    def _error_handler(self, failure):
-        """Default handler for exceptions in callbacks."""
-        if failure.check(CommandParseError):
-            self.notify(failure.getErrorMessage(), priority='error')
-        elif failure.check(CommandCanceled):
-            self.notify("operation cancelled", priority='error')
-        else:
-            logging.error(failure.getTraceback())
-            errmsg = failure.getErrorMessage()
-            if errmsg:
-                msg = "{}\n(check the log for details)".format(errmsg)
-                self.notify(msg, priority='error')
-
-    def _error_handler2(self, exception):
+    def _error_handler(self, exception):
         if isinstance(exception, CommandParseError):
             self.notify(str(exception), priority='error')
         elif isinstance(exception, CommandCanceled):
@@ -280,7 +267,7 @@ class UI(object):
             for c in split_commandline(cmdline):
                 await apply_this_command(c)
         except Exception as e:
-            self._error_handler2(e)
+            self._error_handler(e)
 
     @staticmethod
     def _unhandled_input(key):
@@ -723,7 +710,7 @@ class UI(object):
                 else:
                     cmd.apply(self)
             except Exception as e:
-                self._error_handler2(e)
+                self._error_handler(e)
             else:
                 if cmd.posthook:
                     logging.info('calling post-hook')
