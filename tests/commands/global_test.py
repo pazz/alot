@@ -18,8 +18,8 @@
 
 import os
 import tempfile
+import unittest
 
-from twisted.trial import unittest
 import mock
 
 from alot.commands import globals as g_commands
@@ -148,8 +148,8 @@ class TestComposeCommand(unittest.TestCase):
                           'Subject': [subject]}, cmd.envelope.headers)
         self.assertEqual(body, cmd.envelope.body)
 
-    @inlineCallbacks
-    def test_single_account_no_from(self):
+    @utilities.async_test
+    async def test_single_account_no_from(self):
         # issue #1277
         envelope = self._make_envelope_mock()
         del envelope.headers['From']
@@ -167,7 +167,7 @@ class TestComposeCommand(unittest.TestCase):
                 with mock.patch('alot.commands.globals.settings.get_addressbooks',
                                 mock.Mock(side_effect=Stop)):
                     try:
-                        yield ensureDeferred(cmd.apply(mock.Mock()))
+                        await cmd.apply(mock.Mock())
                     except Stop:
                         pass
 

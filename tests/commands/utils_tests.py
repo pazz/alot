@@ -17,10 +17,10 @@
 import tempfile
 import os
 import shutil
+import unittest
 
 import gpg
 import mock
-from twisted.trial import unittest
 
 from alot import crypto
 from alot import errors

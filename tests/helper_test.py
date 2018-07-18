@@ -22,9 +22,9 @@ import email
 import errno
 import os
 import random
+import unittest
 
 import mock
-from twisted.trial import unittest
 
 from alot import helper
 
@@ -258,7 +258,7 @@ class TestPrettyDatetime(unittest.TestCase):
         self.assertEqual(actual, expected)
 
     # Returns 'just now', instead of 'from future' or something similar
-    @utilities.expected_failure
+    @unittest.expectedFailure
     def test_future_minutes(self):
         test = self.now + datetime.timedelta(minutes=5)
         actual = helper.pretty_datetime(test)
@@ -266,7 +266,7 @@ class TestPrettyDatetime(unittest.TestCase):
         self.assertEqual(actual, expected)
 
     # Returns 'just now', instead of 'from future' or something similar
-    @utilities.expected_failure
+    @unittest.expectedFailure
     def test_future_hours(self):
         test = self.now + datetime.timedelta(hours=1)
         actual = helper.pretty_datetime(test)
@@ -274,7 +274,7 @@ class TestPrettyDatetime(unittest.TestCase):
         self.assertEqual(actual, expected)
 
     # Returns 'just now', instead of 'from future' or something similar
-    @utilities.expected_failure
+    @unittest.expectedFailure
     def test_future_days(self):
         def make_expected():
             # Uses the hourfmt instead of the hourminfmt from pretty_datetime
@@ -291,7 +291,7 @@ class TestPrettyDatetime(unittest.TestCase):
         self.assertEqual(actual, expected)
 
     # Returns 'just now', instead of 'from future' or something similar
-    @utilities.expected_failure
+    @unittest.expectedFailure
     def test_future_week(self):
         test = self.now + datetime.timedelta(days=7)
         actual = helper.pretty_datetime(test)
@@ -299,7 +299,7 @@ class TestPrettyDatetime(unittest.TestCase):
         self.assertEqual(actual, expected)
 
     # Returns 'just now', instead of 'from future' or something similar
-    @utilities.expected_failure
+    @unittest.expectedFailure
     def test_future_month(self):
         test = self.now + datetime.timedelta(days=31)
         actual = helper.pretty_datetime(test)
@@ -307,7 +307,7 @@ class TestPrettyDatetime(unittest.TestCase):
         self.assertEqual(actual, expected)
 
     # Returns 'just now', instead of 'from future' or something similar
-    @utilities.expected_failure
+    @unittest.expectedFailure
     def test_future_year(self):
         test = self.now + datetime.timedelta(days=365)
         actual = helper.pretty_datetime(test)

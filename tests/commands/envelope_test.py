@@ -20,8 +20,7 @@ import email
 import os
 import tempfile
 import textwrap
-
-from twisted.trial import unittest
+import unittest
 
 import mock
 

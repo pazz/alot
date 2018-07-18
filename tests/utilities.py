@@ -179,16 +179,6 @@ def make_ui(**kwargs):
     return ui
 
 
-def expected_failure(func):
-    """For marking expected failures for twisted.trial based unit tests.
-
-    The builtin unittest.expectedFailure does not work with twisted.trail,
-    there is an outstanding bug for this, but no one has ever fixed it.
-    """
-    func.todo = 'expected failure'
-    return func
-
-
 def async_test(coro):
     """Run an asyncrounous test synchronously."""
 
