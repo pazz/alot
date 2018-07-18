@@ -47,7 +47,6 @@ setup(
         'notmuch>=0.26',
         'urwid>=1.3.0',
         'urwidtrees>=1.0',
-        'twisted>=10.2.0',
         'python-magic',
         'configobj>=4.7.0',
         'gpg'

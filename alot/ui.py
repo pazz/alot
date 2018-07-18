@@ -9,7 +9,6 @@ import contextlib
 import asyncio
 import traceback
 
-from twisted.internet import defer
 import urwid
 
 from .settings.const import settings
@@ -307,8 +306,7 @@ class UI(object):
     def prompt(self, prefix, text=u'', completer=None, tab=0, history=None):
         """
         prompt for text input.
-        This returns a :class:`~twisted.defer.Deferred` that calls back with
-        the input string.
+        This returns a :class:`asyncio.Future`, which will have a string value
 
         :param prefix: text to print before the input field
         :type prefix: str
@@ -321,7 +319,7 @@ class UI(object):
         :type tab: int
         :param history: history to be used for up/down keys
         :type history: list of str
-        :rtype: :class:`twisted.defer.Deferred`
+        :rtype: asyncio.Future
         """
         history = history or []
 
@@ -369,7 +367,7 @@ class UI(object):
                                 None)
         self.mainloop.widget = overlay
         self._passall = True
-        return defer.Deferred.fromFuture(fut)
+        return fut
 
     @staticmethod
     def exit():
@@ -547,7 +545,7 @@ class UI(object):
         :param msg_position: determines if `message` is above or left of the
                              prompt. Must be `above` or `left`.
         :type msg_position: str
-        :rtype:  :class:`twisted.defer.Deferred`
+        :rtype: asyncio.Future
         """
         choices = choices or {'y': 'yes', 'n': 'no'}
         assert select is None or select in choices.values()
@@ -591,7 +589,7 @@ class UI(object):
                                 None)
         self.mainloop.widget = overlay
         self._passall = True
-        return defer.Deferred.fromFuture(fut)
+        return fut
 
     def notify(self, message, priority='normal', timeout=0, block=False):
         """
