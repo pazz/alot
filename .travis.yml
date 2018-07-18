@@ -119,7 +119,7 @@ install:
   - |
     set -e
     if [[ $JOB = docs ]]; then
-      pip install configobj twisted python-magic urwidtrees
+      pip install configobj python-magic urwidtrees
       # Mock all "difficult" dependencies of alot in order to be able to import
       # alot when rebuilding the documentation.  Notmuch would have to be
       # installed by hand in order to get a recent enough version on travis.
