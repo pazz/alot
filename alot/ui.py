@@ -136,7 +136,7 @@ class UI(object):
         self.mainloop.screen.set_terminal_properties(colors=colourmode)
 
         logging.debug('fire first command')
-        self.apply_commandline(initialcmdline)
+        loop.create_task(self.apply_commandline(initialcmdline))
 
         # start urwids mainloop
         self.mainloop.run()
@@ -195,14 +195,18 @@ class UI(object):
                     self.mainloop.remove_alarm(self._alarm)
                 self.input_queue = []
 
+            async def _apply_fire(cmdline):
+                try:
+                    await self.apply_commandline(cmdline)
+                except CommandParseError as e:
+                    self.notify(str(e), priority='error')
+
             def fire(_, cmdline):
                 clear()
                 logging.debug("cmdline: '%s'", cmdline)
                 if not self._locked:
-                    try:
-                        self.apply_commandline(cmdline)
-                    except CommandParseError as e:
-                        self.notify(str(e), priority='error')
+                    loop = asyncio.get_event_loop()
+                    loop.create_task(_apply_fire(cmdline))
                 # move keys are always passed
                 elif cmdline in ['move up', 'move down', 'move page up',
                                  'move page down']:
@@ -242,7 +246,7 @@ class UI(object):
             # update statusbar
             self.update()
 
-    def apply_commandline(self, cmdline):
+    async def apply_commandline(self, cmdline):
         """
         interprets a command line string
 
@@ -264,26 +268,20 @@ class UI(object):
         # one callback may return a Deferred and thus postpone the application
         # of the next callback (and thus Command-application)
 
-        def apply_this_command(_, cmdstring):
+        def apply_this_command(cmdstring):
             logging.debug('%s command string: "%s"', self.mode, str(cmdstring))
             # translate cmdstring into :class:`Command`
             cmd = commandfactory(cmdstring, self.mode)
             # store cmdline for use with 'repeat' command
             if cmd.repeatable:
                 self.last_commandline = cmdline
-            return defer.ensureDeferred(self.apply_command(cmd))
+            return self.apply_command(cmd)
 
-        # we initialize a deferred which is already triggered
-        # so that the first callbacks will be called immediately
-        d = defer.succeed(None)
-
-        # split commandline if necessary
-        for cmdstring in split_commandline(cmdline):
-            d.addCallback(apply_this_command, cmdstring)
-
-        d.addErrback(self._error_handler)
-
-        return d
+        try:
+            for c in split_commandline(cmdline):
+                await apply_this_command(c)
+        except Exception as e:
+            self._error_handler2(e)
 
     @staticmethod
     def _unhandled_input(key):
