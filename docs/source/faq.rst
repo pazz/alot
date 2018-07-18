@@ -73,3 +73,11 @@ FAQ
    Python 2 support. If you still need Python 2 support the 0.7 release is your
    best bet.
 
+.. _faq_8:
+
+8. I thought alot used twisted?
+
+   It used to. After we switched to python 3 we decided to switch to asyncio,
+   which reduced the number of dependencies we have. Twisted is an especially
+   heavy dependency, when we only used their async mechanisms, and not any of
+   the other goodness that twisted has to offer.

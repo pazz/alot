@@ -23,12 +23,7 @@ class MockModule(object):
     def __getattr__(cls, name):
         return Mock if name not in ('__file__', '__path__') else '/dev/null'
 
-MOCK_MODULES = ['twisted', 'twisted.internet',
-                'twisted.internet.defer',
-                'twisted.python',
-                'twisted.python.failure',
-                'twisted.internet.protocol',
-                'urwid',
+MOCK_MODULES = ['urwid',
                 'urwidtrees',
                 'magic',
                 'gpg',

@@ -9,7 +9,6 @@ A full list of dependencies is below:
 
 * `libmagic and python bindings <http://darwinsys.com/file/>`_, ≥ `5.04`
 * `configobj <http://www.voidspace.org.uk/python/configobj.html>`_, ≥ `4.7.0`
-* `twisted <http://twistedmatrix.com/trac/>`_, ≥ `10.2.0`:
 * `libnotmuch <http://notmuchmail.org/>`_ and it's python bindings, ≥ `0.13`
 * `urwid <http://excess.org/urwid/>`_ toolkit, ≥ `1.3.0`
 * `urwidtrees <https://github.com/pazz/urwidtrees>`_, ≥ `1.0`
@@ -26,11 +25,11 @@ A full list of dependencies is below:
 
 On debian/ubuntu the rest are packaged as::
 
-  python-setuptools python-magic python-configobj python-twisted python-notmuch python-urwid python-gpg
+  python-setuptools python-magic python-configobj python-notmuch python-urwid python-gpg
 
 On fedora/redhat these are packaged as::
 
-  python-setuptools python-magic python-configobj python-twisted python-notmuch python-urwid python-gpg
+  python-setuptools python-magic python-configobj python-notmuch python-urwid python-gpg
 
 Alot uses `mailcap <http://en.wikipedia.org/wiki/Mailcap>`_ to look up mime-handler for inline
 rendering and opening of attachments.  For a full description of the maicap protocol consider the
