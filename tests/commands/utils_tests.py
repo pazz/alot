@@ -21,7 +21,6 @@ import shutil
 import gpg
 import mock
 from twisted.trial import unittest
-from twisted.internet.defer import inlineCallbacks
 
 from alot import crypto
 from alot import errors
@@ -110,7 +109,7 @@ class TestGetKeys(unittest.TestCase):
             FPR, validate=True, encrypt=True, signed_only=False)
         ui = utilities.make_ui()
 
-        # Creat a ui.choice object that can satisfy twisted, but can also be
+        # Creat a ui.choice object that can satisfy asyncio, but can also be
         # queried for calls as a mock
         async def choice(*args, **kwargs):
             return None

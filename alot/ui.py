@@ -327,7 +327,7 @@ class UI(object):
         """
         history = history or []
 
-        d = defer.Deferred()  # create return deferred
+        fut = asyncio.Future()
         oldroot = self.mainloop.widget
 
         def select_or_cancel(text):
@@ -335,7 +335,7 @@ class UI(object):
             with the given text."""
             self.mainloop.widget = oldroot
             self._passall = False
-            d.callback(text)
+            fut.set_result(text)
 
         def cerror(e):
             logging.error(e)
@@ -371,7 +371,7 @@ class UI(object):
                                 None)
         self.mainloop.widget = overlay
         self._passall = True
-        return d  # return deferred
+        return defer.Deferred.fromFuture(fut)
 
     @staticmethod
     def exit():
@@ -556,7 +556,7 @@ class UI(object):
         assert cancel is None or cancel in choices.values()
         assert msg_position in ['left', 'above']
 
-        d = defer.Deferred()  # create return deferred
+        fut = asyncio.Future()  # Create a returned future
         oldroot = self.mainloop.widget
 
         def select_or_cancel(text):
@@ -564,7 +564,7 @@ class UI(object):
             with the given text."""
             self.mainloop.widget = oldroot
             self._passall = False
-            d.callback(text)
+            fut.set_result(text)
 
         # set up widgets
         msgpart = urwid.Text(message)
@@ -593,7 +593,7 @@ class UI(object):
                                 None)
         self.mainloop.widget = overlay
         self._passall = True
-        return d  # return deferred
+        return defer.Deferred.fromFuture(fut)
 
     def notify(self, message, priority='normal', timeout=0, block=False):
         """
