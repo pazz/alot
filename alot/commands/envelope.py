@@ -10,8 +10,7 @@ import os
 import re
 import tempfile
 import textwrap
-
-from twisted.internet.defer import ensureDeferred
+import traceback
 
 from . import Command, registerCommand
 from . import globals
@@ -232,8 +231,25 @@ class SendCommand(Command):
             return
         logging.debug("ACCOUNT: \"%s\"" % account.address)
 
-        # define callback
-        def afterwards(_):
+        # send out
+        clearme = ui.notify('sending..', timeout=-1)
+        if self.envelope is not None:
+            self.envelope.sending = True
+        try:
+            await account.send_mail(self.mail)
+        except SendingMailFailed as e:
+            if self.envelope is not None:
+                self.envelope.sending = False
+            ui.clear_notify([clearme])
+            logging.error(traceback.format_exc())
+            errmsg = 'failed to send: {}'.format(e)
+            ui.notify(errmsg, priority='error', block=True)
+        except StoreMailError as e:
+            ui.clear_notify([clearme])
+            logging.error(traceback.format_exc())
+            errmsg = 'could not store mail: {}'.format(e)
+            ui.notify(errmsg, priority='error', block=True)
+        else:
             initial_tags = []
             if self.envelope is not None:
                 self.envelope.sending = False
@@ -260,31 +276,6 @@ class SendCommand(Command):
                 logging.debug('adding new mail to index')
                 ui.dbman.add_message(path, account.sent_tags + initial_tags)
                 ui.apply_command(globals.FlushCommand())
-
-        # define errback
-        def send_errb(failure):
-            if self.envelope is not None:
-                self.envelope.sending = False
-            ui.clear_notify([clearme])
-            failure.trap(SendingMailFailed)
-            logging.error(failure.getTraceback())
-            errmsg = 'failed to send: %s' % failure.value
-            ui.notify(errmsg, priority='error', block=True)
-
-        def store_errb(failure):
-            failure.trap(StoreMailError)
-            logging.error(failure.getTraceback())
-            errmsg = 'could not store mail: %s' % failure.value
-            ui.notify(errmsg, priority='error', block=True)
-
-        # send out
-        clearme = ui.notify('sending..', timeout=-1)
-        if self.envelope is not None:
-            self.envelope.sending = True
-        d = ensureDeferred(account.send_mail(self.mail))
-        d.addCallback(afterwards)
-        d.addErrback(send_errb)
-        d.addErrback(store_errb)
 
 
 @registerCommand(MODE, 'edit', arguments=[
