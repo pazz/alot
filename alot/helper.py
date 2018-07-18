@@ -29,19 +29,22 @@ from twisted.internet.protocol import ProcessProtocol
 from twisted.internet.defer import Deferred
 
 
-def split_commandline(s, comments=False, posix=True):
+def split_commandline(string):
     """
     splits semi-colon separated commandlines
     """
-    # shlex seems to remove unescaped quotes and backslashes
-    s = s.replace('\\', '\\\\')
-    s = s.replace('\'', '\\\'')
-    s = s.replace('\"', '\\\"')
-    lex = shlex.shlex(s, posix=posix)
+    # shlex seems to remove unescaped quotes and backslashes.  At the same time
+    # quotes are used to protect parts of the input string to be broken up into
+    # tokens by the lexer.  But this is not true for escaped quotes.  So we
+    # have to escape the qutes in order to keep them in the resulting tokens
+    # and repeat them to retain their quoting feature.
+    string = string.replace('\\', '\\\\')
+    string = string.replace('\'', '\\\'\'')
+    string = string.replace('\"', '\\\"\"')
+    lex = shlex.shlex(string, posix=True)
     lex.whitespace_split = True
     lex.whitespace = ';'
-    if not comments:
-        lex.commenters = ''
+    lex.commenters = ''
     return list(lex)
 
 
