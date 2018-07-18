@@ -1,5 +1,5 @@
 # encoding=utf-8
-# Copyright © 2017 Dylan Baker
+# Copyright © 2017-2018 Dylan Baker
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@ import tempfile
 import textwrap
 
 from twisted.trial import unittest
-from twisted.internet.defer import inlineCallbacks, ensureDeferred
 
 import mock
 
@@ -353,28 +352,28 @@ class TestSendCommand(unittest.TestCase):
         Foo Bar Baz
         """)
 
-    @inlineCallbacks
-    def test_get_account_by_address_with_str(self):
+    @utilities.async_test
+    async def test_get_account_by_address_with_str(self):
         cmd = envelope.SendCommand(mail=self.mail)
         account = mock.Mock()
         with mock.patch(
                 'alot.commands.envelope.settings.get_account_by_address',
                 mock.Mock(return_value=account)) as get_account_by_address:
-            yield ensureDeferred(cmd.apply(mock.Mock()))
+            await cmd.apply(mock.Mock())
         get_account_by_address.assert_called_once_with('foo@example.com',
                                                        return_default=True)
         # check that the apply did run through till the end.
         account.send_mail.assert_called_once_with(self.mail)
 
-    @inlineCallbacks
-    def test_get_account_by_address_with_email_message(self):
+    @utilities.async_test
+    async def test_get_account_by_address_with_email_message(self):
         mail = email.message_from_string(self.mail)
         cmd = envelope.SendCommand(mail=mail)
         account = mock.Mock()
         with mock.patch(
                 'alot.commands.envelope.settings.get_account_by_address',
                 mock.Mock(return_value=account)) as get_account_by_address:
-            yield ensureDeferred(cmd.apply(mock.Mock()))
+            await cmd.apply(mock.Mock())
         get_account_by_address.assert_called_once_with('foo@example.com',
                                                        return_default=True)
         # check that the apply did run through till the end.
