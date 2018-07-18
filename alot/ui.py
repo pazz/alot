@@ -7,6 +7,7 @@ import signal
 import codecs
 import contextlib
 import asyncio
+import traceback
 
 from twisted.internet import defer
 import urwid
@@ -38,7 +39,7 @@ class UI(object):
     """
     This class integrates all components of alot and offers
     methods for user interaction like :meth:`prompt`, :meth:`notify` etc.
-    It handles the urwid widget tree and mainloop (we use twisted) and is
+    It handles the urwid widget tree and mainloop (we use asyncio) and is
     responsible for opening, closing and focussing buffers.
     """
 
@@ -153,6 +154,16 @@ class UI(object):
                 msg = "{}\n(check the log for details)".format(errmsg)
                 self.notify(msg, priority='error')
 
+    def _error_handler2(self, exception):
+        if isinstance(exception, CommandParseError):
+            self.notify(str(exception), priority='error')
+        elif isinstance(exception, CommandCanceled):
+            self.notify("operation cancelled", priority='error')
+        else:
+            logging.error(traceback.format_exc())
+            msg = "{}\n(check the log for details)".format(exception)
+            self.notify(msg, priority='error')
+
     def _input_filter(self, keys, raw):
         """
         handles keypresses.
@@ -260,7 +271,7 @@ class UI(object):
             # store cmdline for use with 'repeat' command
             if cmd.repeatable:
                 self.last_commandline = cmdline
-            return self.apply_command(cmd)
+            return defer.ensureDeferred(self.apply_command(cmd))
 
         # we initialize a deferred which is already triggered
         # so that the first callbacks will be called immediately
@@ -695,7 +706,7 @@ class UI(object):
         footer_att = settings.get_theming_attribute('global', 'footer')
         return urwid.AttrMap(columns, footer_att)
 
-    def apply_command(self, cmd):
+    async def apply_command(self, cmd):
         """
         applies a command
 
@@ -705,27 +716,22 @@ class UI(object):
         :param cmd: an applicable command
         :type cmd: :class:`~alot.commands.Command`
         """
+        # FIXME: What are we guarding for here? We don't mention that None is
+        # allowed as a value fo cmd.
         if cmd:
-            def call_posthook(_):
-                """Callback function that will invoke the post-hook."""
+            if cmd.prehook:
+                await cmd.prehook(ui=self, dbm=self.dbman, cmd=cmd)
+            try:
+                if asyncio.iscoroutinefunction(cmd.apply):
+                    await cmd.apply(self)
+                else:
+                    cmd.apply(self)
+            except Exception as e:
+                self._error_handler2(e)
+            else:
                 if cmd.posthook:
                     logging.info('calling post-hook')
-                    return defer.maybeDeferred(cmd.posthook,
-                                               ui=self,
-                                               dbm=self.dbman,
-                                               cmd=cmd)
-
-            # call cmd.apply
-            def call_apply(_):
-                if asyncio.iscoroutinefunction(cmd.apply):
-                    return defer.ensureDeferred(cmd.apply(self))
-                return defer.maybeDeferred(cmd.apply, self)
-
-            prehook = cmd.prehook or (lambda **kwargs: None)
-            d = defer.maybeDeferred(prehook, ui=self, dbm=self.dbman, cmd=cmd)
-            d.addCallback(call_apply)
-            d.addCallbacks(call_posthook, self._error_handler)
-            return d
+                    await cmd.posthook(ui=self, dbm=self.dbman, cmd=cmd)
 
     def handle_signal(self, signum, frame):
         """
@@ -741,7 +747,7 @@ class UI(object):
         # it is a SIGINT ?
         if signum == signal.SIGINT:
             logging.info('shut down cleanly')
-            self.apply_command(globals.ExitCommand())
+            asyncio.ensure_future(self.apply_command(globals.ExitCommand()))
         elif signum == signal.SIGUSR1:
             if isinstance(self.current_buffer, SearchBuffer):
                 self.current_buffer.rebuild()

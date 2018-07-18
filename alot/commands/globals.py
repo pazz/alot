@@ -1,4 +1,5 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
+# Copyright © 2018 Dylan Baker
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 import argparse
@@ -72,7 +73,7 @@ class ExitCommand(Command):
 
         for b in ui.buffers:
             b.cleanup()
-        ui.apply_command(FlushCommand(callback=ui.exit))
+        await ui.apply_command(FlushCommand(callback=ui.exit))
         ui.cleanup()
 
         if ui.db_was_locked:
@@ -155,7 +156,7 @@ class PromptCommand(Command):
         if cmdline:
             # save into prompt history
             ui.commandprompthistory.append(cmdline)
-            ui.apply_commandline(cmdline)
+            await ui.apply_commandline(cmdline)
         else:
             raise CommandCanceled()
 
@@ -348,11 +349,11 @@ class EditCommand(ExternalCommand):
                                  spawn=self.spawn, thread=self.thread,
                                  **kwargs)
 
-    def apply(self, ui):
+    async def apply(self, ui):
         if self.cmdlist is None:
             ui.notify('no editor set', priority='error')
         else:
-            return ExternalCommand.apply(self, ui)
+            return await ExternalCommand.apply(self, ui)
 
 
 @registerCommand(MODE, 'pyshell')
@@ -373,9 +374,9 @@ class RepeatCommand(Command):
     def __init__(self, **kwargs):
         Command.__init__(self, **kwargs)
 
-    def apply(self, ui):
+    async def apply(self, ui):
         if ui.last_commandline is not None:
-            ui.apply_commandline(ui.last_commandline)
+            await ui.apply_commandline(ui.last_commandline)
         else:
             ui.notify('no last command')
 
@@ -435,7 +436,7 @@ class BufferCloseCommand(Command):
         Command.__init__(self, **kwargs)
 
     async def apply(self, ui):
-        def one_buffer(prompt=True):
+        async def one_buffer(prompt=True):
             """Helper to handle the case on only one buffer being opened.
 
             prompt is a boolean that is passed to ExitCommand() as the _prompt
@@ -452,13 +453,13 @@ class BufferCloseCommand(Command):
             # 'close without sending'
             else:
                 logging.info('closing the last buffer, exiting')
-                ui.apply_command(ExitCommand(_prompt=prompt))
+                await ui.apply_command(ExitCommand(_prompt=prompt))
 
         if self.buffer is None:
             self.buffer = ui.current_buffer
 
         if len(ui.buffers) == 1:
-            one_buffer()
+            await one_buffer()
             return
 
         if (isinstance(self.buffer, buffers.EnvelopeBuffer) and
@@ -472,7 +473,7 @@ class BufferCloseCommand(Command):
         # Because we await above it is possible that the settings or the number
         # of buffers chould change, so retest.
         if len(ui.buffers) == 1:
-            one_buffer(prompt=False)
+            await one_buffer(prompt=False)
         else:
             ui.buffer_close(self.buffer, self.redraw)
 
@@ -961,7 +962,7 @@ class ComposeCommand(Command):
         cmd = commands.envelope.EditCommand(envelope=self.envelope,
                                             spawn=self.force_spawn,
                                             refocus=False)
-        ui.apply_command(cmd)
+        await ui.apply_command(cmd)
 
 
 @registerCommand(

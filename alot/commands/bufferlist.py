@@ -1,4 +1,5 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
+# Copyright © 2018 Dylan Baker
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 from ..commands import Command, registerCommand
@@ -18,14 +19,11 @@ class BufferFocusCommand(Command):
 @registerCommand(MODE, 'close')
 class BufferCloseCommand(Command):
     """close focussed buffer"""
-    def apply(self, ui):
+
+    async def apply(self, ui):
         bufferlist = ui.current_buffer
         selected = bufferlist.get_selected_buffer()
-        d = ui.apply_command(globals.BufferCloseCommand(buffer=selected))
-
-        def cb(_):
-            if bufferlist is not selected:
-                bufferlist.rebuild()
-            ui.update()
-        d.addCallback(cb)
-        return d
+        await ui.apply_command(globals.BufferCloseCommand(buffer=selected))
+        if bufferlist is not selected:
+            bufferlist.rebuild()
+        ui.update()

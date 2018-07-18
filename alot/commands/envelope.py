@@ -1,4 +1,5 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
+# Copyright © 2018 Dylan Baker
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 import argparse
@@ -100,16 +101,16 @@ class RefineCommand(Command):
         Command.__init__(self, **kwargs)
         self.key = key
 
-    def apply(self, ui):
+    async def apply(self, ui):
         value = ui.current_buffer.envelope.get(self.key, '')
         cmdstring = 'set %s %s' % (self.key, value)
-        ui.apply_command(globals.PromptCommand(cmdstring))
+        await ui.apply_command(globals.PromptCommand(cmdstring))
 
 
 @registerCommand(MODE, 'save')
 class SaveCommand(Command):
     """save draft"""
-    def apply(self, ui):
+    async def apply(self, ui):
         envelope = ui.current_buffer.envelope
 
         # determine account to use
@@ -139,15 +140,15 @@ class SaveCommand(Command):
             logging.debug('adding new mail to index')
             try:
                 ui.dbman.add_message(path, account.draft_tags + envelope.tags)
-                ui.apply_command(globals.FlushCommand())
-                ui.apply_command(commands.globals.BufferCloseCommand())
+                await ui.apply_command(globals.FlushCommand())
+                await ui.apply_command(commands.globals.BufferCloseCommand())
             except DatabaseError as e:
                 logging.error(str(e))
                 ui.notify('could not index message:\n%s' % str(e),
                           priority='error',
                           block=True)
         else:
-            ui.apply_command(commands.globals.BufferCloseCommand())
+            await ui.apply_command(commands.globals.BufferCloseCommand())
 
 
 @registerCommand(MODE, 'send')
@@ -259,7 +260,7 @@ class SendCommand(Command):
             ui.clear_notify([clearme])
             if self.envelope_buffer is not None:
                 cmd = commands.globals.BufferCloseCommand(self.envelope_buffer)
-                ui.apply_command(cmd)
+                await ui.apply_command(cmd)
             ui.notify('mail sent successfully')
             if self.envelope is not None:
                 if self.envelope.replied:
@@ -275,7 +276,7 @@ class SendCommand(Command):
             if path is not None:
                 logging.debug('adding new mail to index')
                 ui.dbman.add_message(path, account.sent_tags + initial_tags)
-                ui.apply_command(globals.FlushCommand())
+                await ui.apply_command(globals.FlushCommand())
 
 
 @registerCommand(MODE, 'edit', arguments=[
@@ -300,7 +301,7 @@ class EditCommand(Command):
         self.edit_only_body = False
         Command.__init__(self, **kwargs)
 
-    def apply(self, ui):
+    async def apply(self, ui):
         ebuffer = ui.current_buffer
         if not self.envelope:
             self.envelope = ui.current_buffer.envelope
@@ -386,7 +387,7 @@ class EditCommand(Command):
                                   spawn=self.force_spawn,
                                   thread=self.force_spawn,
                                   refocus=self.refocus)
-        ui.apply_command(cmd)
+        await ui.apply_command(cmd)
 
 
 @registerCommand(MODE, 'set', arguments=[

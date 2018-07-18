@@ -1,4 +1,5 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
+# Copyright © 2018 Dylan Baker
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 import argparse
@@ -140,7 +141,7 @@ class ReplyCommand(Command):
         self.force_spawn = spawn
         Command.__init__(self, **kwargs)
 
-    def apply(self, ui):
+    async def apply(self, ui):
         # get message to reply to if not given in constructor
         if not self.message:
             self.message = ui.current_buffer.get_selected_message()
@@ -286,9 +287,9 @@ class ReplyCommand(Command):
 
         # continue to compose
         encrypt = mail.get_content_subtype() == 'encrypted'
-        ui.apply_command(ComposeCommand(envelope=envelope,
-                                        spawn=self.force_spawn,
-                                        encrypt=encrypt))
+        await ui.apply_command(ComposeCommand(envelope=envelope,
+                                              spawn=self.force_spawn,
+                                              encrypt=encrypt))
 
     @staticmethod
     def clear_my_address(my_addresses, value):
@@ -344,7 +345,7 @@ class ForwardCommand(Command):
         self.force_spawn = spawn
         Command.__init__(self, **kwargs)
 
-    def apply(self, ui):
+    async def apply(self, ui):
         # get message to forward if not given in constructor
         if not self.message:
             self.message = ui.current_buffer.get_selected_message()
@@ -405,8 +406,8 @@ class ForwardCommand(Command):
         envelope.add('From', from_header)
 
         # continue to compose
-        ui.apply_command(ComposeCommand(envelope=envelope,
-                                        spawn=self.force_spawn))
+        await ui.apply_command(ComposeCommand(envelope=envelope,
+                                              spawn=self.force_spawn))
 
 
 @registerCommand(MODE, 'bounce')
@@ -470,7 +471,7 @@ class BounceMailCommand(Command):
         logging.debug("bouncing mail")
         logging.debug(mail.__class__)
 
-        ui.apply_command(SendCommand(mail=mail))
+        await ui.apply_command(SendCommand(mail=mail))
 
 
 @registerCommand(MODE, 'editnew', arguments=[
@@ -490,7 +491,7 @@ class EditNewCommand(Command):
         self.force_spawn = spawn
         Command.__init__(self, **kwargs)
 
-    def apply(self, ui):
+    async def apply(self, ui):
         if not self.message:
             self.message = ui.current_buffer.get_selected_message()
         mail = self.message.get_email()
@@ -515,9 +516,9 @@ class EditNewCommand(Command):
         for b in self.message.get_attachments():
             envelope.attach(b)
 
-        ui.apply_command(ComposeCommand(envelope=envelope,
-                                        spawn=self.force_spawn,
-                                        omit_signature=True))
+        await ui.apply_command(ComposeCommand(envelope=envelope,
+                                              spawn=self.force_spawn,
+                                              omit_signature=True))
 
 
 @registerCommand(
@@ -833,7 +834,7 @@ class RemoveCommand(Command):
         for m in messages:
             ui.dbman.remove_message(m, afterwards=callback)
 
-        ui.apply_command(FlushCommand())
+        await ui.apply_command(FlushCommand())
 
 
 @registerCommand(MODE, 'print', arguments=[
@@ -958,7 +959,7 @@ class OpenAttachmentCommand(Command):
         Command.__init__(self, **kwargs)
         self.attachment = attachment
 
-    def apply(self, ui):
+    async def apply(self, ui):
         logging.info('open attachment')
         mimetype = self.attachment.get_content_type()
 
@@ -1007,10 +1008,10 @@ class OpenAttachmentCommand(Command):
             # XXX: could this be repalced with "'needsterminal' not in entry"?
             overtakes = entry.get('needsterminal') is None
 
-            ui.apply_command(ExternalCommand(handler_cmdlist,
-                                             stdin=handler_stdin,
-                                             on_success=afterwards,
-                                             thread=overtakes))
+            await ui.apply_command(ExternalCommand(handler_cmdlist,
+                                                   stdin=handler_stdin,
+                                                   on_success=afterwards,
+                                                   thread=overtakes))
         else:
             ui.notify('unknown mime type')
 
@@ -1067,13 +1068,13 @@ class ThreadSelectCommand(Command):
     """select focussed element:
         - if it is a message summary, toggle visibility of the message;
         - if it is an attachment line, open the attachment"""
-    def apply(self, ui):
+    async def apply(self, ui):
         focus = ui.get_deep_focus()
         if isinstance(focus, AttachmentWidget):
             logging.info('open attachment')
-            ui.apply_command(OpenAttachmentCommand(focus.get_attachment()))
+            await ui.apply_command(OpenAttachmentCommand(focus.get_attachment()))
         else:
-            ui.apply_command(ChangeDisplaymodeCommand(visible='toggle'))
+            await ui.apply_command(ChangeDisplaymodeCommand(visible='toggle'))
 
 
 RetagPromptCommand = registerCommand(MODE, 'retagprompt')(RetagPromptCommand)
@@ -1144,7 +1145,7 @@ class TagCommand(Command):
         self.flush = flush
         Command.__init__(self, **kwargs)
 
-    def apply(self, ui):
+    async def apply(self, ui):
         tbuffer = ui.current_buffer
         if self.all:
             messagetrees = tbuffer.messagetrees()
@@ -1192,4 +1193,4 @@ class TagCommand(Command):
 
         # flush index
         if self.flush:
-            ui.apply_command(FlushCommand())
+            await ui.apply_command(FlushCommand())
