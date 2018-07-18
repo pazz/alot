@@ -314,14 +314,13 @@ class Account(object):
             return self.store_mail(self.draft_box, mail)
 
     @abc.abstractmethod
-    def send_mail(self, mail):
+    async def send_mail(self, mail):
         """
         sends given mail
 
         :param mail: the mail to send
         :type mail: :class:`email.message.Message` or string
-        :returns: a `Deferred` that errs back with a class:`SendingMailFailed`,
-                  containing a reason string if an error occurred.
+        :raises SendingMailFailed: if sending fails
         """
         pass
 
@@ -338,35 +337,20 @@ class SendmailAccount(Account):
         super(SendmailAccount, self).__init__(**kwargs)
         self.cmd = cmd
 
-    def send_mail(self, mail):
+    async def send_mail(self, mail):
         """Pipe the given mail to the configured sendmail command.  Display a
         short message on success or a notification on error.
         :param mail: the mail to send out
         :type mail: :class:`email.message.Message` or string
-        :returns: the deferred that calls the sendmail command
-        :rtype: `twisted.internet.defer.Deferred`
+        :raises: class:`SendingMailFailed` if sending failes
         """
         cmdlist = split_commandstring(self.cmd)
 
-        def cb(out):
-            """The callback used on success."""
-            logging.info('sent mail successfully')
-            logging.info(out)
-
-        def errb(failure):
-            """The callback used on error."""
-            termobj = failure.value
-            errmsg = '%s failed with code %s:\n%s\nProcess stderr:\n%s' % \
-                     (self.cmd, termobj.exitCode, str(failure.value),
-                      failure.value.stderr)
-            logging.error(errmsg)
-            logging.error(failure.getTraceback())
-            raise SendingMailFailed(errmsg)
-
-        # make sure self.mail is a string
-        mail = str(mail)
-
-        d = call_cmd_async(cmdlist, stdin=mail)
-        d.addCallback(cb)
-        d.addErrback(errb)
-        return d
+        try:
+            # make sure self.mail is a string
+            out, *_ = await call_cmd_async(cmdlist, stdin=str(mail))
+        except Exception as e:
+            logging.error(str(e))
+            raise SendingMailFailed(str(e))
+        logging.info('sent mail successfully')
+        logging.info(out)

@@ -11,6 +11,8 @@ import re
 import tempfile
 import textwrap
 
+from twisted.internet.defer import ensureDeferred
+
 from . import Command, registerCommand
 from . import globals
 from . import utils
@@ -279,7 +281,7 @@ class SendCommand(Command):
         clearme = ui.notify('sending..', timeout=-1)
         if self.envelope is not None:
             self.envelope.sending = True
-        d = account.send_mail(self.mail)
+        d = ensureDeferred(account.send_mail(self.mail))
         d.addCallback(afterwards)
         d.addErrback(send_errb)
         d.addErrback(store_errb)

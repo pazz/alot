@@ -30,6 +30,7 @@ from alot.db.envelope import Envelope
 from alot.errors import GPGProblem
 from alot.settings.errors import NoMatchingAccount
 from alot.settings.manager import SettingsManager
+from alot.account import Account
 
 from .. import utilities
 
@@ -352,10 +353,18 @@ class TestSendCommand(unittest.TestCase):
         Foo Bar Baz
         """)
 
+    class MockedAccount(Account):
+
+        def __init__(self):
+            super().__init__('foo@example.com')
+
+        async def send_mail(self, mail):
+            pass
+
     @utilities.async_test
     async def test_get_account_by_address_with_str(self):
         cmd = envelope.SendCommand(mail=self.mail)
-        account = mock.Mock()
+        account = mock.Mock(wraps=self.MockedAccount())
         with mock.patch(
                 'alot.commands.envelope.settings.get_account_by_address',
                 mock.Mock(return_value=account)) as get_account_by_address:
@@ -369,7 +378,7 @@ class TestSendCommand(unittest.TestCase):
     async def test_get_account_by_address_with_email_message(self):
         mail = email.message_from_string(self.mail)
         cmd = envelope.SendCommand(mail=mail)
-        account = mock.Mock()
+        account = mock.Mock(wraps=self.MockedAccount())
         with mock.patch(
                 'alot.commands.envelope.settings.get_account_by_address',
                 mock.Mock(return_value=account)) as get_account_by_address:
