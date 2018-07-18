@@ -8,7 +8,7 @@ import codecs
 import contextlib
 import asyncio
 
-from twisted.internet import defer, task
+from twisted.internet import defer
 import urwid
 
 from .settings.const import settings
@@ -23,6 +23,15 @@ from .helper import string_decode
 from .helper import get_xdg_env
 from .widgets.globals import CompleteEdit
 from .widgets.globals import ChoiceWidget
+
+
+async def periodic(callable_, period, *args, **kwargs):
+    while True:
+        try:
+            callable_(*args, **kwargs)
+        except Exception as e:
+            logging.error('error in loop hook %s', str(e))
+        await asyncio.sleep(period)
 
 
 class UI(object):
@@ -110,14 +119,15 @@ class UI(object):
             unhandled_input=self._unhandled_input,
             input_filter=self._input_filter)
 
-        # Create a defered that calls the loop_hook
+        loop = asyncio.get_event_loop()
+        # Create a task for the periodic hook
         loop_hook = settings.get_hook('loop_hook')
         if loop_hook:
-            loop = task.LoopingCall(loop_hook, ui=self)
-            loop_defered = loop.start(settings.get('periodic_hook_frequency'))
-            loop_defered.addErrback(
-                lambda e: logging.error('error in loop hook %s',
-                                        e.getErrorMessage()))
+            # In Python 3.7 a nice aliase `asyncio.create_task` was added
+            loop.create_task(
+                periodic(
+                    loop_hook, settings.get('periodic_hook_frequency'),
+                    ui=self))
 
         # set up colours
         colourmode = int(settings.get('colourmode'))
