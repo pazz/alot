@@ -166,9 +166,9 @@ class CompleteEdit(urwid.Edit):
                     self.history.append(self.edit_text)
                     self.historypos = len(self.history) - 1
                 if key == 'up':
-                    self.historypos = (self.historypos + 1) % len(self.history)
-                else:
                     self.historypos = (self.historypos - 1) % len(self.history)
+                else:
+                    self.historypos = (self.historypos + 1) % len(self.history)
                 self.set_edit_text(self.history[self.historypos])
         elif key == 'enter':
             self.on_exit(self.edit_text)
