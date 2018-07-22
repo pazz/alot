@@ -16,10 +16,8 @@
 
 """Tests for the alot.commands.envelope module."""
 
-import contextlib
 import email
 import os
-import shutil
 import tempfile
 import textwrap
 
@@ -41,25 +39,6 @@ from .. import utilities
 # pylint: disable=no-self-use
 
 
-@contextlib.contextmanager
-def temporary_directory(suffix='', prefix='', dir=None):
-    # pylint: disable=redefined-builtin
-    """Python3 interface implementation.
-
-    Python3 provides a class that can be used as a context manager, which
-    creates a temporary directory and removes it when the context manager
-    exits. This function emulates enough of the interface of
-    TemporaryDirectory, for this module to use, and is designed as a drop in
-    replacement that can be replaced after the python3 port.
-
-    The only user visible difference is that this does not implement the
-    cleanup method that TemporaryDirectory does.
-    """
-    directory = tempfile.mkdtemp(suffix=suffix, prefix=prefix, dir=dir)
-    yield directory
-    shutil.rmtree(directory)
-
-
 class TestAttachCommand(unittest.TestCase):
     """Tests for the AttachCommaned class."""
 
@@ -67,7 +46,7 @@ class TestAttachCommand(unittest.TestCase):
         """A test for an existing single path."""
         ui = utilities.make_ui()
 
-        with temporary_directory() as d:
+        with tempfile.TemporaryDirectory() as d:
             testfile = os.path.join(d, 'foo')
             with open(testfile, 'w') as f:
                 f.write('foo')
@@ -80,7 +59,7 @@ class TestAttachCommand(unittest.TestCase):
         """A test for an existing single path prefaced with ~/."""
         ui = utilities.make_ui()
 
-        with temporary_directory() as d:
+        with tempfile.TemporaryDirectory() as d:
             # This mock replaces expanduser to replace "~/" with a path to the
             # temporary directory. This is easier and more reliable than
             # relying on changing an environment variable (like HOME), since it
@@ -99,7 +78,7 @@ class TestAttachCommand(unittest.TestCase):
         """A test using a glob."""
         ui = utilities.make_ui()
 
-        with temporary_directory() as d:
+        with tempfile.TemporaryDirectory() as d:
             testfile1 = os.path.join(d, 'foo')
             testfile2 = os.path.join(d, 'far')
             for t in [testfile1, testfile2]:
@@ -115,7 +94,7 @@ class TestAttachCommand(unittest.TestCase):
         """A test for a file that doesn't exist."""
         ui = utilities.make_ui()
 
-        with temporary_directory() as d:
+        with tempfile.TemporaryDirectory() as d:
             cmd = envelope.AttachCommand(path=os.path.join(d, 'doesnt-exist'))
             cmd.apply(ui)
         ui.notify.assert_called()
