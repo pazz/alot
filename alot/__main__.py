@@ -38,8 +38,8 @@ def parser():
                         validator=cargparse.require_file,
                         help='notmuch config')
     parser.add_argument('-C', '--colour-mode',
-                        choices=(1, 16, 256), type=int, default=256,
-                        help='terminal colour mode [default: %(default)s].')
+                        choices=(1, 16, 256), type=int,
+                        help='terminal colour mode')
     parser.add_argument('-p', '--mailindex-path',
                         action=cargparse.ValidatedStoreAction,
                         validator=cargparse.require_dir,
