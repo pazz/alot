@@ -7,6 +7,7 @@ from .buffer import Buffer
 from ..settings.const import settings
 from ..walker import PipeWalker
 from ..widgets.search import ThreadlineWidget
+from ..db.manager import THREAD_BUFFER
 
 
 class SearchBuffer(Buffer):
@@ -115,7 +116,8 @@ class SearchBuffer(Buffer):
     def focus_last(self):
         if self.reversed:
             self.body.set_focus(0)
-        elif self.result_count < 200 or self.sort_order not in self._REVERSE:
+        elif (self.result_count < THREAD_BUFFER or
+              self.sort_order not in self._REVERSE):
             self.consume_pipe()
             num_lines = len(self.threadlist.get_lines())
             self.body.set_focus(num_lines - 1)

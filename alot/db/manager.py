@@ -24,6 +24,8 @@ from .thread import Thread
 from .utils import is_subdir_of
 from ..settings.const import settings
 
+THREAD_BUFFER = 100
+
 
 class SizedPipe:
 
