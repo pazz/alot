@@ -27,17 +27,17 @@ def parser():
     parser.add_argument('-v', '--version', action='version',
                         version=alot.__version__)
     parser.add_argument('-r', '--read-only', action='store_true',
-                        help='open db in read only mode')
+                        help='open notmuch database in read-only mode')
     parser.add_argument('-c', '--config',
                         action=cargparse.ValidatedStoreAction,
                         validator=cargparse.require_file,
-                        help='config file')
+                        help='configuration file')
     parser.add_argument('-n', '--notmuch-config', default=os.environ.get(
                             'NOTMUCH_CONFIG',
                             os.path.expanduser('~/.notmuch-config')),
                         action=cargparse.ValidatedStoreAction,
                         validator=cargparse.require_file,
-                        help='notmuch config')
+                        help='notmuch configuration file')
     parser.add_argument('-C', '--colour-mode',
                         choices=(1, 16, 256), type=int,
                         help='terminal colour mode')
@@ -51,7 +51,7 @@ def parser():
     parser.add_argument('-l', '--logfile', default='/dev/null',
                         action=cargparse.ValidatedStoreAction,
                         validator=cargparse.optional_file_like,
-                        help='logfile [default: %(default)s]')
+                        help='log file [default: %(default)s]')
     # We will handle the subcommands in a separate run of argparse as argparse
     # does not support optional subcommands until now.
     parser.add_argument('command', nargs=argparse.REMAINDER,
