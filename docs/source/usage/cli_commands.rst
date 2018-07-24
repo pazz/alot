@@ -1,6 +1,6 @@
 search
     start in a search buffer using the querystring provided as
-    parameter. See also :manpage:`notmuch-search-terms(7)`.
+    parameter (see :manpage:`notmuch-search-terms(7)`)
 
 compose
     compose a new message

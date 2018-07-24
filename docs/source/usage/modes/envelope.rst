@@ -3,7 +3,7 @@
 
 Commands in `envelope` mode
 ---------------------------
-The following commands are available in envelope mode
+The following commands are available in envelope mode:
 
 .. _cmd.envelope.attach:
 
@@ -22,8 +22,8 @@ The following commands are available in envelope mode
     edit mail
 
     optional arguments
-        :---spawn: spawn editor in new terminal.
-        :---refocus: refocus envelope after editing (Defaults to: 'True').
+        :---spawn: spawn editor in new terminal
+        :---refocus: refocus envelope after editing (defaults to: 'True')
 
 .. _cmd.envelope.encrypt:
 
@@ -35,7 +35,7 @@ The following commands are available in envelope mode
         keyid of the key to encrypt with
 
     optional arguments
-        :---trusted: only add trusted keys.
+        :---trusted: only add trusted keys
 
 .. _cmd.envelope.refine:
 
@@ -51,7 +51,7 @@ The following commands are available in envelope mode
 
 .. describe:: retag
 
-    set message tags.
+    set message tags
 
     argument
         comma separated list of tags
@@ -93,7 +93,7 @@ The following commands are available in envelope mode
 
 
     optional arguments
-        :---append: keep previous values.
+        :---append: keep previous values
 
 .. _cmd.envelope.sign:
 
@@ -125,7 +125,7 @@ The following commands are available in envelope mode
         keyid of the key to encrypt with
 
     optional arguments
-        :---trusted: only add trusted keys.
+        :---trusted: only add trusted keys
 
 .. _cmd.envelope.toggleheaders:
 

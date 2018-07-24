@@ -136,10 +136,9 @@ RetagPromptCommand = registerCommand(MODE, 'retagprompt')(RetagPromptCommand)
                           'default': 'True',
                           'help': 'postpone a writeout to the index'}),
         (['tags'], {'help': 'comma separated list of tags'})],
-    help='flip presence of tags on this thread. A tag is considered present '
-         'if at least one message contained in this thread is tagged with it. '
-         'In that case this command will remove the tag from every message in '
-         'the thread.')
+    help='flip presence of tags on this thread: a tag is considered present '
+         'and will be removed if at least one message in this thread is '
+         'tagged with it')
 class TagCommand(Command):
 
     """manipulate message tags"""
