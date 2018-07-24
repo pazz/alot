@@ -818,7 +818,8 @@ class ComposeCommand(Command):
             accounts = settings.get_accounts()
             if len(accounts) == 1:
                 a = accounts[0]
-                fromstring = email.utils.formataddr((a.realname, a.address))
+                fromstring = email.utils.formataddr(
+                    (a.realname, str(a.address)))
                 self.envelope.add('From', fromstring)
             else:
                 cmpl = AccountCompleter()
