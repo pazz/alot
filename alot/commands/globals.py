@@ -17,7 +17,7 @@ from twisted.internet import threads
 
 from . import Command, registerCommand
 from . import CommandCanceled
-from .utils import set_encrypt
+from .utils import update_keys
 from .. import commands
 
 from .. import buffers
@@ -916,12 +916,12 @@ class ComposeCommand(Command):
             logging.debug("Trying to encrypt message because encrypt=%s and "
                           "encrypt_by_default=%s", self.encrypt,
                           account.encrypt_by_default)
-            yield set_encrypt(ui, self.envelope, block_error=self.encrypt)
+            yield update_keys(ui, self.envelope, block_error=self.encrypt)
         elif account.encrypt_by_default == u"trusted":
             logging.debug("Trying to encrypt message because "
                           "account.encrypt_by_default=%s",
                           account.encrypt_by_default)
-            yield set_encrypt(ui, self.envelope, block_error=self.encrypt,
+            yield update_keys(ui, self.envelope, block_error=self.encrypt,
                               signed_only=True)
         else:
             logging.debug("No encryption by default, encrypt_by_default=%s",

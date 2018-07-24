@@ -140,7 +140,7 @@ class TestSetEncrypt(unittest.TestCase):
         ui = utilities.make_ui()
         envelope = Envelope()
         envelope['To'] = 'ambig@example.com, test@example.com'
-        yield utils.set_encrypt(ui, envelope)
+        yield utils.update_keys(ui, envelope)
         self.assertTrue(envelope.encrypt)
         self.assertCountEqual(
             [f.fpr for f in envelope.encrypt_keys.values()],
@@ -151,7 +151,7 @@ class TestSetEncrypt(unittest.TestCase):
         ui = utilities.make_ui()
         envelope = Envelope()
         envelope['Cc'] = 'ambig@example.com, test@example.com'
-        yield utils.set_encrypt(ui, envelope)
+        yield utils.update_keys(ui, envelope)
         self.assertTrue(envelope.encrypt)
         self.assertCountEqual(
             [f.fpr for f in envelope.encrypt_keys.values()],
@@ -162,7 +162,7 @@ class TestSetEncrypt(unittest.TestCase):
         ui = utilities.make_ui()
         envelope = Envelope()
         envelope['Cc'] = 'foo@example.com, test@example.com'
-        yield utils.set_encrypt(ui, envelope)
+        yield utils.update_keys(ui, envelope)
         self.assertTrue(envelope.encrypt)
         self.assertCountEqual(
             [f.fpr for f in envelope.encrypt_keys.values()],
@@ -173,7 +173,7 @@ class TestSetEncrypt(unittest.TestCase):
         ui = utilities.make_ui()
         envelope = Envelope()
         envelope['To'] = 'foo@example.com'
-        yield utils.set_encrypt(ui, envelope)
+        yield utils.update_keys(ui, envelope)
         self.assertFalse(envelope.encrypt)
         self.assertEqual(envelope.encrypt_keys, {})
 
@@ -187,7 +187,7 @@ class TestSetEncrypt(unittest.TestCase):
         account = _Account(encrypt_to_self=True, gpg_key=gpg_key)
         with mock.patch('alot.commands.thread.settings.get_account_by_address',
                         mock.Mock(return_value=account)):
-            yield utils.set_encrypt(ui, envelope)
+            yield utils.update_keys(ui, envelope)
         self.assertTrue(envelope.encrypt)
         self.assertIn(FPR, envelope.encrypt_keys)
         self.assertEqual(gpg_key, envelope.encrypt_keys[FPR])
@@ -202,6 +202,6 @@ class TestSetEncrypt(unittest.TestCase):
         account = _Account(encrypt_to_self=False, gpg_key=gpg_key)
         with mock.patch('alot.commands.thread.settings.get_account_by_address',
                         mock.Mock(return_value=account)):
-            yield utils.set_encrypt(ui, envelope)
+            yield utils.update_keys(ui, envelope)
         self.assertTrue(envelope.encrypt)
         self.assertNotIn(FPR, envelope.encrypt_keys)

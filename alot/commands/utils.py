@@ -13,7 +13,7 @@ from .. import crypto
 
 
 @inlineCallbacks
-def set_encrypt(ui, envelope, block_error=False, signed_only=False):
+def update_keys(ui, envelope, block_error=False, signed_only=False):
     """Find and set the encryption keys in an envolope.
 
     :param ui: the main user interface object

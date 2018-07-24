@@ -427,8 +427,8 @@ class SetCommand(Command):
         # Currently we don't handle bcc because it creates a side channel leak,
         # as the key of the person BCC'd will be available to other recievers,
         # defeating the purpose of BCCing them
-        if self.key.lower() in ['to', 'from', 'cc']:
-            yield utils.set_encrypt(ui, ui.current_buffer.envelope)
+        if self.key.lower() in ['to', 'from', 'cc'] and envelope.encrypt:
+            yield utils.update_keys(ui, envelope)
         ui.current_buffer.rebuild()
 
 
@@ -452,7 +452,7 @@ class UnsetCommand(Command):
         # as the key of the person BCC'd will be available to other recievers,
         # defeating the purpose of BCCing them
         if self.key.lower() in ['to', 'from', 'cc']:
-            yield utils.set_encrypt(ui, ui.current_buffer.envelope)
+            yield utils.update_keys(ui, ui.current_buffer.envelope)
         ui.current_buffer.rebuild()
 
 
@@ -603,7 +603,7 @@ class EncryptCommand(Command):
                     tmp_key = crypto.get_key(keyid)
                     envelope.encrypt_keys[tmp_key.fpr] = tmp_key
             else:
-                yield utils.set_encrypt(ui, envelope, signed_only=self.trusted)
+                yield utils.update_keys(ui, envelope, signed_only=self.trusted)
         envelope.encrypt = encrypt
         if not envelope.encrypt:
             # This is an extra conditional as it can even happen if encrypt is
