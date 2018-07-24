@@ -14,5 +14,5 @@
                  (default: info)
 -l FILENAME, --logfile=FILENAME
                  log file (default: /dev/null)
--v, --version    display version string and exit
 -h, --help       display help and exit
+-v, --version    output version information and exit
