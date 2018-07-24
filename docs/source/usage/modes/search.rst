@@ -25,7 +25,7 @@ The following commands are available in search mode
         search string
 
     optional arguments
-        :---sort: sort order. Valid choices are: \`oldest_first\`,\`newest_first\`,\`message_id\`,\`unsorted\`.
+        :---sort: sort order; valid choices are: \`oldest_first\`,\`newest_first\`,\`message_id\`,\`unsorted\`
 
 .. _cmd.search.refineprompt:
 
@@ -44,8 +44,8 @@ The following commands are available in search mode
         comma separated list of tags
 
     optional arguments
-        :---no-flush: postpone a writeout to the index (Defaults to: 'True').
-        :---all: retag all messages in search result.
+        :---no-flush: postpone a writeout to the index (defaults to: 'True')
+        :---all: retag all messages in search result
 
 .. _cmd.search.retagprompt:
 
@@ -68,7 +68,7 @@ The following commands are available in search mode
     set sort order
 
     argument
-        sort order. valid choices are: \`oldest_first\`,\`newest_first\`,\`message_id\`,\`unsorted\`.
+        sort order; valid choices are: \`oldest_first\`,\`newest_first\`,\`message_id\`,\`unsorted\`
 
 
 .. _cmd.search.tag:
@@ -81,20 +81,20 @@ The following commands are available in search mode
         comma separated list of tags
 
     optional arguments
-        :---no-flush: postpone a writeout to the index (Defaults to: 'True').
-        :---all: retag all messages in search result.
+        :---no-flush: postpone a writeout to the index (defaults to: 'True')
+        :---all: retag all messages in search result
 
 .. _cmd.search.toggletags:
 
 .. describe:: toggletags
 
-    flip presence of tags on this thread. A tag is considered present if at least one message contained in this thread is tagged with it. In that case this command will remove the tag from every message in the thread.
+    flip presence of tags on this thread: a tag is considered present and removed if at least one message in this thread is tagged with it
 
     argument
         comma separated list of tags
 
     optional arguments
-        :---no-flush: postpone a writeout to the index (Defaults to: 'True').
+        :---no-flush: postpone a writeout to the index (defaults to: 'True')
 
 .. _cmd.search.untag:
 
@@ -106,6 +106,6 @@ The following commands are available in search mode
         comma separated list of tags
 
     optional arguments
-        :---no-flush: postpone a writeout to the index (Defaults to: 'True').
-        :---all: retag all messages in search result.
+        :---no-flush: postpone a writeout to the index (defaults to: 'True')
+        :---all: retag all messages in search result
 

@@ -1069,9 +1069,9 @@ class MoveFocusCommand(MoveCommand):
 @registerCommand(MODE, 'select')
 class ThreadSelectCommand(Command):
 
-    """select focussed element. The fired action depends on the focus:
-        - if message summary, this toggles visibility of the message,
-        - if attachment line, this opens the attachment"""
+    """select focussed element:
+        - if it is a message summary, toggle visibility of the message;
+        - if it is an attachment line, open the attachment"""
     def apply(self, ui):
         focus = ui.get_deep_focus()
         if isinstance(focus, AttachmentWidget):
