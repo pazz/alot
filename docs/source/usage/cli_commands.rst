@@ -1,5 +1,5 @@
 search
-    start in a search buffer using the querystring provided as
+    start in a search buffer using the query string provided as
     parameter (see :manpage:`notmuch-search-terms(7)`)
 
 compose
