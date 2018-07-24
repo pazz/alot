@@ -105,7 +105,7 @@
 
 .. describe:: colourmode
 
-     number of colours to use
+     number of colours to use on the terminal
 
     :type: option, one of ['1', '16', '256']
     :default: 256

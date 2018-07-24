@@ -40,7 +40,7 @@ def parser():
                         help='notmuch configuration file')
     parser.add_argument('-C', '--colour-mode',
                         choices=(1, 16, 256), type=int,
-                        help='terminal colour mode')
+                        help='number of colours to use')
     parser.add_argument('-p', '--mailindex-path',
                         action=cargparse.ValidatedStoreAction,
                         validator=cargparse.require_dir,
