@@ -2,6 +2,19 @@ import argparse
 import sys
 import os
 
+from unittest import mock
+
+# This is required to make the docs build on RTD, where notmuch is not and
+# cannot be installed.
+try:
+    import notmuch
+except ImportError:
+    m = mock.MagicMock()
+    m.Database = mock.MagicMock()
+    m.XapianError = mock.MagicMock()
+    m.NotmuchError = mock.MagicMock()
+    sys.modules['notmuch'] = m
+
 HERE = os.path.dirname(__file__)
 sys.path.insert(0, os.path.join(HERE, '..', '..'))
 
