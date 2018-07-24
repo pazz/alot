@@ -21,11 +21,12 @@ and be able to toggle this tag in search mode, you'd add this to your config
 
 Known modes are:
 
-* envelope
-* search
-* thread
-* taglist
 * bufferlist
+* envelope
+* namedqueries
+* search
+* taglist
+* thread
 
 Have a look at `the urwid User Input documentation <http://excess.org/urwid/wiki/UserInput>`_ on how key strings are formatted.
 

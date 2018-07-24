@@ -13,25 +13,28 @@ See the sections below for which commands are available in which (UI) mode.
 
 :doc:`modes/global`
     globally available commands
-:doc:`modes/search`
-    commands available when showing thread search results
-:doc:`modes/thread`
-    commands available while displaying a thread
-:doc:`modes/envelope`
-    commands during message composition
 :doc:`modes/bufferlist`
     commands while listing active buffers
+:doc:`modes/envelope`
+    commands during message composition
+:doc:`modes/namedqueries`
+    commands while listing all named queries from the notmuch database
+:doc:`modes/search`
+    commands available when showing thread search results
 :doc:`modes/taglist`
     commands while listing all tagstrings present in the notmuch database
+:doc:`modes/thread`
+    commands available while displaying a thread
 
 .. toctree::
    :maxdepth: 2
    :hidden:
 
    modes/global
-   modes/search
-   modes/thread
-   modes/envelope
    modes/bufferlist
+   modes/envelope
+   modes/namedqueries
+   modes/search
    modes/taglist
+   modes/thread
 

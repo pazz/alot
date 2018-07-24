@@ -117,6 +117,13 @@ The following commands are available globally
         up, down, [half]page up, [half]page down, first, last
 
 
+.. _cmd.global.namedqueries:
+
+.. describe:: namedqueries
+
+    opens named queries buffer
+
+
 .. _cmd.global.prompt:
 
 .. describe:: prompt
@@ -148,12 +155,38 @@ The following commands are available globally
     Reload all configuration files
 
 
+.. _cmd.global.removequery:
+
+.. describe:: removequery
+
+    removes a "named query" from the database
+
+    argument
+        alias to remove
+
+    optional arguments
+        :---no-flush: postpone a writeout to the index (Defaults to: 'True').
+
 .. _cmd.global.repeat:
 
 .. describe:: repeat
 
     Repeats the command executed last time
 
+
+.. _cmd.global.savequery:
+
+.. describe:: savequery
+
+    store query string as a "named query" in the database
+
+    positional arguments
+        0: alias to use for query string
+        1: query string to store
+
+
+    optional arguments
+        :---no-flush: postpone a writeout to the index (Defaults to: 'True').
 
 .. _cmd.global.search:
 

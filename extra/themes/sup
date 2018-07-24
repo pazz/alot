@@ -21,6 +21,10 @@
     line_even = '','','light gray','black','light gray','g0'
     line_odd = '','','light gray','black','light gray','g0'
     line_focus = 'standout','','black','dark cyan','black','dark cyan'
+[namedqueries]
+    line_even = '','','light gray','black','light gray','g0'
+    line_odd = '','','light gray','black','light gray','g0'
+    line_focus = 'standout','','black','dark cyan','black','dark cyan'
 [taglist]
     line_even = '','','light gray','black','light gray','g0'
     line_odd = '','','light gray','black','light gray','g0'

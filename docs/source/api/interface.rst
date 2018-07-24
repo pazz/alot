@@ -53,18 +53,19 @@ Different modes are defined by subclasses of the following base class.
 
 Available modes are:
 
-========== ========================================
-   Mode     Buffer Subclass
-========== ========================================
-search     :class:`~alot.buffers.SearchBuffer`
-thread     :class:`~alot.buffers.ThreadBuffer`
-bufferlist :class:`~alot.buffers.BufferlistBuffer`
-taglist    :class:`~alot.buffers.TagListBuffer`
-envelope   :class:`~alot.buffers.EnvelopeBuffer`
-========== ========================================
+============ ========================================
+   Mode       Buffer Subclass
+============ ========================================
+search       :class:`~alot.buffers.SearchBuffer`
+thread       :class:`~alot.buffers.ThreadBuffer`
+bufferlist   :class:`~alot.buffers.BufferlistBuffer`
+taglist      :class:`~alot.buffers.TagListBuffer`
+namedqueries :class:`~alot.buffers.NamedQueriesBuffer`
+envelope     :class:`~alot.buffers.EnvelopeBuffer`
+============ ========================================
 
 .. automodule:: alot.buffers
-    :members: BufferlistBuffer, EnvelopeBuffer,SearchBuffer,ThreadBuffer,TagListBuffer
+    :members: BufferlistBuffer, EnvelopeBuffer, NamedQueriesBuffer, SearchBuffer, ThreadBuffer, TagListBuffer
 
 Widgets
 --------

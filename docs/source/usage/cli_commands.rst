@@ -11,5 +11,8 @@ bufferlist
 taglist
     start with only a taglist buffer open
 
+namedqueries
+    start with list of named queries
+
 pyshell
     start the interactive python shell inside alot

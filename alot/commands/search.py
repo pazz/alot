@@ -7,6 +7,7 @@ import logging
 from . import Command, registerCommand
 from .globals import PromptCommand
 from .globals import MoveCommand
+from .globals import SaveQueryCommand as GlobalSaveQueryCommand
 from .common import RetagPromptCommand
 from .. import commands
 
@@ -241,3 +242,24 @@ class MoveFocusCommand(MoveCommand):
             ui.update()
         else:
             MoveCommand.apply(self, ui)
+
+
+@registerCommand(
+    MODE, 'savequery',
+    arguments=[
+        (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
+                          'default': 'True',
+                          'help': 'postpone a writeout to the index'}),
+        (['alias'], {'help': 'alias to use for query string'}),
+        (['query'], {'help': 'query string to store',
+                     'nargs': argparse.REMAINDER,
+                     }),
+    ],
+    help='store query string as a "named query" in the database. '
+         'This falls back to the current search query in search buffers.')
+class SaveQueryCommand(GlobalSaveQueryCommand):
+    def apply(self, ui):
+        searchbuffer = ui.current_buffer
+        if not self.query:
+            self.query = searchbuffer.querystring
+        GlobalSaveQueryCommand.apply(self, ui)

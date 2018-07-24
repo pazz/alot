@@ -553,6 +553,21 @@ class TagListCommand(Command):
             ui.buffer_open(buffers.TagListBuffer(ui, tags, self.filtfun))
 
 
+@registerCommand(MODE, 'namedqueries')
+class NamedQueriesCommand(Command):
+    """opens named queries buffer"""
+    def __init__(self, filtfun=bool, **kwargs):
+        """
+        :param filtfun: filter to apply to displayed list
+        :type filtfun: callable (str->bool)
+        """
+        self.filtfun = filtfun
+        Command.__init__(self, **kwargs)
+
+    def apply(self, ui):
+        ui.buffer_open(buffers.NamedQueriesBuffer(ui, self.filtfun))
+
+
 @registerCommand(MODE, 'flush')
 class FlushCommand(Command):
 
@@ -979,3 +994,94 @@ class ReloadCommand(Command):
         except ConfigError as e:
             ui.notify('Error when reloading config files:\n {}'.format(e),
                       priority='error')
+
+
+@registerCommand(
+    MODE, 'savequery',
+    arguments=[
+        (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
+                          'default': 'True',
+                          'help': 'postpone a writeout to the index'}),
+        (['alias'], {'help': 'alias to use for query string'}),
+        (['query'], {'help': 'query string to store',
+                     'nargs': '+'})
+    ],
+    help='store query string as a "named query" in the database')
+class SaveQueryCommand(Command):
+
+    """save alias for query string"""
+    repeatable = False
+
+    def __init__(self, alias, query=None, flush=True, **kwargs):
+        """
+        :param alias: name to use for query string
+        :type alias: str
+        :param query: query string to save
+        :type query: str or None
+        :param flush: immediately write out to the index
+        :type flush: bool
+        """
+        self.alias = alias
+        if query is None:
+            self.query = ''
+        else:
+            self.query = ' '.join(query)
+        self.flush = flush
+        Command.__init__(self, **kwargs)
+
+    def apply(self, ui):
+        msg = 'saved alias "%s" for query string "%s"' % (self.alias,
+                                                          self.query)
+
+        try:
+            ui.dbman.save_named_query(self.alias, self.query)
+            logging.debug(msg)
+            ui.notify(msg)
+        except DatabaseROError:
+            ui.notify('index in read-only mode', priority='error')
+            return
+
+        # flush index
+        if self.flush:
+            ui.apply_command(commands.globals.FlushCommand())
+
+
+@registerCommand(
+    MODE, 'removequery',
+    arguments=[
+        (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
+                          'default': 'True',
+                          'help': 'postpone a writeout to the index'}),
+        (['alias'], {'help': 'alias to remove'}),
+    ],
+    help='removes a "named query" from the database')
+class RemoveQueryCommand(Command):
+
+    """remove named query string for given alias"""
+    repeatable = False
+
+    def __init__(self, alias, flush=True, **kwargs):
+        """
+        :param alias: name to use for query string
+        :type alias: str
+        :param flush: immediately write out to the index
+        :type flush: bool
+        """
+        self.alias = alias
+        self.flush = flush
+        Command.__init__(self, **kwargs)
+
+    def apply(self, ui):
+        msg = 'removed alias "%s"' % (self.alias)
+
+        try:
+            ui.dbman.remove_named_query(self.alias)
+            logging.debug(msg)
+            ui.notify(msg)
+        except DatabaseROError:
+            ui.notify('index in read-only mode', priority='error')
+            return
+
+        # flush index
+        if self.flush:
+            ui.apply_command(commands.globals.FlushCommand())

@@ -123,6 +123,19 @@ class MultipleSelectionCompleter(Completer):
         return res
 
 
+class NamedQueryCompleter(StringlistCompleter):
+    """complete the name of a named query string"""
+
+    def __init__(self, dbman):
+        """
+        :param dbman: used to look up named query strings in the DB
+        :type dbman: :class:`~alot.db.DBManager`
+        """
+        # mapping of alias to query string (dict str -> str)
+        nqueries = dbman.get_named_queries()
+        StringlistCompleter.__init__(self, list(nqueries))
+
+
 class QueryCompleter(Completer):
     """completion for a notmuch query string"""
     def __init__(self, dbman):
@@ -134,18 +147,22 @@ class QueryCompleter(Completer):
         abooks = settings.get_addressbooks()
         self._abookscompleter = AbooksCompleter(abooks, addressesonly=True)
         self._tagcompleter = TagCompleter(dbman)
+        self._nquerycompleter = NamedQueryCompleter(dbman)
         self.keywords = ['tag', 'from', 'to', 'subject', 'attachment',
-                         'is', 'id', 'thread', 'folder']
+                         'is', 'id', 'thread', 'folder', 'query']
 
     def complete(self, original, pos):
         mypart, start, end, mypos = self.relevant_part(original, pos)
         myprefix = mypart[:mypos]
-        m = re.search(r'(tag|is|to|from):(\w*)', myprefix)
+        m = re.search(r'(tag|is|to|from|query):(\w*)', myprefix)
         if m:
             cmd, _ = m.groups()
-            cmdlen = len(cmd) + 1  # length of the keyword part incld colon
+            cmdlen = len(cmd) + 1  # length of the keyword part including colon
             if cmd in ['to', 'from']:
                 localres = self._abookscompleter.complete(mypart[cmdlen:],
+                                                          mypos - cmdlen)
+            elif cmd in ['query']:
+                localres = self._nquerycompleter.complete(mypart[cmdlen:],
                                                           mypos - cmdlen)
             else:
                 localres = self._tagcompleter.complete(mypart[cmdlen:],
