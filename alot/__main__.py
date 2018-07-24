@@ -47,7 +47,7 @@ def parser():
                         help='path to notmuch index')
     parser.add_argument('-d', '--debug-level', default='info',
                         choices=('debug', 'info', 'warning', 'error'),
-                        help='debug log [default: %(default)s]')
+                        help='debug level [default: %(default)s]')
     parser.add_argument('-l', '--logfile', default='/dev/null',
                         action=cargparse.ValidatedStoreAction,
                         validator=cargparse.optional_file_like,

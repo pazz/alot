@@ -8,8 +8,8 @@
 -p PATH, --mailindex-path=PATH
                  path to notmuch index
 -d LEVEL, --debug-level=LEVEL
-                 debug log (default: info). Must be one of debug, info, warning
-                 or error
+                 debug level (default: info). Must be one of debug, info,
+                 warning or error
 -l FILENAME, --logfile=FILENAME
                  logfile (default: /dev/null)
 -v, --version    Display version string and exit
