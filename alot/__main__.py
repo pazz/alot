@@ -23,35 +23,40 @@ _SUBCOMMANDS = ['search', 'compose', 'bufferlist', 'taglist', 'namedqueries',
 
 def parser():
     """Parse command line arguments, validate them, and return them."""
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-v', '--version', action='version',
-                        version=alot.__version__)
+    parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument('-r', '--read-only', action='store_true',
                         help='open notmuch database in read-only mode')
-    parser.add_argument('-c', '--config',
+    parser.add_argument('-c', '--config', metavar='FILENAME',
                         action=cargparse.ValidatedStoreAction,
                         validator=cargparse.require_file,
                         help='configuration file')
-    parser.add_argument('-n', '--notmuch-config', default=os.environ.get(
+    parser.add_argument('-n', '--notmuch-config', metavar='FILENAME',
+                        default=os.environ.get(
                             'NOTMUCH_CONFIG',
                             os.path.expanduser('~/.notmuch-config')),
                         action=cargparse.ValidatedStoreAction,
                         validator=cargparse.require_file,
                         help='notmuch configuration file')
-    parser.add_argument('-C', '--colour-mode',
+    parser.add_argument('-C', '--colour-mode', metavar='COLOURS',
                         choices=(1, 16, 256), type=int,
                         help='number of colours to use')
-    parser.add_argument('-p', '--mailindex-path',
+    parser.add_argument('-p', '--mailindex-path', metavar='PATH',
                         action=cargparse.ValidatedStoreAction,
                         validator=cargparse.require_dir,
                         help='path to notmuch index')
-    parser.add_argument('-d', '--debug-level', default='info',
+    parser.add_argument('-d', '--debug-level', metavar='LEVEL', default='info',
                         choices=('debug', 'info', 'warning', 'error'),
                         help='debug level [default: %(default)s]')
-    parser.add_argument('-l', '--logfile', default='/dev/null',
+    parser.add_argument('-l', '--logfile', metavar='FILENAME',
+                        default='/dev/null',
                         action=cargparse.ValidatedStoreAction,
                         validator=cargparse.optional_file_like,
                         help='log file [default: %(default)s]')
+    parser.add_argument('-h', '--help', action='help',
+                        help='display this help and exit')
+    parser.add_argument('-v', '--version', action='version',
+                        version=alot.__version__,
+                        help='output version information and exit')
     # We will handle the subcommands in a separate run of argparse as argparse
     # does not support optional subcommands until now.
     parser.add_argument('command', nargs=argparse.REMAINDER,
