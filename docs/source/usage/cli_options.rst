@@ -4,8 +4,9 @@
 -n FILENAME, --notmuch-config=FILENAME
                  notmuch configuration file (default: $NOTMUCH_CONFIG
                  or ~/.notmuch-config)
--C COLOUR, --colour-mode=COLOUR
-                 terminal colour; must be 1, 16 or 256
+-C COLOURS, --colour-mode=COLOURS
+                 number of colours to use on the terminal; must be 1, 16 or 256
+                 (default: configuration option `colourmode` or 256)
 -p PATH, --mailindex-path=PATH
                  path to notmuch index
 -d LEVEL, --debug-level=LEVEL
