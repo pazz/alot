@@ -1,7 +1,7 @@
 .. _config.options:
 
-Config options
-==============
+Configuration Options
+=====================
 
 The following lists all available config options with their type and default values.
 The type of an option is used to validate a given value. For instance,

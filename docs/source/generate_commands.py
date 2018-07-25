@@ -53,20 +53,20 @@ def rstify_parser(parser):
         a = parser._positionals._group_actions[0]
         out += ' '*8 + str(parser._positionals._group_actions[0].help)
         if a.choices:
-            out += ". valid choices are: %s." % ','.join(['\`%s\`' % s for s
-                                                          in a.choices])
+            out += "; valid choices are: %s" % ','.join(['\`%s\`' % s for s
+                                                         in a.choices])
         if a.default:
-            out += ". defaults to: '%s'." % a.default
+            out += " (defaults to: '%s')" % a.default
         out += '\n\n'
     elif len(parser._positionals._group_actions) > 1:
         out += "    positional arguments\n"
         for index, a in enumerate(parser._positionals._group_actions):
             out += "        %s: %s" % (index, a.help)
             if a.choices:
-                out += ". valid choices are: %s." % ','.join(
+                out += "; valid choices are: %s" % ','.join(
                     ['\`%s\`' % s for s in a.choices])
             if a.default:
-                out += ". defaults to: '%s'." % a.default
+                out += " (defaults to: '%s')" % a.default
             out += '\n'
         out += '\n\n'
 
@@ -76,11 +76,11 @@ def rstify_parser(parser):
         switches = [s.replace('--', '---') for s in a.option_strings]
         out += "        :%s: %s" % (', '.join(switches), a.help)
         if a.choices and not isinstance(a, BooleanAction):
-            out += ". Valid choices are: %s" % ','.join(['\`%s\`' % s for s
+            out += "; valid choices are: %s" % ','.join(['\`%s\`' % s for s
                                                          in a.choices])
         if a.default:
-            out += " (Defaults to: '%s')" % a.default
-        out += '.\n'
+            out += " (defaults to: '%s')" % a.default
+        out += '\n'
     out += '\n'
 
     return out
@@ -107,12 +107,13 @@ if __name__ == "__main__":
             modes.append(mode)
             header = 'Commands in `%s` mode' % mode
             modefile.write('%s\n%s\n' % (header, '-' * len(header)))
-            modefile.write('The following commands are available in %s mode'
+            modefile.write('The following commands are available in %s mode:'
                            '\n\n' % mode)
         else:
-            header = 'Global Commands'
+            header = 'Global commands'
             modefile.write('%s\n%s\n' % (header, '-' * len(header)))
-            modefile.write('The following commands are available globally\n\n')
+            modefile.write('The following commands are available globally:'
+                           '\n\n')
         for cmdstring, struct in sorted(modecommands.items()):
             cls, parser, forced_args = struct
             labelline = '.. _cmd.%s.%s:\n\n' % (mode, cmdstring.replace('_',

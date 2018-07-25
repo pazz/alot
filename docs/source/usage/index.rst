@@ -2,8 +2,8 @@
 Usage
 *****
 
-Commandline invocation
-======================
+Command-Line Invocation
+=======================
 .. rubric:: Synopsis
 .. include:: synopsis.rst
 

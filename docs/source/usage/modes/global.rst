@@ -1,9 +1,9 @@
 .. CAUTION: THIS FILE IS AUTO-GENERATED!
 
 
-Global Commands
+Global commands
 ---------------
-The following commands are available globally
+The following commands are available globally:
 
 .. _cmd.global.bclose:
 
@@ -12,8 +12,8 @@ The following commands are available globally
     close a buffer
 
     optional arguments
-        :---redraw: redraw current buffer after command has finished.
-        :---force: never ask for confirmation.
+        :---redraw: redraw current buffer after command has finished
+        :---force: never ask for confirmation
 
 .. _cmd.global.bnext:
 
@@ -50,7 +50,7 @@ The following commands are available globally
 
 .. describe:: call
 
-    Executes python code
+    execute python code
 
     argument
         python command string to call
@@ -66,27 +66,22 @@ The following commands are available globally
         None
 
     optional arguments
-        :---sender: sender.
-        :---template: path to a template message file.
-        :---tags: comma-separated list of tags to apply to message.
-        :---subject: subject line.
-        :---to: recipients.
-        :---cc: copy to.
-        :---bcc: blind copy to.
-        :---attach: attach files.
-        :---omit_signature: do not add signature.
-        :---spawn: spawn editor in new terminal.
+        :---sender: sender
+        :---template: path to a template message file
+        :---tags: comma-separated list of tags to apply to message
+        :---subject: subject line
+        :---to: recipients
+        :---cc: copy to
+        :---bcc: blind copy to
+        :---attach: attach files
+        :---omit_signature: do not add signature
+        :---spawn: spawn editor in new terminal
 
 .. _cmd.global.exit:
 
 .. describe:: exit
 
-    Shut down cleanly.
-
-    The _prompt variable is for internal use only, it's used to control
-    prompting to close without sending, and is used by the BufferCloseCommand
-    if settings change after yielding to the UI.
-    
+    shut down cleanly
 
 
 .. _cmd.global.flush:
@@ -100,8 +95,8 @@ The following commands are available globally
 
 .. describe:: help
 
-    display help for a command. Use 'bindings' to display all keybings
-    interpreted in current mode.'
+    display help for a command (use 'bindings' to display all keybindings
+    interpreted in current mode)
 
     argument
         command or 'bindings'
@@ -152,7 +147,7 @@ The following commands are available globally
 
 .. describe:: reload
 
-    Reload all configuration files
+    reload all configuration files
 
 
 .. _cmd.global.removequery:
@@ -165,13 +160,13 @@ The following commands are available globally
         alias to remove
 
     optional arguments
-        :---no-flush: postpone a writeout to the index (Defaults to: 'True').
+        :---no-flush: postpone a writeout to the index (defaults to: 'True')
 
 .. _cmd.global.repeat:
 
 .. describe:: repeat
 
-    Repeats the command executed last time
+    repeat the command executed last time
 
 
 .. _cmd.global.savequery:
@@ -186,7 +181,7 @@ The following commands are available globally
 
 
     optional arguments
-        :---no-flush: postpone a writeout to the index (Defaults to: 'True').
+        :---no-flush: postpone a writeout to the index (defaults to: 'True')
 
 .. _cmd.global.search:
 
@@ -199,7 +194,7 @@ The following commands are available globally
         search string
 
     optional arguments
-        :---sort: sort order. Valid choices are: \`oldest_first\`,\`newest_first\`,\`message_id\`,\`unsorted\`.
+        :---sort: sort order; valid choices are: \`oldest_first\`,\`newest_first\`,\`message_id\`,\`unsorted\`
 
 .. _cmd.global.shellescape:
 
@@ -211,9 +206,9 @@ The following commands are available globally
         command line to execute
 
     optional arguments
-        :---spawn: run in terminal window.
-        :---thread: run in separate thread.
-        :---refocus: refocus current buffer after command has finished.
+        :---spawn: run in terminal window
+        :---thread: run in separate thread
+        :---refocus: refocus current buffer after command has finished
 
 .. _cmd.global.taglist:
 
@@ -222,5 +217,5 @@ The following commands are available globally
     opens taglist buffer
 
     optional arguments
-        :---tags: tags to display.
+        :---tags: tags to display
 

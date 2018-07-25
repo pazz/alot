@@ -38,16 +38,18 @@ from ..utils import argparse as cargparse
 MODE = 'global'
 
 
-@registerCommand(MODE, 'exit')
+@registerCommand(MODE, 'exit', help="shut down cleanly")
 class ExitCommand(Command):
-    """Shut down cleanly.
-
-    The _prompt variable is for internal use only, it's used to control
-    prompting to close without sending, and is used by the BufferCloseCommand
-    if settings change after yielding to the UI.
-    """
+    """Shut down cleanly."""
 
     def __init__(self, _prompt=True, **kwargs):
+        """
+        :param _prompt: For internal use only, used to control prompting to
+                        close without sending, and is used by the
+                        BufferCloseCommand if settings change after yielding to
+                        the UI.
+        :type _prompt: bool
+        """
         super(ExitCommand, self).__init__(**kwargs)
         self.prompt_to_send = _prompt
 
@@ -352,7 +354,7 @@ class PythonShellCommand(Command):
 @registerCommand(MODE, 'repeat')
 class RepeatCommand(Command):
 
-    """Repeats the command executed last time"""
+    """repeat the command executed last time"""
     def __init__(self, **kwargs):
         Command.__init__(self, **kwargs)
 
@@ -367,7 +369,7 @@ class RepeatCommand(Command):
     (['command'], {'help': 'python command string to call'})])
 class CallCommand(Command):
 
-    """Executes python code"""
+    """execute python code"""
     repeatable = True
 
     def __init__(self, command, **kwargs):
@@ -616,8 +618,8 @@ class FlushCommand(Command):
     (['commandname'], {'help': 'command or \'bindings\''})])
 class HelpCommand(Command):
 
-    """display help for a command. Use \'bindings\' to display all keybings
-    interpreted in current mode.'"""
+    """display help for a command (use \'bindings\' to display all keybindings
+    interpreted in current mode)"""
     def __init__(self, commandname='', **kwargs):
         """
         :param commandname: command to document
@@ -984,7 +986,7 @@ class MoveCommand(Command):
                       priority='error')
 
 
-@registerCommand(MODE, 'reload', help='Reload all configuration files')
+@registerCommand(MODE, 'reload', help='reload all configuration files')
 class ReloadCommand(Command):
 
     """Reload configuration."""

@@ -23,7 +23,7 @@ bug_on_exit = boolean(default=False)
 # offset of next focused buffer if the current one gets closed
 bufferclose_focus_offset = integer(default=-1)
 
-# number of colours to use
+# number of colours to use on the terminal
 colourmode = option(1, 16, 256, default=256)
 
 # number of spaces used to replace tab characters

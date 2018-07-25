@@ -3,7 +3,7 @@
 
 Commands in `namedqueries` mode
 -------------------------------
-The following commands are available in namedqueries mode
+The following commands are available in namedqueries mode:
 
 .. _cmd.namedqueries.select:
 

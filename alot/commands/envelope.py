@@ -621,7 +621,7 @@ class EncryptCommand(Command):
 @registerCommand(
     MODE, 'retag', forced={'action': 'set'},
     arguments=[(['tags'], {'help': 'comma separated list of tags'})],
-    help='set message tags.',
+    help='set message tags',
 )
 @registerCommand(
     MODE, 'untag', forced={'action': 'remove'},
