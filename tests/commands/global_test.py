@@ -149,6 +149,30 @@ class TestComposeCommand(unittest.TestCase):
                           'Subject': [subject]}, cmd.envelope.headers)
         self.assertEqual(body, cmd.envelope.body)
 
+    @inlineCallbacks
+    def test_single_account_no_from(self):
+        # issue #1277
+        envelope = self._make_envelope_mock()
+        del envelope.headers['From']
+        account = self._make_account_mock()
+        account.realname = "foo"
+        account.address = 1  # maybe this should be a real Address?
+        cmd = g_commands.ComposeCommand(envelope=envelope)
+
+        # This whole mess is required becasue ComposeCommand.apply is waaaaay
+        # too complicated, it needs to be split into more manageable segments.
+        with mock.patch('alot.commands.globals.settings.get_account_by_address',
+                        mock.Mock(return_value=account)):
+            with mock.patch('alot.commands.globals.settings.get_accounts',
+                            mock.Mock(return_value=[account])):
+                with mock.patch('alot.commands.globals.settings.get_addressbooks',
+                                mock.Mock(side_effect=Stop)):
+                    try:
+                        yield cmd.apply(mock.Mock())
+                    except Stop:
+                        pass
+
+
 
 class TestExternalCommand(unittest.TestCase):
 
