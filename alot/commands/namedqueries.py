@@ -20,11 +20,11 @@ class NamedqueriesSelectCommand(Command):
         self._filt = filt
         Command.__init__(self, **kwargs)
 
-    def apply(self, ui):
+    async def apply(self, ui):
         query_name = ui.current_buffer.get_selected_query()
         query = ['query:"%s"' % query_name]
         if self._filt:
             query.extend(['and'] + self._filt)
 
         cmd = SearchCommand(query=query)
-        ui.apply_command(cmd)
+        await ui.apply_command(cmd)

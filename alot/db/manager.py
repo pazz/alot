@@ -8,10 +8,10 @@ import multiprocessing
 import os
 import signal
 import sys
+import threading
 
 from notmuch import Database, NotmuchError, XapianError
 import notmuch
-from twisted.internet import reactor
 
 from . import DB_ENC
 from .errors import DatabaseError
@@ -352,10 +352,14 @@ class DBManager(object):
             logging.debug('Worker process %s %s', process.pid, msg)
             self.processes.remove(process)
 
+        # XXX: it would be much nicer to run this as a coroutine than a thread,
+        # except that this code is executed before the eventloop is started.
+        #
         # spawn a thread to collect the worker process once it dies
         # preventing it from hanging around as zombie
-        reactor.callInThread(threaded_wait)
+        threading.Thread(target=threaded_wait).start()
 
+        # TODO: avoid this if logging level > debug
         def threaded_reader(prefix, fd):
             with os.fdopen(fd) as handle:
                 for line in handle:
@@ -364,9 +368,11 @@ class DBManager(object):
 
         # spawn two threads that read from the stdout and stderr pipes
         # and write anything that appears there to the log
-        reactor.callInThread(threaded_reader, 'stdout', stdout[0])
+        threading.Thread(target=threaded_reader,
+                         args=('stdout', stdout[0])).start()
         os.close(stdout[1])
-        reactor.callInThread(threaded_reader, 'stderr', stderr[0])
+        threading.Thread(target=threaded_reader,
+                         args=('stderr', stderr[0])).start()
         os.close(stderr[1])
 
         # closing the sending end in this (receiving) process guarantees

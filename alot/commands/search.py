@@ -1,4 +1,5 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
+# Copyright © 2018 Dylan Baker
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 import argparse
@@ -87,10 +88,10 @@ class RefinePromptCommand(Command):
     """prompt to change this buffers querystring"""
     repeatable = True
 
-    def apply(self, ui):
+    async def apply(self, ui):
         sbuffer = ui.current_buffer
         oldquery = sbuffer.querystring
-        return ui.apply_command(PromptCommand('refine ' + oldquery))
+        return await ui.apply_command(PromptCommand('refine ' + oldquery))
 
 
 RetagPromptCommand = registerCommand(MODE, 'retagprompt')(RetagPromptCommand)
@@ -164,7 +165,7 @@ class TagCommand(Command):
         self.flush = flush
         Command.__init__(self, **kwargs)
 
-    def apply(self, ui):
+    async def apply(self, ui):
         searchbuffer = ui.current_buffer
         threadline_widget = searchbuffer.get_selected_threadline()
         # pass if the current buffer has no selected threadline
@@ -226,7 +227,8 @@ class TagCommand(Command):
 
         # flush index
         if self.flush:
-            ui.apply_command(commands.globals.FlushCommand(callback=refresh))
+            await ui.apply_command(
+                commands.globals.FlushCommand(callback=refresh))
 
 
 @registerCommand(

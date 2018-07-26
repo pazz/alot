@@ -1,4 +1,5 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
+# Copyright © 2018 Dylan Baker
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 import argparse
@@ -11,7 +12,6 @@ import tempfile
 from email.utils import getaddresses, parseaddr, formataddr
 from email.message import Message
 
-from twisted.internet.defer import inlineCallbacks
 import urwid
 from io import BytesIO
 
@@ -141,7 +141,7 @@ class ReplyCommand(Command):
         self.force_spawn = spawn
         Command.__init__(self, **kwargs)
 
-    def apply(self, ui):
+    async def apply(self, ui):
         # get message to reply to if not given in constructor
         if not self.message:
             self.message = ui.current_buffer.get_selected_message()
@@ -287,9 +287,9 @@ class ReplyCommand(Command):
 
         # continue to compose
         encrypt = mail.get_content_subtype() == 'encrypted'
-        ui.apply_command(ComposeCommand(envelope=envelope,
-                                        spawn=self.force_spawn,
-                                        encrypt=encrypt))
+        await ui.apply_command(ComposeCommand(envelope=envelope,
+                                              spawn=self.force_spawn,
+                                              encrypt=encrypt))
 
     @staticmethod
     def clear_my_address(my_addresses, value):
@@ -345,7 +345,7 @@ class ForwardCommand(Command):
         self.force_spawn = spawn
         Command.__init__(self, **kwargs)
 
-    def apply(self, ui):
+    async def apply(self, ui):
         # get message to forward if not given in constructor
         if not self.message:
             self.message = ui.current_buffer.get_selected_message()
@@ -406,8 +406,8 @@ class ForwardCommand(Command):
         envelope.add('From', from_header)
 
         # continue to compose
-        ui.apply_command(ComposeCommand(envelope=envelope,
-                                        spawn=self.force_spawn))
+        await ui.apply_command(ComposeCommand(envelope=envelope,
+                                              spawn=self.force_spawn))
 
 
 @registerCommand(MODE, 'bounce')
@@ -424,8 +424,7 @@ class BounceMailCommand(Command):
         self.message = message
         Command.__init__(self, **kwargs)
 
-    @inlineCallbacks
-    def apply(self, ui):
+    async def apply(self, ui):
         # get mail to bounce
         if not self.message:
             self.message = ui.current_buffer.get_selected_message()
@@ -462,7 +461,7 @@ class BounceMailCommand(Command):
             completer = ContactsCompleter(abooks)
         else:
             completer = None
-        to = yield ui.prompt('To', completer=completer,
+        to = await ui.prompt('To', completer=completer,
                              history=ui.recipienthistory)
         if to is None:
             raise CommandCanceled()
@@ -472,7 +471,7 @@ class BounceMailCommand(Command):
         logging.debug("bouncing mail")
         logging.debug(mail.__class__)
 
-        ui.apply_command(SendCommand(mail=mail))
+        await ui.apply_command(SendCommand(mail=mail))
 
 
 @registerCommand(MODE, 'editnew', arguments=[
@@ -492,7 +491,7 @@ class EditNewCommand(Command):
         self.force_spawn = spawn
         Command.__init__(self, **kwargs)
 
-    def apply(self, ui):
+    async def apply(self, ui):
         if not self.message:
             self.message = ui.current_buffer.get_selected_message()
         mail = self.message.get_email()
@@ -517,9 +516,9 @@ class EditNewCommand(Command):
         for b in self.message.get_attachments():
             envelope.attach(b)
 
-        ui.apply_command(ComposeCommand(envelope=envelope,
-                                        spawn=self.force_spawn,
-                                        omit_signature=True))
+        await ui.apply_command(ComposeCommand(envelope=envelope,
+                                              spawn=self.force_spawn,
+                                              omit_signature=True))
 
 
 @registerCommand(
@@ -709,8 +708,7 @@ class PipeCommand(Command):
         self.done_msg = done_msg
         self.field_key = field_key
 
-    @inlineCallbacks
-    def apply(self, ui):
+    async def apply(self, ui):
         # abort if command unset
         if not self.cmd:
             ui.notify(self.noop_msg, priority='error')
@@ -727,7 +725,7 @@ class PipeCommand(Command):
 
         # ask for confirmation if needed
         if self.confirm_msg:
-            if (yield ui.choice(self.confirm_msg, select='yes',
+            if (await ui.choice(self.confirm_msg, select='yes',
                                 cancel='no')) == 'no':
                 return
 
@@ -790,7 +788,7 @@ class PipeCommand(Command):
 
         # display 'done' message
         if self.done_msg:
-            ui.notify(self.done_msg)
+            await ui.notify(self.done_msg)
 
 
 @registerCommand(MODE, 'remove', arguments=[
@@ -808,8 +806,7 @@ class RemoveCommand(Command):
         Command.__init__(self, **kwargs)
         self.all = all
 
-    @inlineCallbacks
-    def apply(self, ui):
+    async def apply(self, ui):
         threadbuffer = ui.current_buffer
         # get messages and notification strings
         if self.all:
@@ -825,7 +822,7 @@ class RemoveCommand(Command):
             ok_msg = 'removed message: %s' % msg.get_message_id()
 
         # ask for confirmation
-        if (yield ui.choice(confirm_msg, select='yes', cancel='no')) == 'no':
+        if (await ui.choice(confirm_msg, select='yes', cancel='no')) == 'no':
             return
 
         # notify callback
@@ -837,7 +834,7 @@ class RemoveCommand(Command):
         for m in messages:
             ui.dbman.remove_message(m, afterwards=callback)
 
-        ui.apply_command(FlushCommand())
+        await ui.apply_command(FlushCommand())
 
 
 @registerCommand(MODE, 'print', arguments=[
@@ -907,14 +904,13 @@ class SaveAttachmentCommand(Command):
         self.all = all
         self.path = path
 
-    @inlineCallbacks
-    def apply(self, ui):
+    async def apply(self, ui):
         pcomplete = PathCompleter()
         savedir = settings.get('attachment_prefix', '~')
         if self.all:
             msg = ui.current_buffer.get_selected_message()
             if not self.path:
-                self.path = yield ui.prompt('save attachments to',
+                self.path = await ui.prompt('save attachments to',
                                             text=os.path.join(savedir, ''),
                                             completer=pcomplete)
             if self.path:
@@ -939,7 +935,7 @@ class SaveAttachmentCommand(Command):
                 if not self.path:
                     msg = 'save attachment (%s) to ' % filename
                     initialtext = os.path.join(savedir, filename)
-                    self.path = yield ui.prompt(msg,
+                    self.path = await ui.prompt(msg,
                                                 completer=pcomplete,
                                                 text=initialtext)
                 if self.path:
@@ -963,7 +959,7 @@ class OpenAttachmentCommand(Command):
         Command.__init__(self, **kwargs)
         self.attachment = attachment
 
-    def apply(self, ui):
+    async def apply(self, ui):
         logging.info('open attachment')
         mimetype = self.attachment.get_content_type()
 
@@ -1012,10 +1008,10 @@ class OpenAttachmentCommand(Command):
             # XXX: could this be repalced with "'needsterminal' not in entry"?
             overtakes = entry.get('needsterminal') is None
 
-            ui.apply_command(ExternalCommand(handler_cmdlist,
-                                             stdin=handler_stdin,
-                                             on_success=afterwards,
-                                             thread=overtakes))
+            await ui.apply_command(ExternalCommand(handler_cmdlist,
+                                                   stdin=handler_stdin,
+                                                   on_success=afterwards,
+                                                   thread=overtakes))
         else:
             ui.notify('unknown mime type')
 
@@ -1072,13 +1068,13 @@ class ThreadSelectCommand(Command):
     """select focussed element:
         - if it is a message summary, toggle visibility of the message;
         - if it is an attachment line, open the attachment"""
-    def apply(self, ui):
+    async def apply(self, ui):
         focus = ui.get_deep_focus()
         if isinstance(focus, AttachmentWidget):
             logging.info('open attachment')
-            ui.apply_command(OpenAttachmentCommand(focus.get_attachment()))
+            await ui.apply_command(OpenAttachmentCommand(focus.get_attachment()))
         else:
-            ui.apply_command(ChangeDisplaymodeCommand(visible='toggle'))
+            await ui.apply_command(ChangeDisplaymodeCommand(visible='toggle'))
 
 
 RetagPromptCommand = registerCommand(MODE, 'retagprompt')(RetagPromptCommand)
@@ -1149,7 +1145,7 @@ class TagCommand(Command):
         self.flush = flush
         Command.__init__(self, **kwargs)
 
-    def apply(self, ui):
+    async def apply(self, ui):
         tbuffer = ui.current_buffer
         if self.all:
             messagetrees = tbuffer.messagetrees()
@@ -1197,4 +1193,4 @@ class TagCommand(Command):
 
         # flush index
         if self.flush:
-            ui.apply_command(FlushCommand())
+            await ui.apply_command(FlushCommand())

@@ -1,5 +1,5 @@
 # encoding=utf-8
-# Copyright © 2017 Dylan Baker
+# Copyright © 2017-2018 Dylan Baker
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,9 +18,8 @@
 
 import os
 import tempfile
+import unittest
 
-from twisted.trial import unittest
-from twisted.internet.defer import inlineCallbacks
 import mock
 
 from alot.commands import globals as g_commands
@@ -55,8 +54,8 @@ class TestComposeCommand(unittest.TestCase):
         account.signature = None
         return account
 
-    @inlineCallbacks
-    def test_apply_sign_by_default_okay(self):
+    @utilities.async_test
+    async def test_apply_sign_by_default_okay(self):
         envelope = self._make_envelope_mock()
         account = self._make_account_mock()
         cmd = g_commands.ComposeCommand(envelope=envelope)
@@ -70,15 +69,15 @@ class TestComposeCommand(unittest.TestCase):
                 with mock.patch('alot.commands.globals.settings.get_addressbooks',
                                 mock.Mock(side_effect=Stop)):
                     try:
-                        yield cmd.apply(mock.Mock())
+                        await cmd.apply(mock.Mock())
                     except Stop:
                         pass
 
         self.assertTrue(envelope.sign)
         self.assertIs(envelope.sign_key, mock.sentinel.gpg_key)
 
-    @inlineCallbacks
-    def test_apply_sign_by_default_false_doesnt_set_key(self):
+    @utilities.async_test
+    async def test_apply_sign_by_default_false_doesnt_set_key(self):
         envelope = self._make_envelope_mock()
         account = self._make_account_mock(sign_by_default=False)
         cmd = g_commands.ComposeCommand(envelope=envelope)
@@ -92,15 +91,15 @@ class TestComposeCommand(unittest.TestCase):
                 with mock.patch('alot.commands.globals.settings.get_addressbooks',
                                 mock.Mock(side_effect=Stop)):
                     try:
-                        yield cmd.apply(mock.Mock())
+                        await cmd.apply(mock.Mock())
                     except Stop:
                         pass
 
         self.assertFalse(envelope.sign)
         self.assertIs(envelope.sign_key, None)
 
-    @inlineCallbacks
-    def test_apply_sign_by_default_but_no_key(self):
+    @utilities.async_test
+    async def test_apply_sign_by_default_but_no_key(self):
         envelope = self._make_envelope_mock()
         account = self._make_account_mock(gpg_key=None)
         cmd = g_commands.ComposeCommand(envelope=envelope)
@@ -114,15 +113,15 @@ class TestComposeCommand(unittest.TestCase):
                 with mock.patch('alot.commands.globals.settings.get_addressbooks',
                                 mock.Mock(side_effect=Stop)):
                     try:
-                        yield cmd.apply(mock.Mock())
+                        await cmd.apply(mock.Mock())
                     except Stop:
                         pass
 
         self.assertFalse(envelope.sign)
         self.assertIs(envelope.sign_key, None)
 
-    @inlineCallbacks
-    def test_decode_template_on_loading(self):
+    @utilities.async_test
+    async def test_decode_template_on_loading(self):
         subject = u'This is a täßϑ subject.'
         to = u'recipient@mail.com'
         _from = u'foo.bar@mail.fr'
@@ -140,7 +139,7 @@ class TestComposeCommand(unittest.TestCase):
                 'alot.commands.globals.settings.get_account_by_address',
                 mock.Mock(side_effect=Stop)):
             try:
-                yield cmd.apply(mock.Mock())
+                await cmd.apply(mock.Mock())
             except Stop:
                 pass
 
@@ -149,8 +148,8 @@ class TestComposeCommand(unittest.TestCase):
                           'Subject': [subject]}, cmd.envelope.headers)
         self.assertEqual(body, cmd.envelope.body)
 
-    @inlineCallbacks
-    def test_single_account_no_from(self):
+    @utilities.async_test
+    async def test_single_account_no_from(self):
         # issue #1277
         envelope = self._make_envelope_mock()
         del envelope.headers['From']
@@ -168,7 +167,7 @@ class TestComposeCommand(unittest.TestCase):
                 with mock.patch('alot.commands.globals.settings.get_addressbooks',
                                 mock.Mock(side_effect=Stop)):
                     try:
-                        yield cmd.apply(mock.Mock())
+                        await cmd.apply(mock.Mock())
                     except Stop:
                         pass
 
@@ -176,63 +175,71 @@ class TestComposeCommand(unittest.TestCase):
 
 class TestExternalCommand(unittest.TestCase):
 
-    def test_no_spawn_no_stdin_success(self):
+    @utilities.async_test
+    async def test_no_spawn_no_stdin_success(self):
         ui = utilities.make_ui()
         cmd = g_commands.ExternalCommand(u'true', refocus=False)
-        cmd.apply(ui)
+        await cmd.apply(ui)
         ui.notify.assert_not_called()
 
-    def test_no_spawn_stdin_success(self):
+    @utilities.async_test
+    async def test_no_spawn_stdin_success(self):
         ui = utilities.make_ui()
         cmd = g_commands.ExternalCommand(u"awk '{ exit $0 }'", stdin=u'0',
                                          refocus=False)
-        cmd.apply(ui)
+        await cmd.apply(ui)
         ui.notify.assert_not_called()
 
-    def test_no_spawn_no_stdin_attached(self):
+    @utilities.async_test
+    async def test_no_spawn_no_stdin_attached(self):
         ui = utilities.make_ui()
         cmd = g_commands.ExternalCommand(u'test -t 0', refocus=False)
-        cmd.apply(ui)
+        await cmd.apply(ui)
         ui.notify.assert_not_called()
 
-    def test_no_spawn_stdin_attached(self):
+    @utilities.async_test
+    async def test_no_spawn_stdin_attached(self):
         ui = utilities.make_ui()
         cmd = g_commands.ExternalCommand(
             u"test -t 0", stdin=u'0', refocus=False)
-        cmd.apply(ui)
+        await cmd.apply(ui)
         ui.notify.assert_called_once_with('', priority='error')
 
-    def test_no_spawn_failure(self):
+    @utilities.async_test
+    async def test_no_spawn_failure(self):
         ui = utilities.make_ui()
         cmd = g_commands.ExternalCommand(u'false', refocus=False)
-        cmd.apply(ui)
+        await cmd.apply(ui)
         ui.notify.assert_called_once_with('', priority='error')
 
+    @utilities.async_test
     @mock.patch(
         'alot.commands.globals.settings.get', mock.Mock(return_value=''))
     @mock.patch.dict(os.environ, {'DISPLAY': ':0'})
-    def test_spawn_no_stdin_success(self):
+    async def test_spawn_no_stdin_success(self):
         ui = utilities.make_ui()
         cmd = g_commands.ExternalCommand(u'true', refocus=False, spawn=True)
-        cmd.apply(ui)
+        await cmd.apply(ui)
         ui.notify.assert_not_called()
 
+    @utilities.async_test
     @mock.patch(
         'alot.commands.globals.settings.get', mock.Mock(return_value=''))
     @mock.patch.dict(os.environ, {'DISPLAY': ':0'})
-    def test_spawn_stdin_success(self):
+    async def test_spawn_stdin_success(self):
         ui = utilities.make_ui()
         cmd = g_commands.ExternalCommand(
             u"awk '{ exit $0 }'",
             stdin=u'0', refocus=False, spawn=True)
-        cmd.apply(ui)
+        await cmd.apply(ui)
         ui.notify.assert_not_called()
 
+    @utilities.async_test
     @mock.patch(
         'alot.commands.globals.settings.get', mock.Mock(return_value=''))
     @mock.patch.dict(os.environ, {'DISPLAY': ':0'})
-    def test_spawn_failure(self):
+    async def test_spawn_failure(self):
         ui = utilities.make_ui()
         cmd = g_commands.ExternalCommand(u'false', refocus=False, spawn=True)
-        cmd.apply(ui)
+        await cmd.apply(ui)
         ui.notify.assert_called_once_with('', priority='error')

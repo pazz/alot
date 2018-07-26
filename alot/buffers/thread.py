@@ -1,6 +1,8 @@
 # Copyright (C) 2011-2018  Patrick Totzke <patricktotzke@gmail.com>
+# Copyright © 2018 Dylan Baker
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
+import asyncio
 import urwid
 import logging
 from urwidtrees import ArrowTree, TreeBox, NestedTree
@@ -112,7 +114,8 @@ class ThreadBuffer(Buffer):
                         self._auto_unread_writing = True
                         msg.remove_tags(['unread'], afterwards=clear)
                         fcmd = commands.globals.FlushCommand(silent=True)
-                        self.ui.apply_command(fcmd)
+                        asyncio.get_event_loop().create_task(
+                            self.ui.apply_command(fcmd))
                     else:
                         logging.debug('Tbuffer: No, msg not unread')
                 else:

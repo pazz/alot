@@ -1,5 +1,5 @@
 # encoding=utf-8
-# Copyright © 2017 Dylan Baker
+# Copyright © 2017-2018 Dylan Baker
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,11 +17,10 @@
 import tempfile
 import os
 import shutil
+import unittest
 
 import gpg
 import mock
-from twisted.trial import unittest
-from twisted.internet.defer import inlineCallbacks
 
 from alot import crypto
 from alot import errors
@@ -73,48 +72,47 @@ class TestGetKeys(unittest.TestCase):
 
     # pylint: disable=protected-access
 
-    @inlineCallbacks
-    def test_get_keys(self):
+    @utilities.async_test
+    async def test_get_keys(self):
         """Test that getting keys works when all keys are present."""
         expected = crypto.get_key(FPR, validate=True, encrypt=True,
                                   signed_only=False)
         ui = utilities.make_ui()
         ids = [FPR]
-        actual = yield utils._get_keys(ui, ids)
+        actual = await utils._get_keys(ui, ids)
         self.assertIn(FPR, actual)
         self.assertEqual(actual[FPR].fpr, expected.fpr)
 
-    @inlineCallbacks
-    def test_get_keys_missing(self):
+    @utilities.async_test
+    async def test_get_keys_missing(self):
         """Test that getting keys works when some keys are missing."""
         expected = crypto.get_key(FPR, validate=True, encrypt=True,
                                   signed_only=False)
         ui = utilities.make_ui()
         ids = [FPR, "6F6B15509CF8E59E6E469F327F438280EF8D349F"]
-        actual = yield utils._get_keys(ui, ids)
+        actual = await utils._get_keys(ui, ids)
         self.assertIn(FPR, actual)
         self.assertEqual(actual[FPR].fpr, expected.fpr)
 
-    @inlineCallbacks
-    def test_get_keys_signed_only(self):
+    @utilities.async_test
+    async def test_get_keys_signed_only(self):
         """Test gettings keys when signed only is required."""
         ui = utilities.make_ui()
         ids = [FPR]
-        actual = yield utils._get_keys(ui, ids, signed_only=True)
+        actual = await utils._get_keys(ui, ids, signed_only=True)
         self.assertEqual(actual, {})
 
-    @inlineCallbacks
-    def test_get_keys_ambiguous(self):
+    @utilities.async_test
+    async def test_get_keys_ambiguous(self):
         """Test gettings keys when when the key is ambiguous."""
         key = crypto.get_key(
             FPR, validate=True, encrypt=True, signed_only=False)
         ui = utilities.make_ui()
 
-        # Creat a ui.choice object that can satisfy twisted, but can also be
+        # Creat a ui.choice object that can satisfy asyncio, but can also be
         # queried for calls as a mock
-        @inlineCallbacks
-        def choice(*args, **kwargs):
-            yield None
+        async def choice(*args, **kwargs):
+            return None
         ui.choice = mock.Mock(wraps=choice)
 
         ids = [FPR]
@@ -123,7 +121,7 @@ class TestGetKeys(unittest.TestCase):
                             'test', errors.GPGCode.AMBIGUOUS_NAME))):
             with mock.patch('alot.commands.utils.crypto.list_keys',
                             mock.Mock(return_value=[key])):
-                yield utils._get_keys(ui, ids, signed_only=False)
+                await utils._get_keys(ui, ids, signed_only=False)
         ui.choice.assert_called_once()
 
 
@@ -135,50 +133,50 @@ class _Account(object):
 
 class TestSetEncrypt(unittest.TestCase):
 
-    @inlineCallbacks
-    def test_get_keys_from_to(self):
+    @utilities.async_test
+    async def test_get_keys_from_to(self):
         ui = utilities.make_ui()
         envelope = Envelope()
         envelope['To'] = 'ambig@example.com, test@example.com'
-        yield utils.update_keys(ui, envelope)
+        await utils.update_keys(ui, envelope)
         self.assertTrue(envelope.encrypt)
         self.assertCountEqual(
             [f.fpr for f in envelope.encrypt_keys.values()],
             [crypto.get_key(FPR).fpr, crypto.get_key(EXTRA_FPRS[0]).fpr])
 
-    @inlineCallbacks
-    def test_get_keys_from_cc(self):
+    @utilities.async_test
+    async def test_get_keys_from_cc(self):
         ui = utilities.make_ui()
         envelope = Envelope()
         envelope['Cc'] = 'ambig@example.com, test@example.com'
-        yield utils.update_keys(ui, envelope)
+        await utils.update_keys(ui, envelope)
         self.assertTrue(envelope.encrypt)
         self.assertCountEqual(
             [f.fpr for f in envelope.encrypt_keys.values()],
             [crypto.get_key(FPR).fpr, crypto.get_key(EXTRA_FPRS[0]).fpr])
 
-    @inlineCallbacks
-    def test_get_partial_keys(self):
+    @utilities.async_test
+    async def test_get_partial_keys(self):
         ui = utilities.make_ui()
         envelope = Envelope()
         envelope['Cc'] = 'foo@example.com, test@example.com'
-        yield utils.update_keys(ui, envelope)
+        await utils.update_keys(ui, envelope)
         self.assertTrue(envelope.encrypt)
         self.assertCountEqual(
             [f.fpr for f in envelope.encrypt_keys.values()],
             [crypto.get_key(FPR).fpr])
 
-    @inlineCallbacks
-    def test_get_no_keys(self):
+    @utilities.async_test
+    async def test_get_no_keys(self):
         ui = utilities.make_ui()
         envelope = Envelope()
         envelope['To'] = 'foo@example.com'
-        yield utils.update_keys(ui, envelope)
+        await utils.update_keys(ui, envelope)
         self.assertFalse(envelope.encrypt)
         self.assertEqual(envelope.encrypt_keys, {})
 
-    @inlineCallbacks
-    def test_encrypt_to_self_true(self):
+    @utilities.async_test
+    async def test_encrypt_to_self_true(self):
         ui = utilities.make_ui()
         envelope = Envelope()
         envelope['From'] = 'test@example.com'
@@ -187,13 +185,13 @@ class TestSetEncrypt(unittest.TestCase):
         account = _Account(encrypt_to_self=True, gpg_key=gpg_key)
         with mock.patch('alot.commands.thread.settings.get_account_by_address',
                         mock.Mock(return_value=account)):
-            yield utils.update_keys(ui, envelope)
+            await utils.update_keys(ui, envelope)
         self.assertTrue(envelope.encrypt)
         self.assertIn(FPR, envelope.encrypt_keys)
         self.assertEqual(gpg_key, envelope.encrypt_keys[FPR])
 
-    @inlineCallbacks
-    def test_encrypt_to_self_false(self):
+    @utilities.async_test
+    async def test_encrypt_to_self_false(self):
         ui = utilities.make_ui()
         envelope = Envelope()
         envelope['From'] = 'test@example.com'
@@ -202,6 +200,6 @@ class TestSetEncrypt(unittest.TestCase):
         account = _Account(encrypt_to_self=False, gpg_key=gpg_key)
         with mock.patch('alot.commands.thread.settings.get_account_by_address',
                         mock.Mock(return_value=account)):
-            yield utils.update_keys(ui, envelope)
+            await utils.update_keys(ui, envelope)
         self.assertTrue(envelope.encrypt)
         self.assertNotIn(FPR, envelope.encrypt_keys)

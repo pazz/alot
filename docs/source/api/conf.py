@@ -30,10 +30,6 @@ class Mock(object):
         return Mock() if name not in ('__file__', '__path__') else '/dev/null'
 
 MOCK_MODULES = ['notmuch', 'notmuch.globals',
-                'twisted', 'twisted.internet',
-                'twisted.internet.defer',
-                'twisted.python',
-                'twisted.python.failure',
                 'urwid',
                 'magic',
                 'argparse']

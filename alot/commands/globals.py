@@ -1,4 +1,5 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
+# Copyright © 2018 Dylan Baker
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 import argparse
@@ -10,10 +11,10 @@ import logging
 import os
 import subprocess
 from io import BytesIO
+import asyncio
+import shlex
 
 import urwid
-from twisted.internet.defer import inlineCallbacks
-from twisted.internet import threads
 
 from . import Command, registerCommand
 from . import CommandCanceled
@@ -53,11 +54,10 @@ class ExitCommand(Command):
         super(ExitCommand, self).__init__(**kwargs)
         self.prompt_to_send = _prompt
 
-    @inlineCallbacks
-    def apply(self, ui):
+    async def apply(self, ui):
         if settings.get('bug_on_exit'):
             msg = 'really quit?'
-            if (yield ui.choice(msg, select='yes', cancel='no',
+            if (await ui.choice(msg, select='yes', cancel='no',
                                 msg_position='left')) == 'no':
                 return
 
@@ -67,18 +67,18 @@ class ExitCommand(Command):
                 if (isinstance(buffer, buffers.EnvelopeBuffer) and
                         not buffer.envelope.sent_time):
                     msg = 'quit without sending message?'
-                    if (yield ui.choice(msg, cancel='no',
+                    if (await ui.choice(msg, cancel='no',
                                         msg_position='left')) == 'no':
                         raise CommandCanceled()
 
         for b in ui.buffers:
             b.cleanup()
-        ui.apply_command(FlushCommand(callback=ui.exit))
+        await ui.apply_command(FlushCommand(callback=ui.exit))
         ui.cleanup()
 
         if ui.db_was_locked:
             msg = 'Database locked. Exit without saving?'
-            response = yield ui.choice(msg, msg_position='left', cancel='no')
+            response = await ui.choice(msg, msg_position='left', cancel='no')
             if response == 'no':
                 return
             ui.exit()
@@ -141,12 +141,11 @@ class PromptCommand(Command):
         self.startwith = startwith
         Command.__init__(self, **kwargs)
 
-    @inlineCallbacks
-    def apply(self, ui):
+    async def apply(self, ui):
         logging.info('open command shell')
         mode = ui.mode or 'global'
         cmpl = CommandLineCompleter(ui.dbman, mode, ui.current_buffer)
-        cmdline = yield ui.prompt(
+        cmdline = await ui.prompt(
             '',
             text=self.startwith,
             completer=cmpl,
@@ -157,7 +156,7 @@ class PromptCommand(Command):
         if cmdline:
             # save into prompt history
             ui.commandprompthistory.append(cmdline)
-            ui.apply_commandline(cmdline)
+            await ui.apply_commandline(cmdline)
         else:
             raise CommandCanceled()
 
@@ -241,7 +240,7 @@ class ExternalCommand(Command):
         self.on_success = on_success
         Command.__init__(self, **kwargs)
 
-    def apply(self, ui):
+    async def apply(self, ui):
         logging.debug('cmdlist: %s', self.cmdlist)
         callerbuffer = ui.current_buffer
 
@@ -256,42 +255,59 @@ class ExternalCommand(Command):
             else:
                 stdin = self.stdin
 
-        def afterwards(data):
-            if data == 'success':
-                if self.on_success is not None:
-                    self.on_success()
-            else:
-                ui.notify(data, priority='error')
-            if self.refocus and callerbuffer in ui.buffers:
-                logging.info('refocussing')
-                ui.buffer_focus(callerbuffer)
-
         logging.info('calling external command: %s', self.cmdlist)
 
-        def thread_code(*_):
-            try:
-                proc = subprocess.Popen(
-                    self.cmdlist, shell=self.shell,
-                    stdin=subprocess.PIPE if stdin else None,
-                    stderr=subprocess.PIPE)
-            except OSError as e:
-                return str(e)
-
-            _, err = proc.communicate(stdin.read() if stdin else None)
-            if proc.returncode == 0:
-                return 'success'
-            if err:
-                return err.decode(urwid.util.detected_encoding)
-            return ''
-
+        ret = ''
+        # TODO: these can probably be refactored in terms of helper.call_cmd
+        # and helper.call_cmd_async
         if self.in_thread:
-            d = threads.deferToThread(thread_code)
-            d.addCallback(afterwards)
+            try:
+                if self.shell:
+                    _cmd = asyncio.create_subprocess_shell
+                    # The shell function wants a single string or bytestring,
+                    # we could just join it, but lets be extra safe and use
+                    # shlex.quote to avoid suprises.
+                    cmdlist = [shlex.quote(' '.join(self.cmdlist))]
+                else:
+                    _cmd = asyncio.create_subprocess_exec
+                    cmdlist = self.cmdlist
+                proc = await _cmd(
+                    *cmdlist,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    stdin=subprocess.PIPE if stdin else None)
+            except OSError as e:
+                ret = str(e)
+            else:
+                _, err = await proc.communicate(stdin.read() if stdin else None)
+            if proc.returncode == 0:
+                ret = 'success'
+            elif err:
+                ret = err.decode(urwid.util.detected_encoding)
         else:
             with ui.paused():
-                ret = thread_code()
+                try:
+                    proc = subprocess.Popen(
+                        self.cmdlist, shell=self.shell,
+                        stdin=subprocess.PIPE if stdin else None,
+                        stderr=subprocess.PIPE)
+                except OSError as e:
+                    ret = str(e)
+                else:
+                    _, err = proc.communicate(stdin.read() if stdin else None)
+                if proc.returncode == 0:
+                    ret = 'success'
+                elif err:
+                    ret = err.decode(urwid.util.detected_encoding)
 
-            afterwards(ret)
+        if ret == 'success':
+            if self.on_success is not None:
+                self.on_success()
+        else:
+            ui.notify(ret, priority='error')
+        if self.refocus and callerbuffer in ui.buffers:
+            logging.info('refocussing')
+            ui.buffer_focus(callerbuffer)
 
 
 class EditCommand(ExternalCommand):
@@ -333,11 +349,11 @@ class EditCommand(ExternalCommand):
                                  spawn=self.spawn, thread=self.thread,
                                  **kwargs)
 
-    def apply(self, ui):
+    async def apply(self, ui):
         if self.cmdlist is None:
             ui.notify('no editor set', priority='error')
         else:
-            return ExternalCommand.apply(self, ui)
+            return await ExternalCommand.apply(self, ui)
 
 
 @registerCommand(MODE, 'pyshell')
@@ -358,9 +374,9 @@ class RepeatCommand(Command):
     def __init__(self, **kwargs):
         Command.__init__(self, **kwargs)
 
-    def apply(self, ui):
+    async def apply(self, ui):
         if ui.last_commandline is not None:
-            ui.apply_commandline(ui.last_commandline)
+            await ui.apply_commandline(ui.last_commandline)
         else:
             ui.notify('no last command')
 
@@ -419,9 +435,8 @@ class BufferCloseCommand(Command):
         self.redraw = redraw
         Command.__init__(self, **kwargs)
 
-    @inlineCallbacks
-    def apply(self, ui):
-        def one_buffer(prompt=True):
+    async def apply(self, ui):
+        async def one_buffer(prompt=True):
             """Helper to handle the case on only one buffer being opened.
 
             prompt is a boolean that is passed to ExitCommand() as the _prompt
@@ -438,27 +453,27 @@ class BufferCloseCommand(Command):
             # 'close without sending'
             else:
                 logging.info('closing the last buffer, exiting')
-                ui.apply_command(ExitCommand(_prompt=prompt))
+                await ui.apply_command(ExitCommand(_prompt=prompt))
 
         if self.buffer is None:
             self.buffer = ui.current_buffer
 
         if len(ui.buffers) == 1:
-            one_buffer()
+            await one_buffer()
             return
 
         if (isinstance(self.buffer, buffers.EnvelopeBuffer) and
                 not self.buffer.envelope.sent_time):
             msg = 'close without sending?'
-            if (not self.force and (yield ui.choice(msg, cancel='no',
+            if (not self.force and (await ui.choice(msg, cancel='no',
                                                     msg_position='left')) ==
                     'no'):
                 raise CommandCanceled()
 
-        # Because we yield above it is possible that the settings or the number
+        # Because we await above it is possible that the settings or the number
         # of buffers chould change, so retest.
         if len(ui.buffers) == 1:
-            one_buffer(prompt=False)
+            await one_buffer(prompt=False)
         else:
             ui.buffer_close(self.buffer, self.redraw)
 
@@ -762,8 +777,7 @@ class ComposeCommand(Command):
         self.encrypt = encrypt
         self.tags = tags
 
-    @inlineCallbacks
-    def apply(self, ui):
+    async def apply(self, ui):
         if self.envelope is None:
             if self.rest:
                 if self.rest.startswith('mailto'):
@@ -825,7 +839,7 @@ class ComposeCommand(Command):
                 self.envelope.add('From', fromstring)
             else:
                 cmpl = AccountCompleter()
-                fromaddress = yield ui.prompt('From', completer=cmpl,
+                fromaddress = await ui.prompt('From', completer=cmpl,
                                               tab=1, history=ui.senderhistory)
                 if fromaddress is None:
                     raise CommandCanceled()
@@ -871,7 +885,7 @@ class ComposeCommand(Command):
             else:
                 ui.notify('could not locate signature: %s' % sig,
                           priority='error')
-                if (yield ui.choice('send without signature?', 'yes',
+                if (await ui.choice('send without signature?', 'yes',
                                     'no')) == 'no':
                     return
 
@@ -895,7 +909,7 @@ class ComposeCommand(Command):
                                                append_remaining=allbooks)
             logging.debug(abooks)
             completer = ContactsCompleter(abooks)
-            to = yield ui.prompt('To', completer=completer,
+            to = await ui.prompt('To', completer=completer,
                                  history=ui.recipienthistory)
             if to is None:
                 raise CommandCanceled()
@@ -906,7 +920,7 @@ class ComposeCommand(Command):
 
         if settings.get('ask_subject') and \
                 'Subject' not in self.envelope.headers:
-            subject = yield ui.prompt('Subject')
+            subject = await ui.prompt('Subject')
             logging.debug('SUBJECT: "%s"', subject)
             if subject is None:
                 raise CommandCanceled()
@@ -916,7 +930,7 @@ class ComposeCommand(Command):
         if settings.get('compose_ask_tags'):
             comp = TagsCompleter(ui.dbman)
             tags = ','.join(self.tags) if self.tags else ''
-            tagsstring = yield ui.prompt('Tags', text=tags, completer=comp)
+            tagsstring = await ui.prompt('Tags', text=tags, completer=comp)
             tags = [t for t in tagsstring.split(',') if t]
             if tags is None:
                 raise CommandCanceled()
@@ -934,12 +948,12 @@ class ComposeCommand(Command):
             logging.debug("Trying to encrypt message because encrypt=%s and "
                           "encrypt_by_default=%s", self.encrypt,
                           account.encrypt_by_default)
-            yield update_keys(ui, self.envelope, block_error=self.encrypt)
+            await update_keys(ui, self.envelope, block_error=self.encrypt)
         elif account.encrypt_by_default == u"trusted":
             logging.debug("Trying to encrypt message because "
                           "account.encrypt_by_default=%s",
                           account.encrypt_by_default)
-            yield update_keys(ui, self.envelope, block_error=self.encrypt,
+            await update_keys(ui, self.envelope, block_error=self.encrypt,
                               signed_only=True)
         else:
             logging.debug("No encryption by default, encrypt_by_default=%s",
@@ -948,7 +962,7 @@ class ComposeCommand(Command):
         cmd = commands.envelope.EditCommand(envelope=self.envelope,
                                             spawn=self.force_spawn,
                                             refocus=False)
-        ui.apply_command(cmd)
+        await ui.apply_command(cmd)
 
 
 @registerCommand(

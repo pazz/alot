@@ -1,4 +1,5 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
+# Copyright © 2018 Dylan Baker
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 import argparse
@@ -10,8 +11,7 @@ import os
 import re
 import tempfile
 import textwrap
-
-from twisted.internet.defer import inlineCallbacks
+import traceback
 
 from . import Command, registerCommand
 from . import globals
@@ -101,16 +101,16 @@ class RefineCommand(Command):
         Command.__init__(self, **kwargs)
         self.key = key
 
-    def apply(self, ui):
+    async def apply(self, ui):
         value = ui.current_buffer.envelope.get(self.key, '')
         cmdstring = 'set %s %s' % (self.key, value)
-        ui.apply_command(globals.PromptCommand(cmdstring))
+        await ui.apply_command(globals.PromptCommand(cmdstring))
 
 
 @registerCommand(MODE, 'save')
 class SaveCommand(Command):
     """save draft"""
-    def apply(self, ui):
+    async def apply(self, ui):
         envelope = ui.current_buffer.envelope
 
         # determine account to use
@@ -140,15 +140,15 @@ class SaveCommand(Command):
             logging.debug('adding new mail to index')
             try:
                 ui.dbman.add_message(path, account.draft_tags + envelope.tags)
-                ui.apply_command(globals.FlushCommand())
-                ui.apply_command(commands.globals.BufferCloseCommand())
+                await ui.apply_command(globals.FlushCommand())
+                await ui.apply_command(commands.globals.BufferCloseCommand())
             except DatabaseError as e:
                 logging.error(str(e))
                 ui.notify('could not index message:\n%s' % str(e),
                           priority='error',
                           block=True)
         else:
-            ui.apply_command(commands.globals.BufferCloseCommand())
+            await ui.apply_command(commands.globals.BufferCloseCommand())
 
 
 @registerCommand(MODE, 'send')
@@ -167,8 +167,7 @@ class SendCommand(Command):
         self.envelope = envelope
         self.envelope_buffer = None
 
-    @inlineCallbacks
-    def apply(self, ui):
+    async def apply(self, ui):
         if self.mail is None:
             if self.envelope is None:
                 # needed to close later
@@ -184,7 +183,7 @@ class SendCommand(Command):
                 warning = 'A modified version of ' * mod
                 warning += 'this message has been sent at %s.' % when
                 warning += ' Do you want to resend?'
-                if (yield ui.choice(warning, cancel='no',
+                if (await ui.choice(warning, cancel='no',
                                     msg_position='left')) == 'no':
                     return
 
@@ -201,7 +200,7 @@ class SendCommand(Command):
                 warning = textwrap.dedent("""\
                     Any BCC recipients will not be able to decrypt this
                     message. Do you want to send anyway?""").replace('\n', ' ')
-                if (yield ui.choice(warning, cancel='no',
+                if (await ui.choice(warning, cancel='no',
                                     msg_position='left')) == 'no':
                     return
 
@@ -233,8 +232,25 @@ class SendCommand(Command):
             return
         logging.debug("ACCOUNT: \"%s\"" % account.address)
 
-        # define callback
-        def afterwards(_):
+        # send out
+        clearme = ui.notify('sending..', timeout=-1)
+        if self.envelope is not None:
+            self.envelope.sending = True
+        try:
+            await account.send_mail(self.mail)
+        except SendingMailFailed as e:
+            if self.envelope is not None:
+                self.envelope.sending = False
+            ui.clear_notify([clearme])
+            logging.error(traceback.format_exc())
+            errmsg = 'failed to send: {}'.format(e)
+            ui.notify(errmsg, priority='error', block=True)
+        except StoreMailError as e:
+            ui.clear_notify([clearme])
+            logging.error(traceback.format_exc())
+            errmsg = 'could not store mail: {}'.format(e)
+            ui.notify(errmsg, priority='error', block=True)
+        else:
             initial_tags = []
             if self.envelope is not None:
                 self.envelope.sending = False
@@ -244,12 +260,13 @@ class SendCommand(Command):
             ui.clear_notify([clearme])
             if self.envelope_buffer is not None:
                 cmd = commands.globals.BufferCloseCommand(self.envelope_buffer)
-                ui.apply_command(cmd)
+                await ui.apply_command(cmd)
             ui.notify('mail sent successfully')
-            if self.envelope.replied:
-                self.envelope.replied.add_tags(account.replied_tags)
-            if self.envelope.passed:
-                self.envelope.passed.add_tags(account.passed_tags)
+            if self.envelope is not None:
+                if self.envelope.replied:
+                    self.envelope.replied.add_tags(account.replied_tags)
+                if self.envelope.passed:
+                    self.envelope.passed.add_tags(account.passed_tags)
 
             # store mail locally
             # This can raise StoreMailError
@@ -259,32 +276,7 @@ class SendCommand(Command):
             if path is not None:
                 logging.debug('adding new mail to index')
                 ui.dbman.add_message(path, account.sent_tags + initial_tags)
-                ui.apply_command(globals.FlushCommand())
-
-        # define errback
-        def send_errb(failure):
-            if self.envelope is not None:
-                self.envelope.sending = False
-            ui.clear_notify([clearme])
-            failure.trap(SendingMailFailed)
-            logging.error(failure.getTraceback())
-            errmsg = 'failed to send: %s' % failure.value
-            ui.notify(errmsg, priority='error', block=True)
-
-        def store_errb(failure):
-            failure.trap(StoreMailError)
-            logging.error(failure.getTraceback())
-            errmsg = 'could not store mail: %s' % failure.value
-            ui.notify(errmsg, priority='error', block=True)
-
-        # send out
-        clearme = ui.notify('sending..', timeout=-1)
-        if self.envelope is not None:
-            self.envelope.sending = True
-        d = account.send_mail(self.mail)
-        d.addCallback(afterwards)
-        d.addErrback(send_errb)
-        d.addErrback(store_errb)
+                await ui.apply_command(globals.FlushCommand())
 
 
 @registerCommand(MODE, 'edit', arguments=[
@@ -309,7 +301,7 @@ class EditCommand(Command):
         self.edit_only_body = False
         Command.__init__(self, **kwargs)
 
-    def apply(self, ui):
+    async def apply(self, ui):
         ebuffer = ui.current_buffer
         if not self.envelope:
             self.envelope = ui.current_buffer.envelope
@@ -395,7 +387,7 @@ class EditCommand(Command):
                                   spawn=self.force_spawn,
                                   thread=self.force_spawn,
                                   refocus=self.refocus)
-        ui.apply_command(cmd)
+        await ui.apply_command(cmd)
 
 
 @registerCommand(MODE, 'set', arguments=[
@@ -416,8 +408,7 @@ class SetCommand(Command):
         self.reset = not append
         Command.__init__(self, **kwargs)
 
-    @inlineCallbacks
-    def apply(self, ui):
+    async def apply(self, ui):
         envelope = ui.current_buffer.envelope
         if self.reset:
             if self.key in envelope:
@@ -428,7 +419,7 @@ class SetCommand(Command):
         # as the key of the person BCC'd will be available to other recievers,
         # defeating the purpose of BCCing them
         if self.key.lower() in ['to', 'from', 'cc'] and envelope.encrypt:
-            yield utils.update_keys(ui, envelope)
+            await utils.update_keys(ui, envelope)
         ui.current_buffer.rebuild()
 
 
@@ -444,15 +435,14 @@ class UnsetCommand(Command):
         self.key = key
         Command.__init__(self, **kwargs)
 
-    @inlineCallbacks
-    def apply(self, ui):
+    async def apply(self, ui):
         del ui.current_buffer.envelope[self.key]
         # FIXME: handle BCC as well
         # Currently we don't handle bcc because it creates a side channel leak,
         # as the key of the person BCC'd will be available to other recievers,
         # defeating the purpose of BCCing them
         if self.key.lower() in ['to', 'from', 'cc']:
-            yield utils.update_keys(ui, ui.current_buffer.envelope)
+            await utils.update_keys(ui, ui.current_buffer.envelope)
         ui.current_buffer.rebuild()
 
 
@@ -577,8 +567,7 @@ class EncryptCommand(Command):
         self.trusted = trusted
         Command.__init__(self, **kwargs)
 
-    @inlineCallbacks
-    def apply(self, ui):
+    async def apply(self, ui):
         envelope = ui.current_buffer.envelope
         if self.action == 'rmencrypt':
             try:
@@ -603,7 +592,7 @@ class EncryptCommand(Command):
                     tmp_key = crypto.get_key(keyid)
                     envelope.encrypt_keys[tmp_key.fpr] = tmp_key
             else:
-                yield utils.update_keys(ui, envelope, signed_only=self.trusted)
+                await utils.update_keys(ui, envelope, signed_only=self.trusted)
         envelope.encrypt = encrypt
         if not envelope.encrypt:
             # This is an extra conditional as it can even happen if encrypt is

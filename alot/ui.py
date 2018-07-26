@@ -6,8 +6,9 @@ import os
 import signal
 import codecs
 import contextlib
+import asyncio
+import traceback
 
-from twisted.internet import reactor, defer, task
 import urwid
 
 from .settings.const import settings
@@ -24,11 +25,20 @@ from .widgets.globals import CompleteEdit
 from .widgets.globals import ChoiceWidget
 
 
+async def periodic(callable_, period, *args, **kwargs):
+    while True:
+        try:
+            callable_(*args, **kwargs)
+        except Exception as e:
+            logging.error('error in loop hook %s', str(e))
+        await asyncio.sleep(period)
+
+
 class UI(object):
     """
     This class integrates all components of alot and offers
     methods for user interaction like :meth:`prompt`, :meth:`notify` etc.
-    It handles the urwid widget tree and mainloop (we use twisted) and is
+    It handles the urwid widget tree and mainloop (we use asyncio) and is
     responsible for opening, closing and focussing buffers.
     """
 
@@ -105,18 +115,19 @@ class UI(object):
         self.mainloop = urwid.MainLoop(
             self.root_widget,
             handle_mouse=settings.get('handle_mouse'),
-            event_loop=urwid.TwistedEventLoop(),
+            event_loop=urwid.AsyncioEventLoop(),
             unhandled_input=self._unhandled_input,
             input_filter=self._input_filter)
 
-        # Create a defered that calls the loop_hook
+        loop = asyncio.get_event_loop()
+        # Create a task for the periodic hook
         loop_hook = settings.get_hook('loop_hook')
         if loop_hook:
-            loop = task.LoopingCall(loop_hook, ui=self)
-            loop_defered = loop.start(settings.get('periodic_hook_frequency'))
-            loop_defered.addErrback(
-                lambda e: logging.error('error in loop hook %s',
-                                        e.getErrorMessage()))
+            # In Python 3.7 a nice aliase `asyncio.create_task` was added
+            loop.create_task(
+                periodic(
+                    loop_hook, settings.get('periodic_hook_frequency'),
+                    ui=self))
 
         # set up colours
         colourmode = int(settings.get('colourmode'))
@@ -124,23 +135,20 @@ class UI(object):
         self.mainloop.screen.set_terminal_properties(colors=colourmode)
 
         logging.debug('fire first command')
-        self.apply_commandline(initialcmdline)
+        loop.create_task(self.apply_commandline(initialcmdline))
 
         # start urwids mainloop
         self.mainloop.run()
 
-    def _error_handler(self, failure):
-        """Default handler for exceptions in callbacks."""
-        if failure.check(CommandParseError):
-            self.notify(failure.getErrorMessage(), priority='error')
-        elif failure.check(CommandCanceled):
+    def _error_handler(self, exception):
+        if isinstance(exception, CommandParseError):
+            self.notify(str(exception), priority='error')
+        elif isinstance(exception, CommandCanceled):
             self.notify("operation cancelled", priority='error')
         else:
-            logging.error(failure.getTraceback())
-            errmsg = failure.getErrorMessage()
-            if errmsg:
-                msg = "{}\n(check the log for details)".format(errmsg)
-                self.notify(msg, priority='error')
+            logging.error(traceback.format_exc())
+            msg = "{}\n(check the log for details)".format(exception)
+            self.notify(msg, priority='error')
 
     def _input_filter(self, keys, raw):
         """
@@ -173,14 +181,18 @@ class UI(object):
                     self.mainloop.remove_alarm(self._alarm)
                 self.input_queue = []
 
+            async def _apply_fire(cmdline):
+                try:
+                    await self.apply_commandline(cmdline)
+                except CommandParseError as e:
+                    self.notify(str(e), priority='error')
+
             def fire(_, cmdline):
                 clear()
                 logging.debug("cmdline: '%s'", cmdline)
                 if not self._locked:
-                    try:
-                        self.apply_commandline(cmdline)
-                    except CommandParseError as e:
-                        self.notify(str(e), priority='error')
+                    loop = asyncio.get_event_loop()
+                    loop.create_task(_apply_fire(cmdline))
                 # move keys are always passed
                 elif cmdline in ['move up', 'move down', 'move page up',
                                  'move page down']:
@@ -220,7 +232,7 @@ class UI(object):
             # update statusbar
             self.update()
 
-    def apply_commandline(self, cmdline):
+    async def apply_commandline(self, cmdline):
         """
         interprets a command line string
 
@@ -242,7 +254,7 @@ class UI(object):
         # one callback may return a Deferred and thus postpone the application
         # of the next callback (and thus Command-application)
 
-        def apply_this_command(_, cmdstring):
+        def apply_this_command(cmdstring):
             logging.debug('%s command string: "%s"', self.mode, str(cmdstring))
             # translate cmdstring into :class:`Command`
             cmd = commandfactory(cmdstring, self.mode)
@@ -251,17 +263,11 @@ class UI(object):
                 self.last_commandline = cmdline
             return self.apply_command(cmd)
 
-        # we initialize a deferred which is already triggered
-        # so that the first callbacks will be called immediately
-        d = defer.succeed(None)
-
-        # split commandline if necessary
-        for cmdstring in split_commandline(cmdline):
-            d.addCallback(apply_this_command, cmdstring)
-
-        d.addErrback(self._error_handler)
-
-        return d
+        try:
+            for c in split_commandline(cmdline):
+                await apply_this_command(c)
+        except Exception as e:
+            self._error_handler(e)
 
     @staticmethod
     def _unhandled_input(key):
@@ -287,8 +293,7 @@ class UI(object):
     def prompt(self, prefix, text=u'', completer=None, tab=0, history=None):
         """
         prompt for text input.
-        This returns a :class:`~twisted.defer.Deferred` that calls back with
-        the input string.
+        This returns a :class:`asyncio.Future`, which will have a string value
 
         :param prefix: text to print before the input field
         :type prefix: str
@@ -301,11 +306,11 @@ class UI(object):
         :type tab: int
         :param history: history to be used for up/down keys
         :type history: list of str
-        :rtype: :class:`twisted.defer.Deferred`
+        :rtype: asyncio.Future
         """
         history = history or []
 
-        d = defer.Deferred()  # create return deferred
+        fut = asyncio.Future()
         oldroot = self.mainloop.widget
 
         def select_or_cancel(text):
@@ -313,7 +318,7 @@ class UI(object):
             with the given text."""
             self.mainloop.widget = oldroot
             self._passall = False
-            d.callback(text)
+            fut.set_result(text)
 
         def cerror(e):
             logging.error(e)
@@ -349,7 +354,7 @@ class UI(object):
                                 None)
         self.mainloop.widget = overlay
         self._passall = True
-        return d  # return deferred
+        return fut
 
     @staticmethod
     def exit():
@@ -359,10 +364,11 @@ class UI(object):
         """
         exit_msg = None
         try:
-            reactor.stop()
+            loop = asyncio.get_event_loop()
+            loop.stop()
         except Exception as e:
-            exit_msg = 'Could not stop reactor: {}.'.format(e)
-            logging.error('%s\nShutting down anyway..', exit_msg)
+            logging.error('Could not stop loop: %s\nShutting down anyway..',
+                          str(e))
 
     @contextlib.contextmanager
     def paused(self):
@@ -526,14 +532,14 @@ class UI(object):
         :param msg_position: determines if `message` is above or left of the
                              prompt. Must be `above` or `left`.
         :type msg_position: str
-        :rtype:  :class:`twisted.defer.Deferred`
+        :rtype: asyncio.Future
         """
         choices = choices or {'y': 'yes', 'n': 'no'}
         assert select is None or select in choices.values()
         assert cancel is None or cancel in choices.values()
         assert msg_position in ['left', 'above']
 
-        d = defer.Deferred()  # create return deferred
+        fut = asyncio.Future()  # Create a returned future
         oldroot = self.mainloop.widget
 
         def select_or_cancel(text):
@@ -541,7 +547,7 @@ class UI(object):
             with the given text."""
             self.mainloop.widget = oldroot
             self._passall = False
-            d.callback(text)
+            fut.set_result(text)
 
         # set up widgets
         msgpart = urwid.Text(message)
@@ -570,7 +576,7 @@ class UI(object):
                                 None)
         self.mainloop.widget = overlay
         self._passall = True
-        return d  # return deferred
+        return fut
 
     def notify(self, message, priority='normal', timeout=0, block=False):
         """
@@ -683,7 +689,7 @@ class UI(object):
         footer_att = settings.get_theming_attribute('global', 'footer')
         return urwid.AttrMap(columns, footer_att)
 
-    def apply_command(self, cmd):
+    async def apply_command(self, cmd):
         """
         applies a command
 
@@ -693,25 +699,22 @@ class UI(object):
         :param cmd: an applicable command
         :type cmd: :class:`~alot.commands.Command`
         """
+        # FIXME: What are we guarding for here? We don't mention that None is
+        # allowed as a value fo cmd.
         if cmd:
-            def call_posthook(_):
-                """Callback function that will invoke the post-hook."""
+            if cmd.prehook:
+                await cmd.prehook(ui=self, dbm=self.dbman, cmd=cmd)
+            try:
+                if asyncio.iscoroutinefunction(cmd.apply):
+                    await cmd.apply(self)
+                else:
+                    cmd.apply(self)
+            except Exception as e:
+                self._error_handler(e)
+            else:
                 if cmd.posthook:
                     logging.info('calling post-hook')
-                    return defer.maybeDeferred(cmd.posthook,
-                                               ui=self,
-                                               dbm=self.dbman,
-                                               cmd=cmd)
-
-            # call cmd.apply
-            def call_apply(_):
-                return defer.maybeDeferred(cmd.apply, self)
-
-            prehook = cmd.prehook or (lambda **kwargs: None)
-            d = defer.maybeDeferred(prehook, ui=self, dbm=self.dbman, cmd=cmd)
-            d.addCallback(call_apply)
-            d.addCallbacks(call_posthook, self._error_handler)
-            return d
+                    await cmd.posthook(ui=self, dbm=self.dbman, cmd=cmd)
 
     def handle_signal(self, signum, frame):
         """
@@ -727,7 +730,7 @@ class UI(object):
         # it is a SIGINT ?
         if signum == signal.SIGINT:
             logging.info('shut down cleanly')
-            self.apply_command(globals.ExitCommand())
+            asyncio.ensure_future(self.apply_command(globals.ExitCommand()))
         elif signum == signal.SIGUSR1:
             if isinstance(self.current_buffer, SearchBuffer):
                 self.current_buffer.rebuild()
