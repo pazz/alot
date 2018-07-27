@@ -782,6 +782,30 @@ class ComposeCommand(Command):
     class ApplyError(Exception):
         pass
 
+    def _get_template(self, ui):
+        # get location of tempsdir, containing msg templates
+        tempdir = settings.get('template_dir')
+
+        path = os.path.expanduser(self.template)
+        if not os.path.dirname(path):  # use tempsdir
+            if not os.path.isdir(tempdir):
+                ui.notify('no templates directory: %s' % tempdir,
+                          priority='error')
+                raise self.ApplyError()
+            path = os.path.join(tempdir, path)
+
+        if not os.path.isfile(path):
+            ui.notify('could not find template: %s' % path,
+                      priority='error')
+            raise self.ApplyError()
+        try:
+            with open(path, 'rb') as f:
+                template = helper.try_decode(f.read())
+            self.envelope.parse_template(template)
+        except Exception as e:
+            ui.notify(str(e), priority='error')
+            raise self.ApplyError()
+
     async def apply(self, ui):
         try:
             await self.__apply(ui)
@@ -799,28 +823,7 @@ class ComposeCommand(Command):
             else:
                 self.envelope = Envelope()
         if self.template is not None:
-            # get location of tempsdir, containing msg templates
-            tempdir = settings.get('template_dir')
-
-            path = os.path.expanduser(self.template)
-            if not os.path.dirname(path):  # use tempsdir
-                if not os.path.isdir(tempdir):
-                    ui.notify('no templates directory: %s' % tempdir,
-                              priority='error')
-                    return
-                path = os.path.join(tempdir, path)
-
-            if not os.path.isfile(path):
-                ui.notify('could not find template: %s' % path,
-                          priority='error')
-                return
-            try:
-                with open(path, 'rb') as f:
-                    template = helper.try_decode(f.read())
-                self.envelope.parse_template(template)
-            except Exception as e:
-                ui.notify(str(e), priority='error')
-                return
+            self._get_template(ui)
 
         # set forced headers
         for key, value in self.headers.items():
