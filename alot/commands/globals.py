@@ -779,7 +779,16 @@ class ComposeCommand(Command):
         self.encrypt = encrypt
         self.tags = tags
 
+    class ApplyError(Exception):
+        pass
+
     async def apply(self, ui):
+        try:
+            await self.__apply(ui)
+        except self.ApplyError:
+            return
+
+    async def __apply(self, ui):
         if self.envelope is None:
             if self.rest:
                 if self.rest.startswith('mailto'):
