@@ -938,6 +938,22 @@ class ComposeCommand(Command):
             ui.recipienthistory.append(to)
             self.envelope.add('To', to)
 
+    async def _set_gpg_encrypt(self, ui, account):
+        if self.encrypt or account.encrypt_by_default == u"all":
+            logging.debug("Trying to encrypt message because encrypt=%s and "
+                          "encrypt_by_default=%s", self.encrypt,
+                          account.encrypt_by_default)
+            await update_keys(ui, self.envelope, block_error=self.encrypt)
+        elif account.encrypt_by_default == u"trusted":
+            logging.debug("Trying to encrypt message because "
+                          "account.encrypt_by_default=%s",
+                          account.encrypt_by_default)
+            await update_keys(ui, self.envelope, block_error=self.encrypt,
+                              signed_only=True)
+        else:
+            logging.debug("No encryption by default, encrypt_by_default=%s",
+                          account.encrypt_by_default)
+
     async def __apply(self, ui):
         self._set_envelope()
         if self.template is not None:
@@ -1000,20 +1016,7 @@ class ComposeCommand(Command):
                     logging.debug('attaching: %s', a)
 
         # set encryption if needed
-        if self.encrypt or account.encrypt_by_default == u"all":
-            logging.debug("Trying to encrypt message because encrypt=%s and "
-                          "encrypt_by_default=%s", self.encrypt,
-                          account.encrypt_by_default)
-            await update_keys(ui, self.envelope, block_error=self.encrypt)
-        elif account.encrypt_by_default == u"trusted":
-            logging.debug("Trying to encrypt message because "
-                          "account.encrypt_by_default=%s",
-                          account.encrypt_by_default)
-            await update_keys(ui, self.envelope, block_error=self.encrypt,
-                              signed_only=True)
-        else:
-            logging.debug("No encryption by default, encrypt_by_default=%s",
-                          account.encrypt_by_default)
+        await self._set_gpg_encrypt(ui, account)
 
         cmd = commands.envelope.EditCommand(envelope=self.envelope,
                                             spawn=self.force_spawn,
