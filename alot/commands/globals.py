@@ -848,6 +848,30 @@ class ComposeCommand(Command):
         if self.envelope.account is None:
             self.envelope.account = account
 
+    async def _set_signature(self, ui, account):
+        if not self.omit_signature and account.signature:
+            logging.debug('has signature')
+            sig = os.path.expanduser(account.signature)
+            if os.path.isfile(sig):
+                logging.debug('is file')
+                if account.signature_as_attachment:
+                    name = account.signature_filename or None
+                    self.envelope.attach(sig, filename=name)
+                    logging.debug('attached')
+                else:
+                    with open(sig, 'rb') as f:
+                        sigcontent = f.read()
+                    mimetype = helper.guess_mimetype(sigcontent)
+                    if mimetype.startswith('text'):
+                        sigcontent = helper.try_decode(sigcontent)
+                        self.envelope.body += '\n' + sigcontent
+            else:
+                ui.notify('could not locate signature: %s' % sig,
+                          priority='error')
+                if (await ui.choice('send without signature?', 'yes',
+                                    'no')) == 'no':
+                    raise self.ApplyError
+
     async def apply(self, ui):
         try:
             await self.__apply(ui)
@@ -889,28 +913,7 @@ class ComposeCommand(Command):
         await self._set_sender(self,ui)
 
         # add signature
-        if not self.omit_signature and account.signature:
-            logging.debug('has signature')
-            sig = os.path.expanduser(account.signature)
-            if os.path.isfile(sig):
-                logging.debug('is file')
-                if account.signature_as_attachment:
-                    name = account.signature_filename or None
-                    self.envelope.attach(sig, filename=name)
-                    logging.debug('attached')
-                else:
-                    with open(sig, 'rb') as f:
-                        sigcontent = f.read()
-                    mimetype = helper.guess_mimetype(sigcontent)
-                    if mimetype.startswith('text'):
-                        sigcontent = helper.try_decode(sigcontent)
-                        self.envelope.body += '\n' + sigcontent
-            else:
-                ui.notify('could not locate signature: %s' % sig,
-                          priority='error')
-                if (await ui.choice('send without signature?', 'yes',
-                                    'no')) == 'no':
-                    return
+        await self._set_signature(ui, account)
 
         # Figure out whether we should GPG sign messages by default
         # and look up key if so
