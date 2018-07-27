@@ -806,6 +806,24 @@ class ComposeCommand(Command):
             ui.notify(str(e), priority='error')
             raise self.ApplyError()
 
+    async def _set_from(self, ui):
+        if 'From' not in self.envelope.headers:
+            accounts = settings.get_accounts()
+            if len(accounts) == 1:
+                a = accounts[0]
+                fromstring = email.utils.formataddr(
+                    (a.realname, str(a.address)))
+                self.envelope.add('From', fromstring)
+            else:
+                cmpl = AccountCompleter()
+                fromaddress = await ui.prompt('From', completer=cmpl,
+                                              tab=1, history=ui.senderhistory)
+                if fromaddress is None:
+                    raise CommandCanceled()
+
+                ui.senderhistory.append(fromaddress)
+                self.envelope.add('From', fromaddress)
+
     async def apply(self, ui):
         try:
             await self.__apply(ui)
@@ -844,22 +862,7 @@ class ComposeCommand(Command):
             self.envelope.tags = [t for t in self.tags.split(',') if t]
 
         # get missing From header
-        if 'From' not in self.envelope.headers:
-            accounts = settings.get_accounts()
-            if len(accounts) == 1:
-                a = accounts[0]
-                fromstring = email.utils.formataddr(
-                    (a.realname, str(a.address)))
-                self.envelope.add('From', fromstring)
-            else:
-                cmpl = AccountCompleter()
-                fromaddress = await ui.prompt('From', completer=cmpl,
-                                              tab=1, history=ui.senderhistory)
-                if fromaddress is None:
-                    raise CommandCanceled()
-
-                ui.senderhistory.append(fromaddress)
-                self.envelope.add('From', fromaddress)
+        await self._set_from(ui)
 
         # find out the right account
         sender = self.envelope.get('From')
