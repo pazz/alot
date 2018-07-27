@@ -875,7 +875,7 @@ class ComposeCommand(Command):
 
         return account
 
-    async def __apply(self, ui):
+    def _set_envelope(self):
         if self.envelope is None:
             if self.rest:
                 if self.rest.startswith('mailto'):
@@ -885,6 +885,9 @@ class ComposeCommand(Command):
                     self.envelope.add('To', self.rest)
             else:
                 self.envelope = Envelope()
+
+    async def __apply(self, ui):
+        self._set_envelope()
         if self.template is not None:
             self._get_template(ui)
 
