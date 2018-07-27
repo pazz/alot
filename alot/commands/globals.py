@@ -921,6 +921,23 @@ class ComposeCommand(Command):
                 logging.warning(msg)
                 ui.notify(msg, priority='error')
 
+    async def _set_to(self, ui, account):
+        if 'To' not in self.envelope.headers:
+            allbooks = not settings.get('complete_matching_abook_only')
+            logging.debug(allbooks)
+            abooks = settings.get_addressbooks(order=[account],
+                                               append_remaining=allbooks)
+            logging.debug(abooks)
+            completer = ContactsCompleter(abooks)
+            to = await ui.prompt('To', completer=completer,
+                                 history=ui.recipienthistory)
+            if to is None:
+                raise CommandCanceled()
+
+            to = to.strip(' \t\n,')
+            ui.recipienthistory.append(to)
+            self.envelope.add('To', to)
+
     async def __apply(self, ui):
         self._set_envelope()
         if self.template is not None:
@@ -955,21 +972,7 @@ class ComposeCommand(Command):
         self._set_gpg_sign(ui, account)
 
         # get missing To header
-        if 'To' not in self.envelope.headers:
-            allbooks = not settings.get('complete_matching_abook_only')
-            logging.debug(allbooks)
-            abooks = settings.get_addressbooks(order=[account],
-                                               append_remaining=allbooks)
-            logging.debug(abooks)
-            completer = ContactsCompleter(abooks)
-            to = await ui.prompt('To', completer=completer,
-                                 history=ui.recipienthistory)
-            if to is None:
-                raise CommandCanceled()
-
-            to = to.strip(' \t\n,')
-            ui.recipienthistory.append(to)
-            self.envelope.add('To', to)
+        await self._set_to(ui, account)
 
         if settings.get('ask_subject') and \
                 'Subject' not in self.envelope.headers:
