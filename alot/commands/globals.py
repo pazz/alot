@@ -910,6 +910,17 @@ class ComposeCommand(Command):
             else:
                 self.envelope = Envelope()
 
+    def _set_gpg_sign(self, ui, account):
+        if account.sign_by_default:
+            if account.gpg_key:
+                self.envelope.sign = account.sign_by_default
+                self.envelope.sign_key = account.gpg_key
+            else:
+                msg = 'Cannot find gpg key for account {}'
+                msg = msg.format(account.address)
+                logging.warning(msg)
+                ui.notify(msg, priority='error')
+
     async def __apply(self, ui):
         self._set_envelope()
         if self.template is not None:
@@ -941,15 +952,7 @@ class ComposeCommand(Command):
 
         # Figure out whether we should GPG sign messages by default
         # and look up key if so
-        if account.sign_by_default:
-            if account.gpg_key:
-                self.envelope.sign = account.sign_by_default
-                self.envelope.sign_key = account.gpg_key
-            else:
-                msg = 'Cannot find gpg key for account {}'
-                msg = msg.format(account.address)
-                logging.warning(msg)
-                ui.notify(msg, priority='error')
+        self._set_gpg_sign(ui, account)
 
         # get missing To header
         if 'To' not in self.envelope.headers:
