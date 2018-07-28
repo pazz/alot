@@ -55,7 +55,7 @@ class TestComposeCommand(unittest.TestCase):
         account.signature = None
         return account
 
-    def test_apply_sign_by_default_okay(self):
+    def test_set_gpg_sign_by_default_okay(self):
         envelope = self._make_envelope_mock()
         envelope.account = self._make_account_mock()
         cmd = g_commands.ComposeCommand(envelope=envelope)
@@ -65,7 +65,7 @@ class TestComposeCommand(unittest.TestCase):
         self.assertTrue(envelope.sign)
         self.assertIs(envelope.sign_key, mock.sentinel.gpg_key)
 
-    def test_apply_sign_by_default_false_doesnt_set_key(self):
+    def test_set_gpg_sign_by_default_false_doesnt_set_key(self):
         envelope = self._make_envelope_mock()
         envelope.account = self._make_account_mock(sign_by_default=False)
         cmd = g_commands.ComposeCommand(envelope=envelope)
@@ -75,7 +75,7 @@ class TestComposeCommand(unittest.TestCase):
         self.assertFalse(envelope.sign)
         self.assertIs(envelope.sign_key, None)
 
-    def test_apply_sign_by_default_but_no_key(self):
+    def test_set_gpg_sign_by_default_but_no_key(self):
         envelope = self._make_envelope_mock()
         envelope.account = self._make_account_mock(gpg_key=None)
         cmd = g_commands.ComposeCommand(envelope=envelope)
@@ -85,7 +85,7 @@ class TestComposeCommand(unittest.TestCase):
         self.assertFalse(envelope.sign)
         self.assertIs(envelope.sign_key, None)
 
-    def test_decode_template_on_loading(self):
+    def test_get_template_decode(self):
         subject = u'This is a täßϑ subject.'
         to = u'recipient@mail.com'
         _from = u'foo.bar@mail.fr'
@@ -106,7 +106,7 @@ class TestComposeCommand(unittest.TestCase):
         self.assertEqual(body, cmd.envelope.body)
 
     @utilities.async_test
-    async def test_single_account_no_from(self):
+    async def test_set_from_single_account(self):
         # issue #1277
         envelope = self._make_envelope_mock()
         del envelope.headers['From']
