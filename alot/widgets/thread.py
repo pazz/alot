@@ -91,12 +91,39 @@ class TextlinesList(SimpleTree):
         for each line in content.
         """
         structure = []
+        attr_diff_add = settings.get_theming_attribute('thread', 'diff_add')
+        attr_diff_del = settings.get_theming_attribute('thread', 'diff_del')
+        attr_diff_head = settings.get_theming_attribute('thread', 'diff_head')
+        attr_nested1 = settings.get_theming_attribute('thread', 'nested1')
+        attr_nested2 = settings.get_theming_attribute('thread', 'nested2')
+        attr_nested3 = settings.get_theming_attribute('thread', 'nested3')
+        attr_nested4 = settings.get_theming_attribute('thread', 'nested4')
+        attr_nested5 = settings.get_theming_attribute('thread', 'nested5')
 
         # depending on this config setting, we either add individual lines
         # or the complete context as focusable objects.
         if settings.get('thread_focus_linewise'):
             for line in content.splitlines():
-                structure.append((FocusableText(line, attr, attr_focus), None))
+                if line.startswith("> > > > >"):
+                    curr_attr = attr_nested5
+                elif line.startswith("> > > >"):
+                    curr_attr = attr_nested4
+                elif line.startswith("> > >"):
+                    curr_attr = attr_nested3
+                elif line.startswith("> >"):
+                    curr_attr = attr_nested2
+                elif line.startswith(">"):
+                    curr_attr = attr_nested1
+                elif line.startswith("+"):
+                    curr_attr = attr_diff_add
+                elif line.startswith("-"):
+                    curr_attr = attr_diff_del
+                elif line.startswith("@@") or line.startswith("diff "):
+                    curr_attr = attr_diff_head
+                else:
+                    curr_attr = attr
+
+                structure.append((FocusableText(line, curr_attr, attr_focus), None))
         else:
             structure.append((FocusableText(content, attr, attr_focus), None))
         SimpleTree.__init__(self, structure)
