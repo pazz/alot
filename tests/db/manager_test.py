@@ -37,7 +37,6 @@ class TestDBManager(utilities.TestCaseClassCleanup):
         cls.manager = DBManager(cls.dbpath)
 
         # clean up temporary database
-        cls.addClassCleanup(cls.manager.kill_search_processes)
         cls.addClassCleanup(shutil.rmtree, cls.dbpath)
 
         # let global settings manager read our temporary notmuch config

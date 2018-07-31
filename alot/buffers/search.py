@@ -6,7 +6,7 @@ from notmuch import NotmuchError
 
 from .buffer import Buffer
 from ..settings.const import settings
-from ..walker import PipeWalker
+from ..walker import IterableWalker
 from ..widgets.search import ThreadlineWidget
 
 
@@ -26,7 +26,6 @@ class SearchBuffer(Buffer):
         self.sort_order = sort_order or default_order
         self.result_count = 0
         self.isinitialized = False
-        self.proc = None  # process that fills our pipe
         self.rebuild()
         Buffer.__init__(self, ui, self.body)
 
@@ -42,22 +41,9 @@ class SearchBuffer(Buffer):
         info['result_count_positive'] = 's' if self.result_count > 1 else ''
         return info
 
-    def cleanup(self):
-        self.kill_filler_process()
-
-    def kill_filler_process(self):
-        """
-        terminates the process that fills this buffers
-        :class:`~alot.walker.PipeWalker`.
-        """
-        if self.proc:
-            if self.proc.is_alive():
-                self.proc.terminate()
-
     def rebuild(self, reverse=False):
         self.isinitialized = True
         self.reversed = reverse
-        self.kill_filler_process()
 
         if reverse:
             order = self._REVERSE[self.sort_order]
@@ -70,9 +56,8 @@ class SearchBuffer(Buffer):
 
         try:
             self.result_count = self.dbman.count_messages(self.querystring)
-            self.pipe, self.proc = self.dbman.get_threads(self.querystring,
-                                                          order,
-                                                          exclude_tags)
+            threads = self.dbman.get_threads(
+                self.querystring, order, exclude_tags)
         except NotmuchError:
             self.ui.notify('malformed query string: %s' % self.querystring,
                            'error')
@@ -80,9 +65,9 @@ class SearchBuffer(Buffer):
             self.body = self.listbox
             return
 
-        self.threadlist = PipeWalker(self.pipe, ThreadlineWidget,
-                                     dbman=self.dbman,
-                                     reverse=reverse)
+        self.threadlist = IterableWalker(threads, ThreadlineWidget,
+                                         dbman=self.dbman,
+                                         reverse=reverse)
 
         self.listbox = urwid.ListBox(self.threadlist)
         self.body = self.listbox
