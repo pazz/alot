@@ -311,7 +311,7 @@ class DBManager(object):
         db = Database(path=self.path)
         return {k[6:]: v for k, v in db.get_configs('query.')}
 
-    def async(self, cbl, fun):
+    def async_(self, cbl, fun):
         """
         return a pair (pipe, process) so that the process writes
         `fun(a)` to the pipe for each element `a` in the iterable returned
@@ -403,7 +403,7 @@ class DBManager(object):
         if exclude_tags:
             for tag in exclude_tags:
                 q.exclude_tag(tag)
-        return self.async(q.search_threads, (lambda a: a.get_thread_id()))
+        return self.async_(q.search_threads, (lambda a: a.get_thread_id()))
 
     def query(self, querystring):
         """
