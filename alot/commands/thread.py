@@ -9,6 +9,8 @@ import os
 import re
 import subprocess
 import tempfile
+import email
+import email.policy
 from email.utils import getaddresses, parseaddr, formataddr
 from email.message import Message
 
@@ -34,7 +36,6 @@ from ..db.errors import DatabaseROError
 from ..settings.const import settings
 from ..helper import parse_mailcap_nametemplate
 from ..helper import split_commandstring
-from ..helper import email_as_string
 from ..utils import argparse as cargparse
 from ..widgets.globals import AttachmentWidget
 
@@ -382,7 +383,7 @@ class ForwardCommand(Command):
             original_mail = Message()
             original_mail.set_type('message/rfc822')
             original_mail['Content-Disposition'] = 'attachment'
-            original_mail.set_payload(email_as_string(mail))
+            original_mail.set_payload(mail.as_string(policy=email.policy.SMTP))
             envelope.attach(Attachment(original_mail))
 
         # copy subject

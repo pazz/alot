@@ -8,6 +8,7 @@ import email
 import email.charset as charset
 from email.header import Header
 from email.iterators import typed_subpart_iterator
+import email.policy
 import email.utils
 import tempfile
 import re
@@ -132,7 +133,7 @@ def _handle_signatures(original, message, params):
     if not malformed:
         try:
             sigs = crypto.verify_detached(
-                helper.email_as_bytes(message.get_payload(0)),
+                message.get_payload(0).as_bytes(policy=email.policy.SMTP),
                 message.get_payload(1).get_payload(decode=True))
         except GPGProblem as e:
             malformed = str(e)

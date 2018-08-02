@@ -5,6 +5,7 @@
 import argparse
 import datetime
 import email
+import email.policy
 import glob
 import logging
 import os
@@ -22,7 +23,6 @@ from .. import crypto
 from ..account import SendingMailFailed, StoreMailError
 from ..db.errors import DatabaseError
 from ..errors import GPGProblem
-from ..helper import email_as_string
 from ..helper import string_decode
 from ..settings.const import settings
 from ..settings.errors import NoMatchingAccount
@@ -130,7 +130,8 @@ class SaveCommand(Command):
         # store mail locally
         # add Date header
         mail['Date'] = email.utils.formatdate(localtime=True)
-        path = account.store_draft_mail(email_as_string(mail))
+        path = account.store_draft_mail(
+            mail.as_string(policy=email.policy.SMTP))
 
         msg = 'draft saved successfully'
 
@@ -210,7 +211,7 @@ class SendCommand(Command):
             try:
                 self.mail = self.envelope.construct_mail()
                 self.mail['Date'] = email.utils.formatdate(localtime=True)
-                self.mail = email_as_string(self.mail)
+                self.mail = self.mail.as_string(policy=email.policy.SMTP)
             except GPGProblem as e:
                 ui.clear_notify([clearme])
                 ui.notify(str(e), priority='error')

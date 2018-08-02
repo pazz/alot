@@ -8,6 +8,7 @@ import codecs
 import email
 import email.header
 import email.mime.application
+import email.policy
 import io
 import os
 import os.path
@@ -465,7 +466,7 @@ class TestMessageFromFile(TestCaseClassCleanup):
         text = b'This is some text'
         t = email.mime.text.MIMEText(text, 'plain', 'utf-8')
         _, sig = crypto.detached_signature_for(
-            helper.email_as_bytes(t), self.keys)
+            t.as_bytes(policy=email.policy.SMTP), self.keys)
         s = email.mime.application.MIMEApplication(
             sig, 'pgp-signature', email.encoders.encode_7or8bit)
         m = email.mime.multipart.MIMEMultipart('signed', None, [t, s])
@@ -555,7 +556,7 @@ class TestMessageFromFile(TestCaseClassCleanup):
         else:
             text = b'This is some text'
             t = email.mime.text.MIMEText(text, 'plain', 'utf-8')
-        enc = crypto.encrypt(helper.email_as_bytes(t), self.keys)
+        enc = crypto.encrypt(t.as_bytes(policy=email.policy.SMTP), self.keys)
         e = email.mime.application.MIMEApplication(
             enc, 'octet-stream', email.encoders.encode_7or8bit)
 

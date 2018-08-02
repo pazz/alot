@@ -6,6 +6,7 @@ import logging
 import os
 import re
 import email
+import email.policy
 from email.encoders import encode_7or8bit
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -191,7 +192,7 @@ class Envelope(object):
             inner_msg = textpart
 
         if self.sign:
-            plaintext = helper.email_as_bytes(inner_msg)
+            plaintext = inner_msg.as_bytes(policy=email.policy.SMTP)
             logging.debug('signing plaintext: %s', plaintext)
 
             try:
@@ -236,7 +237,7 @@ class Envelope(object):
             unencrypted_msg = inner_msg
 
         if self.encrypt:
-            plaintext = helper.email_as_bytes(unencrypted_msg)
+            plaintext = unencrypted_msg.as_bytes(policy=email.policy.SMTP)
             logging.debug('encrypting plaintext: %s', plaintext)
 
             try:

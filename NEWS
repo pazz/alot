@@ -2,6 +2,7 @@
 * Port to python 3. Python 2.x no longer supported
 * feature: Add a new 'namedqueries' buffer type for displaying named queries.
 * feature: Replace twisted with asyncio
+* bug fix: correct handling of subparts with different encodings
 
 0.7:
 * info: missing html mailcap entry now reported as mail body text

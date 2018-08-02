@@ -595,49 +595,6 @@ def RFC3156_canonicalize(text):
     return text
 
 
-def email_as_string(mail):
-    """
-    Converts the given message to a string, without mangling "From" lines
-    (like as_string() does).
-
-    :param mail: email to convert to string
-    :rtype: str
-    """
-    fp = StringIO()
-    g = Generator(fp, mangle_from_=False, maxheaderlen=78)
-    g.flatten(mail)
-    as_string = RFC3156_canonicalize(fp.getvalue())
-    return as_string
-
-
-def email_as_bytes(mail):
-    string = email_as_string(mail)
-    charset = mail.get_charset()
-    if charset:
-        charset = str(charset)
-    else:
-        charsets = set(mail.get_charsets())
-        if None in charsets:
-            # None is equal to US-ASCII
-            charsets.discard(None)
-            charsets.add('ascii')
-
-        if len(charsets) == 1:
-            charset = list(charsets)[0]
-        elif 'ascii' in charsets:
-            # If we get here and the assert triggers it means that different
-            # parts of the email are encoded differently. I don't think we're
-            # likely to see that, but it's possible
-            if not {'utf-8', 'ascii', 'us-ascii'}.issuperset(charsets):
-                raise RuntimeError(
-                    "different encodings detected: {}".format(charsets))
-            charset = 'utf-8'  # It's a strict super-set
-        else:
-            charset = 'utf-8'
-
-    return string.encode(charset)
-
-
 def get_xdg_env(env_name, fallback):
     """ Used for XDG_* env variables to return fallback if unset *or* empty """
     env = os.environ.get(env_name)
