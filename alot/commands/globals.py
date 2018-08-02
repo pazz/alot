@@ -396,7 +396,7 @@ class CallCommand(Command):
         Command.__init__(self, **kwargs)
         self.command = command
 
-    def apply(self, ui):
+    async def apply(self, ui):
         try:
             hooks = settings.hooks
             if hooks:
@@ -405,7 +405,9 @@ class CallCommand(Command):
                     if k not in hooks.__dict__:
                         hooks.__dict__[k] = v
 
-            exec(self.command)
+            t = eval(self.command)
+            if asyncio.iscoroutine(t):
+                await t
         except Exception as e:
             logging.exception(e)
             msg = 'an error occurred during execution of "%s":\n%s'

@@ -246,14 +246,15 @@ class TestExternalCommand(unittest.TestCase):
 
 class TestCallCommand(unittest.TestCase):
 
-    def test_synchronous_call(self):
+    @utilities.async_test
+    async def test_synchronous_call(self):
         ui = mock.Mock()
         cmd = g_commands.CallCommand('ui()')
-        cmd.apply(ui)
+        await cmd.apply(ui)
         ui.assert_called_once()
 
-    @unittest.expectedFailure
-    def test_async_call(self):
+    @utilities.async_test
+    async def test_async_call(self):
         async def func(obj):
             obj()
 
@@ -264,5 +265,5 @@ class TestCallCommand(unittest.TestCase):
 
         with mock.patch('alot.commands.globals.settings.hooks', hooks):
             cmd = g_commands.CallCommand('hooks.func(ui)')
-            cmd.apply(ui)
+            await cmd.apply(ui)
             ui.assert_called_once()
