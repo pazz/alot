@@ -402,8 +402,8 @@ class CallCommand(Command):
             if hooks:
                 env = {'ui': ui, 'settings': settings}
                 for k, v in env.items():
-                    if k not in hooks.__dict__:
-                        hooks.__dict__[k] = v
+                    if not getattr(hooks, k, None):
+                        setattr(hooks, k, v)
 
             t = eval(self.command)
             if asyncio.iscoroutine(t):
