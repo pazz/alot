@@ -172,7 +172,6 @@ class TestComposeCommand(unittest.TestCase):
                         pass
 
 
-
 class TestExternalCommand(unittest.TestCase):
 
     @utilities.async_test
@@ -243,3 +242,27 @@ class TestExternalCommand(unittest.TestCase):
         cmd = g_commands.ExternalCommand(u'false', refocus=False, spawn=True)
         await cmd.apply(ui)
         ui.notify.assert_called_once_with('', priority='error')
+
+
+class TestCallCommand(unittest.TestCase):
+
+    def test_synchronous_call(self):
+        ui = mock.Mock()
+        cmd = g_commands.CallCommand('ui()')
+        cmd.apply(ui)
+        ui.assert_called_once()
+
+    @unittest.expectedFailure
+    def test_async_call(self):
+        async def func(obj):
+            obj()
+
+        ui = mock.Mock()
+        hooks = mock.Mock()
+        hooks.ui = None
+        hooks.func = func
+
+        with mock.patch('alot.commands.globals.settings.hooks', hooks):
+            cmd = g_commands.CallCommand('hooks.func(ui)')
+            cmd.apply(ui)
+            ui.assert_called_once()
