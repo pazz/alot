@@ -7,15 +7,15 @@ cache:
   ccache: True
 
 
-# We need a newer version of zlib to build notmuch from source as is available
-# in precise.
-dist: trusty
+# Python 3.7 is not supported in trusty
+dist: xenial
 
 python:
   # We can add more version strings here when we support other python
   # versions.
   - "3.5"
   - "3.6"
+  - "3.7"
 
 # We start two containers in parallel, one to check and build the docs and the
 # other to run the test suite.

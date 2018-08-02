@@ -1,4 +1,5 @@
 # Copyright (C) 2017 Lucas Hoffmann
+# Copyright © 2017-2018 Dylan Baker
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 import os
@@ -125,7 +126,7 @@ class TestDetachedSignatureFor(unittest.TestCase):
             text = f.name
         self.addCleanup(os.unlink, f.name)
 
-        res = subprocess.check_call(['gpg', '--verify', sig, text],
+        res = subprocess.check_call(['gpg2', '--verify', sig, text],
                                     stdout=DEVNULL, stderr=DEVNULL)
         self.assertEqual(res, 0)
 
@@ -376,7 +377,7 @@ class TestEncrypt(unittest.TestCase):
         self.addCleanup(os.unlink, enc_file)
 
         dec = subprocess.check_output(
-            ['gpg', '--decrypt', enc_file], stderr=DEVNULL)
+            ['gpg2', '--decrypt', enc_file], stderr=DEVNULL)
         self.assertEqual(to_encrypt, dec)
 
 
