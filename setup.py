@@ -15,7 +15,7 @@ setup(
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console :: Curses',
-        'Framework :: Twisted',
+        'Framework :: AsyncIO',
         'Intended Audience :: End Users/Desktop',
         (
             'License :: OSI Approved'
