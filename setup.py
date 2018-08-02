@@ -15,7 +15,7 @@ setup(
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console :: Curses',
-        'Framework :: Twisted',
+        'Framework :: AsyncIO',
         'Intended Audience :: End Users/Desktop',
         (
             'License :: OSI Approved'
@@ -23,6 +23,7 @@ setup(
         'Operating System :: POSIX',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3 :: Only',
         'Topic :: Communications :: Email :: Email Clients (MUA)',
         'Topic :: Database :: Front-Ends',
