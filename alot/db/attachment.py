@@ -1,10 +1,10 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
+# Copyright © 2018 Dylan Baker
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 import os
 import tempfile
 import email.charset as charset
-from email.header import Header
 from copy import deepcopy
 
 from ..helper import string_decode, humanize_size, guess_mimetype
@@ -86,8 +86,5 @@ class Attachment(object):
     def get_mime_representation(self):
         """returns mime part that constitutes this attachment"""
         part = deepcopy(self.part)
-        part['Content-Disposition'] = Header(
-            self.part['Content-Disposition'],
-            maxlinelen=78,
-            header_name='Content-Disposition').encode()
+        part.set_param('maxlinelen', '78', header='Content-Disposition')
         return part
