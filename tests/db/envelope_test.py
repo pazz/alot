@@ -72,7 +72,6 @@ class TestEnvelope(unittest.TestCase):
         actual = email.parser.Parser().parsestr(raw)
         self.assertEmailEqual(mail, actual)
 
-    @unittest.expectedFailure
     @mock.patch('alot.db.envelope.settings', SETTINGS)
     def test_construct_mail_simple(self):
         """Very simple envelope with a To, From, Subject, and body."""
@@ -85,7 +84,6 @@ class TestEnvelope(unittest.TestCase):
                               bodytext='Test')
         self._test_mail(e)
 
-    @unittest.expectedFailure
     @mock.patch('alot.db.envelope.settings', SETTINGS)
     def test_construct_mail_with_attachment(self):
         """Very simple envelope with a To, From, Subject, body and attachment.

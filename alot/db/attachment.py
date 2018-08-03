@@ -89,5 +89,5 @@ class Attachment(object):
         part['Content-Disposition'] = Header(
             self.part['Content-Disposition'],
             maxlinelen=78,
-            header_name='Content-Disposition')
+            header_name='Content-Disposition').encode()
         return part
