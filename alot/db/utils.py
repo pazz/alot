@@ -508,32 +508,6 @@ def decode_header(header, normalize=False):
     return value
 
 
-def encode_header(key, value):
-    """
-    encodes a unicode string as a valid header value
-
-    :param key: the header field this value will be stored in
-    :type key: str
-    :param value: the value to be encoded
-    :type value: unicode
-    """
-    # handle list of "realname <email>" entries separately
-    if key.lower() in ['from', 'to', 'cc', 'bcc']:
-        rawentries = email.utils.getaddresses([value])
-        encodedentries = []
-        for name, address in rawentries:
-            # try to encode as ascii, if that fails, revert to utf-8
-            # name must be a unicode string here
-            namepart = Header(name)
-            # append address part encoded as ascii
-            entry = email.utils.formataddr((namepart.encode(), address))
-            encodedentries.append(entry)
-        value = Header(', '.join(encodedentries))
-    else:
-        value = Header(value)
-    return value.encode()
-
-
 def is_subdir_of(subpath, superpath):
     # make both absolute
     superpath = os.path.realpath(superpath)
