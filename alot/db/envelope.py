@@ -15,7 +15,6 @@ import email.charset as charset
 import gpg
 
 from .attachment import Attachment
-from .utils import encode_header
 from .. import __version__
 from .. import helper
 from .. import crypto
@@ -282,7 +281,7 @@ class Envelope(object):
         # copy headers from envelope to mail
         for k, vlist in headers.items():
             for v in vlist:
-                outer_msg[k] = encode_header(k, v)
+                outer_msg.add_header(k, v)
 
         return outer_msg
 

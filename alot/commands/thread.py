@@ -27,7 +27,6 @@ from .common import RetagPromptCommand
 from .envelope import SendCommand
 from ..completion import ContactsCompleter, PathCompleter
 from ..db.utils import decode_header
-from ..db.utils import encode_header
 from ..db.utils import extract_headers
 from ..db.utils import extract_body
 from ..db.envelope import Envelope
@@ -746,8 +745,7 @@ class PipeCommand(Command):
             for msg in to_print:
                 mail = msg.get_email()
                 if self.add_tags:
-                    mail['Tags'] = encode_header('Tags',
-                                                 ', '.join(msg.get_tags()))
+                    mail.add_header('Tags', ', '.join(msg.get_tags()))
                 if self.output_format == 'raw':
                     pipestrings.append(mail.as_string())
                 elif self.output_format == 'decoded':
