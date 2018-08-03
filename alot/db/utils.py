@@ -531,7 +531,7 @@ def encode_header(key, value):
         value = Header(', '.join(encodedentries))
     else:
         value = Header(value)
-    return value
+    return value.encode()
 
 
 def is_subdir_of(subpath, superpath):
