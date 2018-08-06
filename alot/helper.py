@@ -15,7 +15,6 @@ import re
 import shlex
 import subprocess
 import email
-from email.generator import Generator
 from email.mime.audio import MIMEAudio
 from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
