@@ -222,7 +222,8 @@ class SendCommand(Command):
         # determine account to use for sending
         msg = self.mail
         if not isinstance(msg, email.message.Message):
-            msg = email.message_from_string(self.mail)
+            msg = email.message_from_string(
+                self.mail, policy=email.policy.SMTP)
         address = msg.get('From', '')
         logging.debug("FROM: \"%s\"" % address)
         try:
