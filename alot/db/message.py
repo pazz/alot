@@ -3,6 +3,7 @@
 # For further details see the COPYING file
 import email
 import email.charset as charset
+import email.policy
 import functools
 from datetime import datetime
 
@@ -103,7 +104,8 @@ class Message(object):
                 with open(path, 'rb') as f:
                     self._email = utils.decrypted_message_from_bytes(f.read())
             except IOError:
-                self._email = email.message_from_string(warning)
+                self._email = email.message_from_string(
+                    warning, policy=email.policy.SMTP)
         return self._email
 
     def get_date(self):

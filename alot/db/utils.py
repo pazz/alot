@@ -209,7 +209,7 @@ def _handle_encrypted(original, message):
 
     if malformed:
         msg = u'Malformed OpenPGP message: {0}'.format(malformed)
-        content = email.message_from_string(msg)
+        content = email.message_from_string(msg, policy=email.policy.SMTP)
         content.set_charset('utf-8')
         original.attach(content)
 
@@ -291,7 +291,8 @@ def decrypted_message_from_bytes(bytestring):
 
     :param bytes bytestring: an email message as raw bytes
     """
-    return decrypted_message_from_message(email.message_from_bytes(bytestring))
+    return decrypted_message_from_message(
+        email.message_from_bytes(bytestring, policy=email.policy.SMTP))
 
 
 def extract_headers(mail, headers=None):
