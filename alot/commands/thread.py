@@ -1058,7 +1058,6 @@ class MoveFocusCommand(MoveCommand):
             MoveCommand.apply(self, ui)
         # TODO add 'next matching' if threadbuffer stores the original query
         # TODO: add next by date..
-        tbuffer.body.refresh()
 
 
 @registerCommand(MODE, 'select')
