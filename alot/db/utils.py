@@ -470,8 +470,11 @@ def extract_body(mail, types=None, field_key='copiousoutput'):
             rendered_payload = render_part(part)
             if rendered_payload:  # handler had output
                 body_parts.append(string_sanitize(rendered_payload))
-            else:  # mark as attachment
-                part.add_header('Content-Disposition', 'attachment; ' + cd)
+            # mark as attachment
+            elif cd:
+                part.replace_header('Content-Disposition', 'attachment; ' + cd)
+            else:
+                part.add_header('Content-Disposition', 'attachment;')
     return u'\n\n'.join(body_parts)
 
 
