@@ -15,8 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import unittest
-
-import mock
+from unittest import mock
 
 from alot import account
 from alot.db import message

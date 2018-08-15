@@ -17,8 +17,7 @@
 """Tests for the alot.db.thread module."""
 import datetime
 import unittest
-
-import mock
+from unittest import mock
 
 from alot.db import thread
 

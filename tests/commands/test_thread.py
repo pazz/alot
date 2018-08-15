@@ -6,8 +6,7 @@
 """Test suite for alot.commands.thread module."""
 import email
 import unittest
-
-import mock
+from unittest import mock
 
 from alot.commands import thread
 from alot.account import Account

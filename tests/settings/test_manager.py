@@ -9,8 +9,7 @@ import re
 import tempfile
 import textwrap
 import unittest
-
-import mock
+from unittest import mock
 
 from alot.settings.manager import SettingsManager
 from alot.settings.errors import ConfigError, NoMatchingAccount

@@ -18,9 +18,9 @@ import tempfile
 import os
 import shutil
 import unittest
+from unittest import mock
 
 import gpg
-import mock
 
 from alot import crypto
 from alot import errors

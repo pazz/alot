@@ -4,8 +4,7 @@
 
 import argparse
 import unittest
-
-import mock
+from unittest import mock
 
 from alot import commands
 from alot.commands import thread
