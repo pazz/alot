@@ -17,9 +17,9 @@ import os.path
 import shutil
 import tempfile
 import unittest
+from unittest import mock
 
 import gpg
-import mock
 
 from alot import crypto
 from alot.db import utils

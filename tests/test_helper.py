@@ -23,8 +23,7 @@ import errno
 import os
 import random
 import unittest
-
-import mock
+from unittest import mock
 
 from alot import helper
 

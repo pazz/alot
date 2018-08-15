@@ -17,8 +17,7 @@
 """Tests for the alot.widgets.globals module."""
 
 import unittest
-
-import mock
+from unittest import mock
 
 from alot.widgets import globals as globals_
 

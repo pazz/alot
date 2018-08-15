@@ -8,9 +8,9 @@ import signal
 import subprocess
 import tempfile
 import unittest
+from unittest import mock
 
 import gpg
-import mock
 import urwid
 
 from alot import crypto

@@ -2,8 +2,7 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 import unittest
-
-import mock
+from unittest import mock
 
 from alot.addressbook import external
 

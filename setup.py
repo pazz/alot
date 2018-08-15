@@ -53,9 +53,6 @@ setup(
         'configobj>=4.7.0',
         'gpg'
     ],
-    tests_require=[
-        'mock',
-    ],
     provides=['alot'],
     test_suite="tests",
     python_requires=">=3.5",

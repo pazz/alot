@@ -19,9 +19,9 @@
 import asyncio
 import functools
 import unittest
+from unittest import mock
 
 import gpg
-import mock
 
 
 def _tear_down_class_wrapper(original, cls):

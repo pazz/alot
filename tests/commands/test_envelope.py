@@ -21,8 +21,7 @@ import os
 import tempfile
 import textwrap
 import unittest
-
-import mock
+from unittest import mock
 
 from alot.commands import envelope
 from alot.db.envelope import Envelope

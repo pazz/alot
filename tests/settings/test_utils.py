@@ -5,8 +5,7 @@
 """Tests for the alot.setting.utils module."""
 
 import unittest
-
-import mock
+from unittest import mock
 
 from alot.settings import utils
 
