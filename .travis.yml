@@ -3,7 +3,6 @@ sudo: True
 dist: xenial
 
 python:
-  - "3.5"
   - "3.6"
   - "3.7"
 
@@ -76,10 +75,10 @@ install:
   - pip install urwidtrees
   - pip install configobj
   - pip install gpg
-  - pip install twisted 
+  - pip install twisted
   - pip install python-magic
 
-  - | 
+  - |
     set -e
     if [[ $JOB = docs ]]; then
       # install sphinx (only used to build docs)
