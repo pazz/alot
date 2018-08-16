@@ -19,6 +19,7 @@ import unittest
 
 from alot import account
 
+from . import utilities
 
 class _AccountTestClass(account.Account):
     """Implements stubs for ABC methods."""
@@ -155,3 +156,21 @@ class TestAddress(unittest.TestCase):
     def test_cmp_empty(self):
         addr = account.Address('user', 'éxample.com')
         self.assertNotEqual(addr, '')
+
+
+class TestSend(unittest.TestCase):
+
+    @utilities.async_test
+    async def test_logs_on_success(self):
+        a = account.SendmailAccount(address="test@alot.dev", cmd="true")
+        with self.assertLogs() as cm:
+            await a.send_mail("some text")
+        #self.assertIn(cm.output, "sent mail successfullya")
+        self.assertIn("INFO:root:sent mail successfully", cm.output)
+
+    @unittest.expectedFailure
+    @utilities.async_test
+    async def test_failing_sendmail_command_is_noticed(self):
+        a = account.SendmailAccount(address="test@alot.dev", cmd="false")
+        with self.assertRaises(account.SendingMailFailed):
+            await a.send_mail("some text")
