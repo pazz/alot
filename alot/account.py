@@ -348,7 +348,9 @@ class SendmailAccount(Account):
 
         try:
             # make sure self.mail is a string
-            out, *_ = await call_cmd_async(cmdlist, stdin=str(mail))
+            out, err, code = await call_cmd_async(cmdlist, stdin=str(mail))
+            if code != 0:
+                raise Exception
         except Exception as e:
             logging.error(str(e))
             raise SendingMailFailed(str(e))

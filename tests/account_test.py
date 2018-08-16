@@ -168,7 +168,6 @@ class TestSend(unittest.TestCase):
         #self.assertIn(cm.output, "sent mail successfullya")
         self.assertIn("INFO:root:sent mail successfully", cm.output)
 
-    @unittest.expectedFailure
     @utilities.async_test
     async def test_failing_sendmail_command_is_noticed(self):
         a = account.SendmailAccount(address="test@alot.dev", cmd="false")
