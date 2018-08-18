@@ -27,13 +27,14 @@ _alot_search()
 _alot_compose()
 {
   _arguments -s : \
+    '--attach=[Attach files]:attach:_files -/' \
+    '--bcc=[Blind Carbon Copy header]:Recipient (Bcc header):_email_addresses' \
+    '--cc=[Carbon Copy header]:Recipient (Cc header):_email_addresses' \
     '--omit_signature[do not add signature]' \
     '--sender=[From header]' \
     '--subject=[Subject header]' \
-    '--cc=[Carbon Copy header]' \
-    '--bcc=[Blind Carbon Copy header]' \
     '--template=[template file to use]' \
-    '--attach=[Attach files]:attach:_files -/'\
+    '--to=[To header]:Recipient (To header):_email_addresses' \
 }
 
 _alot()
