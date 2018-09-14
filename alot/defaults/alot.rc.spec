@@ -274,6 +274,9 @@ periodic_hook_frequency = integer(default=300)
 # for the whole message body.
 thread_focus_linewise = boolean(default=True)
 
+# When sending an email or saving a new draft, always delete the old draft.
+# If set to False, the user will be prompted every time.
+envelope_always_delete_old_drafts = boolean(default=False)
 
 # Key bindings
 [bindings]

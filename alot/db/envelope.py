@@ -49,7 +49,7 @@ class Envelope(object):
     def __init__(
             self, template=None, bodytext=None, headers=None, attachments=None,
             sign=False, sign_key=None, encrypt=False, tags=None, replied=None,
-            passed=None):
+            passed=None, previous_draft=None):
         """
         :param template: if not None, the envelope will be initialised by
                          :meth:`parsing <parse_template>` this string before
@@ -85,6 +85,7 @@ class Envelope(object):
         self.tags = tags or []  # tags to add after successful sendout
         self.replied = replied  # message being replied to
         self.passed = passed  # message being passed on
+        self.previous_draft = previous_draft
         self.sent_time = None
         self.modified_since_sent = False
         self.sending = False  # semaphore to avoid accidental double sendout

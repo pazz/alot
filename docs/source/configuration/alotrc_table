@@ -209,6 +209,17 @@
     :default: "UTF-8"
 
 
+.. _envelope-always-delete-old-drafts:
+
+.. describe:: envelope_always_delete_old_drafts
+
+     When sending an email or saving a new draft, always delete the old draft.
+     If set to False, the user will be prompted every time.
+
+    :type: boolean
+    :default: False
+
+
 .. _envelope-headers-blacklist:
 
 .. describe:: envelope_headers_blacklist
