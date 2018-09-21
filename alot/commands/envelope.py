@@ -448,6 +448,37 @@ class UnsetCommand(Command):
         ui.current_buffer.rebuild()
 
 
+@registerCommand(MODE, 'toggleheader', arguments=[
+    (['key'], {'help': 'header to refine'}),
+    (['value'], {'nargs': '+', 'help': 'value'})])
+class ToggleheaderCommand(Command):
+    """toggle header value on/off (no `--append` possible)"""
+    def __init__(self, key, value, **kwargs):
+        """
+        :param key: key of the header to change
+        :type key: str
+        :param value: new value
+        :type value: str
+        """
+        self.key = key
+        self.value = ' '.join(value)
+        Command.__init__(self, **kwargs)
+
+    async def apply(self, ui):
+        envelope = ui.current_buffer.envelope
+        if self.key in envelope:
+            del envelope[self.key]
+        else:
+            envelope.add(self.key, self.value)
+            # FIXME: handle BCC as well
+            # Currently we don't handle bcc because it creates a side channel
+            # leak, as the key of the person BCC'd will be available to other
+            # recievers, defeating the purpose of BCCing them
+            if self.key.lower() in ['to', 'from', 'cc'] and envelope.encrypt:
+                await utils.update_keys(ui, envelope)
+        ui.current_buffer.rebuild()
+
+
 @registerCommand(MODE, 'toggleheaders')
 class ToggleHeaderCommand(Command):
     """toggle display of all headers"""
