@@ -392,90 +392,69 @@ class EditCommand(Command):
         await ui.apply_command(cmd)
 
 
-@registerCommand(MODE, 'set', arguments=[
-    (['--append'], {'action': 'store_true', 'help': 'keep previous values'}),
+@registerCommand(MODE, 'set', forced={'action': 'set'}, arguments=[
+    (['--append'],
+     {'action': 'store_true', 'help': 'keep previous values'}),
+    (['key'], {'help': 'header to refine'}),
+    (['value'], {'nargs': '+', 'help': 'value'})])
+@registerCommand(MODE, 'unset', forced={'action': 'unset'}, arguments=[
+    (['key'], {'help': 'header to refine'})])
+@registerCommand(MODE, 'toggleset', forced={'action': 'toggleset'}, arguments=[
     (['key'], {'help': 'header to refine'}),
     (['value'], {'nargs': '+', 'help': 'value'})])
 class SetCommand(Command):
-    """set header value"""
-    def __init__(self, key, value, append=False, **kwargs):
+    """set/unset/toggle a header value"""
+    repeatable = True
+
+    def __init__(self, action, key, value=None, append=False, **kwargs):
         """
+        :param action: whether to set/unset/toggleset
+        :type action: str
         :param key: key of the header to change
         :type key: str
         :param value: new value
         :type value: str
         """
+        self.action = action
         self.key = key
-        self.value = ' '.join(value)
+
+        # a value is only needed if we set or toggle else it is None
+        self.value = ' '.join(value) if value is not None else None
+
         self.reset = not append
         Command.__init__(self, **kwargs)
 
     async def apply(self, ui):
         envelope = ui.current_buffer.envelope
-        if self.reset:
+
+        if self.action == 'set':
+            do_set = True
+        elif self.action == 'unset':
+            do_set = False
+        elif self.action == 'toggleset':
+            # in case we toggle we only `set` a new header if it didn't exist
+            # already before, in case it exists we will simply remove it hence
+            # `do_set = False`
+            do_set = False if self.key in envelope else True
+
+        if self.reset or not do_set:
+            # remove the existing header if
+            #  - we don't append
+            #  - we are in a toggle scenario and it exists already
+            #  - we are in the unset scenario
+
             if self.key in envelope:
                 del envelope[self.key]
-        envelope.add(self.key, self.value)
+
+        if do_set:
+            envelope.add(self.key, self.value)
+
         # FIXME: handle BCC as well
         # Currently we don't handle bcc because it creates a side channel leak,
         # as the key of the person BCC'd will be available to other recievers,
         # defeating the purpose of BCCing them
         if self.key.lower() in ['to', 'from', 'cc'] and envelope.encrypt:
-            await utils.update_keys(ui, envelope)
-        ui.current_buffer.rebuild()
-
-
-@registerCommand(MODE, 'unset', arguments=[
-    (['key'], {'help': 'header to refine'})])
-class UnsetCommand(Command):
-    """remove header field"""
-    def __init__(self, key, **kwargs):
-        """
-        :param key: key of the header to remove
-        :type key: str
-        """
-        self.key = key
-        Command.__init__(self, **kwargs)
-
-    async def apply(self, ui):
-        del ui.current_buffer.envelope[self.key]
-        # FIXME: handle BCC as well
-        # Currently we don't handle bcc because it creates a side channel leak,
-        # as the key of the person BCC'd will be available to other recievers,
-        # defeating the purpose of BCCing them
-        if self.key.lower() in ['to', 'from', 'cc']:
             await utils.update_keys(ui, ui.current_buffer.envelope)
-        ui.current_buffer.rebuild()
-
-
-@registerCommand(MODE, 'toggleheader', arguments=[
-    (['key'], {'help': 'header to refine'}),
-    (['value'], {'nargs': '+', 'help': 'value'})])
-class ToggleheaderCommand(Command):
-    """toggle header value on/off (no `--append` possible)"""
-    def __init__(self, key, value, **kwargs):
-        """
-        :param key: key of the header to change
-        :type key: str
-        :param value: new value
-        :type value: str
-        """
-        self.key = key
-        self.value = ' '.join(value)
-        Command.__init__(self, **kwargs)
-
-    async def apply(self, ui):
-        envelope = ui.current_buffer.envelope
-        if self.key in envelope:
-            del envelope[self.key]
-        else:
-            envelope.add(self.key, self.value)
-            # FIXME: handle BCC as well
-            # Currently we don't handle bcc because it creates a side channel
-            # leak, as the key of the person BCC'd will be available to other
-            # recievers, defeating the purpose of BCCing them
-            if self.key.lower() in ['to', 'from', 'cc'] and envelope.encrypt:
-                await utils.update_keys(ui, envelope)
         ui.current_buffer.rebuild()
 
 
