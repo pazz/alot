@@ -21,6 +21,7 @@ import os
 import tempfile
 import textwrap
 import unittest
+from copy import deepcopy
 
 import mock
 
@@ -97,6 +98,153 @@ class TestAttachCommand(unittest.TestCase):
             cmd = envelope.AttachCommand(path=os.path.join(d, 'doesnt-exist'))
             cmd.apply(ui)
         ui.notify.assert_called()
+
+
+class TestHeaderCommands(unittest.TestCase):
+    """Tests for the SetCommand for headers"""
+    base_headers = {"From": ["foo <foo@example.com>"],
+                    "To": ["bar <bar@example.com>"],
+                    "Subject": ["Mock-subject"],
+                    "X-header": ["X-value"]}
+
+    @utilities.async_test
+    async def _test(self, action, key, expected, value=None, append=False):
+        """Common steps for envelope.SetCommand tests
+
+        :param action: the action to pass to the SetCommand
+        :type action: str
+        :param key: the header key to pass to the SetCommand
+        :type key: str
+        :param expected: the expected output to assert in the test
+        :type expected: dict(str: list(str))
+        :param value: the header value to pass to the SetCommand
+        :type value: list(str)
+        :param append: the append bool to pass to the SetCommand
+        :type append: bool
+        """
+        env = Envelope(headers=deepcopy(self.base_headers))
+        ui = utilities.make_ui()
+        ui.current_buffer = mock.Mock()
+        ui.current_buffer.envelope = env
+        cmd = envelope.SetCommand(action=action, key=key, value=value,
+                                  append=append)
+        await cmd.apply(ui)
+        actual = env.headers
+        self.assertDictEqual(actual, expected)
+
+    def test_set_new_header(self):
+        key = "new-header"
+        value = ["new-value"]
+        expected = deepcopy(self.base_headers)
+        expected[key] = value
+
+        self._test('set', key, expected, value)
+
+    def test_unset_existing_header(self):
+        key = "X-header"
+        expected = deepcopy(self.base_headers)
+        expected.pop(key, None)
+
+        self._test('unset', key, expected)
+
+    def test_append_to_header(self):
+        key = "X-header"
+        value = ["Y-value"]
+        expected = deepcopy(self.base_headers)
+        expected[key].append(' '.join(value))
+
+        self._test('set', key, expected, value, True)
+
+    def test_toggle_existing_header_same_value(self):
+        key = "X-header"
+        value = ["X-value"]
+        expected = deepcopy(self.base_headers)
+        expected.pop(key, None)
+
+        self._test('toggleset', key, expected, value)
+
+    def test_toggle_nonexisting_header_with_value(self):
+        key = "Y-header"
+        value = ["Y-value"]
+        expected = deepcopy(self.base_headers)
+        expected[key] = value
+
+        self._test('toggleset', key, expected, value)
+
+    def test_toggle_nonexisting_header_with_value_and_append(self):
+        key = "Y-header"
+        value = ["Y-value"]
+        expected = deepcopy(self.base_headers)
+        expected[key] = value
+
+        self._test('toggleset', key, expected, value, True)
+
+    def test_toggle_existing_header_different_value(self):
+        key = "X-header"
+        value = ["Y-value"]
+        expected = deepcopy(self.base_headers)
+        expected.pop(key, None)
+
+        self._test('toggleset', key, expected, value)
+
+    def test_toggle_existing_header_different_value_and_append(self):
+        key = "X-header"
+        value = ["Y-value"]
+        expected = deepcopy(self.base_headers)
+        expected.pop(key, None)
+
+        self._test('toggleset', key, expected, value, True)
+
+    @utilities.async_test
+    async def test_toggle_twice_existing_header_different_value(self):
+        key = "X-header"
+        value = ["Y-value"]
+        expected = deepcopy(self.base_headers)
+        expected[key] = value
+
+        # do not use self._test here as we want to apply the command twice
+        env = Envelope(headers=deepcopy(self.base_headers))
+        ui = utilities.make_ui()
+        ui.current_buffer = mock.Mock()
+        ui.current_buffer.envelope = env
+        cmd = envelope.SetCommand(action='toggleset', key=key, value=value)
+        await cmd.apply(ui)
+        await cmd.apply(ui)
+        actual = env.headers
+        self.assertDictEqual(actual, expected)
+
+    def test_unset_header_using_value_and_append(self):
+        key = "X-header"
+
+        expected = deepcopy(self.base_headers)
+        expected.pop(key, None)
+
+        self._test('unset', key, expected, ["Y-value"], True)
+
+    # now we should also test specifically one of the from, to, cc fields as
+    # we have treat them separately inside `SetCommand`
+    def test_from_unset_existing_header(self):
+        key = "From"
+        expected = deepcopy(self.base_headers)
+        expected.pop(key, None)
+
+        self._test('unset', key, expected)
+
+    def test_from_append_to_header(self):
+        key = "From"
+        value = ["test <test@example.net>"]
+        expected = deepcopy(self.base_headers)
+        expected[key].append(' '.join(value))
+
+        self._test('set', key, expected, value, True)
+
+    def test_from_toggle_existing_header_same_value(self):
+        key = "From"
+        value = ["foo <foo@example.net>"]
+        expected = deepcopy(self.base_headers)
+        expected.pop(key, None)
+
+        self._test('toggleset', key, expected, value)
 
 
 class TestTagCommands(unittest.TestCase):
