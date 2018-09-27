@@ -49,6 +49,22 @@ class Thread(object):
                 subject = ''
         self._subject = subject
 
+        # maybe decrypt subject in protected headers
+        # (see: https://github.com/autocrypt/memoryhole)
+        msgs = [m for m in thread.get_messages()]
+        last = msgs[-1]
+        first_part = last.get_message_parts()[0]
+        if first_part.get_content_type() == 'application/pgp-encrypted':
+            second_part = last.get_message_parts()[1]
+            encrypted = second_part.get_payload()
+            from email.parser import Parser
+            from alot.crypto import decrypt_verify
+            _, plaintext = decrypt_verify(encrypted)
+            parser = Parser()
+            decrypted = parser.parsestr(plaintext)
+            if decrypted.get_param('protected-headers') == 'v1':
+                self._subject = decrypted.get('subject')
+
         self._authors = None
         ts = thread.get_oldest_date()
 
