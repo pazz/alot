@@ -2,17 +2,19 @@ Alot is a terminal-based mail user agent for the notmuch mail system.
 It features a modular and command prompt driven interface
 to provide a full MUA experience as an alternative to the Emacs mode shipped
 with notmuch.
-What you can do whit alot:
 
-	* Read mail/thread
+What you can do with alot:
+
+	* Read mail
 	* Search mail
-	* Tag/Untag mail
+	* Tag, untag mail
 	* Filter mail	
 	* Save attachment
-	* Receive mail (using external tool as `mbsync <http://isync.sourceforge.net/mbsync.html>`_ or `offlineIMAP <http://www.offlineimap.org/>`_)
-	* Send/Reply to/Bounce/Forward mail (using external tool as `msmtp <https://marlam.de/msmtp/>`_)
+	* Send, reply to, bounce and forward mail (using external tool as `msmtp <https://marlam.de/msmtp/>`_)
 	* View attachment (using externals tools)
 
 What you can't do with alot:
 	
-	* Search in/save mail
+	* Recieve mail. Alot uses notmuch mail system
+	* Search in mail content. Use the :pipeto command to a pager
+	* Save mail content. Use the :pipeto command to a pager
