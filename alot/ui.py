@@ -115,7 +115,7 @@ class UI(object):
         self.mainloop = urwid.MainLoop(
             self.root_widget,
             handle_mouse=settings.get('handle_mouse'),
-            event_loop=urwid.AsyncioEventLoop(),
+            event_loop=urwid.TwistedEventLoop(),
             unhandled_input=self._unhandled_input,
             input_filter=self._input_filter)
 

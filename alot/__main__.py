@@ -16,6 +16,9 @@ from alot.commands import *
 from alot.commands import CommandParseError, COMMANDS
 from alot.utils import argparse as cargparse
 
+from twisted.internet import asyncioreactor
+asyncioreactor.install()
+
 
 _SUBCOMMANDS = ['search', 'compose', 'bufferlist', 'taglist', 'namedqueries',
                 'pyshell']
