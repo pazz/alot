@@ -81,3 +81,13 @@ FAQ
    which reduced the number of dependencies we have. Twisted is an especially
    heavy dependency, when we only used their async mechanisms, and not any of
    the other goodness that twisted has to offer.
+
+.. _faq_9:
+
+9 I want to search in/save the content of a mail?
+
+	Pipe the mail to you prefered pager (i.e less) and do it. Use the pipeto command (shortcut is '|') ::
+
+		:pipeto less
+
+	Using less, you search with '/' and save with 's'.
