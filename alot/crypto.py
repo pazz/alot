@@ -206,15 +206,22 @@ def verify_detached(message, signature):
         raise GPGProblem(str(e), code=e.getcode())
 
 
-def decrypt_verify(encrypted):
+def decrypt_verify(encrypted, session_keys=None):
     """Decrypts the given ciphertext string and returns both the
     signatures (if any) and the plaintext.
 
     :param bytes encrypted: the mail to decrypt
+    :param list[str] session_keys: a list OpenPGP session keys
     :returns: the signatures and decrypted plaintext data
     :rtype: tuple[list[gpg.resuit.Signature], str]
     :raises: :class:`~alot.errors.GPGProblem` if the decryption fails
     """
+    if session_keys is not None:
+        try:
+            return _decrypt_verify_session_keys(encrypted, session_keys)
+        except GPGProblem:
+            pass
+
     ctx = gpg.core.Context()
     try:
         plaintext, _, verify_result = ctx.decrypt(encrypted, verify=True)
@@ -226,6 +233,28 @@ def decrypt_verify(encrypted):
         sigs = e.result.signatures
 
     return sigs, plaintext
+
+
+def _decrypt_verify_session_keys(encrypted, session_keys):
+    """Decrypts the given ciphertext string using the session_keys
+    and returns both the signatures (if any) and the plaintext.
+
+    :param bytes encrypted: the mail to decrypt
+    :param list[str] session_keys: a list OpenPGP session keys
+    :returns: the signatures and decrypted plaintext data
+    :rtype: tuple[list[gpg.resuit.Signature], str]
+    :raises: :class:`~alot.errors.GPGProblem` if the decryption fails
+    """
+    for key in session_keys:
+        ctx = gpg.core.Context()
+        ctx.set_ctx_flag("override-session-key", key)
+        try:
+            (plaintext, _, verify_result) = ctx.decrypt(
+                    encrypted, verify=True)
+        except gpg.errors.GPGMEError as e:
+            continue
+        return verify_result.signatures, plaintext
+    raise GPGProblem("No valid session key", code=GPGCode.NOT_FOUND)
 
 
 def validate_key(key, sign=False, encrypt=False):
