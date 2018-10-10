@@ -350,7 +350,9 @@ class SendmailAccount(Account):
             # make sure self.mail is a string
             out, err, code = await call_cmd_async(cmdlist, stdin=str(mail))
             if code != 0:
-                raise Exception
+                msg = 'The sendmail command {} returned with code {}{}'.format(
+                    self.cmd, code, ':\n' + err.strip() if err else '.')
+                raise Exception(msg)
         except Exception as e:
             logging.error(str(e))
             raise SendingMailFailed(str(e))
