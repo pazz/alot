@@ -1,0 +1,5 @@
+Subject: wide chars in From: header
+From: =?utf-8?b?5ZC06bmP?= <pazz@github>
+To: test@alot
+
+testing issue #1262.

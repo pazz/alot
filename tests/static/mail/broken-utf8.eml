@@ -1,0 +1,9 @@
+Subject: Broken UTF8 byte in quoted printable
+From: josh@github
+To: test@alot
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+=C2=A1This works!
+=A1This doesn't!
