@@ -416,7 +416,7 @@ def remove_cte(part, as_string=False):
         elif cte == 'base64':
             raw_payload = base64.b64decode(payload)
         else:
-            raise Exception(
+            raise ValueError(
                 'Unknown Content-Transfer-Encoding: "{}"'.format(cte))
         # message.get_payload(decode=True) also handles a number of unicode
         # encodindigs. maybe those are useful?
