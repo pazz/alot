@@ -741,3 +741,10 @@ class TestRemoveCte(unittest.TestCase):
         # This should not raise an UnicodeDecodeError.
         utils.remove_cte(mail, as_string=True)
         self.assertTrue(True)
+
+    def test_malformed_cte_value(self):
+        with open('tests/static/mail/malformed-header-CTE.eml') as fp:
+            mail = email.message_from_file(fp)
+        with self.assertRaisesRegex(ValueError,
+                                    "Unknown Content-Transfer-Encoding"):
+            utils.remove_cte(mail, as_string=True)
