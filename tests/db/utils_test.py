@@ -741,3 +741,13 @@ class TestRemoveCte(unittest.TestCase):
         # This should not raise an UnicodeDecodeError.
         utils.remove_cte(mail, as_string=True)
         self.assertTrue(True)
+
+    @unittest.expectedFailure
+    def test_issue_1301(self):
+        fp = open('tests/static/mail/latin-1.eml')
+        mail = email.message_from_file(fp)
+        # This should not raise an Exception("Unknown Content-Transfer-Encoding")
+        # Currently it even throws another Exception.
+        utils.remove_cte(mail, as_string=True)
+        self.assertTrue(True)
+
