@@ -730,3 +730,14 @@ class TestMessageFromString(unittest.TestCase):
         m['To'] = 'Nobody'
         message = utils.decrypted_message_from_string(m.as_string())
         self.assertEqual(message.get_payload(), 'This is some text')
+
+
+class TestRemoveCte(unittest.TestCase):
+
+    @unittest.expectedFailure
+    def test_issue_1291(self):
+        with open('tests/static/mail/broken-utf8.eml') as fp:
+            mail = email.message_from_file(fp)
+        # This should not raise an UnicodeDecodeError.
+        utils.remove_cte(mail, as_string=True)
+        self.assertTrue(True)
