@@ -16,6 +16,7 @@
 
 """Tests for global commands."""
 
+import logging
 import os
 import tempfile
 import unittest
@@ -112,10 +113,11 @@ class TestComposeCommand(unittest.TestCase):
                             mock.Mock(return_value=[account])):
                 with mock.patch('alot.commands.globals.settings.get_addressbooks',
                                 mock.Mock(side_effect=Stop)):
-                    try:
-                        await cmd.apply(mock.Mock())
-                    except Stop:
-                        pass
+                    with self.assertLogs(level=logging.WARNING):
+                        try:
+                            await cmd.apply(mock.Mock())
+                        except Stop:
+                            pass
 
         self.assertFalse(envelope.sign)
         self.assertIs(envelope.sign_key, None)

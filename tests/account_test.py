@@ -15,6 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import logging
 import unittest
 
 from alot import account
@@ -172,4 +173,5 @@ class TestSend(unittest.TestCase):
     async def test_failing_sendmail_command_is_noticed(self):
         a = account.SendmailAccount(address="test@alot.dev", cmd="false")
         with self.assertRaises(account.SendingMailFailed):
-            await a.send_mail("some text")
+            with self.assertLogs(level=logging.ERROR):
+                await a.send_mail("some text")
