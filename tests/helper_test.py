@@ -221,20 +221,20 @@ class TestPrettyDatetime(unittest.TestCase):
         for i in (self.random.randint(0, 60) for _ in range(5)):
             test = self.now - datetime.timedelta(seconds=i)
             actual = helper.pretty_datetime(test)
-            self.assertEquals(actual, u'just now')
+            self.assertEqual(actual, u'just now')
 
     def test_x_minutes_ago(self):
         for i in (self.random.randint(60, 3600) for _ in range(10)):
             test = self.now - datetime.timedelta(seconds=i)
             actual = helper.pretty_datetime(test)
-            self.assertEquals(
+            self.assertEqual(
                 actual, u'{}min ago'.format((self.now - test).seconds // 60))
 
     def test_x_hours_ago(self):
         for i in (self.random.randint(3600, 3600 * 6) for _ in range(10)):
             test = self.now - datetime.timedelta(seconds=i)
             actual = helper.pretty_datetime(test)
-            self.assertEquals(
+            self.assertEqual(
                 actual, u'{}h ago'.format((self.now - test).seconds // 3600))
 
     # TODO: yesterday
