@@ -386,7 +386,7 @@ def remove_cte(part, as_string=False):
     :rtype: Union[str, bytes]
     """
     enc = part.get_content_charset() or 'ascii'
-    cte = str(part.get('content-transfer-encoding', '7bit')).lower()
+    cte = str(part.get('content-transfer-encoding', '7bit')).lower().strip()
     payload = part.get_payload()
     if cte == '8bit':
         # Python's mail library may decode 8bit as raw-unicode-escape, so
