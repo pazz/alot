@@ -168,6 +168,23 @@ class SendCommand(Command):
         self.envelope = envelope
         self.envelope_buffer = None
 
+    def _get_keys_addresses(self):
+        addresses = set()
+        for key in self.envelope.encrypt_keys.values():
+            for uid in key.uids:
+                addresses.add(uid.email)
+        return addresses
+
+    def _get_recipients_addresses(self):
+        tos = self.envelope.headers.get('To', [])
+        ccs = self.envelope.headers.get('Cc', [])
+        return {a for (_, a) in email.utils.getaddresses(tos + ccs)}
+
+    def _is_encrypted_to_all_recipients(self):
+        recipients_addresses = self._get_recipients_addresses()
+        keys_addresses = self._get_keys_addresses()
+        return recipients_addresses.issubset(keys_addresses)
+
     async def apply(self, ui):
         if self.mail is None:
             if self.envelope is None:
@@ -201,6 +218,18 @@ class SendCommand(Command):
                 warning = textwrap.dedent("""\
                     Any BCC recipients will not be able to decrypt this
                     message. Do you want to send anyway?""").replace('\n', ' ')
+                if (await ui.choice(warning, cancel='no',
+                                    msg_position='left')) == 'no':
+                    return
+
+            # Check if an encrypted message is indeed encrypted to all its
+            # recipients.
+            if (self.envelope.encrypt
+                    and not self._is_encrypted_to_all_recipients()):
+                warning = textwrap.dedent("""\
+                    Message is not encrypted to all recipients. This means that
+                    not everyone will be able to decode and read this message.
+                    Do you want to send anyway?""").replace('\n', ' ')
                 if (await ui.choice(warning, cancel='no',
                                     msg_position='left')) == 'no':
                     return
