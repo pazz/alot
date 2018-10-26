@@ -354,7 +354,7 @@ class SettingsManager(object):
         fallback_focus = resolve_att(onebelow_focus, default_focus)
 
         for sec in cfg['tags'].sections:
-            if re.match('^{}$'.format(re.escape(sec)), tag):
+            if re.match('^{}$'.format(sec), tag):
                 normal = resolve_att(colourpick(cfg['tags'][sec]['normal']),
                                      fallback_normal)
                 focus = resolve_att(colourpick(cfg['tags'][sec]['focus']),
