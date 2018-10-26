@@ -223,16 +223,7 @@ def decrypt_verify(encrypted, session_keys=None):
             pass
 
     ctx = gpg.core.Context()
-    try:
-        plaintext, _, verify_result = ctx.decrypt(encrypted, verify=True)
-        sigs = verify_result.signatures
-    except gpg.errors.GPGMEError as e:
-        raise GPGProblem(str(e), code=e.getcode())
-    except gpg.errors.BadSignatures as e:
-        plaintext, _, _ = ctx.decrypt(encrypted, verify=False)
-        sigs = e.result.signatures
-
-    return sigs, plaintext
+    return _decrypt_verify_with_context(ctx, encrypted)
 
 
 def _decrypt_verify_session_keys(encrypted, session_keys):
@@ -243,18 +234,38 @@ def _decrypt_verify_session_keys(encrypted, session_keys):
     :param list[str] session_keys: a list OpenPGP session keys
     :returns: the signatures and decrypted plaintext data
     :rtype: tuple[list[gpg.resuit.Signature], str]
-    :raises: :class:`~alot.errors.GPGProblem` if the decryption fails
+    :raises alot.errors.GPGProblem: if the decryption fails
     """
     for key in session_keys:
         ctx = gpg.core.Context()
         ctx.set_ctx_flag("override-session-key", key)
         try:
-            (plaintext, _, verify_result) = ctx.decrypt(
-                    encrypted, verify=True)
-        except gpg.errors.GPGMEError as e:
+            return _decrypt_verify_with_context(ctx, encrypted)
+        except GPGProblem:
             continue
-        return verify_result.signatures, plaintext
     raise GPGProblem("No valid session key", code=GPGCode.NOT_FOUND)
+
+
+def _decrypt_verify_with_context(ctx, encrypted):
+    """Decrypts the given ciphertext string using the gpg context
+    and returns both the signatures (if any) and the plaintext.
+
+    :param gpg.Context ctx: the gpg context
+    :param bytes encrypted: the mail to decrypt
+    :returns: the signatures and decrypted plaintext data
+    :rtype: tuple[list[gpg.resuit.Signature], str]
+    :raises alot.errors.GPGProblem: if the decryption fails
+    """
+    try:
+        (plaintext, _, verify_result) = ctx.decrypt(
+                encrypted, verify=True)
+        sigs = verify_result.signatures
+    except gpg.errors.GPGMEError as e:
+        raise GPGProblem(str(e), code=e.getcode())
+    except gpg.errors.BadSignatures as e:
+        (plaintext, _, _) = ctx.decrypt(encrypted, verify=False)
+        sigs = e.result.signatures
+    return sigs, plaintext
 
 
 def validate_key(key, sign=False, encrypt=False):
