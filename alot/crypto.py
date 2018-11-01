@@ -194,7 +194,7 @@ def verify_detached(message, signature):
     :param bytes signature: the OpenPGP signature to verify
     :returns: a list of signatures
     :rtype: list[gpg.results.Signature]
-    :raises: :class:`~alot.errors.GPGProblem` if the verification fails
+    :raises alot.errors.GPGProblem: if the verification fails
     """
     ctx = gpg.core.Context()
     try:
@@ -214,7 +214,7 @@ def decrypt_verify(encrypted, session_keys=None):
     :param list[str] session_keys: a list OpenPGP session keys
     :returns: the signatures and decrypted plaintext data
     :rtype: tuple[list[gpg.resuit.Signature], str]
-    :raises: :class:`~alot.errors.GPGProblem` if the decryption fails
+    :raises alot.errors.GPGProblem: if the decryption fails
     """
     if session_keys is not None:
         try:
