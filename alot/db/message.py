@@ -252,10 +252,13 @@ class Message(object):
                 if ct in ['octet/stream', 'application/octet-stream']:
                     content = part.get_payload(decode=True)
                     ct = helper.guess_mimetype(content)
+                    if (self._attachments and
+                            self._attachments[-1].get_content_type() ==
+                            'application/pgp-encrypted'):
+                        self._attachments.pop()
 
                 if cd.lower().startswith('attachment'):
-                    if ct.lower() not in ['application/pgp-encrypted',
-                                          'application/pgp-signature']:
+                    if ct.lower() not in ['application/pgp-signature']:
                         self._attachments.append(Attachment(part))
                 elif cd.lower().startswith('inline'):
                     if (filename is not None and
