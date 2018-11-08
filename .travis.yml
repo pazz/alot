@@ -127,6 +127,9 @@ install:
       touch gpg.py
       # install sphinx for building the html docs
       pip install sphinx
+      # install travis-sphinx script to auto-deploy docs to the gh-pages branch on github
+      pip install travis-sphinx
+
     else
       pip install .[test]
     fi
@@ -153,6 +156,8 @@ after_success: |
     coverage xml
     export CODACY_PROJECT_TOKEN=df4443e7313e4ae599bcbbaf4835b00f
     python-codacy-coverage -r coverage.xml
+    # auto-deploy docs to the gh-pages branch on github
+    travis-sphinx deploy
   fi
 
 notifications:
