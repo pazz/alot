@@ -157,7 +157,8 @@ after_success: |
     export CODACY_PROJECT_TOKEN=df4443e7313e4ae599bcbbaf4835b00f
     python-codacy-coverage -r coverage.xml
     # auto-deploy docs to the gh-pages branch on github
-    travis-sphinx deploy
+    export GH_TOKEN=15f2f644b4412c320f242d35d7a1ae3debd41803
+    travis-sphinx -v deploy
   fi
 
 notifications:
