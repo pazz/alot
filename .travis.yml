@@ -129,7 +129,6 @@ install:
       pip install sphinx
       # install travis-sphinx script to auto-deploy docs to the gh-pages branch on github
       pip install travis-sphinx
-
     else
       pip install .[test]
     fi
