@@ -143,7 +143,8 @@ script: |
     # Check that the generated docs where already commited.
     git diff --exit-code
     # Generate the html docs and turn all warnings into errors.
-    make -C docs html SPHINXBUILD='sphinx-build -W'
+    #make -C docs html SPHINXBUILD='sphinx-build -W'
+    travis-sphinx build
   else
     alot --config conf
     coverage run setup.py test
