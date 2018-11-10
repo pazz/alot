@@ -155,8 +155,10 @@ after_success: |
     coverage xml
     export CODACY_PROJECT_TOKEN=df4443e7313e4ae599bcbbaf4835b00f
     python-codacy-coverage -r coverage.xml
+  fi
+  if [[ $JOB = docs ]]; then
     # auto-deploy docs to the gh-pages branch on github
-    travis-sphinx -v deploy
+    travis-sphinx deploy
   fi
 
 notifications:
