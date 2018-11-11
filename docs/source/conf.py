@@ -2,44 +2,6 @@
 # alot documentation build configuration file
 import sys, os
 
-###############################
-# readthedocs.org hack,
-# needed to use autodocs on their build-servers:
-# http://readthedocs.org/docs/read-the-docs/en/latest/faq.html?highlight=autodocs#where-do-i-need-to-put-my-docs-for-rtd-to-find-it
-
-class Mock(object):
-    def __init__(self, *args, **kwargs):
-        pass
-
-    def __call__(self, *args, **kwargs):
-        return Mock()
-
-    @classmethod
-    def __getattr__(cls, name):
-        return Mock() if name not in ('__file__', '__path__') else '/dev/null'
-
-class MockModule(object):
-    @classmethod
-    def __getattr__(cls, name):
-        return Mock if name not in ('__file__', '__path__') else '/dev/null'
-
-MOCK_MODULES = ['urwid',
-                'urwidtrees',
-                'magic',
-                'gpg',
-                'configobj',
-                'validate',
-                'argparse',
-                'alot.settings.const']
-MOCK_DIRTY = ['notmuch']
-for mod_name in MOCK_MODULES:
-    sys.modules[mod_name] = MockModule()
-for mod_name in MOCK_DIRTY:
-    sys.modules[mod_name] = Mock()
-
-# end of readthedocs.org hack
-##############################
-
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -56,7 +18,17 @@ from alot import __version__,__author__
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx']
 
 # autodoc tweaks
-
+autodoc_mock_imports = [
+    'alot.settings.const',
+    'argparse',
+    'configobj',
+    'gpg',
+    'magic',
+    'notmuch',
+    'urwid',
+    'urwidtrees',
+    'validate',
+]
 # show classes' docstrings _and_ constructors docstrings/parameters
 autoclass_content = 'both'
 
