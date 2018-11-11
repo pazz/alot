@@ -85,3 +85,14 @@ It used to. After we switched to python 3 we decided to switch to asyncio,
 which reduced the number of dependencies we have. Twisted is an especially
 heavy dependency, when we only used their async mechanisms, and not any of
 the other goodness that twisted has to offer.
+
+.. _faq_9:
+.. rubric:: 9. How do I search within the content of a mail?
+
+Alot does not yet have this feature built-in. However, you can pipe a mail to your preferred pager and do it from there. This can be done using the :ref:`pipeto <cmd.thread.pipeto>` command (the default shortcut is '|') in thread buffers::
+
+   pipeto --format=decoded less
+
+Using less, you search with '/' and save with 's'.
+See :ref:`here <cmd.thread.pipeto>` or `help pipeto` for help on this command.
+
