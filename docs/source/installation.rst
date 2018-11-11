@@ -1,10 +1,25 @@
 Installation
 ************
 
-.. rubric:: dependencies
+These days, alot can be installed directly using your favourite package manager.
+On a recent Debian (-derived) systems for instance, just do `sudo apt install alot` and you're done.
+
+.. note::
+   Alot uses `mailcap <http://en.wikipedia.org/wiki/Mailcap>`_ to look up mime-handler for inline
+   rendering and opening of attachments.
+   To avoid surprises you should at least have an inline renderer
+   (copiousoutput) set up for `text/html` in your :file:`~/.mailcap`::
+
+     text/html;  w3m -dump -o document_charset=%{charset} '%s'; nametemplate=%s.html; copiousoutput
+   
+   See the manpage :manpage:`mailcap(5)` or :rfc:`1524` for more details on your mailcap setup.
+
+
+Manual installation
+-------------------
 
 Alot depends on recent versions of notmuch and urwid. Note that due to restrictions
-on argparse and subprocess, you need to run *`python ≥ `3.5`* (see :ref:`faq <faq_7>`).
+on argparse and subprocess, you need to run *python ≥ 3.5* (see :ref:`faq <faq_7>`).
 A full list of dependencies is below:
 
 * `libmagic and python bindings <http://darwinsys.com/file/>`_, ≥ `5.04`
@@ -14,51 +29,34 @@ A full list of dependencies is below:
 * `urwidtrees <https://github.com/pazz/urwidtrees>`_, ≥ `1.0`
 * `gpg <http://www.gnupg.org/related_software/gpgme>`_ and it's python bindings, ≥ `1.9.0`
 
-.. note:: urwidtrees was only recently detached from alot and is not widely
-          available as a separate package. You can install it e.g., via
-          `pip <https://pypi.python.org/pypi/pip>`_ directly from github:
 
-          .. code-block:: sh
+On Debian/Ubuntu these are packaged as::
 
-            pip install --user https://github.com/pazz/urwidtrees/archive/master.zip
+  python3-setuptools python3-magic python3-configobj python3-notmuch python3-urwid python3-urwidtrees python3-gpg
+  
+On Fedora/Redhat these are packaged as::
 
+  python-setuptools python-magic python-configobj python-notmuch python-urwid python-urwidtrees python-gpg
 
-On debian/ubuntu the rest are packaged as::
+To set up and install the latest development version::
 
-  python-setuptools python-magic python-configobj python-notmuch python-urwid python-gpg
-
-On fedora/redhat these are packaged as::
-
-  python-setuptools python-magic python-configobj python-notmuch python-urwid python-gpg
-
-Alot uses `mailcap <http://en.wikipedia.org/wiki/Mailcap>`_ to look up mime-handler for inline
-rendering and opening of attachments.  For a full description of the maicap protocol consider the
-manpage :manpage:`mailcap(5)` or :rfc:`1524`. To avoid surprises you should at least have an inline
-renderer (copiousoutput) set up for `text/html`, i.e. have something like this in your
-:file:`~/.mailcap`::
-
-  text/html;  w3m -dump -o document_charset=%{charset} '%s'; nametemplate=%s.html; copiousoutput
-
-.. rubric:: get and install alot
-
-You can use `pip` to install directly from GitHub::
-
-  $ pip install --user https://github.com/pazz/alot/archive/master.zip
-
-Don't have pip installed? Just download and extract, then run::
-
-  python setup.py install --user
+  git clone https://github.com/pazz/alot
+  ./setup.py develop --user
 
 Make sure :file:`~/.local/bin` is in your :envvar:`PATH`. For system-wide
 installation omit the `--user` flag and call with the respective permissions.
 
-.. rubric:: generate manual and manpage
 
-To generate the documentation you need `sphinx <http://sphinx.pocoo.org/>`_, ≥ `1.07` installed.
-Go to :file:`docs/` and do a::
+Generating the Docs
+-------------------
 
-  make html
-  make man
+This requires `sphinx <http://sphinx.pocoo.org/>`_, ≥ `1.3` to be installed.
+To generate the documentation from the source directory simply do::
 
-to generate the user manual and a man page. Both will end up in their respective subfolders in
-:file:`docs/build`.
+  make -C docs html
+
+A man page can be generated using::
+
+  make -C docs man
+
+Both will end up in their respective subfolders in :file:`docs/build`.
