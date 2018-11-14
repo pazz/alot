@@ -253,7 +253,7 @@ class SendCommand(Command):
         if not isinstance(msg, email.message.Message):
             msg = email.message_from_string(
                 self.mail, policy=email.policy.SMTP)
-        address = msg.get('From', '')
+        address = msg.get('Resent-From', False) or msg.get('From', '')
         logging.debug("FROM: \"%s\"" % address)
         try:
             account = settings.get_account_by_address(address,
