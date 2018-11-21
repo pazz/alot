@@ -787,7 +787,7 @@ class PipeCommand(Command):
 
         # display 'done' message
         if self.done_msg:
-            await ui.notify(self.done_msg)
+            ui.notify(self.done_msg)
 
 
 @registerCommand(MODE, 'remove', arguments=[
