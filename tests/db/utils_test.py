@@ -732,7 +732,6 @@ class TestMessageFromString(unittest.TestCase):
 
 class TestRemoveCte(unittest.TestCase):
 
-    @unittest.expectedFailure
     def test_issue_1291(self):
         with open('tests/static/mail/broken-utf8.eml') as fp:
             mail = email.message_from_file(fp)

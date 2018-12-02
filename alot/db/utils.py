@@ -422,7 +422,7 @@ def remove_cte(part, as_string=False):
         # encodindigs. maybe those are useful?
         if not as_string:
             return raw_payload
-        return raw_payload.decode(enc)
+        return raw_payload.decode(enc, errors='ignore')
     raise Exception('Unreachable')
 
 
