@@ -20,7 +20,6 @@ import gpg
 import mock
 
 from alot import crypto
-from alot import helper
 from alot.db import utils
 from alot.errors import GPGProblem
 from ..utilities import make_key, make_uid, TestCaseClassCleanup
@@ -199,7 +198,6 @@ class TestDecodeHeader(unittest.TestCase):
         result_bytes = b'=?' + encoding.encode('utf-8') + b'?B?' + b64 + b'?='
         result = result_bytes.decode('ascii')
         return result
-
 
     def _test(self, teststring, expected):
         actual = utils.decode_header(teststring)
@@ -719,8 +717,8 @@ class TestMessageFromString(unittest.TestCase):
     """Tests for decrypted_message_from_string.
 
     Because the implementation is that this is a wrapper around
-    decrypted_message_from_file, it's not important to have a large swath of tests, just
-    enough to show that things are being passed correctly.
+    decrypted_message_from_file, it's not important to have a large swath of
+    tests, just enough to show that things are being passed correctly.
     """
 
     def test(self):
