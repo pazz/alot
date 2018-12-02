@@ -157,3 +157,4 @@ after_success: |
 notifications:
   irc: "chat.freenode.net#alot"
   on_success: change
+  use_notice: true
