@@ -155,6 +155,8 @@ after_success: |
   fi
 
 notifications:
-  irc: "chat.freenode.net#alot"
-  on_success: change
-  use_notice: true
+  irc:
+    channels:
+      - "chat.freenode.net#alot"
+    on_success: change
+    use_notice: true
