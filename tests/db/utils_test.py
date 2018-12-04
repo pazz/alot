@@ -743,6 +743,10 @@ class TestRemoveCte(unittest.TestCase):
     def test_malformed_cte_value(self):
         with open('tests/static/mail/malformed-header-CTE.eml') as fp:
             mail = email.message_from_file(fp)
-        with self.assertRaisesRegex(ValueError,
-                                    "Unknown Content-Transfer-Encoding"):
+
+        with self.assertLogs(level='INFO') as cm:  # keep logs
             utils.remove_cte(mail, as_string=True)
+
+        # We expect no Exceptions but a complaint in the log
+        logmsg = 'INFO:root:Unknown Content-Transfer-Encoding: "7bit;"'
+        self.assertEqual(cm.output, [logmsg])
