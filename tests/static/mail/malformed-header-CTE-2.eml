@@ -1,0 +1,9 @@
+Subject: malformed Content-Transfer-Encoding v2
+To: lucc@github
+From: test@alot
+MIME-Version: 1.0;
+Content-Type: text/plain; charset=iso-8859-1;
+Content-Transfer-Encoding: normal
+
+This message contains an invalid header value for the "Content-Transfer-Encoding":
+issue #1301
