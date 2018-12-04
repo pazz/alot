@@ -375,10 +375,19 @@ def render_part(part, field_key='copiousoutput'):
 
 
 def remove_cte(part, as_string=False):
-    """Decodes any Content-Transfer-Encodings.
+    """Interpret MIME-part according to it's Content-Transfer-Encodings.
 
-    Can return a string for display, or bytes to be passed to an external
-    program.
+    This returns the payload of `part` as string or bytestring for display, or
+    to be passed to an external program. In the raw file the payload may be
+    encoded, e.g. in base64, quoted-printable, 7bit, or 8bit. This method will
+    look for one of the above Content-Transfer-Encoding header and interpret
+    the payload accordingly.
+
+    Incorrect header values (common in spam messages) will be interpreted as
+    lenient as possible and will result in INFO-level debug messages.
+
+    ..Note:: All this may be depricated in favour of
+             `email.contentmanager.raw_data_manager` (v3.6+)
 
     :param email.Message part: The part to decode
     :param bool as_string: If true return a str, otherwise return bytes
@@ -388,42 +397,60 @@ def remove_cte(part, as_string=False):
     enc = part.get_content_charset() or 'ascii'
     cte = str(part.get('content-transfer-encoding', '7bit')).lower().strip()
     payload = part.get_payload()
-    if cte == '8bit':
+    sp = ''  # string variant of return value
+    bp = b''  # bytestring variant
+
+    logging.debug('Content-Transfer-Encoding: "{}"'.format(cte))
+    if cte not in ['quoted-printable', 'base64', '7bit', '8bit', 'binary']:
+        logging.info('Unknown Content-Transfer-Encoding: "{}"'.format(cte))
+
+    # switch through all sensible cases
+    # starting with those where payload is already a str
+    if '7bit' in cte or 'binary' in cte:
+        logging.debug('assuming Content-Transfer-Encoding: 7bit')
+        sp = payload
+        if as_string:
+            return sp
+        bp = payload.encode('utf-8')
+        return bp
+
+    # the remaining cases need decoding and define only bt;
+    # decoding into a str is done at the end if requested
+    elif '8bit' in cte:
+        logging.debug('assuming Content-Transfer-Encoding: 8bit')
         # Python's mail library may decode 8bit as raw-unicode-escape, so
         # we need to encode that back to bytes so we can decode it using
         # the correct encoding, or it might not, in which case assume that
         # the str representation we got is correct.
-        raw_payload = payload.encode('raw-unicode-escape')
-        if not as_string:
-            return raw_payload
-        try:
-            return raw_payload.decode(enc)
-        except LookupError:
-            # In this case the email has an unknown encoding, fall back to
-            # guessing
-            return helper.try_decode(raw_payload)
-        except UnicodeDecodeError:
-            if not as_string:
-                return raw_payload
-            return helper.try_decode(raw_payload)
-    elif cte in ['7bit', 'binary']:
-        if as_string:
-            return payload
-        return payload.encode('utf-8')
+        bp = payload.encode('raw-unicode-escape')
+
+    elif 'quoted-printable' in cte:
+        logging.debug('assuming Content-Transfer-Encoding: quoted-printable')
+        bp = quopri.decodestring(payload.encode('ascii'))
+
+    elif 'base64' in cte:
+        logging.debug('assuming Content-Transfer-Encoding: base64')
+        bp = base64.b64decode(payload)
+
     else:
-        if cte == 'quoted-printable':
-            raw_payload = quopri.decodestring(payload.encode('ascii'))
-        elif cte == 'base64':
-            raw_payload = base64.b64decode(payload)
-        else:
-            raise ValueError(
-                'Unknown Content-Transfer-Encoding: "{}"'.format(cte))
-        # message.get_payload(decode=True) also handles a number of unicode
-        # encodindigs. maybe those are useful?
-        if not as_string:
-            return raw_payload
-        return raw_payload.decode(enc)
-    raise Exception('Unreachable')
+        logging.debug('failed to interpret Content-Transfer-Encoding: '
+                      '"{}"'.format(cte))
+
+    # by now, bp is defined, sp is not.
+    if as_string:
+        try:
+            sp = bp.decode(enc)
+        except LookupError:
+            # enc is unknown;
+            # fall back to guessing the correct encoding using libmagic
+            sp = helper.try_decode(bp)
+        except UnicodeDecodeError as emsg:
+            # the mail contains chars that are not enc-encoded.
+            # try again and just ignore those
+            logging.debug('Decoding failure: {}'.format(emsg))
+            sp = bp.decode(enc, errors='ignore')
+        return sp
+    return bp
 
 
 def extract_body(mail, types=None, field_key='copiousoutput'):
