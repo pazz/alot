@@ -1,0 +1,36 @@
+ERROR:ui:Traceback (most recent call last):
+  File "/home/pazz/projects/alot/alot/db/utils.py", line 400, in remove_cte
+    return raw_payload.decode(enc)
+UnicodeDecodeError: 'utf-8' codec can't decode byte 0x96 in position 657: invalid start byte
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/pazz/projects/alot/alot/ui.py", line 711, in apply_command
+    cmd.apply(self)
+  File "/home/pazz/projects/alot/alot/commands/search.py", line 41, in apply
+    sb = buffers.ThreadBuffer(ui, self.thread)
+  File "/home/pazz/projects/alot/alot/buffers/thread.py", line 37, in __init__
+    self.rebuild()
+  File "/home/pazz/projects/alot/alot/buffers/thread.py", line 65, in rebuild
+    self._tree = ThreadTree(self.thread)
+  File "/home/pazz/projects/alot/alot/widgets/thread.py", line 352, in __init__
+    accumulate(msg)
+  File "/home/pazz/projects/alot/alot/widgets/thread.py", line 331, in accumulate
+    self._message[mid] = MessageTree(msg, odd)
+  File "/home/pazz/projects/alot/alot/widgets/thread.py", line 172, in __init__
+    self._maintree = SimpleTree(self._assemble_structure())
+  File "/home/pazz/projects/alot/alot/widgets/thread.py", line 205, in _assemble_structure
+    bodytree = self._get_body()
+  File "/home/pazz/projects/alot/alot/widgets/thread.py", line 238, in _get_body
+    bodytxt = self._message.accumulate_body()
+  File "/home/pazz/projects/alot/alot/db/message.py", line 272, in accumulate_body
+    bodytext = extract_body(eml)
+  File "/home/pazz/projects/alot/alot/db/utils.py", line 475, in extract_body
+    body_parts.append(string_sanitize(remove_cte(part, as_string=True)))
+  File "/home/pazz/projects/alot/alot/db/utils.py", line 408, in remove_cte
+    return helper.try_decode(raw_payload)
+  File "/home/pazz/projects/alot/alot/helper.py", line 411, in try_decode
+    return blob.decode(guess_encoding(blob))
+LookupError: unknown encoding: unknown-8bit
+

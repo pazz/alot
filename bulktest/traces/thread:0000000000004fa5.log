@@ -1,0 +1,54 @@
+ERROR:ui:Traceback (most recent call last):
+  File "/home/pazz/projects/alot/alot/ui.py", line 711, in apply_command
+    cmd.apply(self)
+  File "/home/pazz/projects/alot/alot/commands/search.py", line 41, in apply
+    sb = buffers.ThreadBuffer(ui, self.thread)
+  File "/home/pazz/projects/alot/alot/buffers/thread.py", line 37, in __init__
+    self.rebuild()
+  File "/home/pazz/projects/alot/alot/buffers/thread.py", line 65, in rebuild
+    self._tree = ThreadTree(self.thread)
+  File "/home/pazz/projects/alot/alot/widgets/thread.py", line 352, in __init__
+    accumulate(msg)
+  File "/home/pazz/projects/alot/alot/widgets/thread.py", line 343, in accumulate
+    odd = accumulate(reply, odd)
+  File "/home/pazz/projects/alot/alot/widgets/thread.py", line 343, in accumulate
+    odd = accumulate(reply, odd)
+  File "/home/pazz/projects/alot/alot/widgets/thread.py", line 343, in accumulate
+    odd = accumulate(reply, odd)
+  [Previous line repeated 4 more times]
+  File "/home/pazz/projects/alot/alot/widgets/thread.py", line 331, in accumulate
+    self._message[mid] = MessageTree(msg, odd)
+  File "/home/pazz/projects/alot/alot/widgets/thread.py", line 172, in __init__
+    self._maintree = SimpleTree(self._assemble_structure())
+  File "/home/pazz/projects/alot/alot/widgets/thread.py", line 199, in _assemble_structure
+    mainstruct.append((self._get_headers(), None))
+  File "/home/pazz/projects/alot/alot/widgets/thread.py", line 255, in _get_headers
+    headers)
+  File "/home/pazz/projects/alot/alot/widgets/thread.py", line 283, in construct_header_pile
+    values = mail.get_all(key)
+  File "/usr/lib/python3.6/email/message.py", line 510, in get_all
+    values.append(self.policy.header_fetch_parse(k, v))
+  File "/usr/lib/python3.6/email/policy.py", line 162, in header_fetch_parse
+    return self.header_factory(name, value)
+  File "/usr/lib/python3.6/email/headerregistry.py", line 589, in __call__
+    return self[name](name, value)
+  File "/usr/lib/python3.6/email/headerregistry.py", line 197, in __new__
+    cls.parse(value, kwds)
+  File "/usr/lib/python3.6/email/headerregistry.py", line 340, in parse
+    kwds['parse_tree'] = address_list = cls.value_parser(value)
+  File "/usr/lib/python3.6/email/headerregistry.py", line 331, in value_parser
+    address_list, value = parser.get_address_list(value)
+  File "/usr/lib/python3.6/email/_header_value_parser.py", line 1931, in get_address_list
+    token, value = get_address(value)
+  File "/usr/lib/python3.6/email/_header_value_parser.py", line 1908, in get_address
+    token, value = get_group(value)
+  File "/usr/lib/python3.6/email/_header_value_parser.py", line 1864, in get_group
+    token, value = get_display_name(value)
+  File "/usr/lib/python3.6/email/_header_value_parser.py", line 1690, in get_display_name
+    token, value = get_phrase(value)
+  File "/usr/lib/python3.6/email/_header_value_parser.py", line 1365, in get_phrase
+    token, value = get_word(value)
+  File "/usr/lib/python3.6/email/_header_value_parser.py", line 1340, in get_word
+    if value[0]=='"':
+IndexError: string index out of range
+

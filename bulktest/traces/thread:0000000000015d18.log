@@ -1,0 +1,275 @@
+ERROR:ui:Traceback (most recent call last):
+  File "/home/pazz/projects/alot/alot/ui.py", line 711, in apply_command
+    cmd.apply(self)
+  File "/home/pazz/projects/alot/alot/commands/search.py", line 42, in apply
+    ui.buffer_open(sb)
+  File "/home/pazz/projects/alot/alot/ui.py", line 405, in buffer_open
+    self.buffer_focus(buf)
+  File "/home/pazz/projects/alot/alot/ui.py", line 465, in buffer_focus
+    self.update()
+  File "/home/pazz/projects/alot/alot/ui.py", line 656, in update
+    self.mainloop.draw_screen()
+  File "/usr/lib/python3/dist-packages/urwid/main_loop.py", line 586, in draw_screen
+    canvas = self._topmost_widget.render(self.screen_size, focus=True)
+  File "/usr/lib/python3/dist-packages/urwid/widget.py", line 144, in cached_render
+    canv = fn(self, size, focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/decoration.py", line 226, in render
+    canv = self._original_widget.render(size, focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/widget.py", line 144, in cached_render
+    canv = fn(self, size, focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/container.py", line 1086, in render
+    focus and self.focus_part == 'body')
+  File "/home/pazz/projects/alot/alot/buffers/thread.py", line 128, in render
+    return self.body.render(size, focus)
+  File "/usr/lib/python3/dist-packages/urwid/widget.py", line 144, in cached_render
+    canv = fn(self, size, focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/widget.py", line 1765, in render
+    canv = get_delegate(self).render(size, focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/widget.py", line 144, in cached_render
+    canv = fn(self, size, focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/listbox.py", line 471, in render
+    (maxcol, maxrow), focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/listbox.py", line 353, in calculate_visible
+    self._set_focus_complete( (maxcol, maxrow), focus )
+  File "/usr/lib/python3/dist-packages/urwid/listbox.py", line 718, in _set_focus_complete
+    (maxcol,maxrow), focus)
+  File "/usr/lib/python3/dist-packages/urwid/listbox.py", line 688, in _set_focus_first_selectable
+    (maxcol, maxrow), focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/listbox.py", line 416, in calculate_visible
+    next, pos = self._body.get_next( pos )
+  File "/usr/local/lib/python3.6/dist-packages/urwidtrees-1.0.3.dev0-py3.6.egg/urwidtrees/widgets.py", line 82, in get_next
+    return self._get(self._tree.next_position(pos))
+  File "/usr/local/lib/python3.6/dist-packages/urwidtrees-1.0.3.dev0-py3.6.egg/urwidtrees/widgets.py", line 68, in _get
+    res = self[pos], pos
+  File "/usr/local/lib/python3.6/dist-packages/urwidtrees-1.0.3.dev0-py3.6.egg/urwidtrees/widgets.py", line 54, in __getitem__
+    entry = self._tree.get_decorated(pos)
+  File "/usr/local/lib/python3.6/dist-packages/urwidtrees-1.0.3.dev0-py3.6.egg/urwidtrees/nested.py", line 88, in get_decorated
+    return self._get_decorated_entry(self._tree, pos)
+  File "/usr/local/lib/python3.6/dist-packages/urwidtrees-1.0.3.dev0-py3.6.egg/urwidtrees/nested.py", line 84, in _get_decorated_entry
+    entry = tree.decorate(pos[0], entry, is_first=isf)
+  File "/usr/local/lib/python3.6/dist-packages/urwidtrees-1.0.3.dev0-py3.6.egg/urwidtrees/decoration.py", line 472, in decorate
+    line = urwid.Columns(cols, box_columns=range(len(cols))[:-1])
+  File "/usr/lib/python3/dist-packages/urwid/container.py", line 1768, in __init__
+    if focus_column is None and w.selectable():
+AttributeError: 'NoneType' object has no attribute 'selectable'
+
+DEBUG:thread:Tbuffer: auto remove unread tag from msg?
+DEBUG:thread:Tbuffer: No, cursor on summary
+ERROR:ui:Traceback (most recent call last):
+  File "/home/pazz/projects/alot/alot/ui.py", line 711, in apply_command
+    cmd.apply(self)
+  File "/home/pazz/projects/alot/alot/commands/search.py", line 42, in apply
+    ui.buffer_open(sb)
+  File "/home/pazz/projects/alot/alot/ui.py", line 405, in buffer_open
+    self.buffer_focus(buf)
+  File "/home/pazz/projects/alot/alot/ui.py", line 465, in buffer_focus
+    self.update()
+  File "/home/pazz/projects/alot/alot/ui.py", line 656, in update
+    self.mainloop.draw_screen()
+  File "/usr/lib/python3/dist-packages/urwid/main_loop.py", line 586, in draw_screen
+    canvas = self._topmost_widget.render(self.screen_size, focus=True)
+  File "/usr/lib/python3/dist-packages/urwid/widget.py", line 144, in cached_render
+    canv = fn(self, size, focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/decoration.py", line 226, in render
+    canv = self._original_widget.render(size, focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/widget.py", line 144, in cached_render
+    canv = fn(self, size, focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/container.py", line 1086, in render
+    focus and self.focus_part == 'body')
+  File "/home/pazz/projects/alot/alot/buffers/thread.py", line 128, in render
+    return self.body.render(size, focus)
+  File "/usr/lib/python3/dist-packages/urwid/widget.py", line 144, in cached_render
+    canv = fn(self, size, focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/widget.py", line 1765, in render
+    canv = get_delegate(self).render(size, focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/widget.py", line 144, in cached_render
+    canv = fn(self, size, focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/listbox.py", line 471, in render
+    (maxcol, maxrow), focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/listbox.py", line 353, in calculate_visible
+    self._set_focus_complete( (maxcol, maxrow), focus )
+  File "/usr/lib/python3/dist-packages/urwid/listbox.py", line 718, in _set_focus_complete
+    (maxcol,maxrow), focus)
+  File "/usr/lib/python3/dist-packages/urwid/listbox.py", line 688, in _set_focus_first_selectable
+    (maxcol, maxrow), focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/listbox.py", line 416, in calculate_visible
+    next, pos = self._body.get_next( pos )
+  File "/usr/local/lib/python3.6/dist-packages/urwidtrees-1.0.3.dev0-py3.6.egg/urwidtrees/widgets.py", line 82, in get_next
+    return self._get(self._tree.next_position(pos))
+  File "/usr/local/lib/python3.6/dist-packages/urwidtrees-1.0.3.dev0-py3.6.egg/urwidtrees/widgets.py", line 68, in _get
+    res = self[pos], pos
+  File "/usr/local/lib/python3.6/dist-packages/urwidtrees-1.0.3.dev0-py3.6.egg/urwidtrees/widgets.py", line 54, in __getitem__
+    entry = self._tree.get_decorated(pos)
+  File "/usr/local/lib/python3.6/dist-packages/urwidtrees-1.0.3.dev0-py3.6.egg/urwidtrees/nested.py", line 88, in get_decorated
+    return self._get_decorated_entry(self._tree, pos)
+  File "/usr/local/lib/python3.6/dist-packages/urwidtrees-1.0.3.dev0-py3.6.egg/urwidtrees/nested.py", line 84, in _get_decorated_entry
+    entry = tree.decorate(pos[0], entry, is_first=isf)
+  File "/usr/local/lib/python3.6/dist-packages/urwidtrees-1.0.3.dev0-py3.6.egg/urwidtrees/decoration.py", line 472, in decorate
+    line = urwid.Columns(cols, box_columns=range(len(cols))[:-1])
+  File "/usr/lib/python3/dist-packages/urwid/container.py", line 1768, in __init__
+    if focus_column is None and w.selectable():
+AttributeError: 'NoneType' object has no attribute 'selectable'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/pazz/projects/alot/alot/ui.py", line 268, in apply_commandline
+    await apply_this_command(c)
+  File "/home/pazz/projects/alot/alot/ui.py", line 713, in apply_command
+    self._error_handler(e)
+  File "/home/pazz/projects/alot/alot/ui.py", line 151, in _error_handler
+    self.notify(msg, priority='error')
+  File "/home/pazz/projects/alot/alot/ui.py", line 612, in notify
+    self.update()
+  File "/home/pazz/projects/alot/alot/ui.py", line 656, in update
+    self.mainloop.draw_screen()
+  File "/usr/lib/python3/dist-packages/urwid/main_loop.py", line 586, in draw_screen
+    canvas = self._topmost_widget.render(self.screen_size, focus=True)
+  File "/usr/lib/python3/dist-packages/urwid/widget.py", line 144, in cached_render
+    canv = fn(self, size, focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/decoration.py", line 226, in render
+    canv = self._original_widget.render(size, focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/widget.py", line 144, in cached_render
+    canv = fn(self, size, focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/container.py", line 1086, in render
+    focus and self.focus_part == 'body')
+  File "/home/pazz/projects/alot/alot/buffers/thread.py", line 128, in render
+    return self.body.render(size, focus)
+  File "/usr/lib/python3/dist-packages/urwid/widget.py", line 144, in cached_render
+    canv = fn(self, size, focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/widget.py", line 1765, in render
+    canv = get_delegate(self).render(size, focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/widget.py", line 144, in cached_render
+    canv = fn(self, size, focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/listbox.py", line 471, in render
+    (maxcol, maxrow), focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/listbox.py", line 416, in calculate_visible
+    next, pos = self._body.get_next( pos )
+  File "/usr/local/lib/python3.6/dist-packages/urwidtrees-1.0.3.dev0-py3.6.egg/urwidtrees/widgets.py", line 82, in get_next
+    return self._get(self._tree.next_position(pos))
+  File "/usr/local/lib/python3.6/dist-packages/urwidtrees-1.0.3.dev0-py3.6.egg/urwidtrees/widgets.py", line 68, in _get
+    res = self[pos], pos
+  File "/usr/local/lib/python3.6/dist-packages/urwidtrees-1.0.3.dev0-py3.6.egg/urwidtrees/widgets.py", line 54, in __getitem__
+    entry = self._tree.get_decorated(pos)
+  File "/usr/local/lib/python3.6/dist-packages/urwidtrees-1.0.3.dev0-py3.6.egg/urwidtrees/nested.py", line 88, in get_decorated
+    return self._get_decorated_entry(self._tree, pos)
+  File "/usr/local/lib/python3.6/dist-packages/urwidtrees-1.0.3.dev0-py3.6.egg/urwidtrees/nested.py", line 84, in _get_decorated_entry
+    entry = tree.decorate(pos[0], entry, is_first=isf)
+  File "/usr/local/lib/python3.6/dist-packages/urwidtrees-1.0.3.dev0-py3.6.egg/urwidtrees/decoration.py", line 472, in decorate
+    line = urwid.Columns(cols, box_columns=range(len(cols))[:-1])
+  File "/usr/lib/python3/dist-packages/urwid/container.py", line 1768, in __init__
+    if focus_column is None and w.selectable():
+AttributeError: 'NoneType' object has no attribute 'selectable'
+
+DEBUG:thread:Tbuffer: auto remove unread tag from msg?
+DEBUG:thread:Tbuffer: No, cursor on summary
+ERROR:base_events:Task exception was never retrieved
+future: <Task finished coro=<UI.apply_commandline() done, defined at /home/pazz/projects/alot/alot/ui.py:235> exception=AttributeError("'NoneType' object has no attribute 'selectable'",)>
+Traceback (most recent call last):
+  File "/home/pazz/projects/alot/alot/ui.py", line 711, in apply_command
+    cmd.apply(self)
+  File "/home/pazz/projects/alot/alot/commands/search.py", line 42, in apply
+    ui.buffer_open(sb)
+  File "/home/pazz/projects/alot/alot/ui.py", line 405, in buffer_open
+    self.buffer_focus(buf)
+  File "/home/pazz/projects/alot/alot/ui.py", line 465, in buffer_focus
+    self.update()
+  File "/home/pazz/projects/alot/alot/ui.py", line 656, in update
+    self.mainloop.draw_screen()
+  File "/usr/lib/python3/dist-packages/urwid/main_loop.py", line 586, in draw_screen
+    canvas = self._topmost_widget.render(self.screen_size, focus=True)
+  File "/usr/lib/python3/dist-packages/urwid/widget.py", line 144, in cached_render
+    canv = fn(self, size, focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/decoration.py", line 226, in render
+    canv = self._original_widget.render(size, focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/widget.py", line 144, in cached_render
+    canv = fn(self, size, focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/container.py", line 1086, in render
+    focus and self.focus_part == 'body')
+  File "/home/pazz/projects/alot/alot/buffers/thread.py", line 128, in render
+    return self.body.render(size, focus)
+  File "/usr/lib/python3/dist-packages/urwid/widget.py", line 144, in cached_render
+    canv = fn(self, size, focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/widget.py", line 1765, in render
+    canv = get_delegate(self).render(size, focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/widget.py", line 144, in cached_render
+    canv = fn(self, size, focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/listbox.py", line 471, in render
+    (maxcol, maxrow), focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/listbox.py", line 353, in calculate_visible
+    self._set_focus_complete( (maxcol, maxrow), focus )
+  File "/usr/lib/python3/dist-packages/urwid/listbox.py", line 718, in _set_focus_complete
+    (maxcol,maxrow), focus)
+  File "/usr/lib/python3/dist-packages/urwid/listbox.py", line 688, in _set_focus_first_selectable
+    (maxcol, maxrow), focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/listbox.py", line 416, in calculate_visible
+    next, pos = self._body.get_next( pos )
+  File "/usr/local/lib/python3.6/dist-packages/urwidtrees-1.0.3.dev0-py3.6.egg/urwidtrees/widgets.py", line 82, in get_next
+    return self._get(self._tree.next_position(pos))
+  File "/usr/local/lib/python3.6/dist-packages/urwidtrees-1.0.3.dev0-py3.6.egg/urwidtrees/widgets.py", line 68, in _get
+    res = self[pos], pos
+  File "/usr/local/lib/python3.6/dist-packages/urwidtrees-1.0.3.dev0-py3.6.egg/urwidtrees/widgets.py", line 54, in __getitem__
+    entry = self._tree.get_decorated(pos)
+  File "/usr/local/lib/python3.6/dist-packages/urwidtrees-1.0.3.dev0-py3.6.egg/urwidtrees/nested.py", line 88, in get_decorated
+    return self._get_decorated_entry(self._tree, pos)
+  File "/usr/local/lib/python3.6/dist-packages/urwidtrees-1.0.3.dev0-py3.6.egg/urwidtrees/nested.py", line 84, in _get_decorated_entry
+    entry = tree.decorate(pos[0], entry, is_first=isf)
+  File "/usr/local/lib/python3.6/dist-packages/urwidtrees-1.0.3.dev0-py3.6.egg/urwidtrees/decoration.py", line 472, in decorate
+    line = urwid.Columns(cols, box_columns=range(len(cols))[:-1])
+  File "/usr/lib/python3/dist-packages/urwid/container.py", line 1768, in __init__
+    if focus_column is None and w.selectable():
+AttributeError: 'NoneType' object has no attribute 'selectable'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/pazz/projects/alot/alot/ui.py", line 268, in apply_commandline
+    await apply_this_command(c)
+  File "/home/pazz/projects/alot/alot/ui.py", line 713, in apply_command
+    self._error_handler(e)
+  File "/home/pazz/projects/alot/alot/ui.py", line 151, in _error_handler
+    self.notify(msg, priority='error')
+  File "/home/pazz/projects/alot/alot/ui.py", line 612, in notify
+    self.update()
+  File "/home/pazz/projects/alot/alot/ui.py", line 656, in update
+    self.mainloop.draw_screen()
+  File "/usr/lib/python3/dist-packages/urwid/main_loop.py", line 586, in draw_screen
+    canvas = self._topmost_widget.render(self.screen_size, focus=True)
+  File "/usr/lib/python3/dist-packages/urwid/widget.py", line 144, in cached_render
+    canv = fn(self, size, focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/decoration.py", line 226, in render
+    canv = self._original_widget.render(size, focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/widget.py", line 144, in cached_render
+    canv = fn(self, size, focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/container.py", line 1086, in render
+    focus and self.focus_part == 'body')
+  File "/home/pazz/projects/alot/alot/buffers/thread.py", line 128, in render
+    return self.body.render(size, focus)
+  File "/usr/lib/python3/dist-packages/urwid/widget.py", line 144, in cached_render
+    canv = fn(self, size, focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/widget.py", line 1765, in render
+    canv = get_delegate(self).render(size, focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/widget.py", line 144, in cached_render
+    canv = fn(self, size, focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/listbox.py", line 471, in render
+    (maxcol, maxrow), focus=focus)
+  File "/usr/lib/python3/dist-packages/urwid/listbox.py", line 416, in calculate_visible
+    next, pos = self._body.get_next( pos )
+  File "/usr/local/lib/python3.6/dist-packages/urwidtrees-1.0.3.dev0-py3.6.egg/urwidtrees/widgets.py", line 82, in get_next
+    return self._get(self._tree.next_position(pos))
+  File "/usr/local/lib/python3.6/dist-packages/urwidtrees-1.0.3.dev0-py3.6.egg/urwidtrees/widgets.py", line 68, in _get
+    res = self[pos], pos
+  File "/usr/local/lib/python3.6/dist-packages/urwidtrees-1.0.3.dev0-py3.6.egg/urwidtrees/widgets.py", line 54, in __getitem__
+    entry = self._tree.get_decorated(pos)
+  File "/usr/local/lib/python3.6/dist-packages/urwidtrees-1.0.3.dev0-py3.6.egg/urwidtrees/nested.py", line 88, in get_decorated
+    return self._get_decorated_entry(self._tree, pos)
+  File "/usr/local/lib/python3.6/dist-packages/urwidtrees-1.0.3.dev0-py3.6.egg/urwidtrees/nested.py", line 84, in _get_decorated_entry
+    entry = tree.decorate(pos[0], entry, is_first=isf)
+  File "/usr/local/lib/python3.6/dist-packages/urwidtrees-1.0.3.dev0-py3.6.egg/urwidtrees/decoration.py", line 472, in decorate
+    line = urwid.Columns(cols, box_columns=range(len(cols))[:-1])
+  File "/usr/lib/python3/dist-packages/urwid/container.py", line 1768, in __init__
+    if focus_column is None and w.selectable():
+AttributeError: 'NoneType' object has no attribute 'selectable'
+
+During handling of the above exception, another exception occurred:
+

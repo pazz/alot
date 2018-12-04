@@ -1,0 +1,53 @@
+ERROR:ui:Traceback (most recent call last):
+  File "/home/pazz/projects/alot/alot/crypto.py", line 261, in _decrypt_verify_with_context
+    encrypted, verify=True)
+  File "/usr/lib/python3/dist-packages/gpg/core.py", line 432, in decrypt
+    raise errors.BadSignatures(verify_result, results=results)
+gpg.errors.BadSignatures: 524BDC511D1999431963D00B7AF6BB875E65930D: Key expired
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/pazz/projects/alot/alot/ui.py", line 711, in apply_command
+    cmd.apply(self)
+  File "/home/pazz/projects/alot/alot/commands/search.py", line 41, in apply
+    sb = buffers.ThreadBuffer(ui, self.thread)
+  File "/home/pazz/projects/alot/alot/buffers/thread.py", line 37, in __init__
+    self.rebuild()
+  File "/home/pazz/projects/alot/alot/buffers/thread.py", line 65, in rebuild
+    self._tree = ThreadTree(self.thread)
+  File "/home/pazz/projects/alot/alot/widgets/thread.py", line 352, in __init__
+    accumulate(msg)
+  File "/home/pazz/projects/alot/alot/widgets/thread.py", line 343, in accumulate
+    odd = accumulate(reply, odd)
+  File "/home/pazz/projects/alot/alot/widgets/thread.py", line 343, in accumulate
+    odd = accumulate(reply, odd)
+  File "/home/pazz/projects/alot/alot/widgets/thread.py", line 343, in accumulate
+    odd = accumulate(reply, odd)
+  [Previous line repeated 9 more times]
+  File "/home/pazz/projects/alot/alot/widgets/thread.py", line 331, in accumulate
+    self._message[mid] = MessageTree(msg, odd)
+  File "/home/pazz/projects/alot/alot/widgets/thread.py", line 172, in __init__
+    self._maintree = SimpleTree(self._assemble_structure())
+  File "/home/pazz/projects/alot/alot/widgets/thread.py", line 199, in _assemble_structure
+    mainstruct.append((self._get_headers(), None))
+  File "/home/pazz/projects/alot/alot/widgets/thread.py", line 255, in _get_headers
+    headers)
+  File "/home/pazz/projects/alot/alot/widgets/thread.py", line 269, in construct_header_pile
+    mail = self._message.get_email()
+  File "/home/pazz/projects/alot/alot/db/message.py", line 111, in get_email
+    f.read(), self._session_keys)
+  File "/home/pazz/projects/alot/alot/db/utils.py", line 302, in decrypted_message_from_bytes
+    session_keys)
+  File "/home/pazz/projects/alot/alot/db/utils.py", line 261, in decrypted_message_from_message
+    _handle_encrypted(m, m, session_keys)
+  File "/home/pazz/projects/alot/alot/db/utils.py", line 177, in _handle_encrypted
+    sigs, d = crypto.decrypt_verify(payload, session_keys)
+  File "/home/pazz/projects/alot/alot/crypto.py", line 226, in decrypt_verify
+    return _decrypt_verify_with_context(ctx, encrypted)
+  File "/home/pazz/projects/alot/alot/crypto.py", line 266, in _decrypt_verify_with_context
+    (plaintext, _, _) = ctx.decrypt(encrypted, verify=False)
+  File "/usr/lib/python3/dist-packages/gpg/core.py", line 431, in decrypt
+    for s in verify_result.signatures):
+AttributeError: 'NoneType' object has no attribute 'signatures'
+

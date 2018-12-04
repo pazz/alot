@@ -1,0 +1,65 @@
+ERROR:ui:Traceback (most recent call last):
+  File "/home/pazz/projects/alot/alot/ui.py", line 711, in apply_command
+    cmd.apply(self)
+  File "/home/pazz/projects/alot/alot/commands/search.py", line 41, in apply
+    sb = buffers.ThreadBuffer(ui, self.thread)
+  File "/home/pazz/projects/alot/alot/buffers/thread.py", line 37, in __init__
+    self.rebuild()
+  File "/home/pazz/projects/alot/alot/buffers/thread.py", line 65, in rebuild
+    self._tree = ThreadTree(self.thread)
+  File "/home/pazz/projects/alot/alot/widgets/thread.py", line 352, in __init__
+    accumulate(msg)
+  File "/home/pazz/projects/alot/alot/widgets/thread.py", line 331, in accumulate
+    self._message[mid] = MessageTree(msg, odd)
+  File "/home/pazz/projects/alot/alot/widgets/thread.py", line 172, in __init__
+    self._maintree = SimpleTree(self._assemble_structure())
+  File "/home/pazz/projects/alot/alot/widgets/thread.py", line 199, in _assemble_structure
+    mainstruct.append((self._get_headers(), None))
+  File "/home/pazz/projects/alot/alot/widgets/thread.py", line 255, in _get_headers
+    headers)
+  File "/home/pazz/projects/alot/alot/widgets/thread.py", line 269, in construct_header_pile
+    mail = self._message.get_email()
+  File "/home/pazz/projects/alot/alot/db/message.py", line 111, in get_email
+    f.read(), self._session_keys)
+  File "/home/pazz/projects/alot/alot/db/utils.py", line 301, in decrypted_message_from_bytes
+    email.message_from_bytes(bytestring, policy=email.policy.SMTP),
+  File "/usr/lib/python3.6/email/__init__.py", line 46, in message_from_bytes
+    return BytesParser(*args, **kws).parsebytes(s)
+  File "/usr/lib/python3.6/email/parser.py", line 124, in parsebytes
+    return self.parser.parsestr(text, headersonly)
+  File "/usr/lib/python3.6/email/parser.py", line 68, in parsestr
+    return self.parse(StringIO(text), headersonly=headersonly)
+  File "/usr/lib/python3.6/email/parser.py", line 57, in parse
+    feedparser.feed(data)
+  File "/usr/lib/python3.6/email/feedparser.py", line 176, in feed
+    self._call_parse()
+  File "/usr/lib/python3.6/email/feedparser.py", line 180, in _call_parse
+    self._parse()
+  File "/usr/lib/python3.6/email/feedparser.py", line 256, in _parsegen
+    if self._cur.get_content_type() == 'message/delivery-status':
+  File "/usr/lib/python3.6/email/message.py", line 578, in get_content_type
+    value = self.get('content-type', missing)
+  File "/usr/lib/python3.6/email/message.py", line 471, in get
+    return self.policy.header_fetch_parse(k, v)
+  File "/usr/lib/python3.6/email/policy.py", line 162, in header_fetch_parse
+    return self.header_factory(name, value)
+  File "/usr/lib/python3.6/email/headerregistry.py", line 589, in __call__
+    return self[name](name, value)
+  File "/usr/lib/python3.6/email/headerregistry.py", line 197, in __new__
+    cls.parse(value, kwds)
+  File "/usr/lib/python3.6/email/headerregistry.py", line 446, in parse
+    kwds['parse_tree'] = parse_tree = cls.value_parser(value)
+  File "/usr/lib/python3.6/email/_header_value_parser.py", line 2503, in parse_content_type_header
+    ctype.append(parse_mime_parameters(value[1:]))
+  File "/usr/lib/python3.6/email/_header_value_parser.py", line 2397, in parse_mime_parameters
+    token, value = get_parameter(value)
+  File "/usr/lib/python3.6/email/_header_value_parser.py", line 2323, in get_parameter
+    token, value = get_value(value)
+  File "/usr/lib/python3.6/email/_header_value_parser.py", line 2234, in get_value
+    token, value = get_quoted_string(value)
+  File "/usr/lib/python3.6/email/_header_value_parser.py", line 1242, in get_quoted_string
+    token, value = get_bare_quoted_string(value)
+  File "/usr/lib/python3.6/email/_header_value_parser.py", line 1171, in get_bare_quoted_string
+    if value[0] == '"':
+IndexError: string index out of range
+

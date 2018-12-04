@@ -1,0 +1,29 @@
+ERROR:ui:Traceback (most recent call last):
+  File "/home/pazz/projects/alot/alot/ui.py", line 711, in apply_command
+    cmd.apply(self)
+  File "/home/pazz/projects/alot/alot/commands/search.py", line 41, in apply
+    sb = buffers.ThreadBuffer(ui, self.thread)
+  File "/home/pazz/projects/alot/alot/buffers/thread.py", line 37, in __init__
+    self.rebuild()
+  File "/home/pazz/projects/alot/alot/buffers/thread.py", line 65, in rebuild
+    self._tree = ThreadTree(self.thread)
+  File "/home/pazz/projects/alot/alot/widgets/thread.py", line 352, in __init__
+    accumulate(msg)
+  File "/home/pazz/projects/alot/alot/widgets/thread.py", line 331, in accumulate
+    self._message[mid] = MessageTree(msg, odd)
+  File "/home/pazz/projects/alot/alot/widgets/thread.py", line 172, in __init__
+    self._maintree = SimpleTree(self._assemble_structure())
+  File "/home/pazz/projects/alot/alot/widgets/thread.py", line 205, in _assemble_structure
+    bodytree = self._get_body()
+  File "/home/pazz/projects/alot/alot/widgets/thread.py", line 238, in _get_body
+    bodytxt = self._message.accumulate_body()
+  File "/home/pazz/projects/alot/alot/db/message.py", line 272, in accumulate_body
+    bodytext = extract_body(eml)
+  File "/home/pazz/projects/alot/alot/db/utils.py", line 477, in extract_body
+    rendered_payload = render_part(part)
+  File "/home/pazz/projects/alot/alot/db/utils.py", line 334, in render_part
+    raw_payload = remove_cte(part)
+  File "/home/pazz/projects/alot/alot/db/utils.py", line 420, in remove_cte
+    'Unknown Content-Transfer-Encoding: "{}"'.format(cte))
+ValueError: Unknown Content-Transfer-Encoding: "quoted-printablessss"
+
