@@ -118,8 +118,7 @@ class TestComposeCommand(unittest.TestCase):
         cmd._set_envelope()
         with mock.patch('alot.commands.globals.settings.get_accounts',
                         mock.Mock(return_value=[account])):
-            await cmd._set_from()
-
+            await cmd._set_from(mock.Mock())
 
 class TestExternalCommand(unittest.TestCase):
 
