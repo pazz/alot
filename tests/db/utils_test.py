@@ -732,13 +732,16 @@ class TestMessageFromString(unittest.TestCase):
 
 class TestRemoveCte(unittest.TestCase):
 
-    @unittest.expectedFailure
-    def test_issue_1291(self):
+    def test_char_vs_cte_mismatch(self):  # #1291
         with open('tests/static/mail/broken-utf8.eml') as fp:
             mail = email.message_from_file(fp)
         # This should not raise an UnicodeDecodeError.
-        utils.remove_cte(mail, as_string=True)
-        self.assertTrue(True)
+        with self.assertLogs(level='DEBUG') as cm:  # keep logs
+            utils.remove_cte(mail, as_string=True)
+        # We expect no Exceptions but a complaint in the log
+        logmsg = 'DEBUG:root:Decoding failure: \'utf-8\' codec can\'t decode '\
+            'byte 0xa1 in position 14: invalid start byte'
+        self.assertIn(logmsg, cm.output)
 
     def test_malformed_cte_value(self):
         with open('tests/static/mail/malformed-header-CTE.eml') as fp:
