@@ -881,7 +881,7 @@ class ComposeCommand(Command):
     def _get_account(self, ui):
         # find out the right account
         sender = self.envelope.get('From')
-        name, addr = email.utils.parseaddr(sender)
+        _, addr = email.utils.parseaddr(sender)
         try:
             account = settings.get_account_by_address(addr)
         except NoMatchingAccount:
