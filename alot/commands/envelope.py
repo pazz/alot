@@ -114,12 +114,14 @@ class SaveCommand(Command):
         envelope = ui.current_buffer.envelope
 
         # determine account to use
-        try:
-            account = settings.get_account_by_address(
-                envelope['From'], return_default=True)
-        except NoMatchingAccount:
-            ui.notify('no accounts set.', priority='error')
-            return
+        if envelope.account is None:
+            try:
+                envelope.account = settings.account_matching_address(
+                    envelope['From'], return_default=True)
+            except NoMatchingAccount:
+                ui.notify('no accounts set.', priority='error')
+                return
+        account = envelope.account
 
         if account.draft_box is None:
             msg = 'abort: Account for {} has no draft_box'
@@ -271,6 +273,7 @@ class SendCommand(Command):
             await account.send_mail(self.mail)
         except SendingMailFailed as e:
             if self.envelope is not None:
+                self.envelope.account = account
                 self.envelope.sending = False
             ui.clear_notify([clearme])
             logging.error(traceback.format_exc())
@@ -538,13 +541,16 @@ class SignCommand(Command):
                     ui.notify(str(e), priority='error')
                     return
             else:
-                try:
-                    acc = settings.get_account_by_address(envelope['From'])
-                except NoMatchingAccount:
-                    envelope.sign = False
-                    ui.notify('Unable to find a matching account',
-                              priority='error')
-                    return
+                if envelope.account is None:
+                    try:
+                        envelope.account = settings.get_account_by_address(
+                            envelope['From'])
+                    except NoMatchingAccount:
+                        envelope.sign = False
+                        ui.notify('Unable to find a matching account',
+                                  priority='error')
+                        return
+                acc = envelope.account
                 if not acc.gpg_key:
                     envelope.sign = False
                     msg = 'Account for {} has no gpg key'

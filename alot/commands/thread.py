@@ -190,11 +190,12 @@ class ReplyCommand(Command):
 
         # set From-header and sending account
         try:
-            from_header, _ = determine_sender(mail, 'reply')
+            from_header, account = determine_sender(mail, 'reply')
         except AssertionError as e:
             ui.notify(str(e), priority='error')
             return
         envelope.add('From', from_header)
+        envelope.account = account
 
         # set To
         sender = mail['Reply-To'] or mail['From']
@@ -399,11 +400,12 @@ class ForwardCommand(Command):
 
         # set From-header and sending account
         try:
-            from_header, _ = determine_sender(mail, 'reply')
+            from_header, account = determine_sender(mail, 'reply')
         except AssertionError as e:
             ui.notify(str(e), priority='error')
             return
         envelope.add('From', from_header)
+        envelope.account = account
 
         # continue to compose
         await ui.apply_command(ComposeCommand(envelope=envelope,

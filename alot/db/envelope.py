@@ -45,11 +45,13 @@ class Envelope(object):
     """list of :class:`Attachments <alot.db.attachment.Attachment>`"""
     tags = []
     """tags to add after successful sendout"""
+    account = None
+    """account to send from"""
 
     def __init__(
             self, template=None, bodytext=None, headers=None, attachments=None,
             sign=False, sign_key=None, encrypt=False, tags=None, replied=None,
-            passed=None):
+            passed=None, account=None):
         """
         :param template: if not None, the envelope will be initialised by
                          :meth:`parsing <parse_template>` this string before
@@ -67,6 +69,8 @@ class Envelope(object):
         :type replied: :class:`~alot.db.message.Message`
         :param passed: message being passed on
         :type replied: :class:`~alot.db.message.Message`
+        :param account: account to send from
+        :type account: :class:`Account`
         """
         logging.debug('TEMPLATE: %s', template)
         if template:
@@ -88,6 +92,7 @@ class Envelope(object):
         self.sent_time = None
         self.modified_since_sent = False
         self.sending = False  # semaphore to avoid accidental double sendout
+        self.account = account
 
     def __str__(self):
         return "Envelope (%s)\n%s" % (self.headers, self.body)

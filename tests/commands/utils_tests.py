@@ -183,9 +183,8 @@ class TestSetEncrypt(unittest.TestCase):
         envelope['To'] = 'ambig@example.com'
         gpg_key = crypto.get_key(FPR)
         account = _Account(encrypt_to_self=True, gpg_key=gpg_key)
-        with mock.patch('alot.commands.thread.settings.get_account_by_address',
-                        mock.Mock(return_value=account)):
-            await utils.update_keys(ui, envelope)
+        envelope.account = account
+        await utils.update_keys(ui, envelope)
         self.assertTrue(envelope.encrypt)
         self.assertIn(FPR, envelope.encrypt_keys)
         self.assertEqual(gpg_key, envelope.encrypt_keys[FPR])
@@ -198,8 +197,7 @@ class TestSetEncrypt(unittest.TestCase):
         envelope['To'] = 'ambig@example.com'
         gpg_key = crypto.get_key(FPR)
         account = _Account(encrypt_to_self=False, gpg_key=gpg_key)
-        with mock.patch('alot.commands.thread.settings.get_account_by_address',
-                        mock.Mock(return_value=account)):
-            await utils.update_keys(ui, envelope)
+        envelope.account = account
+        await utils.update_keys(ui, envelope)
         self.assertTrue(envelope.encrypt)
         self.assertNotIn(FPR, envelope.encrypt_keys)

@@ -206,11 +206,10 @@ class TestSignCommand(unittest.TestCase):
         signing key and to sign should be set to false and default.
         """
         env, ui = self._make_ui_mock()
+        env.account = mock.Mock(gpg_key=None)
 
-        with mock.patch('alot.commands.envelope.settings.get_account_by_address',
-                        mock.Mock(return_value=mock.Mock(gpg_key=None))):
-            cmd = envelope.SignCommand(action='sign', keyid=None)
-            cmd.apply(ui)
+        cmd = envelope.SignCommand(action='sign', keyid=None)
+        cmd.apply(ui)
 
         self.assertFalse(env.sign)
         self.assertEqual(env.sign_key, mock.sentinel.default)
@@ -221,11 +220,10 @@ class TestSignCommand(unittest.TestCase):
         be used.
         """
         env, ui = self._make_ui_mock()
+        env.account = mock.Mock(gpg_key='sentinel')
 
-        with mock.patch('alot.commands.envelope.settings.get_account_by_address',
-                        mock.Mock(return_value=mock.Mock(gpg_key='sentinel'))):
-            cmd = envelope.SignCommand(action='sign', keyid=None)
-            cmd.apply(ui)
+        cmd = envelope.SignCommand(action='sign', keyid=None)
+        cmd.apply(ui)
 
         self.assertTrue(env.sign)
         self.assertEqual(env.sign_key, 'sentinel')
