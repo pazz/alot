@@ -46,7 +46,10 @@ async def update_keys(ui, envelope, block_error=False, signed_only=False):
 
         if 'From' in envelope.headers:
             try:
-                acc = settings.get_account_by_address(envelope['From'])
+                if envelope.account is None:
+                    envelope.account = settings.get_account_by_address(
+                        envelope['From'])
+                acc = envelope.account
                 if acc.encrypt_to_self:
                     if acc.gpg_key:
                         logging.debug('encrypt to self: %s', acc.gpg_key.fpr)

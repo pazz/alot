@@ -58,21 +58,15 @@ class TestComposeCommand(unittest.TestCase):
     @utilities.async_test
     async def test_apply_sign_by_default_okay(self):
         envelope = self._make_envelope_mock()
-        account = self._make_account_mock()
+        envelope.account = self._make_account_mock()
         cmd = g_commands.ComposeCommand(envelope=envelope)
 
-        # This whole mess is required becasue ComposeCommand.apply is waaaaay
-        # too complicated, it needs to be split into more manageable segments.
-        with mock.patch('alot.commands.globals.settings.get_account_by_address',
-                        mock.Mock(return_value=account)):
-            with mock.patch('alot.commands.globals.settings.get_accounts',
-                            mock.Mock(return_value=[account])):
-                with mock.patch('alot.commands.globals.settings.get_addressbooks',
-                                mock.Mock(side_effect=Stop)):
-                    try:
-                        await cmd.apply(mock.Mock())
-                    except Stop:
-                        pass
+        with mock.patch('alot.commands.globals.settings.get_addressbooks',
+                        mock.Mock(side_effect=Stop)):
+            try:
+                await cmd.apply(mock.Mock())
+            except Stop:
+                pass
 
         self.assertTrue(envelope.sign)
         self.assertIs(envelope.sign_key, mock.sentinel.gpg_key)
@@ -80,21 +74,15 @@ class TestComposeCommand(unittest.TestCase):
     @utilities.async_test
     async def test_apply_sign_by_default_false_doesnt_set_key(self):
         envelope = self._make_envelope_mock()
-        account = self._make_account_mock(sign_by_default=False)
+        envelope.account = self._make_account_mock(sign_by_default=False)
         cmd = g_commands.ComposeCommand(envelope=envelope)
 
-        # This whole mess is required becasue ComposeCommand.apply is waaaaay
-        # too complicated, it needs to be split into more manageable segments.
-        with mock.patch('alot.commands.globals.settings.get_account_by_address',
-                        mock.Mock(return_value=account)):
-            with mock.patch('alot.commands.globals.settings.get_accounts',
-                            mock.Mock(return_value=[account])):
-                with mock.patch('alot.commands.globals.settings.get_addressbooks',
-                                mock.Mock(side_effect=Stop)):
-                    try:
-                        await cmd.apply(mock.Mock())
-                    except Stop:
-                        pass
+        with mock.patch('alot.commands.globals.settings.get_addressbooks',
+                        mock.Mock(side_effect=Stop)):
+            try:
+                await cmd.apply(mock.Mock())
+            except Stop:
+                pass
 
         self.assertFalse(envelope.sign)
         self.assertIs(envelope.sign_key, None)
@@ -102,22 +90,15 @@ class TestComposeCommand(unittest.TestCase):
     @utilities.async_test
     async def test_apply_sign_by_default_but_no_key(self):
         envelope = self._make_envelope_mock()
-        account = self._make_account_mock(gpg_key=None)
+        envelope.account = self._make_account_mock(gpg_key=None)
         cmd = g_commands.ComposeCommand(envelope=envelope)
 
-        # This whole mess is required becasue ComposeCommand.apply is waaaaay
-        # too complicated, it needs to be split into more manageable segments.
-        with mock.patch('alot.commands.globals.settings.get_account_by_address',
-                        mock.Mock(return_value=account)):
-            with mock.patch('alot.commands.globals.settings.get_accounts',
-                            mock.Mock(return_value=[account])):
-                with mock.patch('alot.commands.globals.settings.get_addressbooks',
-                                mock.Mock(side_effect=Stop)):
-                    with self.assertLogs(level=logging.WARNING):
-                        try:
-                            await cmd.apply(mock.Mock())
-                        except Stop:
-                            pass
+        with mock.patch('alot.commands.globals.settings.get_addressbooks',
+                        mock.Mock(side_effect=Stop)):
+            try:
+                await cmd.apply(mock.Mock())
+            except Stop:
+                pass
 
         self.assertFalse(envelope.sign)
         self.assertIs(envelope.sign_key, None)
@@ -138,7 +119,7 @@ class TestComposeCommand(unittest.TestCase):
 
         # Crutch to exit the giant `apply` method early.
         with mock.patch(
-                'alot.commands.globals.settings.get_account_by_address',
+                'alot.commands.globals.settings.get_accounts',
                 mock.Mock(side_effect=Stop)):
             try:
                 await cmd.apply(mock.Mock())
@@ -155,23 +136,17 @@ class TestComposeCommand(unittest.TestCase):
         # issue #1277
         envelope = self._make_envelope_mock()
         del envelope.headers['From']
-        account = self._make_account_mock()
-        account.realname = "foo"
-        account.address = 1  # maybe this should be a real Address?
+        envelope.account = self._make_account_mock()
+        envelope.account.realname = "foo"
+        envelope.account.address = 1  # maybe this should be a real Address?
         cmd = g_commands.ComposeCommand(envelope=envelope)
 
-        # This whole mess is required becasue ComposeCommand.apply is waaaaay
-        # too complicated, it needs to be split into more manageable segments.
-        with mock.patch('alot.commands.globals.settings.get_account_by_address',
-                        mock.Mock(return_value=account)):
-            with mock.patch('alot.commands.globals.settings.get_accounts',
-                            mock.Mock(return_value=[account])):
-                with mock.patch('alot.commands.globals.settings.get_addressbooks',
-                                mock.Mock(side_effect=Stop)):
-                    try:
-                        await cmd.apply(mock.Mock())
-                    except Stop:
-                        pass
+        with mock.patch('alot.commands.globals.settings.get_addressbooks',
+                        mock.Mock(side_effect=Stop)):
+            try:
+                await cmd.apply(mock.Mock())
+            except Stop:
+                pass
 
 
 class TestExternalCommand(unittest.TestCase):

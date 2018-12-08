@@ -831,13 +831,21 @@ class ComposeCommand(Command):
         if self.tags:
             self.envelope.tags = [t for t in self.tags.split(',') if t]
 
+        # find out the right account, if possible yet
+        account = self.envelope.account
+        if account is None:
+            accounts = settings.get_accounts()
+            if not accounts:
+                ui.notify('no accounts set.', priority='error')
+                return
+            elif len(accounts) == 1:
+                account = accounts[0]
+
         # get missing From header
         if 'From' not in self.envelope.headers:
-            accounts = settings.get_accounts()
-            if len(accounts) == 1:
-                a = accounts[0]
+            if account is not None:
                 fromstring = email.utils.formataddr(
-                    (a.realname, str(a.address)))
+                    (account.realname, str(account.address)))
                 self.envelope.add('From', fromstring)
             else:
                 cmpl = AccountCompleter()
@@ -849,23 +857,17 @@ class ComposeCommand(Command):
                 ui.senderhistory.append(fromaddress)
                 self.envelope.add('From', fromaddress)
 
-        # find out the right account
-        sender = self.envelope.get('From')
-        name, addr = email.utils.parseaddr(sender)
-        try:
-            account = settings.get_account_by_address(addr)
-        except NoMatchingAccount:
-            msg = 'Cannot compose mail - no account found for `%s`' % addr
-            logging.error(msg)
-            ui.notify(msg, priority='error')
-            raise CommandCanceled()
-
+        # try to find the account again
         if account is None:
-            accounts = settings.get_accounts()
-            if not accounts:
-                ui.notify('no accounts set.', priority='error')
-                return
-            account = accounts[0]
+            try:
+                account = settings.get_account_by_address(fromaddress)
+            except NoMatchingAccount:
+                msg = 'Cannot compose mail - no account found for `%s`' % fromaddress
+                logging.error(msg)
+                ui.notify(msg, priority='error')
+                raise CommandCanceled()
+        if self.envelope.account is None:
+            self.envelope.account = account
 
         # add signature
         if not self.omit_signature and account.signature:
