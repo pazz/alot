@@ -469,16 +469,16 @@ class SettingsManager(object):
 
         :param str address: address to look up. A realname part will be ignored.
         :param bool return_default: If True and no address can be found, then
-            the default account wil be returned
+            the default account wil be returned.
         :rtype: :class:`Account`
         :raises ~alot.settings.errors.NoMatchingAccount: If no account can be
             found. This includes if return_default is True and there are no
             accounts defined.
         """
         _, address = email.utils.parseaddr(address)
-        for myad in self.get_addresses():
-            if myad == address:
-                return self._accountmap[myad]
+        for account in self.get_accounts():
+            if account.matches_address(address):
+                return account
         if return_default:
             try:
                 return self.get_accounts()[0]
