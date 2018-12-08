@@ -271,16 +271,20 @@ class Message:
         """
         # TODO: allow toggle commands to decide which part is considered body
         eml = self.get_email()
-        bodytext = extract_body(eml)
+        bodytext = self.get_text_content()
 
-        # check if extracted body is empty but msg contains html parts
-        if (not bodytext and
-           'text/html' in (part.get_content_type() for part in eml.walk())):
-            return MISSING_HTML_MSG
+        # check if extracted body is empty dispite having a text/html body part
+        if eml is not None:
+            bodypart = eml.get_body()
+            if (bodypart and
+                    bodypart.get_payload() and
+                    eml.get_content_type() == 'text/html' and
+                    not bodytext):
+                bodytext = MISSING_HTML_MSG
         return bodytext
 
     def get_text_content(self):
-        return extract_body(self.get_email(), types=['text/plain'])
+        return extract_body(self.get_email())
 
     def matches(self, querystring):
         """tests if this messages is in the resultset for `querystring`"""
