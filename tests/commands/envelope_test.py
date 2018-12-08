@@ -186,7 +186,7 @@ class TestSignCommand(unittest.TestCase):
         self.assertEqual(env.sign_key, mock.sentinel.default)
         ui.notify.assert_called_once()
 
-    @mock.patch('alot.commands.envelope.settings.get_account_by_address',
+    @mock.patch('alot.commands.envelope.settings.account_matching_address',
                 mock.Mock(side_effect=NoMatchingAccount))
     def test_apply_no_keyid_nomatchingaccount(self):
         """If there is a nokeyid and no account can be found to match the From,
@@ -359,28 +359,28 @@ class TestSendCommand(unittest.TestCase):
             pass
 
     @utilities.async_test
-    async def test_get_account_by_address_with_str(self):
+    async def test_account_matching_address_with_str(self):
         cmd = envelope.SendCommand(mail=self.mail)
         account = mock.Mock(wraps=self.MockedAccount())
         with mock.patch(
-                'alot.commands.envelope.settings.get_account_by_address',
-                mock.Mock(return_value=account)) as get_account_by_address:
+                'alot.commands.envelope.settings.account_matching_address',
+                mock.Mock(return_value=account)) as account_matching_address:
             await cmd.apply(mock.Mock())
-        get_account_by_address.assert_called_once_with('foo@example.com',
-                                                       return_default=True)
+        account_matching_address.assert_called_once_with('foo@example.com',
+                                                         return_default=True)
         # check that the apply did run through till the end.
         account.send_mail.assert_called_once_with(self.mail)
 
     @utilities.async_test
-    async def test_get_account_by_address_with_email_message(self):
+    async def test_account_matching_address_with_email_message(self):
         mail = email.message_from_string(self.mail)
         cmd = envelope.SendCommand(mail=mail)
         account = mock.Mock(wraps=self.MockedAccount())
         with mock.patch(
-                'alot.commands.envelope.settings.get_account_by_address',
-                mock.Mock(return_value=account)) as get_account_by_address:
+                'alot.commands.envelope.settings.account_matching_address',
+                mock.Mock(return_value=account)) as account_matching_address:
             await cmd.apply(mock.Mock())
-        get_account_by_address.assert_called_once_with('foo@example.com',
-                                                       return_default=True)
+        account_matching_address.assert_called_once_with('foo@example.com',
+                                                         return_default=True)
         # check that the apply did run through till the end.
         account.send_mail.assert_called_once_with(mail)

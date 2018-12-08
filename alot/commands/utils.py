@@ -47,7 +47,7 @@ async def update_keys(ui, envelope, block_error=False, signed_only=False):
         if 'From' in envelope.headers:
             try:
                 if envelope.account is None:
-                    envelope.account = settings.get_account_by_address(
+                    envelope.account = settings.account_matching_address(
                         envelope['From'])
                 acc = envelope.account
                 if acc.encrypt_to_self:
