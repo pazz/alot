@@ -45,15 +45,27 @@ class Test_ensure_unique_address(unittest.TestCase):
         self.assertListEqual(actual, expected)
 
 
+class _AccountTestClass(Account):
+    """Implements stubs for ABC methods."""
+
+    def send_mail(self, mail):
+        pass
+
+
 class TestClearMyAddress(unittest.TestCase):
 
-    me1 = 'me@example.com'
-    me2 = 'ME@example.com'
-    me_named = 'alot team <me@example.com>'
-    you = 'you@example.com'
-    named = 'somebody you know <somebody@example.com>'
-    imposter = 'alot team <imposter@example.com>'
-    mine = [me1, me2]
+    me1 = u'me@example.com'
+    me2 = u'ME@example.com'
+    me3 = u'me+label@example.com'
+    me4 = u'ME+label@example.com'
+    me_regex = r'me\+.*@example.com'
+    me_named = u'alot team <me@example.com>'
+    you = u'you@example.com'
+    named = u'somebody you know <somebody@example.com>'
+    imposter = u'alot team <imposter@example.com>'
+    mine = _AccountTestClass(
+        address=me1, aliases=[], alias_regexp=me_regex, case_sensitive_username=True)
+
 
     def test_empty_input_returns_empty_list(self):
         self.assertListEqual(
@@ -62,7 +74,7 @@ class TestClearMyAddress(unittest.TestCase):
     def test_only_my_emails_result_in_empty_list(self):
         expected = []
         actual = thread.ReplyCommand.clear_my_address(
-            self.mine, self.mine+[self.me_named])
+            self.mine, [self.me1, self.me3, self.me_named])
         self.assertListEqual(actual, expected)
 
     def test_other_emails_are_untouched(self):
@@ -72,22 +84,15 @@ class TestClearMyAddress(unittest.TestCase):
         self.assertListEqual(actual, expected)
 
     def test_case_matters(self):
-        expected = [self.me1]
-        mine = [self.me2]
-        actual = thread.ReplyCommand.clear_my_address(mine, expected)
+        input_ = [self.me1, self.me2, self.me3, self.me4]
+        expected = [self.me2, self.me4]
+        actual = thread.ReplyCommand.clear_my_address(self.mine, input_)
         self.assertListEqual(actual, expected)
 
     def test_same_address_with_different_real_name_is_removed(self):
         input_ = [self.me_named, self.you]
-        mine = [self.me1]
         expected = [self.you]
-        actual = thread.ReplyCommand.clear_my_address(mine, input_)
-        self.assertListEqual(actual, expected)
-
-    def test_real_name_is_never_considered(self):
-        expected = [self.imposter]
-        mine = 'alot team'
-        actual = thread.ReplyCommand.clear_my_address(mine, expected)
+        actual = thread.ReplyCommand.clear_my_address(self.mine, input_)
         self.assertListEqual(actual, expected)
 
 

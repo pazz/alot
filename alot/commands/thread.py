@@ -6,7 +6,6 @@ import argparse
 import logging
 import mailcap
 import os
-import re
 import subprocess
 import tempfile
 import email
@@ -69,35 +68,23 @@ def determine_sender(mail, action='reply'):
 
         logging.debug('candidate addresses: %s', candidate_addresses)
         # pick the most important account that has an address in candidates
-        # and use that accounts realname and the address found here
+        # and use that account's realname and the address found here
         for account in my_accounts:
-            acc_addresses = [
-                re.escape(str(a)) for a in account.get_addresses()]
-            if account.alias_regexp is not None:
-                acc_addresses.append(account.alias_regexp)
-            for alias in acc_addresses:
-                regex = re.compile(
-                    u'^' + str(alias) + u'$',
-                    flags=(
-                        re.IGNORECASE if not account.address.case_sensitive
-                        else 0))
-                for seen_name, seen_address in candidate_addresses:
-                    if not regex.match(seen_address):
-                        continue
-                    logging.debug("match!: '%s' '%s'", seen_address, alias)
+            for seen_name, seen_address in candidate_addresses:
+                if account.matches_address(seen_address):
                     if settings.get(action + '_force_realname'):
                         realname = account.realname
                     else:
                         realname = seen_name
                     if settings.get(action + '_force_address'):
-                        address = account.address
+                        address = str(account.address)
                     else:
                         address = seen_address
 
                     logging.debug('using realname: "%s"', realname)
                     logging.debug('using address: %s', address)
 
-                    from_value = formataddr((realname, str(address)))
+                    from_value = formataddr((realname, address))
                     return from_value, account
 
     # revert to default account if nothing found
@@ -199,24 +186,23 @@ class ReplyCommand(Command):
 
         # set To
         sender = mail['Reply-To'] or mail['From']
-        my_addresses = settings.get_addresses()
         sender_address = parseaddr(sender)[1]
         cc = []
 
         # check if reply is to self sent message
-        if sender_address in my_addresses:
+        if account.matches_address(sender_address):
             recipients = mail.get_all('To', [])
             emsg = 'Replying to own message, set recipients to: %s' \
                 % recipients
             logging.debug(emsg)
         else:
-            recipients = self.clear_my_address([], [sender])
+            recipients = [sender]
 
         if self.groupreply:
             # make sure that our own address is not included
             # if the message was self-sent, then our address is not included
             MFT = mail.get_all('Mail-Followup-To', [])
-            followupto = self.clear_my_address(my_addresses, MFT)
+            followupto = self.clear_my_address(account, MFT)
             if followupto and settings.get('honor_followup_to'):
                 logging.debug('honor followup to: %s', ', '.join(followupto))
                 recipients = followupto
@@ -226,15 +212,15 @@ class ReplyCommand(Command):
                     recipients.append(mail['From'])
 
                 # append To addresses if not replying to self sent message
-                if sender_address not in my_addresses:
+                if not account.matches_address(sender_address):
                     cleared = self.clear_my_address(
-                        my_addresses, mail.get_all('To', []))
+                        account, mail.get_all('To', []))
                     recipients.extend(cleared)
 
                 # copy cc for group-replies
                 if 'Cc' in mail:
                     cc = self.clear_my_address(
-                        my_addresses, mail.get_all('Cc', []))
+                        account, mail.get_all('Cc', []))
                     envelope.add('Cc', decode_header(', '.join(cc)))
 
         to = ', '.join(self.ensure_unique_address(recipients))
@@ -293,11 +279,11 @@ class ReplyCommand(Command):
                                               encrypt=encrypt))
 
     @staticmethod
-    def clear_my_address(my_addresses, value):
-        """return recipient header without the addresses in my_addresses
+    def clear_my_address(my_account, value):
+        """return recipient header without the addresses in my_account
 
-        :param my_addresses: a list of my email addresses (no real name part)
-        :type my_addresses: list(str)
+        :param my_account: my account
+        :type my_account: :class:`Account`
         :param value: a list of recipient or sender strings (with or without
             real names as taken from email headers)
         :type value: list(str)
@@ -306,7 +292,7 @@ class ReplyCommand(Command):
         """
         new_value = []
         for name, address in getaddresses(value):
-            if address not in my_addresses:
+            if not my_account.matches_address(address):
                 new_value.append(formataddr((name, str(address))))
         return new_value
 

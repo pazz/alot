@@ -9,6 +9,7 @@ import logging
 import mailbox
 import operator
 import os
+import re
 
 from .helper import call_cmd_async
 from .helper import split_commandstring
@@ -176,7 +177,7 @@ class Account(object):
     """this accounts main email address"""
     aliases = []
     """list of alternative addresses"""
-    alias_regexp = []
+    alias_regexp = ""
     """regex matching alternative addresses"""
     realname = None
     """real name used to format from-headers"""
@@ -243,11 +244,33 @@ class Account(object):
             encrypt_by_default = u"none"
             logging.info(msg)
         self.encrypt_by_default = encrypt_by_default
+        # cache alias_regexp regexes
+        if self.alias_regexp != "":
+            self._alias_regexp = re.compile(
+                u'^' + str(self.alias_regexp) + u'$',
+                flags=0 if case_sensitive_username else re.IGNORECASE)
+
 
     def get_addresses(self):
         """return all email addresses connected to this account, in order of
         their importance"""
         return [self.address] + self.aliases
+
+    def matches_address(self, address):
+        """returns whether this account knows about an email address
+
+        :param str address: address to look up
+        :rtype: bool
+        """
+        if self.address == address:
+            return True
+        for alias in self.aliases:
+            if alias == address:
+                return True
+        if self._alias_regexp is not None:
+            if self._alias_regexp.match(address):
+                return True
+        return False
 
     @staticmethod
     def store_mail(mbx, mail):
