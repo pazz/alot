@@ -464,7 +464,7 @@ class SettingsManager(object):
         """
         return self._accounts
 
-    def get_account_by_address(self, address, return_default=False):
+    def account_matching_address(self, address, return_default=False):
         """returns :class:`Account` for a given email address (str)
 
         :param str address: address to look up. A realname part will be ignored.
@@ -490,10 +490,6 @@ class SettingsManager(object):
     def get_main_addresses(self):
         """returns addresses of known accounts without its aliases"""
         return [a.address for a in self._accounts]
-
-    def get_addresses(self):
-        """returns addresses of known accounts including all their aliases"""
-        return list(self._accountmap.keys())
 
     def get_addressbooks(self, order=None, append_remaining=True):
         """returns list of all defined :class:`AddressBook` objects"""

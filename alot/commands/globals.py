@@ -860,9 +860,10 @@ class ComposeCommand(Command):
         # try to find the account again
         if account is None:
             try:
-                account = settings.get_account_by_address(fromaddress)
+                account = settings.account_matching_address(fromaddress)
             except NoMatchingAccount:
-                msg = 'Cannot compose mail - no account found for `%s`' % fromaddress
+                msg = 'Cannot compose mail - ' \
+                      'no account found for `%s`' % fromaddress
                 logging.error(msg)
                 ui.notify(msg, priority='error')
                 raise CommandCanceled()

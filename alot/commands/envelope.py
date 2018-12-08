@@ -258,8 +258,8 @@ class SendCommand(Command):
         address = msg.get('Resent-From', False) or msg.get('From', '')
         logging.debug("FROM: \"%s\"" % address)
         try:
-            account = settings.get_account_by_address(address,
-                                                      return_default=True)
+            account = settings.account_matching_address(address,
+                                                        return_default=True)
         except NoMatchingAccount:
             ui.notify('no accounts set', priority='error')
             return
@@ -543,7 +543,7 @@ class SignCommand(Command):
             else:
                 if envelope.account is None:
                     try:
-                        envelope.account = settings.get_account_by_address(
+                        envelope.account = settings.account_matching_address(
                             envelope['From'])
                     except NoMatchingAccount:
                         envelope.sign = False

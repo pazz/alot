@@ -250,12 +250,6 @@ class Account(object):
                 u'^' + str(self.alias_regexp) + u'$',
                 flags=0 if case_sensitive_username else re.IGNORECASE)
 
-
-    def get_addresses(self):
-        """return all email addresses connected to this account, in order of
-        their importance"""
-        return [self.address] + self.aliases
-
     def matches_address(self, address):
         """returns whether this account knows about an email address
 
@@ -267,9 +261,8 @@ class Account(object):
         for alias in self.aliases:
             if alias == address:
                 return True
-        if self._alias_regexp is not None:
-            if self._alias_regexp.match(address):
-                return True
+        if self._alias_regexp and self._alias_regexp.match(address):
+            return True
         return False
 
     @staticmethod
