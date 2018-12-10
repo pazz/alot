@@ -671,17 +671,6 @@ class TestExtractBody(unittest.TestCase):
 
         self.assertEqual(actual, expected)
 
-    @mock.patch('alot.db.utils.settings.get', mock.Mock(return_value=False))
-    @mock.patch('alot.db.utils.settings.mailcap_find_match',
-                mock.Mock(return_value=(None, {'view': 'cat'})))
-    def test_types_provided(self):
-        # This should not return html, even though html is set to preferred
-        # since a types variable is passed
-        expected = 'This is an email'
-        mail = self._make_mixed_plain_html()
-        actual = utils.extract_body(mail, types=['text/plain'])
-
-        self.assertEqual(actual, expected)
 
     @mock.patch('alot.db.utils.settings.mailcap_find_match',
                 mock.Mock(return_value=(None, {'view': 'cat'})))
