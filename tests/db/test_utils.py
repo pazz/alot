@@ -622,10 +622,13 @@ class TestExtractBody(unittest.TestCase):
         self.assertEqual(actual, expected)
 
     def test_text_plain_and_other(self):
-        mail = email.mime.multipart.MIMEMultipart()
+        mail = EmailMessage()
         self._set_basic_headers(mail)
-        mail.attach(email.mime.text.MIMEText('This is an email'))
-        mail.attach(email.mime.application.MIMEApplication(b'1'))
+        mail.set_content('This is an email')
+
+        att = email.mime.application.MIMEApplication(b'1')
+        mail.make_mixed() # This converts the message to multipart/mixed
+        mail.attach(att) # Don't forget to convert the message to multipart first!
 
         actual = utils.extract_body(mail)
         expected = 'This is an email'
