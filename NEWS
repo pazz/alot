@@ -1,7 +1,10 @@
 0.8:
 * Port to python 3. Python 2.x no longer supported
-* feature: Add a new 'namedqueries' buffer type for displaying named queries.
-* bug fix: correct handling of subparts with different encodings
+* support for notmuch's named queries. This adds a new 'namedqueries' mode and accompanied commands
+* config: new option replied_tags
+* config: new option passed_tags
+* feature: new command "retagprompt" in thread buffers
+* extra: update zsh completion
 
 0.7:
 * info: missing html mailcap entry now reported as mail body text
