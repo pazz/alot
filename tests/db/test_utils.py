@@ -274,7 +274,7 @@ class TestDecodeHeader(unittest.TestCase):
         expected = u'first\nsecond third fourth fifth'
         actual = utils.decode_header(text, normalize=True)
         self.assertEqual(actual, expected)
-    
+
     def test_exchange_quotes_remain(self):
         # issue #1347
         expected = u'"Mouse, Michaël" <x@y.z>'
@@ -625,17 +625,6 @@ class TestExtractBody(unittest.TestCase):
 
         self.assertEqual(actual, expected)
 
-    def test_text_plain_and_other(self):
-        mail = email.mime.multipart.MIMEMultipart()
-        self._set_basic_headers(mail)
-        mail.attach(email.mime.text.MIMEText('This is an email'))
-        mail.attach(email.mime.application.MIMEApplication(b'1'))
-
-        actual = utils.extract_body(mail)
-        expected = 'This is an email'
-
-        self.assertEqual(actual, expected)
-
     def test_text_plain_with_attachment_text(self):
         mail = email.mime.multipart.MIMEMultipart()
         self._set_basic_headers(mail)
@@ -679,17 +668,6 @@ class TestExtractBody(unittest.TestCase):
 
         self.assertEqual(actual, expected)
 
-    @mock.patch('alot.db.utils.settings.get', mock.Mock(return_value=False))
-    @mock.patch('alot.db.utils.settings.mailcap_find_match',
-                mock.Mock(return_value=(None, {'view': 'cat'})))
-    def test_types_provided(self):
-        # This should not return html, even though html is set to preferred
-        # since a types variable is passed
-        expected = 'This is an email'
-        mail = self._make_mixed_plain_html()
-        actual = utils.extract_body(mail, types=['text/plain'])
-
-        self.assertEqual(actual, expected)
 
     @mock.patch('alot.db.utils.settings.mailcap_find_match',
                 mock.Mock(return_value=(None, {'view': 'cat'})))
@@ -867,10 +845,10 @@ class TestFormataddr(unittest.TestCase):
                 utils.formataddr(email.utils.parseaddr(self.umlauts_and_comma)),
                 self.umlauts_and_comma
                 )
-    
+
     def test_address_only(self):
         self.assertEqual(utils.formataddr(("", self.address)), self.address)
-    
+
     def test_name_and_address_no_comma(self):
         self.assertEqual(
                 utils.formataddr(("Me", self.address)),
