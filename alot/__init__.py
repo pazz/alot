@@ -1,5 +1,5 @@
 __productname__ = 'alot'
-__version__ = '0.7'
+__version__ = '0.8'
 __copyright__ = "Copyright (C) 2012-18 Patrick Totzke"
 __author__ = "Patrick Totzke"
 __author_email__ = "patricktotzke@gmail.com"
