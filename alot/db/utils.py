@@ -472,6 +472,9 @@ def extract_body(mail):
         preferencelist = ('html', 'plain')
 
     body_part = mail.get_body(preferencelist)
+    if body_part is None:  # if no part matching preferredlist was found
+        return ""
+
     displaystring = ""
 
     if body_part.get_content_type() == 'text/plain':
