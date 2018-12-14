@@ -141,6 +141,19 @@ class DictList(SimpleTree):
         SimpleTree.__init__(self, structure)
 
 
+class MultipartWidget(urwid.WidgetWrap):
+    def __init__(self, parts, current):
+        value_att = settings.get_theming_attribute('thread', 'header_value')
+
+        cols = []
+        cols.append(urwid.Text("multiparts: "))
+        for i, part in enumerate(parts):
+            att = value_att if i == current else None
+            cols.append(urwid.Text((att, part)))
+        cols = [('fixed', len(c.text), c) for c in cols]
+        urwid.WidgetWrap.__init__(self, urwid.Columns(cols, dividechars=1))
+
+
 class MessageTree(CollapsibleTree):
     """
     :class:`Tree` that displays contents of a single :class:`alot.db.Message`.
@@ -162,13 +175,15 @@ class MessageTree(CollapsibleTree):
         self._odd = odd
         self.display_source = False
         self._summaryw = None
-        self._bodytree = None
+        self._partstree = None
         self._sourcetree = None
         self.display_all_headers = False
         self._all_headers_tree = None
         self._default_headers_tree = None
         self.display_attachments = True
         self._attachments = None
+        self._current_part = 0
+        self._multiparts = None
         self._maintree = SimpleTree(self._assemble_structure(True))
         CollapsibleTree.__init__(self, self._maintree)
 
@@ -200,7 +215,7 @@ class MessageTree(CollapsibleTree):
         exist.
         """
         logging.debug("MT expand")
-        if not self._bodytree:
+        if not self._partstree:
             self.reassemble()
         CollapsibleTree.expand(self, pos)
 
@@ -218,9 +233,13 @@ class MessageTree(CollapsibleTree):
             if attachmenttree is not None:
                 mainstruct.append((attachmenttree, None))
 
-            bodytree = self._get_body()
-            if bodytree is not None:
-                mainstruct.append((bodytree, None))
+            part_selector = self._get_multipart_selector()
+            if part_selector is not None:
+                mainstruct.append((part_selector, None))
+
+            current_part = self._get_current_part()
+            if current_part is not None:
+                mainstruct.append((current_part, None))
 
         structure = [
             (self._get_summary(), mainstruct)
@@ -249,15 +268,40 @@ class MessageTree(CollapsibleTree):
             self._sourcetree = TextlinesList(sourcetxt, att, att_focus)
         return self._sourcetree
 
-    def _get_body(self):
-        if self._bodytree is None:
-            bodytxt = self._message.accumulate_body()
-            if bodytxt:
-                att = settings.get_theming_attribute('thread', 'body')
-                att_focus = settings.get_theming_attribute(
-                    'thread', 'body_focus')
-                self._bodytree = TextlinesList(bodytxt, att, att_focus)
-        return self._bodytree
+    def next_part(self):
+        self._other_part(+1)
+
+    def prev_part(self):
+        self._other_part(-1)
+
+    def _other_part(self, offset):
+        self._current_part += offset
+        self._current_part %= len(self._get_multiparts())
+
+    def _get_current_part(self):
+        if self._current_part < len(self._get_multiparts()):
+            return self._multiparts[self._current_part][1]
+        else:
+            return None
+
+    def _get_multipart_selector(self):
+        return MultipartWidget(
+            [ctype for ctype, _ in self._get_multiparts()],
+            self._current_part)
+
+    def _get_multiparts(self):
+        if self._multiparts is None:
+            att = settings.get_theming_attribute('thread', 'body')
+            att_focus = settings.get_theming_attribute(
+                'thread', 'body_focus')
+
+            self._multiparts = [
+                (ctype,
+                 TextlinesList(text, att, att_focus))
+                for ctype, text
+                in self._message.get_body_parts()]
+
+        return self._multiparts
 
     def _get_headers(self):
         if self.display_all_headers is True:

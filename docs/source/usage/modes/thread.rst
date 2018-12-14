@@ -5,6 +5,20 @@ Commands in `thread` mode
 -------------------------
 The following commands are available in thread mode:
 
+.. _cmd.thread.nextpart:
+
+.. describe:: nextpart
+
+    display the next multipart part
+
+
+.. _cmd.thread.prevpart:
+
+.. describe:: prevpart
+
+    display the previous multipart part
+
+
 .. _cmd.thread.bounce:
 
 .. describe:: bounce

@@ -479,7 +479,14 @@ def extract_body(mail, types=None, field_key='copiousoutput'):
         has_preferred = list(typed_subpart_iterator(
             mail, *preferred.split('/')))
 
-    body_parts = []
+    return u'\n\n'.join(part for ctype, part in extract_bodies(mail, types)
+                             if not has_preferred or ctype == preferred)
+
+
+def extract_bodies(mail, types=None):
+    """
+    Yields string views of the parts of a Message.
+    """
     for part in mail.walk():
         # skip non-leaf nodes in the mail tree
         if part.is_multipart():
@@ -487,29 +494,24 @@ def extract_body(mail, types=None, field_key='copiousoutput'):
 
         ctype = part.get_content_type()
 
-        if types is not None:
-            if ctype not in types:
-                continue
+        if types is not None and ctype not in types:
+            continue
+
         cd = part.get('Content-Disposition', '')
         if cd.startswith('attachment'):
             continue
-        # if the mail has our preferred type, we only keep this type
-        # note that if types != None, has_preferred always stays False
-        if has_preferred and ctype != preferred:
-            continue
 
         if ctype == 'text/plain':
-            body_parts.append(string_sanitize(remove_cte(part, as_string=True)))
+            yield (ctype, string_sanitize(remove_cte(part, as_string=True)))
         else:
             rendered_payload = render_part(part)
             if rendered_payload:  # handler had output
-                body_parts.append(string_sanitize(rendered_payload))
+                yield (ctype, string_sanitize(rendered_payload))
             # mark as attachment
             elif cd:
                 part.replace_header('Content-Disposition', 'attachment; ' + cd)
             else:
                 part.add_header('Content-Disposition', 'attachment;')
-    return u'\n\n'.join(body_parts)
 
 
 def formataddr(pair):

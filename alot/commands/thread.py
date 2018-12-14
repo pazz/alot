@@ -1154,3 +1154,31 @@ class TagCommand(Command):
         # flush index
         if self.flush:
             await ui.apply_command(FlushCommand())
+
+
+@registerCommand(MODE, 'nextpart', help='display the next multipart part')
+class NextPartCommand(Command):
+
+    """display the next multipart part"""
+    repeatable = True
+
+    def apply(self, ui):
+        tbuffer = ui.current_buffer
+        message_tree = tbuffer.get_selected_messagetree()
+        message_tree.next_part()
+        message_tree.reassemble()
+        tbuffer.refresh()
+
+
+@registerCommand(MODE, 'prevpart', help='display the previous multipart part')
+class PrevPartCommand(Command):
+
+    """display the next multipart part"""
+    repeatable = True
+
+    def apply(self, ui):
+        tbuffer = ui.current_buffer
+        message_tree = tbuffer.get_selected_messagetree()
+        message_tree.prev_part()
+        message_tree.reassemble()
+        tbuffer.refresh()

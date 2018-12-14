@@ -10,7 +10,7 @@ from datetime import datetime
 from notmuch import NullPointerError
 
 from . import utils
-from .utils import extract_body
+from .utils import extract_body, extract_bodies
 from .utils import decode_header
 from .attachment import Attachment
 from .. import helper
@@ -278,6 +278,12 @@ class Message:
            'text/html' in (part.get_content_type() for part in eml.walk())):
             return MISSING_HTML_MSG
         return bodytext
+
+    def get_body_parts(self):
+        """
+        returns bodystring for each part in this mail
+        """
+        return extract_bodies(self.get_email())
 
     def get_text_content(self):
         return extract_body(self.get_email(), types=['text/plain'])
