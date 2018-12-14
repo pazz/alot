@@ -856,6 +856,8 @@ class ComposeCommand(Command):
 
                 ui.senderhistory.append(fromaddress)
                 self.envelope.add('From', fromaddress)
+        else:
+            fromaddress = self.envelope.get("From")
 
         # try to find the account again
         if account is None:
