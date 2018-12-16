@@ -101,6 +101,25 @@ def determine_sender(mail, action='reply'):
     return from_value, account
 
 
+def quote(ui, message=None):
+    if not message:
+        tree = ui.current_buffer.get_selected_messagetree()
+    else:
+        # I'm assuming the message is in the current buffer.
+        tree = next(tree for tree in ui.current_buffer.messagetrees()
+                    if tree._message == message)
+
+    quotehook = settings.get_hook('text_quote')
+    if quotehook:
+        return quotehook(tree.get_current_text())
+    else:
+        quote_prefix = settings.get('quote_prefix')
+        mailcontent = ""
+        for line in tree.get_current_text().splitlines():
+            mailcontent += quote_prefix + line + '\n'
+        return mailcontent
+
+
 @registerCommand(MODE, 'reply', arguments=[
     (['--all'], {'action': 'store_true', 'help': 'reply to all'}),
     (['--list'], {'action': cargparse.BooleanAction, 'default': None,
@@ -146,14 +165,7 @@ class ReplyCommand(Command):
                              message=mail, ui=ui, dbm=ui.dbman)
         else:
             quotestring = 'Quoting %s (%s)\n' % (name or address, timestamp)
-        mailcontent = quotestring
-        quotehook = settings.get_hook('text_quote')
-        if quotehook:
-            mailcontent += quotehook(self.message.accumulate_body())
-        else:
-            quote_prefix = settings.get('quote_prefix')
-            for line in self.message.accumulate_body().splitlines():
-                mailcontent += quote_prefix + line + '\n'
+        mailcontent = quotestring + quote(ui, self.message)
 
         envelope = Envelope(bodytext=mailcontent, replied=self.message)
 
@@ -319,19 +331,12 @@ class ForwardCommand(Command):
             timestamp = self.message.get_date()
             qf = settings.get_hook('forward_prefix')
             if qf:
-                quote = qf(name, address, timestamp,
-                           message=mail, ui=ui, dbm=ui.dbman)
+                quotestring = qf(name, address, timestamp,
+                                 message=mail, ui=ui, dbm=ui.dbman)
             else:
-                quote = 'Forwarded message from %s (%s):\n' % (
+                quotestring = 'Forwarded message from %s (%s):\n' % (
                     name or address, timestamp)
-            mailcontent = quote
-            quotehook = settings.get_hook('text_quote')
-            if quotehook:
-                mailcontent += quotehook(self.message.accumulate_body())
-            else:
-                quote_prefix = settings.get('quote_prefix')
-                for line in self.message.accumulate_body().splitlines():
-                    mailcontent += quote_prefix + line + '\n'
+            mailcontent = quotestring + quote(ui, self.message)
 
             envelope.body = mailcontent
 

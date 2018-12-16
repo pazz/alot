@@ -280,16 +280,22 @@ class MessageTree(CollapsibleTree):
             self._current_part += offset
             self._current_part %= len(mps)
 
+    def get_current_text(self):
+        return self._get_current(1)
+
     def _get_current_part(self):
+        return self._get_current(2)
+
+    def _get_current(self, index):
         mps = self._get_multiparts()
         if mps:
-            return mps[self._current_part][1]
+            return mps[self._current_part][index]
 
     def _get_multipart_selector(self):
         mps = self._get_multiparts()
         if mps:
             return MultipartWidget(
-                [ctype for ctype, _ in self._get_multiparts()],
+                [ctype for ctype, _, _ in self._get_multiparts()],
                 self._current_part)
 
     def _get_multiparts(self):
@@ -300,6 +306,7 @@ class MessageTree(CollapsibleTree):
 
             self._multiparts = [
                 (ctype,
+                 text,
                  TextlinesList(text, att, att_focus))
                 for ctype, text
                 in self._message.get_body_parts()]
