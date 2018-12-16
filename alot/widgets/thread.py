@@ -304,7 +304,11 @@ class MessageTree(CollapsibleTree):
                 for ctype, text
                 in self._message.get_body_parts()]
 
-            self._current_part = 0
+            preferred = 'text/plain' if settings.get(
+                'prefer_plaintext') else 'text/html'
+            prefs = [i for i, e in enumerate(self._multiparts)
+                     if e[0] == preferred]
+            self._current_part = prefs[0] if prefs else 0
 
         return self._multiparts
 
