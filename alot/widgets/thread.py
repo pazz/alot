@@ -182,7 +182,7 @@ class MessageTree(CollapsibleTree):
         self._default_headers_tree = None
         self.display_attachments = True
         self._attachments = None
-        self._current_part = 0
+        self._current_part = None
         self._multiparts = None
         self._maintree = SimpleTree(self._assemble_structure(True))
         CollapsibleTree.__init__(self, self._maintree)
@@ -275,19 +275,22 @@ class MessageTree(CollapsibleTree):
         self._other_part(-1)
 
     def _other_part(self, offset):
-        self._current_part += offset
-        self._current_part %= len(self._get_multiparts())
+        mps = self._get_multiparts()
+        if mps:
+            self._current_part += offset
+            self._current_part %= len(mps)
 
     def _get_current_part(self):
-        if self._current_part < len(self._get_multiparts()):
-            return self._multiparts[self._current_part][1]
-        else:
-            return None
+        mps = self._get_multiparts()
+        if mps:
+            return mps[self._current_part][1]
 
     def _get_multipart_selector(self):
-        return MultipartWidget(
-            [ctype for ctype, _ in self._get_multiparts()],
-            self._current_part)
+        mps = self._get_multiparts()
+        if mps:
+            return MultipartWidget(
+                [ctype for ctype, _ in self._get_multiparts()],
+                self._current_part)
 
     def _get_multiparts(self):
         if self._multiparts is None:
@@ -300,6 +303,8 @@ class MessageTree(CollapsibleTree):
                  TextlinesList(text, att, att_focus))
                 for ctype, text
                 in self._message.get_body_parts()]
+
+            self._current_part = 0
 
         return self._multiparts
 
