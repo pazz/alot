@@ -417,11 +417,8 @@ class TestCallCmdAsync(unittest.TestCase):
     async def test_env_set(self):
         with mock.patch.dict(os.environ, {}, clear=True):
             ret = await helper.call_cmd_async(
-                # Thanks to the future import it doesn't matter if python is
-                # python2 or python3
-                ['python', '-c', 'from __future__ import print_function; '
-                                 'import os; '
-                                 'print(os.environ.get("foo", "fail"), end="")'
+                ['python3', '-c', 'import os; '
+                                  'print(os.environ.get("foo", "fail"), end="")'
                 ],
                 env={'foo': 'bar'})
         self.assertEqual(ret[0], 'bar')
