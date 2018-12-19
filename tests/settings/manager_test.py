@@ -5,6 +5,7 @@
 """Test suite for alot.settings.manager module."""
 
 import os
+import re
 import tempfile
 import textwrap
 import unittest
@@ -127,7 +128,7 @@ class TestSettingsManager(unittest.TestCase):
         setting = manager.get_notmuch_setting('foo', 'bar')
         self.assertIsNone(setting)
 
-    def test_dont_choke_on_regex_special_chars_in_tagstring(self):
+    def test_choke_on_invalid_regex_in_tagstring(self):
         tag = 'to**do'
         with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
             f.write(textwrap.dedent("""\
@@ -138,8 +139,64 @@ class TestSettingsManager(unittest.TestCase):
         self.addCleanup(os.unlink, f.name)
         manager = SettingsManager()
         manager.read_config(f.name)
-        manager.get_tagstring_representation(tag)
+        with self.assertRaises(re.error):
+            manager.get_tagstring_representation(tag)
 
+    def test_translate_tagstring_prefix(self):
+        # Test for behavior mentioned in bcb2670f56fa251c0f1624822928d664f6455902,
+        # namely that 'foo' does not match 'foobar'
+        tag = 'foobar'
+        tagprefix = 'foo'
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
+            f.write(textwrap.dedent("""\
+                [tags]
+                    [[{tag}]]
+                        translated = matched
+                """.format(tag=tagprefix)))
+        self.addCleanup(os.unlink, f.name)
+        manager = SettingsManager()
+        manager.read_config(f.name)
+        tagrep = manager.get_tagstring_representation(tag)
+        self.assertIs(tagrep['translated'], tag)
+        tagprefixrep = manager.get_tagstring_representation(tagprefix)
+        self.assertEqual(tagprefixrep['translated'], 'matched')
+
+    def test_translate_tagstring_prefix_regex(self):
+        # Test for behavior mentioned in bcb2670f56fa251c0f1624822928d664f6455902,
+        # namely that 'foo.*' does match 'foobar'
+        tagprefixregexp = 'foo.*'
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
+            f.write(textwrap.dedent("""\
+                [tags]
+                    [[{tag}]]
+                        translated = matched
+                """.format(tag=tagprefixregexp)))
+        self.addCleanup(os.unlink, f.name)
+        manager = SettingsManager()
+        manager.read_config(f.name)
+        def matched(t):
+            return manager.get_tagstring_representation(t)['translated'] == 'matched'
+        self.assertTrue(all(matched(t) for t in ['foo', 'foobar', tagprefixregexp]))
+        self.assertFalse(any(matched(t) for t in ['bar', 'barfoobar']))
+
+    def test_translate_regexp(self):
+        # Test for behavior mentioned in 108df3df8571aea2164a5d3fc42655ac2bd06c17
+        # namely that translations themselves can use regex
+        tag = "notmuch::foo"
+        section = "[[notmuch::.*]]"
+        translation = r"'notmuch::(.*)', 'nm:\1'"
+        translated_goal = "nm:foo"
+
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
+            f.write(textwrap.dedent("""\
+                [tags]
+                    {section}
+                        translation = {translation}
+                """.format(section=section, translation=translation)))
+        self.addCleanup(os.unlink, f.name)
+        manager = SettingsManager()
+        manager.read_config(f.name)
+        self.assertEqual(manager.get_tagstring_representation(tag)['translated'], translated_goal)
 
 class TestSettingsManagerExpandEnvironment(unittest.TestCase):
     """ Tests SettingsManager._expand_config_values """
