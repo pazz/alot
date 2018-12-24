@@ -1,0 +1,8 @@
+From: lucc@github
+To: tests@alot
+Subject: plain utf8 8bit message
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+
+Liebe Grüße!

@@ -711,6 +711,13 @@ class TestExtractBody(unittest.TestCase):
 
         self.assertEqual(actual, expected)
 
+    @unittest.expectedFailure
+    def test_simple_utf8_file(self):
+        mail = email.message_from_binary_file(
+                open('tests/static/mail/utf8.eml', 'rb'))
+        actual = utils.extract_body(mail)
+        expected = "Liebe Grüße!\n"
+        self.assertEqual(actual, expected)
 
 class TestMessageFromString(unittest.TestCase):
 
