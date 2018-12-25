@@ -428,26 +428,19 @@ class SetCommand(Command):
         envelope = ui.current_buffer.envelope
 
         if self.action == 'set':
-            do_set = True
+            # add a new header
+            envelope.add(self.key, self.value, self.reset)
         elif self.action == 'unset':
-            do_set = False
-        elif self.action == 'toggleset':
-            # in case we toggle we only `set` a new header if it didn't exist
-            # already before, in case it exists we will simply remove it hence
-            # `do_set = False`
-            do_set = False if self.key in envelope else True
-
-        if self.reset or not do_set:
-            # remove the existing header if
-            #  - we don't append
-            #  - we are in a toggle scenario and it exists already
-            #  - we are in the unset scenario
-
+            # we want to unset the header if it already exists
             if self.key in envelope:
                 del envelope[self.key]
-
-        if do_set:
-            envelope.add(self.key, self.value)
+        elif self.action == 'toggleset':
+            # in case we toggle we only add a new header if it didn't exist
+            # already before, in case it exists we will simply remove it
+            if self.key in envelope:
+                del envelope[self.key]
+            else:
+                envelope.add(self.key, self.value)
 
         # FIXME: handle BCC as well
         # Currently we don't handle bcc because it creates a side channel leak,
