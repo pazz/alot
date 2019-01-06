@@ -90,24 +90,23 @@ def mail_container(value):
     """
     Check that the value points to a valid mail container,
     in URI-style, e.g.: `mbox:///home/username/mail/mail.box`.
+    `~`-expansion will work, e.g.: `mbox://~/mail/mail.box`.
     The value is cast to a :class:`mailbox.Mailbox` object.
     """
     if not re.match(r'.*://.*', value):
         raise VdtTypeError(value)
     mburl = urlparse(value)
-    if mburl.scheme == 'mbox':
-        box = mailbox.mbox(mburl.path)
-    elif mburl.scheme == 'maildir':
-        box = mailbox.Maildir(mburl.path)
-    elif mburl.scheme == 'mh':
-        box = mailbox.MH(mburl.path)
-    elif mburl.scheme == 'babyl':
-        box = mailbox.Babyl(mburl.path)
-    elif mburl.scheme == 'mmdf':
-        box = mailbox.MMDF(mburl.path)
-    else:
-        raise VdtTypeError(value)
-    return box
+    uri_scheme_to_mbclass = {
+            'mbox': mailbox.mbox,
+            'maildir': mailbox.Maildir,
+            'mh': mailbox.MH,
+            'babyl': mailbox.Babyl,
+            'mmdf': mailbox.MMDF,
+        }
+    klass = uri_scheme_to_mbclass.get(mburl.scheme)
+    if klass:
+        return klass(mburl.netloc + mburl.path)
+    raise VdtTypeError(value)
 
 
 def force_list(value, min=None, max=None):

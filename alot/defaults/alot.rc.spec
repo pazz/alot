@@ -312,14 +312,14 @@ thread_focus_linewise = boolean(default=True)
         # sendmail command. This is the shell command used to send out mails via the sendmail protocol
         sendmail_command = string(default='sendmail -t')
 
-        # where to store outgoing mails, e.g. `maildir:///home/you/mail/Sent`.
+        # where to store outgoing mails, e.g. `maildir:///home/you/mail/Sent` or `maildir://~/mail/Sent`.
         # You can use mbox, maildir, mh, babyl and mmdf in the protocol part of the URL.
         #
         # .. note:: If you want to add outgoing mails automatically to the notmuch index
         #           you must use maildir in a path within your notmuch database path.
         sent_box = mail_container(default=None)
 
-        # where to store draft mails, e.g. `maildir:///home/you/mail/Drafts`.
+        # where to store draft mails, e.g. `maildir:///home/you/mail/Drafts` or `maildir://~/mail/Drafts`.
         # You can use mbox, maildir, mh, babyl and mmdf in the protocol part of the URL.
         #
         # .. note:: You will most likely want drafts indexed by notmuch to be able to

@@ -17,7 +17,8 @@ Here is an example configuration
             gpg_key = D7D6C5AA
             sendmail_command = msmtp --account=wayne -t
             sent_box = maildir:///home/bruce/mail/work/Sent
-            draft_box = maildir:///home/bruce/mail/work/Drafts
+            # ~ expansion also works
+            draft_box = maildir://~/mail/work/Drafts
 
         [[secret]]
             realname = Batman

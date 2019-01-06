@@ -52,7 +52,7 @@
 
 .. describe:: draft_box
 
-     where to store draft mails, e.g. `maildir:///home/you/mail/Drafts`.
+     where to store draft mails, e.g. `maildir:///home/you/mail/Drafts` or `maildir://~/mail/Drafts`.
      You can use mbox, maildir, mh, babyl and mmdf in the protocol part of the URL.
 
      .. note:: You will most likely want drafts indexed by notmuch to be able to
@@ -166,7 +166,7 @@
 
 .. describe:: sent_box
 
-     where to store outgoing mails, e.g. `maildir:///home/you/mail/Sent`.
+     where to store outgoing mails, e.g. `maildir:///home/you/mail/Sent` or `maildir://~/mail/Sent`.
      You can use mbox, maildir, mh, babyl and mmdf in the protocol part of the URL.
 
      .. note:: If you want to add outgoing mails automatically to the notmuch index
