@@ -174,13 +174,13 @@ class SendCommand(Command):
         addresses = set()
         for key in self.envelope.encrypt_keys.values():
             for uid in key.uids:
-                addresses.add(uid.email)
+                addresses.add(uid.email.lower())
         return addresses
 
     def _get_recipients_addresses(self):
         tos = self.envelope.headers.get('To', [])
         ccs = self.envelope.headers.get('Cc', [])
-        return {a for (_, a) in email.utils.getaddresses(tos + ccs)}
+        return {a.lower() for (_, a) in email.utils.getaddresses(tos + ccs)}
 
     def _is_encrypted_to_all_recipients(self):
         recipients_addresses = self._get_recipients_addresses()
