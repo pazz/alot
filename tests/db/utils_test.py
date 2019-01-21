@@ -719,6 +719,19 @@ class TestExtractBody(unittest.TestCase):
         expected = "Liebe Grüße!\n"
         self.assertEqual(actual, expected)
 
+    @unittest.expectedFailure
+    def test_simple_japanese_file(self):
+        mail = email.message_from_binary_file(
+                open('tests/static/mail/japanese.eml', 'rb'))
+        actual = utils.extract_body(mail)
+        expected = """
+            MA-EYESご利用者各位
+
+            BIRD-BOの河和です。お疲れ様です。
+        """
+        self.assertEqual(actual, expected)
+
+
 class TestMessageFromString(unittest.TestCase):
 
     """Tests for decrypted_message_from_string.
