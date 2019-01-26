@@ -85,7 +85,7 @@ The following commands are available in envelope mode:
 
 .. describe:: set
 
-    set header value
+    set/unset/toggle a header value
 
     positional arguments
         0: header to refine
@@ -134,6 +134,18 @@ The following commands are available in envelope mode:
     toggle display of all headers
 
 
+.. _cmd.envelope.toggleset:
+
+.. describe:: toggleset
+
+    set/unset/toggle a header value
+
+    positional arguments
+        0: header to refine
+        1: value
+
+
+
 .. _cmd.envelope.togglesign:
 
 .. describe:: togglesign
@@ -175,7 +187,7 @@ The following commands are available in envelope mode:
 
 .. describe:: unset
 
-    remove header field
+    set/unset/toggle a header value
 
     argument
         header to refine

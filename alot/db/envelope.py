@@ -101,12 +101,7 @@ class Envelope(object):
         """setter for header values. This allows adding header like so:
         envelope['Subject'] = u'sm\xf8rebr\xf8d'
         """
-        if name not in self.headers:
-            self.headers[name] = []
-        self.headers[name].append(val)
-
-        if self.sent_time:
-            self.modified_since_sent = True
+        self.add(name, val, True)
 
     def __getitem__(self, name):
         """getter for header values.
@@ -141,9 +136,9 @@ class Envelope(object):
             value = fallback or []
         return value
 
-    def add(self, key, value):
+    def add(self, key, value, reset=False):
         """add header value"""
-        if key not in self.headers:
+        if key not in self.headers or reset:
             self.headers[key] = []
         self.headers[key].append(value)
 
