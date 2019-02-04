@@ -446,9 +446,9 @@ def remove_cte(part, as_string=False):
             sp = helper.try_decode(bp)
         except UnicodeDecodeError as emsg:
             # the mail contains chars that are not enc-encoded.
-            # try again and just ignore those
+            # libmagic works better than just ignoring those
             logging.debug('Decoding failure: {}'.format(emsg))
-            sp = bp.decode(enc, errors='ignore')
+            sp = helper.try_decode(bp)
         return sp
     return bp
 
