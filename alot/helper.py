@@ -276,6 +276,8 @@ def call_cmd(cmdlist, stdin=None):
     if isinstance(stdin, str):
         stdin = stdin.encode(termenc)
     try:
+
+        logging.debug("Calling %s" % cmdlist)
         proc = subprocess.Popen(
             cmdlist,
             stdout=subprocess.PIPE,
