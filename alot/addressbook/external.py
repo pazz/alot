@@ -6,6 +6,7 @@ import re
 from ..helper import call_cmd
 from ..helper import split_commandstring
 from . import AddressBook, AddressbookError
+import logging
 
 
 class ExternalAddressbook(AddressBook):
@@ -59,9 +60,11 @@ class ExternalAddressbook(AddressBook):
             raise AddressbookError(msg)
 
         if not resultstring:
+            logging.debug("No contacts in address book (empty string)")
             return []
         lines = resultstring.splitlines()
         res = []
+        logging.debug("Apply %s on %d results" % (self.regex, len(lines)))
         for l in lines:
             m = re.match(self.regex, l, self.reflags)
             if m:
@@ -70,4 +73,5 @@ class ExternalAddressbook(AddressBook):
                     email = info['email'].strip()
                     name = info['name']
                     res.append((name, email))
+                    logging.debug("New match name=%s mail=%s" % (name, email))
         return res
