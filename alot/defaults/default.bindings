@@ -41,6 +41,8 @@ q = exit
     l = retagprompt
     O = refineprompt
     | = refineprompt
+    S = markspam
+    H = markham
 
 [envelope]
     a = prompt 'attach ~/'

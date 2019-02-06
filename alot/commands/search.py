@@ -19,6 +19,7 @@ from ..db.errors import DatabaseROError
 MODE = 'search'
 
 
+
 @registerCommand(MODE, 'select')
 class OpenThreadCommand(Command):
 
@@ -264,3 +265,41 @@ class SaveQueryCommand(GlobalSaveQueryCommand):
         if not self.query:
             self.query = searchbuffer.querystring
         GlobalSaveQueryCommand.apply(self, ui)
+
+import asyncio
+# TODO arguments learn
+@registerCommand(MODE, 'markspam', forced={'spam': True})
+@registerCommand(MODE, 'markham', forced={'spam': False})
+class MarkSpamCommand(TagCommand):
+    """
+    Mark threat as spam as well as killed, execute pre-hook for spam learning.
+    """
+    def __init__(self, spam=True, learn=True, **kwargs):
+        """
+        :param thread: thread to mark as spam (usually single email)
+        :param learn: should the marked spam class be forwarded to spam
+        learner?
+        """
+        self.learn = learn
+        self.spam = spam
+        if spam:
+            action = 'add'
+        else: 
+            action = 'remove'
+        TagCommand.__init__(self, tags=u'spam,killed', action=action, **kwargs)
+
+    def apply(self, ui):
+        """
+        TODO: Exec Hooks
+        """
+        if self.learn:
+            thread = ui.current_buffer.get_selected_thread()
+            for m, _ in thread.get_messages().items():
+                filename = m.get_filename() 
+                if self.spam: 
+                    pass # TODO apply spamlearn-hook
+                else:
+                    pass # TODO apply hamlearn-hook
+        loop = asyncio.get_running_loop()
+        task = loop.create_task(super(MarkSpamCommand, self).apply(ui))
+#        loop.run_until_complete(task)
