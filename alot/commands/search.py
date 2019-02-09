@@ -9,6 +9,7 @@ from . import Command, registerCommand
 from .globals import PromptCommand
 from .globals import MoveCommand
 from .globals import SaveQueryCommand as GlobalSaveQueryCommand
+from ..settings.const import settings
 from .common import RetagPromptCommand
 from .. import commands
 
@@ -290,16 +291,17 @@ class MarkSpamCommand(TagCommand):
 
     def apply(self, ui):
         """
-        TODO: Exec Hooks
+        TODO: Exec Hooks for spam learning
         """
-        if self.learn:
+        spam_learner = settings.get_hook('spam_marked')
+        if self.learn and spam_learner:
             thread = ui.current_buffer.get_selected_thread()
             for m, _ in thread.get_messages().items():
                 filename = m.get_filename() 
-                if self.spam: 
-                    pass # TODO apply spamlearn-hook
+                if self.spam:
+                    spam_learner(filename, True, ui=ui, dbm=ui.dbman)
                 else:
-                    pass # TODO apply hamlearn-hook
+                    spam_learner(filename, False, ui=ui, dbm=ui.dbman)
         loop = asyncio.get_running_loop()
         task = loop.create_task(super(MarkSpamCommand, self).apply(ui))
 #        loop.run_until_complete(task)
