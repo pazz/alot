@@ -11,7 +11,7 @@ import operator
 import os
 import re
 
-from .helper import call_cmd_async
+from .helper import call_cmd_async, call_cmd
 from .helper import split_commandstring
 
 
@@ -364,7 +364,10 @@ class SendmailAccount(Account):
 
         try:
             # make sure self.mail is a string
-            out, err, code = await call_cmd_async(cmdlist, stdin=str(mail))
+            logging.debug(str(mail))
+            out, err, code = call_cmd(cmdlist, stdin=str(mail))
+            #FIXME: async fails (because stdin is not waiting until read?)
+            #out, err, code = await call_cmd_async(cmdlist, stdin=str(mail))
             if code != 0:
                 msg = 'The sendmail command {} returned with code {}{}'.format(
                     self.cmd, code, ':\n' + err.strip() if err else '.')
