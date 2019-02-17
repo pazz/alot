@@ -806,7 +806,7 @@ class ComposeCommand(Command):
             ui.notify(str(e), priority='error')
             raise self.ApplyError()
     
-    def _set_sender(self, ui):
+    async def _get_sender_details(self, ui):
         # find out the right account, if possible yet
         account = self.envelope.account
         if account is None:
@@ -848,7 +848,8 @@ class ComposeCommand(Command):
         if self.envelope.account is None:
             self.envelope.account = account
 
-    async def _set_signature(self, ui, account):
+    async def _set_signature(self, ui):
+        account = self.envelope.account
         if not self.omit_signature and account.signature:
             logging.debug('has signature')
             sig = os.path.expanduser(account.signature)
@@ -910,7 +911,8 @@ class ComposeCommand(Command):
             else:
                 self.envelope = Envelope()
 
-    def _set_gpg_sign(self, ui, account):
+    def _set_gpg_sign(self, ui):
+        account = self.envelope.account
         if account.sign_by_default:
             if account.gpg_key:
                 self.envelope.sign = account.sign_by_default
@@ -921,7 +923,8 @@ class ComposeCommand(Command):
                 logging.warning(msg)
                 ui.notify(msg, priority='error')
 
-    async def _set_to(self, ui, account):
+    async def _set_to(self, ui):
+        account = self.envelope.account
         if 'To' not in self.envelope.headers:
             allbooks = not settings.get('complete_matching_abook_only')
             logging.debug(allbooks)
@@ -938,7 +941,8 @@ class ComposeCommand(Command):
             ui.recipienthistory.append(to)
             self.envelope.add('To', to)
 
-    async def _set_gpg_encrypt(self, ui, account):
+    async def _set_gpg_encrypt(self, ui):
+        account = self.envelope.account
         if self.encrypt or account.encrypt_by_default == u"all":
             logging.debug("Trying to encrypt message because encrypt=%s and "
                           "encrypt_by_default=%s", self.encrypt,
@@ -1007,17 +1011,16 @@ class ComposeCommand(Command):
             self._get_template(ui)
         # Set headers and tags
         self._set_base_attributes()
-        # get missing From header
-        await self._set_from(ui)
-        # Get account
-        account = self._get_account(ui)
+        # set account and missing From header
+        await self._get_sender_details(ui)
+
         # add signature
-        await self._set_signature(ui, account)
+        await self._set_signature(ui)
         # Figure out whether we should GPG sign messages by default
         # and look up key if so
-        self._set_gpg_sign(ui, account)
+        self._set_gpg_sign(ui)
         # get missing To header
-        await self._set_to(ui, account)
+        await self._set_to(ui)
         # Set subject
         await self._set_subject(ui)
         # Add additional tags
@@ -1025,7 +1028,7 @@ class ComposeCommand(Command):
         # Set attachments
         self._set_attachments()
         # set encryption if needed
-        await self._set_gpg_encrypt(ui, account)
+        await self._set_gpg_encrypt(ui)
 
         cmd = commands.envelope.EditCommand(envelope=self.envelope,
                                             spawn=self.force_spawn,
