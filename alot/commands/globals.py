@@ -805,44 +805,8 @@ class ComposeCommand(Command):
         except Exception as e:
             ui.notify(str(e), priority='error')
             raise self.ApplyError()
-
-    async def apply(self, ui):
-        try:
-            await self.__apply(ui)
-        except self.ApplyError:
-            return
-
-    async def __apply(self, ui):
-        if self.envelope is None:
-            if self.rest:
-                if self.rest.startswith('mailto'):
-                    self.envelope = mailto_to_envelope(self.rest)
-                else:
-                    self.envelope = Envelope()
-                    self.envelope.add('To', self.rest)
-            else:
-                self.envelope = Envelope()
-        if self.template is not None:
-            self._get_template(ui)
-
-        # set forced headers
-        for key, value in self.headers.items():
-            self.envelope.add(key, value)
-
-        # set forced headers for separate parameters
-        if self.sender:
-            self.envelope.add('From', self.sender)
-        if self.subject:
-            self.envelope.add('Subject', self.subject)
-        if self.to:
-            self.envelope.add('To', ','.join(self.to))
-        if self.cc:
-            self.envelope.add('Cc', ','.join(self.cc))
-        if self.bcc:
-            self.envelope.add('Bcc', ','.join(self.bcc))
-        if self.tags:
-            self.envelope.tags = [t for t in self.tags.split(',') if t]
-
+    
+    def _set_sender(self, ui):
         # find out the right account, if possible yet
         account = self.envelope.account
         if account is None:
@@ -883,6 +847,46 @@ class ComposeCommand(Command):
                 raise CommandCanceled()
         if self.envelope.account is None:
             self.envelope.account = account
+
+    async def apply(self, ui):
+        try:
+            await self.__apply(ui)
+        except self.ApplyError:
+            return
+
+    async def __apply(self, ui):
+        if self.envelope is None:
+            if self.rest:
+                if self.rest.startswith('mailto'):
+                    self.envelope = mailto_to_envelope(self.rest)
+                else:
+                    self.envelope = Envelope()
+                    self.envelope.add('To', self.rest)
+            else:
+                self.envelope = Envelope()
+        if self.template is not None:
+            self._get_template(ui)
+
+        # set forced headers
+        for key, value in self.headers.items():
+            self.envelope.add(key, value)
+
+        # set forced headers for separate parameters
+        if self.sender:
+            self.envelope.add('From', self.sender)
+        if self.subject:
+            self.envelope.add('Subject', self.subject)
+        if self.to:
+            self.envelope.add('To', ','.join(self.to))
+        if self.cc:
+            self.envelope.add('Cc', ','.join(self.cc))
+        if self.bcc:
+            self.envelope.add('Bcc', ','.join(self.bcc))
+        if self.tags:
+            self.envelope.tags = [t for t in self.tags.split(',') if t]
+
+        # set account and 'From' header
+        await self._set_sender(self,ui)
 
         # add signature
         if not self.omit_signature and account.signature:
@@ -982,6 +986,7 @@ class ComposeCommand(Command):
                                             spawn=self.force_spawn,
                                             refocus=False)
         await ui.apply_command(cmd)
+
 
 
 @registerCommand(
