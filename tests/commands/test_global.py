@@ -115,12 +115,10 @@ class TestComposeCommand(unittest.TestCase):
         envelope.account.address = 1  # maybe this should be a real Address?
         cmd = g_commands.ComposeCommand(envelope=envelope)
 
-        with mock.patch('alot.commands.globals.settings.get_addressbooks',
-                        mock.Mock(side_effect=Stop)):
-            try:
-                await cmd.apply(mock.Mock())
-            except Stop:
-                pass
+        cmd._set_envelope()
+        with mock.patch('alot.commands.globals.settings.get_accounts',
+                        mock.Mock(return_value=[account])):
+            await cmd._set_from()
 
 
 class TestExternalCommand(unittest.TestCase):
