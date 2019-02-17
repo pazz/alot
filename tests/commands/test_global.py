@@ -55,50 +55,32 @@ class TestComposeCommand(unittest.TestCase):
         account.signature = None
         return account
 
-    @utilities.async_test
-    async def test_apply_sign_by_default_okay(self):
+    def test_apply_sign_by_default_okay(self):
         envelope = self._make_envelope_mock()
         envelope.account = self._make_account_mock()
         cmd = g_commands.ComposeCommand(envelope=envelope)
 
-        with mock.patch('alot.commands.globals.settings.get_addressbooks',
-                        mock.Mock(side_effect=Stop)):
-            try:
-                await cmd.apply(mock.Mock())
-            except Stop:
-                pass
+        cmd._set_gpg_sign(mock.Mock(), account)
 
         self.assertTrue(envelope.sign)
         self.assertIs(envelope.sign_key, mock.sentinel.gpg_key)
 
-    @utilities.async_test
-    async def test_apply_sign_by_default_false_doesnt_set_key(self):
+    def test_apply_sign_by_default_false_doesnt_set_key(self):
         envelope = self._make_envelope_mock()
         envelope.account = self._make_account_mock(sign_by_default=False)
         cmd = g_commands.ComposeCommand(envelope=envelope)
 
-        with mock.patch('alot.commands.globals.settings.get_addressbooks',
-                        mock.Mock(side_effect=Stop)):
-            try:
-                await cmd.apply(mock.Mock())
-            except Stop:
-                pass
+        cmd._set_gpg_sign(mock.Mock(), account)
 
         self.assertFalse(envelope.sign)
         self.assertIs(envelope.sign_key, None)
 
-    @utilities.async_test
-    async def test_apply_sign_by_default_but_no_key(self):
+    def test_apply_sign_by_default_but_no_key(self):
         envelope = self._make_envelope_mock()
         envelope.account = self._make_account_mock(gpg_key=None)
         cmd = g_commands.ComposeCommand(envelope=envelope)
 
-        with mock.patch('alot.commands.globals.settings.get_addressbooks',
-                        mock.Mock(side_effect=Stop)):
-            try:
-                await cmd.apply(mock.Mock())
-            except Stop:
-                pass
+        cmd._set_gpg_sign(mock.Mock(), account)
 
         self.assertFalse(envelope.sign)
         self.assertIs(envelope.sign_key, None)
