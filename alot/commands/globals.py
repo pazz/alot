@@ -954,11 +954,7 @@ class ComposeCommand(Command):
             logging.debug("No encryption by default, encrypt_by_default=%s",
                           account.encrypt_by_default)
 
-    async def __apply(self, ui):
-        self._set_envelope()
-        if self.template is not None:
-            self._get_template(ui)
-
+    def _set_base_attributes(self):
         # set forced headers
         for key, value in self.headers.items():
             self.envelope.add(key, value)
@@ -977,19 +973,7 @@ class ComposeCommand(Command):
         if self.tags:
             self.envelope.tags = [t for t in self.tags.split(',') if t]
 
-        # set account and 'From' header
-        await self._set_sender(self,ui)
-
-        # add signature
-        await self._set_signature(ui, account)
-
-        # Figure out whether we should GPG sign messages by default
-        # and look up key if so
-        self._set_gpg_sign(ui, account)
-
-        # get missing To header
-        await self._set_to(ui, account)
-
+    async def _set_subject(self, ui):
         if settings.get('ask_subject') and \
                 'Subject' not in self.envelope.headers:
             subject = await ui.prompt('Subject')
@@ -999,6 +983,7 @@ class ComposeCommand(Command):
 
             self.envelope.add('Subject', subject)
 
+    async def _set_compose_tags(self, ui):
         if settings.get('compose_ask_tags'):
             comp = TagsCompleter(ui.dbman)
             tags = ','.join(self.tags) if self.tags else ''
@@ -1009,12 +994,36 @@ class ComposeCommand(Command):
 
             self.envelope.tags = tags
 
+    def _set_attachments(self):
         if self.attach:
             for gpath in self.attach:
                 for a in glob.glob(gpath):
                     self.envelope.attach(a)
                     logging.debug('attaching: %s', a)
 
+    async def __apply(self, ui):
+        self._set_envelope()
+        if self.template is not None:
+            self._get_template(ui)
+        # Set headers and tags
+        self._set_base_attributes()
+        # get missing From header
+        await self._set_from(ui)
+        # Get account
+        account = self._get_account(ui)
+        # add signature
+        await self._set_signature(ui, account)
+        # Figure out whether we should GPG sign messages by default
+        # and look up key if so
+        self._set_gpg_sign(ui, account)
+        # get missing To header
+        await self._set_to(ui, account)
+        # Set subject
+        await self._set_subject(ui)
+        # Add additional tags
+        await self._set_compose_tags(ui)
+        # Set attachments
+        self._set_attachments()
         # set encryption if needed
         await self._set_gpg_encrypt(ui, account)
 
