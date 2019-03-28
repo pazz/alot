@@ -248,8 +248,11 @@ class AbooksCompleter(Completer):
         else:
             returnlist = []
             for name, addr in res:
-                newtext = email.utils.formataddr((name, addr))
-                returnlist.append((newtext, len(newtext)))
+                try:
+                    newtext = email.utils.formataddr((name, addr))
+                    returnlist.append((newtext, len(newtext)))
+                except UnicodeEncodeError:
+                    pass
         return returnlist
 
 
