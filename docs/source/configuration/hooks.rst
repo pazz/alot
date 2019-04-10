@@ -42,7 +42,7 @@ Other Hooks
 
 Apart from command pre- and posthooks, the following hooks will be interpreted:
 
-.. py:function:: reply_prefix(realname, address, timestamp[, ui= None, dbm=None])
+.. py:function:: reply_prefix(realname, address, timestamp[, message=None, ui= None, dbm=None])
 
     Is used to reformat the first indented line in a reply message.
     This defaults to 'Quoting %s (%s)\n' % (realname, timestamp)' unless this
@@ -54,9 +54,11 @@ Apart from command pre- and posthooks, the following hooks will be interpreted:
     :type address: str
     :param timestamp: value of the Date header of the replied message
     :type timestamp: :obj:`datetime.datetime`
+    :param message: message object attached to reply
+    :type message: :obj:`email.Message`
     :rtype: string
 
-.. py:function:: forward_prefix(realname, address, timestamp[, ui= None, dbm=None])
+.. py:function:: forward_prefix(realname, address, timestamp[, message=None, ui= None, dbm=None])
 
     Is used to reformat the first indented line in a inline forwarded message.
     This defaults to 'Forwarded message from %s (%s)\n' % (realname,
@@ -68,6 +70,8 @@ Apart from command pre- and posthooks, the following hooks will be interpreted:
     :type address: str
     :param timestamp: value of the Date header of the replied message
     :type timestamp: :obj:`datetime.datetime`
+    :param message: message object being forwarded
+    :type message: :obj:`email.Message`
     :rtype: string
 
 .. _pre-edit-translate:
