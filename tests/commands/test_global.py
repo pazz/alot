@@ -105,20 +105,6 @@ class TestComposeCommand(unittest.TestCase):
                           'Subject': [subject]}, cmd.envelope.headers)
         self.assertEqual(body, cmd.envelope.body)
 
-    @utilities.async_test
-    async def test_set_from_single_account(self):
-        # issue #1277
-        envelope = self._make_envelope_mock()
-        del envelope.headers['From']
-        envelope.account = self._make_account_mock()
-        envelope.account.realname = "foo"
-        envelope.account.address = 1  # maybe this should be a real Address?
-        cmd = g_commands.ComposeCommand(envelope=envelope)
-
-        cmd._set_envelope()
-        with mock.patch('alot.commands.globals.settings.get_accounts',
-                        mock.Mock(return_value=[account])):
-            await cmd._set_from(mock.Mock())
 
 class TestExternalCommand(unittest.TestCase):
 
