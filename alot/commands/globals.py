@@ -805,7 +805,7 @@ class ComposeCommand(Command):
         except Exception as e:
             ui.notify(str(e), priority='error')
             raise self.ApplyError()
-    
+
     async def _get_sender_details(self, ui):
         # find out the right account, if possible yet
         account = self.envelope.account
