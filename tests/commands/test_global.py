@@ -60,7 +60,7 @@ class TestComposeCommand(unittest.TestCase):
         envelope.account = self._make_account_mock()
         cmd = g_commands.ComposeCommand(envelope=envelope)
 
-        cmd._set_gpg_sign(mock.Mock(), account)
+        cmd._set_gpg_sign(mock.Mock())
 
         self.assertTrue(envelope.sign)
         self.assertIs(envelope.sign_key, mock.sentinel.gpg_key)
@@ -70,7 +70,7 @@ class TestComposeCommand(unittest.TestCase):
         envelope.account = self._make_account_mock(sign_by_default=False)
         cmd = g_commands.ComposeCommand(envelope=envelope)
 
-        cmd._set_gpg_sign(mock.Mock(), account)
+        cmd._set_gpg_sign(mock.Mock())
 
         self.assertFalse(envelope.sign)
         self.assertIs(envelope.sign_key, None)
@@ -80,7 +80,7 @@ class TestComposeCommand(unittest.TestCase):
         envelope.account = self._make_account_mock(gpg_key=None)
         cmd = g_commands.ComposeCommand(envelope=envelope)
 
-        cmd._set_gpg_sign(mock.Mock(), account)
+        cmd._set_gpg_sign(mock.Mock())
 
         self.assertFalse(envelope.sign)
         self.assertIs(envelope.sign_key, None)
