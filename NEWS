@@ -1,3 +1,6 @@
+0.9:
+* updated signature of hooks 'reply_prefix' and 'forward_prefix', now include a named parameter for the message being replied/forwarded
+
 0.8:
 * Port to python 3. Python 2.x no longer supported
 * support for notmuch's named queries. This adds a new 'namedqueries' mode and accompanied commands
