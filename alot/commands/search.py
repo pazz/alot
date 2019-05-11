@@ -103,10 +103,11 @@ RetagPromptCommand = registerCommand(MODE, 'retagprompt')(RetagPromptCommand)
         (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
                           'default': 'True',
                           'help': 'postpone a writeout to the index'}),
-        (['--all'], {'action': 'store_true', 'dest': 'allmessages', 'default':
-                     False, 'help': 'retag all messages in search result'}),
+        (['--all'], {'action': 'store_true', 'dest': 'allmessages',
+            'default': False,
+            'help': 'tag all messages that match the current search query'}),
         (['tags'], {'help': 'comma separated list of tags'})],
-    help='add tags to all messages in the thread that match the current query',
+    help='add tags to all messages in the selected thread',
 )
 @registerCommand(
     MODE, 'retag', forced={'action': 'set'},
@@ -114,10 +115,11 @@ RetagPromptCommand = registerCommand(MODE, 'retagprompt')(RetagPromptCommand)
         (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
                           'default': 'True',
                           'help': 'postpone a writeout to the index'}),
-        (['--all'], {'action': 'store_true', 'dest': 'allmessages', 'default':
-                     False, 'help': 'retag all messages in search result'}),
+        (['--all'], {'action': 'store_true', 'dest': 'allmessages',
+            'default': False, 
+            'help': 'retag all messages that match the current query'}),
         (['tags'], {'help': 'comma separated list of tags'})],
-    help='set tags of all messages in the thread that match the current query',
+    help='set tags to all messages in the selected thread',
 )
 @registerCommand(
     MODE, 'untag', forced={'action': 'remove'},
@@ -125,10 +127,11 @@ RetagPromptCommand = registerCommand(MODE, 'retagprompt')(RetagPromptCommand)
         (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
                           'default': 'True',
                           'help': 'postpone a writeout to the index'}),
-        (['--all'], {'action': 'store_true', 'dest': 'allmessages', 'default':
-                     False, 'help': 'retag all messages in search result'}),
+        (['--all'], {'action': 'store_true', 'dest': 'allmessages',
+            'default': False, 
+            'help': 'untag all messages that match the current query'}),
         (['tags'], {'help': 'comma separated list of tags'})],
-    help='remove tags from all messages in the thread that match the query',
+    help='remove tags from all messages in the selected thread',
 )
 @registerCommand(
     MODE, 'toggletags', forced={'action': 'toggle'},
@@ -137,7 +140,7 @@ RetagPromptCommand = registerCommand(MODE, 'retagprompt')(RetagPromptCommand)
                           'default': 'True',
                           'help': 'postpone a writeout to the index'}),
         (['tags'], {'help': 'comma separated list of tags'})],
-    help='flip presence of tags on this thread: a tag is considered present '
+    help='flip presence of tags on the selected thread: a tag is considered present '
          'and will be removed if at least one message in this thread is '
          'tagged with it')
 class TagCommand(Command):
