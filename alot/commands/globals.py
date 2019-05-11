@@ -779,58 +779,34 @@ class ComposeCommand(Command):
         self.encrypt = encrypt
         self.tags = tags
 
-    async def apply(self, ui):
-        if self.envelope is None:
-            if self.rest:
-                if self.rest.startswith('mailto'):
-                    self.envelope = mailto_to_envelope(self.rest)
-                else:
-                    self.envelope = Envelope()
-                    self.envelope.add('To', self.rest)
-            else:
-                self.envelope = Envelope()
-        if self.template is not None:
-            # get location of tempsdir, containing msg templates
-            tempdir = settings.get('template_dir')
+    class ApplyError(Exception):
+        pass
 
-            path = os.path.expanduser(self.template)
-            if not os.path.dirname(path):  # use tempsdir
-                if not os.path.isdir(tempdir):
-                    ui.notify('no templates directory: %s' % tempdir,
-                              priority='error')
-                    return
-                path = os.path.join(tempdir, path)
+    def _get_template(self, ui):
+        # get location of tempsdir, containing msg templates
+        tempdir = settings.get('template_dir')
 
-            if not os.path.isfile(path):
-                ui.notify('could not find template: %s' % path,
+        path = os.path.expanduser(self.template)
+        if not os.path.dirname(path):  # use tempsdir
+            if not os.path.isdir(tempdir):
+                ui.notify('no templates directory: %s' % tempdir,
                           priority='error')
-                return
-            try:
-                with open(path, 'rb') as f:
-                    template = helper.try_decode(f.read())
-                self.envelope.parse_template(template)
-            except Exception as e:
-                ui.notify(str(e), priority='error')
-                return
+                raise self.ApplyError()
+            path = os.path.join(tempdir, path)
 
-        # set forced headers
-        for key, value in self.headers.items():
-            self.envelope.add(key, value)
+        if not os.path.isfile(path):
+            ui.notify('could not find template: %s' % path,
+                      priority='error')
+            raise self.ApplyError()
+        try:
+            with open(path, 'rb') as f:
+                template = helper.try_decode(f.read())
+            self.envelope.parse_template(template)
+        except Exception as e:
+            ui.notify(str(e), priority='error')
+            raise self.ApplyError()
 
-        # set forced headers for separate parameters
-        if self.sender:
-            self.envelope.add('From', self.sender)
-        if self.subject:
-            self.envelope.add('Subject', self.subject)
-        if self.to:
-            self.envelope.add('To', ','.join(self.to))
-        if self.cc:
-            self.envelope.add('Cc', ','.join(self.cc))
-        if self.bcc:
-            self.envelope.add('Bcc', ','.join(self.bcc))
-        if self.tags:
-            self.envelope.tags = [t for t in self.tags.split(',') if t]
-
+    async def _get_sender_details(self, ui):
         # find out the right account, if possible yet
         account = self.envelope.account
         if account is None:
@@ -872,7 +848,8 @@ class ComposeCommand(Command):
         if self.envelope.account is None:
             self.envelope.account = account
 
-        # add signature
+    async def _set_signature(self, ui):
+        account = self.envelope.account
         if not self.omit_signature and account.signature:
             logging.debug('has signature')
             sig = os.path.expanduser(account.signature)
@@ -894,10 +871,48 @@ class ComposeCommand(Command):
                           priority='error')
                 if (await ui.choice('send without signature?', 'yes',
                                     'no')) == 'no':
-                    return
+                    raise self.ApplyError
 
-        # Figure out whether we should GPG sign messages by default
-        # and look up key if so
+    async def apply(self, ui):
+        try:
+            await self.__apply(ui)
+        except self.ApplyError:
+            return
+
+    def _get_account(self, ui):
+        # find out the right account
+        sender = self.envelope.get('From')
+        _, addr = email.utils.parseaddr(sender)
+        try:
+            account = settings.get_account_by_address(addr)
+        except NoMatchingAccount:
+            msg = 'Cannot compose mail - no account found for `%s`' % addr
+            logging.error(msg)
+            ui.notify(msg, priority='error')
+            raise CommandCanceled()
+
+        if account is None:
+            accounts = settings.get_accounts()
+            if not accounts:
+                ui.notify('no accounts set.', priority='error')
+                raise self.ApplyError
+            account = accounts[0]
+
+        return account
+
+    def _set_envelope(self):
+        if self.envelope is None:
+            if self.rest:
+                if self.rest.startswith('mailto'):
+                    self.envelope = mailto_to_envelope(self.rest)
+                else:
+                    self.envelope = Envelope()
+                    self.envelope.add('To', self.rest)
+            else:
+                self.envelope = Envelope()
+
+    def _set_gpg_sign(self, ui):
+        account = self.envelope.account
         if account.sign_by_default:
             if account.gpg_key:
                 self.envelope.sign = account.sign_by_default
@@ -908,7 +923,8 @@ class ComposeCommand(Command):
                 logging.warning(msg)
                 ui.notify(msg, priority='error')
 
-        # get missing To header
+    async def _set_to(self, ui):
+        account = self.envelope.account
         if 'To' not in self.envelope.headers:
             allbooks = not settings.get('complete_matching_abook_only')
             logging.debug(allbooks)
@@ -925,32 +941,8 @@ class ComposeCommand(Command):
             ui.recipienthistory.append(to)
             self.envelope.add('To', to)
 
-        if settings.get('ask_subject') and \
-                'Subject' not in self.envelope.headers:
-            subject = await ui.prompt('Subject')
-            logging.debug('SUBJECT: "%s"', subject)
-            if subject is None:
-                raise CommandCanceled()
-
-            self.envelope.add('Subject', subject)
-
-        if settings.get('compose_ask_tags'):
-            comp = TagsCompleter(ui.dbman)
-            tags = ','.join(self.tags) if self.tags else ''
-            tagsstring = await ui.prompt('Tags', text=tags, completer=comp)
-            tags = [t for t in tagsstring.split(',') if t]
-            if tags is None:
-                raise CommandCanceled()
-
-            self.envelope.tags = tags
-
-        if self.attach:
-            for gpath in self.attach:
-                for a in glob.glob(gpath):
-                    self.envelope.attach(a)
-                    logging.debug('attaching: %s', a)
-
-        # set encryption if needed
+    async def _set_gpg_encrypt(self, ui):
+        account = self.envelope.account
         if self.encrypt or account.encrypt_by_default == u"all":
             logging.debug("Trying to encrypt message because encrypt=%s and "
                           "encrypt_by_default=%s", self.encrypt,
@@ -966,10 +958,83 @@ class ComposeCommand(Command):
             logging.debug("No encryption by default, encrypt_by_default=%s",
                           account.encrypt_by_default)
 
+    def _set_base_attributes(self):
+        # set forced headers
+        for key, value in self.headers.items():
+            self.envelope.add(key, value)
+
+        # set forced headers for separate parameters
+        if self.sender:
+            self.envelope.add('From', self.sender)
+        if self.subject:
+            self.envelope.add('Subject', self.subject)
+        if self.to:
+            self.envelope.add('To', ','.join(self.to))
+        if self.cc:
+            self.envelope.add('Cc', ','.join(self.cc))
+        if self.bcc:
+            self.envelope.add('Bcc', ','.join(self.bcc))
+        if self.tags:
+            self.envelope.tags = [t for t in self.tags.split(',') if t]
+
+    async def _set_subject(self, ui):
+        if settings.get('ask_subject') and \
+                'Subject' not in self.envelope.headers:
+            subject = await ui.prompt('Subject')
+            logging.debug('SUBJECT: "%s"', subject)
+            if subject is None:
+                raise CommandCanceled()
+
+            self.envelope.add('Subject', subject)
+
+    async def _set_compose_tags(self, ui):
+        if settings.get('compose_ask_tags'):
+            comp = TagsCompleter(ui.dbman)
+            tags = ','.join(self.tags) if self.tags else ''
+            tagsstring = await ui.prompt('Tags', text=tags, completer=comp)
+            tags = [t for t in tagsstring.split(',') if t]
+            if tags is None:
+                raise CommandCanceled()
+
+            self.envelope.tags = tags
+
+    def _set_attachments(self):
+        if self.attach:
+            for gpath in self.attach:
+                for a in glob.glob(gpath):
+                    self.envelope.attach(a)
+                    logging.debug('attaching: %s', a)
+
+    async def __apply(self, ui):
+        self._set_envelope()
+        if self.template is not None:
+            self._get_template(ui)
+        # Set headers and tags
+        self._set_base_attributes()
+        # set account and missing From header
+        await self._get_sender_details(ui)
+
+        # add signature
+        await self._set_signature(ui)
+        # Figure out whether we should GPG sign messages by default
+        # and look up key if so
+        self._set_gpg_sign(ui)
+        # get missing To header
+        await self._set_to(ui)
+        # Set subject
+        await self._set_subject(ui)
+        # Add additional tags
+        await self._set_compose_tags(ui)
+        # Set attachments
+        self._set_attachments()
+        # set encryption if needed
+        await self._set_gpg_encrypt(ui)
+
         cmd = commands.envelope.EditCommand(envelope=self.envelope,
                                             spawn=self.force_spawn,
                                             refocus=False)
         await ui.apply_command(cmd)
+
 
 
 @registerCommand(
