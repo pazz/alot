@@ -60,3 +60,14 @@ A man page can be generated using::
   make -C docs man
 
 Both will end up in their respective subfolders in :file:`docs/build`.
+
+In order to remove the command docs and automatically re-generate them from inline docstrings, use the make target `cleanall`, as in::
+
+  make -C docs cleanall html
+
+.. note:: On Debian you need to overide the variable `PYTHON` used in the makefile
+          so that it uses "python3", not "python", which by default links to
+          version 2.7* of the interpreter.
+          ::
+
+            make PYTHON="python3" -C docs cleanall html
