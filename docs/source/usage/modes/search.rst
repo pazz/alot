@@ -38,14 +38,14 @@ The following commands are available in search mode:
 
 .. describe:: retag
 
-    set tags of all messages in the thread that match the current query
+    set tags to all messages in the selected thread
 
     argument
         comma separated list of tags
 
     optional arguments
         :---no-flush: postpone a writeout to the index (defaults to: 'True')
-        :---all: retag all messages in search result
+        :---all: retag all messages that match the current query
 
 .. _cmd.search.retagprompt:
 
@@ -89,20 +89,20 @@ The following commands are available in search mode:
 
 .. describe:: tag
 
-    add tags to all messages in the thread that match the current query
+    add tags to all messages in the selected thread
 
     argument
         comma separated list of tags
 
     optional arguments
         :---no-flush: postpone a writeout to the index (defaults to: 'True')
-        :---all: retag all messages in search result
+        :---all: tag all messages that match the current search query
 
 .. _cmd.search.toggletags:
 
 .. describe:: toggletags
 
-    flip presence of tags on this thread: a tag is considered present and will be removed if at least one message in this thread is tagged with it
+    flip presence of tags on the selected thread: a tag is considered present and will be removed if at least one message in this thread is tagged with it
 
     argument
         comma separated list of tags
@@ -114,12 +114,12 @@ The following commands are available in search mode:
 
 .. describe:: untag
 
-    remove tags from all messages in the thread that match the query
+    remove tags from all messages in the selected thread
 
     argument
         comma separated list of tags
 
     optional arguments
         :---no-flush: postpone a writeout to the index (defaults to: 'True')
-        :---all: retag all messages in search result
+        :---all: untag all messages that match the current query
 
