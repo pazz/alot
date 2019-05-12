@@ -34,7 +34,7 @@ addons:
       - libxapian-dev
       - libtalloc-dev
       - zlib1g-dev
-      - libgmime-2.6-dev
+      - libgmime-3.0-dev
 
       # dependencies to build the python-gpg module from source
       - swig
