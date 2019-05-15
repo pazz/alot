@@ -169,7 +169,7 @@ class MessageTree(CollapsibleTree):
         self._default_headers_tree = None
         self.display_attachments = True
         self._attachments = None
-        self._maintree = SimpleTree(self._assemble_structure())
+        self._maintree = SimpleTree(self._assemble_structure(True))
         CollapsibleTree.__init__(self, self._maintree)
 
     def get_message(self):
@@ -191,7 +191,10 @@ class MessageTree(CollapsibleTree):
         logging.debug('DHT %s', str(self._default_headers_tree))
         logging.debug('MAINTREE %s', str(self._maintree._treelist))
 
-    def _assemble_structure(self):
+    def _assemble_structure(self, summary_only=False):
+        if summary_only:
+            return [(self._get_summary(), None)]
+
         mainstruct = []
         if self.display_source:
             mainstruct.append((self._get_source(), None))
