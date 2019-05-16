@@ -433,6 +433,11 @@ def libmagic_version_at_least(version):
         # if it's not present, we can't guess right, so let's assume False
         return False
 
+    # Depending on the libmagic/ctypes version, magic_version is a function or
+    # a callable:
+    if callable(magic_wrapper.magic_version):
+        return magic_wrapper.magic_version() >= version
+
     return magic_wrapper.magic_version >= version
 
 
