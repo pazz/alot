@@ -24,19 +24,21 @@ A full list of dependencies is below:
 
 * `libmagic and python bindings <http://darwinsys.com/file/>`_, ≥ `5.04`
 * `configobj <http://www.voidspace.org.uk/python/configobj.html>`_, ≥ `4.7.0`
-* `libnotmuch <http://notmuchmail.org/>`_ and it's python bindings, ≥ `0.13`
+* `libnotmuch <http://notmuchmail.org/>`_ and it's python bindings, ≥ `0.27`
 * `urwid <http://excess.org/urwid/>`_ toolkit, ≥ `1.3.0`
 * `urwidtrees <https://github.com/pazz/urwidtrees>`_, ≥ `1.0`
 * `gpg <http://www.gnupg.org/related_software/gpgme>`_ and it's python bindings, ≥ `1.9.0`
+* `twisted <https://twistedmatrix.com>`_, ≥ `10.2.0`
 
 
 On Debian/Ubuntu these are packaged as::
 
-  python3-setuptools python3-magic python3-configobj python3-notmuch python3-urwid python3-urwidtrees python3-gpg
+  python3-setuptools python3-magic python3-configobj python3-notmuch python3-urwid python3-urwidtrees python3-gpg python3-twisted
   
 On Fedora/Redhat these are packaged as::
 
-  python-setuptools python-magic python-configobj python-notmuch python-urwid python-urwidtrees python-gpg
+  python-setuptools python-magic python-configobj python-notmuch python-urwid python-urwidtrees python-gpg python-twisted
+
 
 To set up and install the latest development version::
 
