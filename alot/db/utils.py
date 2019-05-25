@@ -547,3 +547,45 @@ def is_subdir_of(subpath, superpath):
     # return true, if the common prefix of both is equal to directory
     # e.g. /a/b/c/d.rst and directory is /a/b, the common prefix is /a/b
     return os.path.commonprefix([subpath, superpath]) == superpath
+
+
+def formataddr(pair, **kwargs):
+    """wraps around email.utils.formataddr and adds a more digestable error
+    message in case the address contains non-ascii chars"""
+    try:
+        return email.utils.formataddr(pair, **kwargs)
+    except UnicodeEncodeError as e:
+        msg = "address \"%s\" contains non-ascii characters! " \
+              "This violates RFC 2047" % pair[1]
+        raise Exception(msg)
+
+
+def clear_my_address(my_account, value):
+    """return recipient header without the addresses in my_account
+
+    :param my_account: my account
+    :type my_account: :class:`Account`
+    :param value: a list of recipient or sender strings (with or without
+        real names as taken from email headers)
+    :type value: list(str)
+    :returns: a new, potentially shortend list
+    :rtype: list(str)
+    """
+    new_value = []
+    for name, address in email.utils.getaddresses(value):
+        if not my_account.matches_address(address):
+            new_value.append(formataddr((name, address)))
+    return new_value
+
+
+def ensure_unique_address(recipients):
+    """
+    clean up a list of name,address pairs so that
+    no address appears multiple times.
+    """
+    res = dict()
+    for name, address in email.utils.getaddresses(recipients):
+        res[address] = name
+    logging.debug(res)
+    urecipients = [formataddr((n, a)) for a, n in res.items()]
+    return sorted(urecipients)
