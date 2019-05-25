@@ -191,6 +191,19 @@ class MessageTree(CollapsibleTree):
         logging.debug('DHT %s', str(self._default_headers_tree))
         logging.debug('MAINTREE %s', str(self._maintree._treelist))
 
+    def expand(self, pos):
+        """
+        overload CollapsibleTree.expand method to ensure all parts are present.
+        Initially, only the summary widget is created to avoid reading the
+        messafe file and thus speed up the creation of this object. Once we
+        expand = unfold the message, we need to make sure that body/attachments
+        exist.
+        """
+        logging.debug("MT expand")
+        if not self._bodytree:
+            self.reassemble()
+        CollapsibleTree.expand(self, pos)
+
     def _assemble_structure(self, summary_only=False):
         if summary_only:
             return [(self._get_summary(), None)]
