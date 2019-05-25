@@ -29,6 +29,8 @@ from ..db.utils import decode_header
 from ..db.utils import formataddr
 from ..db.utils import extract_headers
 from ..db.utils import extract_body
+from ..db.utils import clear_my_address
+from ..db.utils import ensure_unique_address
 from ..db.envelope import Envelope
 from ..db.attachment import Attachment
 from ..db.errors import DatabaseROError
@@ -204,7 +206,7 @@ class ReplyCommand(Command):
             # make sure that our own address is not included
             # if the message was self-sent, then our address is not included
             MFT = mail.get_all('Mail-Followup-To', [])
-            followupto = self.clear_my_address(account, MFT)
+            followupto = clear_my_address(account, MFT)
             if followupto and settings.get('honor_followup_to'):
                 logging.debug('honor followup to: %s', ', '.join(followupto))
                 recipients = followupto
@@ -215,17 +217,16 @@ class ReplyCommand(Command):
 
                 # append To addresses if not replying to self sent message
                 if not account.matches_address(sender_address):
-                    cleared = self.clear_my_address(
-                        account, mail.get_all('To', []))
+                    cleared = clear_my_address(account,
+                                               mail.get_all('To', []))
                     recipients.extend(cleared)
 
                 # copy cc for group-replies
                 if 'Cc' in mail:
-                    cc = self.clear_my_address(
-                        account, mail.get_all('Cc', []))
+                    cc = clear_my_address(account, mail.get_all('Cc', []))
                     envelope.add('Cc', decode_header(', '.join(cc)))
 
-        to = ', '.join(self.ensure_unique_address(recipients))
+        to = ', '.join(ensure_unique_address(recipients))
         logging.debug('reply to: %s', to)
 
         if self.listreply:
@@ -279,36 +280,6 @@ class ReplyCommand(Command):
         await ui.apply_command(ComposeCommand(envelope=envelope,
                                               spawn=self.force_spawn,
                                               encrypt=encrypt))
-
-    @staticmethod
-    def clear_my_address(my_account, value):
-        """return recipient header without the addresses in my_account
-
-        :param my_account: my account
-        :type my_account: :class:`Account`
-        :param value: a list of recipient or sender strings (with or without
-            real names as taken from email headers)
-        :type value: list(str)
-        :returns: a new, potentially shortend list
-        :rtype: list(str)
-        """
-        new_value = []
-        for name, address in getaddresses(value):
-            if not my_account.matches_address(address):
-                new_value.append(formataddr((name, str(address))))
-        return new_value
-
-    @staticmethod
-    def ensure_unique_address(recipients):
-        """
-        clean up a list of name,address pairs so that
-        no address appears multiple times.
-        """
-        res = dict()
-        for name, address in getaddresses(recipients):
-            res[address] = name
-        urecipients = [formataddr((n, str(a))) for a, n in res.items()]
-        return sorted(urecipients)
 
 
 @registerCommand(MODE, 'forward', arguments=[
