@@ -272,6 +272,12 @@ class TestDecodeHeader(unittest.TestCase):
         expected = u'first\nsecond third fourth fifth'
         actual = utils.decode_header(text, normalize=True)
         self.assertEqual(actual, expected)
+    
+    def test_exchange_quotes_remain(self):
+        # issue #1347
+        expected = u'"Mouse, Michaël" <x@y.z>'
+        text = self._quote(expected, 'utf-8')
+        self._test(text, expected)
 
 
 class TestAddSignatureHeaders(unittest.TestCase):
