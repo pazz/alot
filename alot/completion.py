@@ -20,7 +20,7 @@ from .errors import CompletionError
 from .utils.cached_property import cached_property
 
 
-class Completer(object):
+class Completer:
     """base class for completers"""
 
     __metaclass__ = abc.ABCMeta

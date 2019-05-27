@@ -25,8 +25,7 @@ MISSING_HTML_MSG = ("This message contains a text/html part that was not "
 
 
 @functools.total_ordering
-class Message(object):
-
+class Message:
     """
     a persistent notmuch message object.
     It it uses a :class:`~alot.db.DBManager` for cached manipulation

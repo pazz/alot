@@ -3,7 +3,7 @@
 # For further details see the COPYING file
 
 
-class Buffer(object):
+class Buffer:
     """Abstract base class for buffers."""
 
     modename = None  # mode identifier for subclasses

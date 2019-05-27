@@ -65,8 +65,7 @@ class FillPipeProcess(multiprocessing.Process):
         self.pipe.close()
 
 
-class DBManager(object):
-
+class DBManager:
     """
     Keeps track of your index parameters, maintains a write-queue and
     lets you look up threads and messages directly to the persistent wrapper

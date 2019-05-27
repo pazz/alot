@@ -27,7 +27,7 @@ DATA_DIRS = get_xdg_env('XDG_DATA_DIRS',
                         '/usr/local/share:/usr/share').split(':')
 
 
-class SettingsManager(object):
+class SettingsManager:
     """Organizes user settings"""
     def __init__(self):
         self.hooks = None

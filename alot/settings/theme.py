@@ -11,7 +11,7 @@ DEFAULTSPATH = os.path.join(os.path.dirname(__file__), '..', 'defaults')
 DUMMYDEFAULT = ('default',) * 6
 
 
-class Theme(object):
+class Theme:
     """Colour theme"""
     def __init__(self, path):
         """

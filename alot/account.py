@@ -15,7 +15,7 @@ from .helper import call_cmd_async
 from .helper import split_commandstring
 
 
-class Address(object):
+class Address:
 
     """A class that represents an email address.
 
@@ -160,7 +160,7 @@ class StoreMailError(Exception):
     pass
 
 
-class Account(object):
+class Account:
     """
     Datastructure that represents an email account. It manages this account's
     settings, can send and store mails to maildirs (drafts/send).

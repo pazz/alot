@@ -13,8 +13,7 @@ from .utils import decode_header
 charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 
 
-class Attachment(object):
-
+class Attachment:
     """represents a mail attachment"""
 
     def __init__(self, emailpart):

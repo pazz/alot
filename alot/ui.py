@@ -34,7 +34,7 @@ async def periodic(callable_, period, *args, **kwargs):
         await asyncio.sleep(period)
 
 
-class UI(object):
+class UI:
     """
     This class integrates all components of alot and offers
     methods for user interaction like :meth:`prompt`, :meth:`notify` etc.

@@ -24,9 +24,10 @@ from ..errors import GPGProblem, GPGCode
 charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 
 
-class Envelope(object):
+class Envelope:
+    """
+    a message that is not yet sent and still editable.
 
-    """a message that is not yet sent and still editable.
     It holds references to unencoded! body text and mail headers among other
     things.  Envelope implements the python container API for easy access of
     header values.  So `e['To']`, `e['To'] = 'foo@bar.baz'` and

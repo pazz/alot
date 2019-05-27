@@ -9,7 +9,7 @@ class AddressbookError(Exception):
     pass
 
 
-class AddressBook(object):
+class AddressBook:
     """can look up email addresses and realnames for contacts.
 
     .. note::

@@ -7,7 +7,7 @@ from .message import Message
 from ..settings.const import settings
 
 
-class Thread(object):
+class Thread:
     """
     A wrapper around a notmuch mailthread (:class:`notmuch.database.Thread`)
     that ensures persistence of the thread: It can be safely read multiple

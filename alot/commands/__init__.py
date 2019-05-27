@@ -11,7 +11,7 @@ from ..settings.const import settings
 from ..helper import split_commandstring, string_decode
 
 
-class Command(object):
+class Command:
 
     """base class for commands"""
     repeatable = False
@@ -90,8 +90,7 @@ class CommandArgumentParser(argparse.ArgumentParser):
         raise CommandParseError(message)
 
 
-class registerCommand(object):
-
+class registerCommand:
     """
     Decorator used to register a :class:`Command` as
     handler for command `name` in `mode` so that it
