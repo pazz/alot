@@ -777,3 +777,30 @@ class TestRemoveCte(unittest.TestCase):
         logmsg = 'DEBUG:root:failed to interpret Content-Transfer-Encoding: '\
                  '"normal"'
         self.assertIn(logmsg, cm.output)
+
+
+class Test_ensure_unique_address(unittest.TestCase):
+
+    foo = 'foo <foo@example.com>'
+    foo2 = 'foo the fanzy <foo@example.com>'
+    bar = 'bar <bar@example.com>'
+    baz = 'baz <baz@example.com>'
+
+    def test_unique_lists_are_unchanged(self):
+        expected = sorted([self.foo, self.bar])
+        actual = utils.ensure_unique_address(expected)
+        self.assertListEqual(actual, expected)
+
+    def test_equal_entries_are_detected(self):
+        actual = utils.ensure_unique_address(
+            [self.foo, self.bar, self.foo])
+        expected = sorted([self.foo, self.bar])
+        self.assertListEqual(actual, expected)
+
+    def test_same_address_with_different_name_is_detected(self):
+        actual = utils.ensure_unique_address(
+            [self.foo, self.foo2])
+        expected = [self.foo2]
+        self.assertListEqual(actual, expected)
+
+
