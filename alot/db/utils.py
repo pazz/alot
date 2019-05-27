@@ -512,6 +512,20 @@ def extract_body(mail, types=None, field_key='copiousoutput'):
     return u'\n\n'.join(body_parts)
 
 
+def formataddr(pair):
+    """ this is the inverse of email.utils.parseaddr:
+    other than email.utils.formataddr, this
+    - *will not* re-encode unicode strings, and
+    - *will* re-introduce quotes around real names containing commas
+    """
+    name, address = pair
+    if not name:
+        return address
+    elif ',' in name:
+        name = "\"" + name + "\""
+    return "{0} <{1}>".format(name, address)
+
+
 def decode_header(header, normalize=False):
     """
     decode a header value to a unicode string
