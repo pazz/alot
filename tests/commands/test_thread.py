@@ -27,57 +27,6 @@ class _AccountTestClass(Account):
         pass
 
 
-class TestClearMyAddress(unittest.TestCase):
-
-    me1 = u'me@example.com'
-    me2 = u'ME@example.com'
-    me3 = u'me+label@example.com'
-    me4 = u'ME+label@example.com'
-    me_regex = r'me\+.*@example.com'
-    me_named = u'alot team <me@example.com>'
-    you = u'you@example.com'
-    named = u'somebody you know <somebody@example.com>'
-    imposter = u'alot team <imposter@example.com>'
-    mine = _AccountTestClass(
-        address=me1, aliases=[], alias_regexp=me_regex, case_sensitive_username=True)
-
-
-    def test_empty_input_returns_empty_list(self):
-        self.assertListEqual(
-            thread.ReplyCommand.clear_my_address(self.mine, []), [])
-
-    def test_only_my_emails_result_in_empty_list(self):
-        expected = []
-        actual = thread.ReplyCommand.clear_my_address(
-            self.mine, [self.me1, self.me3, self.me_named])
-        self.assertListEqual(actual, expected)
-
-    def test_other_emails_are_untouched(self):
-        input_ = [self.you, self.me1, self.me_named, self.named]
-        expected = [self.you, self.named]
-        actual = thread.ReplyCommand.clear_my_address(self.mine, input_)
-        self.assertListEqual(actual, expected)
-
-    def test_case_matters(self):
-        input_ = [self.me1, self.me2, self.me3, self.me4]
-        expected = [self.me2, self.me4]
-        actual = thread.ReplyCommand.clear_my_address(self.mine, input_)
-        self.assertListEqual(actual, expected)
-
-    def test_same_address_with_different_real_name_is_removed(self):
-        input_ = [self.me_named, self.you]
-        expected = [self.you]
-        actual = thread.ReplyCommand.clear_my_address(self.mine, input_)
-        self.assertListEqual(actual, expected)
-
-
-class _AccountTestClass(Account):
-    """Implements stubs for ABC methods."""
-
-    def send_mail(self, mail):
-        pass
-
-
 class TestDetermineSender(unittest.TestCase):
 
     header_priority = ["From", "To", "Cc", "Envelope-To", "X-Envelope-To",
