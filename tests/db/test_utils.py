@@ -9,6 +9,7 @@ import email
 import email.header
 import email.mime.application
 import email.policy
+import email.utils
 import io
 import os
 import os.path
@@ -856,3 +857,27 @@ class TestClearMyAddress(unittest.TestCase):
         self.assertListEqual(actual, expected)
 
 
+class TestFormataddr(unittest.TestCase):
+
+    address = u'me@example.com'
+    umlauts_and_comma = '"Ö, Ä" <a@b.c>'
+
+    def test_is_inverse(self):
+        self.assertEqual(
+                utils.formataddr(email.utils.parseaddr(self.umlauts_and_comma)),
+                self.umlauts_and_comma
+                )
+    
+    def test_address_only(self):
+        self.assertEqual(utils.formataddr(("", self.address)), self.address)
+    
+    def test_name_and_address_no_comma(self):
+        self.assertEqual(
+                utils.formataddr(("Me", self.address)),
+                "Me <me@example.com>"
+                )
+    def test_name_and_address_with_comma(self):
+        self.assertEqual(
+                utils.formataddr(("Last, Name", self.address)),
+                "\"Last, Name\" <me@example.com>"
+                )
