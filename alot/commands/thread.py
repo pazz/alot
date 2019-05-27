@@ -136,7 +136,7 @@ class ReplyCommand(Command):
         mail = self.message.get_email()
 
         # set body text
-        name, address = self.message.get_author()
+        name, address = parseaddr(mail['From'])
         timestamp = self.message.get_date()
         qf = settings.get_hook('reply_prefix')
         if qf:
