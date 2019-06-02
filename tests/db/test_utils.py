@@ -9,6 +9,7 @@ import email
 import email.header
 import email.mime.application
 import email.policy
+import email.utils
 import io
 import os
 import os.path
@@ -22,6 +23,7 @@ import mock
 from alot import crypto
 from alot.db import utils
 from alot.errors import GPGProblem
+from alot.account import Account
 from ..utilities import make_key, make_uid, TestCaseClassCleanup
 
 
@@ -777,3 +779,105 @@ class TestRemoveCte(unittest.TestCase):
         logmsg = 'DEBUG:root:failed to interpret Content-Transfer-Encoding: '\
                  '"normal"'
         self.assertIn(logmsg, cm.output)
+
+
+class Test_ensure_unique_address(unittest.TestCase):
+
+    foo = 'foo <foo@example.com>'
+    foo2 = 'foo the fanzy <foo@example.com>'
+    bar = 'bar <bar@example.com>'
+    baz = 'baz <baz@example.com>'
+
+    def test_unique_lists_are_unchanged(self):
+        expected = sorted([self.foo, self.bar])
+        actual = utils.ensure_unique_address(expected)
+        self.assertListEqual(actual, expected)
+
+    def test_equal_entries_are_detected(self):
+        actual = utils.ensure_unique_address(
+            [self.foo, self.bar, self.foo])
+        expected = sorted([self.foo, self.bar])
+        self.assertListEqual(actual, expected)
+
+    def test_same_address_with_different_name_is_detected(self):
+        actual = utils.ensure_unique_address(
+            [self.foo, self.foo2])
+        expected = [self.foo2]
+        self.assertListEqual(actual, expected)
+
+
+class _AccountTestClass(Account):
+    """Implements stubs for ABC methods."""
+
+    def send_mail(self, mail):
+        pass
+
+
+class TestClearMyAddress(unittest.TestCase):
+
+    me1 = u'me@example.com'
+    me2 = u'ME@example.com'
+    me3 = u'me+label@example.com'
+    me4 = u'ME+label@example.com'
+    me_regex = r'me\+.*@example.com'
+    me_named = u'alot team <me@example.com>'
+    you = u'you@example.com'
+    named = u'somebody you know <somebody@example.com>'
+    imposter = u'alot team <imposter@example.com>'
+    mine = _AccountTestClass(
+        address=me1, aliases=[], alias_regexp=me_regex, case_sensitive_username=True)
+
+
+    def test_empty_input_returns_empty_list(self):
+        self.assertListEqual(
+            utils.clear_my_address(self.mine, []), [])
+
+    def test_only_my_emails_result_in_empty_list(self):
+        expected = []
+        actual = utils.clear_my_address(
+            self.mine, [self.me1, self.me3, self.me_named])
+        self.assertListEqual(actual, expected)
+
+    def test_other_emails_are_untouched(self):
+        input_ = [self.you, self.me1, self.me_named, self.named]
+        expected = [self.you, self.named]
+        actual = utils.clear_my_address(self.mine, input_)
+        self.assertListEqual(actual, expected)
+
+    def test_case_matters(self):
+        input_ = [self.me1, self.me2, self.me3, self.me4]
+        expected = [self.me2, self.me4]
+        actual = utils.clear_my_address(self.mine, input_)
+        self.assertListEqual(actual, expected)
+
+    def test_same_address_with_different_real_name_is_removed(self):
+        input_ = [self.me_named, self.you]
+        expected = [self.you]
+        actual = utils.clear_my_address(self.mine, input_)
+        self.assertListEqual(actual, expected)
+
+
+class TestFormataddr(unittest.TestCase):
+
+    address = u'me@example.com'
+    umlauts_and_comma = '"Ö, Ä" <a@b.c>'
+
+    def test_is_inverse(self):
+        self.assertEqual(
+                utils.formataddr(email.utils.parseaddr(self.umlauts_and_comma)),
+                self.umlauts_and_comma
+                )
+    
+    def test_address_only(self):
+        self.assertEqual(utils.formataddr(("", self.address)), self.address)
+    
+    def test_name_and_address_no_comma(self):
+        self.assertEqual(
+                utils.formataddr(("Me", self.address)),
+                "Me <me@example.com>"
+                )
+    def test_name_and_address_with_comma(self):
+        self.assertEqual(
+                utils.formataddr(("Last, Name", self.address)),
+                "\"Last, Name\" <me@example.com>"
+                )
