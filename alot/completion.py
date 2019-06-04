@@ -14,6 +14,7 @@ from . import commands
 from .buffers import EnvelopeBuffer
 from .settings.const import settings
 from .utils import argparse as cargparse
+from .db.utils import formataddr
 from .helper import split_commandline
 from .addressbook import AddressbookError
 from .errors import CompletionError
@@ -248,7 +249,7 @@ class AbooksCompleter(Completer):
         else:
             returnlist = []
             for name, addr in res:
-                newtext = email.utils.formataddr((name, addr))
+                newtext = formataddr((name, addr))
                 returnlist.append((newtext, len(newtext)))
         return returnlist
 
