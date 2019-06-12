@@ -32,6 +32,7 @@ from ..completion import TagsCompleter
 from ..widgets.utils import DialogBox
 from ..db.errors import DatabaseLockedError
 from ..db.envelope import Envelope
+from ..db.utils import formataddr
 from ..settings.const import settings
 from ..settings.errors import ConfigError, NoMatchingAccount
 from ..utils import argparse as cargparse
@@ -820,7 +821,7 @@ class ComposeCommand(Command):
         # get missing From header
         if 'From' not in self.envelope.headers:
             if account is not None:
-                fromstring = email.utils.formataddr(
+                fromstring = formataddr(
                     (account.realname, str(account.address)))
                 self.envelope.add('From', fromstring)
             else:

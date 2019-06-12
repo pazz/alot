@@ -11,6 +11,7 @@ import re
 
 from . import crypto
 from . import commands
+from .db.utils import formataddr
 from .buffers import EnvelopeBuffer
 from .settings.const import settings
 from .utils import argparse as cargparse
@@ -248,7 +249,7 @@ class AbooksCompleter(Completer):
         else:
             returnlist = []
             for name, addr in res:
-                newtext = email.utils.formataddr((name, addr))
+                newtext = formataddr((name, addr))
                 returnlist.append((newtext, len(newtext)))
         return returnlist
 
@@ -292,7 +293,7 @@ class AccountCompleter(StringlistCompleter):
 
     def __init__(self, **kwargs):
         accounts = settings.get_accounts()
-        resultlist = [email.utils.formataddr((a.realname, str(a.address)))
+        resultlist = [formataddr((a.realname, str(a.address)))
                       for a in accounts]
         StringlistCompleter.__init__(self, resultlist, match_anywhere=True,
                                      **kwargs)
