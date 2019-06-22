@@ -32,7 +32,7 @@ Have a look at the default theme file at :file:`alot/defaults/default.theme` and
 
 Colour Attributes
 -----------------
-Attributes are *sextuples* of `urwid Attribute strings <http://excess.org/urwid/wiki/DisplayAttributes>`__
+Attributes are *sextuples* of `urwid Attribute strings <http://urwid.org/manual/displayattributes.html>`__
 that specify foreground and background for mono, 16 and 256-colour modes respectively.
 For mono-mode only the flags `blink`, `standup`, `underline` and `bold` are available,
 16c mode supports these in combination with the colour names::
@@ -43,8 +43,8 @@ For mono-mode only the flags `blink`, `standup`, `underline` and `bold` are avai
 
 In high-colour mode, you may use the above plus grayscales `g0` to `g100` and
 colour codes given as `#` followed by three hex values.
-See `here <http://excess.org/urwid/wiki/DisplayAttributes>`__
-and `here <http://excess.org/urwid/reference.html#AttrSpec>`__
+See `here <http://urwid.org/manual/displayattributes.html>`__
+and `here <http://urwid.org/reference/attrspec.html#urwid.AttrSpec>`__
 for more details on the interpreted values.  A colour picker that makes choosing colours easy can be
 found in :file:`alot/extra/colour_picker.py`.
 
