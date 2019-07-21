@@ -203,15 +203,6 @@ class Account:
                  abook=None, sign_by_default=False,
                  encrypt_by_default=u"none", encrypt_to_self=None,
                  case_sensitive_username=False, **_):
-        sent_tags = sent_tags or []
-        if 'sent' not in sent_tags:
-            sent_tags.append('sent')
-        draft_tags = draft_tags or []
-        if 'draft' not in draft_tags:
-            draft_tags.append('draft')
-        replied_tags = replied_tags or []
-        passed_tags = passed_tags or []
-
         self.address = Address.from_string(
             address, case_sensitive=case_sensitive_username)
         self.aliases = [
