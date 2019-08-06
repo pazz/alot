@@ -1,4 +1,5 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
+# Copyright © 2018 Dylan Baker
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 from collections import deque
@@ -22,6 +23,81 @@ from .message import Message
 from .thread import Thread
 from .utils import is_subdir_of
 from ..settings.const import settings
+
+THREAD_BUFFER = 100
+
+
+class SizedPipe:
+
+    """Pipe-like object with a size limitation.
+
+    This class operates much like the builtin
+    :class:`multiprocessing.Connection` class, but with a size restriction.
+    Internally this is handled using a :class:`multiprocessing.Semaphore`
+    object, which is setup with a limited number of accesses.
+
+    :param pipe: A Connection to use for reading and writing
+    :type pipe: multiprocessing.Connection
+    :param read_sem: A semaphore to control reads, or None
+    :type read_sem: multiprocessing.Semaphore or None
+    :param read_sem: A semaphore to control writes, or None
+    :type read_sem: multiprocessing.Semaphore or None
+    """
+
+    def __init__(self, pipe, read_sem, write_sem):
+        self.__pipe = pipe
+        self.__r_sem = read_sem
+        self.__w_sem = write_sem
+        self.close = self.__pipe.close
+        self.poll = self.__pipe.poll
+
+    def send(self, obj):
+        """Send data to the pipe.
+
+        :param obj: The object to put on the pipe
+        :raises OSError: If the underlying pipe is read-only
+        """
+        if not self.__w_sem:
+            raise OSError("This Pipe is read-only")
+        self.__w_sem.acquire()
+        self.__pipe.send(obj)
+        # Don't release the semaphore, that's done when recv is called.
+
+    def recv(self):
+        """Get data from the pipe.
+
+        :returns: The next object on the pipe.
+        :raises OSError: If the underlying pipe is write-only
+        """
+        if not self.__r_sem:
+            raise OSError("This Pipe is write-only")
+        val = self.__pipe.recv()
+        self.__r_sem.release()
+        return val
+
+
+def sized_pipe(duplex=True, maxsize=1):
+    """Function like multiprocessing.Pipe but returns SizedPipe.
+
+    :param bool duplex: True if the pipes are bi-directional, False for
+        unidirectional pipes
+    :param int maxsize: The size of the pipes.
+    :raises ValueError: If maxsize is < 1
+    :returns: two pipe-like objects.
+    :rtype: tuple[SizedPipe, SizedPipe]
+    """
+    if maxsize < 1:
+        raise ValueError("Size must be at least 1")
+    sem1 = multiprocessing.Semaphore(value=maxsize)
+    # If duplexing we need two semaphores, otherwise a None.
+    sem2 = multiprocessing.Semaphore(value=maxsize) if duplex else None
+
+    recv, send = multiprocessing.Pipe(duplex)
+
+    rpipe = SizedPipe(recv, sem1, sem2)
+    wpipe = SizedPipe(send, sem2, sem1)
+
+    return rpipe, wpipe
 
 
 class FillPipeProcess(multiprocessing.Process):
@@ -329,7 +405,7 @@ class DBManager:
         stderr = os.pipe()
 
         # create a multiprocessing pipe for the results
-        pipe = multiprocessing.Pipe(False)
+        pipe = sized_pipe(duplex=False, maxsize=THREAD_BUFFER)
         receiver, sender = pipe
 
         process = FillPipeProcess(cbl(), stdout[1], stderr[1], pipe, fun)
