@@ -99,7 +99,12 @@ class TextlinesList(SimpleTree):
                 structure.append((FocusableText(line, attr, attr_focus), None))
         else:
             structure.append((FocusableText(content, attr, attr_focus), None))
+
+        if len(structure) == 0:
+                structure.append((FocusableText("", attr, attr_focus), None))
+
         SimpleTree.__init__(self, structure)
+
 
 
 class DictList(SimpleTree):
