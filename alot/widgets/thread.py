@@ -106,7 +106,6 @@ class TextlinesList(SimpleTree):
         SimpleTree.__init__(self, structure)
 
 
-
 class DictList(SimpleTree):
     """
     :class:`SimpleTree` that displays key-value pairs.
@@ -174,7 +173,10 @@ class MessageTree(CollapsibleTree):
         self._default_headers_tree = None
         self.display_attachments = True
         self._attachments = None
-        self.thread_message_text_translate = settings.get_hook('thread_message_text_translate')
+        self.thread_message_text_translate = settings.get_hook(
+            'thread_message_text_translate')
+        if not self.thread_message_text_translate:
+            self.thread_message_text_translate = lambda s, m: s
         self._maintree = SimpleTree(self._assemble_structure(True))
         CollapsibleTree.__init__(self, self._maintree)
 
@@ -259,8 +261,8 @@ class MessageTree(CollapsibleTree):
         if self._bodytree is None:
             bodytxt = self._message.accumulate_body()
             if bodytxt:
-                if self.thread_message_text_translate:
-                    bodytxt = self.thread_message_text_translate(bodytxt, self._message)
+                bodytxt = self.thread_message_text_translate(bodytxt,
+                                                             self._message)
                 att = settings.get_theming_attribute('thread', 'body')
                 att_focus = settings.get_theming_attribute(
                     'thread', 'body_focus')
