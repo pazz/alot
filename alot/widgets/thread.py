@@ -251,7 +251,7 @@ class MessageTree(CollapsibleTree):
 
     def _get_body(self):
         if self._bodytree is None:
-            bodytxt = self._message.accumulate_body()
+            bodytxt = self._message.get_body_text()
             if bodytxt:
                 att = settings.get_theming_attribute('thread', 'body')
                 att_focus = settings.get_theming_attribute(

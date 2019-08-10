@@ -18,11 +18,6 @@ from ..settings.const import settings
 
 charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 
-MISSING_HTML_MSG = ("This message contains a text/html part that was not "
-                    "rendered due to a missing mailcap entry. "
-                    "Please refer to item 5 in our FAQ: "
-                    "http://alot.rtfd.io/en/latest/faq.html")
-
 
 @functools.total_ordering
 class Message:
@@ -265,25 +260,9 @@ class Message:
                         self._attachments.append(Attachment(part))
         return self._attachments
 
-    def accumulate_body(self):
-        """
-        returns bodystring extracted from this mail
-        """
-        # TODO: allow toggle commands to decide which part is considered body
-        eml = self.get_email()
-        bodytext = self.get_body_text()
-
-        # check if extracted body is empty dispite having a text/html body part
-        if eml is not None:
-            bodypart = eml.get_body()
-            if (bodypart and
-                    bodypart.get_payload() and
-                    eml.get_content_type() == 'text/html' and
-                    not bodytext):
-                bodytext = MISSING_HTML_MSG
-        return bodytext
-
     def get_body_text(self):
+        """ returns bodystring extracted from this mail """
+        # TODO: allow toggle commands to decide which part is considered body
         return extract_body(self.get_email())
 
     def matches(self, querystring):
