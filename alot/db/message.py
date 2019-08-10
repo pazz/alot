@@ -99,7 +99,7 @@ class Message:
         return NotImplemented
 
     def get_email(self):
-        """returns :class:`email.Message` for this message"""
+        """returns :class:`email.email.EmailMessage` for this message"""
         path = self.get_filename()
         warning = "Subject: Caution!\n"\
                   "Message file is no longer accessible:\n%s" % path
