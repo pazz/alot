@@ -185,7 +185,7 @@ def prepare_subject_string(thread):
 def prepare_content_string(thread):
     msgs = sorted(thread.get_messages().keys(),
                   key=lambda msg: msg.get_date(), reverse=True)
-    lastcontent = ' '.join(m.get_text_content() for m in msgs)
+    lastcontent = ' '.join(m.get_body_text() for m in msgs)
     lastcontent = lastcontent.replace('^>.*$', '')
     return lastcontent
 
