@@ -149,10 +149,10 @@ class ReplyCommand(Command):
         mailcontent = quotestring
         quotehook = settings.get_hook('text_quote')
         if quotehook:
-            mailcontent += quotehook(self.message.accumulate_body())
+            mailcontent += quotehook(self.message.get_body_text())
         else:
             quote_prefix = settings.get('quote_prefix')
-            for line in self.message.accumulate_body().splitlines():
+            for line in self.message.get_body_text().splitlines():
                 mailcontent += quote_prefix + line + '\n'
 
         envelope = Envelope(bodytext=mailcontent, replied=self.message)
@@ -327,10 +327,10 @@ class ForwardCommand(Command):
             mailcontent = quote
             quotehook = settings.get_hook('text_quote')
             if quotehook:
-                mailcontent += quotehook(self.message.accumulate_body())
+                mailcontent += quotehook(self.message.get_body_text())
             else:
                 quote_prefix = settings.get('quote_prefix')
-                for line in self.message.accumulate_body().splitlines():
+                for line in self.message.get_body_text().splitlines():
                     mailcontent += quote_prefix + line + '\n'
 
             envelope.body = mailcontent
@@ -463,7 +463,7 @@ class EditNewCommand(Command):
                                 'signed', 'encrypted', 'unread', 'attachment'})
         tags = list(tags)
         # set body text
-        mailcontent = self.message.accumulate_body()
+        mailcontent = self.message.get_body_text()
         envelope = Envelope(bodytext=mailcontent, tags=tags)
 
         # copy selected headers

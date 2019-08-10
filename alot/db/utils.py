@@ -458,6 +458,12 @@ def remove_cte(part, as_string=False):
     return bp
 
 
+MISSING_HTML_MSG = ("This message contains a text/html part that was not "
+                    "rendered due to a missing mailcap entry. "
+                    "Please refer to item 5 in our FAQ: "
+                    "http://alot.rtfd.io/en/latest/faq.html")
+
+
 def extract_body(mail):
     """Returns a string view of a Message.
 
@@ -488,6 +494,9 @@ def extract_body(mail):
         rendered_payload = render_part(body_part)
         if rendered_payload:  # handler had output
             displaystring = string_sanitize(rendered_payload)
+        else:
+            if body_part.get_content_type() == 'text/html':
+                displaystring = MISSING_HTML_MSG
     return displaystring
 
 
