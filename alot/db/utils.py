@@ -314,7 +314,7 @@ def extract_headers(mail, headers=None):
     one line "KEY: VALUE" for each requested header present in the mail.
 
     :param mail: the mail to use
-    :type mail: :class:`email.Message`
+    :type mail: :class:`email.message.EmailMessage`
     :param headers: headers to extract
     :type headers: list of str
     """
@@ -394,7 +394,7 @@ def remove_cte(part, as_string=False):
     ..Note:: All this may be depricated in favour of
              `email.contentmanager.raw_data_manager` (v3.6+)
 
-    :param email.Message part: The part to decode
+    :param email.message.EmailMessage part: The part to decode
     :param bool as_string: If true return a str, otherwise return bytes
     :returns: The mail with any Content-Transfer-Encoding removed
     :rtype: Union[str, bytes]
@@ -466,7 +466,7 @@ def extract_body(mail):
     part.
 
     :param mail: the mail to use
-    :type mail: :class:`email.Message`
+    :type mail: :class:`email.message.EmailMessage`
     :returns: The combined text of any parts to be used
     :rtype: str
     """
