@@ -271,7 +271,7 @@ class Message:
         """
         # TODO: allow toggle commands to decide which part is considered body
         eml = self.get_email()
-        bodytext = self.get_text_content()
+        bodytext = self.get_body_text()
 
         # check if extracted body is empty dispite having a text/html body part
         if eml is not None:
@@ -283,7 +283,7 @@ class Message:
                 bodytext = MISSING_HTML_MSG
         return bodytext
 
-    def get_text_content(self):
+    def get_body_text(self):
         return extract_body(self.get_email())
 
     def matches(self, querystring):
