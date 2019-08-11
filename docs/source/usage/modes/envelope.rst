@@ -1,7 +1,7 @@
 .. CAUTION: THIS FILE IS AUTO-GENERATED!
 
 
-Commands in `envelope` mode
+Commands in 'envelope' mode
 ---------------------------
 The following commands are available in envelope mode:
 

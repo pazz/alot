@@ -45,7 +45,7 @@ def rstify_parser(parser):
     out += '.. describe:: %s\n\n' % parser.prog
 
     # description
-    out += ' '*4 + parser.description
+    out += ' ' * 4 + parser.description
     out += '\n\n'
 
     if len(parser._positionals._group_actions) == 1:
@@ -53,7 +53,7 @@ def rstify_parser(parser):
         a = parser._positionals._group_actions[0]
         out += ' '*8 + str(parser._positionals._group_actions[0].help)
         if a.choices:
-            out += "; valid choices are: %s" % ','.join(['\`%s\`' % s for s
+            out += "; valid choices are: %s" % ','.join(['\'%s\'' % s for s
                                                          in a.choices])
         if a.default:
             out += " (defaults to: '%s')" % a.default
@@ -64,7 +64,7 @@ def rstify_parser(parser):
             out += "        %s: %s" % (index, a.help)
             if a.choices:
                 out += "; valid choices are: %s" % ','.join(
-                    ['\`%s\`' % s for s in a.choices])
+                    ['\'%s\'' % s for s in a.choices])
             if a.default:
                 out += " (defaults to: '%s')" % a.default
             out += '\n'
@@ -76,7 +76,7 @@ def rstify_parser(parser):
         switches = [s.replace('--', '---') for s in a.option_strings]
         out += "        :%s: %s" % (', '.join(switches), a.help)
         if a.choices and not isinstance(a, BooleanAction):
-            out += "; valid choices are: %s" % ','.join(['\`%s\`' % s for s
+            out += "; valid choices are: %s" % ','.join(['\'%s\'' % s for s
                                                          in a.choices])
         if a.default:
             out += " (defaults to: '%s')" % a.default
@@ -84,6 +84,7 @@ def rstify_parser(parser):
     out += '\n'
 
     return out
+
 
 def get_mode_docs():
     docs = {}
@@ -105,7 +106,7 @@ if __name__ == "__main__":
         modefile.write(NOTE)
         if mode != 'global':
             modes.append(mode)
-            header = 'Commands in `%s` mode' % mode
+            header = 'Commands in \'%s\' mode' % mode
             modefile.write('%s\n%s\n' % (header, '-' * len(header)))
             modefile.write('The following commands are available in %s mode:'
                            '\n\n' % mode)

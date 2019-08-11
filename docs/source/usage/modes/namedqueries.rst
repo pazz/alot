@@ -1,7 +1,7 @@
 .. CAUTION: THIS FILE IS AUTO-GENERATED!
 
 
-Commands in `namedqueries` mode
+Commands in 'namedqueries' mode
 -------------------------------
 The following commands are available in namedqueries mode:
 

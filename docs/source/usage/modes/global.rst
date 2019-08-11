@@ -194,7 +194,7 @@ The following commands are available globally:
         search string
 
     optional arguments
-        :---sort: sort order; valid choices are: \`oldest_first\`,\`newest_first\`,\`message_id\`,\`unsorted\`
+        :---sort: sort order; valid choices are: 'oldest_first','newest_first','message_id','unsorted'
 
 .. _cmd.global.shellescape:
 

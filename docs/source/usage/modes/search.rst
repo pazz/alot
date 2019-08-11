@@ -1,7 +1,7 @@
 .. CAUTION: THIS FILE IS AUTO-GENERATED!
 
 
-Commands in `search` mode
+Commands in 'search' mode
 -------------------------
 The following commands are available in search mode:
 
@@ -25,7 +25,7 @@ The following commands are available in search mode:
         search string
 
     optional arguments
-        :---sort: sort order; valid choices are: \`oldest_first\`,\`newest_first\`,\`message_id\`,\`unsorted\`
+        :---sort: sort order; valid choices are: 'oldest_first','newest_first','message_id','unsorted'
 
 .. _cmd.search.refineprompt:
 
@@ -82,7 +82,7 @@ The following commands are available in search mode:
     set sort order
 
     argument
-        sort order; valid choices are: \`oldest_first\`,\`newest_first\`,\`message_id\`,\`unsorted\`
+        sort order; valid choices are: 'oldest_first','newest_first','message_id','unsorted'
 
 
 .. _cmd.search.tag:

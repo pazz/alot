@@ -1,7 +1,7 @@
 .. CAUTION: THIS FILE IS AUTO-GENERATED!
 
 
-Commands in `taglist` mode
+Commands in 'taglist' mode
 --------------------------
 The following commands are available in taglist mode:
 
