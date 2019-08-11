@@ -12,8 +12,8 @@ class QuerylineWidget(urwid.Columns):
     def __init__(self, key, value, count, count_unread):
         self.query = key
 
-        count_widget = urwid.Text('{0:>7} {1:7}'.\
-                format(count, '({0})'.format(count_unread)))
+        count_widget = urwid.Text('{0:>7} {1:7}'.
+                                  format(count, '({0})'.format(count_unread)))
         key_widget = urwid.Text(key)
         value_widget = urwid.Text(value)
 

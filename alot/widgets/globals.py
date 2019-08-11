@@ -19,6 +19,7 @@ class AttachmentWidget(urwid.WidgetWrap):
     """
     one-line summary of an :class:`~alot.db.attachment.Attachment`.
     """
+
     def __init__(self, attachment, selectable=True):
         self._selectable = selectable
         self.attachment = attachment
@@ -103,6 +104,7 @@ class CompleteEdit(urwid.Edit):
         :ctrl u: deletes everything from the cursor to the beginning of the
                  input
     """
+
     def __init__(self, completer, on_exit,
                  on_error=None,
                  edit_text=u'',
@@ -232,6 +234,7 @@ class CompleteEdit(urwid.Edit):
 
 class HeadersList(urwid.WidgetWrap):
     """ renders a pile of header values as key/value list """
+
     def __init__(self, headerslist, key_attr, value_attr, gaps_attr=None):
         """
         :param headerslist: list of key/value pairs to display
@@ -283,6 +286,7 @@ class TagWidget(urwid.AttrMap):
         :attr tag: the notmuch tag
         :type tag: str
     """
+
     def __init__(self, tag, fallback_normal=None, fallback_focus=None):
         self.tag = tag
         representation = settings.get_tagstring_representation(tag,
