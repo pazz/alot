@@ -13,7 +13,6 @@ import threading
 from notmuch import Database, NotmuchError, XapianError
 import notmuch
 
-from . import DB_ENC
 from .errors import DatabaseError
 from .errors import DatabaseLockedError
 from .errors import DatabaseROError

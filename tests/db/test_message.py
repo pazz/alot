@@ -18,8 +18,6 @@ import unittest
 
 import mock
 
-from notmuch import NullPointerError
-
 from alot import account
 from alot.db import message
 

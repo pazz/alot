@@ -6,8 +6,6 @@
 from datetime import timedelta
 from datetime import datetime
 from collections import deque
-from io import BytesIO
-from io import StringIO
 import logging
 import mimetypes
 import os
@@ -19,7 +17,6 @@ from email.mime.audio import MIMEAudio
 from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 import asyncio
 
 import urwid

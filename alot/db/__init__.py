@@ -3,4 +3,3 @@
 # For further details see the COPYING file
 from .thread import Thread
 from .message import Message
-DB_ENC = 'UTF-8'
