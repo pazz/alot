@@ -28,7 +28,7 @@ def rewrite_entries(config, path, specpath, sec=None):
         sec = config
     for entry in sorted(sec.scalars):
         v = Validator()
-        etype, eargs, ekwargs, default = v._parse_check(sec[entry])
+        etype, eargs, _, default = v._parse_check(sec[entry])
         if default is not None:
             default = config._quote(default)
 

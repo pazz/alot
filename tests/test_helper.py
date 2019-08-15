@@ -18,7 +18,6 @@
 """Test suite for alot.helper module."""
 
 import datetime
-import email
 import errno
 import os
 import random

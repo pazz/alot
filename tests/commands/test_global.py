@@ -16,7 +16,6 @@
 
 """Tests for global commands."""
 
-import logging
 import os
 import tempfile
 import unittest

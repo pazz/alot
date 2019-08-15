@@ -6,7 +6,6 @@
 import os
 import email
 import email.charset as charset
-from email.iterators import typed_subpart_iterator
 import email.policy
 import email.utils
 import tempfile

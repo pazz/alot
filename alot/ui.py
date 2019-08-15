@@ -362,7 +362,6 @@ class UI:
         shuts down user interface without cleaning up.
         Use a :class:`alot.commands.globals.ExitCommand` for a clean shutdown.
         """
-        exit_msg = None
         try:
             loop = asyncio.get_event_loop()
             loop.stop()
