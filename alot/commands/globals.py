@@ -978,6 +978,7 @@ class ComposeCommand(Command):
             self.envelope.tags = [t for t in self.tags.split(',') if t]
 
     async def _set_subject(self, ui):
+        subject = ""
         if settings.get('ask_subject') and \
                 'Subject' not in self.envelope.headers:
             subject = await ui.prompt('Subject')
@@ -985,7 +986,7 @@ class ComposeCommand(Command):
             if subject is None:
                 raise CommandCanceled()
 
-            self.envelope.add('Subject', subject)
+        self.envelope.add('Subject', subject)
 
     async def _set_compose_tags(self, ui):
         if settings.get('compose_ask_tags'):
