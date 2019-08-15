@@ -280,10 +280,10 @@ class ExternalCommand(Command):
                 ret = str(e)
             else:
                 _, err = await proc.communicate(stdin.read() if stdin else None)
-            if proc.returncode == 0:
-                ret = 'success'
-            elif err:
-                ret = err.decode(urwid.util.detected_encoding)
+                if proc.returncode == 0:
+                    ret = 'success'
+                elif err:
+                    ret = err.decode(urwid.util.detected_encoding)
         else:
             with ui.paused():
                 try:

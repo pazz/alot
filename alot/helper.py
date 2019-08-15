@@ -302,7 +302,7 @@ async def call_cmd_async(cmdlist, stdin=None, env=None):
     handle.
 
     If such an `OSError` is caught, then returncode will be set to 1, and the
-    error value will be set to the str() method fo the exception.
+    error value will be set to the str() value of the exception.
 
     :type cmdlist: list of str
     :param stdin: string to pipe to the process
