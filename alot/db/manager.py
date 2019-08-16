@@ -3,7 +3,6 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 from collections import deque
-import asyncio
 import logging
 
 from notmuch import Database, NotmuchError, XapianError
