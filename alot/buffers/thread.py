@@ -11,11 +11,11 @@ from .buffer import Buffer
 from ..settings.const import settings
 from ..widgets.thread import ThreadTree
 from .. import commands
-
+from ..db.errors import NonexistantObjectError
 
 
 class ThreadBuffer(Buffer):
-    """displays a thread as a tree of messages"""
+    """displays a thread as a tree of messages."""
 
     modename = 'thread'
 
@@ -59,7 +59,7 @@ class ThreadBuffer(Buffer):
         return info
 
     def get_selected_thread(self):
-        """returns the displayed :class:`~alot.db.Thread`"""
+        """Return the displayed :class:`~alot.db.Thread`."""
         return self.thread
 
     def rebuild(self):
@@ -136,24 +136,24 @@ class ThreadBuffer(Buffer):
         return self.body.render(size, focus)
 
     def get_selected_mid(self):
-        """returns Message ID of focussed message"""
+        """Return Message ID of focussed message."""
         return self.body.get_focus()[1][0]
 
     def get_selected_message_position(self):
-        """returns position of focussed message in the thread tree"""
+        """Return position of focussed message in the thread tree."""
         return self._sanitize_position((self.get_selected_mid(),))
 
     def get_selected_messagetree(self):
-        """returns currently focussed :class:`MessageTree`"""
+        """Return currently focussed :class:`MessageTree`."""
         return self._nested_tree[self.body.get_focus()[1][:1]]
 
     def get_selected_message(self):
-        """returns focussed :class:`~alot.db.message.Message`"""
+        """Return focussed :class:`~alot.db.message.Message`."""
         return self.get_selected_messagetree()._message
 
     def get_messagetree_positions(self):
         """
-        returns a Generator to walk through all positions of
+        Return a Generator to walk through all positions of
         :class:`MessageTree` in the :class:`ThreadTree` of this buffer.
         """
         return [(pos,) for pos in self._tree.positions()]
@@ -167,7 +167,7 @@ class ThreadBuffer(Buffer):
             yield self._tree[pos]
 
     def refresh(self):
-        """refresh and flushe caches of Thread tree"""
+        """Refresh and flush caches of Thread tree."""
         self.body.refresh()
 
     # needed for ui.get_deep_focus..
