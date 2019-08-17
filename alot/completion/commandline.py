@@ -39,11 +39,11 @@ class CommandLineCompleter(Completer):
             end += 1 + len(commands[i])
         return start, end
 
-    def complete(self, line, pos):
-        cstart, cend = self.get_context(line, pos)
-        before = line[:cstart]
-        after = line[cend:]
-        cmdstring = line[cstart:cend]
+    def complete(self, original, pos):
+        cstart, cend = self.get_context(original, pos)
+        before = original[:cstart]
+        after = original[cend:]
+        cmdstring = original[cstart:cend]
         cpos = pos - cstart
 
         res = []
