@@ -25,10 +25,10 @@ from .. import buffers
 from .. import helper
 from ..helper import split_commandstring
 from ..helper import mailto_to_envelope
-from ..completion import CommandLineCompleter
-from ..completion import ContactsCompleter
-from ..completion import AccountCompleter
-from ..completion import TagsCompleter
+from ..completion.commandline import CommandLineCompleter
+from ..completion.contacts import ContactsCompleter
+from ..completion.accounts import AccountCompleter
+from ..completion.tags import TagsCompleter
 from ..widgets.utils import DialogBox
 from ..db.errors import DatabaseLockedError
 from ..db.envelope import Envelope

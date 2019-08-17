@@ -24,7 +24,8 @@ from .globals import MoveCommand
 from .globals import CommandCanceled
 from .common import RetagPromptCommand
 from .envelope import SendCommand
-from ..completion import ContactsCompleter, PathCompleter
+from ..completion.contacts import ContactsCompleter
+from ..completion.path import PathCompleter
 from ..db.utils import decode_header
 from ..db.utils import formataddr
 from ..db.utils import extract_headers
