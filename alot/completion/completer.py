@@ -11,8 +11,8 @@ class Completer:
 
     @abc.abstractmethod
     def complete(self, original, pos):
-        """returns a list of completions and cursor positions for the
-        string original from position pos on.
+        """returns a list of completions and cursor positions for the string
+        `original` from position `pos` on.
 
         :param original: the string to complete
         :type original: str
@@ -25,13 +25,13 @@ class Completer:
         """
         pass
 
-    def relevant_part(self, original, pos, sep=' '):
+    def relevant_part(self, original, pos):
         """
-        calculates the subword in a `sep`-splitted list of substrings of
-        `original` that `pos` is ia.n
+        Calculate the subword in a ' '-separated list of substrings of
+        `original` that `pos` is in.
         """
-        start = original.rfind(sep, 0, pos) + 1
-        end = original.find(sep, pos - 1)
+        start = original.rfind(' ', 0, pos) + 1
+        end = original.find(' ', pos - 1)
         if end == -1:
             end = len(original)
         return original[start:end], start, end, pos - start
