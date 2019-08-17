@@ -25,7 +25,7 @@ class MultipleSelectionCompleter(Completer):
         self._completer = completer
         self._separator = separator
 
-    def relevant_part(self, original, pos, sep=' '):
+    def relevant_part(self, original, pos):
         """Calculate the subword of `original` that `pos` is in."""
         start = original.rfind(self._separator, 0, pos)
         if start == -1:
