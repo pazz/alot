@@ -69,19 +69,20 @@ class CommandCompleter(Completer):
     def _publickeyscompleter(self):
         return CryptoKeyCompleter(private=False)
 
-    def complete(self, line, pos):
+    def complete(self, original, pos):
         # remember how many preceding space characters we see until the command
         # string starts. We'll continue to complete from there on and will add
         # these whitespaces again at the very end
-        whitespaceoffset = len(line) - len(line.lstrip())
-        line = line[whitespaceoffset:]
+        whitespaceoffset = len(original) - len(original.lstrip())
+        original = original[whitespaceoffset:]
         pos = pos - whitespaceoffset
 
-        words = line.split(' ', 1)
+        words = original.split(' ', 1)
 
         res = []
         if pos <= len(words[0]):  # we complete commands
-            for cmd, cpos in self._commandnamecompleter.complete(line, pos):
+            for cmd, cpos in self._commandnamecompleter.complete(original,
+                                                                 pos):
                 newtext = ('%s %s' % (cmd, ' '.join(words[1:])))
                 res.append((newtext, cpos + 1))
         else:
