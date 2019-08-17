@@ -7,7 +7,8 @@
 import unittest
 from unittest import mock
 
-from alot import completion
+from alot.completion.abooks import AbooksCompleter
+from alot.completion.stringlist import StringlistCompleter
 
 # Good descriptive test names often don't fit PEP8, which is meant to cover
 # functions meant to be called by humans.
@@ -39,8 +40,8 @@ class AbooksCompleterTest(unittest.TestCase):
     def setUpClass(cls):
         abook = mock.Mock()
         abook.lookup = _mock_lookup
-        cls.empty_abook_completer = completion.AbooksCompleter([])
-        cls.example_abook_completer = completion.AbooksCompleter([abook])
+        cls.empty_abook_completer = AbooksCompleter([])
+        cls.example_abook_completer = AbooksCompleter([abook])
 
     def test_empty_address_book_returns_empty_list(self):
         actual = self.__class__.empty_abook_completer.complete('real-name', 9)
@@ -97,7 +98,7 @@ class AbooksCompleterTest(unittest.TestCase):
 class StringlistCompleterTest(unittest.TestCase):
     def test_dont_choke_on_special_regex_characters(self):
         tags = ['[match]', 'nomatch']
-        completer = completion.StringlistCompleter(tags)
+        completer = StringlistCompleter(tags)
         actual = completer.complete('[', 1)
         expected = [(tags[0], len(tags[0]))]
         self.assertListEqual(actual, expected)
