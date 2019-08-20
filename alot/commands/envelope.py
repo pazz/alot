@@ -27,6 +27,7 @@ from ..helper import string_decode
 from ..settings.const import settings
 from ..settings.errors import NoMatchingAccount
 from ..utils import argparse as cargparse
+from ..utils.collections import OrderedSet
 
 
 MODE = 'envelope'
@@ -341,9 +342,9 @@ class EditCommand(Command):
             self.envelope = ui.current_buffer.envelope
 
         # determine editable headers
-        edit_headers = set(settings.get('edit_headers_whitelist'))
+        edit_headers = OrderedSet(settings.get('edit_headers_whitelist'))
         if '*' in edit_headers:
-            edit_headers = set(self.envelope.headers)
+            edit_headers = OrderedSet(self.envelope.headers)
         blacklist = set(settings.get('edit_headers_blacklist'))
         if '*' in blacklist:
             blacklist = set(self.envelope.headers)
