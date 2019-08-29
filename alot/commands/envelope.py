@@ -386,6 +386,7 @@ class EditCommand(Command):
                 del self.envelope[key]
 
             for value in vlist:
+                logging.debug('key: %s value [%s]', key, value)
                 # newlines (with surrounding spaces) by spaces in values
                 value = value.strip()
                 value = re.sub('[ \t\r\f\v]*\n[ \t\r\f\v]*', ' ', value)
