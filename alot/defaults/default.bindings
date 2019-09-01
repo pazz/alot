@@ -89,3 +89,5 @@ q = exit
     'g h' = move parent
     'g l' = move first reply
     ' ' = move next
+    J = move next thread
+    K = move previous thread

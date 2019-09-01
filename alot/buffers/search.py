@@ -108,3 +108,12 @@ class SearchBuffer(Buffer):
         else:
             self.rebuild(reverse=True)
 
+    def focus_next(self):
+        _, pos = self.threadlist.get_next(self.threadlist.focus)
+        if pos:
+            self.threadlist.set_focus(pos)
+
+    def focus_prev(self):
+        _, pos = self.threadlist.get_prev(self.threadlist.focus)
+        if pos:
+            self.threadlist.set_focus(pos)

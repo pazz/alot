@@ -981,6 +981,7 @@ class OpenAttachmentCommand(Command):
                   parent, first reply, last reply, \
                   next sibling, previous sibling, next, previous, \
                   next unfolded, previous unfolded, \
+                  next thread, previous thread,
                   next NOTMUCH_QUERY, previous NOTMUCH_QUERY'''})])
 class MoveFocusCommand(MoveCommand):
 
@@ -1005,6 +1006,10 @@ class MoveFocusCommand(MoveCommand):
             tbuffer.focus_next_unfolded()
         elif self.movement == 'previous unfolded':
             tbuffer.focus_prev_unfolded()
+        elif self.movement == 'next thread':
+            tbuffer.focus_next_thread()
+        elif self.movement == 'previous thread':
+            tbuffer.focus_prev_thread()
         elif self.movement.startswith('next '):
             query = self.movement[5:].strip()
             tbuffer.focus_next_matching(query)
