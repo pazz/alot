@@ -641,7 +641,6 @@ class TestExtractBody(unittest.TestCase):
         self.assertEqual(actual, expected)
 
     def _make_mixed_plain_html(self):
-
         mail = EmailMessage()
         self._set_basic_headers(mail)
         mail.set_content('This is an email')
@@ -651,7 +650,7 @@ class TestExtractBody(unittest.TestCase):
         return mail
 
     @mock.patch('alot.db.utils.settings.get', mock.Mock(return_value=True))
-    def test_prefer_plaintext(self):
+    def test_prefer_plaintext_mixed(self):
         expected = 'This is an email\n'
         mail = self._make_mixed_plain_html()
         actual = utils.extract_body(mail)
@@ -663,9 +662,40 @@ class TestExtractBody(unittest.TestCase):
     @mock.patch('alot.db.utils.settings.get', mock.Mock(return_value=False))
     @mock.patch('alot.db.utils.settings.mailcap_find_match',
                 mock.Mock(return_value=(None, {'view': 'cat'})))
-    def test_prefer_html(self):
+    def test_prefer_html_mixed(self):
         expected = '<!DOCTYPE html><html><body>This is an html email</body></html>\n'
         mail = self._make_mixed_plain_html()
+        actual = utils.extract_body(mail)
+
+        self.assertEqual(actual, expected)
+
+    def _make_html_only(self):
+        mail = EmailMessage()
+        self._set_basic_headers(mail)
+        mail.set_content(
+            '<!DOCTYPE html><html><body>This is an html email</body></html>',
+            subtype='html')
+        return mail
+
+    @unittest.expectedFailure
+    @mock.patch('alot.db.utils.settings.get', mock.Mock(return_value=True))
+    @mock.patch('alot.db.utils.settings.mailcap_find_match',
+                mock.Mock(return_value=(None, {'view': 'cat'})))
+    def test_prefer_plaintext_only(self):
+        expected = '<!DOCTYPE html><html><body>This is an html email</body></html>\n'
+        mail = self._make_html_only()
+        actual = utils.extract_body(mail)
+
+        self.assertEqual(actual, expected)
+
+    # Mock the handler to cat, so that no transformations of the html are made
+    # making the result non-deterministic
+    @mock.patch('alot.db.utils.settings.get', mock.Mock(return_value=False))
+    @mock.patch('alot.db.utils.settings.mailcap_find_match',
+                mock.Mock(return_value=(None, {'view': 'cat'})))
+    def test_prefer_html_only(self):
+        expected = '<!DOCTYPE html><html><body>This is an html email</body></html>\n'
+        mail = self._make_html_only()
         actual = utils.extract_body(mail)
 
         self.assertEqual(actual, expected)
@@ -676,6 +706,7 @@ class TestExtractBody(unittest.TestCase):
                 _class=email.message.EmailMessage)
         actual = utils.extract_body(mail)
         expected = "Liebe Grüße!\n"
+
         self.assertEqual(actual, expected)
 
 class TestMessageFromString(unittest.TestCase):
