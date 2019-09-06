@@ -477,7 +477,7 @@ def extract_body(mail):
     """
 
     if settings.get('prefer_plaintext'):
-        preferencelist = ('plain',)
+        preferencelist = ('plain', 'html')
     else:
         preferencelist = ('html', 'plain')
 
