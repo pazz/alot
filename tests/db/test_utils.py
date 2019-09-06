@@ -677,7 +677,6 @@ class TestExtractBody(unittest.TestCase):
             subtype='html')
         return mail
 
-    @unittest.expectedFailure
     @mock.patch('alot.db.utils.settings.get', mock.Mock(return_value=True))
     @mock.patch('alot.db.utils.settings.mailcap_find_match',
                 mock.Mock(return_value=(None, {'view': 'cat'})))
