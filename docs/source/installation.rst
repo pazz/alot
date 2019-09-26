@@ -28,7 +28,7 @@ A full list of dependencies is below:
 * `urwid <http://excess.org/urwid/>`_ toolkit, ≥ `1.3.0`
 * `urwidtrees <https://github.com/pazz/urwidtrees>`_, ≥ `1.0`
 * `gpg <http://www.gnupg.org/related_software/gpgme>`_ and it's python bindings, ≥ `1.9.0`
-* `twisted <https://twistedmatrix.com>`_, ≥ `10.2.0`
+* `twisted <https://twistedmatrix.com>`_, ≥ `18.4.0`
 
 
 On Debian/Ubuntu these are packaged as::
