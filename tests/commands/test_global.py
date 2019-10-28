@@ -134,14 +134,18 @@ class TestExternalCommand(unittest.TestCase):
         cmd = g_commands.ExternalCommand(
             u"test -t 0", stdin=u'0', refocus=False)
         await cmd.apply(ui)
-        ui.notify.assert_called_once_with('', priority='error')
+        ui.notify.assert_called_once_with(
+                'editor has exited with error code 1 -- No stderr output',
+                priority='error')
 
     @utilities.async_test
     async def test_no_spawn_failure(self):
         ui = utilities.make_ui()
         cmd = g_commands.ExternalCommand(u'false', refocus=False)
         await cmd.apply(ui)
-        ui.notify.assert_called_once_with('', priority='error')
+        ui.notify.assert_called_once_with(
+                'editor has exited with error code 1 -- No stderr output',
+                priority='error')
 
     @utilities.async_test
     @mock.patch(
@@ -173,7 +177,9 @@ class TestExternalCommand(unittest.TestCase):
         ui = utilities.make_ui()
         cmd = g_commands.ExternalCommand(u'false', refocus=False, spawn=True)
         await cmd.apply(ui)
-        ui.notify.assert_called_once_with('', priority='error')
+        ui.notify.assert_called_once_with(
+                'editor has exited with error code 1 -- No stderr output',
+                priority='error')
 
 
 class TestCallCommand(unittest.TestCase):
