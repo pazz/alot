@@ -340,12 +340,13 @@ class EditCommand(ExternalCommand):
         logging.debug('using editor_cmd: %s', editor_cmdstring)
 
         self.cmdlist = None
-        if '%s' in editor_cmdstring:
-            cmdstring = editor_cmdstring.replace('%s',
-                                                 helper.shell_quote(path))
-            self.cmdlist = split_commandstring(cmdstring)
-        else:
-            self.cmdlist = split_commandstring(editor_cmdstring) + [path]
+        if editor_cmdstring:
+            if '%s' in editor_cmdstring:
+                cmdstring = editor_cmdstring.replace('%s',
+                                                     helper.shell_quote(path))
+                self.cmdlist = split_commandstring(cmdstring)
+            else:
+                self.cmdlist = split_commandstring(editor_cmdstring) + [path]
 
         logging.debug({'spawn: ': self.spawn, 'in_thread': self.thread})
         ExternalCommand.__init__(self, self.cmdlist,
