@@ -16,7 +16,7 @@ from .buffers import BufferlistBuffer
 from .buffers import SearchBuffer
 from .commands import globals
 from .commands import commandfactory
-from .commands import CommandCanceled
+from .commands import CommandCanceled, SequenceCanceled
 from .commands import CommandParseError
 from .helper import split_commandline
 from .helper import string_decode
@@ -145,6 +145,10 @@ class UI:
             self.notify(str(exception), priority='error')
         elif isinstance(exception, CommandCanceled):
             self.notify("operation cancelled", priority='error')
+        elif isinstance(exception, SequenceCanceled):
+            # This exception needs to trickle up to apply_commandline,
+            # then be handled explicitly.
+            raise exception
         else:
             logging.error(traceback.format_exc())
             msg = "{}\n(check the log for details)".format(exception)
@@ -267,7 +271,11 @@ class UI:
             for c in split_commandline(cmdline):
                 await apply_this_command(c)
         except Exception as e:
-            self._error_handler(e)
+            if isinstance(e, SequenceCanceled):
+                self.notify("sequence of operations cancelled",
+                            priority='error')
+            else:
+                self._error_handler(e)
 
     @staticmethod
     def _unhandled_input(key):
