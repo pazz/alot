@@ -304,7 +304,10 @@ class ExternalCommand(Command):
             if self.on_success is not None:
                 self.on_success()
         else:
-            ui.notify(ret, priority='error')
+            msg = "editor has exited with error code {} -- {}".format(
+                    proc.returncode,
+                    ret or "No stderr output")
+            ui.notify(msg, priority='error')
         if self.refocus and callerbuffer in ui.buffers:
             logging.info('refocussing')
             ui.buffer_focus(callerbuffer)
