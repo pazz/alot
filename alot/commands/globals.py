@@ -17,7 +17,7 @@ import shlex
 import urwid
 
 from . import Command, registerCommand
-from . import CommandCanceled
+from . import CommandCanceled, SequenceCanceled
 from .utils import update_keys
 from .. import commands
 
@@ -1178,3 +1178,30 @@ class RemoveQueryCommand(Command):
         # flush index
         if self.flush:
             ui.apply_command(commands.globals.FlushCommand())
+
+
+@registerCommand(
+    MODE, 'confirmsequence',
+    arguments=[
+        (['msg'], {'help': 'Additional message to prompt',
+                   'nargs': '*'})
+    ],
+    help="prompt to confirm a sequence of commands")
+class ConfirmCommand(Command):
+    """Prompt user to confirm a sequence of commands."""
+
+    def __init__(self, msg=None, **kwargs):
+        """
+        :param msg: Additional message to prompt the user with
+        :type msg: List[str]
+        """
+        super(ConfirmCommand, self).__init__(**kwargs)
+        if not msg:
+            self.msg = "Confirm sequence?"
+        else:
+            self.msg = "Confirm sequence: {}?".format(" ".join(msg))
+
+    async def apply(self, ui):
+        if (await ui.choice(self.msg, select='yes', cancel='no',
+                            msg_position='left')) == 'no':
+            raise SequenceCanceled()

@@ -77,6 +77,16 @@ The following commands are available globally:
         :---omit_signature: do not add signature
         :---spawn: spawn editor in new terminal
 
+.. _cmd.global.confirmsequence:
+
+.. describe:: confirmsequence
+
+    prompt to confirm a sequence of commands
+
+    argument
+        Additional message to prompt
+
+
 .. _cmd.global.exit:
 
 .. describe:: exit

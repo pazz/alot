@@ -33,6 +33,13 @@ class CommandCanceled(Exception):
     pass
 
 
+class SequenceCanceled(Exception):
+    """ Exception triggered when a command sequence has been cancelled by the
+    confirmsequence command
+    """
+    pass
+
+
 COMMANDS = {
     'search': {},
     'envelope': {},
