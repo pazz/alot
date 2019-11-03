@@ -12,6 +12,7 @@ from .globals import TagWidget
 from .globals import AttachmentWidget
 from ..settings.const import settings
 from ..db.utils import decode_header, X_SIGNATURE_MESSAGE_HEADER
+from ..helper import string_sanitize
 
 
 class MessageSummaryWidget(urwid.WidgetWrap):
@@ -244,6 +245,7 @@ class MessageTree(CollapsibleTree):
     def _get_source(self):
         if self._sourcetree is None:
             sourcetxt = self._message.get_email().as_string()
+            sourcetxt = string_sanitize(sourcetxt)
             att = settings.get_theming_attribute('thread', 'body')
             att_focus = settings.get_theming_attribute('thread', 'body_focus')
             self._sourcetree = TextlinesList(sourcetxt, att, att_focus)
