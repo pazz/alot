@@ -728,7 +728,7 @@ class ComposeCommand(Command):
     def __init__(
             self,
             envelope=None, headers=None, template=None, sender=u'',
-            tags=None, subject=u'', to=None, cc=None, bcc=None, attach=None,
+            tags=None, subject=None, to=None, cc=None, bcc=None, attach=None,
             omit_signature=False, spawn=None, rest=None, encrypt=False,
             **kwargs):
         """
@@ -773,7 +773,7 @@ class ComposeCommand(Command):
         self.headers = headers or {}
         self.sender = sender
         self.subject = subject
-        self.to = to or []
+        self.to = to
         self.cc = cc or []
         self.bcc = bcc or []
         self.attach = attach
@@ -929,7 +929,8 @@ class ComposeCommand(Command):
 
     async def _set_to(self, ui):
         account = self.envelope.account
-        if 'To' not in self.envelope.headers:
+        to = self.to
+        if to is None:
             allbooks = not settings.get('complete_matching_abook_only')
             logging.debug(allbooks)
             abooks = settings.get_addressbooks(order=[account],
@@ -943,7 +944,7 @@ class ComposeCommand(Command):
 
             to = to.strip(' \t\n,')
             ui.recipienthistory.append(to)
-            self.envelope.add('To', to)
+        self.envelope.add('To', to)
 
     async def _set_gpg_encrypt(self, ui):
         account = self.envelope.account
@@ -970,26 +971,22 @@ class ComposeCommand(Command):
         # set forced headers for separate parameters
         if self.sender:
             self.envelope.add('From', self.sender)
-        if self.subject:
-            self.envelope.add('Subject', self.subject)
-        if self.to:
-            self.envelope.add('To', ','.join(self.to))
-        if self.cc:
-            self.envelope.add('Cc', ','.join(self.cc))
-        if self.bcc:
-            self.envelope.add('Bcc', ','.join(self.bcc))
+
+        self.envelope.add('Cc', ','.join(self.cc))
+        self.envelope.add('Bcc', ','.join(self.bcc))
+
         if self.tags:
             self.envelope.tags = [t for t in self.tags.split(',') if t]
 
     async def _set_subject(self, ui):
-        if settings.get('ask_subject') and \
-                'Subject' not in self.envelope.headers:
+        subject = self.subject
+        if settings.get('ask_subject') and subject is None:
             subject = await ui.prompt('Subject')
             logging.debug('SUBJECT: "%s"', subject)
             if subject is None:
                 raise CommandCanceled()
 
-            self.envelope.add('Subject', subject)
+        self.envelope.add('Subject', subject or u'')
 
     async def _set_compose_tags(self, ui):
         if settings.get('compose_ask_tags'):
