@@ -5,6 +5,7 @@ dist: xenial
 python:
   - "3.6"
   - "3.7"
+  - "3.8"
 
 # We start two containers in parallel, one to check and build the docs and the
 # other to run the test suite.
