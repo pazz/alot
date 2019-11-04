@@ -290,7 +290,7 @@ class UI:
         self._unlock_callback = afterwards
         self._locked = True
 
-    def prompt(self, prefix, text=u'', completer=None, tab=0, history=None):
+    def prompt(self, prefix, text='', completer=None, tab=0, history=None):
         """
         prompt for text input.
         This returns a :class:`asyncio.Future`, which will have a string value
@@ -669,9 +669,9 @@ class UI:
         info['pending_writes'] = len(self.dbman.writequeue)
         info['input_queue'] = ' '.join(self.input_queue)
 
-        lefttxt = righttxt = u''
+        lefttxt = righttxt = ''
         if cb is not None:
-            lefttxt, righttxt = settings.get(btype + '_statusbar', (u'', u''))
+            lefttxt, righttxt = settings.get(btype + '_statusbar', ('', ''))
             lefttxt = string_decode(lefttxt, 'UTF-8')
             lefttxt = lefttxt.format(**info)
             righttxt = string_decode(righttxt, 'UTF-8')

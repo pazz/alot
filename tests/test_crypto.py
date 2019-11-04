@@ -70,7 +70,7 @@ def make_key(revoked=False, expired=False, invalid=False, can_encrypt=True,
              can_sign=True):
     # This is ugly
     mock_key = mock.create_autospec(gpg._gpgme._gpgme_key)
-    mock_key.uids = [mock.Mock(uid=u'mocked')]
+    mock_key.uids = [mock.Mock(uid='mocked')]
     mock_key.revoked = revoked
     mock_key.expired = expired
     mock_key.invalid = invalid
@@ -267,12 +267,12 @@ class TestListKeys(unittest.TestCase):
 
     def test_list_keys_pub(self):
         values = list(crypto.list_keys(hint="ambigu"))[0]
-        self.assertEqual(values.uids[0].email, u'amigbu@example.com')
+        self.assertEqual(values.uids[0].email, 'amigbu@example.com')
         self.assertFalse(values.secret)
 
     def test_list_keys_private(self):
         values = list(crypto.list_keys(hint="ambigu", private=True))[0]
-        self.assertEqual(values.uids[0].email, u'amigbu@example.com')
+        self.assertEqual(values.uids[0].email, 'amigbu@example.com')
         self.assertTrue(values.secret)
 
 

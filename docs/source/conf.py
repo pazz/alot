@@ -47,7 +47,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'alot'
+project = 'alot'
 copyright = alot.__copyright__
 
 # The version info for the project you're documenting, acts as replacement for
@@ -186,8 +186,8 @@ htmlhelp_basename = 'alotdoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual])
 latex_documents = [
-  ('index', 'alot.tex', u'alot Documentation',
-   u'Patrick Totzke', 'manual'),
+  ('index', 'alot.tex', 'alot Documentation',
+   'Patrick Totzke', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

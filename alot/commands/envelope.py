@@ -236,7 +236,7 @@ class SendCommand(Command):
                                     msg_position='left')) == 'no':
                     return
 
-            clearme = ui.notify(u'constructing mail (GPG, attachments)\u2026',
+            clearme = ui.notify('constructing mail (GPG, attachments)\u2026',
                                 timeout=-1)
 
             try:
@@ -375,7 +375,7 @@ class EditCommand(Command):
                 ebuffer.rebuild()
 
         # decode header
-        headertext = u''
+        headertext = ''
         for key in edit_headers:
             vlist = self.envelope.get_all(key)
             if not vlist:
@@ -664,7 +664,7 @@ class TagCommand(Command):
     """manipulate message tags"""
     repeatable = True
 
-    def __init__(self, tags=u'', action='add', **kwargs):
+    def __init__(self, tags='', action='add', **kwargs):
         """
         :param tags: comma separated list of tagstrings to set
         :type tags: str

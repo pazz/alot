@@ -120,28 +120,28 @@ class TestTagCommands(unittest.TestCase):
         self.assertListEqual(sorted(actual), sorted(expected))
 
     def test_add_new_tags(self):
-        self._test(u'four', 'add', ['one', 'two', 'three', 'four'])
+        self._test('four', 'add', ['one', 'two', 'three', 'four'])
 
     def test_adding_existing_tags_has_no_effect(self):
-        self._test(u'one', 'add', ['one', 'two', 'three'])
+        self._test('one', 'add', ['one', 'two', 'three'])
 
     def test_remove_existing_tags(self):
-        self._test(u'one', 'remove', ['two', 'three'])
+        self._test('one', 'remove', ['two', 'three'])
 
     def test_remove_non_existing_tags_has_no_effect(self):
-        self._test(u'four', 'remove', ['one', 'two', 'three'])
+        self._test('four', 'remove', ['one', 'two', 'three'])
 
     def test_set_tags(self):
-        self._test(u'a,b,c', 'set', ['a', 'b', 'c'])
+        self._test('a,b,c', 'set', ['a', 'b', 'c'])
 
     def test_toggle_will_remove_existing_tags(self):
-        self._test(u'one', 'toggle', ['two', 'three'])
+        self._test('one', 'toggle', ['two', 'three'])
 
     def test_toggle_will_add_new_tags(self):
-        self._test(u'four', 'toggle', ['one', 'two', 'three', 'four'])
+        self._test('four', 'toggle', ['one', 'two', 'three', 'four'])
 
     def test_toggle_can_remove_and_add_in_one_run(self):
-        self._test(u'one,four', 'toggle', ['two', 'three', 'four'])
+        self._test('one,four', 'toggle', ['two', 'three', 'four'])
 
 
 class TestSignCommand(unittest.TestCase):

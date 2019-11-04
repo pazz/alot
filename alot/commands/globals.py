@@ -727,8 +727,8 @@ class ComposeCommand(Command):
     """compose a new email"""
     def __init__(
             self,
-            envelope=None, headers=None, template=None, sender=u'',
-            tags=None, subject=u'', to=None, cc=None, bcc=None, attach=None,
+            envelope=None, headers=None, template=None, sender='',
+            tags=None, subject='', to=None, cc=None, bcc=None, attach=None,
             omit_signature=False, spawn=None, rest=None, encrypt=False,
             **kwargs):
         """
@@ -947,12 +947,12 @@ class ComposeCommand(Command):
 
     async def _set_gpg_encrypt(self, ui):
         account = self.envelope.account
-        if self.encrypt or account.encrypt_by_default == u"all":
+        if self.encrypt or account.encrypt_by_default == "all":
             logging.debug("Trying to encrypt message because encrypt=%s and "
                           "encrypt_by_default=%s", self.encrypt,
                           account.encrypt_by_default)
             await update_keys(ui, self.envelope, block_error=self.encrypt)
-        elif account.encrypt_by_default == u"trusted":
+        elif account.encrypt_by_default == "trusted":
             logging.debug("Trying to encrypt message because "
                           "account.encrypt_by_default=%s",
                           account.encrypt_by_default)

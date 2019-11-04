@@ -272,17 +272,17 @@ class TestSettingsManagerGetAccountByAddress(utilities.TestCaseClassCleanup):
         cls.manager.read_config(f.name)
 
     def test_exists_addr(self):
-        acc = self.manager.account_matching_address(u'that_guy@example.com')
+        acc = self.manager.account_matching_address('that_guy@example.com')
         self.assertEqual(acc.realname, 'That Guy')
 
     def test_doesnt_exist_return_default(self):
-        acc = self.manager.account_matching_address(u'doesntexist@example.com',
+        acc = self.manager.account_matching_address('doesntexist@example.com',
                                                     return_default=True)
         self.assertEqual(acc.realname, 'That Guy')
 
     def test_doesnt_exist_raise(self):
         with self.assertRaises(NoMatchingAccount):
-            self.manager.account_matching_address(u'doesntexist@example.com')
+            self.manager.account_matching_address('doesntexist@example.com')
 
     def test_doesnt_exist_no_default(self):
         with tempfile.NamedTemporaryFile() as f:

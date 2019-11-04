@@ -116,7 +116,7 @@ def string_decode(string, enc='ascii'):
 def shorten(string, maxlen):
     """shortens string if longer than maxlen, appending ellipsis"""
     if 1 < maxlen < len(string):
-        string = string[:maxlen - 1] + u'…'
+        string = string[:maxlen - 1] + '…'
     return string[:maxlen]
 
 
@@ -162,7 +162,7 @@ def shorten_author_string(authors_string, maxlength):
     authors_chain = deque()
 
     if len(authors) == 0:
-        return u''
+        return ''
 
     # reserve space for first author
     first_au = shorten(authors.popleft(), maxlength)
@@ -179,7 +179,7 @@ def shorten_author_string(authors_string, maxlength):
         au = authors.pop()
         if len(au) > 1 and (remaining_length == 3 or (authors and
                                                       remaining_length < 7)):
-            authors_chain.appendleft(u'\u2026')
+            authors_chain.appendleft('\u2026')
             break
         else:
             if authors:
@@ -205,21 +205,21 @@ def pretty_datetime(d):
     >>> now.strftime('%c')
     'Sat 31 Mar 2012 14:47:26 '
     >>> pretty_datetime(now)
-    u'just now'
+    'just now'
     >>> pretty_datetime(now - timedelta(minutes=1))
-    u'1min ago'
+    '1min ago'
     >>> pretty_datetime(now - timedelta(hours=5))
-    u'5h ago'
+    '5h ago'
     >>> pretty_datetime(now - timedelta(hours=12))
-    u'02:54am'
+    '02:54am'
     >>> pretty_datetime(now - timedelta(days=1))
-    u'yest 02pm'
+    'yest 02pm'
     >>> pretty_datetime(now - timedelta(days=2))
-    u'Thu 02pm'
+    'Thu 02pm'
     >>> pretty_datetime(now - timedelta(days=7))
-    u'Mar 24'
+    'Mar 24'
     >>> pretty_datetime(now - timedelta(days=356))
-    u'Apr 2011'
+    'Apr 2011'
     """
     ampm = d.strftime('%p').lower()
     if len(ampm):
@@ -551,7 +551,7 @@ def parse_mailto(mailto_str):
         import urllib.parse
         to_str, parms_str = mailto_str[7:].partition('?')[::2]
         headers = {}
-        body = u''
+        body = ''
 
         to = urllib.parse.unquote(to_str)
         if to:

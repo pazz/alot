@@ -147,7 +147,7 @@ class ModuleCleanup(object):
         return wrapper
 
 
-def make_uid(email, uid=u'mocked', revoked=False, invalid=False,
+def make_uid(email, uid='mocked', revoked=False, invalid=False,
              validity=gpg.constants.validity.FULL):
     uid_ = mock.Mock()
     uid_.email = email
@@ -162,7 +162,7 @@ def make_uid(email, uid=u'mocked', revoked=False, invalid=False,
 def make_key(revoked=False, expired=False, invalid=False, can_encrypt=True,
              can_sign=True):
     mock_key = mock.Mock()
-    mock_key.uids = [make_uid(u'foo@example.com')]
+    mock_key.uids = [make_uid('foo@example.com')]
     mock_key.revoked = revoked
     mock_key.expired = expired
     mock_key.invalid = invalid

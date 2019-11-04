@@ -381,7 +381,7 @@ class SettingsManager:
             return getattr(self.hooks, key, None)
         return None
 
-    def get_mapped_input_keysequences(self, mode='global', prefix=u''):
+    def get_mapped_input_keysequences(self, mode='global', prefix=''):
         # get all bindings in this mode
         globalmaps, modemaps = self.get_keybindings(mode)
         candidates = list(globalmaps.keys()) + list(modemaps.keys())
