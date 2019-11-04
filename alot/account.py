@@ -201,7 +201,7 @@ class Account:
                  sent_box=None, sent_tags=None, draft_box=None,
                  draft_tags=None, replied_tags=None, passed_tags=None,
                  abook=None, sign_by_default=False,
-                 encrypt_by_default=u"none", encrypt_to_self=None,
+                 encrypt_by_default="none", encrypt_to_self=None,
                  case_sensitive_username=False, **_):
         self.address = Address.from_string(
             address, case_sensitive=case_sensitive_username)
@@ -228,17 +228,17 @@ class Account:
         encrypt_by_default = encrypt_by_default.lower()
         msg = "Deprecation warning: The format for the encrypt_by_default " \
               "option changed.  Please use 'none', 'all' or 'trusted'."
-        if encrypt_by_default in (u"true", u"yes", u"1"):
-            encrypt_by_default = u"all"
+        if encrypt_by_default in ("true", "yes", "1"):
+            encrypt_by_default = "all"
             logging.info(msg)
-        elif encrypt_by_default in (u"false", u"no", u"0"):
-            encrypt_by_default = u"none"
+        elif encrypt_by_default in ("false", "no", "0"):
+            encrypt_by_default = "none"
             logging.info(msg)
         self.encrypt_by_default = encrypt_by_default
         # cache alias_regexp regexes
         if self.alias_regexp != "":
             self._alias_regexp = re.compile(
-                u'^' + str(self.alias_regexp) + u'$',
+                '^' + str(self.alias_regexp) + '$',
                 flags=0 if case_sensitive_username else re.IGNORECASE)
 
     def matches_address(self, address):

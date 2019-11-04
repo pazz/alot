@@ -78,7 +78,7 @@ class Envelope:
             self.parse_template(template)
             logging.debug('PARSED TEMPLATE: %s', template)
             logging.debug('BODY: %s', self.body)
-        self.body = bodytext or u''
+        self.body = bodytext or ''
         # TODO: if this was as collections.defaultdict a number of methods
         # could be simplified.
         self.headers = headers or {}
@@ -100,7 +100,7 @@ class Envelope:
 
     def __setitem__(self, name, val):
         """setter for header values. This allows adding header like so:
-        envelope['Subject'] = u'sm\xf8rebr\xf8d'
+        envelope['Subject'] = 'sm\xf8rebr\xf8d'
         """
         if name not in self.headers:
             self.headers[name] = []

@@ -91,8 +91,8 @@ class TestMessage(unittest.TestCase):
         is present.
         """
         acc = mock.Mock()
-        acc.address = account.Address(u'user', u'example.com')
-        acc.realname = u'User Name'
+        acc.address = account.Address('user', 'example.com')
+        acc.realname = 'User Name'
         with mock.patch('alot.db.message.settings.get_accounts',
                         mock.Mock(return_value=[acc])):
             msg = message.Message(
@@ -104,8 +104,8 @@ class TestMessage(unittest.TestCase):
         the message is not a draft.
         """
         acc = mock.Mock()
-        acc.address = account.Address(u'user', u'example.com')
-        acc.realname = u'User Name'
+        acc.address = account.Address('user', 'example.com')
+        acc.realname = 'User Name'
         with mock.patch('alot.db.message.settings.get_accounts',
                         mock.Mock(return_value=[acc])):
             msg = message.Message(mock.Mock(), MockNotmuchMessage())

@@ -71,8 +71,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'alot'
-copyright = u'2011 ' + __author__
+project = 'alot'
+copyright = '2011 ' + __author__
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -243,8 +243,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'alot', u'alot Documentation',
-     [u'Patrick Totzke'], 1)
+    ('index', 'alot', 'alot Documentation',
+     ['Patrick Totzke'], 1)
 ]
 
 autodoc_member_order = 'bysource'

@@ -148,7 +148,7 @@ class TagCommand(Command):
     """manipulate message tags"""
     repeatable = True
 
-    def __init__(self, tags=u'', action='add', allmessages=False, flush=True,
+    def __init__(self, tags='', action='add', allmessages=False, flush=True,
                  **kwargs):
         """
         :param tags: comma separated list of tagstrings to set

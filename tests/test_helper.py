@@ -38,7 +38,7 @@ from . import utilities
 
 class TestHelperShortenAuthorString(unittest.TestCase):
 
-    authors = u'King Kong, Mucho Muchacho, Jaime Huerta, Flash Gordon'
+    authors = 'King Kong, Mucho Muchacho, Jaime Huerta, Flash Gordon'
 
     def test_high_maxlength_keeps_string_intact(self):
         short = helper.shorten_author_string(self.authors, 60)
@@ -46,23 +46,23 @@ class TestHelperShortenAuthorString(unittest.TestCase):
 
     def test_shows_only_first_names_if_they_fit(self):
         short = helper.shorten_author_string(self.authors, 40)
-        self.assertEqual(short, u"King, Mucho, Jaime, Flash")
+        self.assertEqual(short, "King, Mucho, Jaime, Flash")
 
     def test_adds_ellipses_to_long_first_names(self):
         short = helper.shorten_author_string(self.authors, 20)
-        self.assertEqual(short, u"King, …, Jai…, Flash")
+        self.assertEqual(short, "King, …, Jai…, Flash")
 
     def test_replace_all_but_first_name_with_ellipses(self):
         short = helper.shorten_author_string(self.authors, 10)
-        self.assertEqual(short, u"King, …")
+        self.assertEqual(short, "King, …")
 
     def test_shorten_first_name_with_ellipses(self):
         short = helper.shorten_author_string(self.authors, 2)
-        self.assertEqual(short, u"K…")
+        self.assertEqual(short, "K…")
 
     def test_only_display_initial_letter_for_maxlength_1(self):
         short = helper.shorten_author_string(self.authors, 1)
-        self.assertEqual(short, u"K")
+        self.assertEqual(short, "K")
 
 
 class TestShellQuote(unittest.TestCase):
@@ -125,7 +125,7 @@ class TestSplitCommandline(unittest.TestCase):
         self._test(base, expected)
 
     def test_unicode(self):
-        base = u'echo "foo";sleep 1'
+        base = 'echo "foo";sleep 1'
         expected = ['echo "foo"', 'sleep 1']
         self._test(base, expected)
 
@@ -164,18 +164,18 @@ class TestStringDecode(unittest.TestCase):
         self.assertEqual(actual, expected)
 
     def test_ascii_bytes(self):
-        base = u'test'.encode('ascii')
-        expected = u'test'
+        base = 'test'.encode('ascii')
+        expected = 'test'
         self._test(base, expected)
 
     def test_utf8_bytes(self):
-        base = u'test'.encode('utf-8')
-        expected = u'test'
+        base = 'test'.encode('utf-8')
+        expected = 'test'
         self._test(base, expected, 'utf-8')
 
     def test_unicode(self):
-        base = u'test'
-        expected = u'test'
+        base = 'test'
+        expected = 'test'
         self._test(base, expected)
 
 
@@ -219,21 +219,21 @@ class TestPrettyDatetime(unittest.TestCase):
         for i in (self.random.randint(0, 60) for _ in range(5)):
             test = self.now - datetime.timedelta(seconds=i)
             actual = helper.pretty_datetime(test)
-            self.assertEqual(actual, u'just now')
+            self.assertEqual(actual, 'just now')
 
     def test_x_minutes_ago(self):
         for i in (self.random.randint(60, 3600) for _ in range(10)):
             test = self.now - datetime.timedelta(seconds=i)
             actual = helper.pretty_datetime(test)
             self.assertEqual(
-                actual, u'{}min ago'.format((self.now - test).seconds // 60))
+                actual, '{}min ago'.format((self.now - test).seconds // 60))
 
     def test_x_hours_ago(self):
         for i in (self.random.randint(3600, 3600 * 6) for _ in range(10)):
             test = self.now - datetime.timedelta(seconds=i)
             actual = helper.pretty_datetime(test)
             self.assertEqual(
-                actual, u'{}h ago'.format((self.now - test).seconds // 3600))
+                actual, '{}h ago'.format((self.now - test).seconds // 3600))
 
     # TODO: yesterday
     # TODO: yesterday > now > a year
@@ -318,45 +318,45 @@ class TestCallCmd(unittest.TestCase):
 
     def test_no_stdin(self):
         out, err, code = helper.call_cmd(['echo', '-n', 'foo'])
-        self.assertEqual(out, u'foo')
-        self.assertEqual(err, u'')
+        self.assertEqual(out, 'foo')
+        self.assertEqual(err, '')
         self.assertEqual(code, 0)
 
     def test_no_stdin_unicode(self):
         out, err, code = helper.call_cmd(['echo', '-n', '�'])
-        self.assertEqual(out, u'�')
-        self.assertEqual(err, u'')
+        self.assertEqual(out, '�')
+        self.assertEqual(err, '')
         self.assertEqual(code, 0)
 
     def test_stdin(self):
         out, err, code = helper.call_cmd(['cat'], stdin='�')
-        self.assertEqual(out, u'�')
-        self.assertEqual(err, u'')
+        self.assertEqual(out, '�')
+        self.assertEqual(err, '')
         self.assertEqual(code, 0)
 
     def test_no_such_command(self):
         out, err, code = helper.call_cmd(['thiscommandabsolutelydoesntexist'])
-        self.assertEqual(out, u'')
+        self.assertEqual(out, '')
 
         # We don't control the output of err, the shell does. Therefore simply
         # assert that the shell said *something*
-        self.assertNotEqual(err, u'')
+        self.assertNotEqual(err, '')
         self.assertEqual(code, errno.ENOENT)
 
     def test_no_such_command_stdin(self):
         out, err, code = helper.call_cmd(['thiscommandabsolutelydoesntexist'],
                                          stdin='foo')
-        self.assertEqual(out, u'')
+        self.assertEqual(out, '')
 
         # We don't control the output of err, the shell does. Therefore simply
         # assert that the shell said *something*
-        self.assertNotEqual(err, u'')
+        self.assertNotEqual(err, '')
         self.assertEqual(code, errno.ENOENT)
 
     def test_bad_argument_stdin(self):
         out, err, code = helper.call_cmd(['cat', '-Y'], stdin='�')
-        self.assertEqual(out, u'')
-        self.assertNotEqual(err, u'')
+        self.assertEqual(out, '')
+        self.assertNotEqual(err, '')
 
         # We don't control this, although 1 might be a fairly safe guess, we
         # know for certain it should *not* return 0
@@ -364,8 +364,8 @@ class TestCallCmd(unittest.TestCase):
 
     def test_bad_argument(self):
         out, err, code = helper.call_cmd(['cat', '-Y'])
-        self.assertEqual(out, u'')
-        self.assertNotEqual(err, u'')
+        self.assertEqual(out, '')
+        self.assertNotEqual(err, '')
 
         # We don't control this, although 1 might be a fairly safe guess, we
         # know for certain it should *not* return 0
@@ -373,18 +373,18 @@ class TestCallCmd(unittest.TestCase):
 
     def test_os_errors_from_popen_are_caught(self):
         with mock.patch('subprocess.Popen',
-                        mock.Mock(side_effect=OSError(42, u'foobar'))):
+                        mock.Mock(side_effect=OSError(42, 'foobar'))):
             out, err, code = helper.call_cmd(
                 ['does_not_matter_as_subprocess_popen_is_mocked'])
-        self.assertEqual(out, u'')
-        self.assertEqual(err, u'foobar')
+        self.assertEqual(out, '')
+        self.assertEqual(err, 'foobar')
         self.assertEqual(code, 42)
 
 
 class TestShorten(unittest.TestCase):
 
     def test_lt_maxlen(self):
-        expected = u'a string'
+        expected = 'a string'
         actual = helper.shorten(expected, 25)
         self.assertEqual(expected, actual)
 
@@ -394,7 +394,7 @@ class TestShorten(unittest.TestCase):
         self.assertEqual(expected, actual)
 
     def test_gt_maxlen(self):
-        expected = u'a long string…'
+        expected = 'a long string…'
         actual = helper.shorten('a long string that is full of text', 14)
         self.assertEqual(expected, actual)
 

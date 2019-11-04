@@ -107,7 +107,7 @@ class CompleteEdit(urwid.Edit):
 
     def __init__(self, completer, on_exit,
                  on_error=None,
-                 edit_text=u'',
+                 edit_text='',
                  history=None,
                  **kwargs):
         """

@@ -62,8 +62,8 @@ class TestEnvelope(unittest.TestCase):
     def test_setitem_stores_text_unchanged(self):
         "Just ensure that the value is set and unchanged"
         e = envelope.Envelope()
-        e['Subject'] = u'sm\xf8rebr\xf8d'
-        self.assertEqual(e['Subject'], u'sm\xf8rebr\xf8d')
+        e['Subject'] = 'sm\xf8rebr\xf8d'
+        self.assertEqual(e['Subject'], 'sm\xf8rebr\xf8d')
 
     def _test_mail(self, envelope):
         mail = envelope.construct_mail()

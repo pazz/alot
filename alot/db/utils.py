@@ -50,7 +50,7 @@ def add_signature_headers(mail, sigs, error_msg):
     assert error_msg is None or isinstance(error_msg, str)
 
     if not sigs:
-        error_msg = error_msg or u'no signature found'
+        error_msg = error_msg or 'no signature found'
     elif not error_msg:
         try:
             key = crypto.get_key(sigs[0].fpr)
@@ -112,19 +112,19 @@ def _handle_signatures(original, message, params):
     """
     malformed = None
     if len(message.get_payload()) != 2:
-        malformed = u'expected exactly two messages, got {0}'.format(
+        malformed = 'expected exactly two messages, got {0}'.format(
             len(message.get_payload()))
     else:
         ct = message.get_payload(1).get_content_type()
         if ct != _APP_PGP_SIG:
-            malformed = u'expected Content-Type: {0}, got: {1}'.format(
+            malformed = 'expected Content-Type: {0}, got: {1}'.format(
                 _APP_PGP_SIG, ct)
 
     # TODO: RFC 3156 says the alg has to be lower case, but I've seen a message
     # with 'PGP-'. maybe we should be more permissive here, or maybe not, this
     # is crypto stuff...
     if not params.get('micalg', 'nothing').startswith('pgp-'):
-        malformed = u'expected micalg=pgp-..., got: {0}'.format(
+        malformed = 'expected micalg=pgp-..., got: {0}'.format(
             params.get('micalg', 'nothing'))
 
     sigs = []
@@ -161,13 +161,13 @@ def _handle_encrypted(original, message, session_keys=None):
 
     ct = message.get_payload(0).get_content_type()
     if ct != _APP_PGP_ENC:
-        malformed = u'expected Content-Type: {0}, got: {1}'.format(
+        malformed = 'expected Content-Type: {0}, got: {1}'.format(
             _APP_PGP_ENC, ct)
 
     want = 'application/octet-stream'
     ct = message.get_payload(1).get_content_type()
     if ct != want:
-        malformed = u'expected Content-Type: {0}, got: {1}'.format(want, ct)
+        malformed = 'expected Content-Type: {0}, got: {1}'.format(want, ct)
 
     if not malformed:
         # This should be safe because PGP uses US-ASCII characters only
@@ -209,7 +209,7 @@ def _handle_encrypted(original, message, session_keys=None):
                 add_signature_headers(original, sigs, '')
 
     if malformed:
-        msg = u'Malformed OpenPGP message: {0}'.format(malformed)
+        msg = 'Malformed OpenPGP message: {0}'.format(malformed)
         content = email.message_from_string(msg,
                                             _class=email.message.EmailMessage,
                                             policy=email.policy.SMTP)
@@ -317,11 +317,11 @@ def extract_headers(mail, headers=None):
     :param headers: headers to extract
     :type headers: list of str
     """
-    headertext = u''
+    headertext = ''
     if headers is None:
         headers = mail.keys()
     for key in headers:
-        value = u''
+        value = ''
         if key in mail:
             value = decode_header(mail.get(key, ''))
         headertext += '%s: %s\n' % (key, value)

@@ -35,23 +35,23 @@ class TestAccount(unittest.TestCase):
     def test_matches_address(self):
         """Tests address without aliases."""
         acct = _AccountTestClass(address="foo@example.com")
-        self.assertTrue(acct.matches_address(u"foo@example.com"))
-        self.assertFalse(acct.matches_address(u"bar@example.com"))
+        self.assertTrue(acct.matches_address("foo@example.com"))
+        self.assertFalse(acct.matches_address("bar@example.com"))
 
     def test_matches_address_with_aliases(self):
         """Tests address with aliases."""
         acct = _AccountTestClass(address="foo@example.com",
                                  aliases=['bar@example.com'])
-        self.assertTrue(acct.matches_address(u"foo@example.com"))
-        self.assertTrue(acct.matches_address(u"bar@example.com"))
-        self.assertFalse(acct.matches_address(u"baz@example.com"))
+        self.assertTrue(acct.matches_address("foo@example.com"))
+        self.assertTrue(acct.matches_address("bar@example.com"))
+        self.assertFalse(acct.matches_address("baz@example.com"))
 
     def test_matches_address_with_regex_aliases(self):
         """Tests address with regex aliases."""
-        acct = _AccountTestClass(address=u"foo@example.com",
+        acct = _AccountTestClass(address="foo@example.com",
                                  alias_regexp=r'to\+.*@example.com')
-        self.assertTrue(acct.matches_address(u"to+foo@example.com"))
-        self.assertFalse(acct.matches_address(u"to@example.com"))
+        self.assertTrue(acct.matches_address("to+foo@example.com"))
+        self.assertFalse(acct.matches_address("to@example.com"))
 
 
     def test_deprecated_encrypt_by_default(self):
