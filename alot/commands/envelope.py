@@ -236,7 +236,7 @@ class SendCommand(Command):
                                     msg_position='left')) == 'no':
                     return
 
-            clearme = ui.notify('constructing mail (GPG, attachments)\u2026',
+            clearme = ui.notify('constructing mail (GPG, attachments)…',
                                 timeout=-1)
 
             try:

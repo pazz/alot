@@ -179,7 +179,7 @@ def shorten_author_string(authors_string, maxlength):
         au = authors.pop()
         if len(au) > 1 and (remaining_length == 3 or (authors and
                                                       remaining_length < 7)):
-            authors_chain.appendleft('\u2026')
+            authors_chain.appendleft('…')
             break
         else:
             if authors:
