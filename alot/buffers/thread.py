@@ -84,7 +84,7 @@ class ThreadBuffer(Buffer):
             heads_char = None
             heads_att = None
             if self._indent_width > 1:
-                heads_char = '\u27a4'
+                heads_char = '➤'
                 heads_att = settings.get_theming_attribute('thread',
                                                            'arrow_heads')
             A = ArrowTree(
