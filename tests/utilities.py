@@ -93,6 +93,7 @@ class TestCaseClassCleanup(unittest.TestCase):
 
     @classmethod
     def doClassCleanups(cls):  # pylint: disable=invalid-name
+        cls.tearDown_exceptions = []
         while cls.__stack:
             func, args, kwargs = cls.__stack.pop()
 
