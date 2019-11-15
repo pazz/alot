@@ -28,20 +28,6 @@ SETTINGS = {
 }
 
 
-def email_to_dict(mail):
-    """Consumes an email, and returns a dict of headers and 'Body'."""
-    split = mail.splitlines()
-    final = {}
-    for line in split:
-        if line.strip():
-            try:
-                k, v = line.split(':')
-                final[k.strip()] = v.strip()
-            except ValueError:
-                final['Body'] = line.strip()
-    return final
-
-
 class TestEnvelope(unittest.TestCase):
 
     def assertEmailEqual(self, first, second):
@@ -100,3 +86,24 @@ class TestEnvelope(unittest.TestCase):
         e.attach(f.name)
 
         self._test_mail(e)
+
+    @mock.patch('alot.db.envelope.settings', SETTINGS)
+    def test_parse_template(self):
+        """Tests multi-line header and body parsing"""
+        raw = (
+            'From: foo@example.com\n'
+            'To: bar@example.com,\n'
+            ' baz@example.com\n'
+            'Subject: Test email\n'
+            '\n'
+            'Some body content: which is not a header.\n'
+        )
+        envlp = envelope.Envelope()
+        envlp.parse_template(raw)
+        self.assertDictEqual(envlp.headers, {
+            'From': ['foo@example.com'],
+            'To': ['bar@example.com, baz@example.com'],
+            'Subject': ['Test email']
+        })
+        self.assertEqual(envlp.body,
+                         'Some body content: which is not a header.')
