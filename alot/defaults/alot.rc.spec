@@ -197,6 +197,10 @@ quit_on_last_bclose = boolean(default=False)
 # The string '{version}' will be replaced by the version string of the running instance.
 user_agent = string(default='alot/{version}')
 
+# Domain to use in automatically generated Message-ID headers.
+# The default is the local hostname.
+message_id_domain = string(default=None)
+
 # Suffix of the prompt used when waiting for user input
 prompt_suffix = string(default=':')
 
