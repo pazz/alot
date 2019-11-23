@@ -94,7 +94,7 @@ class TestEnvelope(unittest.TestCase):
             'From: foo@example.com\n'
             'To: bar@example.com,\n'
             ' baz@example.com\n'
-            'Subject: Test email\n'
+            'Subject: Fwd: Test email\n'
             '\n'
             'Some body content: which is not a header.\n'
         )
@@ -103,7 +103,7 @@ class TestEnvelope(unittest.TestCase):
         self.assertDictEqual(envlp.headers, {
             'From': ['foo@example.com'],
             'To': ['bar@example.com, baz@example.com'],
-            'Subject': ['Test email']
+            'Subject': ['Fwd: Test email']
         })
         self.assertEqual(envlp.body,
                          'Some body content: which is not a header.')
