@@ -94,7 +94,7 @@ class EnvelopeBuffer(Buffer):
             displayed_widgets.append(self.attachment_wgt)
 
         # message body
-        txt = self.envelope.body_txt
+        txt = self._find_body_text()
         self.body_wgt = urwid.Text(string_sanitize(txt))
         displayed_widgets.append(self.body_wgt)
         self.body = urwid.ListBox(displayed_widgets)
@@ -104,13 +104,7 @@ class EnvelopeBuffer(Buffer):
         self.all_headers = not self.all_headers
         self.rebuild()
 
-    def set_displaypart(self, part):
-        """Update the view to display body part (plaintext, html, src).
-
-        ..note:: This assumes that selv.envelope.body_html exists in case
-        the requested part is 'html' or 'src'!
-        """
-        self.displaypart = part
+    def _find_body_text(self):
         txt = "no such part!"
         if self.displaypart == "html":
             htmlpart = MIMEText(self.envelope.body_html, 'html', 'utf-8')
@@ -119,4 +113,14 @@ class EnvelopeBuffer(Buffer):
             txt = self.envelope.body_html
         elif self.displaypart == "plaintext":
             txt = self.envelope.body_txt
+        return txt
+
+    def set_displaypart(self, part):
+        """Update the view to display body part (plaintext, html, src).
+
+        ..note:: This assumes that selv.envelope.body_html exists in case
+        the requested part is 'html' or 'src'!
+        """
+        self.displaypart = part
+        txt = self._find_body_text()
         self.body_wgt.set_text(txt)
