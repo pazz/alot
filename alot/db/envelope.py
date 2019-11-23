@@ -315,7 +315,7 @@ class Envelope:
             # locally, lines are separated by a simple LF, not CRLF
             # we decode the edited text ourselves here as
             # email.message_from_file can't deal with raw utf8 header values
-            headerRe = re.compile(r'^(?P<k>.+):(?P<v>(.|\n[ \t\r\f\v])+)$',
+            headerRe = re.compile(r'^(?P<k>.+?):(?P<v>(.|\n[ \t\r\f\v])+)$',
                                   re.MULTILINE)
             for header in headerRe.finditer(raw):
                 if header.start() > headerEndPos + 1:
