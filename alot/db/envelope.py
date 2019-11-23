@@ -272,6 +272,11 @@ class Envelope:
             outer_msg = unencrypted_msg
 
         headers = self.headers.copy()
+
+        # add Date header
+        if 'Date' not in headers:
+            headers['Date'] = [email.utils.formatdate(localtime=True)]
+
         # add Message-ID
         if 'Message-ID' not in headers:
             headers['Message-ID'] = [email.utils.make_msgid()]
