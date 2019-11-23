@@ -718,13 +718,13 @@ class TagCommand(Command):
 @registerCommand(
     MODE, 'html2txt', forced={'action': 'html2txt'},
     arguments=[(['cmd'], {'nargs': argparse.REMAINDER,
-                           'help': 'converter command to use'})],
+                          'help': 'converter command to use'})],
     help='convert html to plaintext alternative',
 )
 @registerCommand(
     MODE, 'txt2html', forced={'action': 'txt2html'},
     arguments=[(['cmd'], {'nargs': argparse.REMAINDER,
-                           'help': 'converter command to use'})],
+                          'help': 'converter command to use'})],
     help='convert plaintext to html alternative',
 )
 class BodyConvertCommand(Command):

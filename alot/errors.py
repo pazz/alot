@@ -28,5 +28,6 @@ class GPGProblem(Exception):
 class CompletionError(Exception):
     pass
 
+
 class ConversionError(Exception):
     pass
