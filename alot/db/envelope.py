@@ -38,8 +38,10 @@ class Envelope:
     """
     dict containing the mail headers (a list of strings for each header key)
     """
-    body = None
-    """mail body as unicode string"""
+    body_txt = None
+    """mail body (plaintext) as unicode string"""
+    body_html = None
+    """mail body (html) as unicode string"""
     tmpfile = None
     """template text for initial content"""
     attachments = None
@@ -77,8 +79,8 @@ class Envelope:
         if template:
             self.parse_template(template)
             logging.debug('PARSED TEMPLATE: %s', template)
-            logging.debug('BODY: %s', self.body)
-        self.body = bodytext or ''
+            logging.debug('BODY: %s', self.body_txt)
+        self.body_txt = bodytext or ''
         # TODO: if this was as collections.defaultdict a number of methods
         # could be simplified.
         self.headers = headers or {}
@@ -96,7 +98,7 @@ class Envelope:
         self.account = account
 
     def __str__(self):
-        return "Envelope (%s)\n%s" % (self.headers, self.body)
+        return "Envelope (%s)\n%s" % (self.headers, self.body_txt)
 
     def __setitem__(self, name, val):
         """setter for header values. This allows adding header like so:
@@ -183,7 +185,7 @@ class Envelope:
         """
         # Build body text part. To properly sign/encrypt messages later on, we
         # convert the text to its canonical format (as per RFC 2015).
-        canonical_format = self.body.encode('utf-8')
+        canonical_format = self.body_txt.encode('utf-8')
         textpart = MIMEText(canonical_format, 'plain', 'utf-8')
 
         # wrap it in a multipart container if necessary

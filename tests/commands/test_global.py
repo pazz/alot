@@ -101,7 +101,7 @@ class TestComposeCommand(unittest.TestCase):
         self.assertEqual({'To': [to],
                           'From': [_from],
                           'Subject': [subject]}, cmd.envelope.headers)
-        self.assertEqual(body, cmd.envelope.body)
+        self.assertEqual(body, cmd.envelope.body_txt)
 
 
 class TestExternalCommand(unittest.TestCase):

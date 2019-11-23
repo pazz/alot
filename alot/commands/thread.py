@@ -334,7 +334,7 @@ class ForwardCommand(Command):
                 for line in self.message.get_body_text().splitlines():
                     mailcontent += quote_prefix + line + '\n'
 
-            envelope.body = mailcontent
+            envelope.body_txt = mailcontent
 
             for a in self.message.get_attachments():
                 envelope.attach(a)

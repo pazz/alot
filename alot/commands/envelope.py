@@ -390,7 +390,7 @@ class EditCommand(Command):
                 headertext += '%s: %s\n' % (key, value)
 
         # determine editable content
-        bodytext = self.envelope.body
+        bodytext = self.envelope.body_txt
         if headertext:
             content = '%s\n%s' % (headertext, bodytext)
             self.edit_only_body = False

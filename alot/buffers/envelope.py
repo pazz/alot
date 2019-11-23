@@ -89,7 +89,7 @@ class EnvelopeBuffer(Buffer):
             self.attachment_wgt = urwid.Pile(lines)
             displayed_widgets.append(self.attachment_wgt)
 
-        self.body_wgt = urwid.Text(string_sanitize(self.envelope.body))
+        self.body_wgt = urwid.Text(string_sanitize(self.envelope.body_txt))
         displayed_widgets.append(self.body_wgt)
         self.body = urwid.ListBox(displayed_widgets)
 
