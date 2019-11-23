@@ -317,23 +317,32 @@ class SendCommand(Command):
     (['--spawn'], {'action': cargparse.BooleanAction, 'default': None,
                    'help': 'spawn editor in new terminal'}),
     (['--refocus'], {'action': cargparse.BooleanAction, 'default': True,
-                     'help': 'refocus envelope after editing'})])
+                     'help': 'refocus envelope after editing'}),
+    (['--part'], {'help': 'which alternative to edit ("html" or "plaintext")',
+                  'choices': ['html', 'plaintext']}),
+])
 class EditCommand(Command):
     """edit mail"""
-    def __init__(self, envelope=None, spawn=None, refocus=True, **kwargs):
+    def __init__(self, envelope=None, spawn=None, refocus=True, part=None,
+                 **kwargs):
         """
         :param envelope: email to edit
         :type envelope: :class:`~alot.db.envelope.Envelope`
         :param spawn: force spawning of editor in a new terminal
         :type spawn: bool
         :param refocus: m
+        :param part: which alternative to edit
+        :type part: str
         """
         self.envelope = envelope
         self.openNew = (envelope is not None)
         self.force_spawn = spawn
         self.refocus = refocus
         self.edit_only_body = False
-        self.edit_part = None
+        self.edit_part = settings.get('envelope_edit_default_alternative')
+        if part in ['html', 'plaintext']:
+            self.edit_part = part
+        logging.debug('edit_part: %s ' % self.edit_part)
 
         Command.__init__(self, **kwargs)
 
@@ -396,7 +405,7 @@ class EditCommand(Command):
                 headertext += '%s: %s\n' % (key, value)
 
         # determine which part to edit
-        # TODO: add config option to enforce plaintext here
+        logging.debug('edit_part: %s ' % self.edit_part)
         if self.edit_part is None:
             # I can't access ebuffer in my constructor, hence the check here
             if isinstance(ebuffer, buffers.EnvelopeBuffer):
