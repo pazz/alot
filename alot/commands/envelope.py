@@ -743,3 +743,30 @@ class BodyConvertCommand(Command):
                 envelope.body_txt = self.convert(cmdstring, envelope.body_html)
 
         ui.current_buffer.rebuild()
+
+
+@registerCommand(
+    MODE, 'display', help='change which body alternative to display',
+    arguments=[(['part'], {'help': 'part to show'})])
+class ChangeDisplaymodeCommand(Command):
+
+    """change wich body alternative is shown"""
+
+    def __init__(self, part=None, **kwargs):
+        """
+        :param part: which part to show
+        :type indent: 'plaintext', 'src', or 'html'
+        """
+        self.part = part
+        Command.__init__(self, **kwargs)
+
+    async def apply(self, ui):
+        ebuffer = ui.current_buffer
+        envelope = ebuffer.envelope
+
+        # make sure that envelope has html part if requested here
+        if self.part in ['html', 'src'] and not envelope.body_html:
+            await ui.apply_command(BodyConvertCommand(action='txt2html'))
+
+        ui.current_buffer.set_displaypart(self.part)
+        ui.update()
