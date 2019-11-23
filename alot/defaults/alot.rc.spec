@@ -167,7 +167,8 @@ namedqueries_statusbar = mixed_list(string, string, default=list('[{buffer_no}: 
 # these strings may contain variables:
 #
 # * `{to}`: To-header of the envelope
-envelope_statusbar = mixed_list(string, string, default=list('[{buffer_no}: envelope]','{input_queue} total messages: {total_messages}'))
+# * `{displaypart}`: which body part alternative is currently in view (can be 'plaintext,'src', or 'html')
+envelope_statusbar = mixed_list(string, string, default=list('[{buffer_no}: envelope ({displaypart})]','{input_queue} total messages: {total_messages}'))
 
 # timestamp format in `strftime format syntax <http://docs.python.org/library/datetime.html#strftime-strptime-behavior>`_
 timestamp_format = string(default=None)
