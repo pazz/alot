@@ -305,8 +305,9 @@ class Envelope:
 
         return outer_msg
 
-    def parse_template(self, raw, reset=False, only_body=False):
-        """parses a template or user edited string to fills this envelope.
+    def parse_template(self, raw, reset=False, only_body=False,
+                       target_body='plaintext'):
+        """Parse a template or user edited string to fills this envelope.
 
         :param raw: the string to parse.
         :type raw: str
@@ -314,6 +315,9 @@ class Envelope:
         :type reset: bool
         :param only_body: do not parse headers
         :type only_body: bool
+        :param target_body: body text alternative this should be stored in;
+            can be 'plaintext' or 'html'
+        :type reset: str
         """
         logging.debug('GoT: """\n%s\n"""', raw)
 
@@ -354,4 +358,8 @@ class Envelope:
                     self.attach(path)
                 del self['Attach']
 
-        self.body = raw[headerEndPos:].strip()
+        body = raw[headerEndPos:].strip()
+        if target_body == 'html':
+            self.body_html = body
+        else:
+            self.body_txt = body
