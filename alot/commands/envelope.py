@@ -333,12 +333,14 @@ class EditCommand(Command):
         self.force_spawn = spawn
         self.refocus = refocus
         self.edit_only_body = False
+        self.edit_part = None
+
         Command.__init__(self, **kwargs)
 
     async def apply(self, ui):
         ebuffer = ui.current_buffer
         if not self.envelope:
-            self.envelope = ui.current_buffer.envelope
+            self.envelope = ebuffer.envelope
 
         # determine editable headers
         edit_headers = OrderedSet(settings.get('edit_headers_whitelist'))
@@ -366,8 +368,10 @@ class EditCommand(Command):
             translate = settings.get_hook('post_edit_translate')
             if translate:
                 template = translate(template, ui=ui, dbm=ui.dbman)
+            logging.debug('target bodypart: %s' % self.edit_part)
             self.envelope.parse_template(template,
-                                         only_body=self.edit_only_body)
+                                         only_body=self.edit_only_body,
+                                         target_body=self.edit_part)
             if self.openNew:
                 ui.buffer_open(buffers.EnvelopeBuffer(ui, self.envelope))
             else:
@@ -391,8 +395,23 @@ class EditCommand(Command):
                 value = re.sub('[ \t\r\f\v]*\n[ \t\r\f\v]*', ' ', value)
                 headertext += '%s: %s\n' % (key, value)
 
+        # determine which part to edit
+        # TODO: add config option to enforce plaintext here
+        if self.edit_part is None:
+            # I can't access ebuffer in my constructor, hence the check here
+            if isinstance(ebuffer, buffers.EnvelopeBuffer):
+                if ebuffer.displaypart in ['html', 'src']:
+                    self.edit_part = 'html'
+                    logging.debug('displaypart: %s' % ebuffer.displaypart)
+        if self.edit_part == 'html':
+            bodytext = self.envelope.body_html
+            logging.debug('editing HTML source')
+        else:
+            self.edit_part = 'plaintext'
+            bodytext = self.envelope.body_txt
+            logging.debug('editing plaintext')
+
         # determine editable content
-        bodytext = self.envelope.body_txt
         if headertext:
             content = '%s\n%s' % (headertext, bodytext)
             self.edit_only_body = False
