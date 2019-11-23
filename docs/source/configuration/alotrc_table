@@ -209,6 +209,18 @@
     :default: "UTF-8"
 
 
+.. _envelope-edit-default-alternative:
+
+.. describe:: envelope_edit_default_alternative
+
+     always edit the given body text alternative when editing outgoing messages in envelope mode.
+     alternative, and not the html source, even if that is currently displayed.
+     If unset, html content will be edited unless the current envelope shows the plaintext alternative.
+
+    :type: option, one of ['plaintext', 'html']
+    :default: None
+
+
 .. _envelope-headers-blacklist:
 
 .. describe:: envelope_headers_blacklist

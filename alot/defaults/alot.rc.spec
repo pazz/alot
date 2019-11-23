@@ -258,6 +258,11 @@ auto_replyto_mailinglist = boolean(default=False)
 # prefer plaintext alternatives over html content in multipart/alternative
 prefer_plaintext = boolean(default=False)
 
+# always edit the given body text alternative when editing outgoing messages in envelope mode.
+# alternative, and not the html source, even if that is currently displayed.
+# If unset, html content will be edited unless the current envelope shows the plaintext alternative.
+envelope_edit_default_alternative = option('plaintext', 'html', default=None)
+
 # Use this command to construct a html alternative message body text in envelope mode.
 # If unset, we send only the plaintext part, without html alternative.
 # The command will receive the plaintex on stdin and should produce html on stdout.
