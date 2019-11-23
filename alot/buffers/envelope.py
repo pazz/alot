@@ -10,6 +10,8 @@ from ..widgets.globals import HeadersList
 from ..widgets.globals import AttachmentWidget
 from ..helper import shorten_author_string
 from ..helper import string_sanitize
+from ..db.utils import render_part
+from email.mime.text import MIMEText
 
 
 class EnvelopeBuffer(Buffer):
@@ -21,6 +23,7 @@ class EnvelopeBuffer(Buffer):
         self.ui = ui
         self.envelope = envelope
         self.all_headers = False
+        self.displaypart = "plaintext"
         self.rebuild()
         Buffer.__init__(self, ui, self.body)
 
@@ -31,6 +34,7 @@ class EnvelopeBuffer(Buffer):
     def get_info(self):
         info = {}
         info['to'] = self.envelope.get('To', fallback='unset')
+        info['displaypart'] = self.displaypart
         return info
 
     def cleanup(self):
@@ -89,11 +93,30 @@ class EnvelopeBuffer(Buffer):
             self.attachment_wgt = urwid.Pile(lines)
             displayed_widgets.append(self.attachment_wgt)
 
-        self.body_wgt = urwid.Text(string_sanitize(self.envelope.body_txt))
+        # message body
+        txt = self.envelope.body_txt
+        self.body_wgt = urwid.Text(string_sanitize(txt))
         displayed_widgets.append(self.body_wgt)
         self.body = urwid.ListBox(displayed_widgets)
 
     def toggle_all_headers(self):
-        """toggles visibility of all envelope headers"""
+        """Toggle visibility of all envelope headers."""
         self.all_headers = not self.all_headers
         self.rebuild()
+
+    def set_displaypart(self, part):
+        """Update the view to display body part (plaintext, html, src).
+
+        ..note:: This assumes that selv.envelope.body_html exists in case
+        the requested part is 'html' or 'src'!
+        """
+        self.displaypart = part
+        txt = "no such part!"
+        if self.displaypart == "html":
+            htmlpart = MIMEText(self.envelope.body_html, 'html', 'utf-8')
+            txt = render_part(htmlpart)
+        elif self.displaypart == "src":
+            txt = self.envelope.body_html
+        elif self.displaypart == "plaintext":
+            txt = self.envelope.body_txt
+        self.body_wgt.set_text(txt)
