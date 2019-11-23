@@ -22,8 +22,10 @@ from .. import commands
 from .. import crypto
 from ..account import SendingMailFailed, StoreMailError
 from ..db.errors import DatabaseError
-from ..errors import GPGProblem
+from ..errors import GPGProblem, ConversionError
 from ..helper import string_decode
+from ..helper import call_cmd
+from ..helper import split_commandstring
 from ..settings.const import settings
 from ..settings.errors import NoMatchingAccount
 from ..utils import argparse as cargparse
@@ -691,4 +693,53 @@ class TagCommand(Command):
             new = old.symmetric_difference(tags)
         envelope.tags = sorted(new)
         # reload buffer
+        ui.current_buffer.rebuild()
+
+
+@registerCommand(
+    MODE, 'html2txt', forced={'action': 'html2txt'},
+    arguments=[(['cmd'], {'nargs': argparse.REMAINDER,
+                           'help': 'converter command to use'})],
+    help='convert html to plaintext alternative',
+)
+@registerCommand(
+    MODE, 'txt2html', forced={'action': 'txt2html'},
+    arguments=[(['cmd'], {'nargs': argparse.REMAINDER,
+                           'help': 'converter command to use'})],
+    help='convert plaintext to html alternative',
+)
+class BodyConvertCommand(Command):
+    def __init__(self, action=None, cmd=None):
+        self.action = action
+        self.cmd = cmd
+        Command.__init__(self)
+
+    def convert(self, cmdstring, inputstring):
+        logging.debug("converting using %s" % cmdstring)
+        cmdlist = split_commandstring(cmdstring)
+        resultstring, errmsg, retval = call_cmd(cmdlist,
+                                                stdin=inputstring)
+        if retval != 0:
+            msg = 'converter "%s" returned with ' % cmdstring
+            msg += 'return code %d' % retval
+            if errmsg:
+                msg += ':\n%s' % errmsg
+            raise ConversionError(msg)
+        logging.debug("resultstring is \n" + resultstring)
+        return resultstring
+
+    def apply(self, ui):
+        ebuffer = ui.current_buffer
+        envelope = ebuffer.envelope
+
+        if self.action is "txt2html":
+            cmdstring = self.cmd or settings.get('envelope_txt2html')
+            if cmdstring:
+                envelope.body_html = self.convert(cmdstring, envelope.body_txt)
+
+        elif self.action is "html2txt":
+            cmdstring = self.cmd or settings.get('envelope_html2txt')
+            if cmdstring:
+                envelope.body_txt = self.convert(cmdstring, envelope.body_html)
+
         ui.current_buffer.rebuild()
