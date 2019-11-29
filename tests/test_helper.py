@@ -124,9 +124,20 @@ class TestSplitCommandline(unittest.TestCase):
         expected = [base]
         self._test(base, expected)
 
-    def test_unicode(self):
-        base = 'echo "foo";sleep 1'
-        expected = ['echo "foo"', 'sleep 1']
+    def test_quoted_separator(self):
+        base = '''echo "foo; bar";sleep 1 ; echo "foo; \\"bar; baz";''' \
+               ''' echo "foo; bar \\\\" "baz"; test 'hi' 'hi';''' \
+               ''' word; two words; empty '' '''
+        expected = [
+            'echo "foo; bar"',
+            'sleep 1 ',
+            ' echo "foo; \\"bar; baz"',
+            ' echo "foo; bar \\\\" "baz"',
+            " test 'hi' 'hi'",
+            ' word',
+            ' two words',
+            " empty '' "
+        ]
         self._test(base, expected)
 
 
