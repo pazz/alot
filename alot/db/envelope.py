@@ -279,7 +279,7 @@ class Envelope:
 
         # add Message-ID
         if 'Message-ID' not in headers:
-            domain = settings.get('message_id_domain')
+            domain = self.account.message_id_domain
             headers['Message-ID'] = [email.utils.make_msgid(domain=domain)]
 
         if 'User-Agent' in headers:
