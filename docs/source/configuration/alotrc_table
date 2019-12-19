@@ -418,17 +418,6 @@
     :default: ,
 
 
-.. _message-id-domain:
-
-.. describe:: message_id_domain
-
-     Domain to use in automatically generated Message-ID headers.
-     The default is the local hostname.
-
-    :type: string
-    :default: None
-
-
 .. _msg-summary-hides-threadwide-tags:
 
 .. describe:: msg_summary_hides_threadwide_tags

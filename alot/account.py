@@ -202,6 +202,7 @@ class Account:
                  draft_tags=None, replied_tags=None, passed_tags=None,
                  abook=None, sign_by_default=False,
                  encrypt_by_default="none", encrypt_to_self=None,
+                 message_id_domain=None,
                  case_sensitive_username=False, **_):
         self.address = Address.from_string(
             address, case_sensitive=case_sensitive_username)
@@ -223,6 +224,7 @@ class Account:
         self.replied_tags = replied_tags
         self.passed_tags = passed_tags
         self.abook = abook
+        self.message_id_domain = message_id_domain
         # Handle encrypt_by_default in an backwards compatible way.  The
         # logging info call can later be upgraded to warning or error.
         encrypt_by_default = encrypt_by_default.lower()
