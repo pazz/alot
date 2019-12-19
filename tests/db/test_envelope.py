@@ -22,10 +22,13 @@ import unittest
 from unittest import mock
 
 from alot.db import envelope
+from alot.account import Account
 
 SETTINGS = {
     'user_agent': 'agent',
 }
+
+test_account = Account('batman@batcave.org', message_id_domain='example.com')
 
 
 class TestEnvelope(unittest.TestCase):
@@ -47,7 +50,7 @@ class TestEnvelope(unittest.TestCase):
 
     def test_setitem_stores_text_unchanged(self):
         "Just ensure that the value is set and unchanged"
-        e = envelope.Envelope()
+        e = envelope.Envelope(account=test_account)
         e['Subject'] = 'sm\xf8rebr\xf8d'
         self.assertEqual(e['Subject'], 'sm\xf8rebr\xf8d')
 
@@ -65,7 +68,8 @@ class TestEnvelope(unittest.TestCase):
             'To': 'bar@example.com',
             'Subject': 'Test email',
         }
-        e = envelope.Envelope(headers={k: [v] for k, v in headers.items()},
+        e = envelope.Envelope(account=test_account,
+                              headers={k: [v] for k, v in headers.items()},
                               bodytext='Test')
         self._test_mail(e)
 
@@ -78,7 +82,8 @@ class TestEnvelope(unittest.TestCase):
             'To': 'bar@example.com',
             'Subject': 'Test email',
         }
-        e = envelope.Envelope(headers={k: [v] for k, v in headers.items()},
+        e = envelope.Envelope(account=test_account,
+                              headers={k: [v] for k, v in headers.items()},
                               bodytext='Test')
         with tempfile.NamedTemporaryFile(mode='wt', delete=False) as f:
             f.write('blah')
@@ -98,7 +103,7 @@ class TestEnvelope(unittest.TestCase):
             '\n'
             'Some body content: which is not a header.\n'
         )
-        envlp = envelope.Envelope()
+        envlp = envelope.Envelope(account=test_account)
         envlp.parse_template(raw)
         self.assertDictEqual(envlp.headers, {
             'From': ['foo@example.com'],
