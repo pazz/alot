@@ -17,7 +17,7 @@ class ANSIText(urwid.WidgetWrap):
                                                default_attr_focus,
                                                ansi_background)
         t = urwid.Text(ct, **kwds)
-        attr_map = { default_attr.background: ''}
+        attr_map = {default_attr.background: ''}
         w = urwid.AttrMap(t, attr_map, focus_map)
         urwid.WidgetWrap.__init__(self, w)
 
@@ -26,6 +26,7 @@ class ANSIText(urwid.WidgetWrap):
 
     def keypress(self, size, key):
         return key
+
 
 ECODES = {
     '1': {'bold': True},
