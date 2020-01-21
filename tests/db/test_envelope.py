@@ -105,5 +105,5 @@ class TestEnvelope(unittest.TestCase):
             'To': ['bar@example.com, baz@example.com'],
             'Subject': ['Fwd: Test email']
         })
-        self.assertEqual(envlp.body,
+        self.assertEqual(envlp.body_txt,
                          'Some body content: which is not a header.')

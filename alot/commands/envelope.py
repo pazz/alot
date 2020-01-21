@@ -22,8 +22,10 @@ from .. import commands
 from .. import crypto
 from ..account import SendingMailFailed, StoreMailError
 from ..db.errors import DatabaseError
-from ..errors import GPGProblem
+from ..errors import GPGProblem, ConversionError
 from ..helper import string_decode
+from ..helper import call_cmd
+from ..helper import split_commandstring
 from ..settings.const import settings
 from ..settings.errors import NoMatchingAccount
 from ..utils import argparse as cargparse
@@ -315,28 +317,39 @@ class SendCommand(Command):
     (['--spawn'], {'action': cargparse.BooleanAction, 'default': None,
                    'help': 'spawn editor in new terminal'}),
     (['--refocus'], {'action': cargparse.BooleanAction, 'default': True,
-                     'help': 'refocus envelope after editing'})])
+                     'help': 'refocus envelope after editing'}),
+    (['--part'], {'help': 'which alternative to edit ("html" or "plaintext")',
+                  'choices': ['html', 'plaintext']}),
+])
 class EditCommand(Command):
     """edit mail"""
-    def __init__(self, envelope=None, spawn=None, refocus=True, **kwargs):
+    def __init__(self, envelope=None, spawn=None, refocus=True, part=None,
+                 **kwargs):
         """
         :param envelope: email to edit
         :type envelope: :class:`~alot.db.envelope.Envelope`
         :param spawn: force spawning of editor in a new terminal
         :type spawn: bool
         :param refocus: m
+        :param part: which alternative to edit
+        :type part: str
         """
         self.envelope = envelope
         self.openNew = (envelope is not None)
         self.force_spawn = spawn
         self.refocus = refocus
         self.edit_only_body = False
+        self.edit_part = settings.get('envelope_edit_default_alternative')
+        if part in ['html', 'plaintext']:
+            self.edit_part = part
+        logging.debug('edit_part: %s ' % self.edit_part)
+
         Command.__init__(self, **kwargs)
 
     async def apply(self, ui):
         ebuffer = ui.current_buffer
         if not self.envelope:
-            self.envelope = ui.current_buffer.envelope
+            self.envelope = ebuffer.envelope
 
         # determine editable headers
         edit_headers = OrderedSet(settings.get('edit_headers_whitelist'))
@@ -364,8 +377,10 @@ class EditCommand(Command):
             translate = settings.get_hook('post_edit_translate')
             if translate:
                 template = translate(template, ui=ui, dbm=ui.dbman)
+            logging.debug('target bodypart: %s' % self.edit_part)
             self.envelope.parse_template(template,
-                                         only_body=self.edit_only_body)
+                                         only_body=self.edit_only_body,
+                                         target_body=self.edit_part)
             if self.openNew:
                 ui.buffer_open(buffers.EnvelopeBuffer(ui, self.envelope))
             else:
@@ -389,8 +404,23 @@ class EditCommand(Command):
                 value = re.sub('[ \t\r\f\v]*\n[ \t\r\f\v]*', ' ', value)
                 headertext += '%s: %s\n' % (key, value)
 
+        # determine which part to edit
+        logging.debug('edit_part: %s ' % self.edit_part)
+        if self.edit_part is None:
+            # I can't access ebuffer in my constructor, hence the check here
+            if isinstance(ebuffer, buffers.EnvelopeBuffer):
+                if ebuffer.displaypart in ['html', 'src']:
+                    self.edit_part = 'html'
+                    logging.debug('displaypart: %s' % ebuffer.displaypart)
+        if self.edit_part == 'html':
+            bodytext = self.envelope.body_html
+            logging.debug('editing HTML source')
+        else:
+            self.edit_part = 'plaintext'
+            bodytext = self.envelope.body_txt
+            logging.debug('editing plaintext')
+
         # determine editable content
-        bodytext = self.envelope.body
         if headertext:
             content = '%s\n%s' % (headertext, bodytext)
             self.edit_only_body = False
@@ -692,3 +722,95 @@ class TagCommand(Command):
         envelope.tags = sorted(new)
         # reload buffer
         ui.current_buffer.rebuild()
+
+
+@registerCommand(
+    MODE, 'html2txt', forced={'action': 'html2txt'},
+    arguments=[(['cmd'], {'nargs': argparse.REMAINDER,
+                          'help': 'converter command to use'})],
+    help='convert html to plaintext alternative',
+)
+@registerCommand(
+    MODE, 'txt2html', forced={'action': 'txt2html'},
+    arguments=[(['cmd'], {'nargs': argparse.REMAINDER,
+                          'help': 'converter command to use'})],
+    help='convert plaintext to html alternative',
+)
+class BodyConvertCommand(Command):
+    def __init__(self, action=None, cmd=None):
+        self.action = action
+        self.cmd = cmd  # this comes as a space separated list
+        Command.__init__(self)
+
+    def convert(self, cmdlist, inputstring):
+        logging.debug("converting using %s" % cmdlist)
+        resultstring, errmsg, retval = call_cmd(cmdlist,
+                                                stdin=inputstring)
+        if retval != 0:
+            msg = 'converter "%s" returned with ' % cmdlist
+            msg += 'return code %d' % retval
+            if errmsg:
+                msg += ':\n%s' % errmsg
+            raise ConversionError(msg)
+        logging.debug("resultstring is \n" + resultstring)
+        return resultstring
+
+    def apply(self, ui):
+        ebuffer = ui.current_buffer
+        envelope = ebuffer.envelope
+
+        if self.action is "txt2html":
+            fallbackcmd = settings.get('envelope_txt2html')
+            cmd = self.cmd or split_commandstring(fallbackcmd)
+            if cmd:
+                envelope.body_html = self.convert(cmd, envelope.body_txt)
+
+        elif self.action is "html2txt":
+            fallbackcmd = settings.get('envelope_html2txt')
+            cmd = self.cmd or split_commandstring(fallbackcmd)
+            if cmd:
+                envelope.body_txt = self.convert(cmd, envelope.body_html)
+
+        ui.current_buffer.rebuild()
+
+
+@registerCommand(
+    MODE, 'display', help='change which body alternative to display',
+    arguments=[(['part'], {'help': 'part to show'})])
+class ChangeDisplaymodeCommand(Command):
+
+    """change wich body alternative is shown"""
+
+    def __init__(self, part=None, **kwargs):
+        """
+        :param part: which part to show
+        :type indent: 'plaintext', 'src', or 'html'
+        """
+        self.part = part
+        Command.__init__(self, **kwargs)
+
+    async def apply(self, ui):
+        ebuffer = ui.current_buffer
+        envelope = ebuffer.envelope
+
+        # make sure that envelope has html part if requested here
+        if self.part in ['html', 'src'] and not envelope.body_html:
+            await ui.apply_command(BodyConvertCommand(action='txt2html'))
+
+        ui.current_buffer.set_displaypart(self.part)
+        ui.update()
+
+
+@registerCommand(
+    MODE, 'removehtml',
+    help='remove HTML alternative from the envelope',
+)
+class RemoveHtmlCommand(Command):
+    def apply(self, ui):
+        ebuffer = ui.current_buffer
+        envelope = ebuffer.envelope
+
+        envelope.body_html = None
+        ebuffer.displaypart = 'plaintext'
+        ebuffer.rebuild()
+        ui.update()

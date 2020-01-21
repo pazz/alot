@@ -15,6 +15,16 @@ The following commands are available in envelope mode:
         file(s) to attach (accepts wildcads)
 
 
+.. _cmd.envelope.display:
+
+.. describe:: display
+
+    change which body alternative to display
+
+    argument
+        part to show
+
+
 .. _cmd.envelope.edit:
 
 .. describe:: edit
@@ -24,6 +34,7 @@ The following commands are available in envelope mode:
     optional arguments
         :---spawn: spawn editor in new terminal
         :---refocus: refocus envelope after editing (defaults to: 'True')
+        :---part: which alternative to edit ("html" or "plaintext"); valid choices are: 'html','plaintext'
 
 .. _cmd.envelope.encrypt:
 
@@ -37,6 +48,16 @@ The following commands are available in envelope mode:
     optional arguments
         :---trusted: only add trusted keys
 
+.. _cmd.envelope.html2txt:
+
+.. describe:: html2txt
+
+    convert html to plaintext alternative
+
+    argument
+        converter command to use
+
+
 .. _cmd.envelope.refine:
 
 .. describe:: refine
@@ -45,6 +66,13 @@ The following commands are available in envelope mode:
 
     argument
         header to refine
+
+
+.. _cmd.envelope.removehtml:
+
+.. describe:: removehtml
+
+    remove HTML alternative from the envelope
 
 
 .. _cmd.envelope.retag:
@@ -152,6 +180,16 @@ The following commands are available in envelope mode:
 
     argument
         comma separated list of tags
+
+
+.. _cmd.envelope.txt2html:
+
+.. describe:: txt2html
+
+    convert plaintext to html alternative
+
+    argument
+        converter command to use
 
 
 .. _cmd.envelope.unattach:

@@ -167,7 +167,8 @@ namedqueries_statusbar = mixed_list(string, string, default=list('[{buffer_no}: 
 # these strings may contain variables:
 #
 # * `{to}`: To-header of the envelope
-envelope_statusbar = mixed_list(string, string, default=list('[{buffer_no}: envelope]','{input_queue} total messages: {total_messages}'))
+# * `{displaypart}`: which body part alternative is currently in view (can be 'plaintext,'src', or 'html')
+envelope_statusbar = mixed_list(string, string, default=list('[{buffer_no}: envelope ({displaypart})]','{input_queue} total messages: {total_messages}'))
 
 # timestamp format in `strftime format syntax <http://docs.python.org/library/datetime.html#strftime-strptime-behavior>`_
 timestamp_format = string(default=None)
@@ -256,6 +257,22 @@ auto_replyto_mailinglist = boolean(default=False)
 
 # prefer plaintext alternatives over html content in multipart/alternative
 prefer_plaintext = boolean(default=False)
+
+# always edit the given body text alternative when editing outgoing messages in envelope mode.
+# alternative, and not the html source, even if that is currently displayed.
+# If unset, html content will be edited unless the current envelope shows the plaintext alternative.
+envelope_edit_default_alternative = option('plaintext', 'html', default=None)
+
+# Use this command to construct a html alternative message body text in envelope mode.
+# If unset, we send only the plaintext part, without html alternative.
+# The command will receive the plaintex on stdin and should produce html on stdout.
+# (as `pandoc -t html` does for example).
+envelope_txt2html = string(default=None)
+
+# Use this command to turn a html message body to plaintext in envelope mode.
+# The command will receive the html on stdin and should produce text on stdout
+# (as `pandoc -f html -t markdown` does for example).
+envelope_html2txt = string(default=None)
 
 # In a thread buffer, hide from messages summaries tags that are commom to all
 # messages in that thread.

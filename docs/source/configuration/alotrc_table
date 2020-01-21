@@ -209,6 +209,18 @@
     :default: "UTF-8"
 
 
+.. _envelope-edit-default-alternative:
+
+.. describe:: envelope_edit_default_alternative
+
+     always edit the given body text alternative when editing outgoing messages in envelope mode.
+     alternative, and not the html source, even if that is currently displayed.
+     If unset, html content will be edited unless the current envelope shows the plaintext alternative.
+
+    :type: option, one of ['plaintext', 'html']
+    :default: None
+
+
 .. _envelope-headers-blacklist:
 
 .. describe:: envelope_headers_blacklist
@@ -217,6 +229,18 @@
 
     :type: string list
     :default: In-Reply-To, References
+
+
+.. _envelope-html2txt:
+
+.. describe:: envelope_html2txt
+
+     Use this command to turn a html message body to plaintext in envelope mode.
+     The command will receive the html on stdin and should produce text on stdout
+     (as `pandoc -f html -t markdown` does for example).
+
+    :type: string
+    :default: None
 
 
 .. _envelope-statusbar:
@@ -229,9 +253,23 @@
      these strings may contain variables:
 
      * `{to}`: To-header of the envelope
+     * `{displaypart}`: which body part alternative is currently in view (can be 'plaintext,'src', or 'html')
 
     :type: mixed_list
-    :default: [{buffer_no}: envelope], {input_queue} total messages: {total_messages}
+    :default: [{buffer_no}: envelope ({displaypart})], {input_queue} total messages: {total_messages}
+
+
+.. _envelope-txt2html:
+
+.. describe:: envelope_txt2html
+
+     Use this command to construct a html alternative message body text in envelope mode.
+     If unset, we send only the plaintext part, without html alternative.
+     The command will receive the plaintex on stdin and should produce html on stdout.
+     (as `pandoc -t html` does for example).
+
+    :type: string
+    :default: None
 
 
 .. _exclude-tags:
