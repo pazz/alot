@@ -739,16 +739,15 @@ class TagCommand(Command):
 class BodyConvertCommand(Command):
     def __init__(self, action=None, cmd=None):
         self.action = action
-        self.cmd = cmd
+        self.cmd = cmd  # this comes as a space separated list
         Command.__init__(self)
 
-    def convert(self, cmdstring, inputstring):
-        logging.debug("converting using %s" % cmdstring)
-        cmdlist = split_commandstring(cmdstring)
+    def convert(self, cmdlist, inputstring):
+        logging.debug("converting using %s" % cmdlist)
         resultstring, errmsg, retval = call_cmd(cmdlist,
                                                 stdin=inputstring)
         if retval != 0:
-            msg = 'converter "%s" returned with ' % cmdstring
+            msg = 'converter "%s" returned with ' % cmdlist
             msg += 'return code %d' % retval
             if errmsg:
                 msg += ':\n%s' % errmsg
@@ -761,14 +760,16 @@ class BodyConvertCommand(Command):
         envelope = ebuffer.envelope
 
         if self.action is "txt2html":
-            cmdstring = self.cmd or settings.get('envelope_txt2html')
-            if cmdstring:
-                envelope.body_html = self.convert(cmdstring, envelope.body_txt)
+            fallbackcmd = settings.get('envelope_txt2html')
+            cmd = self.cmd or split_commandstring(fallbackcmd)
+            if cmd:
+                envelope.body_html = self.convert(cmd, envelope.body_txt)
 
         elif self.action is "html2txt":
-            cmdstring = self.cmd or settings.get('envelope_html2txt')
-            if cmdstring:
-                envelope.body_txt = self.convert(cmdstring, envelope.body_html)
+            fallbackcmd = settings.get('envelope_html2txt')
+            cmd = self.cmd or split_commandstring(fallbackcmd)
+            if cmd:
+                envelope.body_txt = self.convert(cmd, envelope.body_html)
 
         ui.current_buffer.rebuild()
 
