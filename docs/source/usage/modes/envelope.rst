@@ -68,6 +68,13 @@ The following commands are available in envelope mode:
         header to refine
 
 
+.. _cmd.envelope.removehtml:
+
+.. describe:: removehtml
+
+    remove HTML alternative from the envelope
+
+
 .. _cmd.envelope.retag:
 
 .. describe:: retag

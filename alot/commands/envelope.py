@@ -798,3 +798,18 @@ class ChangeDisplaymodeCommand(Command):
 
         ui.current_buffer.set_displaypart(self.part)
         ui.update()
+
+
+@registerCommand(
+    MODE, 'removehtml',
+    help='remove HTML alternative from the envelope',
+)
+class RemoveHtmlCommand(Command):
+    def apply(self, ui):
+        ebuffer = ui.current_buffer
+        envelope = ebuffer.envelope
+
+        envelope.body_html = None
+        ebuffer.displaypart = 'plaintext'
+        ebuffer.rebuild()
+        ui.update()
