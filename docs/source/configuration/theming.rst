@@ -59,7 +59,7 @@ underlined bold red text on a bright green background:
     #        v                 v   v                             v              v                             v
     footer = 'bold,underline', '', 'light red, bold, underline', 'light green', 'light red, bold, underline', '#8f6'
 
-Search mode thread ines
+Search mode threadlines
 -------------------------
 The subsection '[[threadline]]' of the '[search]' section in :ref:`Theme Files <config.theming.themefiles>`
 determines how to present a thread: here, :ref:`attributes <config.theming.attributes>` 'normal' and
