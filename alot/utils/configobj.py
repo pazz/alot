@@ -29,6 +29,7 @@ def attr_triple(value):
     acc = {}
     if not isinstance(value, (list, tuple)):
         value = value,
+    value = list(value)  # sometimes we end up with tuples here
     if len(value) > 6:
         raise VdtValueTooLongError(value)
     # ensure we have exactly 6 attribute strings
