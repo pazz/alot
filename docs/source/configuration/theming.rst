@@ -201,3 +201,15 @@ do the following:
 
 .. _nmbug: http://notmuchmail.org/nmbug/
 
+
+ANSI escape codes
+--------------------
+
+Alot's message display will interpret [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code#Colors) in the "body" text to be displayed.
+
+You can use this feature to let your HTML renderer interpret colours from html mails and translate them to ANSI escapes. For instance, [elinks](http://elinks.or.cz) can do this for you if you use the following entry in your `~/.mailcap`:
+
+.. sourcecode:: bash
+
+  text/html; elinks -force-html -dump -dump-color-mode 3 -dump-charset utf8 -eval 'set document.codepage.assume = "%{charset}"' %s; copiousoutput
+
