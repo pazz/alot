@@ -2,6 +2,8 @@
 [![Code Climate][codeclimate-img]][codeclimate]
 [![Codacy Grade][codacy-grade-img]][codacy-grade]
 [![Codacy Coverage][codacy-coverage-img]][codacy-coverage]
+[![Documentation Status][rtfd-img]][rtfd]
+
 
 
 Alot is a terminal-based mail user agent based on the [notmuch mail indexer][notmuch].
@@ -65,3 +67,5 @@ See the [manual][docs] for more usage info.
 [codacy-grade-img]: https://api.codacy.com/project/badge/Grade/fa7c4a567cd546568a12e88c57f9dbd6
 [codeclimate-img]: https://codeclimate.com/github/pazz/alot/badges/gpa.svg
 [codeclimate]: https://codeclimate.com/github/pazz/alot
+[rtfd-img]: https://readthedocs.org/projects/alot/badge/?version=latest
+[rtfd]: https://alot.readthedocs.io/en/latest/?badge=latest
