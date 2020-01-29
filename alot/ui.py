@@ -134,6 +134,9 @@ class UI:
         logging.info('setup gui in %d colours', colourmode)
         self.mainloop.screen.set_terminal_properties(colors=colourmode)
 
+        # clear the screen before the initial frame
+        self.mainloop.screen.clear()
+
         logging.debug('fire first command')
         loop.create_task(self.apply_commandline(initialcmdline))
 
