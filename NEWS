@@ -1,5 +1,8 @@
 0.9:
-* updated signature of hooks 'reply_prefix' and 'forward_prefix', now include a named parameter for the message being replied/forwarded
+* feature: interpret ANSI escape codes (e.g.for colours) when displaying messages
+* config: configure message-id domains for each account
+* feature: new envelope commands txt2html, html2txt, removehtml
+* info: updated signature of hooks 'reply_prefix' and 'forward_prefix', now include a named parameter for the message being replied/forwarded
 
 0.8:
 * Port to python 3. Python 2.x no longer supported
