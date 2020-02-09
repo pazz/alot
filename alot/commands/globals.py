@@ -254,9 +254,8 @@ class ExternalCommand(Command):
         if self.stdin is not None:
             # wrap strings in StrinIO so that they behaves like a file
             if isinstance(self.stdin, str):
-                # XXX: is utf-8 always safe to use here, or do we need to check
-                # the terminal encoding first?
-                stdin = BytesIO(self.stdin.encode('utf-8'))
+                stdin = BytesIO(
+                    self.stdin.encode(urwid.util.detected_encoding))
             else:
                 stdin = self.stdin
 
@@ -286,7 +285,8 @@ class ExternalCommand(Command):
             except OSError as e:
                 ret = str(e)
             else:
-                _, err = await proc.communicate(stdin.read() if stdin else None)
+                out, err = await proc.communicate(
+                    stdin.read() if stdin else None)
                 if proc.returncode == 0:
                     ret = 'success'
                 elif err:
@@ -301,7 +301,8 @@ class ExternalCommand(Command):
                 except OSError as e:
                     ret = str(e)
                 else:
-                    _, err = proc.communicate(stdin.read() if stdin else None)
+                    out, err = proc.communicate(
+                        stdin.read() if stdin else None)
                 if proc and proc.returncode == 0:
                     ret = 'success'
                 elif err:
@@ -309,7 +310,7 @@ class ExternalCommand(Command):
 
         if ret == 'success':
             if self.on_success is not None:
-                self.on_success()
+                self.on_success(out)
         else:
             msg = "editor has exited with error code {} -- {}".format(
                     "None" if proc is None else proc.returncode,

@@ -6,14 +6,12 @@ import argparse
 import logging
 import mailcap
 import os
-import subprocess
 import tempfile
 import email
 import email.policy
 from email.utils import getaddresses, parseaddr
 from email.message import Message
 
-import urwid
 from io import BytesIO
 
 from . import Command, registerCommand
@@ -768,34 +766,18 @@ class PipeCommand(Command):
             self.cmd = [' '.join(self.cmd)]
 
         # do the monkey
-        for mail in pipestrings:
-            encoded_mail = mail.encode(urwid.util.detected_encoding)
-            if self.background:
-                logging.debug('call in background: %s', self.cmd)
-                proc = subprocess.Popen(self.cmd,
-                                        shell=True, stdin=subprocess.PIPE,
-                                        stdout=subprocess.PIPE,
-                                        stderr=subprocess.PIPE)
-                out, err = proc.communicate(encoded_mail)
-                if self.notify_stdout:
-                    ui.notify(out)
-            else:
-                with ui.paused():
-                    logging.debug('call: %s', self.cmd)
-                    # if proc.stdout is defined later calls to communicate
-                    # seem to be non-blocking!
-                    proc = subprocess.Popen(self.cmd, shell=True,
-                                            stdin=subprocess.PIPE,
-                                            # stdout=subprocess.PIPE,
-                                            stderr=subprocess.PIPE)
-                    out, err = proc.communicate(encoded_mail)
-            if err:
-                ui.notify(err, priority='error')
-                return
+        def callback(out):
+            if self.notify_stdout:
+                ui.notify(out)
+            if self.done_msg:
+                ui.notify(self.done_msg)
 
-        # display 'done' message
-        if self.done_msg:
-            ui.notify(self.done_msg)
+        for mail in pipestrings:
+            await ui.apply_command(ExternalCommand(self.cmd,
+                                                   stdin=mail,
+                                                   shell=True,
+                                                   thread=self.background,
+                                                   on_success=callback))
 
 
 @registerCommand(MODE, 'remove', arguments=[
@@ -999,7 +981,7 @@ class OpenAttachmentCommand(Command):
                     tempfile_name = tmpfile.name
                     self.attachment.write(tmpfile)
 
-                def afterwards():
+                def afterwards(*args):
                     os.unlink(tempfile_name)
             else:
                 handler_stdin = BytesIO()
