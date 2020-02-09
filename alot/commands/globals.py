@@ -296,10 +296,10 @@ class ExternalCommand(Command):
                 else:
                     out, err = proc.communicate(
                         stdin.read() if stdin else None)
-                if proc.returncode == 0:
-                    ret = 'success'
-                elif err:
-                    ret = err.decode(urwid.util.detected_encoding)
+                    if proc.returncode == 0:
+                        ret = 'success'
+                    elif err:
+                        ret = err.decode(urwid.util.detected_encoding)
 
         if ret == 'success':
             if self.on_success is not None:
