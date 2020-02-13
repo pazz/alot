@@ -73,6 +73,7 @@ The following commands are available in thread mode:
     optional arguments
         :---all: pass all messages
         :---format: output format; valid choices are: 'raw','decoded','id','filepath','mimepart','plain','html' (defaults to: 'raw')
+        :---as_file: pass mail as a file to the given application
         :---separately: call command once for each message
         :---background: don't stop the interface
         :---add_tags: add 'Tags' header to the message
