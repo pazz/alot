@@ -12,6 +12,7 @@ import email.policy
 from email.utils import getaddresses, parseaddr
 from email.message import Message
 
+import urwid
 from io import BytesIO
 
 from . import Command, registerCommand
@@ -642,6 +643,8 @@ class ChangeDisplaymodeCommand(Command):
                     'choices': [
                         'raw', 'decoded', 'id', 'filepath', 'mimepart',
                         'plain', 'html']}),
+    (['--as_file'], {'action': 'store_true',
+                     'help': 'pass mail as a file to the given application'}),
     (['--separately'], {'action': 'store_true',
                         'help': 'call command once for each message'}),
     (['--background'], {'action': 'store_true',
@@ -659,7 +662,7 @@ class PipeCommand(Command):
     repeatable = True
 
     def __init__(self, cmd, all=False, separately=False, background=False,
-                 shell=False, notify_stdout=False, format='raw',
+                 shell=False, notify_stdout=False, format='raw', as_file=False,
                  add_tags=False, noop_msg='no command specified',
                  confirm_msg='', done_msg=None, **kwargs):
         """
@@ -682,6 +685,8 @@ class PipeCommand(Command):
             'filepath': paths to message files on disk
             'mimepart': only pipe the currently selected mime part
         :type format: str
+        :param as_file: pass mail as a file to the given application
+        :type as_file: bool
         :param add_tags: add 'Tags' header to the message
         :type add_tags: bool
         :param noop_msg: error notification to show if `cmd` is empty
@@ -702,6 +707,7 @@ class PipeCommand(Command):
         self.shell = shell
         self.notify_stdout = notify_stdout
         self.output_format = format
+        self.as_file = as_file
         self.add_tags = add_tags
         self.noop_msg = noop_msg
         self.confirm_msg = confirm_msg
@@ -766,14 +772,29 @@ class PipeCommand(Command):
             self.cmd = [' '.join(self.cmd)]
 
         # do the monkey
-        def callback(out):
-            if self.notify_stdout:
-                ui.notify(out)
-            if self.done_msg:
-                ui.notify(self.done_msg)
-
         for mail in pipestrings:
-            await ui.apply_command(ExternalCommand(self.cmd,
+            cmd = self.cmd
+
+            # Pass mail as temporary file rather than piping through stdin.
+            if self.as_file:
+                with tempfile.NamedTemporaryFile(delete=False) as tmpfile:
+                    tmpfile.write(mail.encode(urwid.util.detected_encoding))
+                    tempfile_name = tmpfile.name
+                mail = None
+                if self.shell:
+                    cmd = [' '.join([cmd[0], tempfile_name])]
+                else:
+                    cmd.append(tempfile_name)
+
+            def callback(out):
+                if self.as_file:
+                    os.unlink(tempfile_name)
+                if self.notify_stdout:
+                    ui.notify(out)
+                if self.done_msg:
+                    ui.notify(self.done_msg)
+
+            await ui.apply_command(ExternalCommand(cmd,
                                                    stdin=mail,
                                                    shell=True,
                                                    thread=self.background,
