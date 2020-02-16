@@ -869,7 +869,7 @@ class ComposeCommand(Command):
                     mimetype = helper.guess_mimetype(sigcontent)
                     if mimetype.startswith('text'):
                         sigcontent = helper.try_decode(sigcontent)
-                        self.envelope.body += '\n' + sigcontent
+                        self.envelope.body_txt += '\n' + sigcontent
             else:
                 ui.notify('could not locate signature: %s' % sig,
                           priority='error')
