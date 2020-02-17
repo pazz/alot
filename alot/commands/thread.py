@@ -590,7 +590,6 @@ class ChangeDisplaymodeCommand(Command):
             mimetree = not mt.display_mimetree \
                 if self.mimetree == 'toggle' else self.mimetree
 
-
             # collapse/expand depending on new 'visible' value
             if visible is False:
                 mt.collapse(mt.root)
