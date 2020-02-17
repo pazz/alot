@@ -16,6 +16,8 @@ from ..settings.const import settings
 from ..db.utils import decode_header, X_SIGNATURE_MESSAGE_HEADER
 from ..helper import string_sanitize
 
+ANSI_BACKGROUND = settings.get("interpret_ansi_background")
+
 
 class MessageSummaryWidget(urwid.WidgetWrap):
     """
@@ -80,17 +82,16 @@ class TextlinesList(SimpleTree):
         for each line in content.
         """
         structure = []
-        ansi_background = settings.get("interpret_ansi_background")
 
         # depending on this config setting, we either add individual lines
         # or the complete context as focusable objects.
         if settings.get('thread_focus_linewise'):
             for line in content.splitlines():
                 structure.append((ANSIText(line, attr, attr_focus,
-                                           ansi_background), None))
+                                           ANSI_BACKGROUND), None))
         else:
             structure.append((ANSIText(content, attr, attr_focus,
-                                       ansi_background), None))
+                                       ANSI_BACKGROUND), None))
         SimpleTree.__init__(self, structure)
 
 
@@ -334,7 +335,7 @@ class MessageTree(CollapsibleTree):
         att = settings.get_theming_attribute('thread', 'body')
         att_focus = settings.get_theming_attribute('thread', 'body_focus')
         label, subtrees = tree
-        label = FocusableText(label, att, att_focus)
+        label = ANSIText(label, att, att_focus, ANSI_BACKGROUND)
         if subtrees is None:
             return label, None
         else:
