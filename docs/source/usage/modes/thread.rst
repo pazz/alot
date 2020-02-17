@@ -58,7 +58,8 @@ The following commands are available in thread mode:
     move focus in current buffer
 
     argument
-        up, down, [half]page up, [half]page down, first, last,                   parent, first reply, last reply,                   next sibling, previous sibling, next, previous,                   next unfolded, previous unfolded,                   next NOTMUCH_QUERY, previous NOTMUCH_QUERY
+        up, down, [half]page up, [half]page down, first, last,                   parent, first reply, last reply,                   next sibling, previous sibling, next, previous,                   next unfolded, previous unfolded,                   next thread, previous thread,
+                  next NOTMUCH_QUERY, previous NOTMUCH_QUERY
 
 
 .. _cmd.thread.pipeto:

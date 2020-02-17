@@ -38,7 +38,7 @@ class OpenThreadCommand(Command):
             query = ui.current_buffer.querystring
             logging.info('open thread view for %s', self.thread)
 
-            tb = buffers.ThreadBuffer(ui, self.thread)
+            tb = buffers.ThreadBuffer(ui, self.thread, ui.current_buffer)
             ui.buffer_open(tb)
             tb.unfold_matching(query)
 

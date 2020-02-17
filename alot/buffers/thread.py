@@ -5,6 +5,7 @@
 import asyncio
 import urwid
 import logging
+import weakref
 from urwidtrees import ArrowTree, TreeBox, NestedTree
 
 from .buffer import Buffer
@@ -19,14 +20,18 @@ class ThreadBuffer(Buffer):
 
     modename = 'thread'
 
-    def __init__(self, ui, thread):
+    def __init__(self, ui, thread, search_buffer=None):
         """
         :param ui: main UI
         :type ui: :class:`~alot.ui.UI`
         :param thread: thread to display
         :type thread: :class:`~alot.db.Thread`
+        :type search_buffer: :class:`~alot.buffers.SearchBuffer`
         """
         self.thread = thread
+        self._search_buffer = None
+        if search_buffer:
+            self._search_buffer = weakref.ref(search_buffer)
         self.message_count = thread.get_total_messages()
 
         # two semaphores for auto-removal of unread tag
@@ -296,6 +301,34 @@ class ThreadBuffer(Buffer):
         """focus previous unfolded message in depth first order"""
         self.focus_property(lambda x: not x.is_collapsed(x.root),
                             self._tree.prev_position)
+
+    def focus_next_thread(self):
+        """focus next thread of the search result"""
+        search_buffer = self.search_buffer()
+        if search_buffer:
+            search_buffer.focus_next()
+            self._update_thread(search_buffer)
+
+    def focus_prev_thread(self):
+        """focus previous thread of the search result"""
+        search_buffer = self.search_buffer()
+        if search_buffer:
+            search_buffer.focus_prev()
+            self._update_thread(search_buffer)
+
+    def _update_thread(self, search_buffer):
+        new_thread = search_buffer.get_selected_thread()
+        if new_thread is not self.thread:
+            self.thread = new_thread
+            self.body = None
+            self.rebuild()
+            self.ui.update()
+            self.unfold_matching(search_buffer.querystring)
+
+    def search_buffer(self):
+        if not self._search_buffer:
+            return None
+        return self._search_buffer()
 
     def expand(self, msgpos):
         """expand message at given position"""
