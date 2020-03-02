@@ -4,6 +4,7 @@
 """
 Widgets specific to thread mode
 """
+import email
 import logging
 import urwid
 
@@ -334,12 +335,20 @@ class MessageTree(CollapsibleTree):
     def _text_tree_to_widget_tree(self, tree):
         att = settings.get_theming_attribute('thread', 'body')
         att_focus = settings.get_theming_attribute('thread', 'body_focus')
+        mimepart = tree[1] if isinstance(
+            tree[1], email.message.EmailMessage) else None
         label, subtrees = tree
-        label = ANSIText(label, att, att_focus, ANSI_BACKGROUND)
-        if subtrees is None:
+        label = ANSIText(
+            label, att, att_focus, ANSI_BACKGROUND, mimepart=mimepart)
+        if subtrees is None or mimepart:
             return label, None
         else:
             return label, [self._text_tree_to_widget_tree(s) for s in subtrees]
+
+    def set_mimepart(self, mimepart):
+        """ Set message widget mime part and invalidate body tree."""
+        self.get_message().mime_part = mimepart
+        self._bodytree = None
 
 
 class ThreadTree(Tree):
