@@ -150,6 +150,7 @@ The following commands are available in thread mode:
     select focussed element:
         - if it is a message summary, toggle visibility of the message;
         - if it is an attachment line, open the attachment
+        - if it is a mimepart, toggle visibility of the mimepart
 
 
 .. _cmd.thread.tag:
@@ -170,6 +171,16 @@ The following commands are available in thread mode:
 .. describe:: toggleheaders
 
     display all headers
+
+    argument
+        query used to filter messages to affect
+
+
+.. _cmd.thread.togglemimetree:
+
+.. describe:: togglemimetree
+
+    disply mime tree of the message
 
     argument
         query used to filter messages to affect
