@@ -12,7 +12,10 @@ class ANSIText(urwid.WidgetWrap):
     def __init__(self, txt,
                  default_attr=None,
                  default_attr_focus=None,
-                 ansi_background=True, **kwds):
+                 ansi_background=True,
+                 mimepart=False,
+                 **kwds):
+        self.mimepart = mimepart
         ct, focus_map = parse_escapes_to_urwid(txt, default_attr,
                                                default_attr_focus,
                                                ansi_background)

@@ -29,7 +29,6 @@ from ..completion.path import PathCompleter
 from ..db.utils import decode_header
 from ..db.utils import formataddr
 from ..db.utils import extract_headers
-from ..db.utils import extract_body
 from ..db.utils import clear_my_address
 from ..db.utils import ensure_unique_address
 from ..db.envelope import Envelope
@@ -517,7 +516,7 @@ class ChangeDisplaymodeCommand(Command):
     repeatable = True
 
     def __init__(self, query=None, visible=None, raw=None, all_headers=None,
-                 indent=None, mimetree=None, **kwargs):
+                 indent=None, mimetree=None, mimepart=False, **kwargs):
         """
         :param query: notmuch query string used to filter messages to affect
         :type query: str
@@ -540,6 +539,7 @@ class ChangeDisplaymodeCommand(Command):
         self.all_headers = all_headers
         self.indent = indent
         self.mimetree = mimetree
+        self.mimepart = mimepart
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
@@ -585,6 +585,8 @@ class ChangeDisplaymodeCommand(Command):
             raw = not mt.display_source if self.raw == 'toggle' else self.raw
             all_headers = not mt.display_all_headers \
                 if self.all_headers == 'toggle' else self.all_headers
+            if self.mimepart:
+                mt.set_mimepart(ui.get_deep_focus().mimepart)
             if self.mimetree == 'toggle':
                 tbuffer.focus_selected_message()
             mimetree = not mt.display_mimetree \
@@ -722,7 +724,7 @@ class PipeCommand(Command):
                     pipestrings.append(mail.as_string())
                 elif self.output_format == 'decoded':
                     headertext = extract_headers(mail)
-                    bodytext = extract_body(mail)
+                    bodytext = msg.get_body_text()
                     msgtext = '%s\n\n%s' % (headertext, bodytext)
                     pipestrings.append(msgtext)
 
@@ -1037,12 +1039,16 @@ class ThreadSelectCommand(Command):
 
     """select focussed element:
         - if it is a message summary, toggle visibility of the message;
-        - if it is an attachment line, open the attachment"""
+        - if it is an attachment line, open the attachment
+        - if it is a mimepart, toggle visibility of the mimepart"""
     async def apply(self, ui):
         focus = ui.get_deep_focus()
         if isinstance(focus, AttachmentWidget):
             logging.info('open attachment')
             await ui.apply_command(OpenAttachmentCommand(focus.get_attachment()))
+        elif getattr(focus, 'mimepart', False):
+            await ui.apply_command(ChangeDisplaymodeCommand(
+                mimepart=True, mimetree='toggle'))
         else:
             await ui.apply_command(ChangeDisplaymodeCommand(visible='toggle'))
 

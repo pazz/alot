@@ -10,7 +10,7 @@ from datetime import datetime
 from notmuch import NullPointerError
 
 from . import utils
-from .utils import extract_body
+from .utils import get_body_part, extract_body_part
 from .utils import decode_header
 from .attachment import Attachment
 from .. import helper
@@ -67,6 +67,8 @@ class Message:
             self._from = '"{}" <{}>'.format(acc.realname, str(acc.address))
         else:
             self._from = '"Unknown" <>'
+
+        self.mime_part = get_body_part(self.get_email())
 
     def __str__(self):
         """prettyprint the message"""
@@ -263,8 +265,7 @@ class Message:
 
     def get_body_text(self):
         """ returns bodystring extracted from this mail """
-        # TODO: allow toggle commands to decide which part is considered body
-        return extract_body(self.get_email())
+        return extract_body_part(self.mime_part)
 
     def matches(self, querystring):
         """tests if this messages is in the resultset for `querystring`"""
@@ -282,7 +283,7 @@ class Message:
         if message.is_multipart():
             return label, [cls._get_mimetree(m) for m in message.get_payload()]
         else:
-            return label, None
+            return label, message
 
     @staticmethod
     def _get_mime_part_info(mime_part):

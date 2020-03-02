@@ -28,6 +28,12 @@ from alot.account import Account
 from ..utilities import make_key, make_uid, TestCaseClassCleanup
 
 
+def set_basic_headers(mail):
+    mail['Subject'] = 'Test email'
+    mail['To'] = 'foo@example.com'
+    mail['From'] = 'bar@example.com'
+
+
 class TestGetParams(unittest.TestCase):
 
     mailstring = '\n'.join([
@@ -598,51 +604,11 @@ class TestMessageFromFile(TestCaseClassCleanup):
         self.assertIn(utils.X_SIGNATURE_MESSAGE_HEADER, m)
 
 
-class TestExtractBody(unittest.TestCase):
-
-    @staticmethod
-    def _set_basic_headers(mail):
-        mail['Subject'] = 'Test email'
-        mail['To'] = 'foo@example.com'
-        mail['From'] = 'bar@example.com'
-
-    def test_single_text_plain(self):
-        mail = EmailMessage()
-        self._set_basic_headers(mail)
-        mail.set_content('This is an email')
-        actual = utils.extract_body(mail)
-
-        expected = 'This is an email\n'
-
-        self.assertEqual(actual, expected)
-
-    @unittest.expectedFailure
-    # This makes no sense
-    def test_two_text_plain(self):
-        mail = email.mime.multipart.MIMEMultipart()
-        self._set_basic_headers(mail)
-        mail.attach(email.mime.text.MIMEText('This is an email'))
-        mail.attach(email.mime.text.MIMEText('This is a second part'))
-
-        actual = utils.extract_body(mail)
-        expected = 'This is an email\n\nThis is a second part'
-
-        self.assertEqual(actual, expected)
-
-    def test_text_plain_with_attachment_text(self):
-        mail = EmailMessage()
-        self._set_basic_headers(mail)
-        mail.set_content('This is an email')
-        mail.add_attachment('this shouldnt be displayed')
-
-        actual = utils.extract_body(mail)
-        expected = 'This is an email\n'
-
-        self.assertEqual(actual, expected)
+class TestGetBodyPart(unittest.TestCase):
 
     def _make_mixed_plain_html(self):
         mail = EmailMessage()
-        self._set_basic_headers(mail)
+        set_basic_headers(mail)
         mail.set_content('This is an email')
         mail.add_alternative(
             '<!DOCTYPE html><html><body>This is an html email</body></html>',
@@ -651,9 +617,9 @@ class TestExtractBody(unittest.TestCase):
 
     @mock.patch('alot.db.utils.settings.get', mock.Mock(return_value=True))
     def test_prefer_plaintext_mixed(self):
-        expected = 'This is an email\n'
+        expected = "text/plain"
         mail = self._make_mixed_plain_html()
-        actual = utils.extract_body(mail)
+        actual = utils.get_body_part(mail).get_content_type()
 
         self.assertEqual(actual, expected)
 
@@ -663,15 +629,15 @@ class TestExtractBody(unittest.TestCase):
     @mock.patch('alot.db.utils.settings.mailcap_find_match',
                 mock.Mock(return_value=(None, {'view': 'cat'})))
     def test_prefer_html_mixed(self):
-        expected = '<!DOCTYPE html><html><body>This is an html email</body></html>\n'
+        expected = 'text/html'
         mail = self._make_mixed_plain_html()
-        actual = utils.extract_body(mail)
+        actual = utils.get_body_part(mail).get_content_type()
 
         self.assertEqual(actual, expected)
 
     def _make_html_only(self):
         mail = EmailMessage()
-        self._set_basic_headers(mail)
+        set_basic_headers(mail)
         mail.set_content(
             '<!DOCTYPE html><html><body>This is an html email</body></html>',
             subtype='html')
@@ -681,9 +647,9 @@ class TestExtractBody(unittest.TestCase):
     @mock.patch('alot.db.utils.settings.mailcap_find_match',
                 mock.Mock(return_value=(None, {'view': 'cat'})))
     def test_prefer_plaintext_only(self):
-        expected = '<!DOCTYPE html><html><body>This is an html email</body></html>\n'
+        expected = 'text/html'
         mail = self._make_html_only()
-        actual = utils.extract_body(mail)
+        actual = utils.get_body_part(mail).get_content_type()
 
         self.assertEqual(actual, expected)
 
@@ -693,9 +659,49 @@ class TestExtractBody(unittest.TestCase):
     @mock.patch('alot.db.utils.settings.mailcap_find_match',
                 mock.Mock(return_value=(None, {'view': 'cat'})))
     def test_prefer_html_only(self):
-        expected = '<!DOCTYPE html><html><body>This is an html email</body></html>\n'
+        expected = 'text/html'
         mail = self._make_html_only()
-        actual = utils.extract_body(mail)
+        actual = utils.get_body_part(mail).get_content_type()
+
+        self.assertEqual(actual, expected)
+
+
+class TestExtractBodyPart(unittest.TestCase):
+
+    def test_single_text_plain(self):
+        mail = EmailMessage()
+        set_basic_headers(mail)
+        mail.set_content('This is an email')
+        body_part = utils.get_body_part(mail)
+        actual = utils.extract_body_part(body_part)
+
+        expected = 'This is an email\n'
+
+        self.assertEqual(actual, expected)
+
+    @unittest.expectedFailure
+    # This makes no sense
+    def test_two_text_plain(self):
+        mail = email.mime.multipart.MIMEMultipart()
+        set_basic_headers(mail)
+        mail.attach(email.mime.text.MIMEText('This is an email'))
+        mail.attach(email.mime.text.MIMEText('This is a second part'))
+        body_part = utils.get_body_part(mail)
+
+        actual = utils.extract_body(body_part)
+        expected = 'This is an email\n\nThis is a second part'
+
+        self.assertEqual(actual, expected)
+
+    def test_text_plain_with_attachment_text(self):
+        mail = EmailMessage()
+        set_basic_headers(mail)
+        mail.set_content('This is an email')
+        mail.add_attachment('this shouldnt be displayed')
+        body_part = utils.get_body_part(mail)
+
+        actual = utils.extract_body_part(body_part)
+        expected = 'This is an email\n'
 
         self.assertEqual(actual, expected)
 
@@ -703,10 +709,12 @@ class TestExtractBody(unittest.TestCase):
         mail = email.message_from_binary_file(
                 open('tests/static/mail/utf8.eml', 'rb'),
                 _class=email.message.EmailMessage)
-        actual = utils.extract_body(mail)
+        body_part = utils.get_body_part(mail)
+        actual = utils.extract_body_part(body_part)
         expected = "Liebe Grüße!\n"
 
         self.assertEqual(actual, expected)
+
 
 class TestMessageFromString(unittest.TestCase):
 
