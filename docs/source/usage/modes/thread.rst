@@ -72,7 +72,7 @@ The following commands are available in thread mode:
 
     optional arguments
         :---all: pass all messages
-        :---format: output format; valid choices are: 'raw','decoded','id','filepath' (defaults to: 'raw')
+        :---format: output format; valid choices are: 'raw','decoded','id','filepath','mimepart' (defaults to: 'raw')
         :---separately: call command once for each message
         :---background: don't stop the interface
         :---add_tags: add 'Tags' header to the message

@@ -32,6 +32,8 @@ from ..db.utils import get_body_part
 from ..db.utils import extract_headers
 from ..db.utils import clear_my_address
 from ..db.utils import ensure_unique_address
+from ..db.utils import remove_cte
+from ..db.utils import string_sanitize
 from ..db.envelope import Envelope
 from ..db.attachment import Attachment
 from ..db.errors import DatabaseROError
@@ -638,7 +640,8 @@ class ChangeDisplaymodeCommand(Command):
     (['cmd'], {'help': 'shellcommand to pipe to', 'nargs': '+'}),
     (['--all'], {'action': 'store_true', 'help': 'pass all messages'}),
     (['--format'], {'help': 'output format', 'default': 'raw',
-                    'choices': ['raw', 'decoded', 'id', 'filepath']}),
+                    'choices': [
+                        'raw', 'decoded', 'id', 'filepath', 'mimepart']}),
     (['--separately'], {'action': 'store_true',
                         'help': 'call command once for each message'}),
     (['--background'], {'action': 'store_true',
@@ -677,6 +680,7 @@ class PipeCommand(Command):
             'decoded': message content, decoded quoted printable,
             'id': message ids, separated by newlines,
             'filepath': paths to message files on disk
+            'mimepart': only pipe the currently selected mime part
         :type format: str
         :param add_tags: add 'Tags' header to the message
         :type add_tags: bool
@@ -748,6 +752,9 @@ class PipeCommand(Command):
                     bodytext = msg.get_body_text()
                     msgtext = '%s\n\n%s' % (headertext, bodytext)
                     pipestrings.append(msgtext)
+                elif self.output_format == 'mimepart':
+                    pipestrings.append(string_sanitize(remove_cte(
+                        msg.mime_part, as_string=True)))
 
         if not self.separately:
             pipestrings = [separator.join(pipestrings)]
