@@ -777,7 +777,9 @@ class PipeCommand(Command):
 
             # Pass mail as temporary file rather than piping through stdin.
             if self.as_file:
-                with tempfile.NamedTemporaryFile(delete=False) as tmpfile:
+                suffix = {'html': '.html'}.get(mimepart.get_content_subtype())
+                with tempfile.NamedTemporaryFile(
+                        delete=False, suffix=suffix) as tmpfile:
                     tmpfile.write(mail.encode(urwid.util.detected_encoding))
                     tempfile_name = tmpfile.name
                 mail = None
