@@ -32,6 +32,7 @@ from ..db.utils import extract_headers
 from ..db.utils import clear_my_address
 from ..db.utils import ensure_unique_address
 from ..db.utils import extract_body_part
+from ..db.utils import get_body_part
 from ..db.utils import remove_cte
 from ..db.utils import string_sanitize
 from ..db.envelope import Envelope
@@ -621,7 +622,8 @@ class ChangeDisplaymodeCommand(Command):
     (['--all'], {'action': 'store_true', 'help': 'pass all messages'}),
     (['--format'], {'help': 'output format', 'default': 'raw',
                     'choices': [
-                        'raw', 'decoded', 'id', 'filepath', 'mimepart']}),
+                        'raw', 'decoded', 'id', 'filepath', 'mimepart',
+                        'plain', 'html']}),
     (['--separately'], {'action': 'store_true',
                         'help': 'call command once for each message'}),
     (['--background'], {'action': 'store_true',
@@ -734,7 +736,9 @@ class PipeCommand(Command):
                     bodytext = extract_body_part(mimepart)
                     msgtext = '%s\n\n%s' % (headertext, bodytext)
                     pipestrings.append(msgtext)
-                elif self.output_format == 'mimepart':
+                elif self.output_format in ['mimepart', 'plain', 'html']:
+                    if self.output_format in ['plain', 'html']:
+                        mimepart = get_body_part(mail, self.output_format)
                     pipestrings.append(string_sanitize(remove_cte(
                         mimepart, as_string=True)))
 
