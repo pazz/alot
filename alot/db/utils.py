@@ -459,7 +459,7 @@ def remove_cte(part, as_string=False):
 
 MISSING_HTML_MSG = ("This message contains a text/html part that was not "
                     "rendered due to a missing mailcap entry. "
-                    "Please refer to item 5 in our FAQ: "
+                    "Please refer to item 1 in our FAQ: "
                     "http://alot.rtfd.io/en/latest/faq.html")
 
 
