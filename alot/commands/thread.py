@@ -31,6 +31,7 @@ from ..db.utils import formataddr
 from ..db.utils import extract_headers
 from ..db.utils import clear_my_address
 from ..db.utils import ensure_unique_address
+from ..db.utils import extract_body_part
 from ..db.utils import remove_cte
 from ..db.utils import string_sanitize
 from ..db.envelope import Envelope
@@ -722,18 +723,20 @@ class PipeCommand(Command):
         else:
             for msg in to_print:
                 mail = msg.get_email()
+                mimepart = getattr(
+                    ui.get_deep_focus(), 'mimepart', False) or msg.mime_part
                 if self.add_tags:
                     mail.add_header('Tags', ', '.join(msg.get_tags()))
                 if self.output_format == 'raw':
                     pipestrings.append(mail.as_string())
                 elif self.output_format == 'decoded':
                     headertext = extract_headers(mail)
-                    bodytext = msg.get_body_text()
+                    bodytext = extract_body_part(mimepart)
                     msgtext = '%s\n\n%s' % (headertext, bodytext)
                     pipestrings.append(msgtext)
                 elif self.output_format == 'mimepart':
                     pipestrings.append(string_sanitize(remove_cte(
-                        msg.mime_part, as_string=True)))
+                        mimepart, as_string=True)))
 
         if not self.separately:
             pipestrings = [separator.join(pipestrings)]
