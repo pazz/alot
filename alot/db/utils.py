@@ -486,16 +486,17 @@ def extract_body(mail):
         return ""
 
     displaystring = ""
-
-    if body_part.get_content_type() == 'text/plain':
+    rendered_payload = render_part(
+        body_part,
+        **{'field_key': 'view'} if body_part.get_content_type() == 'text/plain'
+        else {})
+    if rendered_payload:  # handler had output
+        displaystring = string_sanitize(rendered_payload)
+    elif body_part.get_content_type() == 'text/plain':
         displaystring = string_sanitize(remove_cte(body_part, as_string=True))
     else:
-        rendered_payload = render_part(body_part)
-        if rendered_payload:  # handler had output
-            displaystring = string_sanitize(rendered_payload)
-        else:
-            if body_part.get_content_type() == 'text/html':
-                displaystring = MISSING_HTML_MSG
+        if body_part.get_content_type() == 'text/html':
+            displaystring = MISSING_HTML_MSG
     return displaystring
 
 
