@@ -176,6 +176,16 @@ The following commands are available in thread mode:
         query used to filter messages to affect
 
 
+.. _cmd.thread.togglemimepart:
+
+.. describe:: togglemimepart
+
+    switch between html and plain text message
+
+    argument
+        query used to filter messages to affect
+
+
 .. _cmd.thread.togglemimetree:
 
 .. describe:: togglemimetree
