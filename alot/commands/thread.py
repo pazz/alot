@@ -514,6 +514,11 @@ class EditNewCommand(Command):
     forced={'mimetree': 'toggle'},
     arguments=[(['query'], {'help': 'query used to filter messages to affect',
                             'nargs': '*'})])
+@registerCommand(
+    MODE, 'togglemimepart', help='switch between html and plain text message',
+    forced={'mimepart': 'toggle'},
+    arguments=[(['query'], {'help': 'query used to filter messages to affect',
+                            'nargs': '*'})])
 class ChangeDisplaymodeCommand(Command):
 
     """fold or unfold messages"""
@@ -590,7 +595,14 @@ class ChangeDisplaymodeCommand(Command):
             all_headers = not mt.display_all_headers \
                 if self.all_headers == 'toggle' else self.all_headers
             if self.mimepart:
-                mt.set_mimepart(ui.get_deep_focus().mimepart)
+                if self.mimepart == 'toggle':
+                    message = mt.get_message()
+                    mimetype = {'plain': 'html', 'html': 'plain'}[
+                        message.mime_part.get_content_subtype()]
+                    mimepart = get_body_part(message.get_email(), mimetype)
+                elif self.mimepart is True:
+                    mimepart = ui.get_deep_focus().mimepart
+                mt.set_mimepart(mimepart)
             if self.mimetree == 'toggle':
                 tbuffer.focus_selected_message()
             mimetree = not mt.display_mimetree \

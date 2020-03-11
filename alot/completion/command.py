@@ -194,7 +194,8 @@ class CommandCompleter(Completer):
                 elif self.mode == 'thread' and cmd in ['fold', 'unfold',
                                                        'togglesource',
                                                        'toggleheaders',
-                                                       'togglemimetree']:
+                                                       'togglemimetree',
+                                                       'togglemimepart']:
                     res = self._querycompleter.complete(params, localpos)
                 elif self.mode == 'thread' and cmd in ['tag', 'retag', 'untag',
                                                        'toggletags']:
