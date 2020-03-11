@@ -29,6 +29,7 @@ from ..completion.path import PathCompleter
 from ..db.utils import decode_header
 from ..db.utils import formataddr
 from ..db.utils import get_body_part
+from ..db.utils import extract_body_part
 from ..db.utils import extract_headers
 from ..db.utils import clear_my_address
 from ..db.utils import ensure_unique_address
@@ -738,20 +739,22 @@ class PipeCommand(Command):
         else:
             for msg in to_print:
                 mail = msg.get_email()
+                mimepart = (getattr(ui.get_deep_focus(), 'mimepart', False)
+                            or msg.get_mime_part())
                 if self.add_tags:
                     mail.add_header('Tags', ', '.join(msg.get_tags()))
                 if self.output_format == 'raw':
                     pipestrings.append(mail.as_string())
                 elif self.output_format == 'decoded':
                     headertext = extract_headers(mail)
-                    bodytext = msg.get_body_text()
+                    bodytext = extract_body_part(mimepart)
                     msgtext = '%s\n\n%s' % (headertext, bodytext)
                     pipestrings.append(msgtext)
                 elif self.output_format in ['mimepart', 'plain', 'html']:
                     if self.output_format in ['plain', 'html']:
                         mimepart = get_body_part(mail, self.output_format)
                     pipestrings.append(string_sanitize(remove_cte(
-                        msg.mime_part, as_string=True)))
+                        mimepart, as_string=True)))
 
         if not self.separately:
             pipestrings = [separator.join(pipestrings)]
