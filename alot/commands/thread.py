@@ -28,6 +28,7 @@ from ..completion.contacts import ContactsCompleter
 from ..completion.path import PathCompleter
 from ..db.utils import decode_header
 from ..db.utils import formataddr
+from ..db.utils import get_body_part
 from ..db.utils import extract_headers
 from ..db.utils import clear_my_address
 from ..db.utils import ensure_unique_address
@@ -510,6 +511,11 @@ class EditNewCommand(Command):
     forced={'mimetree': 'toggle'},
     arguments=[(['query'], {'help': 'query used to filter messages to affect',
                             'nargs': '*'})])
+@registerCommand(
+    MODE, 'togglemimepart', help='switch between html and plain text message',
+    forced={'mimepart': 'toggle'},
+    arguments=[(['query'], {'help': 'query used to filter messages to affect',
+                            'nargs': '*'})])
 class ChangeDisplaymodeCommand(Command):
 
     """fold or unfold messages"""
@@ -586,7 +592,14 @@ class ChangeDisplaymodeCommand(Command):
             all_headers = not mt.display_all_headers \
                 if self.all_headers == 'toggle' else self.all_headers
             if self.mimepart:
-                mt.set_mimepart(ui.get_deep_focus().mimepart)
+                if self.mimepart == 'toggle':
+                    message = mt.get_message()
+                    mimetype = {'plain': 'html', 'html': 'plain'}[
+                        message.mime_part.get_content_subtype()]
+                    mimepart = get_body_part(message.get_email(), mimetype)
+                elif self.mimepart is True:
+                    mimepart = ui.get_deep_focus().mimepart
+                mt.set_mimepart(mimepart)
             if self.mimetree == 'toggle':
                 tbuffer.focus_selected_message()
             mimetree = not mt.display_mimetree \
