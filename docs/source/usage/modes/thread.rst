@@ -72,7 +72,7 @@ The following commands are available in thread mode:
 
     optional arguments
         :---all: pass all messages
-        :---format: output format; valid choices are: 'raw','decoded','id','filepath' (defaults to: 'raw')
+        :---format: output format; valid choices are: 'raw','decoded','id','filepath','mimepart','plain','html' (defaults to: 'raw')
         :---separately: call command once for each message
         :---background: don't stop the interface
         :---add_tags: add 'Tags' header to the message
@@ -150,6 +150,7 @@ The following commands are available in thread mode:
     select focussed element:
         - if it is a message summary, toggle visibility of the message;
         - if it is an attachment line, open the attachment
+        - if it is a mimepart, toggle visibility of the mimepart
 
 
 .. _cmd.thread.tag:
@@ -170,6 +171,26 @@ The following commands are available in thread mode:
 .. describe:: toggleheaders
 
     display all headers
+
+    argument
+        query used to filter messages to affect
+
+
+.. _cmd.thread.togglemimepart:
+
+.. describe:: togglemimepart
+
+    switch between html and plain text message
+
+    argument
+        query used to filter messages to affect
+
+
+.. _cmd.thread.togglemimetree:
+
+.. describe:: togglemimetree
+
+    disply mime tree of the message
 
     argument
         query used to filter messages to affect
