@@ -93,7 +93,7 @@ install:
       # install alot
       pip install .
       # programs to generate a coverage report and upload it to codacy.com
-      #pip install coverage codacy-coverage
+      pip install coverage
     fi
 
 
