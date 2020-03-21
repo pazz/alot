@@ -28,7 +28,9 @@ from .widgets.globals import ChoiceWidget
 async def periodic(callable_, period, *args, **kwargs):
     while True:
         try:
-            callable_(*args, **kwargs)
+            t = callable_(*args, **kwargs)
+            if asyncio.iscoroutine(t):
+                await t
         except Exception as e:
             logging.error('error in loop hook %s', str(e))
         await asyncio.sleep(period)
