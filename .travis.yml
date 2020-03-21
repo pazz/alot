@@ -93,7 +93,7 @@ install:
       # install alot
       pip install .
       # programs to generate a coverage report and upload it to codacy.com
-      pip install coverage codacy-coverage
+      #pip install coverage codacy-coverage
     fi
 
 
@@ -126,7 +126,9 @@ after_success: |
   set -e
   if [[ $JOB = tests ]]; then
     coverage xml
-    python-codacy-coverage -r coverage.xml
+    #python-codacy-coverage -r coverage.xml
+    export CODACY_PROJECT_TOKEN=df4443e7313e4ae599bcbbaf4835b00f
+    bash <(wget -q -O - https://coverage.codacy.com/get.sh)
   fi
 
 notifications:
