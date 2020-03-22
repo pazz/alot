@@ -92,6 +92,8 @@ install:
     else
       # install alot
       pip install .
+      # programs to generate a coverage
+      pip install coverage
     fi
 
 
