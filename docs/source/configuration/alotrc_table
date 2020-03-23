@@ -742,9 +742,10 @@
      * `{message_count}`: number of contained messages
      * `{thread_tags}`: displays all tags present in the current thread.
      * `{intersection_tags}`: displays tags common to all messages in the current thread.
+     * `{mimetype}`: content type of the mime part displayed in the focused message.
 
     :type: mixed_list
-    :default: [{buffer_no}: thread] {subject}, {input_queue} total messages: {total_messages}
+    :default: [{buffer_no}: thread] {subject}, [{mimetype}] {input_queue} total messages: {total_messages}
 
 
 .. _thread-subject:
