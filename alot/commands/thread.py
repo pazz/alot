@@ -1046,8 +1046,11 @@ class ThreadSelectCommand(Command):
             logging.info('open attachment')
             await ui.apply_command(OpenAttachmentCommand(focus.get_attachment()))
         elif getattr(focus, 'mimepart', False):
-            await ui.apply_command(ChangeDisplaymodeCommand(
-                mimepart=True, mimetree='toggle'))
+            if isinstance(focus.mimepart, Attachment):
+                await ui.apply_command(OpenAttachmentCommand(focus.mimepart))
+            else:
+                await ui.apply_command(ChangeDisplaymodeCommand(
+                    mimepart=True, mimetree='toggle'))
         else:
             await ui.apply_command(ChangeDisplaymodeCommand(visible='toggle'))
 

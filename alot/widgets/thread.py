@@ -14,6 +14,7 @@ from .ansi import ANSIText
 from .globals import TagWidget
 from .globals import AttachmentWidget
 from ..settings.const import settings
+from ..db.attachment import Attachment
 from ..db.utils import decode_header, X_SIGNATURE_MESSAGE_HEADER
 from ..helper import string_sanitize
 
@@ -336,7 +337,7 @@ class MessageTree(CollapsibleTree):
         att = settings.get_theming_attribute('thread', 'body')
         att_focus = settings.get_theming_attribute('thread', 'body_focus')
         mimepart = tree[1] if isinstance(
-            tree[1], email.message.EmailMessage) else None
+            tree[1], (email.message.EmailMessage, Attachment)) else None
         label, subtrees = tree
         label = ANSIText(
             label, att, att_focus, ANSI_BACKGROUND, mimepart=mimepart)
