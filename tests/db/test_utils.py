@@ -665,6 +665,22 @@ class TestGetBodyPart(unittest.TestCase):
 
         self.assertEqual(actual, expected)
 
+    @mock.patch('alot.db.utils.settings.get', mock.Mock(return_value=False))
+    def test_prefer_html_set_mimetype_plain(self):
+        expected = "text/plain"
+        mail = self._make_mixed_plain_html()
+        actual = utils.get_body_part(mail, 'plain').get_content_type()
+
+        self.assertEqual(actual, expected)
+
+    @mock.patch('alot.db.utils.settings.get', mock.Mock(return_value=True))
+    def test_prefer_plaintext_set_mimetype_html(self):
+        expected = 'text/html'
+        mail = self._make_mixed_plain_html()
+        actual = utils.get_body_part(mail, 'html').get_content_type()
+
+        self.assertEqual(actual, expected)
+
 
 class TestExtractBodyPart(unittest.TestCase):
 

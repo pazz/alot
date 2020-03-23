@@ -463,7 +463,7 @@ MISSING_HTML_MSG = ("This message contains a text/html part that was not "
                     "http://alot.rtfd.io/en/latest/faq.html")
 
 
-def get_body_part(mail):
+def get_body_part(mail, mimetype=None):
     """Returns an EmailMessage.
 
     This consults :ref:`prefer_plaintext <prefer-plaintext>`
@@ -476,10 +476,10 @@ def get_body_part(mail):
     :rtype: str
     """
 
-    if settings.get('prefer_plaintext'):
-        preferencelist = ('plain', 'html')
-    else:
-        preferencelist = ('html', 'plain')
+    if not mimetype:
+        mimetype = 'plain' if settings.get('prefer_plaintext') else 'html'
+    preferencelist = {
+        'plain': ('plain', 'html'), 'html': ('html', 'plain')}[mimetype]
 
     body_part = mail.get_body(preferencelist)
     if body_part is None:  # if no part matching preferredlist was found
