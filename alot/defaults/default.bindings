@@ -83,6 +83,8 @@ q = exit
     s = save
     r = reply
     | = prompt 'pipeto '
+    t = togglemimetree
+    h = togglemimepart
 
     'g j' = move next sibling
     'g k' = move previous sibling
