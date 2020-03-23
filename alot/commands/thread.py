@@ -600,6 +600,7 @@ class ChangeDisplaymodeCommand(Command):
                 elif self.mimepart is True:
                     mimepart = ui.get_deep_focus().mimepart
                 mt.set_mimepart(mimepart)
+                ui.update()
             if self.mimetree == 'toggle':
                 tbuffer.focus_selected_message()
             mimetree = not mt.display_mimetree \
@@ -1015,6 +1016,7 @@ class MoveFocusCommand(MoveCommand):
 
     def apply(self, ui):
         logging.debug(self.movement)
+        original_focus = ui.get_deep_focus()
         tbuffer = ui.current_buffer
         if self.movement == 'parent':
             tbuffer.focus_parent()
@@ -1044,6 +1046,9 @@ class MoveFocusCommand(MoveCommand):
             MoveCommand.apply(self, ui)
         # TODO add 'next matching' if threadbuffer stores the original query
         # TODO: add next by date..
+
+        if original_focus != ui.get_deep_focus():
+            ui.update()
 
 
 @registerCommand(MODE, 'select')

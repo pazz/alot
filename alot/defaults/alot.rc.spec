@@ -149,8 +149,9 @@ search_statusbar = mixed_list(string, string, default=list('[{buffer_no}: search
 # * `{message_count}`: number of contained messages
 # * `{thread_tags}`: displays all tags present in the current thread.
 # * `{intersection_tags}`: displays tags common to all messages in the current thread.
+# * `{mimetype}`: content type of the mime part displayed in the focused message.
 
-thread_statusbar = mixed_list(string, string, default=list('[{buffer_no}: thread] {subject}','{input_queue} total messages: {total_messages}'))
+thread_statusbar = mixed_list(string, string, default=list('[{buffer_no}: thread] {subject}','[{mimetype}] {input_queue} total messages: {total_messages}'))
 
 # Format of the status-bar in taglist mode.
 # This is a pair of strings to be left and right aligned in the status-bar.
