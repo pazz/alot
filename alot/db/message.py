@@ -242,8 +242,6 @@ class Message:
         if not self._attachments:
             self._attachments = []
             for part in self.get_message_parts():
-                cd = part.get('Content-Disposition', '')
-                filename = part.get_filename()
                 ct = part.get_content_type()
                 # replace underspecified mime description by a better guess
                 if ct in ['octet/stream', 'application/octet-stream']:
@@ -254,14 +252,28 @@ class Message:
                             'application/pgp-encrypted'):
                         self._attachments.pop()
 
-                if cd.lower().startswith('attachment'):
-                    if ct.lower() not in ['application/pgp-signature']:
-                        self._attachments.append(Attachment(part))
-                elif cd.lower().startswith('inline'):
-                    if (filename is not None and
-                            ct.lower() != 'application/pgp'):
-                        self._attachments.append(Attachment(part))
+                if self._is_attachment(part, ct):
+                    self._attachments.append(Attachment(part))
         return self._attachments
+
+    @staticmethod
+    def _is_attachment(part, ct_override=None):
+        """Takes a mimepart and returns a bool indicating if it's an attachment
+
+        Takes an optional argument to override the content type.
+        """
+        cd = part.get('Content-Disposition', '')
+        filename = part.get_filename()
+        ct = ct_override or part.get_content_type()
+
+        if cd.lower().startswith('attachment'):
+            if ct.lower() not in ['application/pgp-signature']:
+                return True
+        elif cd.lower().startswith('inline'):
+            if (filename is not None and ct.lower() != 'application/pgp'):
+                return True
+
+        return False
 
     def get_body_text(self):
         """ returns bodystring extracted from this mail """
@@ -283,6 +295,8 @@ class Message:
         if message.is_multipart():
             return label, [cls._get_mimetree(m) for m in message.get_payload()]
         else:
+            if cls._is_attachment(message):
+                message = Attachment(message)
             return label, message
 
     @staticmethod
