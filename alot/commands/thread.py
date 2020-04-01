@@ -88,7 +88,7 @@ def determine_sender(mail, action='reply'):
                     logging.debug('using realname: "%s"', realname)
                     logging.debug('using address: %s', address)
 
-                    from_value = formataddr((realname, address))
+                    from_value = email.utils.formataddr((realname, address))
                     return from_value, account
 
     # revert to default account if nothing found
@@ -98,7 +98,7 @@ def determine_sender(mail, action='reply'):
     logging.debug('using realname: "%s"', realname)
     logging.debug('using address: %s', address)
 
-    from_value = formataddr((realname, str(address)))
+    from_value = email.utils.formataddr((realname, str(address)))
     return from_value, account
 
 

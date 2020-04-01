@@ -151,3 +151,8 @@ class TestDetermineSender(unittest.TestCase):
         expected = ('to+some_tag@example.com', account2)
         self._test(accounts=[account1, account2, account3], expected=expected,
                    mail=mail)
+
+    def test_determine_sender_correctly_encode_non_ascii(self):
+        account = _AccountTestClass(address='foo@example.com', realname='Foo Hé')
+        self._test(accounts=[account], header_priority=(),
+                   expected=('=?utf-8?q?Foo_H=C3=A9?= <foo@example.com>', account))
