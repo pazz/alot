@@ -298,6 +298,8 @@ class Envelope:
         if uastring:
             headers['User-Agent'] = [uastring]
 
+        # set policy on outer_msg to ease encoding headers
+        outer_msg.policy = email.policy.default
         # copy headers from envelope to mail
         for k, vlist in headers.items():
             for v in vlist:
