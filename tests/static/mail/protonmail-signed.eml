@@ -1,0 +1,38 @@
+To: test <test@example.com>
+From: test <test@example.com>
+Subject: test
+MIME-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha256; boundary="---------------------b1a1d581e2f9973dec483e5b8dea8467"; charset=UTF-8
+
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+-----------------------b1a1d581e2f9973dec483e5b8dea8467
+Content-Type: multipart/mixed;boundary=---------------------103eabeea9de680baf0de1110c9de38f
+
+-----------------------103eabeea9de680baf0de1110c9de38f
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;charset=utf-8
+
+This is a signed multipart message sent from ProtonMail.
+-----------------------103eabeea9de680baf0de1110c9de38f--
+
+-----------------------b1a1d581e2f9973dec483e5b8dea8467
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: ProtonMail
+
+wsBcBAEBCAAGBQJejPBTAAoJEBl07FX7wtZg2XYH/3E0TLJ44OA36J55tv+i
+FAnXy0ncTsqSJk2RloMI+rgJW6Ky1nkLMdPFuT7imBkuMGEFOv5NtWyuF6R+
+ZTxML7JNEzK1kj/egvWMWgjAoKQ/OXhGEANwmeV90LseOlbPp6sppxgHcGVv
+LymaQHPs4M5IDScum0jnywQ017esxQ4CuINuQsv3Tbp9E/nl5PrmwXsqB1ov
+Z38n7RkJD523sPFuk6E6XrDaiod8J/Jd+0y7iWAVuxRyOVBnbHmMwkU8wvpI
+VWkTLGNB2azregJp678DL7vfp5483tn4PqgSH5RO86glgo87uEin0cTmvdhp
++UQoeT6rE/dza6g2dGYG+co=
+=h6OL
+-----END PGP SIGNATURE-----
+
+
+-----------------------b1a1d581e2f9973dec483e5b8dea8467--
+
