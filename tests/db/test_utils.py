@@ -14,6 +14,7 @@ import email.utils
 from email.message import EmailMessage
 import os
 import os.path
+from pathlib import Path
 import shutil
 import tempfile
 import unittest
@@ -592,7 +593,21 @@ class TestMessageFromFile(TestCaseClassCleanup):
         m = email.mime.multipart.MIMEMultipart('mixed', None, [s])
         mb = m.as_bytes(policy=email.policy.SMTP)
         m = utils.decrypted_message_from_bytes(mb)
-        self.assertIn(utils.X_SIGNATURE_VALID_HEADER, m)
+        self.assertEqual(m[utils.X_SIGNATURE_VALID_HEADER], 'True')
+        self.assertIn(utils.X_SIGNATURE_MESSAGE_HEADER, m)
+
+    def test_signed_in_multipart_mixed_other_mua(self):
+        """It is valid to encapsulate a multipart/signed payload inside a
+        multipart/mixed payload, verify that works.
+
+        The signature being sensitive to the way the multipart message
+        was assembled (with blank lines between parts, ...),
+        we need to make sure that we're able to validate messages generated
+        by other MUAs as well.
+        """
+        mb = Path('tests/static/mail/protonmail-signed.eml').read_bytes()
+        m = utils.decrypted_message_from_bytes(mb)
+        self.assertEqual(m[utils.X_SIGNATURE_VALID_HEADER], 'True')
         self.assertIn(utils.X_SIGNATURE_MESSAGE_HEADER, m)
 
     def test_encrypted_unsigned_in_multipart_mixed(self):

@@ -8,6 +8,7 @@ import email
 import email.charset as charset
 import email.policy
 import email.utils
+from email.errors import MessageError
 import tempfile
 import re
 import logging
@@ -94,7 +95,7 @@ def get_params(mail, failobj=None, header='content-type', unquote=True):
     return {k.lower(): v for k, v in mail.get_params(failobj, header, unquote)}
 
 
-def _handle_signatures(original, message, params):
+def _handle_signatures(original_bytes, original, message, params):
     """Shared code for handling message signatures.
 
     RFC 3156 is quite strict:
@@ -102,6 +103,11 @@ def _handle_signatures(original, message, params):
     * the second is of type 'application/pgp-signature'
     * the second contains the detached signature
 
+    :param original_bytes: the original top-level mail raw bytes,
+        containing the segments against which signatures will be verified.
+        Necessary because parsing and re-serialising a Message isn't
+        byte-perfect, which interferes with signature validation.
+    :type original_bytes: bytes
     :param original: The original top-level mail. This is required to attache
         special headers to
     :type original: :class:`email.message.Message`
@@ -110,33 +116,48 @@ def _handle_signatures(original, message, params):
     :param params: the message parameters as returned by :func:`get_params`
     :type params: dict[str, str]
     """
-    malformed = None
-    if len(message.get_payload()) != 2:
-        malformed = 'expected exactly two messages, got {0}'.format(
-            len(message.get_payload()))
-    else:
-        ct = message.get_payload(1).get_content_type()
+    try:
+        nb_parts = len(message.get_payload()) if message.is_multipart() else 1
+        if nb_parts != 2:
+            raise MessageError(
+                f'expected exactly two messages, got {nb_parts}')
+
+        signature_part = message.get_payload(1)
+        ct = signature_part.get_content_type()
         if ct != _APP_PGP_SIG:
-            malformed = 'expected Content-Type: {0}, got: {1}'.format(
-                _APP_PGP_SIG, ct)
+            raise MessageError(
+               f'expected Content-Type: {_APP_PGP_SIG}, got: {ct}')
 
-    # TODO: RFC 3156 says the alg has to be lower case, but I've seen a message
-    # with 'PGP-'. maybe we should be more permissive here, or maybe not, this
-    # is crypto stuff...
-    if not params.get('micalg', 'nothing').startswith('pgp-'):
-        malformed = 'expected micalg=pgp-..., got: {0}'.format(
-            params.get('micalg', 'nothing'))
+        # TODO[dcbaker]: RFC 3156 says the alg has to be lower case, but I've
+        #  seen a message with 'PGP-'. maybe we should be more permissive here,
+        #  or maybe not, this is crypto stuff...
+        mic_alg = params.get('micalg', 'nothing')
+        if not mic_alg.startswith('pgp-'):
+            raise MessageError(f'expected micalg=pgp-..., got: {mic_alg}')
 
-    sigs = []
-    if not malformed:
-        try:
-            sigs = crypto.verify_detached(
-                message.get_payload(0).as_bytes(policy=email.policy.SMTP),
-                message.get_payload(1).get_payload(decode=True))
-        except GPGProblem as e:
-            malformed = str(e)
+        # manual part extraction from original message necessary because
+        # parsing and re-serialising a Message isn't byte-perfect,
+        # which interferes with signature validation.
+        # See RFC 1847 section 2.1.
+        signed_boundary = b'\r\n--' + message.get_boundary().encode()
+        original_chunks = original_bytes.split(signed_boundary)
+        nb_chunks = len(original_chunks)
+        if nb_chunks != 4:
+            raise MessageError(
+                f'unexpected number of multipart chunks, got {nb_chunks}')
 
-    add_signature_headers(original, sigs, malformed)
+        signed_chunk = original_chunks[1]
+        if len(signed_chunk) < 2:
+            raise MessageError('signed chunk has an invalid length')
+
+        sigs = crypto.verify_detached(
+            signed_chunk[len('\r\n'):],
+            signature_part.get_payload(decode=True))
+
+        add_signature_headers(original, sigs, None)
+
+    except (GPGProblem, MessageError) as error:
+        add_signature_headers(original, [], str(error))
 
 
 def _handle_encrypted(original, message, session_keys=None):
@@ -217,11 +238,16 @@ def _handle_encrypted(original, message, session_keys=None):
         original.attach(content)
 
 
-def decrypted_message_from_message(m, session_keys=None):
+def _decrypted_message_from_message(original_bytes, m, session_keys=None):
     '''Detect and decrypt OpenPGP encrypted data in an email object. If this
     succeeds, any mime messages found in the recovered plaintext
     message are added to the returned message object.
 
+    :param original_bytes: the original top-level mail raw bytes,
+        containing the segments against which signatures will be verified.
+        Necessary because parsing and re-serialising a Message isn't
+        byte-perfect, which interferes with signature validation.
+    :type original_bytes: bytes
     :param m: an email object
     :param session_keys: a list OpenPGP session keys
     :returns: :class:`email.message.Message` possibly augmented with
@@ -237,7 +263,7 @@ def decrypted_message_from_message(m, session_keys=None):
         # handle OpenPGP signed data
         if (m.get_content_subtype() == 'signed' and
                 p.get('protocol') == _APP_PGP_SIG):
-            _handle_signatures(m, m, p)
+            _handle_signatures(original_bytes, m, m, p)
 
         # handle OpenPGP encrypted data
         elif (m.get_content_subtype() == 'encrypted' and
@@ -255,7 +281,7 @@ def decrypted_message_from_message(m, session_keys=None):
 
                 if (sub.get_content_subtype() == 'signed' and
                         p.get('protocol') == _APP_PGP_SIG):
-                    _handle_signatures(m, sub, p)
+                    _handle_signatures(original_bytes, m, sub, p)
                 elif (sub.get_content_subtype() == 'encrypted' and
                       p.get('protocol') == _APP_PGP_ENC):
                     _handle_encrypted(m, sub, session_keys)
@@ -269,7 +295,8 @@ def decrypted_message_from_bytes(bytestring, session_keys=None):
     :param bytes bytestring: an email message as raw bytes
     :param session_keys: a list OpenPGP session keys
     """
-    return decrypted_message_from_message(
+    return _decrypted_message_from_message(
+        bytestring,
         email.message_from_bytes(bytestring,
                                  _class=email.message.EmailMessage,
                                  policy=email.policy.SMTP),
