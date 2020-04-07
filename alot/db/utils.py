@@ -217,23 +217,6 @@ def _handle_encrypted(original, message, session_keys=None):
         original.attach(content)
 
 
-def decrypted_message_from_file(handle, session_keys=None):
-    '''Reads a mail from the given file-like object and returns an email
-    object, very much like email.message_from_file. In addition to
-    that OpenPGP encrypted data is detected and decrypted. If this
-    succeeds, any mime messages found in the recovered plaintext
-    message are added to the returned message object.
-
-    :param handle: a file-like object
-    :param session_keys: a list OpenPGP session keys
-    :returns: :class:`email.message.Message` possibly augmented with
-              decrypted data
-    '''
-    return decrypted_message_from_message(email.message_from_file(handle,
-                                          _class=email.message.EmailMessage),
-                                          session_keys)
-
-
 def decrypted_message_from_message(m, session_keys=None):
     '''Detect and decrypt OpenPGP encrypted data in an email object. If this
     succeeds, any mime messages found in the recovered plaintext
@@ -278,19 +261,6 @@ def decrypted_message_from_message(m, session_keys=None):
                     _handle_encrypted(m, sub, session_keys)
 
     return m
-
-
-def decrypted_message_from_string(s, session_keys=None):
-    '''Reads a mail from the given string. This is the equivalent of
-    :func:`email.message_from_string` which does nothing but to wrap
-    the given string in a StringIO object and to call
-    :func:`email.message_from_file`.
-
-    Please refer to the documentation of :func:`message_from_file` for
-    details.
-
-    '''
-    return decrypted_message_from_file(io.StringIO(s), session_keys)
 
 
 def decrypted_message_from_bytes(bytestring, session_keys=None):
