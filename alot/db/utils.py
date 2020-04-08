@@ -135,10 +135,20 @@ def _handle_signatures(original_bytes, original, message, params):
         if not mic_alg.startswith('pgp-'):
             raise MessageError(f'expected micalg=pgp-..., got: {mic_alg}')
 
-        # manual part extraction from original message necessary because
-        # parsing and re-serialising a Message isn't byte-perfect,
-        # which interferes with signature validation.
-        # See RFC 1847 section 2.1.
+        # RFC 3156 section 5 says that "signed message and transmitted message
+        # MUST be identical". We therefore need to validate against the message
+        # as it was originally sent.
+
+        # The transmitted content and therefore the signed content are using
+        # CRLF as line delimiter, but our eml file has most likely been
+        # converted to UNIX LF line ending in the local storage.
+        if b'\r\n' not in original_bytes:
+            original_bytes = original_bytes.replace(b'\n', b'\r\n')
+
+        # The sender's signed canonical form often differs from the one
+        # produced by Python's standard lib (in the number of blank lines
+        # between multipart segments...). We therefore need to extract the
+        # signed part directly from the original byte string.
         signed_boundary = b'\r\n--' + message.get_boundary().encode()
         original_chunks = original_bytes.split(signed_boundary)
         nb_chunks = len(original_chunks)
@@ -147,11 +157,11 @@ def _handle_signatures(original_bytes, original, message, params):
                 f'unexpected number of multipart chunks, got {nb_chunks}')
 
         signed_chunk = original_chunks[1]
-        if len(signed_chunk) < 2:
+        if len(signed_chunk) < len(b'\r\n'):
             raise MessageError('signed chunk has an invalid length')
 
         sigs = crypto.verify_detached(
-            signed_chunk[len('\r\n'):],
+            signed_chunk[len(b'\r\n'):],
             signature_part.get_payload(decode=True))
 
         add_signature_headers(original, sigs, None)
