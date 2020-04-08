@@ -425,23 +425,20 @@ class TestMessageFromFile(TestCaseClassCleanup):
     def test_signed_headers_included(self):
         """Headers are added to the message."""
         m = self._make_signed()
-        mb = m.as_bytes(policy=email.policy.SMTP)
-        m = utils.decrypted_message_from_bytes(mb)
+        m = utils.decrypted_message_from_bytes(m.as_bytes())
         self.assertIn(utils.X_SIGNATURE_VALID_HEADER, m)
         self.assertIn(utils.X_SIGNATURE_MESSAGE_HEADER, m)
 
     def test_signed_valid(self):
         """Test that the signature is valid."""
         m = self._make_signed()
-        mb = m.as_bytes(policy=email.policy.SMTP)
-        m = utils.decrypted_message_from_bytes(mb)
+        m = utils.decrypted_message_from_bytes(m.as_bytes())
         self.assertEqual(m[utils.X_SIGNATURE_VALID_HEADER], 'True')
 
     def test_signed_correct_from(self):
         """Test that the signature is valid."""
         m = self._make_signed()
-        mb = m.as_bytes(policy=email.policy.SMTP)
-        m = utils.decrypted_message_from_bytes(mb)
+        m = utils.decrypted_message_from_bytes(m.as_bytes())
         # Don't test for valid/invalid since that might change
         self.assertIn(
             'ambig <ambig@example.com>', m[utils.X_SIGNATURE_MESSAGE_HEADER])
@@ -449,16 +446,14 @@ class TestMessageFromFile(TestCaseClassCleanup):
     def test_signed_wrong_mimetype_second_payload(self):
         m = self._make_signed()
         m.get_payload(1).set_type('text/plain')
-        mb = m.as_bytes(policy=email.policy.SMTP)
-        m = utils.decrypted_message_from_bytes(mb)
+        m = utils.decrypted_message_from_bytes(m.as_bytes())
         self.assertIn('expected Content-Type: ',
                       m[utils.X_SIGNATURE_MESSAGE_HEADER])
 
     def test_signed_wrong_micalg(self):
         m = self._make_signed()
         m.set_param('micalg', 'foo')
-        mb = m.as_bytes(policy=email.policy.SMTP)
-        m = utils.decrypted_message_from_bytes(mb)
+        m = utils.decrypted_message_from_bytes(m.as_bytes())
         self.assertIn('expected micalg=pgp-...',
                       m[utils.X_SIGNATURE_MESSAGE_HEADER])
 
@@ -480,8 +475,7 @@ class TestMessageFromFile(TestCaseClassCleanup):
         """
         m = self._make_signed()
         m.set_param('micalg', 'PGP-SHA1')
-        mb = m.as_bytes(policy=email.policy.SMTP)
-        m = utils.decrypted_message_from_bytes(mb)
+        m = utils.decrypted_message_from_bytes(m.as_bytes())
         self.assertIn('expected micalg=pgp-',
                       m[utils.X_SIGNATURE_MESSAGE_HEADER])
 
@@ -496,8 +490,7 @@ class TestMessageFromFile(TestCaseClassCleanup):
         """
         m = self._make_signed()
         m.attach(email.mime.text.MIMEText('foo'))
-        mb = m.as_bytes(policy=email.policy.SMTP)
-        m = utils.decrypted_message_from_bytes(mb)
+        m = utils.decrypted_message_from_bytes(m.as_bytes())
         self.assertIn('expected exactly two messages, got 3',
                       m[utils.X_SIGNATURE_MESSAGE_HEADER])
 
@@ -528,14 +521,12 @@ class TestMessageFromFile(TestCaseClassCleanup):
         # of the mail, rather than replacing the whole encrypted payload with
         # it's unencrypted equivalent
         m = self._make_encrypted()
-        mb = m.as_bytes(policy=email.policy.SMTP)
-        m = utils.decrypted_message_from_bytes(mb)
+        m = utils.decrypted_message_from_bytes(m.as_bytes())
         self.assertEqual(len(m.get_payload()), 3)
 
     def test_encrypted_unsigned_is_decrypted(self):
         m = self._make_encrypted()
-        mb = m.as_bytes(policy=email.policy.SMTP)
-        m = utils.decrypted_message_from_bytes(mb)
+        m = utils.decrypted_message_from_bytes(m.as_bytes())
         # Check using m.walk, since we're not checking for ordering, just
         # existence.
         self.assertIn('This is some text', [n.get_payload() for n in m.walk()])
@@ -545,15 +536,13 @@ class TestMessageFromFile(TestCaseClassCleanup):
         that there is a signature.
         """
         m = self._make_encrypted()
-        mb = m.as_bytes(policy=email.policy.SMTP)
-        m = utils.decrypted_message_from_bytes(mb)
+        m = utils.decrypted_message_from_bytes(m.as_bytes())
         self.assertNotIn(utils.X_SIGNATURE_VALID_HEADER, m)
         self.assertNotIn(utils.X_SIGNATURE_MESSAGE_HEADER, m)
 
     def test_encrypted_signed_is_decrypted(self):
         m = self._make_encrypted(True)
-        mb = m.as_bytes(policy=email.policy.SMTP)
-        m = utils.decrypted_message_from_bytes(mb)
+        m = utils.decrypted_message_from_bytes(m.as_bytes())
         self.assertIn('This is some text', [n.get_payload() for n in m.walk()])
 
     def test_encrypted_signed_headers(self):
@@ -561,8 +550,7 @@ class TestMessageFromFile(TestCaseClassCleanup):
         there is a signature.
         """
         m = self._make_encrypted(True)
-        mb = m.as_bytes(policy=email.policy.SMTP)
-        m = utils.decrypted_message_from_bytes(mb)
+        m = utils.decrypted_message_from_bytes(m.as_bytes())
         self.assertIn(utils.X_SIGNATURE_MESSAGE_HEADER, m)
         self.assertIn(
             'ambig <ambig@example.com>', m[utils.X_SIGNATURE_MESSAGE_HEADER])
@@ -572,16 +560,14 @@ class TestMessageFromFile(TestCaseClassCleanup):
     def test_encrypted_wrong_mimetype_first_payload(self):
         m = self._make_encrypted()
         m.get_payload(0).set_type('text/plain')
-        mb = m.as_bytes(policy=email.policy.SMTP)
-        m = utils.decrypted_message_from_bytes(mb)
+        m = utils.decrypted_message_from_bytes(m.as_bytes())
         self.assertIn('Malformed OpenPGP message:',
                       m.get_payload(2).get_payload())
 
     def test_encrypted_wrong_mimetype_second_payload(self):
         m = self._make_encrypted()
         m.get_payload(1).set_type('text/plain')
-        mb = m.as_bytes(policy=email.policy.SMTP)
-        m = utils.decrypted_message_from_bytes(mb)
+        m = utils.decrypted_message_from_bytes(m.as_bytes())
         self.assertIn('Malformed OpenPGP message:',
                       m.get_payload(2).get_payload())
 
@@ -591,8 +577,7 @@ class TestMessageFromFile(TestCaseClassCleanup):
         """
         s = self._make_signed()
         m = email.mime.multipart.MIMEMultipart('mixed', None, [s])
-        mb = m.as_bytes(policy=email.policy.SMTP)
-        m = utils.decrypted_message_from_bytes(mb)
+        m = utils.decrypted_message_from_bytes(m.as_bytes())
         self.assertEqual(m[utils.X_SIGNATURE_VALID_HEADER], 'True')
         self.assertIn(utils.X_SIGNATURE_MESSAGE_HEADER, m)
 
@@ -616,8 +601,7 @@ class TestMessageFromFile(TestCaseClassCleanup):
         """
         s = self._make_encrypted()
         m = email.mime.multipart.MIMEMultipart('mixed', None, [s])
-        mb = m.as_bytes(policy=email.policy.SMTP)
-        m = utils.decrypted_message_from_bytes(mb)
+        m = utils.decrypted_message_from_bytes(m.as_bytes())
         self.assertIn('This is some text', [n.get_payload() for n in m.walk()])
         self.assertNotIn(utils.X_SIGNATURE_VALID_HEADER, m)
         self.assertNotIn(utils.X_SIGNATURE_MESSAGE_HEADER, m)
@@ -629,8 +613,7 @@ class TestMessageFromFile(TestCaseClassCleanup):
         """
         s = self._make_encrypted(True)
         m = email.mime.multipart.MIMEMultipart('mixed', None, [s])
-        mb = m.as_bytes(policy=email.policy.SMTP)
-        m = utils.decrypted_message_from_bytes(mb)
+        m = utils.decrypted_message_from_bytes(m.as_bytes())
         self.assertIn('This is some text', [n.get_payload() for n in m.walk()])
         self.assertIn(utils.X_SIGNATURE_VALID_HEADER, m)
         self.assertIn(utils.X_SIGNATURE_MESSAGE_HEADER, m)
