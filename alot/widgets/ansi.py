@@ -81,7 +81,7 @@ def parse_escapes_to_urwid(text, default_attr=None, default_attr_focus=None,
             i = 0
             while i < len(esc_code):
                 code = esc_code[i]
-                if code is 0:
+                if code == 0:
                     attr.update({'bold': default_attr.bold,
                                  'underline': default_attr.underline,
                                  'standout': default_attr.standout})
