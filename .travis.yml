@@ -115,8 +115,8 @@ script: |
     make -C docs html SPHINXBUILD=true
     # Check that the generated docs where already commited.
     git diff --exit-code
-    # Generate the html docs and turn all warnings into errors.
-    make -C docs html SPHINXBUILD='sphinx-build -W'
+    # Generate the html docs
+    make -C docs html
   else
     alot --config conf
     coverage run setup.py test
