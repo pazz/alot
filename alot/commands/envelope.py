@@ -759,13 +759,13 @@ class BodyConvertCommand(Command):
         ebuffer = ui.current_buffer
         envelope = ebuffer.envelope
 
-        if self.action is "txt2html":
+        if self.action == "txt2html":
             fallbackcmd = settings.get('envelope_txt2html')
             cmd = self.cmd or split_commandstring(fallbackcmd)
             if cmd:
                 envelope.body_html = self.convert(cmd, envelope.body_txt)
 
-        elif self.action is "html2txt":
+        elif self.action == "html2txt":
             fallbackcmd = settings.get('envelope_html2txt')
             cmd = self.cmd or split_commandstring(fallbackcmd)
             if cmd:
