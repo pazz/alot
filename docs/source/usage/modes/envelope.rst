@@ -12,7 +12,17 @@ The following commands are available in envelope mode:
     attach files to the mail
 
     argument
-        file(s) to attach (accepts wildcads)
+        file(s) to attach (accepts wildcards)
+
+
+.. _cmd.envelope.detach:
+
+.. describe:: detach
+
+    remove attachments from current envelope
+
+    argument
+        name of the attachment to remove (accepts wildcards)
 
 
 .. _cmd.envelope.display:
@@ -190,16 +200,6 @@ The following commands are available in envelope mode:
 
     argument
         converter command to use
-
-
-.. _cmd.envelope.unattach:
-
-.. describe:: unattach
-
-    remove attachments from current envelope
-
-    argument
-        which attached file to remove
 
 
 .. _cmd.envelope.unencrypt:
