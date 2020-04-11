@@ -6,6 +6,7 @@ import argparse
 import datetime
 import email
 import email.policy
+import fnmatch
 import glob
 import logging
 import os
@@ -37,7 +38,7 @@ MODE = 'envelope'
 
 @registerCommand(
     MODE, 'attach',
-    arguments=[(['path'], {'help': 'file(s) to attach (accepts wildcads)'})])
+    arguments=[(['path'], {'help': 'file(s) to attach (accepts wildcards)'})])
 class AttachCommand(Command):
     """attach files to the mail"""
     repeatable = True
@@ -65,30 +66,30 @@ class AttachCommand(Command):
         ui.current_buffer.rebuild()
 
 
-@registerCommand(MODE, 'unattach', arguments=[
-    (['hint'], {'nargs': '?', 'help': 'which attached file to remove'}),
+@registerCommand(MODE, 'detach', arguments=[
+    (['files'], {
+        'nargs': '?',
+        'help': 'name of the attachment to remove (accepts wildcards)'
+    }),
 ])
-class UnattachCommand(Command):
+class DetachCommand(Command):
     """remove attachments from current envelope"""
     repeatable = True
 
-    def __init__(self, hint=None, **kwargs):
+    def __init__(self, files=None, **kwargs):
         """
-        :param hint: which attached file to remove
-        :type hint: str
+        :param files: attached file glob to remove
+        :type files: str
         """
         Command.__init__(self, **kwargs)
-        self.hint = hint
+        self.files = files or '*'
 
     def apply(self, ui):
         envelope = ui.current_buffer.envelope
-
-        if self.hint is not None:
-            for a in envelope.attachments:
-                if self.hint in a.get_filename():
-                    envelope.attachments.remove(a)
-        else:
-            envelope.attachments = []
+        envelope.attachments = [
+            attachment for attachment in envelope.attachments
+            if not fnmatch.fnmatch(attachment.get_filename(), self.files)
+        ]
         ui.current_buffer.rebuild()
 
 
