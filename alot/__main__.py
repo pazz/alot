@@ -15,6 +15,7 @@ from alot.ui import UI
 from alot.commands import *
 from alot.commands import CommandParseError, COMMANDS
 from alot.utils import argparse as cargparse
+from alot.utils.notmuch import find_db
 
 from twisted.internet import asyncioreactor
 asyncioreactor.install()
@@ -120,8 +121,7 @@ def main():
         settings.set('colourmode', options.colour_mode)
 
     # get ourselves a database manager
-    indexpath = settings.get_notmuch_setting('database', 'path')
-    indexpath = options.mailindex_path or indexpath
+    indexpath = options.mailindex_path or find_db(settings)
     dbman = DBManager(path=indexpath, ro=options.read_only)
 
     # determine what to do
