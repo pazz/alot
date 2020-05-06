@@ -2,6 +2,7 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 
+import logging
 import urwid
 
 
@@ -15,10 +16,17 @@ class ANSIText(urwid.WidgetWrap):
                  ansi_background=True,
                  mimepart=False,
                  **kwds):
+
         self.mimepart = mimepart
-        ct, focus_map = parse_escapes_to_urwid(txt, default_attr,
-                                               default_attr_focus,
-                                               ansi_background)
+
+        try:
+            ct, focus_map = parse_escapes_to_urwid(txt, default_attr,
+                                                   default_attr_focus,
+                                                   ansi_background)
+        except Exception as error:
+            logging.exception(error)
+            ct, focus_map = txt, {None: default_attr_focus}
+
         t = urwid.Text(ct, **kwds)
         attr_map = {default_attr.background: ''}
         w = urwid.AttrMap(t, attr_map, focus_map)
@@ -54,6 +62,9 @@ ECODES = {
 }
 
 
+# FIXME:
+#   fails for https://github.com/pazz/alot/files/4476539/ansi_alot_bug.eml.txt
+#   with "ValueError: not enough values to unpack (expected 2, got 1)"
 def parse_escapes_to_urwid(text, default_attr=None, default_attr_focus=None,
                            parse_background=True):
     """This function converts a text with ANSI escape for terminal
