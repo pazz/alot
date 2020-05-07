@@ -3,6 +3,7 @@
 # For further details see the COPYING file
 
 import urwid
+import re
 
 
 class ANSIText(urwid.WidgetWrap):
@@ -33,8 +34,11 @@ class ANSIText(urwid.WidgetWrap):
 
 ECODES = {
     '1': {'bold': True},
+    '3': {'italics': True},
     '4': {'underline': True},
+    '5': {'blink': True},
     '7': {'standout': True},
+    '9': {'strikethrough': True},
     '30': {'fg': 'black'},
     '31': {'fg': 'dark red'},
     '32': {'fg': 'dark green'},
@@ -53,6 +57,15 @@ ECODES = {
     '47': {'bg': 'light gray'},
 }
 
+URWID_MODS = [
+    'bold',
+    'underline',
+    'standout',
+    'blink',
+    'italics',
+    'strikethrough',
+]
+
 
 def parse_escapes_to_urwid(text, default_attr=None, default_attr_focus=None,
                            parse_background=True):
@@ -60,60 +73,82 @@ def parse_escapes_to_urwid(text, default_attr=None, default_attr_focus=None,
     attributes and returns a list containing each part of text and its
     corresponding Urwid Attributes object, it also returns a dictionary which
     maps all attributes applied here to focused attribute.
+
+    This will only translate (a subset of) CSI sequences:
+    we interpret only SGR parameters that urwid supports (excluding true color)
+    See https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_sequences
     """
 
-    text = text.split("\033[")
-    urwid_text = [text[0]]
+    b1 = r'\033\['  # Control Sequence Introducer
+    b2 = r'[0-9:;<=>?]*'  # parameter bytes
+    b3 = r'[ !\"#$%&\'()*+,-./]*'  # intermediate bytes
+    b4 = r'[A-Z[\]^_`a-z{|}~]'  # final byte"
+    esc_pattern = b1 \
+        + r'(?P<pb>' + b2 + ')' \
+        + r'(?P<ib>' + b3 + ')' \
+        + r'(?P<fb>' + b4 + ')'
+
+    # these two will be returned
+    urwid_text = []  # we will accumulate text (with attributes) here
+    # mapping from included attributes to focused attr
     urwid_focus = {None: default_attr_focus}
 
     # Escapes are cumulative so we always keep previous values until it's
     # changed by another escape.
-    attr = dict(fg=default_attr._foreground_color, bg=default_attr.background,
+    attr = dict(fg=default_attr.foreground, bg=default_attr.background,
                 bold=default_attr.bold, underline=default_attr.underline,
                 standout=default_attr.underline)
-    for part in text[1:]:
-        esc_code, esc_substr = part.split('m', 1)
-        esc_code = esc_code.split(';')
 
-        if not esc_code:
-            attr.update(fg=default_attr._foreground_color,
-                        bg=default_attr.background, bold=default_attr.bold,
-                        underline=default_attr.underline,
-                        standout=default_attr.underline)
-        else:
-            i = 0
-            while i < len(esc_code):
-                code = esc_code[i]
-                if code == 0:
-                    attr.update({'bold': default_attr.bold,
-                                 'underline': default_attr.underline,
-                                 'standout': default_attr.standout})
-                if code in ECODES:
-                    attr.update(ECODES[code])
-                # 256 codes
-                elif code == '38':
-                    attr.update(fg='h' + esc_code[i+2])
-                    i += 2
-                elif code == '48':
-                    attr.update(bg='h'+esc_code[i+2])
-                    i += 2
-                i += 1
+    def append_themed_infix(infix):
+        # add using prev attribute
+        urwid_fg = attr['fg']
+        urwid_bg = default_attr.background
+        for mod in URWID_MODS:
+            if mod in attr and attr[mod]:
+                urwid_fg += ',' + mod
+        if parse_background:
+            urwid_bg = attr['bg']
+        urwid_attr = urwid.AttrSpec(urwid_fg, urwid_bg)
+        urwid_focus[urwid_attr] = default_attr_focus
+        urwid_text.append((urwid_attr, infix))
 
-        # If there is no string in esc_substr we skip it, the above
-        # attributes will accumulate to the next escapes.
-        if esc_substr:
-            # Construct Urwid attributes
-            urwid_fg = attr['fg']
-            urwid_bg = default_attr.background
-            if attr['bold']:
-                urwid_fg += ',bold'
-            if attr['underline']:
-                urwid_fg += ',underline'
-            if attr['standout']:
-                urwid_fg += ',standout'
-            if parse_background:
-                urwid_bg = attr['bg']
-            urwid_attr = urwid.AttrSpec(urwid_fg, urwid_bg)
-            urwid_focus[urwid_attr] = default_attr_focus
-            urwid_text.append((urwid_attr, esc_substr))
+    def reset_attr():
+        attr.update(fg=default_attr.foreground,
+                    bg=default_attr.background, bold=default_attr.bold,
+                    underline=default_attr.underline,
+                    standout=default_attr.underline)
+
+    def update_attr(m):
+        # parameter, intermediate, final bytes in the esc seq
+        pb, _, fb, = m.groups()
+        if fb == 'm':
+            # selector bit found. this means theming changes
+            if not pb:  # no bit r zero  --> reset
+                reset_attr()
+            elif pb.startswith('38;5;'):
+                # 8-bit colour foreground
+                col = pb[5:]
+                attr.update(fg='h' + col)
+            elif pb.startswith('48;5;') and parse_background:
+                # 8-bit colour background
+                col = pb[5:]
+                attr.update(bg='h' + col)
+            else:
+                # Several attributes can be set in the same sequence,
+                # separated by semicolons. Interpret them acc to ECODES
+                codes = pb.split(';')
+                for code in codes:
+                    if code in ECODES:
+                        attr.update(ECODES[code])
+
+    # iterate over text
+    start = 0  # points to start of current infix
+
+    for m in re.finditer(esc_pattern, text):
+        infix = text[start:m.start()]  # text beween last and this Esc seq
+        update_attr(m)
+        append_themed_infix(infix)  # add using prev attribute
+        start = m.end()  # start of next infix is after this esc sec
+
+    append_themed_infix(text[start:])  # add final infix
     return urwid_text, urwid_focus
