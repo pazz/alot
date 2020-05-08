@@ -93,7 +93,7 @@ class TextlinesList(SimpleTree):
             for line in content.splitlines():
                 attr_parse = parse_text_colour(line)
 
-                if attr_parse is  None: 
+                if attr_parse is None:
                     attr_parse = attr
                 structure.append((ANSIText(line, attr_parse, attr_focus,
                                            ANSI_BACKGROUND), None))
