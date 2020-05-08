@@ -466,7 +466,7 @@
 
 .. describe:: parse_quotes
 
-     Should quotes be parsed
+     Enable colouring message based on quote-level
 
     :type: boolean
     :default: True
@@ -539,7 +539,7 @@
 
 .. describe:: quote_symbol
 
-     What symbol should be used (regex symbol is possible)
+     Set what quote symbol should be used (regex symbol is possible)
 
     :type: string
     :default: ">"
