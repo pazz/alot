@@ -20,6 +20,12 @@ exclude_tags = force_list(default=list())
 # display background colors set by ANSI character escapes
 interpret_ansi_background = boolean(default=True)
 
+# Enable colouring message based on quote-level
+parse_quotes = boolean(default=True)
+
+# Set what quote symbol should be used (regex symbol is possible)
+quote_symbol = string(default='>')
+
 # confirm exit
 bug_on_exit = boolean(default=False)
 

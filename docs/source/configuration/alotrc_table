@@ -462,6 +462,16 @@
     :default: 2
 
 
+.. _parse-quotes:
+
+.. describe:: parse_quotes
+
+     Should quotes be parsed
+
+    :type: boolean
+    :default: True
+
+
 .. _periodic-hook-frequency:
 
 .. describe:: periodic_hook_frequency
@@ -523,6 +533,16 @@
 
     :type: string
     :default: "> "
+
+
+.. _quote-symbol:
+
+.. describe:: quote_symbol
+
+     What symbol should be used (regex symbol is possible)
+
+    :type: string
+    :default: ">"
 
 
 .. _reply-account-header-priority:
