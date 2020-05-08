@@ -59,8 +59,8 @@ See the [manual][docs] for more usage info.
 [FAQ]: http://alot.readthedocs.io/en/latest/faq.html
 [features]: https://github.com/pazz/alot/issues?labels=feature
 
-[travis]: https://travis-ci.org/pazz/alot
-[travis-img]: https://travis-ci.org/pazz/alot.svg?branch=master
+[travis]: https://travis-ci.com/pazz/alot
+[travis-img]: https://travis-ci.com/pazz/alot.svg?branch=master
 [codacy-coverage]: https://www.codacy.com/app/patricktotzke/alot?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=pazz/alot&amp;utm_campaign=Badge_Coverage
 [codacy-coverage-img]: https://api.codacy.com/project/badge/Coverage/fa7c4a567cd546568a12e88c57f9dbd6
 [codacy-grade]: https://www.codacy.com/app/patricktotzke/alot?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=pazz/alot&amp;utm_campaign=Badge_Grade
