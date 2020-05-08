@@ -13,6 +13,8 @@ def parse_text_colour(line):
     """
     if settings.get('parse_quotes'):
         return parse_quotes(line)
+    else:
+        return None
 
 
 def parse_quotes(line):
