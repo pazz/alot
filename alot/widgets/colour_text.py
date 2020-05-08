@@ -1,3 +1,7 @@
+# Copyright (C) 2011-2020  Patrick Totzke <patricktotzke@gmail.com>
+# Copyright © 2019-2020 Chloé Dequeker <contact@nelyah.eu>
+# This file is released under the GNU GPL, version 3 or a later revision.
+# For further details see the COPYING file
 import logging
 import re
 
