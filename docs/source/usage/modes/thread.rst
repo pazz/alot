@@ -61,6 +61,20 @@ The following commands are available in thread mode:
         up, down, [half]page up, [half]page down, first, last,                   parent, first reply, last reply,                   next sibling, previous sibling, next, previous,                   next unfolded, previous unfolded,                   next NOTMUCH_QUERY, previous NOTMUCH_QUERY
 
 
+.. _cmd.thread.open-attachment:
+
+.. describe:: open-attachment
+
+    opens an attachment with a given shell command
+       or according to mailcap
+
+    argument
+        Shell command to use to open the attachment.                    The path to the attachment file will be passed as an argument.                    If absent, mailcap is used to select the command                    based on the attachment's MIME type.
+
+    optional arguments
+        :---thread: run in separate thread
+        :---spawn: run in a new terminal window
+
 .. _cmd.thread.pipeto:
 
 .. describe:: pipeto

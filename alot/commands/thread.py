@@ -934,72 +934,130 @@ class SaveAttachmentCommand(Command):
                     raise CommandCanceled()
 
 
+@registerCommand(MODE, 'open-attachment', arguments=[
+    (['cmd'], {
+        'help': '''Shell command to use to open the attachment. \
+                   The path to the attachment file will be passed as an argument. \
+                   If absent, mailcap is used to select the command \
+                   based on the attachment's MIME type.''',
+        'nargs': '*',
+    }),
+    (['--thread'], {
+        'action': 'store_true',
+        'help': 'run in separate thread',
+    }),
+    (['--spawn'], {
+        'action': 'store_true',
+        'help': 'run in a new terminal window',
+    }),
+])
 class OpenAttachmentCommand(Command):
+    """opens an attachment with a given shell command
+       or according to mailcap"""
 
-    """displays an attachment according to mailcap"""
-    def __init__(self, attachment, **kwargs):
+    def __init__(self, cmd=None, thread=False, spawn=False, **kwargs):
         """
-        :param attachment: attachment to open
-        :type attachment: :class:`~alot.db.attachment.Attachment`
+        :param cmd: shell command to use to open the attachment
+        :type cmd: list of str
+        :param thread: whether to run in a separate thread
+        :type thread: bool
+        :param spawn: whether to run in a new terminal window
+        :type spawn: bool
         """
         Command.__init__(self, **kwargs)
-        self.attachment = attachment
+        self.cmd = cmd
+        self.thread = thread
+        self.spawn = spawn
 
     async def apply(self, ui):
-        logging.info('open attachment')
-        mimetype = self.attachment.get_content_type()
+        try:
+            logging.info('open attachment')
+            attachment = self._get_attachment(ui)
+            external_handler = \
+                self._get_ext_cmd_handler(attachment) if self.cmd \
+                else self._get_mailcap_cmd_handler(attachment)
+
+            await ui.apply_command(external_handler)
+
+        except RuntimeError as error:
+            ui.notify(str(error), priority='error')
+
+    def _get_ext_cmd_handler(self, attachment):
+        temp_file_name, destructor = self._make_temp_file(attachment)
+        return ExternalCommand(self.cmd + [temp_file_name],
+                               on_exit=destructor,
+                               thread=self.thread,
+                               spawn=self.spawn)
+
+    def _get_mailcap_cmd_handler(self, attachment):
+        mimetype = attachment.get_content_type()
 
         # returns pair of preliminary command string and entry dict containing
         # more info. We only use the dict and construct the command ourselves
         _, entry = settings.mailcap_find_match(mimetype)
-        if entry:
-            afterwards = None  # callback, will rm tempfile if used
-            handler_stdin = None
-            tempfile_name = None
-            handler_raw_commandstring = entry['view']
-            # read parameter
-            part = self.attachment.get_mime_representation()
-            parms = tuple('='.join(p) for p in part.get_params())
+        if not entry:
+            raise RuntimeError(
+                f'no mailcap handler found for MIME type {mimetype}')
 
-            # in case the mailcap defined command contains no '%s',
-            # we pipe the files content to the handling command via stdin
-            if '%s' in handler_raw_commandstring:
-                nametemplate = entry.get('nametemplate', '%s')
-                prefix, suffix = parse_mailcap_nametemplate(nametemplate)
+        afterwards = None  # callback, will rm tempfile if used
+        handler_stdin = None
+        tempfile_name = None
+        handler_raw_commandstring = entry['view']
+        # read parameter
+        part = attachment.get_mime_representation()
+        parms = tuple('='.join(p) for p in part.get_params())
 
-                fn_hook = settings.get_hook('sanitize_attachment_filename')
-                if fn_hook:
-                    # get filename
-                    filename = self.attachment.get_filename()
-                    prefix, suffix = fn_hook(filename, prefix, suffix)
-
-                with tempfile.NamedTemporaryFile(delete=False, prefix=prefix,
-                                                 suffix=suffix) as tmpfile:
-                    tempfile_name = tmpfile.name
-                    self.attachment.write(tmpfile)
-
-                def afterwards():
-                    os.unlink(tempfile_name)
-            else:
-                handler_stdin = BytesIO()
-                self.attachment.write(handler_stdin)
-
-            # create handler command list
-            handler_cmd = mailcap.subst(handler_raw_commandstring, mimetype,
-                                        filename=tempfile_name, plist=parms)
-
-            handler_cmdlist = split_commandstring(handler_cmd)
-
-            # 'needsterminal' makes handler overtake the terminal
-            # XXX: could this be repalced with "'needsterminal' not in entry"?
-            overtakes = entry.get('needsterminal') is None
-
-            await ui.apply_command(ExternalCommand(handler_cmdlist,
-                                                   stdin=handler_stdin,
-                                                   on_success=afterwards,
-                                                   thread=overtakes))
+        # in case the mailcap defined command contains no '%s',
+        # we pipe the files content to the handling command via stdin
+        if '%s' in handler_raw_commandstring:
+            nametemplate = entry.get('nametemplate', '%s')
+            prefix, suffix = parse_mailcap_nametemplate(nametemplate)
+            tempfile_name, afterwards = \
+                self._make_temp_file(attachment, prefix, suffix)
         else:
-            ui.notify('unknown mime type')
+            handler_stdin = BytesIO()
+            attachment.write(handler_stdin)
+
+        # create handler command list
+        handler_cmd = mailcap.subst(handler_raw_commandstring, mimetype,
+                                    filename=tempfile_name, plist=parms)
+
+        handler_cmdlist = split_commandstring(handler_cmd)
+
+        # 'needsterminal' makes handler overtake the terminal
+        # XXX: could this be replaced with "'needsterminal' not in entry"?
+        overtakes = entry.get('needsterminal') is None
+
+        return ExternalCommand(handler_cmdlist,
+                               stdin=handler_stdin,
+                               on_exit=afterwards,
+                               thread=overtakes,
+                               spawn=self.spawn)
+
+    @staticmethod
+    def _get_attachment(ui):
+        focus = ui.get_deep_focus()
+        if isinstance(focus, AttachmentWidget):
+            return focus.get_attachment()
+        elif (getattr(focus, 'mimepart', False) and
+              isinstance(focus.mimepart, Attachment)):
+            return focus.mimepart
+        else:
+            raise RuntimeError('not focused on an attachment')
+
+    @staticmethod
+    def _make_temp_file(attachment, prefix='', suffix=''):
+        filename = attachment.get_filename()
+        sanitize_hook = settings.get_hook('sanitize_attachment_filename')
+        prefix, suffix = \
+            sanitize_hook(filename, prefix, suffix) \
+            if sanitize_hook else '', ''
+
+        with tempfile.NamedTemporaryFile(delete=False, prefix=prefix,
+                                         suffix=suffix) as tmpfile:
+            logging.info(f'created temp file {tmpfile.name}')
+            attachment.write(tmpfile)
+            return tmpfile.name, lambda: os.unlink(tmpfile.name)
 
 
 @registerCommand(
@@ -1061,11 +1119,10 @@ class ThreadSelectCommand(Command):
     async def apply(self, ui):
         focus = ui.get_deep_focus()
         if isinstance(focus, AttachmentWidget):
-            logging.info('open attachment')
-            await ui.apply_command(OpenAttachmentCommand(focus.get_attachment()))
+            await ui.apply_command(OpenAttachmentCommand())
         elif getattr(focus, 'mimepart', False):
             if isinstance(focus.mimepart, Attachment):
-                await ui.apply_command(OpenAttachmentCommand(focus.mimepart))
+                await ui.apply_command(OpenAttachmentCommand())
             else:
                 await ui.apply_command(ChangeDisplaymodeCommand(
                     mimepart=True, mimetree='toggle'))
