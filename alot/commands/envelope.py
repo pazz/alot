@@ -14,6 +14,7 @@ import re
 import tempfile
 import textwrap
 import traceback
+import sys
 
 from . import Command, registerCommand
 from . import globals
@@ -135,7 +136,7 @@ class SaveCommand(Command):
         mail = envelope.construct_mail()
         # store mail locally
         path = account.store_draft_mail(
-            mail.as_string(policy=email.policy.SMTP))
+            mail.as_string(policy=email.policy.SMTP, maxheaderlen=sys.maxsize))
 
         msg = 'draft saved successfully'
 
@@ -243,7 +244,8 @@ class SendCommand(Command):
 
             try:
                 self.mail = self.envelope.construct_mail()
-                self.mail = self.mail.as_string(policy=email.policy.SMTP)
+                self.mail = self.mail.as_string(policy=email.policy.SMTP,
+                                                maxheaderlen=sys.maxsize)
             except GPGProblem as e:
                 ui.clear_notify([clearme])
                 ui.notify(str(e), priority='error')
