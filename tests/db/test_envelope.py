@@ -20,6 +20,7 @@ import os
 import tempfile
 import unittest
 from unittest import mock
+import sys
 
 from alot.db import envelope
 from alot.account import Account
@@ -124,7 +125,6 @@ class TestEnvelope(unittest.TestCase):
                               headers={k: [v] for k, v in headers.items()},
                               bodytext='Test')
         mail = e.construct_mail()
-        raw = mail.as_string(policy=email.policy.SMTP)
+        raw = mail.as_string(policy=email.policy.SMTP, maxheaderlen=sys.maxsize)
         actual = email.parser.Parser().parsestr(raw)
         self.assertEqual('Test email =?utf-8?b?aMOpaMOp?=', actual['Subject'])
-
