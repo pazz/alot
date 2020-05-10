@@ -7,7 +7,7 @@ import email.policy
 import functools
 from datetime import datetime
 
-from notmuch import NullPointerError
+from notmuch2 import NullPointerError
 
 from . import utils
 from .utils import get_body_part, extract_body_part

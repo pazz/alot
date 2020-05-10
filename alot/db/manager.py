@@ -5,8 +5,8 @@
 from collections import deque
 import logging
 
-from notmuch import Database, NotmuchError, XapianError
-import notmuch
+from notmuch2 import Database, NotmuchError, XapianError
+import notmuch2
 
 from .errors import DatabaseError
 from .errors import DatabaseLockedError
@@ -25,10 +25,10 @@ class DBManager:
     classes.
     """
     _sort_orders = {
-        'oldest_first': notmuch.database.Query.SORT.OLDEST_FIRST,
-        'newest_first': notmuch.database.Query.SORT.NEWEST_FIRST,
-        'unsorted': notmuch.database.Query.SORT.UNSORTED,
-        'message_id': notmuch.database.Query.SORT.MESSAGE_ID,
+        'oldest_first': notmuch2.Database.SORT.OLDEST_FIRST,
+        'newest_first': notmuch2.Database.SORT.NEWEST_FIRST,
+        'unsorted': notmuch2.Database.SORT.UNSORTED,
+        'message_id': notmuch2.Database.SORT.MESSAGE_ID,
     }
     """constants representing sort orders"""
 
@@ -127,7 +127,7 @@ class DBManager:
 
                     logging.debug('ended atomic')
                     # end transaction and reinsert queue item on error
-                    if db.end_atomic() != notmuch.STATUS.SUCCESS:
+                    if db.end_atomic() != notmuch2.STATUS.SUCCESS:
                         raise DatabaseError('end_atomic failed')
                     logging.debug('ended atomic')
 
