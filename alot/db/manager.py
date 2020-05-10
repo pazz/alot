@@ -84,52 +84,48 @@ class DBManager:
                     logging.debug('got write lock')
 
                     # make this a transaction
-                    db.begin_atomic()
-                    logging.debug('got atomic')
+                    with db.atomic():
+                        logging.debug('got atomic')
 
-                    if cmd == 'add':
-                        logging.debug('add')
-                        path, tags = current_item[2:]
-                        msg, _ = db.add_message(path, sync_maildir_flags=sync)
-                        logging.debug('added msg')
-                        msg.freeze()
-                        logging.debug('freeze')
-                        for tag in tags:
-                            msg.add_tag(tag, sync_maildir_flags=sync)
-                        logging.debug('added tags ')
-                        msg.thaw()
-                        logging.debug('thaw')
-
-                    elif cmd == 'remove':
-                        path = current_item[2]
-                        db.remove_message(path)
-
-                    elif cmd == 'setconfig':
-                        key = current_item[2]
-                        value = current_item[3]
-                        db.set_config(key, value)
-
-                    else:  # tag/set/untag
-                        querystring, tags = current_item[2:]
-                        query = db.create_query(querystring)
-                        for msg in query.search_messages():
+                        if cmd == 'add':
+                            logging.debug('add')
+                            path, tags = current_item[2:]
+                            msg, _ = db.add_message(path, sync_maildir_flags=sync)
+                            logging.debug('added msg')
                             msg.freeze()
-                            if cmd == 'tag':
-                                strategy = msg.add_tag
-                            if cmd == 'set':
-                                msg.remove_all_tags()
-                                strategy = msg.add_tag
-                            elif cmd == 'untag':
-                                strategy = msg.remove_tag
+                            logging.debug('freeze')
                             for tag in tags:
-                                strategy(tag, sync_maildir_flags=sync)
+                                msg.add_tag(tag, sync_maildir_flags=sync)
+                            logging.debug('added tags ')
                             msg.thaw()
+                            logging.debug('thaw')
 
-                    logging.debug('ended atomic')
-                    # end transaction and reinsert queue item on error
-                    if db.end_atomic() != notmuch2.STATUS.SUCCESS:
-                        raise DatabaseError('end_atomic failed')
-                    logging.debug('ended atomic')
+                        elif cmd == 'remove':
+                            path = current_item[2]
+                            db.remove_message(path)
+
+                        elif cmd == 'setconfig':
+                            key = current_item[2]
+                            value = current_item[3]
+                            db.set_config(key, value)
+
+                        else:  # tag/set/untag
+                            querystring, tags = current_item[2:]
+                            query = db.create_query(querystring)
+                            for msg in query.search_messages():
+                                msg.freeze()
+                                if cmd == 'tag':
+                                    strategy = msg.add_tag
+                                if cmd == 'set':
+                                    msg.remove_all_tags()
+                                    strategy = msg.add_tag
+                                elif cmd == 'untag':
+                                    strategy = msg.remove_tag
+                                for tag in tags:
+                                    strategy(tag, sync_maildir_flags=sync)
+                                msg.thaw()
+
+                        logging.debug('ended atomic')
 
                     # close db
                     db.close()
