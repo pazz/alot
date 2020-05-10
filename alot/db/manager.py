@@ -201,24 +201,24 @@ class DBManager:
 
     def count_messages(self, querystring):
         """returns number of messages that match `querystring`"""
-        return self.query(querystring).count_messages()
+        db = Database(path=self.path, mode=Database.MODE.READ_ONLY)
+        return db.count_messages(querystring,
+                                 exclude_tags=settings.get('exclude_tags'))
 
     def count_threads(self, querystring):
         """returns number of threads that match `querystring`"""
-        return self.query(querystring).count_threads()
-
-    def _get_notmuch_thread(self, tid):
-        """returns :class:`notmuch.database.Thread` with given id"""
-        query = self.query('thread:' + tid)
-        try:
-            return next(query.search_threads())
-        except StopIteration:
-            errmsg = 'no thread with id %s exists!' % tid
-            raise NonexistantObjectError(errmsg)
+        db = Database(path=self.path, mode=Database.MODE.READ_ONLY)
+        return db.count_threads(querystring,
+                                exclude_tags=settings.get('exclude_tags'))
 
     def get_thread(self, tid):
         """returns :class:`Thread` with given thread id (str)"""
-        return Thread(self, self._get_notmuch_thread(tid))
+        db = Database(path=self.path, mode=Database.MODE.READ_ONLY)
+        try:
+            return next(db.threads('thread:' + tid))
+        except NotmuchError:
+            errmsg = 'no thread with id %s exists!' % tid
+            raise NonexistantObjectError(errmsg)
 
     def _get_notmuch_message(self, mid):
         """returns :class:`notmuch.database.Message` with given id"""
@@ -240,7 +240,7 @@ class DBManager:
         :rtype: list of str
         """
         db = Database(path=self.path)
-        return [t for t in db.get_all_tags()]
+        return [t for t in db.tags]
 
     def get_named_queries(self):
         """
@@ -268,15 +268,13 @@ class DBManager:
                 :class:`multiprocessing.Process`)
         """
         assert sort in self._sort_orders
-        q = self.query(querystring)
-        q.set_sort(self._sort_orders[sort])
-        if exclude_tags:
-            for tag in exclude_tags:
-                q.exclude_tag(tag)
-        for t in q.search_threads():
-            yield t.get_thread_id()
+        db = Database(path=self.path, mode=Database.MODE.READ_ONLY)
+        for t in db.threads(querystring,
+                            sort=self._sort_orders[sort],
+                            exclude_tags=settings.get('exclude_tags')):
+            yield t.threadid
 
-    def query(self, querystring):
+    def query_(self, querystring):
         """
         creates :class:`notmuch.Query` objects on demand
 
