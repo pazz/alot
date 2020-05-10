@@ -6,7 +6,6 @@ import unittest
 from urwid import AttrSpec
 from unittest import mock
 
-from alot.settings.const import settings
 from alot.settings import theme
 from alot.widgets.colour_text import parse_quotes
 
