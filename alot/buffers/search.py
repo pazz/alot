@@ -25,7 +25,10 @@ class SearchBuffer(Buffer):
         default_order = settings.get('search_threads_sort_order')
         self.sort_order = sort_order or default_order
         self.result_count = 0
+        self.search_threads_rebuild_limit = \
+            settings.get('search_threads_rebuild_limit')
         self.isinitialized = False
+        self.threadlist = None
         self.rebuild()
         Buffer.__init__(self, ui, self.body)
 
@@ -44,11 +47,15 @@ class SearchBuffer(Buffer):
     def rebuild(self, reverse=False):
         self.isinitialized = True
         self.reversed = reverse
+        selected_thread = None
 
         if reverse:
             order = self._REVERSE[self.sort_order]
         else:
             order = self.sort_order
+
+        if self.threadlist:
+            selected_thread = self.get_selected_thread()
 
         exclude_tags = settings.get_notmuch_setting('search', 'exclude_tags')
         if exclude_tags:
@@ -72,6 +79,9 @@ class SearchBuffer(Buffer):
         self.listbox = urwid.ListBox(self.threadlist)
         self.body = self.listbox
 
+        if selected_thread:
+            self.focus_thread(selected_thread)
+
     def get_selected_threadline(self):
         """
         returns curently focussed :class:`alot.widgets.ThreadlineWidget`
@@ -92,6 +102,14 @@ class SearchBuffer(Buffer):
         while not self.threadlist.empty:
             self.threadlist._get_next_item()
 
+    def consume_pipe_until(self, predicate, limit=0):
+        n = limit
+        while not limit or n > 0:
+            if self.threadlist.empty \
+               or predicate(self.threadlist._get_next_item()):
+                break
+            n -= 1
+
     def focus_first(self):
         if not self.reversed:
             self.body.set_focus(0)
@@ -108,3 +126,13 @@ class SearchBuffer(Buffer):
         else:
             self.rebuild(reverse=True)
 
+    def focus_thread(self, thread):
+        tid = thread.get_thread_id()
+        self.consume_pipe_until(lambda w:
+                                w and w.get_thread().get_thread_id() == tid,
+                                self.search_threads_rebuild_limit)
+
+        for pos, threadlinewidget in enumerate(self.threadlist.get_lines()):
+            if threadlinewidget.get_thread().get_thread_id() == tid:
+                self.body.set_focus(pos)
+                break

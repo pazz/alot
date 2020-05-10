@@ -189,6 +189,10 @@ initial_command = string(default='search tag:inbox AND NOT tag:killed')
 # default sort order of results in a search
 search_threads_sort_order = option('oldest_first', 'newest_first', 'message_id', 'unsorted', default='newest_first')
 
+# maximum amount of threads that will be consumed to try to restore the focus, upon triggering a search buffer rebuild
+# when set to 0, no limit is set (can be very slow in searches that yield thousands of results)
+search_threads_rebuild_limit = integer(default=0)
+
 # in case more than one account has an address book:
 # Set this to True to make tab completion for recipients during compose only
 # look in the abook of the account matching the sender address

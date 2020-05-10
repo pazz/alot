@@ -20,6 +20,7 @@ import os
 import tempfile
 import unittest
 from unittest import mock
+import sys
 
 from alot.db import envelope
 from alot.account import Account
@@ -112,3 +113,18 @@ class TestEnvelope(unittest.TestCase):
         })
         self.assertEqual(envlp.body_txt,
                          'Some body content: which is not a header.')
+
+    @mock.patch('alot.db.envelope.settings', SETTINGS)
+    def test_construct_encoding(self):
+        headers = {
+            'From': 'foo@example.com',
+            'To': 'bar@example.com',
+            'Subject': 'Test email héhé',
+        }
+        e = envelope.Envelope(account=test_account,
+                              headers={k: [v] for k, v in headers.items()},
+                              bodytext='Test')
+        mail = e.construct_mail()
+        raw = mail.as_string(policy=email.policy.SMTP, maxheaderlen=sys.maxsize)
+        actual = email.parser.Parser().parsestr(raw)
+        self.assertEqual('Test email =?utf-8?b?aMOpaMOp?=', actual['Subject'])
