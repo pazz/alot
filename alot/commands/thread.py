@@ -801,7 +801,7 @@ class PipeCommand(Command):
 
             await ui.apply_command(ExternalCommand(cmd,
                                                    stdin=mail,
-                                                   shell=True,
+                                                   shell=self.shell,
                                                    thread=self.background,
                                                    on_success=callback))
 
