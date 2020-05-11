@@ -7,6 +7,7 @@ import logging
 import mailcap
 import os
 import tempfile
+import time
 import email
 import email.policy
 from email.utils import getaddresses, parseaddr
@@ -790,6 +791,8 @@ class PipeCommand(Command):
 
             def callback(out):
                 if self.as_file:
+                    # Wait to remove file in case it's opened asynchronously.
+                    time.sleep(5)
                     os.unlink(tempfile_name)
                 if self.notify_stdout:
                     ui.notify(out)
