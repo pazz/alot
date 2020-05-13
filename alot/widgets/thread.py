@@ -60,6 +60,19 @@ class MessageSummaryWidget(urwid.WidgetWrap):
                 cols.append(('fixed', tag_widget.width(), tag_widget))
         line = urwid.AttrMap(urwid.Columns(cols, dividechars=1), attr,
                              focus_att)
+
+        # In case when an e-mail has multiple tags, Urwid assumes that only
+        # one of the summary line's TagWidget-s can be focused. Which means
+        # that when the summary line is focused, only one TagWidget is rendered
+        # as focused and the rest of them as unfocused. This forces to render
+        # all TagWidget-s as focused. Issue #1433
+        def _render_wrap(size, focus=False):
+            for c in cols:
+                if isinstance(c, tuple):
+                    c[2].set_map('focus' if focus else 'normal')
+            return urwid.AttrMap.render(line, size, focus)
+        line.render = _render_wrap
+
         urwid.WidgetWrap.__init__(self, line)
 
     def __str__(self):
