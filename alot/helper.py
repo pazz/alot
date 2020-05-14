@@ -23,20 +23,12 @@ import urwid
 import magic
 
 
-def split_commandline(s, comments=False, posix=True):
+def split_commandline(s):
     """
-    splits semi-colon separated commandlines
+    splits semi-colon separated commandlines, ignoring quoted separators
     """
-    # shlex seems to remove unescaped quotes and backslashes
-    s = s.replace('\\', '\\\\')
-    s = s.replace('\'', '\\\'')
-    s = s.replace('\"', '\\\"')
-    lex = shlex.shlex(s, posix=posix)
-    lex.whitespace_split = True
-    lex.whitespace = ';'
-    if not comments:
-        lex.commenters = ''
-    return list(lex)
+    splitter = r'''((?:[^;"']|"(\\\\|\\"|[^"])*"|'(\\\\|\\'|[^'])*')+)'''
+    return re.split(splitter, s)[1::4]
 
 
 def split_commandstring(cmdstring):
