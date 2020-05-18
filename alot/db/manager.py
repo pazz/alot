@@ -111,19 +111,16 @@ class DBManager:
 
                         else:  # tag/set/untag
                             querystring, tags = current_item[2:]
-                            query = db.create_query(querystring)
-                            for msg in query.search_messages():
-                                msg.freeze()
-                                if cmd == 'tag':
-                                    strategy = msg.add_tag
-                                if cmd == 'set':
-                                    msg.remove_all_tags()
-                                    strategy = msg.add_tag
-                                elif cmd == 'untag':
-                                    strategy = msg.remove_tag
-                                for tag in tags:
-                                    strategy(tag, sync_maildir_flags=sync)
-                                msg.thaw()
+                            for msg in db.messages(querystring):
+                                with msg.frozen():
+                                    if cmd == 'set':
+                                        msg.tags.clear()
+
+                                    for tag in tags:
+                                        if cmd == 'tag' or cmd == 'set':
+                                            msg.tags.add(tag)
+                                        elif cmd == 'untag':
+                                            msg.tags.discard(tag)
 
                         logging.debug('ended atomic')
 
