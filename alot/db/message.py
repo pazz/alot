@@ -31,7 +31,7 @@ class Message:
         :param dbman: db manager that is used for further lookups
         :type dbman: alot.db.DBManager
         :param msg: the wrapped message
-        :type msg: notmuch.database.Message
+        :type msg: notmuch2.Message
         :param thread: this messages thread (will be looked up later if `None`)
         :type thread: :class:`~alot.db.Thread` or `None`
         """

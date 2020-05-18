@@ -9,7 +9,7 @@ from ..settings.const import settings
 
 class Thread:
     """
-    A wrapper around a notmuch mailthread (:class:`notmuch.database.Thread`)
+    A wrapper around a notmuch mailthread (:class:`notmuch2.Thread`)
     that ensures persistence of the thread: It can be safely read multiple
     times, its manipulation is done via a :class:`alot.db.DBManager` and it can
     directly provide contained messages as :class:`~alot.db.message.Message`.
@@ -20,7 +20,7 @@ class Thread:
         :param dbman: db manager that is used for further lookups
         :type dbman: :class:`~alot.db.DBManager`
         :param thread: the wrapped thread
-        :type thread: :class:`notmuch.database.Thread`
+        :type thread: :class:`notmuch2.Thread`
         """
         self._dbman = dbman
         self._authors = None
