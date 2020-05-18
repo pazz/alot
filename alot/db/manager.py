@@ -307,22 +307,6 @@ class DBManager:
                             exclude_tags=settings.get('exclude_tags')):
             yield t.threadid
 
-    def query_(self, querystring):
-        """
-        creates :class:`notmuch.Query` objects on demand
-
-        :param querystring: The query string to use for the lookup
-        :type query: str.
-        :returns: :class:`notmuch.Query` -- the query object.
-        """
-        mode = Database.MODE.READ_ONLY
-        db = Database(path=self.path, mode=mode)
-        q = db.create_query(querystring)
-        # add configured exclude tags
-        for tag in settings.get('exclude_tags'):
-            q.exclude_tag(tag)
-        return q
-
     def add_message(self, path, tags=None, afterwards=None):
         """
         Adds a file to the notmuch index.
