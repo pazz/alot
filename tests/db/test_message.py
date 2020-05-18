@@ -28,6 +28,10 @@ class MockNotmuchMessage(object):
     class are prefaced with mock.
     """
 
+    class MockProperties(object):
+        def getall(self, *args, **kwargs):
+            return []
+
     def __init__(self, headers=None, tags=None):
         self.mock_headers = headers or {}
         self.mock_message_id = 'message id'
@@ -36,26 +40,32 @@ class MockNotmuchMessage(object):
         self.mock_filename = 'filename'
         self.mock_tags = tags or []
 
-    def get_header(self, field):
+    def header(self, field):
         return self.mock_headers.get(field, '')
 
-    def get_message_id(self):
+    @property
+    def messageid(self):
         return self.mock_message_id
 
-    def get_thread_id(self):
+    @property
+    def threadid(self):
         return self.mock_thread_id
 
-    def get_date(self):
+    @property
+    def date(self):
         return self.mock_date
 
-    def get_filename(self):
+    @property
+    def path(self):
         return self.mock_filename
 
-    def get_tags(self):
+    @property
+    def tags(self):
         return self.mock_tags
 
-    def get_properties(self, prop, exact=False):
-        return []
+    @property
+    def properties(self):
+        return MockNotmuchMessage.MockProperties()
 
 
 class TestMessage(unittest.TestCase):
