@@ -5,7 +5,6 @@
 Widgets specific to search mode
 """
 import urwid
-import datetime
 
 from ..settings.const import settings
 from ..helper import shorten_author_string
@@ -50,7 +49,7 @@ class ThreadlineWidget(urwid.AttrMap):
             # build widget(s) around this part's content and remember them so
             # that self.render() may change local attributes.
             if partname == 'tags':
-                width, part = build_tags_part(self.thread.tags,
+                width, part = build_tags_part(self.thread.get_tags(),
                                               self.structure['tags']['normal'],
                                               self.structure['tags']['focus'])
                 if part:
@@ -164,23 +163,22 @@ def build_text_part(name, thread, struct):
 
 
 def prepare_date_string(thread):
-    newest = thread.last
+    newest = thread.get_newest_date()
     if newest is not None:
-        datestring = settings.represent_datetime(
-            datetime.datetime.fromtimestamp(newest))
+        datestring = settings.represent_datetime(newest)
     return datestring
 
 
 def prepare_mailcount_string(thread):
-    return "(%d)" % len(thread)
+    return "(%d)" % thread.get_total_messages()
 
 
 def prepare_authors_string(thread):
-    return thread.authors or '(None)'
+    return thread.get_authors_string() or '(None)'
 
 
 def prepare_subject_string(thread):
-    return thread.subject or ' '
+    return thread.get_subject() or ' '
 
 
 def prepare_content_string(thread):
