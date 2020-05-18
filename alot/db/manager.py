@@ -90,24 +90,24 @@ class DBManager:
                         if cmd == 'add':
                             logging.debug('add')
                             path, tags = current_item[2:]
-                            msg, _ = db.add_message(path, sync_maildir_flags=sync)
+                            msg, _ = db.add(path, sync_flags=sync)
                             logging.debug('added msg')
-                            msg.freeze()
-                            logging.debug('freeze')
-                            for tag in tags:
-                                msg.add_tag(tag, sync_maildir_flags=sync)
-                            logging.debug('added tags ')
-                            msg.thaw()
+                            with msg.frozen():
+                                logging.debug('freeze')
+                                for tag in tags:
+                                    msg.tags.add(tag)
+                                logging.debug('added tags ')
                             logging.debug('thaw')
 
                         elif cmd == 'remove':
                             path = current_item[2]
-                            db.remove_message(path)
+                            db.remove(path)
 
                         elif cmd == 'setconfig':
                             key = current_item[2]
                             value = current_item[3]
-                            db.set_config(key, value)
+                            # not implemented in nm2?
+                            raise DatabaseError("unimplemented")
 
                         else:  # tag/set/untag
                             querystring, tags = current_item[2:]
