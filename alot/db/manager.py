@@ -113,14 +113,27 @@ class DBManager:
                             querystring, tags = current_item[2:]
                             for msg in db.messages(querystring):
                                 with msg.frozen():
-                                    if cmd == 'set':
-                                        msg.tags.clear()
-
-                                    for tag in tags:
-                                        if cmd == 'tag' or cmd == 'set':
-                                            msg.tags.add(tag)
-                                        elif cmd == 'untag':
+                                    if cmd == 'toggle':
+                                        to_remove = []
+                                        to_add = []
+                                        for tag in tags:
+                                            if tag in msg.tags:
+                                                to_remove.append(tag)
+                                            else:
+                                                to_add.append(tag)
+                                        for tag in to_remove:
                                             msg.tags.discard(tag)
+                                        for tag in to_add:
+                                            msg.tags.add(tag)
+                                    else:
+                                        if cmd == 'set':
+                                            msg.tags.clear()
+
+                                        for tag in tags:
+                                            if cmd == 'tag' or cmd == 'set':
+                                                msg.tags.add(tag)
+                                            elif cmd == 'untag':
+                                                msg.tags.discard(tag)
 
                         logging.debug('ended atomic')
 
@@ -195,6 +208,29 @@ class DBManager:
         if self.ro:
             raise DatabaseROError()
         self.writequeue.append(('untag', afterwards, querystring, tags))
+
+    def toggle_tags(self, querystring, tags, afterwards=None):
+        """
+        toggles tags from messages that match `querystring`.
+        This appends a toggle operation to the write queue and raises
+        :exc:`~errors.DatabaseROError` if in read only mode.
+
+        :param querystring: notmuch search string
+        :type querystring: str
+        :param tags: a list of tags to be added
+        :type tags: list of str
+        :param afterwards: callback that gets called after successful
+                           application of this tagging operation
+        :type afterwards: callable
+        :exception: :exc:`~errors.DatabaseROError`
+
+        .. note::
+            This only adds the requested operation to the write queue.
+            You need to call :meth:`DBManager.flush` to actually write out.
+        """
+        if self.ro:
+            raise DatabaseROError()
+        self.writequeue.append(('toggle', afterwards, querystring, tags))
 
     def count_messages(self, querystring):
         """returns number of messages that match `querystring`"""
