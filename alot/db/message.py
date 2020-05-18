@@ -36,28 +36,28 @@ class Message:
         :type thread: :class:`~alot.db.Thread` or `None`
         """
         self._dbman = dbman
-        self._id = msg.get_message_id()
-        self._thread_id = msg.get_thread_id()
+        self._id = msg.messageid
+        self._thread_id = msg.threadid
         self._thread = thread
         try:
-            self._datetime = datetime.fromtimestamp(msg.get_date())
+            self._datetime = datetime.fromtimestamp(msg.date)
         except ValueError:
             self._datetime = None
-        self._filename = msg.get_filename()
+        self._filename = str(msg.path)
         self._email = None  # will be read upon first use
         self._attachments = None  # will be read upon first use
         self._mime_tree = None  # will be read upon first use
-        self._tags = set(msg.get_tags())
+        self._tags = msg.tags
 
-        self._session_keys = []
-        for name, value in msg.get_properties("session-key", exact=True):
-            if name == "session-key":
-                self._session_keys.append(value)
+        self._session_keys = [
+            value for _, value in msg.properties.getall(prefix="session-key",
+                                                        exact=True)
+        ]
 
         try:
-            sender = decode_header(msg.get_header('From'))
+            sender = decode_header(msg.header('From'))
             if not sender:
-                sender = decode_header(msg.get_header('Sender'))
+                sender = decode_header(msg.header('Sender'))
         except NullPointerError:
             sender = None
         if sender:
