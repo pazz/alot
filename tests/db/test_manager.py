@@ -11,7 +11,7 @@ import shutil
 
 from alot.db.manager import DBManager
 from alot.settings.const import settings
-from notmuch import Database
+from notmuch2 import Database
 
 from .. import utilities
 
@@ -32,7 +32,7 @@ class TestDBManager(utilities.TestCaseClassCleanup):
 
         # define an empty notmuch database in a temporary directory
         cls.dbpath = tempfile.mkdtemp()
-        cls.db = Database(path=cls.dbpath, create=True)
+        cls.db = Database.create(path=cls.dbpath)
         cls.db.close()
         cls.manager = DBManager(cls.dbpath)
 
