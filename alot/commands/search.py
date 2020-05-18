@@ -215,15 +215,7 @@ class TagCommand(Command):
                 ui.dbman.untag(testquery, tags)
             elif self.action == 'toggle':
                 if not self.allm:
-                    to_remove = []
-                    to_add = []
-                    for t in tags:
-                        if t in thread.get_tags():
-                            to_remove.append(t)
-                        else:
-                            to_add.append(t)
-                    thread.remove_tags(to_remove)
-                    thread.add_tags(to_add, afterwards=refresh)
+                    ui.dbman.toggle_tags(testquery, tags, afterwards=refresh)
         except DatabaseROError:
             ui.notify('index in read-only mode', priority='error')
             return
