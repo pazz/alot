@@ -47,7 +47,7 @@ class DBManager:
     def flush(self):
         """
         write out all queued write-commands in order, each one in a separate
-        :meth:`atomic <notmuch.Database.begin_atomic>` transaction.
+        :meth:`atomic <notmuch2.Database.atomic>` transaction.
 
         If this fails the current action is rolled back, stays in the write
         queue and an exception is raised.
@@ -245,7 +245,7 @@ class DBManager:
                                 exclude_tags=settings.get('exclude_tags'))
 
     def _get_notmuch_thread(self, tid):
-        """returns :class:`notmuch.database.Thread` with given id"""
+        """returns :class:`notmuch2.Thread` with given id"""
         db = Database(path=self.path, mode=Database.MODE.READ_ONLY)
         try:
             return next(db.threads('thread:' + tid))
@@ -258,7 +258,7 @@ class DBManager:
         return Thread(self, self._get_notmuch_thread(tid))
 
     def _get_notmuch_message(self, mid):
-        """returns :class:`notmuch.database.Message` with given id"""
+        """returns :class:`notmuch2.Message` with given id"""
         mode = Database.MODE.READ_ONLY
         db = Database(path=self.path, mode=mode)
         try:
