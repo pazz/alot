@@ -244,14 +244,18 @@ class DBManager:
         return db.count_threads(querystring,
                                 exclude_tags=settings.get('exclude_tags'))
 
-    def get_thread(self, tid):
-        """returns :class:`Thread` with given thread id (str)"""
+    def _get_notmuch_thread(self, tid):
+        """returns :class:`notmuch.database.Thread` with given id"""
         db = Database(path=self.path, mode=Database.MODE.READ_ONLY)
         try:
             return next(db.threads('thread:' + tid))
         except NotmuchError:
             errmsg = 'no thread with id %s exists!' % tid
             raise NonexistantObjectError(errmsg)
+
+    def get_thread(self, tid):
+        """returns :class:`Thread` with given thread id (str)"""
+        return Thread(self, self._get_notmuch_thread(tid))
 
     def _get_notmuch_message(self, mid):
         """returns :class:`notmuch.database.Message` with given id"""

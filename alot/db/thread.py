@@ -24,7 +24,7 @@ class Thread:
         """
         self._dbman = dbman
         self._authors = None
-        self._id = thread.get_thread_id()
+        self._id = thread.threadid
         self._messages = {}
         self._tags = set()
 
@@ -35,12 +35,12 @@ class Thread:
         if not thread:
             thread = self._dbman._get_notmuch_thread(self._id)
 
-        self._total_messages = thread.get_total_messages()
-        self._notmuch_authors_string = thread.get_authors()
+        self._total_messages = len(thread)
+        self._notmuch_authors_string = thread.authors
 
         subject_type = settings.get('thread_subject')
         if subject_type == 'notmuch':
-            subject = thread.get_subject()
+            subject = thread.subject
         elif subject_type == 'oldest':
             try:
                 first_msg = list(thread.get_toplevel_messages())[0]
@@ -50,19 +50,19 @@ class Thread:
         self._subject = subject
 
         self._authors = None
-        ts = thread.get_oldest_date()
+        ts = thread.first
 
         try:
             self._oldest_date = datetime.fromtimestamp(ts)
         except ValueError:  # year is out of range
             self._oldest_date = None
         try:
-            timestamp = thread.get_newest_date()
+            timestamp = thread.last
             self._newest_date = datetime.fromtimestamp(timestamp)
         except ValueError:  # year is out of range
             self._newest_date = None
 
-        self._tags = {t for t in thread.get_tags()}
+        self._tags = {t for t in thread.tags}
         self._messages = {}  # this maps messages to its children
         self._toplevel_messages = []
 
@@ -230,20 +230,17 @@ class Thread:
                 :class:`~alot.db.message.Message`.
         """
         if not self._messages:  # if not already cached
-            query = self._dbman.query('thread:' + self._id)
-            thread = next(query.search_threads())
+            thread = self._dbman._get_notmuch_thread(self._id)
 
             def accumulate(acc, msg):
                 M = Message(self._dbman, msg, thread=self)
                 acc[M] = []
-                r = msg.get_replies()
-                if r is not None:
-                    for m in r:
-                        acc[M].append(accumulate(acc, m))
+                for m in msg.replies():
+                    acc[M].append(accumulate(acc, m))
                 return M
 
             self._messages = {}
-            for m in thread.get_toplevel_messages():
+            for m in thread.toplevel():
                 self._toplevel_messages.append(accumulate(self._messages, m))
         return self._messages
 
