@@ -762,6 +762,16 @@ class TestExtractBodyPart(unittest.TestCase):
 
         self.assertEqual(actual, expected)
 
+    @mock.patch('alot.db.utils.settings.mailcap_find_match',
+                mock.Mock(return_value=(None, {'view': 'cat'})))
+    def test_plaintext_mailcap_wo_content_type(self):
+        with open('tests/static/mail/basic.eml') as fp:
+            mail = email.message_from_file(fp,
+                    _class=email.message.EmailMessage)
+        body_part = utils.get_body_part(mail)
+        actual = utils.extract_body_part(body_part)
+        expected = 'test body\n'
+        self.assertEqual(actual, expected)
 
 class TestRemoveCte(unittest.TestCase):
 
