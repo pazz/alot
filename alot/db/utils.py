@@ -365,7 +365,7 @@ def render_part(part, field_key='copiousoutput'):
             stdin = raw_payload
 
         # read parameter, create handler command
-        parms = tuple('='.join(p) for p in part.get_params())
+        parms = tuple('='.join(p) for p in part.get_params(failobj=[]))
 
         # create and call external command
         cmd = mailcap.subst(entry['view'], ctype,
