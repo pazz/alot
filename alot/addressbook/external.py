@@ -25,6 +25,10 @@ class ExternalAddressbook(AddressBook):
         :param reflags: flags to use with regular expression.
                         Use the constants defined in :mod:`re` here
                         (`re.IGNORECASE` etc.)
+                        The default (inherited) value is set via the
+                        `ignorecase` config option
+                        (defaults to `re.IGNORECASE`)
+                        Setting a value here will replace this.
         :type reflags: str
         :param external_filtering: if True the command is fired
                         with the given search string as parameter
