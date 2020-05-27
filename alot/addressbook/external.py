@@ -37,7 +37,8 @@ class ExternalAddressbook(AddressBook):
         AddressBook.__init__(self, **kwargs)
         self.commandline = commandline
         self.regex = regex
-        self.reflags = reflags
+        if reflags:
+            self.reflags = reflags
         self.external_filtering = external_filtering
 
     def get_contacts(self):
