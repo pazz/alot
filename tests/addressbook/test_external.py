@@ -1,6 +1,7 @@
 # Copyright (C) 2017  Lucas Hoffmann
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
+import re
 import unittest
 from unittest import mock
 
@@ -65,3 +66,7 @@ class TestExternalAddressbookGetContacts(unittest.TestCase):
                 ('me\t<me@example.com>\nyou\t<you@other.domain>', '', 0)):
             actual = abook.get_contacts()
         self.assertListEqual(actual, [])
+
+    def test_default_ignorecase(self):
+        abook = external.ExternalAddressbook('foobar', '')
+        self.assertIs(abook.reflags, re.IGNORECASE)
