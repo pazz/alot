@@ -106,8 +106,7 @@ class DBManager:
                         elif cmd == 'setconfig':
                             key = current_item[2]
                             value = current_item[3]
-                            # not implemented in nm2?
-                            raise DatabaseError("unimplemented")
+                            db.config[key] = value
 
                         else:  # tag/set/untag
                             querystring, tags = current_item[2:]
@@ -285,7 +284,8 @@ class DBManager:
         :rtype: dict (str -> str) mapping alias to full query string
         """
         db = Database(path=self.path)
-        return {k[6:]: v for k, v in db.get_configs('query.')}
+        return {k[6:]: db.config[k] for k in db.config
+                                    if k.startswith('query.')}
 
     def get_threads(self, querystring, sort='newest_first', exclude_tags=None):
         """
