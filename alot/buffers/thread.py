@@ -57,7 +57,7 @@ class ThreadBuffer(Buffer):
         info['thread_tags'] = self.translated_tags_str()
         info['intersection_tags'] = self.translated_tags_str(intersection=True)
         info['mimetype'] = (
-            self.get_selected_message().mime_part.get_content_type())
+            self.get_selected_message().get_mime_part().get_content_type())
         return info
 
     def get_selected_thread(self):
