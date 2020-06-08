@@ -361,7 +361,7 @@ class MessageTree(CollapsibleTree):
 
     def set_mimepart(self, mimepart):
         """ Set message widget mime part and invalidate body tree."""
-        self.get_message().mime_part = mimepart
+        self.get_message().set_mime_part(mimepart)
         self._bodytree = None
 
 

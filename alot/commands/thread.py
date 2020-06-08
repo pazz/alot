@@ -595,7 +595,7 @@ class ChangeDisplaymodeCommand(Command):
                 if self.mimepart == 'toggle':
                     message = mt.get_message()
                     mimetype = {'plain': 'html', 'html': 'plain'}[
-                        message.mime_part.get_content_subtype()]
+                        message.get_mime_part().get_content_subtype()]
                     mimepart = get_body_part(message.get_email(), mimetype)
                 elif self.mimepart is True:
                     mimepart = ui.get_deep_focus().mimepart

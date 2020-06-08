@@ -46,6 +46,7 @@ class Message:
         self._filename = msg.get_filename()
         self._email = None  # will be read upon first use
         self._attachments = None  # will be read upon first use
+        self._mime_part = None  # will be read upon first use
         self._mime_tree = None  # will be read upon first use
         self._tags = set(msg.get_tags())
 
@@ -67,8 +68,6 @@ class Message:
             self._from = '"{}" <{}>'.format(acc.realname, str(acc.address))
         else:
             self._from = '"Unknown" <>'
-
-        self.mime_part = get_body_part(self.get_email())
 
     def __str__(self):
         """prettyprint the message"""
@@ -275,9 +274,17 @@ class Message:
 
         return False
 
+    def get_mime_part(self):
+        if not self._mime_part:
+            self._mime_part = get_body_part(self.get_email())
+        return self._mime_part
+
+    def set_mime_part(self, mime_part):
+        self._mime_part = mime_part
+
     def get_body_text(self):
         """ returns bodystring extracted from this mail """
-        return extract_body_part(self.mime_part)
+        return extract_body_part(self.get_mime_part())
 
     def matches(self, querystring):
         """tests if this messages is in the resultset for `querystring`"""
