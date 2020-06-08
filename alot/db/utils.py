@@ -429,11 +429,7 @@ def remove_cte(part, as_string=False):
     # decoding into a str is done at the end if requested
     elif '8bit' in cte:
         logging.debug('assuming Content-Transfer-Encoding: 8bit')
-        # Python's mail library may decode 8bit as raw-unicode-escape, so
-        # we need to encode that back to bytes so we can decode it using
-        # the correct encoding, or it might not, in which case assume that
-        # the str representation we got is correct.
-        bp = payload.encode('raw-unicode-escape')
+        bp = payload.encode('utf-8')
 
     elif 'quoted-printable' in cte:
         logging.debug('assuming Content-Transfer-Encoding: quoted-printable')
