@@ -275,7 +275,7 @@ class DBManager:
         returns all tagsstrings used in the database
         :rtype: list of str
         """
-        db = Database(path=self.path)
+        db = Database(path=self.path, mode=Database.MODE.READ_ONLY)
         return [t for t in db.tags]
 
     def get_named_queries(self):
@@ -283,7 +283,7 @@ class DBManager:
         returns the named queries stored in the database.
         :rtype: dict (str -> str) mapping alias to full query string
         """
-        db = Database(path=self.path)
+        db = Database(path=self.path, mode=Database.MODE.READ_ONLY)
         return {k[6:]: db.config[k] for k in db.config
                                     if k.startswith('query.')}
 
