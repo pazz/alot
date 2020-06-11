@@ -737,11 +737,11 @@ class TestExtractBodyPart(unittest.TestCase):
         self.assertEqual(actual, expected)
 
     @mock.patch('alot.db.utils.settings.mailcap_find_match',
-                mock.Mock(return_value=(None, None)))
+                mock.Mock(return_value=(None, {'view': 'cat %s'})))
     def test_simple_utf8_file(self):
-        mail = email.message_from_binary_file(
-                open('tests/static/mail/utf8.eml', 'rb'),
-                _class=email.message.EmailMessage)
+        with open('tests/static/mail/utf8.eml', 'rb') as fp:
+            mail = email.message_from_binary_file(
+                fp, _class=email.message.EmailMessage)
         body_part = utils.get_body_part(mail)
         actual = utils.extract_body_part(body_part)
         expected = "Liebe Grüße!\n"
