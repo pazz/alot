@@ -748,6 +748,24 @@ class TestExtractBodyPart(unittest.TestCase):
 
         self.assertEqual(actual, expected)
 
+    @mock.patch('alot.db.utils.settings.mailcap_find_match',
+                mock.Mock(return_value=(
+                    None, {'view': 'sed "s/!/?/"'})))
+    def test_utf8_plaintext_mailcap(self):
+        """
+        Handle unicode correctly in the presence of a text/plain mailcap entry.
+
+        https://github.com/pazz/alot/issues/1522
+        """
+        mail = email.message_from_binary_file(
+                open('tests/static/mail/utf8.eml', 'rb'),
+                _class=email.message.EmailMessage)
+        body_part = utils.get_body_part(mail)
+        actual = utils.extract_body_part(body_part)
+        expected = "Liebe Grüße?\n"
+
+        self.assertEqual(actual, expected)
+
     @mock.patch('alot.db.utils.settings.get', mock.Mock(return_value=True))
     @mock.patch('alot.db.utils.settings.mailcap_find_match',
                 mock.Mock(return_value=(
