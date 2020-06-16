@@ -97,6 +97,8 @@
         [[[date]]]
             normal = 'default','default','%(16_base01)s','%(16_base3)s','%(256_base01)s','%(256_base3)s'
             focus = 'standout','default','%(16_base3)s','%(16_yellow)s','%(256_base3)s','%(256_yellow)s'
+            alignment = right
+            width = fit, 9, 9
         [[[mailcount]]]
             normal = 'default','default','%(16_base01)s','%(16_base3)s','%(256_base01)s','%(256_base3)s'
             focus = 'standout','default','%(16_base2)s','%(16_yellow)s','%(256_base2)s','%(256_yellow)s'
