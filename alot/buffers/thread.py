@@ -180,7 +180,7 @@ class ThreadBuffer(Buffer):
     def set_focus(self, pos):
         "Set the focus in the underlying body widget."
         logging.debug('setting focus to %s ', pos)
-        self.body.set_focus(pos)
+        self.body.set_focus(pos, valign='top')
 
     def focus_first(self):
         """set focus to first message of thread"""
