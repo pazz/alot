@@ -31,6 +31,7 @@ from ..completion.accounts import AccountCompleter
 from ..completion.tags import TagsCompleter
 from ..widgets.utils import DialogBox
 from ..db.errors import DatabaseLockedError
+from ..db.errors import DatabaseROError
 from ..db.envelope import Envelope
 from ..settings.const import settings
 from ..settings.errors import ConfigError, NoMatchingAccount
