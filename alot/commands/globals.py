@@ -1154,7 +1154,7 @@ class RemoveQueryCommand(Command):
     """remove named query string for given alias"""
     repeatable = False
 
-    def __init__(self, alias, flush=True, **kwargs):
+    def __init__(self, alias, afterwards=None, flush=True, **kwargs):
         """
         :param alias: name to use for query string
         :type alias: str
@@ -1163,13 +1163,14 @@ class RemoveQueryCommand(Command):
         """
         self.alias = alias
         self.flush = flush
+        self.afterwards = afterwards
         Command.__init__(self, **kwargs)
 
     async def apply(self, ui):
         msg = 'removed alias "%s"' % (self.alias)
 
         try:
-            ui.dbman.remove_named_query(self.alias)
+            ui.dbman.remove_named_query(self.alias, afterwards=self.afterwards)
             logging.debug(msg)
             ui.notify(msg)
         except DatabaseROError:
