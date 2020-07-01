@@ -1123,7 +1123,7 @@ class SaveQueryCommand(Command):
         self.flush = flush
         Command.__init__(self, **kwargs)
 
-    def apply(self, ui):
+    async def apply(self, ui):
         msg = 'saved alias "%s" for query string "%s"' % (self.alias,
                                                           self.query)
 
@@ -1137,7 +1137,7 @@ class SaveQueryCommand(Command):
 
         # flush index
         if self.flush:
-            ui.apply_command(commands.globals.FlushCommand())
+            return await ui.apply_command(commands.globals.FlushCommand())
 
 
 @registerCommand(
@@ -1165,7 +1165,7 @@ class RemoveQueryCommand(Command):
         self.flush = flush
         Command.__init__(self, **kwargs)
 
-    def apply(self, ui):
+    async def apply(self, ui):
         msg = 'removed alias "%s"' % (self.alias)
 
         try:
@@ -1178,7 +1178,7 @@ class RemoveQueryCommand(Command):
 
         # flush index
         if self.flush:
-            ui.apply_command(commands.globals.FlushCommand())
+            await ui.apply_command(commands.globals.FlushCommand())
 
 
 @registerCommand(
