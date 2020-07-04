@@ -46,7 +46,7 @@ setup(
     install_requires=[
         'notmuch>=0.27',
         'urwid>=1.3.0',
-        'urwidtrees>=1.0',
+        'urwidtrees>=1.0.3',
         'twisted>=18.4.0',
         'python-magic',
         'configobj>=4.7.0',
