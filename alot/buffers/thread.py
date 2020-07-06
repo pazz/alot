@@ -184,10 +184,10 @@ class ThreadBuffer(Buffer):
 
     def focus_first(self):
         """set focus to first message of thread"""
-        self.body.set_focus(self._nested_tree.root)
+        self.set_focus(self._nested_tree.root)
 
     def focus_last(self):
-        self.body.set_focus(next(self._nested_tree.positions(reverse=True)))
+        self.set_focus(next(self._nested_tree.positions(reverse=True)))
 
     def _sanitize_position(self, pos):
         return self._nested_tree._sanitize_position(pos,
@@ -204,7 +204,7 @@ class ThreadBuffer(Buffer):
         newpos = self._tree.parent_position(mid)
         if newpos is not None:
             newpos = self._sanitize_position((newpos,))
-            self.body.set_focus(newpos)
+            self.set_focus(newpos)
 
     def focus_first_reply(self):
         """move focus to first reply to currently focussed message"""
@@ -212,7 +212,7 @@ class ThreadBuffer(Buffer):
         newpos = self._tree.first_child_position(mid)
         if newpos is not None:
             newpos = self._sanitize_position((newpos,))
-            self.body.set_focus(newpos)
+            self.set_focus(newpos)
 
     def focus_last_reply(self):
         """move focus to last reply to currently focussed message"""
@@ -220,7 +220,7 @@ class ThreadBuffer(Buffer):
         newpos = self._tree.last_child_position(mid)
         if newpos is not None:
             newpos = self._sanitize_position((newpos,))
-            self.body.set_focus(newpos)
+            self.set_focus(newpos)
 
     def focus_next_sibling(self):
         """focus next sibling of currently focussed message in thread tree"""
@@ -228,7 +228,7 @@ class ThreadBuffer(Buffer):
         newpos = self._tree.next_sibling_position(mid)
         if newpos is not None:
             newpos = self._sanitize_position((newpos,))
-            self.body.set_focus(newpos)
+            self.set_focus(newpos)
 
     def focus_prev_sibling(self):
         """
@@ -243,7 +243,7 @@ class ThreadBuffer(Buffer):
         else:
             newpos = localroot
         if newpos is not None:
-            self.body.set_focus(newpos)
+            self.set_focus(newpos)
 
     def focus_next(self):
         """focus next message in depth first order"""
@@ -251,7 +251,7 @@ class ThreadBuffer(Buffer):
         newpos = self._tree.next_position(mid)
         if newpos is not None:
             newpos = self._sanitize_position((newpos,))
-            self.body.set_focus(newpos)
+            self.set_focus(newpos)
 
     def focus_prev(self):
         """focus previous message in depth first order"""
@@ -264,7 +264,7 @@ class ThreadBuffer(Buffer):
         else:
             newpos = localroot
         if newpos is not None:
-            self.body.set_focus(newpos)
+            self.set_focus(newpos)
 
     def focus_property(self, prop, direction):
         """does a walk in the given direction and focuses the
@@ -275,7 +275,7 @@ class ThreadBuffer(Buffer):
             MT = self._tree[newpos]
             if prop(MT):
                 newpos = self._sanitize_position((newpos,))
-                self.body.set_focus(newpos)
+                self.set_focus(newpos)
                 break
             newpos = direction(newpos)
 
@@ -341,7 +341,7 @@ class ThreadBuffer(Buffer):
                 MT.expand(MT.root)
                 if first is None:
                     first = (self._tree.position_of_messagetree(MT), MT.root)
-                    self.body.set_focus(first)
+                    self.set_focus(first)
             else:
                 MT.collapse(MT.root)
         self.body.refresh()
