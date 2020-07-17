@@ -6,6 +6,11 @@ import logging
 import urwid
 
 
+def chain(*iterables):
+    for iterable in iterables:
+        yield from iterable
+
+
 class IterableWalker(urwid.ListWalker):
 
     """An urwid walker for iterables.
@@ -92,3 +97,6 @@ class IterableWalker(urwid.ListWalker):
 
     def get_lines(self):
         return self.lines
+
+    def append(self, iterableWalker):
+        self.iterable = chain(self.iterable, iterableWalker.iterable)
