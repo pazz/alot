@@ -2,13 +2,9 @@
 # Copyright © 2018 Dylan Baker
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
+import itertools
 import logging
 import urwid
-
-
-def chain(*iterables):
-    for iterable in iterables:
-        yield from iterable
 
 
 class IterableWalker(urwid.ListWalker):
@@ -99,4 +95,4 @@ class IterableWalker(urwid.ListWalker):
         return self.lines
 
     def append(self, iterableWalker):
-        self.iterable = chain(self.iterable, iterableWalker.iterable)
+        self.iterable = itertools.chain(self.iterable, iterableWalker.iterable)
