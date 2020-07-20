@@ -64,7 +64,7 @@ class SearchBuffer(Buffer):
         querylist = self.querystring.split(' / ')
         for query in querylist:
             try:
-                self.result_count = self.dbman.count_messages(query)
+                self.result_count += self.dbman.count_messages(query)
                 threads = self.dbman.get_threads(
                     query, order, exclude_tags)
             except NotmuchError:
