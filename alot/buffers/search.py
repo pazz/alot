@@ -61,6 +61,8 @@ class SearchBuffer(Buffer):
         if exclude_tags:
             exclude_tags = [t for t in exclude_tags.split(';') if t]
 
+        self.result_count = 0
+        self.threadlist = None
         querylist = self.querystring.split(' / ')
         for query in querylist:
             try:
