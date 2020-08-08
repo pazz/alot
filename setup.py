@@ -44,7 +44,7 @@ setup(
             ['alot = alot.__main__:main'],
     },
     install_requires=[
-        'notmuch>=0.27',
+        'notmuch>=0.27,<0.30',
         'urwid>=1.3.0',
         'urwidtrees>=1.0.3',
         'twisted>=18.4.0',
