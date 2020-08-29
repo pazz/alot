@@ -33,8 +33,12 @@ class Thread:
     def refresh(self, thread=None):
         """refresh thread metadata from the index"""
         if not thread:
-            thread = self._dbman._get_notmuch_thread(self._id)
+            with self._dbman._with_notmuch_thread(self._id) as thread:
+                self._refresh(thread)
+        else:
+            self._refresh(thread)
 
+    def _refresh(self, thread):
         self._total_messages = len(thread)
         self._notmuch_authors_string = thread.authors
 
@@ -230,18 +234,18 @@ class Thread:
                 :class:`~alot.db.message.Message`.
         """
         if not self._messages:  # if not already cached
-            thread = self._dbman._get_notmuch_thread(self._id)
+            with self._dbman._with_notmuch_thread(self._id) as thread:
 
-            def accumulate(acc, msg):
-                M = Message(self._dbman, msg, thread=self)
-                acc[M] = []
-                for m in msg.replies():
-                    acc[M].append(accumulate(acc, m))
-                return M
+                def accumulate(acc, msg):
+                    M = Message(self._dbman, msg, thread=self)
+                    acc[M] = []
+                    for m in msg.replies():
+                        acc[M].append(accumulate(acc, m))
+                    return M
 
-            self._messages = {}
-            for m in thread.toplevel():
-                self._toplevel_messages.append(accumulate(self._messages, m))
+                self._messages = {}
+                for m in thread.toplevel():
+                    self._toplevel_messages.append(accumulate(self._messages, m))
         return self._messages
 
     def get_replies_to(self, msg):
