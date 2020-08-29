@@ -3,6 +3,7 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 from collections import deque
+import contextlib
 import logging
 
 from notmuch2 import Database, NotmuchError, XapianError
@@ -243,32 +244,36 @@ class DBManager:
         return db.count_threads(querystring,
                                 exclude_tags=settings.get('exclude_tags'))
 
-    def _get_notmuch_thread(self, tid):
+    @contextlib.contextmanager
+    def _with_notmuch_thread(self, tid):
         """returns :class:`notmuch2.Thread` with given id"""
-        db = Database(path=self.path, mode=Database.MODE.READ_ONLY)
-        try:
-            return next(db.threads('thread:' + tid))
-        except NotmuchError:
-            errmsg = 'no thread with id %s exists!' % tid
-            raise NonexistantObjectError(errmsg)
+        with Database(path=self.path, mode=Database.MODE.READ_ONLY) as db:
+            try:
+                yield next(db.threads('thread:' + tid))
+            except NotmuchError:
+                errmsg = 'no thread with id %s exists!' % tid
+                raise NonexistantObjectError(errmsg)
 
     def get_thread(self, tid):
         """returns :class:`Thread` with given thread id (str)"""
-        return Thread(self, self._get_notmuch_thread(tid))
+        with self._with_notmuch_thread(tid) as thread:
+            return Thread(self, thread)
 
-    def _get_notmuch_message(self, mid):
+    @contextlib.contextmanager
+    def _with_notmuch_message(self, mid):
         """returns :class:`notmuch2.Message` with given id"""
         mode = Database.MODE.READ_ONLY
-        db = Database(path=self.path, mode=mode)
-        try:
-            return db.find_message(mid)
-        except:
-            errmsg = 'no message with id %s exists!' % mid
-            raise NonexistantObjectError(errmsg)
+        with Database(path=self.path, mode=mode) as db:
+            try:
+                yield db.find_message(mid)
+            except:
+                errmsg = 'no message with id %s exists!' % mid
+                raise NonexistantObjectError(errmsg)
 
     def get_message(self, mid):
         """returns :class:`Message` with given message id (str)"""
-        return Message(self, self._get_notmuch_message(mid))
+        with self._with_notmuch_message(mid) as msg:
+            return Message(self, msg)
 
     def get_all_tags(self):
         """
