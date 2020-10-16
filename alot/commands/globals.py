@@ -566,14 +566,7 @@ class TagListCommand(Command):
 
     def apply(self, ui):
         tags = self.tags or ui.dbman.get_all_tags()
-        blists = ui.get_buffers_of_type(buffers.TagListBuffer)
-        if blists:
-            buf = blists[0]
-            buf.tags = tags
-            buf.rebuild()
-            ui.buffer_focus(buf)
-        else:
-            ui.buffer_open(buffers.TagListBuffer(ui, tags, self.filtfun))
+        ui.buffer_open(buffers.TagListBuffer(ui, tags, self.filtfun))
 
 
 @registerCommand(MODE, 'namedqueries')
