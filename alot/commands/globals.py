@@ -7,6 +7,7 @@ import code
 import email
 import email.utils
 import glob
+import re
 import logging
 import os
 import subprocess
@@ -551,16 +552,25 @@ class OpenBufferlistCommand(Command):
 
 @registerCommand(MODE, 'taglist', arguments=[
     (['--tags'], {'nargs': '+', 'help': 'tags to display'}),
+    (['match'], {'nargs': '?',
+                 'help': 'regular expression to match tags against'}),
 ])
 class TagListCommand(Command):
 
     """opens taglist buffer"""
-    def __init__(self, filtfun=lambda x: True, tags=None, **kwargs):
+
+    def __init__(self, filtfun=lambda x: True, tags=None, match=None, **kwargs):
         """
         :param filtfun: filter to apply to displayed list
         :type filtfun: callable (str->bool)
+        :param match: regular expression to match tags against
+        :type match: string
         """
-        self.filtfun = filtfun
+        if match:
+            pattern = re.compile(match)
+            self.filtfun = lambda x: pattern.search(x) is not None
+        else:
+            self.filtfun = filtfun
         self.tags = tags
         Command.__init__(self, **kwargs)
 
