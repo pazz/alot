@@ -532,7 +532,7 @@ class BufferFocusCommand(Command):
 class OpenBufferlistCommand(Command):
 
     """open a list of active buffers"""
-    def __init__(self, filtfun=lambda x: x, **kwargs):
+    def __init__(self, filtfun=lambda x: True, **kwargs):
         """
         :param filtfun: filter to apply to displayed list
         :type filtfun: callable (str->bool)
@@ -555,7 +555,7 @@ class OpenBufferlistCommand(Command):
 class TagListCommand(Command):
 
     """opens taglist buffer"""
-    def __init__(self, filtfun=lambda x: x, tags=None, **kwargs):
+    def __init__(self, filtfun=lambda x: True, tags=None, **kwargs):
         """
         :param filtfun: filter to apply to displayed list
         :type filtfun: callable (str->bool)
