@@ -579,16 +579,13 @@ class TagListCommand(Command):
 @registerCommand(MODE, 'namedqueries')
 class NamedQueriesCommand(Command):
     """opens named queries buffer"""
-    def __init__(self, filtfun=bool, **kwargs):
+    def __init__(self, **kwargs):
         """
-        :param filtfun: filter to apply to displayed list
-        :type filtfun: callable (str->bool)
         """
-        self.filtfun = filtfun
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        ui.buffer_open(buffers.NamedQueriesBuffer(ui, self.filtfun))
+        ui.buffer_open(buffers.NamedQueriesBuffer(ui))
 
 
 @registerCommand(MODE, 'flush')
