@@ -238,6 +238,16 @@ class DBManager:
         return db.count_messages(querystring,
                                  exclude_tags=settings.get('exclude_tags'))
 
+    def collect_tags(self, querystring):
+        """returns tags of messages that match `querystring`"""
+        db = Database(path=self.path, mode=Database.MODE.READ_ONLY)
+        tagset = notmuch2._tags.ImmutableTagSet(
+            db.messages(querystring,
+                        exclude_tags=settings.get('exclude_tags')),
+            '_iter_p',
+            notmuch2.capi.lib.notmuch_messages_collect_tags)
+        return [t for t in tagset]
+
     def count_threads(self, querystring):
         """returns number of threads that match `querystring`"""
         db = Database(path=self.path, mode=Database.MODE.READ_ONLY)

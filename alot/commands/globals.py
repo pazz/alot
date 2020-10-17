@@ -551,6 +551,9 @@ class OpenBufferlistCommand(Command):
 
 
 @registerCommand(MODE, 'taglist', arguments=[
+    (['--global'], {'action': 'store_true',
+                    'help': 'list all tags globally instead of just those from the buffer',
+                    'dest': 'globally'}),
     (['--tags'], {'nargs': '+', 'help': 'tags to display'}),
     (['match'], {'nargs': '?',
                  'help': 'regular expression to match tags against'}),
@@ -559,23 +562,33 @@ class TagListCommand(Command):
 
     """opens taglist buffer"""
 
-    def __init__(self, filtfun=lambda x: True, tags=None, match=None, **kwargs):
+    def __init__(self, filtfun=lambda x: True, tags=None, match=None, globally=False, **kwargs):
         """
         :param filtfun: filter to apply to displayed list
         :type filtfun: callable (str->bool)
         :param match: regular expression to match tags against
         :type match: string
+        :param globally: list all tags globally instead of just those from the buffer
+        :type globally: bool
         """
         if match:
             pattern = re.compile(match)
             self.filtfun = lambda x: pattern.search(x) is not None
         else:
             self.filtfun = filtfun
+        self.globally = globally
         self.tags = tags
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        tags = self.tags or ui.dbman.get_all_tags()
+        if self.tags:
+            tags = self.tags
+        elif (not self.globally) and isinstance(ui.current_buffer, buffers.SearchBuffer):
+            tags = ui.dbman.collect_tags(ui.current_buffer.querystring)
+        elif (not self.globally) and isinstance(ui.current_buffer, buffers.ThreadBuffer):
+            tags = list(ui.current_buffer.thread.get_tags())
+        else:  # self.globally or otherBuffer
+            tags = ui.dbman.get_all_tags()
         ui.buffer_open(buffers.TagListBuffer(ui, tags, self.filtfun))
 
 
