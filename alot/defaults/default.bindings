@@ -57,6 +57,7 @@ q = exit
 
 [taglist]
     enter = select
+    meta enter = globalselect
 
 [namedqueries]
     enter = select

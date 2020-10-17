@@ -581,15 +581,19 @@ class TagListCommand(Command):
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
+        querystring = None
         if self.tags:
             tags = self.tags
         elif (not self.globally) and isinstance(ui.current_buffer, buffers.SearchBuffer):
             tags = ui.dbman.collect_tags(ui.current_buffer.querystring)
+            querystring = ui.current_buffer.querystring
         elif (not self.globally) and isinstance(ui.current_buffer, buffers.ThreadBuffer):
             tags = list(ui.current_buffer.thread.get_tags())
+            querystring = 'thread:%s' % ui.current_buffer.thread.get_thread_id()
         else:  # self.globally or otherBuffer
             tags = ui.dbman.get_all_tags()
-        ui.buffer_open(buffers.TagListBuffer(ui, tags, self.filtfun))
+        ui.buffer_open(buffers.TagListBuffer(
+            ui, tags, self.filtfun, querystring))
 
 
 @registerCommand(MODE, 'namedqueries')

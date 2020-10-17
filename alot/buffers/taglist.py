@@ -13,10 +13,11 @@ class TagListBuffer(Buffer):
 
     modename = 'taglist'
 
-    def __init__(self, ui, alltags=None, filtfun=lambda x: True):
+    def __init__(self, ui, alltags=None, filtfun=lambda x: True, querystring=None):
         self.filtfun = filtfun
         self.ui = ui
         self.tags = alltags or []
+        self.querystring = querystring
         self.isinitialized = False
         self.rebuild()
         Buffer.__init__(self, ui, self.body)
