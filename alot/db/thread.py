@@ -245,7 +245,8 @@ class Thread:
 
                 self._messages = {}
                 for m in thread.toplevel():
-                    self._toplevel_messages.append(accumulate(self._messages, m))
+                    self._toplevel_messages.append(accumulate(self._messages,
+                                                              m))
         return self._messages
 
     def get_replies_to(self, msg):

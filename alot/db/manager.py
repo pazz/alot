@@ -289,8 +289,8 @@ class DBManager:
         :rtype: dict (str -> str) mapping alias to full query string
         """
         db = Database(path=self.path, mode=Database.MODE.READ_ONLY)
-        return {k[6:]: db.config[k] for k in db.config
-                                    if k.startswith('query.')}
+        return {k[6:]: db.config[k] for k in db.config if
+                k.startswith('query.')}
 
     def get_threads(self, querystring, sort='newest_first', exclude_tags=None):
         """
