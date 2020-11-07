@@ -78,6 +78,16 @@ Both respect the `ignorecase` option which defaults to `True` and results in cas
 
            command = 'notmuch address --format=json date:1Y..'
 
+    `notmuch-addlookup <https://github.com/aperezdc/notmuch-addrlookup-c>`_
+        If you have the 'notmuch-addrlookup' tool installed
+        you can hook it to 'alot' with the following:
+
+        .. code-block:: ini
+
+		  command = 'notmuch-addrlookup '
+		  regexp = '(?P<name>.*).*<(?P<email>.+)>'
+
+
     Don't hesitate to send me your custom `regexp` values to list them here.
 
 .. describe:: abook
