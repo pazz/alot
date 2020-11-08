@@ -2,7 +2,7 @@
 * focus in search mode is preserved when refreshing
 * feature: new 'togglemimepart' cmd in thread mode toggles between plain and html alternative
 * feature: add "togglemimetree" command to thread mode
-* envelope mode: "unattach" command is now "detatch"
+* envelope mode: "unattach" command is now "detach"
 * feature: respect mailcap entry for text/plain to enrich plaintext parts with ANSI codes
 
 0.9:
