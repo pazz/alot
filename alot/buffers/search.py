@@ -115,6 +115,7 @@ class SearchBuffer(Buffer):
             self.body.set_focus(0)
         else:
             self.rebuild(reverse=False)
+            self.body.set_focus(0)
 
     def focus_last(self):
         if self.reversed:
@@ -125,6 +126,7 @@ class SearchBuffer(Buffer):
             self.body.set_focus(num_lines - 1)
         else:
             self.rebuild(reverse=True)
+            self.body.set_focus(0)
 
     def focus_thread(self, thread):
         tid = thread.get_thread_id()
