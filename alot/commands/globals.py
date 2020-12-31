@@ -577,6 +577,7 @@ class TagListCommand(Command):
         else:
             self.filtfun = filtfun
         self.globally = globally
+        self.match = match
         self.tags = tags
         Command.__init__(self, **kwargs)
 
@@ -593,7 +594,7 @@ class TagListCommand(Command):
         else:  # self.globally or otherBuffer
             tags = ui.dbman.get_all_tags()
         ui.buffer_open(buffers.TagListBuffer(
-            ui, tags, self.filtfun, querystring))
+            ui, tags, self.filtfun, querystring, self.match))
 
 
 @registerCommand(MODE, 'namedqueries')
