@@ -76,12 +76,7 @@ class TagListBuffer(Buffer):
                 attr = settings.get_theming_attribute('taglist', 'line_odd')
             focus_att = settings.get_theming_attribute('taglist', 'line_focus')
 
-            tw = TagWidget(b, attr, focus_att)
-            rows = [('fixed', tw.width(), tw)]
-            if tw.hidden:
-                rows.append(urwid.Text(b + ' [hidden]'))
-            elif tw.translated is not b:
-                rows.append(urwid.Text('(%s)' % b))
+            rows = [TagWidget(b, attr, focus_att, True)]
             line = urwid.Columns(rows, dividechars=1)
             line = urwid.AttrMap(line, attr, focus_att)
             lines.append(line)
