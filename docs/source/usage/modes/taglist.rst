@@ -19,3 +19,10 @@ The following commands are available in taglist mode:
     search for messages with selected tag within original buffer
 
 
+.. _cmd.taglist.untag:
+
+.. describe:: untag
+
+    remove selected tag from all messages within original buffer
+
+

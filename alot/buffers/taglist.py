@@ -104,8 +104,16 @@ class TagListBuffer(Buffer):
             lastpos = allpos[0]
             self.body.set_focus(lastpos)
 
+    def get_selected_tagline(self):
+        """
+        returns curently focussed :class:`urwid.AttrMap` tagline widget
+        from the result list.
+        """
+        cols, _ = self.taglist.get_focus()
+        return cols
+
     def get_selected_tag(self):
         """returns selected tagstring or throws AttributeError if none"""
-        cols, _ = self.taglist.get_focus()
+        cols = self.get_selected_tagline()
         tagwidget = cols.original_widget.get_focus()
         return tagwidget.tag
