@@ -77,6 +77,13 @@ class TagListBuffer(Buffer):
             focus_att = settings.get_theming_attribute('taglist', 'line_focus')
 
             rows = [TagWidget(b, attr, focus_att, True)]
+
+            count = self.ui.dbman.count_messages(' AND '.join(['(%s)' % q for q in
+                                                               [self.querystring, 'tag:"%s"' % b] if q]))
+            count_unread = self.ui.dbman.count_messages(' AND '.join(['(%s)' % q for q in
+                                                                      [self.querystring, 'tag:"%s"' % b, 'tag:unread'] if q]))
+            rows.append(urwid.Text('{0:>7} {1:7}'.
+                                   format(count, '({0})'.format(count_unread))))
             line = urwid.Columns(rows, dividechars=1)
             line = urwid.AttrMap(line, attr, focus_att)
             lines.append(line)
