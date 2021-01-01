@@ -59,7 +59,7 @@ class Message:
             sender = decode_header(msg.header('From'))
             if not sender:
                 sender = decode_header(msg.header('Sender'))
-        except NullPointerError:
+        except (NullPointerError, LookupError):
             sender = None
         if sender:
             self._from = sender
