@@ -51,7 +51,8 @@ class TagListBuffer(Buffer):
         self.taglist = urwid.ListBox(urwid.SimpleListWalker(lines))
         self.body = self.taglist
 
-        self.taglist.set_focus(focusposition % len(displayedtags))
+        if len(displayedtags):
+            self.taglist.set_focus(focusposition % len(displayedtags))
 
     def focus_first(self):
         """Focus the first line in the tag list."""
@@ -64,7 +65,7 @@ class TagListBuffer(Buffer):
             self.body.set_focus(lastpos)
 
     def get_selected_tag(self):
-        """returns selected tagstring"""
+        """returns selected tagstring or throws AttributeError if none"""
         cols, _ = self.taglist.get_focus()
         tagwidget = cols.original_widget.get_focus()
         return tagwidget.tag
