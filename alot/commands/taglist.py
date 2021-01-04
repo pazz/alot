@@ -20,5 +20,7 @@ class TaglistSelectCommand(Command):
         except AttributeError:
             logging.debug("taglist select without tag selection")
             return
-        cmd = SearchCommand(query=['tag:"%s"' % tagstring])
+        if ' ' in tagstring:
+            tagstring = '"%s"' % tagstring
+        cmd = SearchCommand(query=['tag:%s' % tagstring])
         await ui.apply_command(cmd)
