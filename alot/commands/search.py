@@ -9,6 +9,7 @@ from . import Command, registerCommand
 from .globals import PromptCommand
 from .globals import MoveCommand
 from .globals import SaveQueryCommand as GlobalSaveQueryCommand
+from .globals import SearchCommand
 from .common import RetagPromptCommand
 from .. import commands
 
@@ -95,6 +96,24 @@ class RefinePromptCommand(Command):
 
 
 RetagPromptCommand = registerCommand(MODE, 'retagprompt')(RetagPromptCommand)
+
+
+@registerCommand(
+    MODE, 'fullthreads', help='search for full threads')
+class FullThreadCommand(Command):
+
+    """search for full threads"""
+    async def apply(self, ui):
+        querystring = ui.current_buffer.querystring
+        if not querystring:
+            ui.notify('empty query string')
+            return
+        if ' ' in querystring:
+            querystring = '"{%s}"' % querystring  # '{"%s"}' does not work!
+        else:
+            querystring = '{%s}' % querystring
+        cmd = SearchCommand(query=['thread:%s' % querystring])
+        await ui.apply_command(cmd)
 
 
 @registerCommand(
