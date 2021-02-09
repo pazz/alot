@@ -588,6 +588,19 @@
     :default: [{buffer_no}: search] for "{querystring}", {input_queue} {result_count} of {total_messages} messages
 
 
+.. _search-threads-move-last-limit:
+
+.. describe:: search_threads_move_last_limit
+
+     Maximum number of results in a search buffer before 'move last' builds the
+     thread list in reversed order as a heuristic. The resulting order will be
+     different for threads with multiple matching messages.
+     When set to 0, no limit is set (can be very slow in searches that yield thousands of results)
+
+    :type: integer
+    :default: 200
+
+
 .. _search-threads-rebuild-limit:
 
 .. describe:: search_threads_rebuild_limit

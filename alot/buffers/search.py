@@ -27,6 +27,8 @@ class SearchBuffer(Buffer):
         self.result_count = 0
         self.search_threads_rebuild_limit = \
             settings.get('search_threads_rebuild_limit')
+        self.search_threads_move_last_limit = \
+            settings.get('search_threads_move_last_limit')
         self.isinitialized = False
         self.threadlist = None
         self.rebuild()
@@ -120,7 +122,9 @@ class SearchBuffer(Buffer):
     def focus_last(self):
         if self.reversed:
             self.body.set_focus(0)
-        elif self.result_count < 200 or self.sort_order not in self._REVERSE:
+        elif self.search_threads_move_last_limit == 0 \
+                or self.result_count < self.search_threads_move_last_limit \
+                or self.sort_order not in self._REVERSE:
             self.consume_pipe()
             num_lines = len(self.threadlist.get_lines())
             self.body.set_focus(num_lines - 1)
