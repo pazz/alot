@@ -193,6 +193,12 @@ search_threads_sort_order = option('oldest_first', 'newest_first', 'message_id',
 # when set to 0, no limit is set (can be very slow in searches that yield thousands of results)
 search_threads_rebuild_limit = integer(default=0)
 
+# Maximum number of results in a search buffer before 'move last' builds the
+# thread list in reversed order as a heuristic. The resulting order will be
+# different for threads with multiple matching messages.
+# When set to 0, no limit is set (can be very slow in searches that yield thousands of results)
+search_threads_move_last_limit = integer(default=200)
+
 # in case more than one account has an address book:
 # Set this to True to make tab completion for recipients during compose only
 # look in the abook of the account matching the sender address
