@@ -46,7 +46,7 @@ class SearchBuffer(Buffer):
         info['result_count_positive'] = 's' if self.result_count > 1 else ''
         return info
 
-    def rebuild(self, reverse=False):
+    def rebuild(self, reverse=False, restore_focus=True):
         self.isinitialized = True
         self.reversed = reverse
         selected_thread = None
@@ -56,7 +56,7 @@ class SearchBuffer(Buffer):
         else:
             order = self.sort_order
 
-        if self.threadlist:
+        if restore_focus and self.threadlist:
             selected_thread = self.get_selected_thread()
 
         exclude_tags = settings.get_notmuch_setting('search', 'exclude_tags')
@@ -116,7 +116,7 @@ class SearchBuffer(Buffer):
         if not self.reversed:
             self.body.set_focus(0)
         else:
-            self.rebuild(reverse=False)
+            self.rebuild(reverse=False, restore_focus=False)
             self.body.set_focus(0)
 
     def focus_last(self):
@@ -129,7 +129,7 @@ class SearchBuffer(Buffer):
             num_lines = len(self.threadlist.get_lines())
             self.body.set_focus(num_lines - 1)
         else:
-            self.rebuild(reverse=True)
+            self.rebuild(reverse=True, restore_focus=False)
             self.body.set_focus(0)
 
     def focus_thread(self, thread):
