@@ -1081,6 +1081,8 @@ RetagPromptCommand = registerCommand(MODE, 'retagprompt')(RetagPromptCommand)
     arguments=[
         (['--all'], {'action': 'store_true',
                      'help': 'tag all messages in thread'}),
+        (['--fullthread'], {'action': 'store_true', 'dest': 'all',
+                     'help': 'synonymous to `--all`'}),
         (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
                           'help': 'postpone a writeout to the index'}),
         (['tags'], {'help': 'comma separated list of tags'})],
@@ -1091,6 +1093,8 @@ RetagPromptCommand = registerCommand(MODE, 'retagprompt')(RetagPromptCommand)
     arguments=[
         (['--all'], {'action': 'store_true',
                      'help': 'tag all messages in thread'}),
+        (['--fullthread'], {'action': 'store_true', 'dest': 'all',
+                     'help': 'synonymous to `--all`'}),
         (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
                           'help': 'postpone a writeout to the index'}),
         (['tags'], {'help': 'comma separated list of tags'})],
@@ -1101,6 +1105,8 @@ RetagPromptCommand = registerCommand(MODE, 'retagprompt')(RetagPromptCommand)
     arguments=[
         (['--all'], {'action': 'store_true',
                      'help': 'tag all messages in thread'}),
+        (['--fullthread'], {'action': 'store_true', 'dest': 'all',
+                     'help': 'synonymous to `--all`'}),
         (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
                           'help': 'postpone a writeout to the index'}),
         (['tags'], {'help': 'comma separated list of tags'})],
@@ -1111,6 +1117,8 @@ RetagPromptCommand = registerCommand(MODE, 'retagprompt')(RetagPromptCommand)
     arguments=[
         (['--all'], {'action': 'store_true',
                      'help': 'tag all messages in thread'}),
+        (['--fullthread'], {'action': 'store_true', 'dest': 'all',
+                     'help': 'synonymous to `--all`'}),
         (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
                           'help': 'postpone a writeout to the index'}),
         (['tags'], {'help': 'comma separated list of tags'})],
