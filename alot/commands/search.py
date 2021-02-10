@@ -122,11 +122,14 @@ class FullThreadCommand(Command):
         (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
                           'default': 'True',
                           'help': 'postpone a writeout to the index'}),
+        (['--fullthread'], {'action': 'store_true', 'dest': 'fullthread',
+                            'default': False,
+                            'help': 'tag all messages in the selected thread'}),
         (['--all'], {'action': 'store_true', 'dest': 'allmessages',
-            'default': False,
-            'help': 'tag all messages that match the current search query'}),
+                     'default': False,
+                     'help': 'tag all messages that match the current search query'}),
         (['tags'], {'help': 'comma separated list of tags'})],
-    help='add tags to all messages in the selected thread',
+    help='add tags to all matched messages in the selected thread',
 )
 @registerCommand(
     MODE, 'retag', forced={'action': 'set'},
@@ -134,11 +137,14 @@ class FullThreadCommand(Command):
         (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
                           'default': 'True',
                           'help': 'postpone a writeout to the index'}),
+        (['--fullthread'], {'action': 'store_true', 'dest': 'fullthread',
+                            'default': False,
+                            'help': 'retag all messages in the selected thread'}),
         (['--all'], {'action': 'store_true', 'dest': 'allmessages',
-            'default': False,
-            'help': 'retag all messages that match the current query'}),
+                     'default': False,
+                     'help': 'retag all messages that match the current query'}),
         (['tags'], {'help': 'comma separated list of tags'})],
-    help='set tags to all messages in the selected thread',
+    help='set tags to all matched messages in the selected thread',
 )
 @registerCommand(
     MODE, 'untag', forced={'action': 'remove'},
@@ -146,11 +152,14 @@ class FullThreadCommand(Command):
         (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
                           'default': 'True',
                           'help': 'postpone a writeout to the index'}),
+        (['--fullthread'], {'action': 'store_true', 'dest': 'fullthread',
+                            'default': False,
+                            'help': 'untag all messages in the selected thread'}),
         (['--all'], {'action': 'store_true', 'dest': 'allmessages',
-            'default': False,
-            'help': 'untag all messages that match the current query'}),
+                     'default': False,
+                     'help': 'untag all messages that match the current query'}),
         (['tags'], {'help': 'comma separated list of tags'})],
-    help='remove tags from all messages in the selected thread',
+    help='remove tags from all matched messages in the selected thread',
 )
 @registerCommand(
     MODE, 'toggletags', forced={'action': 'toggle'},
@@ -158,17 +167,20 @@ class FullThreadCommand(Command):
         (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
                           'default': 'True',
                           'help': 'postpone a writeout to the index'}),
+        (['--fullthread'], {'action': 'store_true', 'dest': 'fullthread',
+                            'default': False,
+                            'help': 'toggle tags of all messages in the selected thread'}),
         (['tags'], {'help': 'comma separated list of tags'})],
-    help='flip presence of tags on the selected thread: a tag is considered present '
-         'and will be removed if at least one message in this thread is '
+    help='flip presence of tags on the matched messages in the selected thread: a tag is considered present '
+         'and will be removed if at least one matched message in this thread is '
          'tagged with it')
 class TagCommand(Command):
 
     """manipulate message tags"""
     repeatable = True
 
-    def __init__(self, tags='', action='add', allmessages=False, flush=True,
-                 **kwargs):
+    def __init__(self, tags='', action='add', fullthread=False,
+                 allmessages=False, flush=True, **kwargs):
         """
         :param tags: comma separated list of tagstrings to set
         :type tags: str
@@ -176,6 +188,8 @@ class TagCommand(Command):
                        and removes all other if 'set' or toggle individually if
                        'toggle'
         :type action: str
+        :param fullthread: tag all messages in search result (instead of just matched ones)
+        :type fullthread: bool
         :param allmessages: tag all messages in search result
         :type allmessages: bool
         :param flush: immediately write out to the index
@@ -183,6 +197,7 @@ class TagCommand(Command):
         """
         self.tagsstring = tags
         self.action = action
+        self.fullthread = fullthread
         self.allm = allmessages
         self.flush = flush
         Command.__init__(self, **kwargs)
@@ -198,8 +213,11 @@ class TagCommand(Command):
         testquery = searchbuffer.querystring
         thread = threadline_widget.get_thread()
         if not self.allm:
-            testquery = "(%s) AND thread:%s" % (testquery,
-                                                thread.get_thread_id())
+            if self.fullthread:
+                testquery = "thread:%s" % thread.get_thread_id()
+            else:
+                testquery = "(%s) AND thread:%s" % (testquery,
+                                                    thread.get_thread_id())
         logging.debug('all? %s', self.allm)
         logging.debug('q: %s', testquery)
 
