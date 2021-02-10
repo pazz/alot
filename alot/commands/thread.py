@@ -1147,10 +1147,13 @@ class TagCommand(Command):
         tbuffer = ui.current_buffer
         if self.all:
             messagetrees = tbuffer.messagetrees()
+            testquery = "thread:%s" % \
+                        tbuffer.get_selected_thread().get_thread_id()
         else:
             messagetrees = [tbuffer.get_selected_messagetree()]
+            testquery = "mid:%s" % tbuffer.get_selected_mid()
 
-        def refresh_widgets():
+        def refresh():
             for mt in messagetrees:
                 mt.refresh()
 
@@ -1164,26 +1167,18 @@ class TagCommand(Command):
             tbuffer.refresh()
 
         tags = [t for t in self.tagsstring.split(',') if t]
+
         try:
-            for mt in messagetrees:
-                m = mt.get_message()
-                if self.action == 'add':
-                    m.add_tags(tags, afterwards=refresh_widgets)
-                if self.action == 'set':
-                    m.add_tags(tags, afterwards=refresh_widgets,
-                               remove_rest=True)
-                elif self.action == 'remove':
-                    m.remove_tags(tags, afterwards=refresh_widgets)
-                elif self.action == 'toggle':
-                    to_remove = []
-                    to_add = []
-                    for t in tags:
-                        if t in m.get_tags():
-                            to_remove.append(t)
-                        else:
-                            to_add.append(t)
-                    m.remove_tags(to_remove)
-                    m.add_tags(to_add, afterwards=refresh_widgets)
+            if self.action == 'add':
+                ui.dbman.tag(testquery, tags, remove_rest=False,
+                             afterwards=refresh)
+            if self.action == 'set':
+                ui.dbman.tag(testquery, tags, remove_rest=True,
+                             afterwards=refresh)
+            elif self.action == 'remove':
+                ui.dbman.untag(testquery, tags, afterwards=refresh)
+            elif self.action == 'toggle':
+                ui.dbman.toggle_tags(testquery, tags, afterwards=refresh)
 
         except DatabaseROError:
             ui.notify('index in read-only mode', priority='error')
