@@ -113,16 +113,19 @@ class DBManager:
 
                         else:  # tag/set/untag
                             querystring, tags = current_item[2:]
+                            if cmd == 'toggle':
+                                presenttags = self.collect_tags(querystring)
+                                to_remove = []
+                                to_add = []
+                                for tag in tags:
+                                    if tag in presenttags:
+                                        to_remove.append(tag)
+                                    else:
+                                        to_add.append(tag)
+
                             for msg in db.messages(querystring):
                                 with msg.frozen():
                                     if cmd == 'toggle':
-                                        to_remove = []
-                                        to_add = []
-                                        for tag in tags:
-                                            if tag in msg.tags:
-                                                to_remove.append(tag)
-                                            else:
-                                                to_add.append(tag)
                                         for tag in to_remove:
                                             msg.tags.discard(tag)
                                         for tag in to_add:
