@@ -34,10 +34,10 @@ q = exit
 
 [search]
     enter = select
-    a = toggletags inbox
-    & = toggletags killed
-    ! = toggletags flagged
-    s = toggletags unread
+    a = toggletags --fullthread inbox
+    & = toggletags --fullthread killed
+    ! = toggletags --fullthread flagged
+    s = toggletags --fullthread unread
     l = retagprompt
     O = refineprompt
     | = refineprompt
