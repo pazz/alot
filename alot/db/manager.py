@@ -292,7 +292,7 @@ class DBManager:
         return {k[6:]: db.config[k] for k in db.config if
                 k.startswith('query.')}
 
-    def get_threads(self, querystring, sort='newest_first', exclude_tags=None):
+    def get_threads(self, querystring, sort='newest_first'):
         """
         asynchronously look up thread ids matching `querystring`.
 
@@ -301,9 +301,6 @@ class DBManager:
         :param sort: Sort order. one of ['oldest_first', 'newest_first',
                      'message_id', 'unsorted']
         :type query: str
-        :param exclude_tags: Tags to exclude by default unless included in the
-                             search
-        :type exclude_tags: list of str
         :returns: a pipe together with the process that asynchronously
                   writes to it.
         :rtype: (:class:`multiprocessing.Pipe`,
