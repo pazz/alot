@@ -14,7 +14,7 @@ attachment_prefix = string(default='~')
 input_timeout = float(default=1.0)
 
 # A list of tags that will be excluded from search results by default. Using an excluded tag in a query will override that exclusion.
-# .. note:: this config setting is equivalent to, but independent of, the 'search.exclude_tags' in the notmuch config.
+# .. note:: this config setting is the alot equivalent to the 'search.exclude_tags' setting in the notmuch config.
 exclude_tags = force_list(default=list())
 
 # display background colors set by ANSI character escapes
