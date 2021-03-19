@@ -97,6 +97,8 @@ class DBManager:
                                 logging.debug('freeze')
                                 for tag in tags:
                                     msg.tags.add(tag)
+                                if sync:
+                                    msg.tags.to_maildir_flags()
                                 logging.debug('added tags ')
                             logging.debug('thaw')
 
@@ -134,6 +136,8 @@ class DBManager:
                                                 msg.tags.add(tag)
                                             elif cmd == 'untag':
                                                 msg.tags.discard(tag)
+                                    if sync:
+                                        msg.tags.to_maildir_flags()
 
                         logging.debug('ended atomic')
 
