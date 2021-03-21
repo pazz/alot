@@ -46,6 +46,10 @@ green = 'dark green'
     line_even = 'default','default','%(base0)s','%(base02)s','%(base0)s','%(base02)s'
     line_focus = 'standout','default','%(base1)s','%(base01)s','%(base1)s','%(base01)s'
     line_odd = 'default','default','%(base0)s','%(base03)s','%(base0)s','%(base03)s'
+[directories]
+    line_even = 'default','default','%(base0)s','%(base02)s','%(base0)s','%(base02)s'
+    line_focus = 'standout','default','%(base1)s','%(base01)s','%(base1)s','%(base01)s'
+    line_odd = 'default','default','%(base0)s','%(base03)s','%(base0)s','%(base03)s'
 [taglist]
     line_even = 'default','default','%(base0)s','%(base02)s','%(base0)s','%(base02)s'
     line_focus = 'standout','default','%(base1)s','%(base01)s','%(base1)s','%(base01)s'
