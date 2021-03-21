@@ -165,6 +165,12 @@ taglist_statusbar = mixed_list(string, string, default=list('[{buffer_no}: tagli
 # that will be substituted accordingly.
 namedqueries_statusbar = mixed_list(string, string, default=list('[{buffer_no}: namedqueries]','{query_count} named queries'))
 
+# Format of the status-bar in directory list mode.
+# This is a pair of strings to be left and right aligned in the status-bar.
+# These strings may contain variables listed at :ref:`bufferlist_statusbar <bufferlist-statusbar>`
+# that will be substituted accordingly.
+directories_statusbar = mixed_list(string, string, default=list('[{buffer_no}: directories]','{query_count} directories'))
+
 # Format of the status-bar in envelope mode.
 # This is a pair of strings to be left and right aligned in the status-bar.
 # Apart from the global variables listed at :ref:`bufferlist_statusbar <bufferlist-statusbar>`

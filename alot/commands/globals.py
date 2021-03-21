@@ -590,6 +590,19 @@ class NamedQueriesCommand(Command):
     def apply(self, ui):
         ui.buffer_open(buffers.NamedQueriesBuffer(ui, self.filtfun))
 
+@registerCommand(MODE, 'directories')
+class DirectoriesCommand(Command):
+    """opens directories buffer"""
+    def __init__(self, filtfun=bool, **kwargs):
+        """
+        :param filtfun: filter to apply to displayed list
+        :type filtfun: callable (str->bool)
+        """
+        self.filtfun = filtfun
+        Command.__init__(self, **kwargs)
+
+    def apply(self, ui):
+        ui.buffer_open(buffers.DirectoriesBuffer(ui, self.filtfun))
 
 @registerCommand(MODE, 'flush')
 class FlushCommand(Command):
