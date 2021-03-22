@@ -308,9 +308,9 @@ class DBManager:
                         or d in ('new','cur','tmp'))]
             subpath = root[len(self.path):]
             if not subpath:
-              queries['/'] = 'path:**'
+              queries['/'] = 'path:"**"'
             else:
-              queries['/'+subpath] = 'path:'+subpath+'/**'
+              queries['/'+subpath] = 'path:"'+subpath+'/**"'
         return queries
 
     def get_threads(self, querystring, sort='newest_first', exclude_tags=None):
