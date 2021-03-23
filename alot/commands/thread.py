@@ -548,6 +548,12 @@ class ChangeDisplaymodeCommand(Command):
         self.mimepart = mimepart
         Command.__init__(self, **kwargs)
 
+    def _matches(self, msgt):
+        if self.query is None or self.query == '*':
+            return True
+        msg = msgt.get_message()
+        return msg.matches(self.query)
+
     def apply(self, ui):
         tbuffer = ui.current_buffer
 
@@ -572,13 +578,6 @@ class ChangeDisplaymodeCommand(Command):
             messagetrees = [tbuffer.get_selected_messagetree()]
         else:
             messagetrees = tbuffer.messagetrees()
-            if self.query != '*':
-
-                def matches(msgt):
-                    msg = msgt.get_message()
-                    return msg.matches(self.query)
-
-                messagetrees = [m for m in messagetrees if matches(m)]
 
         for mt in messagetrees:
             # determine new display values for this message
@@ -586,6 +585,9 @@ class ChangeDisplaymodeCommand(Command):
                 visible = mt.is_collapsed(mt.root)
             else:
                 visible = self.visible
+            if not self._matches(mt):
+                visible = not visible
+
             if self.raw == 'toggle':
                 tbuffer.focus_selected_message()
             raw = not mt.display_source if self.raw == 'toggle' else self.raw
