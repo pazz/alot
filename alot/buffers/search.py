@@ -63,20 +63,28 @@ class SearchBuffer(Buffer):
         if exclude_tags:
             exclude_tags = [t for t in exclude_tags.split(';') if t]
 
-        try:
-            self.result_count = self.dbman.count_messages(self.querystring)
-            threads = self.dbman.get_threads(
-                self.querystring, order, exclude_tags)
-        except NotmuchError:
-            self.ui.notify('malformed query string: %s' % self.querystring,
-                           'error')
-            self.listbox = urwid.ListBox([])
-            self.body = self.listbox
-            return
+        self.result_count = 0
+        self.threadlist = None
+        querylist = self.querystring.split(' / ')
+        for query in querylist:
+            try:
+                self.result_count += self.dbman.count_messages(query)
+                threads = self.dbman.get_threads(
+                    query, order, exclude_tags)
+            except NotmuchError:
+                self.ui.notify('malformed query string: %s' % query,
+                               'error')
+                self.listbox = urwid.ListBox([])
+                self.body = self.listbox
+                return
 
-        self.threadlist = IterableWalker(threads, ThreadlineWidget,
-                                         dbman=self.dbman,
-                                         reverse=reverse)
+            iterablewalker = IterableWalker(threads, ThreadlineWidget,
+                                            dbman=self.dbman,
+                                            reverse=reverse)
+            if self.threadlist:
+                self.threadlist.append(iterablewalker)
+            else:
+                self.threadlist = iterablewalker
 
         self.listbox = urwid.ListBox(self.threadlist)
         self.body = self.listbox

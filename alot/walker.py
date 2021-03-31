@@ -2,6 +2,7 @@
 # Copyright © 2018 Dylan Baker
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
+import itertools
 import logging
 import urwid
 
@@ -92,3 +93,6 @@ class IterableWalker(urwid.ListWalker):
 
     def get_lines(self):
         return self.lines
+
+    def append(self, iterableWalker):
+        self.iterable = itertools.chain(self.iterable, iterableWalker.iterable)
