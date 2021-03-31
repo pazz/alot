@@ -75,6 +75,10 @@ error = 'dark red'
     line_focus = 'standout','default','%(16_focus_fg)s','%(16_focus_bg)s','%(256_focus_fg)s','%(256_focus_bg)s'
     line_even = 'default','default','%(16_text_fg)s','%(16_normal_bg)s','%(256_text_fg)s','%(256_normal_bg)s'
     line_odd = 'default','default','%(16_text_fg)s','%(16_normal_bg)s','%(256_text_fg)s','%(256_normal_bg)s'
+[directories]
+    line_focus = 'standout','default','%(16_focus_fg)s','%(16_focus_bg)s','%(256_focus_fg)s','%(256_focus_bg)s'
+    line_even = 'default','default','%(16_text_fg)s','%(16_normal_bg)s','%(256_text_fg)s','%(256_normal_bg)s'
+    line_odd = 'default','default','%(16_text_fg)s','%(16_normal_bg)s','%(256_text_fg)s','%(256_normal_bg)s'
 [taglist]
     line_focus = 'standout','default','%(16_focus_fg)s','%(16_focus_bg)s','%(256_focus_fg)s','%(256_focus_bg)s'
     line_even = 'default','default','%(16_text_fg)s','%(16_normal_bg)s','%(256_text_fg)s','%(256_normal_bg)s'

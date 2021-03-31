@@ -62,6 +62,10 @@
     line_focus = 'standout','default','%(16_base2)s','%(16_yellow)s','%(256_base2)s','%(256_yellow)s'
     line_even = 'default','default','%(16_base00)s','%(16_base3)s','%(256_base00)s','%(256_base3)s'
     line_odd = 'default','default','%(16_base00)s','%(16_base2)s','%(256_base00)s','%(256_base2)s'
+[directories]
+    line_focus = 'standout','default','%(16_base2)s','%(16_yellow)s','%(256_base2)s','%(256_yellow)s'
+    line_even = 'default','default','%(16_base00)s','%(16_base3)s','%(256_base00)s','%(256_base3)s'
+    line_odd = 'default','default','%(16_base00)s','%(16_base2)s','%(256_base00)s','%(256_base2)s'
 [taglist]
     line_focus = 'standout','default','%(16_base2)s','%(16_yellow)s','%(256_base2)s','%(256_yellow)s'
     line_even = 'default','default','%(16_base00)s','%(16_base3)s','%(256_base00)s','%(256_base3)s'

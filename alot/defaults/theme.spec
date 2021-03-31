@@ -26,6 +26,10 @@
     line_focus = attrtriple
     line_even = attrtriple
     line_odd = attrtriple
+[directories]
+    line_focus = attrtriple
+    line_even = attrtriple
+    line_odd = attrtriple
 [search]
     [[threadline]]
         normal = attrtriple

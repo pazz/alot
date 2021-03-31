@@ -46,6 +46,7 @@ COMMANDS = {
     'bufferlist': {},
     'taglist': {},
     'namedqueries': {},
+    'directories': {},
     'thread': {},
     'global': {},
 }

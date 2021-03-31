@@ -9,3 +9,4 @@ from .search import SearchBuffer
 from .taglist import TagListBuffer
 from .thread import ThreadBuffer
 from .namedqueries import NamedQueriesBuffer
+from .directories import DirectoriesBuffer

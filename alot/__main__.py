@@ -21,7 +21,7 @@ asyncioreactor.install()
 
 
 _SUBCOMMANDS = ['search', 'compose', 'bufferlist', 'taglist', 'namedqueries',
-                'pyshell']
+                'pyshell', 'directories']
 
 
 def parser():

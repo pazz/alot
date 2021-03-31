@@ -5,6 +5,7 @@
 from collections import deque
 import contextlib
 import logging
+import os
 
 from notmuch2 import Database, NotmuchError, XapianError
 import notmuch2
@@ -308,6 +309,22 @@ class DBManager:
         db = Database(path=self.path, mode=Database.MODE.READ_ONLY)
         return {k[6:]: db.config[k] for k in db.config if
                 k.startswith('query.')}
+
+    def get_directory_queries(self):
+        """
+        returns the directory structure in the database.
+        :rtype: dict (str -> str) mapping alias to full query string
+        """
+        queries = {};
+        for root, dirs, files in os.walk(self.path):
+            dirs[:] = [d for d in dirs if not (d[0] == '.' 
+                        or d in ('new','cur','tmp'))]
+            subpath = root[len(self.path):]
+            if not subpath:
+              queries['/'] = 'path:"**"'
+            else:
+              queries['/'+subpath] = 'path:"'+subpath+'/**"'
+        return queries
 
     def get_threads(self, querystring, sort='newest_first', exclude_tags=None):
         """
