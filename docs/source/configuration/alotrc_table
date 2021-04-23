@@ -277,10 +277,10 @@
 .. describe:: exclude_tags
 
      A list of tags that will be excluded from search results by default. Using an excluded tag in a query will override that exclusion.
-     .. note:: this config setting is equivalent to, but independent of, the 'search.exclude_tags' in the notmuch config.
+     .. note:: when set, this config setting will overrule the 'search.exclude_tags' in the notmuch config.
 
     :type: string list
-    :default: ,
+    :default: None
 
 
 .. _flush-retry-timeout:

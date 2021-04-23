@@ -45,6 +45,16 @@ class DBManager:
         self.writequeue = deque([])
         self.processes = []
 
+    @property
+    def exclude_tags(self):
+        exclude_tags = settings.get('exclude_tags')
+        if exclude_tags is not None:
+            return exclude_tags
+
+        exclude_tags = settings.get_notmuch_setting('search', 'exclude_tags')
+        if exclude_tags:
+            return [t for t in exclude_tags.split(';') if t]
+
     def flush(self):
         """
         write out all queued write-commands in order, each one in a separate
@@ -243,14 +253,14 @@ class DBManager:
         """returns number of messages that match `querystring`"""
         db = Database(path=self.path, mode=Database.MODE.READ_ONLY)
         return db.count_messages(querystring,
-                                 exclude_tags=settings.get('exclude_tags'))
+                                 exclude_tags=self.exclude_tags)
 
     def collect_tags(self, querystring):
         """returns tags of messages that match `querystring`"""
         db = Database(path=self.path, mode=Database.MODE.READ_ONLY)
         tagset = notmuch2._tags.ImmutableTagSet(
             db.messages(querystring,
-                        exclude_tags=settings.get('exclude_tags')),
+                        exclude_tags=self.exclude_tags),
             '_iter_p',
             notmuch2.capi.lib.notmuch_messages_collect_tags)
         return [t for t in tagset]
@@ -259,7 +269,7 @@ class DBManager:
         """returns number of threads that match `querystring`"""
         db = Database(path=self.path, mode=Database.MODE.READ_ONLY)
         return db.count_threads(querystring,
-                                exclude_tags=settings.get('exclude_tags'))
+                                exclude_tags=self.exclude_tags)
 
     @contextlib.contextmanager
     def _with_notmuch_thread(self, tid):
@@ -309,7 +319,7 @@ class DBManager:
         return {k[6:]: db.config[k] for k in db.config if
                 k.startswith('query.')}
 
-    def get_threads(self, querystring, sort='newest_first', exclude_tags=None):
+    def get_threads(self, querystring, sort='newest_first'):
         """
         asynchronously look up thread ids matching `querystring`.
 
@@ -318,9 +328,6 @@ class DBManager:
         :param sort: Sort order. one of ['oldest_first', 'newest_first',
                      'message_id', 'unsorted']
         :type query: str
-        :param exclude_tags: Tags to exclude by default unless included in the
-                             search
-        :type exclude_tags: list of str
         :returns: a pipe together with the process that asynchronously
                   writes to it.
         :rtype: (:class:`multiprocessing.Pipe`,
@@ -330,7 +337,7 @@ class DBManager:
         db = Database(path=self.path, mode=Database.MODE.READ_ONLY)
         for t in db.threads(querystring,
                             sort=self._sort_orders[sort],
-                            exclude_tags=settings.get('exclude_tags')):
+                            exclude_tags=self.exclude_tags):
             yield t.threadid
 
     def add_message(self, path, tags=None, afterwards=None):
