@@ -21,7 +21,9 @@ class SearchBuffer(Buffer):
     def __init__(self, ui, initialquery='', sort_order=None):
         self.dbman = ui.dbman
         self.ui = ui
-        self.querystring = initialquery
+        # We store a list of notmuch query strings and this buffer will
+        # display the results for each query one after the other
+        self.querystrings = [initialquery]
         default_order = settings.get('search_threads_sort_order')
         self.sort_order = sort_order or default_order
         self.result_count = 0
@@ -36,12 +38,13 @@ class SearchBuffer(Buffer):
 
     def __str__(self):
         formatstring = '[search] for "%s" (%d message%s)'
-        return formatstring % (self.querystring, self.result_count,
+        return formatstring % ('" + "'.join(self.querystrings),
+                               self.result_count,
                                's' if self.result_count > 1 else '')
 
     def get_info(self):
         info = {}
-        info['querystring'] = self.querystring
+        info['querystring'] = '" + "'.join(self.querystrings)
         info['result_count'] = self.result_count
         info['result_count_positive'] = 's' if self.result_count > 1 else ''
         return info
@@ -59,19 +62,27 @@ class SearchBuffer(Buffer):
         if restore_focus and self.threadlist:
             selected_thread = self.get_selected_thread()
 
-        try:
-            self.result_count = self.dbman.count_messages(self.querystring)
-            threads = self.dbman.get_threads(self.querystring, order)
-        except NotmuchError:
-            self.ui.notify('malformed query string: %s' % self.querystring,
-                           'error')
-            self.listbox = urwid.ListBox([])
-            self.body = self.listbox
-            return
+        self.result_count = 0
+        self.threadlist = None
+        for query in self.querystrings:
+            try:
+                self.result_count += self.dbman.count_messages(query)
+                threads = self.dbman.get_threads(
+                    query, order)
+            except NotmuchError:
+                self.ui.notify('malformed query string: %s' % query,
+                               'error')
+                self.listbox = urwid.ListBox([])
+                self.body = self.listbox
+                return
 
-        self.threadlist = IterableWalker(threads, ThreadlineWidget,
-                                         dbman=self.dbman,
-                                         reverse=reverse)
+            iterablewalker = IterableWalker(threads, ThreadlineWidget,
+                                            dbman=self.dbman,
+                                            reverse=reverse)
+            if self.threadlist:
+                self.threadlist.append(iterablewalker)
+            else:
+                self.threadlist = iterablewalker
 
         self.listbox = urwid.ListBox(self.threadlist)
         self.body = self.listbox

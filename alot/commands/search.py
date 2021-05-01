@@ -35,12 +35,13 @@ class OpenThreadCommand(Command):
         if not self.thread:
             self.thread = ui.current_buffer.get_selected_thread()
         if self.thread:
-            query = ui.current_buffer.querystring
+            query_list = ui.current_buffer.querystrings
             logging.info('open thread view for %s', self.thread)
 
             tb = buffers.ThreadBuffer(ui, self.thread)
             ui.buffer_open(tb)
-            tb.unfold_matching(query)
+            for query in query_list:
+                tb.unfold_matching(query)
 
 
 @registerCommand(MODE, 'refine', help='refine query', arguments=[
@@ -70,9 +71,9 @@ class RefineCommand(Command):
     def apply(self, ui):
         if self.querystring or self.sort_order:
             sbuffer = ui.current_buffer
-            oldquery = sbuffer.querystring
+            oldquery = sbuffer.querystrings[-1]
             if self.querystring not in [None, oldquery]:
-                sbuffer.querystring = self.querystring
+                sbuffer.querystrings[-1] = self.querystring
                 sbuffer = ui.current_buffer
             if self.sort_order:
                 sbuffer.sort_order = self.sort_order
@@ -90,11 +91,44 @@ class RefinePromptCommand(Command):
 
     async def apply(self, ui):
         sbuffer = ui.current_buffer
-        oldquery = sbuffer.querystring
+        oldquery = sbuffer.querystrings[-1]
         return await ui.apply_command(PromptCommand('refine ' + oldquery))
 
 
 RetagPromptCommand = registerCommand(MODE, 'retagprompt')(RetagPromptCommand)
+
+
+@registerCommand(MODE, 'append', usage='append query', arguments=[
+    (['--sort'], {'help': 'sort order', 'choices': [
+        'oldest_first', 'newest_first', 'message_id', 'unsorted']}),
+    (['query'], {'nargs': argparse.REMAINDER, 'help': 'search string'})])
+class AppendCommand(Command):
+
+    """append the results of a new query to this buffer. Search obeys the notmuch
+    :ref:`search.exclude_tags <search.exclude_tags>` setting."""
+    repeatable = True
+
+    def __init__(self, query, sort=None, **kwargs):
+        """
+        :param query: notmuch querystring
+        :type query: str
+        :param sort: how to order results. Must be one of
+                     'oldest_first', 'newest_first', 'message_id' or
+                     'unsorted'.
+        :type sort: str
+        """
+        self.query = ' '.join(query)
+        self.order = sort
+        Command.__init__(self, **kwargs)
+
+    def apply(self, ui):
+        if self.query:
+            sbuffer = ui.current_buffer
+            sbuffer.querystrings.append(self.query)
+            sbuffer.rebuild()
+            ui.update()
+        else:
+            ui.notify('empty query string')
 
 
 @registerCommand(
@@ -176,7 +210,7 @@ class TagCommand(Command):
         if threadline_widget is None:
             return
 
-        testquery = searchbuffer.querystring
+        testquery = searchbuffer.querystrings[-1]
         thread = threadline_widget.get_thread()
         if not self.allm:
             testquery = "(%s) AND thread:%s" % (testquery,
@@ -198,7 +232,7 @@ class TagCommand(Command):
                 else:
                     threadline_widget.rebuild()
                 searchbuffer.result_count = searchbuffer.dbman.count_messages(
-                    searchbuffer.querystring)
+                    searchbuffer.querystrings[-1])
             else:
                 searchbuffer.rebuild()
 
@@ -257,5 +291,5 @@ class SaveQueryCommand(GlobalSaveQueryCommand):
     def apply(self, ui):
         searchbuffer = ui.current_buffer
         if not self.query:
-            self.query = searchbuffer.querystring
+            self.query = searchbuffer.querystrings[-1]
         GlobalSaveQueryCommand.apply(self, ui)
