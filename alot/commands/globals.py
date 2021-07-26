@@ -675,12 +675,8 @@ class HelpCommand(Command):
                     linewidgets.append(line)
 
             # global maps
-            close_key = 'esc'
             linewidgets.append(urwid.Text((section_att, '\nglobal maps')))
             for (k, v) in globalmaps.items():
-                if v == 'bclose':
-                    close_key = k
-
                 if k not in modemaps:
                     line = urwid.Columns(
                         [('fixed', keycolumnwidth, urwid.Text((text_att, k))),
@@ -688,7 +684,7 @@ class HelpCommand(Command):
                     linewidgets.append(line)
 
             body = urwid.ListBox(linewidgets)
-            titletext = 'Bindings Help ("%s" cancels)' % close_key
+            titletext = 'Bindings Help (escape cancels)'
 
             box = DialogBox(body, titletext,
                             bodyattr=text_att,
@@ -698,7 +694,7 @@ class HelpCommand(Command):
             overlay = urwid.Overlay(box, ui.root_widget, 'center',
                                     ('relative', 70), 'middle',
                                     ('relative', 70))
-            ui.show_as_root_until_keypress(overlay, close_key)
+            ui.show_as_root_until_keypress(overlay, 'esc')
         else:
             logging.debug('HELP %s', self.commandname)
             parser = commands.lookup_parser(self.commandname, ui.mode)
