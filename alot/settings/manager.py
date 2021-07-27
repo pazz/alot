@@ -532,3 +532,15 @@ class SettingsManager:
             else:
                 rep = pretty_datetime(d)
         return rep
+
+    @property
+    def help_cancel_key(self):
+        """
+        Returns cancel key for help overlays
+        """
+        if not hasattr(self, '__help_cancel_key'):
+            _, helpmap = self.get_keybindings('help')
+            helpmap = {v: k for k, v in helpmap.items()}
+            self.__help_cancel_key = helpmap.get('cancel', 'esc')
+
+        return self.__help_cancel_key
