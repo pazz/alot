@@ -14,6 +14,7 @@ from .. import commands
 
 from .. import buffers
 from ..db.errors import DatabaseROError
+from ..settings.const import settings
 
 
 MODE = 'search'
@@ -35,7 +36,9 @@ class OpenThreadCommand(Command):
         if not self.thread:
             self.thread = ui.current_buffer.get_selected_thread()
         if self.thread:
-            query = ui.current_buffer.querystring
+            query = settings.get('thread_unfold_matching')
+            if not query:
+                query = ui.current_buffer.querystring
             logging.info('open thread view for %s', self.thread)
 
             tb = buffers.ThreadBuffer(ui, self.thread)
