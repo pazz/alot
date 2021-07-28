@@ -308,6 +308,9 @@ periodic_hook_frequency = integer(default=300)
 # for the whole message body.
 thread_focus_linewise = boolean(default=True)
 
+# Unfold messages matching the query. If not set, will unfold all messages matching search buffer query.
+thread_unfold_matching = string(default=None)
+
 
 # Key bindings
 [bindings]
