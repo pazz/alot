@@ -32,7 +32,7 @@ Have a look at the [user manual][docs] for installation notes, advanced usage,
 customization, hacking guides and [frequently asked questions][FAQ].
 We also collect user-contributed hooks and hacks in a [wiki][wiki].
 
-Most of the developers hang out in `#alot@freenode`, feel free to ask questions or make suggestions there.
+Most of the developers hang out in [`#alot` on the libera.chat IRC server](https://web.libera.chat/#alot), feel free to ask questions or make suggestions there.
 You are welcome to open issues or pull-requests on the github page.
 
 

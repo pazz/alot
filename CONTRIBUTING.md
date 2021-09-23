@@ -2,7 +2,7 @@ Getting Involved
 ----------------
 
 Development is coordinated almost entirely on our [Github] page.
-For quick help or a friendly chat you are welcome to pop into our IRC channel #alot on [Freenode].
+For quick help or a friendly chat you are welcome to pop into our IRC channel [`#alot` on Libera.chat][Libera].
 
 
 Bug reports and feature requests
@@ -52,7 +52,7 @@ To ensure timely and painless reviews please keep the following in mind.
 
 [Github]: https://github.com/pazz/alot
 [Issues]: https://github.com/pazz/alot/issues
-[Freenode]: https://freenode.net
+[Libera]: https://web.libera.chat/#alot
 [GPL3]: https://www.gnu.org/licenses/gpl-3.0.en.html
 [PEP8]: https://www.python.org/dev/peps/pep-0008/
 [pycodestyle]:https://github.com/PyCQA/pycodestyle

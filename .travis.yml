@@ -141,6 +141,6 @@ after_success: |
 notifications:
   irc:
     channels:
-      - "chat.freenode.net#alot"
+      - "irc.libera.chat#alot"
     on_success: change
     use_notice: true
