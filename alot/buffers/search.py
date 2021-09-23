@@ -59,14 +59,9 @@ class SearchBuffer(Buffer):
         if restore_focus and self.threadlist:
             selected_thread = self.get_selected_thread()
 
-        exclude_tags = settings.get_notmuch_setting('search', 'exclude_tags')
-        if exclude_tags:
-            exclude_tags = [t for t in exclude_tags.split(';') if t]
-
         try:
             self.result_count = self.dbman.count_messages(self.querystring)
-            threads = self.dbman.get_threads(
-                self.querystring, order, exclude_tags)
+            threads = self.dbman.get_threads(self.querystring, order)
         except NotmuchError:
             self.ui.notify('malformed query string: %s' % self.querystring,
                            'error')
