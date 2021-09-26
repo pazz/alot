@@ -1,3 +1,9 @@
+0.10:
+* various fixes with mailcap handling
+* info: alot now depends on the new-style cffi bindings (notmuch2, available under notmuch/bindings/python-cffi)
+* config: new option search_threads_rebuild_limit (to speed up "move last" in large search buffers)
+
+
 0.9.1:
 * focus in search mode is preserved when refreshing
 * feature: new 'togglemimepart' cmd in thread mode toggles between plain and html alternative
