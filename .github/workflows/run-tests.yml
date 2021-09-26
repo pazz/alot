@@ -59,15 +59,19 @@ jobs:
     - name: Install alot's dependencies
       run: |
         sudo apt-get install -y gnupg2
-        # apparently needed on github's images
-        sudo apt-get install -y python3-wheel
 
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     
-    - name: Test with distutils
+    # - name: Test with distutils
+    #   run: |
+    #     python setup.py test
+    - name: Install dependencies
       run: |
-        python setup.py test
+        python -m pip install --upgrade pip
+        pip install tox tox-gh-actions
+    - name: Test with tox
+      run: tox
 
 # TODO: test with different python versions
 # TODO: test docs generation
