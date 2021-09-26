@@ -59,6 +59,8 @@ jobs:
     - name: Install alot's dependencies
       run: |
         sudo apt-get install -y gnupg2
+        # apparently needed on github's images
+        sudo apt-get install -y python3-wheel
 
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
