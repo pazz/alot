@@ -335,10 +335,11 @@ class DBManager:
         """
         assert sort in self._sort_orders
         db = Database(path=self.path, mode=Database.MODE.READ_ONLY)
-        for t in db.threads(querystring,
+        thread_ids = [t.threadid for t in db.threads(querystring,
                             sort=self._sort_orders[sort],
-                            exclude_tags=self.exclude_tags):
-            yield t.threadid
+                            exclude_tags=self.exclude_tags)]
+        for t in thread_ids:
+            yield t
 
     def add_message(self, path, tags=None, afterwards=None):
         """
