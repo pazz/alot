@@ -50,6 +50,11 @@ class Message:
         self._mime_tree = None  # will be read upon first use
         self._tags = msg.tags
 
+        try:
+            self._subject = decode_header(msg.header('subject'))
+        except LookupError:  # No Subject on Email
+            self._subject = ''
+
         self._session_keys = [
             value for _, value in msg.properties.getall(prefix="session-key",
                                                         exact=True)
@@ -117,6 +122,10 @@ class Message:
     def get_filename(self):
         """returns absolute path of message files location"""
         return self._filename
+
+    def get_subject(self):
+        """returns Subject header (str)"""
+        return self._subject
 
     def get_message_id(self):
         """returns messages id (str)"""
