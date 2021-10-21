@@ -26,7 +26,7 @@ class Message:
     It it uses a :class:`~alot.db.DBManager` for cached manipulation
     and lazy lookups.
     """
-    def __init__(self, dbman, msg, thread=None):
+    def __init__(self, dbman, msg, thread=None, parent=None):
         """
         :param dbman: db manager that is used for further lookups
         :type dbman: alot.db.DBManager
@@ -34,11 +34,15 @@ class Message:
         :type msg: notmuch2.Message
         :param thread: this messages thread (will be looked up later if `None`)
         :type thread: :class:`~alot.db.Thread` or `None`
+        :param parent: this message's parent (if it was a reply, and we have the
+                                              message it was a reply to)
+        :type parent: :class:`~alot.db.Message` or `None`
         """
         self._dbman = dbman
         self._id = msg.messageid
         self._thread_id = msg.threadid
         self._thread = thread
+        self._parent = parent
         try:
             self._datetime = datetime.fromtimestamp(msg.date)
         except ValueError:
@@ -114,6 +118,10 @@ class Message:
                 self._email = email.message_from_string(
                     warning, policy=email.policy.SMTP)
         return self._email
+
+    def get_parent(self):
+        """returns parent Message if this is a reply or None otherwise"""
+        return self._parent
 
     def get_date(self):
         """returns Date header value as :class:`~datetime.datetime`"""
