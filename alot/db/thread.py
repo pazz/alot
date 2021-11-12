@@ -47,8 +47,8 @@ class Thread:
             subject = thread.subject
         elif subject_type == 'oldest':
             try:
-                first_msg = list(thread.get_toplevel_messages())[0]
-                subject = first_msg.get_header('subject')
+                first_msg = list(thread.toplevel())[0]
+                subject = first_msg.header('subject')
             except IndexError:
                 subject = ''
         self._subject = subject
