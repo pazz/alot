@@ -143,6 +143,19 @@ RetagPromptCommand = registerCommand(MODE, 'retagprompt')(RetagPromptCommand)
     help='flip presence of tags on the selected thread: a tag is considered present '
          'and will be removed if at least one message in this thread is '
          'tagged with it')
+@registerCommand(
+    MODE, 'applytags', forced={'action': 'apply'},
+    arguments=[
+        (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
+                          'default': 'True',
+                          'help': 'postpone a writeout to the index'}),
+        (['--all'], {'action': 'store_true', 'dest': 'allmessages',
+            'default': False,
+            'help': 'tag all messages that match the current search query'}),
+        (['tags'], {'help': 'comma separated list of tag operations'})],
+    help='add/remove tags to all messages in the selected thread',
+)
+
 class TagCommand(Command):
 
     """manipulate message tags"""
@@ -154,8 +167,8 @@ class TagCommand(Command):
         :param tags: comma separated list of tagstrings to set
         :type tags: str
         :param action: adds tags if 'add', removes them if 'remove', adds tags
-                       and removes all other if 'set' or toggle individually if
-                       'toggle'
+                       and removes all other if 'set', toggle individually if
+                       'toggle', or add or remove tags as per list of tag operations
         :type action: str
         :param allmessages: tag all messages in search result
         :type allmessages: bool
@@ -216,6 +229,8 @@ class TagCommand(Command):
             elif self.action == 'toggle':
                 if not self.allm:
                     ui.dbman.toggle_tags(testquery, tags, afterwards=refresh)
+            elif self.action == "apply":
+                ui.dbman.apply_tags(testquery, tags)
         except DatabaseROError:
             ui.notify('index in read-only mode', priority='error')
             return

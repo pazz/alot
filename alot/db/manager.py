@@ -140,6 +140,18 @@ class DBManager:
                                             msg.tags.discard(tag)
                                         for tag in to_add:
                                             msg.tags.add(tag)
+                                    elif cmd == 'apply':
+                                        for tag in tags:
+                                            op = tag[:1]
+                                            remainder = tag[1:]
+                                            if (op == '+'):
+                                                if len(remainder) > 0:
+                                                    msg.tags.add(remainder)
+                                            elif (op == '-'):
+                                                if len(remainder) > 0:
+                                                    msg.tags.discard(remainder)
+                                            else:
+                                                msg.tags.add(tag)
                                     else:
                                         if cmd == 'set':
                                             msg.tags.clear()
@@ -248,6 +260,29 @@ class DBManager:
         if self.ro:
             raise DatabaseROError()
         self.writequeue.append(('toggle', afterwards, querystring, tags))
+
+    def apply_tags(self, querystring, tags, afterwards=None):
+        """
+        adds/removes tags to messages matching `querystring`.
+        This appends an apply operation to the write queue and raises
+        :exc:`~errors.DatabaseROError` if in read only mode.
+
+        :param querystring: notmuch search string
+        :type querystring: str
+        :param tags: a list of tags operations: +tag is added, -tag is removed
+        :type tags: list of str
+        :param afterwards: callback that gets called after successful
+                           application of this tagging operation
+        :type afterwards: callable
+        :exception: :exc:`~errors.DatabaseROError`
+
+        .. note::
+            This only adds the requested operation to the write queue.
+            You need to call :meth:`DBManager.flush` to actually write out.
+        """
+        if self.ro:
+            raise DatabaseROError()
+        self.writequeue.append(('apply', afterwards, querystring, tags))
 
     def count_messages(self, querystring):
         """returns number of messages that match `querystring`"""
