@@ -104,8 +104,8 @@ RetagPromptCommand = registerCommand(MODE, 'retagprompt')(RetagPromptCommand)
                           'default': 'True',
                           'help': 'postpone a writeout to the index'}),
         (['--all'], {'action': 'store_true', 'dest': 'allmessages',
-            'default': False,
-            'help': 'tag all messages that match the current search query'}),
+                     'default': False,
+                     'help': 'tag all messages that match the current search query'}),
         (['tags'], {'help': 'comma separated list of tags'})],
     help='add tags to all messages in the selected thread',
 )
@@ -116,8 +116,8 @@ RetagPromptCommand = registerCommand(MODE, 'retagprompt')(RetagPromptCommand)
                           'default': 'True',
                           'help': 'postpone a writeout to the index'}),
         (['--all'], {'action': 'store_true', 'dest': 'allmessages',
-            'default': False,
-            'help': 'retag all messages that match the current query'}),
+                     'default': False,
+                     'help': 'retag all messages that match the current query'}),
         (['tags'], {'help': 'comma separated list of tags'})],
     help='set tags to all messages in the selected thread',
 )
@@ -128,8 +128,8 @@ RetagPromptCommand = registerCommand(MODE, 'retagprompt')(RetagPromptCommand)
                           'default': 'True',
                           'help': 'postpone a writeout to the index'}),
         (['--all'], {'action': 'store_true', 'dest': 'allmessages',
-            'default': False,
-            'help': 'untag all messages that match the current query'}),
+                     'default': False,
+                     'help': 'untag all messages that match the current query'}),
         (['tags'], {'help': 'comma separated list of tags'})],
     help='remove tags from all messages in the selected thread',
 )
@@ -150,13 +150,11 @@ RetagPromptCommand = registerCommand(MODE, 'retagprompt')(RetagPromptCommand)
                           'default': 'True',
                           'help': 'postpone a writeout to the index'}),
         (['--all'], {'action': 'store_true', 'dest': 'allmessages',
-            'default': False,
-            'help': 'tag all messages that match the current search query'}),
+                     'default': False,
+                     'help': 'tag all messages that match the current search query'}),
         (['tags'], {'nargs': argparse.REMAINDER, 'help': 'comma separated list of tag operations'})],
-         
     help='add/remove tags to all messages in the selected thread',
 )
-
 class TagCommand(Command):
 
     """manipulate message tags"""
@@ -240,7 +238,7 @@ class TagCommand(Command):
                         ui.notify('empty tag operation', priority='error')
                     else:
                         op = tag_op[:1]
-                        tag = tag_op[:1]
+                        tag = tag_op[1:]
                         if op == '+':
                             to_add.append(tag)
                         elif op == '-':
