@@ -121,6 +121,17 @@ class DBManager:
                             value = current_item[3]
                             db.config[key] = value
 
+                        elif cmd == 'apply':
+                            querystring, to_add, to_remove = current_item[2:]
+                            for msg in db.messages(querystring):
+                                with msg.frozen():
+                                    for tag in to_add:
+                                        msg.tags.add(tag)
+                                    for tag in to_remove:
+                                        msg.tags.discard(tag)
+                                    if sync:
+                                        msg.tags.to_maildir_flags()
+
                         else:  # tag/set/untag
                             querystring, tags = current_item[2:]
                             if cmd == 'toggle':
@@ -140,18 +151,6 @@ class DBManager:
                                             msg.tags.discard(tag)
                                         for tag in to_add:
                                             msg.tags.add(tag)
-                                    elif cmd == 'apply':
-                                        for tag in tags:
-                                            op = tag[:1]
-                                            remainder = tag[1:]
-                                            if (op == '+'):
-                                                if len(remainder) > 0:
-                                                    msg.tags.add(remainder)
-                                            elif (op == '-'):
-                                                if len(remainder) > 0:
-                                                    msg.tags.discard(remainder)
-                                            else:
-                                                msg.tags.add(tag)
                                     else:
                                         if cmd == 'set':
                                             msg.tags.clear()
@@ -261,7 +260,7 @@ class DBManager:
             raise DatabaseROError()
         self.writequeue.append(('toggle', afterwards, querystring, tags))
 
-    def apply_tags(self, querystring, tags, afterwards=None):
+    def apply_tags(self, querystring, tags_add, tags_remove, afterwards=None):
         """
         adds/removes tags to messages matching `querystring`.
         This appends an apply operation to the write queue and raises
@@ -282,7 +281,7 @@ class DBManager:
         """
         if self.ro:
             raise DatabaseROError()
-        self.writequeue.append(('apply', afterwards, querystring, tags))
+        self.writequeue.append(('apply', afterwards, querystring, tags_add, tags_remove))
 
     def count_messages(self, querystring):
         """returns number of messages that match `querystring`"""
