@@ -152,7 +152,7 @@ RetagPromptCommand = registerCommand(MODE, 'retagprompt')(RetagPromptCommand)
         (['--all'], {'action': 'store_true', 'dest': 'allmessages',
                      'default': False,
                      'help': 'tag all messages that match the current search query'}),
-        (['tags'], {'nargs': argparse.REMAINDER, 'help': 'comma separated list of tag operations'})],
+        (['tags'], {'nargs': argparse.REMAINDER, 'help': 'list of tag operations'})],
     help='add/remove tags to all messages in the selected thread',
 )
 class TagCommand(Command):
@@ -240,13 +240,16 @@ class TagCommand(Command):
                         op = tag_op[:1]
                         tag = tag_op[1:]
                         if op == '+':
-                            to_add.append(tag)
+                            if len(tag) > 0:
+                                to_add.append(tag)
                         elif op == '-':
-                            to_remove.append(tag)
+                            if len(tag) > 0:
+                                to_remove.append(tag)
                         else:
                             ui.notify('applying invalid tag operation: ' + tag_op, priority='error')
                             return
-                ui.dbman.apply_tags(testquery, to_add, to_remove)
+                if len(to_add) > 0 or len(to_remove) > 0:
+                    ui.dbman.apply_tags(testquery, to_add, to_remove)
 
         except DatabaseROError:
             ui.notify('index in read-only mode', priority='error')
