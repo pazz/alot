@@ -273,7 +273,7 @@ class UI:
             return self.apply_command(cmd)
 
         try:
-           for c in split_commandline(cmdline):
+            for c in split_commandline(cmdline):
                 await apply_this_command(c)
         except Exception as e:
             if isinstance(e, SequenceCanceled):
