@@ -594,3 +594,25 @@ def get_xdg_env(env_name, fallback):
     """ Used for XDG_* env variables to return fallback if unset *or* empty """
     env = os.environ.get(env_name)
     return env if env else fallback
+
+
+def get_notmuch_config_path():
+    """ Find the notmuch config file via env vars and default locations """
+    # This code is modeled after the description in nomtuch-config(1)
+    # Case 1 is only applicable for the notmuch CLI
+    # Case 2: the NOTMUCH_CONFIG env variable
+    value = os.environ.get('NOTMUCH_CONFIG')
+    if value is not None:
+        return value
+    # Case 3: new location in XDG config directory
+    profile = os.environ.get('NOTMUCH_PROFILE', 'default')
+    value = os.path.join(get_xdg_env('XDG_CONFIG_HOME',
+                                     os.path.expanduser('~/.config')),
+                         'notmuch', profile, 'config')
+    if os.path.exists(value):
+        return value
+    # Case 4: traditional location in $HOME
+    profile = os.environ.get('NOTMUCH_PROFILE', '')
+    if profile:
+        profile = '.' + profile
+    return os.path.expanduser('~/.notmuch-config' + profile)

@@ -9,7 +9,7 @@ import sys
 import alot
 from alot.settings.const import settings
 from alot.settings.errors import ConfigError
-from alot.helper import get_xdg_env
+from alot.helper import get_xdg_env, get_notmuch_config_path
 from alot.db.manager import DBManager
 from alot.ui import UI
 from alot.commands import *
@@ -34,9 +34,7 @@ def parser():
                         validator=cargparse.require_file,
                         help='configuration file')
     parser.add_argument('-n', '--notmuch-config', metavar='FILENAME',
-                        default=os.environ.get(
-                            'NOTMUCH_CONFIG',
-                            os.path.expanduser('~/.notmuch-config')),
+                        default=get_notmuch_config_path(),
                         action=cargparse.ValidatedStoreAction,
                         validator=cargparse.require_file,
                         help='notmuch configuration file')
