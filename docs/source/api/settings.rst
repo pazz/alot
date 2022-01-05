@@ -17,9 +17,10 @@ There are four types of user settings:
 |                                    | or as given by the `hooksfile`   |                                             |
 |                                    | config value                     |                                             |
 +------------------------------------+----------------------------------+---------------------------------------------+
-| notmuch config                     | :file:`~/.notmuch-config` or     | :meth:`SettingsManager.get_notmuch_setting` |
-|                                    | given by `$NOTMUCH_CONFIG` or    |                                             |
+| notmuch config                     | notmuch config file as           | :meth:`SettingsManager.get_notmuch_setting` |
 |                                    | given by command option `-n`     |                                             |
+|                                    | or its default location          |                                             |
+|                                    | described in `notmuch-config(1)` |                                             |
 +------------------------------------+----------------------------------+---------------------------------------------+
 | mailcap -- defines shellcommands   | :file:`~/.mailcap`               | :meth:`SettingsManager.mailcap_find_match`  |
 | to handle mime types               | (:file:`/etc/mailcap`)           |                                             |

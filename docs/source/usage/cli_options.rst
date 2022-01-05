@@ -2,8 +2,7 @@
 -c FILENAME, --config=FILENAME
                  configuration file (default: ~/.config/alot/config)
 -n FILENAME, --notmuch-config=FILENAME
-                 notmuch configuration file (default: $NOTMUCH_CONFIG
-                 or ~/.notmuch-config)
+                 notmuch configuration file (default: see notmuch-config(1))
 -C COLOURS, --colour-mode=COLOURS
                  number of colours to use on the terminal; must be 1, 16 or 256
                  (default: configuration option `colourmode` or 256)
