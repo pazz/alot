@@ -35,6 +35,7 @@ from ..db.envelope import Envelope
 from ..settings.const import settings
 from ..settings.errors import ConfigError, NoMatchingAccount
 from ..utils import argparse as cargparse
+from ..settings.theme import Theme
 
 MODE = 'global'
 
@@ -1086,6 +1087,28 @@ class ReloadCommand(Command):
             settings.reload()
         except ConfigError as e:
             ui.notify('Error when reloading config files:\n {}'.format(e),
+                      priority='error')
+
+@registerCommand(MODE, 'theme',     arguments=[
+    (['theme_name'], {'help': 'Name of the theme'})], help='Select your own them')
+class ThemeCommand(Command):
+
+    """move in widget"""
+    def __init__(self, theme_name=None, **kwargs):
+        self.theme = theme_name
+        # if movement is None:
+        #     self.movement = ''
+        # else:
+        #     self.movement = ' '.join(movement)
+        Command.__init__(self, **kwargs)
+
+    """Reload configuration."""
+    def apply(self, ui):
+        # theme = matt
+        try:
+            settings._theme = Theme(self.theme)
+        except ConfigError as e:
+            ui.notify('Error when loading  theme:\n {}'.format(e),
                       priority='error')
 
 

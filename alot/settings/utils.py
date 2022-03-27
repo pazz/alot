@@ -32,6 +32,7 @@ def read_config(configpath=None, specpath=None, checks=None,
 
     try:
         config = ConfigObj(infile=configpath, configspec=specpath,
+                raise_errors = True,
                            file_error=True, encoding='UTF8')
     except ConfigObjError as e:
         msg = 'Error when parsing `%s`:\n%s' % (configpath, e)
