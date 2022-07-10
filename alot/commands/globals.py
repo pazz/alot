@@ -1105,10 +1105,24 @@ class ThemeCommand(Command):
     """Reload configuration."""
     def apply(self, ui):
         # theme = matt
+        
         try:
-            settings._theme = Theme(self.theme)
+            themes_dir = settings._config.get('themes_dir')
+
+            theme_path = Theme.find(self.theme, themes_dir)
+            if theme_path is None:
+                # theme.find_theme()
+                raise ConfigError('Could not find theme {}, see log for more '
+                                    'information'.format(self.theme))
+
+            settings._theme = Theme(theme_path)
+            logging.info("Applied theme %s", theme_path)
+            ui.current_buffer.rebuild()
+
+            ui.update()
+
         except ConfigError as e:
-            ui.notify('Error when loading  theme:\n {}'.format(e),
+            ui.notify('Error when loading theme:\n {}'.format(e),
                       priority='error')
 
 

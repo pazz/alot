@@ -33,14 +33,15 @@ def read_config(configpath=None, specpath=None, checks=None,
     try:
         config = ConfigObj(infile=configpath, configspec=specpath,
                 raise_errors = True,
-                           file_error=True, encoding='UTF8')
+                file_error=True, encoding='UTF8')
     except ConfigObjError as e:
         msg = 'Error when parsing `%s`:\n%s' % (configpath, e)
         logging.error(msg)
         raise ConfigError(msg)
-    except IOError:
-        raise ConfigError('Could not read %s and/or %s'
-                          % (configpath, specpath))
+    except IOError as e:
+        raise e
+        # print(e)
+        # raise ConfigError('Could not read %s and/or %s' % (configpath, specpath))
     except UnboundLocalError:
         # this works around a bug in configobj
         msg = '%s is malformed. Check for sections without parents..'

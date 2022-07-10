@@ -22,7 +22,6 @@ import asyncio
 import urwid
 import magic
 
-
 def split_commandline(s):
     """
     splits semi-colon separated commandlines, ignoring quoted separators
@@ -616,3 +615,11 @@ def get_notmuch_config_path():
     if profile:
         profile = '.' + profile
     return os.path.expanduser('~/.notmuch-config' + profile)
+
+# DATA_DIRS = get_xdg_env('XDG_DATA_DIRS',
+#                         '/usr/local/share:/usr/share').split(':')
+
+def get_xdg_data_dirs():
+    return get_xdg_env('XDG_DATA_DIRS',
+                        '/usr/local/share:/usr/share').split(':')
+
