@@ -11,6 +11,10 @@ On a recent Debian (-derived) systems for instance, just do `sudo apt install al
    (copiousoutput) set up for `text/html` in your :file:`~/.mailcap`::
 
      text/html;  w3m -dump -o document_charset=%{charset} '%s'; nametemplate=%s.html; copiousoutput
+
+   On more recent versions of w3m, links can be parsed and appended with reference numbers::
+
+     text/html;  w3m -dump -o document_charset=%{charset} -o display_link_number=1 '%s'; nametemplate=%s.html; copiousoutput
    
    See the manpage :manpage:`mailcap(5)` or :rfc:`1524` for more details on your mailcap setup.
 

@@ -10,6 +10,10 @@ Try `w3m <http://w3m.sourceforge.net/>`_ and put the following into your
 
    text/html;  w3m -dump -o document_charset=%{charset} '%s'; nametemplate=%s.html; copiousoutput
 
+On more recent versions of w3m, links can be parsed and appended with reference numbers::
+
+   text/html;  w3m -dump -o document_charset=%{charset} -o display_link_number=1 '%s'; nametemplate=%s.html; copiousoutput
+
 Most `text based browsers <http://en.wikipedia.org/wiki/Text-based_web_browser>`_ have
 a dump mode that can be used here.
 
