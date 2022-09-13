@@ -221,7 +221,7 @@ class ExternalCommand(Command):
             logging.debug('calling hook: touch_external_cmdlist')
             res = touchhook(cmd, shell=shell, spawn=spawn, thread=thread)
             logging.debug('got: %s', res)
-            cmd, shell, self.in_thread = res
+            cmd, shell, thread = res
         # otherwise if spawn requested and X11 is running
         elif spawn:
             if 'DISPLAY' in os.environ:
