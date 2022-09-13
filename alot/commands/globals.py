@@ -230,6 +230,7 @@ class ExternalCommand(Command):
                 termcmdlist = split_commandstring(term_cmd)
                 cmd = termcmdlist + cmd
             else:
+                logging.warning('unable to handle spawn outside of X11 without touch_external_cmdlist hook set')
                 thread = False
 
         self.cmdlist = cmd
