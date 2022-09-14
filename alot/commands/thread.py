@@ -601,6 +601,11 @@ class ChangeDisplaymodeCommand(Command):
                     mimepart = get_body_part(message.get_email(), mimetype)
                 elif self.mimepart is True:
                     mimepart = ui.get_deep_focus().mimepart
+                if isinstance(mimepart, Attachment):
+                    # We're here because we're processing this attachment using a
+                    # mailcap view entry to actually display within alot.
+                    # Therefore, extract the mimepart from the Attachment here.
+                    mimepart = mimepart.part
                 mt.set_mimepart(mimepart)
                 ui.update()
             if self.mimetree == 'toggle':
@@ -919,7 +924,7 @@ class SaveAttachmentCommand(Command):
             focus = ui.get_deep_focus()
             if isinstance(focus, AttachmentWidget):
                 attachment = focus.get_attachment()
-                filename = attachment.get_filename()
+                filename = attachment.get_filename() or ''
                 if not self.path:
                     msg = 'save attachment (%s) to ' % filename
                     initialtext = os.path.join(savedir, filename)
@@ -958,7 +963,8 @@ class OpenAttachmentCommand(Command):
             afterwards = None  # callback, will rm tempfile if used
             handler_stdin = None
             tempfile_name = None
-            handler_raw_commandstring = entry['view']
+            handler_raw_commandstring = entry.get('x-alot-openattachment', '') or entry['view']
+            logging.info("Got {}".format(handler_raw_commandstring))
             # read parameter
             part = self.attachment.get_mime_representation()
             parms = tuple('='.join(p) for p in part.get_params())
@@ -1067,6 +1073,18 @@ class ThreadSelectCommand(Command):
             await ui.apply_command(OpenAttachmentCommand(focus.get_attachment()))
         elif getattr(focus, 'mimepart', False):
             if isinstance(focus.mimepart, Attachment):
+                # Check if both an attachment opener and view are defined
+                mimetype = focus.mimepart.get_content_type()
+                _, entry = settings.mailcap_find_match(mimetype)
+                if entry.get('x-alot-openattachment', ''):
+                    # Separate view and open actions defined, so attempt to view.
+                    # We do this before open, so that whatever it's viewed as is
+                    # visible in alot in case the open is some interactive external
+                    # thing
+                    await ui.apply_command(ChangeDisplaymodeCommand(
+                        mimepart=True, mimetree='toggle'))
+                # Always attempt to open the attachment
+                # alternatively: gate behind else?
                 await ui.apply_command(OpenAttachmentCommand(focus.mimepart))
             else:
                 await ui.apply_command(ChangeDisplaymodeCommand(
