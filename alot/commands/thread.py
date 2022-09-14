@@ -963,8 +963,7 @@ class OpenAttachmentCommand(Command):
             afterwards = None  # callback, will rm tempfile if used
             handler_stdin = None
             tempfile_name = None
-            handler_raw_commandstring = entry.get('x-alot-openattachment', '') or entry['view']
-            logging.info("Got {}".format(handler_raw_commandstring))
+            handler_raw_commandstring = entry['view']
             # read parameter
             part = self.attachment.get_mime_representation()
             parms = tuple('='.join(p) for p in part.get_params())
@@ -1076,15 +1075,15 @@ class ThreadSelectCommand(Command):
                 # Check if both an attachment opener and view are defined
                 mimetype = focus.mimepart.get_content_type()
                 _, entry = settings.mailcap_find_match(mimetype)
-                if entry.get('x-alot-openattachment', ''):
-                    # Separate view and open actions defined, so attempt to view.
-                    # We do this before open, so that whatever it's viewed as is
-                    # visible in alot in case the open is some interactive external
-                    # thing
+                logging.debug('full mailcap entry: %s', entry)
+                if entry.get('x-alot-attachmenttotext', ''):
+                    # Separate view and "dump to text" actions defined, so
+                    # attempt to view. We do this before open, so that
+                    # whatever it's viewed as is visible in alot in case the
+                    # open is some interactive external thing
                     await ui.apply_command(ChangeDisplaymodeCommand(
                         mimepart=True, mimetree='toggle'))
                 # Always attempt to open the attachment
-                # alternatively: gate behind else?
                 await ui.apply_command(OpenAttachmentCommand(focus.mimepart))
             else:
                 await ui.apply_command(ChangeDisplaymodeCommand(
