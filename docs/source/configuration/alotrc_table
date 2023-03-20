@@ -462,6 +462,16 @@
     :default: 2
 
 
+.. _parse-quotes:
+
+.. describe:: parse_quotes
+
+     Enable colouring message based on quote-level
+
+    :type: boolean
+    :default: True
+
+
 .. _periodic-hook-frequency:
 
 .. describe:: periodic_hook_frequency
@@ -523,6 +533,16 @@
 
     :type: string
     :default: "> "
+
+
+.. _quote-symbol:
+
+.. describe:: quote_symbol
+
+     Set what quote symbol should be used (regex symbol is possible)
+
+    :type: string
+    :default: ">"
 
 
 .. _reply-account-header-priority:

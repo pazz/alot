@@ -51,6 +51,13 @@
             width = widthtuple(default=None)
             alignment = align(default=None)
 [thread]
+    quote_level_1 = attrtriple(default=None)
+    quote_level_2 = attrtriple(default=None)
+    quote_level_3 = attrtriple(default=None)
+    quote_level_4 = attrtriple(default=None)
+    quote_level_5 = attrtriple(default=None)
+    quote_level_6 = attrtriple(default=None)
+    quote_level_7 = attrtriple(default=None)
     arrow_heads = attrtriple
     arrow_bars = attrtriple
     attachment = attrtriple

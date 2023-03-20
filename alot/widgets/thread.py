@@ -17,6 +17,7 @@ from ..settings.const import settings
 from ..db.attachment import Attachment
 from ..db.utils import decode_header, X_SIGNATURE_MESSAGE_HEADER
 from ..helper import string_sanitize
+from .colour_text import parse_text_colour
 
 ANSI_BACKGROUND = settings.get("interpret_ansi_background")
 
@@ -97,13 +98,19 @@ class TextlinesList(SimpleTree):
         for each line in content.
         """
         structure = []
+        attr_parse = attr
 
         # depending on this config setting, we either add individual lines
         # or the complete context as focusable objects.
         if settings.get('thread_focus_linewise'):
             for line in content.splitlines():
-                structure.append((ANSIText(line, attr, attr_focus,
+                attr_parse = parse_text_colour(line)
+
+                if attr_parse is None:
+                    attr_parse = attr
+                structure.append((ANSIText(line, attr_parse, attr_focus,
                                            ANSI_BACKGROUND), None))
+                attr_parse = attr
         else:
             structure.append((ANSIText(content, attr, attr_focus,
                                        ANSI_BACKGROUND), None))
@@ -120,6 +127,7 @@ class DictList(SimpleTree):
     its sibblings will be the other pairs and first|last_child will always
     be None.
     """
+
     def __init__(self, content, key_attr, value_attr, gaps_attr=None):
         """
         :param headerslist: list of key/value pairs to display
@@ -158,6 +166,7 @@ class MessageTree(CollapsibleTree):
 
     Collapsing this message corresponds to showing the summary only.
     """
+
     def __init__(self, message, odd=True):
         """
         :param message: Message to display
@@ -372,6 +381,7 @@ class ThreadTree(Tree):
     messages. As MessageTreess are *not* urwid widgets themself this is to be
     used in combination with :class:`NestedTree` only.
     """
+
     def __init__(self, thread):
         self._thread = thread
         self.root = thread.get_toplevel_messages()[0].get_message_id()
