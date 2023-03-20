@@ -62,7 +62,7 @@
         [[[mailcount]]]
             normal = 'default','','light gray','default','g66','default'
             focus = 'standout','','yellow','light gray','yellow','g58'
-            width = 'fit', 5,5
+            width = 'fit', 9,9
         [[[tags]]]
             normal = 'bold','','dark cyan','','dark cyan',''
             focus = 'standout','','yellow','light gray','yellow','g58'
