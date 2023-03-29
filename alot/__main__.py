@@ -9,7 +9,7 @@ import sys
 import alot
 from alot.settings.const import settings
 from alot.settings.errors import ConfigError
-from alot.helper import get_xdg_env, get_notmuch_config_path
+from alot.helper import call_cmd, get_xdg_env, get_notmuch_config_path
 from alot.db.manager import DBManager
 from alot.ui import UI
 from alot.commands import *
@@ -118,8 +118,16 @@ def main():
         settings.set('colourmode', options.colour_mode)
 
     # get ourselves a database manager
-    indexpath = settings.get_notmuch_setting('database', 'path')
-    indexpath = options.mailindex_path or indexpath
+    indexpath = options.mailindex_path
+    if not indexpath:
+        cmd = ['notmuch', '--config', options.notmuch_config, 'config', 'get', 'database.path']
+        out, err, code = call_cmd(cmd)
+        if code == 0:
+            indexpath = out[:-1]  # Remove trailing newline
+        else:
+            print(f'Failed to get default database path with {cmd}:\n{err}')
+            sys.exit(1)
+
     dbman = DBManager(path=indexpath, ro=options.read_only)
 
     # determine what to do
