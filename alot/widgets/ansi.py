@@ -113,6 +113,7 @@ def parse_escapes_to_urwid(text, default_attr=None, default_attr_focus=None,
         urwid_text.append((urwid_attr, infix))
 
     def reset_attr():
+        attr.clear()
         attr.update(fg=default_attr.foreground,
                     bg=default_attr.background, bold=default_attr.bold,
                     underline=default_attr.underline,
