@@ -124,7 +124,7 @@ def parse_escapes_to_urwid(text, default_attr=None, default_attr_focus=None,
         pb, _, fb, = m.groups()
         if fb == 'm':
             # selector bit found. this means theming changes
-            if not pb:  # no bit r zero  --> reset
+            if not pb or pb == "0":
                 reset_attr()
             elif pb.startswith('38;5;'):
                 # 8-bit colour foreground
