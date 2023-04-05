@@ -3,7 +3,8 @@
 # For further details see the COPYING file
 
 import urwid
-import re
+
+from ..utils import ansi
 
 
 class ANSIText(urwid.WidgetWrap):
@@ -78,16 +79,6 @@ def parse_escapes_to_urwid(text, default_attr=None, default_attr_focus=None,
     we interpret only SGR parameters that urwid supports (excluding true color)
     See https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_sequences
     """
-
-    b1 = r'\033\['  # Control Sequence Introducer
-    b2 = r'[0-9:;<=>?]*'  # parameter bytes
-    b3 = r'[ !\"#$%&\'()*+,-./]*'  # intermediate bytes
-    b4 = r'[A-Z[\]^_`a-z{|}~]'  # final byte"
-    esc_pattern = b1 \
-        + r'(?P<pb>' + b2 + ')' \
-        + r'(?P<ib>' + b3 + ')' \
-        + r'(?P<fb>' + b4 + ')'
-
     # these two will be returned
     urwid_text = []  # we will accumulate text (with attributes) here
     # mapping from included attributes to focused attr
@@ -119,9 +110,7 @@ def parse_escapes_to_urwid(text, default_attr=None, default_attr_focus=None,
                     underline=default_attr.underline,
                     standout=default_attr.underline)
 
-    def update_attr(m):
-        # parameter, intermediate, final bytes in the esc seq
-        pb, _, fb, = m.groups()
+    def update_attr(pb, _, fb):
         if fb == 'm':
             # selector bit found. this means theming changes
             if not pb or pb == "0":
@@ -142,14 +131,8 @@ def parse_escapes_to_urwid(text, default_attr=None, default_attr_focus=None,
                     if code in ECODES:
                         attr.update(ECODES[code])
 
-    # iterate over text
-    start = 0  # points to start of current infix
+    for pb, ib, fb, infix in ansi.parse_csi(text):
+        update_attr(pb, ib, fb)
+        append_themed_infix(infix)
 
-    for m in re.finditer(esc_pattern, text):
-        infix = text[start:m.start()]  # text beween last and this Esc seq
-        append_themed_infix(infix)  # add using prev attribute
-        update_attr(m)
-        start = m.end()  # start of next infix is after this esc sec
-
-    append_themed_infix(text[start:])  # add final infix
     return urwid_text, urwid_focus
