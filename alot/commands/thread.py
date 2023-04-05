@@ -39,6 +39,7 @@ from ..settings.const import settings
 from ..helper import parse_mailcap_nametemplate
 from ..helper import split_commandstring
 from ..utils import argparse as cargparse
+from ..utils import ansi
 from ..widgets.globals import AttachmentWidget
 
 MODE = 'thread'
@@ -149,11 +150,12 @@ class ReplyCommand(Command):
             quotestring = 'Quoting %s (%s)\n' % (name or address, timestamp)
         mailcontent = quotestring
         quotehook = settings.get_hook('text_quote')
+        body_text = ansi.remove_csi(self.message.get_body_text())
         if quotehook:
-            mailcontent += quotehook(self.message.get_body_text())
+            mailcontent += quotehook(body_text)
         else:
             quote_prefix = settings.get('quote_prefix')
-            for line in self.message.get_body_text().splitlines():
+            for line in body_text.splitlines():
                 mailcontent += quote_prefix + line + '\n'
 
         envelope = Envelope(bodytext=mailcontent, replied=self.message)
