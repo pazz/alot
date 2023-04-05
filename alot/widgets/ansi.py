@@ -147,8 +147,8 @@ def parse_escapes_to_urwid(text, default_attr=None, default_attr_focus=None,
 
     for m in re.finditer(esc_pattern, text):
         infix = text[start:m.start()]  # text beween last and this Esc seq
-        update_attr(m)
         append_themed_infix(infix)  # add using prev attribute
+        update_attr(m)
         start = m.end()  # start of next infix is after this esc sec
 
     append_themed_infix(text[start:])  # add final infix
