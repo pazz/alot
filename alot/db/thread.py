@@ -49,7 +49,7 @@ class Thread:
             try:
                 first_msg = list(thread.toplevel())[0]
                 subject = first_msg.header('subject')
-            except IndexError:
+            except (IndexError, LookupError):
                 subject = ''
         self._subject = subject
 
