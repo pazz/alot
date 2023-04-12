@@ -179,8 +179,7 @@ class TagCommand(Command):
         testquery = searchbuffer.querystring
         thread = threadline_widget.get_thread()
         if not self.allm:
-            testquery = "(%s) AND thread:%s" % (testquery,
-                                                thread.get_thread_id())
+            testquery = "thread:%s" % thread.get_thread_id()
         logging.debug('all? %s', self.allm)
         logging.debug('q: %s', testquery)
 
@@ -189,7 +188,9 @@ class TagCommand(Command):
             if not self.allm:
                 # remove thread from resultset if it doesn't match the search query
                 # any more and refresh selected threadline otherwise
-                hitcount_after = ui.dbman.count_messages(testquery)
+                countquery = "(%s) AND thread:%s" % (searchbuffer.querystring,
+                                                     thread.get_thread_id())
+                hitcount_after = ui.dbman.count_messages(countquery)
                 if hitcount_after == 0:
                     logging.debug('remove thread from result list: %s', thread)
                     if threadline_widget in searchbuffer.threadlist:
