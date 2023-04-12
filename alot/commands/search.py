@@ -185,11 +185,11 @@ class TagCommand(Command):
         logging.debug('q: %s', testquery)
 
         def refresh():
-            # remove thread from resultset if it doesn't match the search query
-            # any more and refresh selected threadline otherwise
-            hitcount_after = ui.dbman.count_messages(testquery)
             # update total result count
             if not self.allm:
+                # remove thread from resultset if it doesn't match the search query
+                # any more and refresh selected threadline otherwise
+                hitcount_after = ui.dbman.count_messages(testquery)
                 if hitcount_after == 0:
                     logging.debug('remove thread from result list: %s', thread)
                     if threadline_widget in searchbuffer.threadlist:
