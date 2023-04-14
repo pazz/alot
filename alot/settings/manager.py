@@ -32,7 +32,6 @@ class SettingsManager:
     def __init__(self):
         self.hooks = None
         self._mailcaps = mailcap.getcaps()
-        self._notmuchconfig = None
         self._theme = None
         self._accounts = None
         self._accountmap = None
