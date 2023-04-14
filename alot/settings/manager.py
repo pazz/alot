@@ -17,7 +17,7 @@ from ..helper import pretty_datetime, string_decode, get_xdg_env
 from ..utils import configobj as checks
 
 from .errors import ConfigError, NoMatchingAccount
-from .utils import read_config
+from .utils import read_config, read_notmuch_config
 from .utils import resolve_att
 from .theme import Theme
 
@@ -36,12 +36,13 @@ class SettingsManager:
         self._accounts = None
         self._accountmap = None
         self._notmuchconfig = None
+        self._notmuchconfig_path = None
         self._config = ConfigObj()
         self._bindings = None
 
     def reload(self):
         """Reload notmuch and alot config files"""
-        self.read_notmuch_config(self._notmuchconfig.filename)
+        self.read_notmuch_config(self._notmuchconfig_path)
         self.read_config(self._config.filename)
 
     def read_notmuch_config(self, path):
@@ -50,8 +51,8 @@ class SettingsManager:
         :param path: path to notmuch's config file
         :type path: str
         """
-        spec = os.path.join(DEFAULTSPATH, 'notmuch.rc.spec')
-        self._notmuchconfig = read_config(path, spec)
+        self._notmuchconfig = read_notmuch_config(path)
+        self._notmuchconfig_path = path  # Set the path *after* succesful read.
 
     def _update_bindings(self, newbindings):
         assert isinstance(newbindings, Section)
@@ -275,7 +276,8 @@ class SettingsManager:
         :type key: str
         :param fallback: fallback returned if key is not present
         :type fallback: str
-        :returns: config value with type as specified in the spec-file
+        :returns: the config value
+        :rtype: str
         """
         value = None
         if section in self._notmuchconfig:

@@ -31,7 +31,6 @@ setup(
     package_data={
         'alot': [
             'defaults/alot.rc.spec',
-            'defaults/notmuch.rc.spec',
             'defaults/abook_contacts.spec',
             'defaults/default.theme',
             'defaults/default.bindings',

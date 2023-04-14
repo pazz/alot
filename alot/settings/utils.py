@@ -9,6 +9,7 @@ from validate import Validator
 from urwid import AttrSpec
 
 from .errors import ConfigError
+from ..helper import call_cmd
 
 
 def read_config(configpath=None, specpath=None, checks=None,
@@ -79,6 +80,40 @@ def read_config(configpath=None, specpath=None, checks=None,
                 else:
                     msg.append(str(val))
             logging.info('\n'.join(msg))
+    return config
+
+
+def read_notmuch_config(path):
+    """
+    Read notmuch configuration.
+
+    This function calls the command "notmuch --config {path} config list" and
+    parses its output into a ``config`` dictionary, which is then returned.
+
+    The configuration value for a key under a section can be accessed with
+    ``config[section][key]``.
+
+    The returned value is a dict ``config`` with
+
+    :param path: path to the configuration file, which is passed as
+        argument to the --config option of notmuch.
+    :type path: str
+    :raises: :class:`~alot.settings.errors.ConfigError`
+    :rtype: `dict`
+    """
+    cmd = ['notmuch', '--config', path, 'config', 'list']
+    out, err, code = call_cmd(cmd)
+    if code != 0:
+        msg = f'failed to read notmuch config with command {cmd} (exit error: {code}):\n{err}'
+        logging.error(msg)
+        raise ConfigError(msg)
+
+    config = {}
+    for line in out.splitlines():
+        left_hand, right_hand = line.split("=", maxsplit=1)
+        section, key = left_hand.split(".", maxsplit=1)
+        config.setdefault(section, {})[key] = right_hand
+
     return config
 
 

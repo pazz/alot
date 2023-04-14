@@ -72,7 +72,7 @@ class DBManager:
             raise DatabaseROError()
         if self.writequeue:
             # read notmuch's config regarding imap flag synchronization
-            sync = settings.get_notmuch_setting('maildir', 'synchronize_flags')
+            sync = settings.get_notmuch_setting('maildir', 'synchronize_flags') == 'true'
 
             # go through writequeue entries
             while self.writequeue:
