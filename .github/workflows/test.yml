@@ -5,26 +5,54 @@ on:
   - pull_request
 
 jobs:
+
   test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+
     steps:
-      - run: >
-          sudo apt update &&
-          sudo apt install -y
-          libgpgme-dev
-          python3-notmuch2
       - uses: actions/checkout@v3
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
+
+      - name: Install dependencies for the gpg and notmuch python package
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install .
+          set -e
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libgpgme-dev libxapian-dev libgmime-3.0-dev libtalloc-dev swig
+        env:
+          DEBIAN_FRONTEND: noninteractive
+
+      - name: clone the notmuch repository
+        run: git clone --depth 1 git://notmuchmail.org/git/notmuch notmuch
+
+      - name: build the notmuch bindings
+        run: |
+          set -e
+          # Make and install the library.
+          ./configure --without-bash-completion \
+                      --without-api-docs \
+                      --without-emacs \
+                      --without-desktop \
+                      --without-ruby \
+                      --without-zsh-completion
+          make
+          sudo make install
+        working-directory: notmuch
+
+      - name: Install notmuch python bindings
+        run: pip install .
+        working-directory: notmuch/bindings/python-cffi
+
+      - name: Install dependencies
+        run: pip install .
+
       - name: Run tests
         run: python3 setup.py test
