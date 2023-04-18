@@ -19,16 +19,24 @@ from ..db.errors import DatabaseROError
 MODE = 'search'
 
 
-@registerCommand(MODE, 'select')
+@registerCommand(
+    MODE, 'select',
+    arguments=[
+        (['--all-folded'], {'action': 'store_true',
+                            'dest': 'all_folded',
+                            'help': 'do not unfold matching messages'}),
+    ],
+)
 class OpenThreadCommand(Command):
 
     """open thread in a new buffer"""
-    def __init__(self, thread=None, **kwargs):
+    def __init__(self, thread=None, all_folded=False, **kwargs):
         """
         :param thread: thread to open (Uses focussed thread if unset)
         :type thread: :class:`~alot.db.Thread`
         """
         self.thread = thread
+        self.all_folded = all_folded
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
@@ -40,7 +48,8 @@ class OpenThreadCommand(Command):
 
             tb = buffers.ThreadBuffer(ui, self.thread)
             ui.buffer_open(tb)
-            tb.unfold_matching(query)
+            if not self.all_folded:
+                tb.unfold_matching(query)
 
 
 @registerCommand(MODE, 'refine', help='refine query', arguments=[
