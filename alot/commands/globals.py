@@ -73,15 +73,19 @@ class ExitCommand(Command):
 
         for b in ui.buffers:
             b.cleanup()
-        await ui.apply_command(FlushCommand(callback=ui.exit))
-        ui.cleanup()
 
         if ui.db_was_locked:
             msg = 'Database locked. Exit without saving?'
             response = await ui.choice(msg, msg_position='left', cancel='no')
             if response == 'no':
                 return
+
+        # stop event loop
+        if ui.dbman.ro:  # do it now if DB is read only
             ui.exit()
+        else:  # trigger and wait for DB flush otherwise
+            await ui.apply_command(FlushCommand(callback=ui.exit))
+        ui.cleanup()
 
 
 @registerCommand(MODE, 'search', usage='search query', arguments=[
