@@ -37,7 +37,7 @@ A full list of dependencies is below:
 
 On Debian/Ubuntu these are packaged as::
 
-  python3-setuptools python3-magic python3-configobj python3-notmuch python3-urwid python3-urwidtrees python3-gpg python3-twisted
+  python3-setuptools python3-magic python3-configobj python3-notmuch python3-urwid python3-urwidtrees python3-gpg python3-twisted python3-dev swig
   
 On Fedora/Redhat these are packaged as::
 
@@ -47,7 +47,7 @@ On Fedora/Redhat these are packaged as::
 To set up and install the latest development version::
 
   git clone https://github.com/pazz/alot
-  ./setup.py develop --user
+  poetry install --no-root
 
 Make sure :file:`~/.local/bin` is in your :envvar:`PATH`. For system-wide
 installation omit the `--user` flag and call with the respective permissions.
