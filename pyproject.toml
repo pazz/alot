@@ -34,6 +34,7 @@ gpg = "*"
 [tool.poetry.dev-dependencies]
 pycodestyle = "*"
 pytest = "*"
+sphinx = "*"
 
 [tool.poetry.scripts]
 alot = "alot.__main__:main"
