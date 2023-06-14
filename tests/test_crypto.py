@@ -126,7 +126,7 @@ class TestDetachedSignatureFor(unittest.TestCase):
             text = f.name
         self.addCleanup(os.unlink, f.name)
 
-        res = subprocess.check_call(['gpg2', '--verify', sig, text],
+        res = subprocess.check_call(['gpg', '--verify', sig, text],
                                     stdout=DEVNULL, stderr=DEVNULL)
         self.assertEqual(res, 0)
 
@@ -377,7 +377,7 @@ class TestEncrypt(unittest.TestCase):
         self.addCleanup(os.unlink, enc_file)
 
         dec = subprocess.check_output(
-            ['gpg2', '--decrypt', enc_file], stderr=DEVNULL)
+            ['gpg', '--decrypt', enc_file], stderr=DEVNULL)
         self.assertEqual(to_encrypt, dec)
 
 
