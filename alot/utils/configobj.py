@@ -106,7 +106,7 @@ def mail_container(value):
         }
     klass = uri_scheme_to_mbclass.get(mburl.scheme)
     if klass:
-        return klass(mburl.netloc + mburl.path)
+        return klass(os.path.expandvars(mburl.netloc + mburl.path))
     raise VdtTypeError(value)
 
 
