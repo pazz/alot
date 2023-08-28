@@ -268,6 +268,10 @@ auto_replyto_mailinglist = boolean(default=False)
 # prefer plaintext alternatives over html content in multipart/alternative
 prefer_plaintext = boolean(default=False)
 
+# When sending an email or saving a new draft, always delete the old draft.
+# If set to False, the user will be prompted every time.
+envelope_always_delete_old_drafts = boolean(default=False)
+
 # always edit the given body text alternative when editing outgoing messages in envelope mode.
 # alternative, and not the html source, even if that is currently displayed.
 # If unset, html content will be edited unless the current envelope shows the plaintext alternative.
