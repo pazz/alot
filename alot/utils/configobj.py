@@ -68,6 +68,13 @@ def width_tuple(value):
                        to use at least width min, and cut of at width max.
                        Here, min and max are positive integers or 0 to disable
                        the boundary.
+    ('wrap', minw, maxw, minl, maxl): behave like 'fit' but wrap text content
+                                      that exceeds width max to the next line.
+                                      Here, minl represents the minimum number
+                                      of content lines to display, regardless
+                                      of whether the content is wrapped, and
+                                      maxl represents the maximum number of
+                                      content lines to display.
     ('weight',n): have it relative weight of n compared to other columns.
                   Here, n is an int.
     """
@@ -75,11 +82,13 @@ def width_tuple(value):
         res = 'fit', 0, 0
     elif not isinstance(value, (list, tuple)):
         raise VdtTypeError(value)
-    elif value[0] not in ['fit', 'weight']:
+    elif value[0] not in ['fit', 'wrap', 'weight']:
         raise VdtTypeError(value)
     try:
         if value[0] == 'fit':
             res = 'fit', int(value[1]), int(value[2])
+        elif value[0] == 'wrap':
+            res = 'wrap', int(value[1]), int(value[2]), int(value[3]), int(value[4])
         else:
             res = 'weight', int(value[1])
     except IndexError:
