@@ -262,6 +262,8 @@ class ExternalCommand(Command):
 
         logging.info('calling external command: %s', self.cmdlist)
 
+        err = None
+        proc = None
         ret = ''
         # TODO: these can probably be refactored in terms of helper.call_cmd
         # and helper.call_cmd_async
@@ -300,7 +302,7 @@ class ExternalCommand(Command):
                     ret = str(e)
                 else:
                     _, err = proc.communicate(stdin.read() if stdin else None)
-                if proc.returncode == 0:
+                if proc and proc.returncode == 0:
                     ret = 'success'
                 elif err:
                     ret = err.decode(urwid.util.detected_encoding)
@@ -310,7 +312,7 @@ class ExternalCommand(Command):
                 self.on_success()
         else:
             msg = "editor has exited with error code {} -- {}".format(
-                    proc.returncode,
+                    "None" if proc is None else proc.returncode,
                     ret or "No stderr output")
             ui.notify(msg, priority='error')
         if self.refocus and callerbuffer in ui.buffers:
