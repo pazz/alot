@@ -164,7 +164,7 @@ def build_text_part(name, thread, struct):
 
         # pad content line by line if not long enough
         if minw:
-            lines = [pad_content(l, alignment, minw) for l in lines]
+            lines = [pad_content(line, alignment, minw) for line in lines]
 
         content = '\n'.join(lines)
     else:
