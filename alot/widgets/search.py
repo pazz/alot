@@ -181,6 +181,9 @@ def build_text_part(name, thread, struct):
 
 
 def pad_content(content, alignment, min_width):
+    """
+    pad 'content' to 'min_width' justified according to 'alignment'.
+    """
     if alignment == 'left':
         return content.ljust(min_width)
     elif alignment == 'center':
