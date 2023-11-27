@@ -77,16 +77,15 @@ def width_tuple(value):
         raise VdtTypeError(value)
     elif value[0] not in ['fit', 'weight']:
         raise VdtTypeError(value)
-    if value[0] == 'fit':
-        try:
+    try:
+        if value[0] == 'fit':
             res = 'fit', int(value[1]), int(value[2])
-        except (IndexError, ValueError):
-            raise VdtTypeError(value)
-    else:
-        try:
+        else:
             res = 'weight', int(value[1])
-        except (IndexError, ValueError):
-            raise VdtTypeError(value)
+    except IndexError:
+        raise VdtTypeError(value)
+    except ValueError:
+        raise VdtValueError(value)
     return res
 
 
