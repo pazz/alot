@@ -1,0 +1,30 @@
+name: Run code checks
+
+on:
+  - push
+  - pull_request
+
+jobs:
+
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        check:
+          - poetry check
+          - poetry build
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+
+      - name: Install poetry
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+
+      - name: Run check "${{ matrix.check }}"
+        run: "${{ matrix.check }}"
