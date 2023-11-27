@@ -19,22 +19,33 @@ class TestForceList(unittest.TestCase):
         forced = checks.force_list('')
         self.assertEqual(forced, [])
 
+
+class TestWidthTuple(unittest.TestCase):
+
     def test_validates_width_tuple(self):
         with self.assertRaises(VdtTypeError):
             checks.width_tuple('invalid-value')
 
-    def test_validates_width_tuple_for_fit(self):
+    def test_validates_width_tuple_for_fit_requires_two_args(self):
         with self.assertRaises(VdtTypeError):
             checks.width_tuple(['fit', 123])
+
+    def test_args_for_fit_must_be_numbers(self):
         with self.assertRaises(VdtValueError):
             checks.width_tuple(['fit', 123, 'not-a-number'])
+
+    def test_fit_with_two_numbers(self):
         fit_result = checks.width_tuple(['fit', 123, 456])
         self.assertEqual(('fit', 123, 456), fit_result)
 
-    def test_validates_width_tuple_for_weight(self):
+    def test_validates_width_tuple_for_weight_needs_an_argument(self):
         with self.assertRaises(VdtTypeError):
             checks.width_tuple(['weight'])
+
+    def test_arg_for_width_must_be_a_number(self):
         with self.assertRaises(VdtValueError):
             checks.width_tuple(['weight', 'not-a-number'])
+
+    def test_width_with_a_number(self):
         weight_result = checks.width_tuple(['weight', 123])
         self.assertEqual(('weight', 123), weight_result)
