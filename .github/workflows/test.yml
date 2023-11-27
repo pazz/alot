@@ -55,4 +55,4 @@ jobs:
         run: pip install .
 
       - name: Run tests
-        run: python3 setup.py test
+        run: python3 -m unittest --verbose
