@@ -13,8 +13,6 @@ classifiers=[
 	'Framework :: AsyncIO',
 	'Intended Audience :: End Users/Desktop',
 	'Operating System :: POSIX',
-	'Programming Language :: Python :: 3.6',
-	'Programming Language :: Python :: 3.7',
 	'Programming Language :: Python :: 3 :: Only',
 	'Topic :: Communications :: Email :: Email Clients (MUA)',
 	'Topic :: Database :: Front-Ends',
@@ -22,7 +20,7 @@ classifiers=[
 
 
 [tool.poetry.dependencies]
-python = ">=3.6"
+python = ">=3.8"
 notmuch2= ">=0.1"
 urwid = ">=1.3.0"
 urwidtrees = ">=1.0.3"
