@@ -6,11 +6,11 @@
 
 [global]
     footer = 'standout','','white,bold','dark blue','white,bold','#006'
-    body = 'default','','dark gray','default','g58','default'
+    body = 'default','','default','default','default','default'
     notify_error = 'standout','','white','dark red','white','dark red'
     notify_normal = 'default','','light gray','dark gray','light gray','#68a'
     prompt = 'default','','light gray','black','light gray','g11'
-    tag = 'default','','light gray','black','light gray','default'
+    tag = 'default','','dark gray','black','dark gray','default'
     tag_focus = 'standout, bold','','white','dark gray','#ffa','#68a'
 [help]
     text = 'default','','default','dark gray','default','g35'
@@ -18,23 +18,23 @@
     title = 'standout','','white','dark blue','white,bold,underline','g35'
 [bufferlist]
     line_focus = 'standout','','yellow','light gray','#ff8','g58'
-    line_even = 'default','','light gray','black','default','g3'
+    line_even = 'default','','light gray','black','default','default'
     line_odd = 'default','','light gray','black','default','default'
 [taglist]
     line_focus = 'standout','','yellow','light gray','#ff8','g58'
-    line_even = 'default','','light gray','black','default','g3'
+    line_even = 'default','','light gray','black','default','default'
     line_odd = 'default','','light gray','black','default','default'
 [namedqueries]
     line_focus = 'standout','','yellow','light gray','#ff8','g58'
-    line_even = 'default','','light gray','black','default','g3'
+    line_even = 'default','','light gray','black','default','default'
     line_odd = 'default','','light gray','black','default','default'
 [thread]
     arrow_heads = '','','dark red','','#a00',''
     arrow_bars = '','','dark red','','#800',''
     attachment = 'default','','light gray','dark gray','light gray','dark gray'
-    attachment_focus = 'underline','','light gray','light green','light gray','light green'
-    body = 'default','','light gray','default','light gray','default'
-    body_focus = 'default','','light gray','default','white','default'
+    attachment_focus = 'underline','','light gray','light green','light gray','dark gray'
+    body = 'default','','default','default','default','default'
+    body_focus = 'default','','default,standout','default','default,standout','default'
     header = 'default','','white','dark gray','white','dark gray'
     header_key = 'default','','white','dark gray','white','dark gray'
     header_value = 'default','','light gray','dark gray','light gray','dark gray'
@@ -52,10 +52,10 @@
 [search]
     [[threadline]]
         normal = 'default','','default','default','#6d6','default'
-        focus = 'standout','','light gray','light gray','g85','g58'
+        focus = 'standout','','light gray','dark gray','g85','g58'
         parts = date,mailcount,tags,authors,subject
         [[[date]]]
-            normal = 'default','','light gray','default','g74','default'
+            normal = 'default','','default','default','default','default'
             focus = 'standout','','yellow','light gray','yellow','g58'
             width = 'fit',10,10
             alignment = right
@@ -85,14 +85,14 @@
         normal = 'default','','default,bold','default','#6d6,bold','default'
         parts = date,mailcount,tags,authors,subject
         [[[date]]]
-            normal = 'default','','light gray,bold','default','white','default'
+            normal = 'default','','default,bold','default','default','default'
         [[[mailcount]]]
-            normal = 'default','','light gray,bold','default','g93','default'
+            normal = 'default','','default,bold','default','default','default'
         [[[tags]]]
             normal = 'bold','','dark cyan,bold','','#6dd',''
         [[[authors]]]
             normal = 'default,underline','','light blue,bold','default','#68f','default'
         [[[subject]]]
-            normal = 'default','','light gray,bold','default','g93','default'
+            normal = 'default','','default,bold','default','default','default'
         [[[content]]]
             normal = 'default','','light gray,bold','default','dark gray,bold','default'
