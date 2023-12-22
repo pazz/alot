@@ -116,7 +116,7 @@ class SearchCommand(Command):
             open_searches = ui.get_buffers_of_type(buffers.SearchBuffer)
             to_be_focused = None
             for sb in open_searches:
-                if sb.querystring == self.query:
+                if sb.querystrings == [self.query]:
                     to_be_focused = sb
             if to_be_focused:
                 if ui.current_buffer != to_be_focused:
