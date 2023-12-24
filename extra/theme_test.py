@@ -5,7 +5,7 @@ import sys
 import urwid
 from alot.settings import theme
 
-WIDTH = 42
+WIDTH = 44
 
 
 def as_attr(t, colourmode, name):
@@ -19,7 +19,7 @@ def as_attr(t, colourmode, name):
         attr = t._config[s[0]][s[1]][s[2]][t._colours.index(colourmode)]
     elif len(s) == 4:
         attr = t._config[s[0]][s[1]][s[2]][s[3]][t._colours.index(colourmode)]
-    return [f"{name}:".rjust(WIDTH), (attr, "A B C")]
+    return [f"{name}: ".rjust(WIDTH), (attr, "A B C")]
 
 
 def main():
@@ -35,83 +35,72 @@ def main():
 
     txt = []
     for colourmode in (1, 16, 256):
-        txt.append(
-            [
-                [f"\nColourmode: {colourmode}\n"]
-                + as_attr(t, colourmode, "global.footer")
-                + as_attr(t, colourmode, "global.body")
-                + as_attr(t, colourmode, "global.notify_error")
-                + as_attr(t, colourmode, "global.notify_normal")
-                + ["\n"]
-                + as_attr(t, colourmode, "global.prompt")
-                + as_attr(t, colourmode, "global.tag")
-                + as_attr(t, colourmode, "global.tag_focus")
-                + as_attr(t, colourmode, "help.text")
-                + ["\n"]
-                + as_attr(t, colourmode, "help.section")
-                + as_attr(t, colourmode, "help.title")
-                + as_attr(t, colourmode, "bufferlist.line_focus")
-                + as_attr(t, colourmode, "bufferlist.line_even")
-                + ["\n"]
-                + as_attr(t, colourmode, "bufferlist.line_odd")
-                + as_attr(t, colourmode, "taglist.line_focus")
-                + as_attr(t, colourmode, "taglist.line_even")
-                + as_attr(t, colourmode, "taglist.line_odd")
-                + ["\n"]
-                + as_attr(t, colourmode, "namedqueries.line_focus")
-                + as_attr(t, colourmode, "namedqueries.line_even")
-                + as_attr(t, colourmode, "namedqueries.line_odd")
-                + as_attr(t, colourmode, "thread.arrow_heads")
-                + ["\n"]
-                + as_attr(t, colourmode, "thread.arrow_bars")
-                + as_attr(t, colourmode, "thread.attachment")
-                + as_attr(t, colourmode, "thread.attachment_focus")
-                + as_attr(t, colourmode, "thread.body")
-                + ["\n"]
-                + as_attr(t, colourmode, "thread.body_focus")
-                + as_attr(t, colourmode, "thread.header")
-                + as_attr(t, colourmode, "thread.header_key")
-                + as_attr(t, colourmode, "thread.header_value")
-                + ["\n"]
-                + as_attr(t, colourmode, "thread.summary.even")
-                + as_attr(t, colourmode, "thread.summary.odd")
-                + as_attr(t, colourmode, "thread.summary.focus")
-                + as_attr(t, colourmode, "envelope.body")
-                + ["\n"]
-                + as_attr(t, colourmode, "envelope.header")
-                + as_attr(t, colourmode, "envelope.header_key")
-                + as_attr(t, colourmode, "envelope.header_value")
-                + as_attr(t, colourmode, "search.threadline.normal")
-                + ["\n"]
-                + as_attr(t, colourmode, "search.threadline.focus")
-                + as_attr(t, colourmode, "search.threadline.parts")
-                + as_attr(t, colourmode, "search.threadline.date.normal")
-                + as_attr(t, colourmode, "search.threadline.date.focus")
-                + ["\n"]
-                + as_attr(t, colourmode, "search.threadline.mailcount.normal")
-                + as_attr(t, colourmode, "search.threadline.mailcount.focus")
-                + as_attr(t, colourmode, "search.threadline.tags.normal")
-                + as_attr(t, colourmode, "search.threadline.tags.focus")
-                + ["\n"]
-                + as_attr(t, colourmode, "search.threadline.authors.normal")
-                + as_attr(t, colourmode, "search.threadline.authors.focus")
-                + as_attr(t, colourmode, "search.threadline.subject.normal")
-                + as_attr(t, colourmode, "search.threadline.subject.focus")
-                + ["\n"]
-                + as_attr(t, colourmode, "search.threadline.content.normal")
-                + as_attr(t, colourmode, "search.threadline.content.focus")
-                + as_attr(t, colourmode, "search.threadline-unread.normal")
-                + as_attr(t, colourmode, "search.threadline-unread.date.normal")
-                + ["\n"]
-                + as_attr(t, colourmode, "search.threadline-unread.mailcount.normal")
-                + as_attr(t, colourmode, "search.threadline-unread.tags.normal")
-                + as_attr(t, colourmode, "search.threadline-unread.authors.normal")
-                + as_attr(t, colourmode, "search.threadline-unread.subject.normal")
-                + ["\n"]
-                + as_attr(t, colourmode, "search.threadline-unread.content.normal")
-                + []
-            ]
-        )
+        txt += [f"\nColourmode: {colourmode}\n"]
+        for i, name in enumerate(
+            (
+                "global.footer",
+                "global.body",
+                "global.notify_error",
+                "global.notify_normal",
+                "global.prompt",
+                "global.tag",
+                "global.tag_focus",
+                "help.text",
+                "help.section",
+                "help.title",
+                "bufferlist.line_focus",
+                "bufferlist.line_even",
+                "bufferlist.line_odd",
+                "taglist.line_focus",
+                "taglist.line_even",
+                "taglist.line_odd",
+                "namedqueries.line_focus",
+                "namedqueries.line_even",
+                "namedqueries.line_odd",
+                "thread.arrow_heads",
+                "thread.arrow_bars",
+                "thread.attachment",
+                "thread.attachment_focus",
+                "thread.body",
+                "thread.body_focus",
+                "thread.header",
+                "thread.header_key",
+                "thread.header_value",
+                "thread.summary.even",
+                "thread.summary.odd",
+                "thread.summary.focus",
+                "envelope.body",
+                "envelope.header",
+                "envelope.header_key",
+                "envelope.header_value",
+                "search.threadline.normal",
+                "search.threadline.focus",
+                "search.threadline.parts",
+                "search.threadline.date.normal",
+                "search.threadline.date.focus",
+                "search.threadline.mailcount.normal",
+                "search.threadline.mailcount.focus",
+                "search.threadline.tags.normal",
+                "search.threadline.tags.focus",
+                "search.threadline.authors.normal",
+                "search.threadline.authors.focus",
+                "search.threadline.subject.normal",
+                "search.threadline.subject.focus",
+                "search.threadline.content.normal",
+                "search.threadline.content.focus",
+                "search.threadline-unread.normal",
+                "search.threadline-unread.date.normal",
+                "search.threadline-unread.mailcount.normal",
+                "search.threadline-unread.tags.normal",
+                "search.threadline-unread.authors.normal",
+                "search.threadline-unread.subject.normal",
+                "search.threadline-unread.content.normal",
+            )
+        ):
+            txt += as_attr(t, colourmode, name)
+            if i % 4 == 0:
+                txt.append("\n")
+
     fill = urwid.Filler(urwid.Text(txt), "top")
 
     loop = urwid.MainLoop(fill)
