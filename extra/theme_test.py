@@ -22,17 +22,7 @@ def as_attr(t, colourmode, name):
     return [f"{name}: ".rjust(WIDTH), (attr, "A B C")]
 
 
-def main():
-    """
-    Theme tester
-    """
-    if len(sys.argv) > 1:
-        theme_filename = sys.argv[1]
-    else:
-        theme_filename = "alot/defaults/default.theme"
-    with open(theme_filename, encoding="utf8") as f:
-        t = theme.Theme(f)
-
+def show_theme(t):
     txt = []
     for colourmode in (1, 16, 256):
         txt += [f"\nColourmode: {colourmode}\n"]
@@ -105,6 +95,20 @@ def main():
 
     loop = urwid.MainLoop(fill)
     loop.run()
+
+
+def main():
+    """
+    Theme tester
+    """
+    if len(sys.argv) > 1:
+        theme_filename = sys.argv[1]
+    else:
+        theme_filename = "alot/defaults/default.theme"
+    with open(theme_filename, encoding="utf8") as f:
+        t = theme.Theme(f)
+
+    show_theme(t)
 
 
 if __name__ == "__main__":
