@@ -214,3 +214,8 @@ You can use this feature to let your HTML renderer interpret colours from html m
 
   text/html; elinks -force-html -dump -dump-color-mode 3 -dump-charset utf8 -eval 'set document.codepage.assume = "%{charset}"' %s; copiousoutput
 
+
+Test your theme
+---------------
+
+Use the script in `extra/theme_test.py` to test your theme file. You should test with different terminal configurations, take black-on-white and white-on-black themes in account.
