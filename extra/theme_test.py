@@ -22,7 +22,7 @@ def as_attr(t, colourmode, name):
     return [f"{name}: ".rjust(WIDTH), (attr, "A B C")]
 
 
-def show_theme(t):
+def get_text(t):
     txt = []
     for colourmode in (1, 16, 256):
         txt += [f"\nColourmode: {colourmode}\n"]
@@ -90,11 +90,7 @@ def show_theme(t):
             txt += as_attr(t, colourmode, name)
             if i % 4 == 0:
                 txt.append("\n")
-
-    fill = urwid.Filler(urwid.Text(txt), "top")
-
-    loop = urwid.MainLoop(fill)
-    loop.run()
+    return txt
 
 
 def main():
@@ -108,7 +104,10 @@ def main():
     with open(theme_filename, encoding="utf8") as f:
         t = theme.Theme(f)
 
-    show_theme(t)
+    fill = urwid.Filler(urwid.Text(get_text(t)), "top")
+
+    loop = urwid.MainLoop(fill)
+    loop.run()
 
 
 if __name__ == "__main__":
