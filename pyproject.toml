@@ -27,7 +27,7 @@ urwidtrees = ">=1.0.3"
 twisted = ">=18.4.0"
 python-magic = "*"
 configobj = ">=4.7.0"
-gpg = "*"
+gpg = ">1.10.0"
 
 [tool.poetry.dev-dependencies]
 pycodestyle = "*"

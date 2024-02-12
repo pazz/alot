@@ -47,7 +47,7 @@ setup(
         'twisted>=18.4.0',
         'python-magic',
         'configobj>=4.7.0',
-        'gpg'
+        'gpg>1.10.0'
     ],
     provides=['alot'],
     test_suite="tests",
