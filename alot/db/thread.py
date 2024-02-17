@@ -3,8 +3,10 @@
 # For further details see the COPYING file
 from datetime import datetime
 
+from ..helper import string_sanitize
 from .message import Message
 from ..settings.const import settings
+from .utils import decode_header
 
 
 class Thread:
@@ -44,11 +46,11 @@ class Thread:
 
         subject_type = settings.get('thread_subject')
         if subject_type == 'notmuch':
-            subject = thread.subject
+            subject = string_sanitize(thread.subject)
         elif subject_type == 'oldest':
             try:
                 first_msg = list(thread.toplevel())[0]
-                subject = first_msg.header('subject')
+                subject = decode_header(first_msg.header('subject'))
             except (IndexError, LookupError):
                 subject = ''
         self._subject = subject
