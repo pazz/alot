@@ -292,7 +292,7 @@ class DBManager:
         mode = Database.MODE.READ_ONLY
         with Database(path=self.path, mode=mode) as db:
             try:
-                yield db.find_message(mid)
+                yield db.find(mid)
             except:
                 errmsg = 'no message with id %s exists!' % mid
                 raise NonexistantObjectError(errmsg)
