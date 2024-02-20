@@ -78,9 +78,21 @@ class MessageSummaryWidget(urwid.WidgetWrap):
     def __str__(self):
         author, address = self.message.get_author()
         date = self.message.get_datestring()
+        subject = self.message.get_subject()
         rep = author if author != '' else address
         if date is not None:
             rep += " (%s)" % date
+
+        # Hide Subjects which are replies to the parent message.
+        # This allows threads containing multiple messages with distinct
+        # subjects to be displayed without adding noise to the replies.
+        parent = self.message.get_parent()
+        if parent:
+            psubject = parent.get_subject()
+            subject = subject.replace(psubject, "...")
+
+        rep += ": " + subject
+
         return rep
 
     def selectable(self):
