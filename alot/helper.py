@@ -12,6 +12,7 @@ import os
 import re
 import shlex
 import subprocess
+import unicodedata
 import email
 from email.mime.audio import MIMEAudio
 from email.mime.base import MIMEBase
@@ -41,6 +42,17 @@ def split_commandstring(cmdstring):
     return shlex.split(cmdstring)
 
 
+def unicode_printable(c):
+    """
+    Checks if the given character is a printable Unicode character, i.e., not a
+    private/unassigned character and not a control character other than tab or
+    newline.
+    """
+    if c in ('\n', '\t'):
+        return True
+    return unicodedata.category(c) not in ('Cc', 'Cn', 'Co')
+
+
 def string_sanitize(string, tab_width=8):
     r"""
     strips, and replaces non-printable characters
@@ -57,7 +69,7 @@ def string_sanitize(string, tab_width=8):
     'foo             bar'
     """
 
-    string = string.replace('\r', '')
+    string = ''.join([c for c in string if unicode_printable(c)])
 
     lines = list()
     for line in string.split('\n'):
