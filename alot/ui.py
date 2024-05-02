@@ -95,8 +95,8 @@ class UI:
         mainframe = urwid.Frame(urwid.SolidFill())
         self.root_widget = urwid.AttrMap(mainframe, global_att)
 
-        signal.signal(signal.SIGINT, self.handle_signal)
-        signal.signal(signal.SIGUSR1, self.handle_signal)
+        signal.signal(signal.SIGINT, self._handle_signal)
+        signal.signal(signal.SIGUSR1, self._handle_signal)
 
         # load histories
         self._cache = os.path.join(
@@ -728,7 +728,16 @@ class UI:
                     logging.info('calling post-hook')
                     await cmd.posthook(ui=self, dbm=self.dbman, cmd=cmd)
 
-    def handle_signal(self, signum, frame):
+    def _handle_signal(self, signum, _frame):
+        """
+        Handle UNIX signals: add a new task onto the event loop.
+        Doing it this way ensures what our handler has access to whatever
+        synchronization primitives or async calls it may require.
+        """
+        loop = asyncio.get_event_loop()
+        asyncio.run_coroutine_threadsafe(self.handle_signal(signum), loop)
+
+    async def handle_signal(self, signum):
         """
         handles UNIX signals
 
@@ -736,13 +745,11 @@ class UI:
         handle more
 
         :param signum: The signal number (see man 7 signal)
-        :param frame: The execution frame
-            (https://docs.python.org/2/reference/datamodel.html#frame-objects)
         """
         # it is a SIGINT ?
         if signum == signal.SIGINT:
             logging.info('shut down cleanly')
-            asyncio.ensure_future(self.apply_command(globals.ExitCommand()))
+            await self.apply_command(globals.ExitCommand())
         elif signum == signal.SIGUSR1:
             if isinstance(self.current_buffer, SearchBuffer):
                 self.current_buffer.rebuild()
