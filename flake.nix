@@ -32,6 +32,8 @@
               notmuch2 = pkgs.python3.pkgs.notmuch2;
             });
 
+            nativeCheckInputs = with pkgs; [ gnupg notmuch procps ];
+            checkPhase = "python3 -m unittest -v";
           };
           default = self.packages.${system}.alot;
         };
