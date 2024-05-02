@@ -1,4 +1,4 @@
-name: Run code checks
+name: Run code checks with different build tools
 
 on:
   - push
@@ -6,7 +6,7 @@ on:
 
 jobs:
 
-  check:
+  poetry:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -28,3 +28,15 @@ jobs:
 
       - name: Run check "${{ matrix.check }}"
         run: "${{ matrix.check }}"
+
+  nix-flake:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Install Nix
+      uses: cachix/install-nix-action@v22
+
+    - uses: actions/checkout@v4
+
+    - name: Build the nix derivation (also runs the tests)
+      run: nix build --print-build-logs
