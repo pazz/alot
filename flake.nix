@@ -1,5 +1,5 @@
 {
-  description = "Application packaged using poetry2nix";
+  description = "alot: Terminal-based Mail User Agent";
 
   inputs.flake-utils.url = "github:numtide/flake-utils";
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -12,9 +12,8 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         # see https://github.com/nix-community/poetry2nix/tree/master#api for more functions and examples.
-        inherit (poetry2nix.legacyPackages.${system}) mkPoetryApplication;
         pkgs = nixpkgs.legacyPackages.${system};
-
+        inherit (poetry2nix.lib.mkPoetry2Nix { inherit pkgs; }) mkPoetryApplication overrides;
       in
       {
         packages = {
@@ -28,7 +27,7 @@
               pkgs.gpgme.dev
               pkgs.python3.pkgs.cffi
             ];
-            overrides = poetry2nix.legacyPackages.${system}.overrides.withDefaults (final: prev: {
+            overrides = overrides.withDefaults (final: prev: {
               gpg = prev.gpgme;
               notmuch2 = pkgs.python3.pkgs.notmuch2;
             });
