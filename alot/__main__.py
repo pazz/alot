@@ -2,6 +2,7 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 import argparse
+import locale
 import logging
 import os
 import sys
@@ -85,6 +86,9 @@ def main():
     """The main entry point to alot.  It parses the command line and prepares
     for the user interface main loop to run."""
     options, command = parser()
+
+    # locale
+    locale.setlocale(locale.LC_ALL, '')
 
     # logging
     root_logger = logging.getLogger()
