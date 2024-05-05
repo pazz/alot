@@ -34,6 +34,12 @@ pycodestyle = "*"
 pytest = "*"
 sphinx = "*"
 
+[tool.poetry.group.doc]
+optional = true
+
+[tool.poetry.group.doc.dependencies]
+sphinx = "*"
+
 [tool.poetry.scripts]
 alot = "alot.__main__:main"
 
