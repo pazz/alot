@@ -423,23 +423,6 @@ class TestCallCmdAsync(unittest.TestCase):
         self.assertEqual(ret[0], 'foo')
 
     @utilities.async_test
-    async def test_env_set(self):
-        with mock.patch.dict(os.environ, {}, clear=True):
-            ret = await helper.call_cmd_async(
-                ['python3', '-c', 'import os; '
-                                  'print(os.environ.get("foo", "fail"), end="")'
-                ],
-                env={'foo': 'bar'})
-        self.assertEqual(ret[0], 'bar')
-
-    @utilities.async_test
-    async def test_env_doesnt_pollute(self):
-        with mock.patch.dict(os.environ, {}, clear=True):
-            await helper.call_cmd_async(['echo', '-n', 'foo'],
-                                        env={'foo': 'bar'})
-            self.assertEqual(os.environ, {})
-
-    @utilities.async_test
     async def test_command_fails(self):
         _, err, ret = await helper.call_cmd_async(['_____better_not_exist'])
         self.assertEqual(ret, 1)

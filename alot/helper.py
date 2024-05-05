@@ -285,7 +285,7 @@ def call_cmd(cmdlist, stdin=None):
     return out, err, ret
 
 
-async def call_cmd_async(cmdlist, stdin=None, env=None):
+async def call_cmd_async(cmdlist, stdin=None):
     """Given a command, call that command asynchronously and return the output.
 
     This function only handles `OSError` when creating the subprocess, any
@@ -305,15 +305,10 @@ async def call_cmd_async(cmdlist, stdin=None, env=None):
     termenc = urwid.util.detected_encoding
     cmdlist = [s.encode(termenc) for s in cmdlist]
 
-    environment = os.environ.copy()
-    if env is not None:
-        environment.update(env)
-    logging.debug('ENV = %s', environment)
     logging.debug('CMD = %s', cmdlist)
     try:
         proc = await asyncio.create_subprocess_exec(
             *cmdlist,
-            env=environment,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
             stdin=asyncio.subprocess.PIPE if stdin else None)
