@@ -4,10 +4,11 @@
 
 """Test suite for alot.db.manager module."""
 
-import tempfile
-import textwrap
 import os
 import shutil
+import tempfile
+import textwrap
+from unittest import mock
 
 from alot.db.manager import DBManager
 from alot.settings.const import settings
@@ -43,10 +44,18 @@ class TestDBManager(utilities.TestCaseClassCleanup):
         settings.read_notmuch_config(cls.notmuch_config_path)
 
     def test_save_named_query(self):
-        alias = 'key'
-        querystring = 'query string'
-        self.manager.save_named_query(alias, querystring)
-        self.manager.flush()
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
+            f.write(textwrap.dedent("""\
+                [maildir]
+                synchronize_flags = true
+                """))
+        self.addCleanup(os.unlink, f.name)
 
-        named_queries_dict = self.manager.get_named_queries()
-        self.assertDictEqual(named_queries_dict, {alias: querystring})
+        with mock.patch.dict('os.environ', NOTMUCH_CONFIG=f.name):
+            alias = 'key'
+            querystring = 'query string'
+            self.manager.save_named_query(alias, querystring)
+            self.manager.flush()
+
+            named_queries_dict = self.manager.get_named_queries()
+            self.assertDictEqual(named_queries_dict, {alias: querystring})
