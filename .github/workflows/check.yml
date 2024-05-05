@@ -31,6 +31,12 @@ jobs:
 
   nix-flake:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        derivation:
+          - default
+          - docs
 
     steps:
     - name: Install Nix
@@ -38,5 +44,5 @@ jobs:
 
     - uses: actions/checkout@v4
 
-    - name: Build the nix derivation (also runs the tests)
-      run: nix build --print-build-logs
+    - name: Build the ${{ matrix.derivation }} derivation
+      run: 'nix build --print-build-logs .\#${{ matrix.derivation }}'
