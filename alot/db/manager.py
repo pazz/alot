@@ -51,9 +51,7 @@ class DBManager:
         if exclude_tags is not None:
             return exclude_tags
 
-        exclude_tags = settings.get_notmuch_setting('search', 'exclude_tags')
-        if exclude_tags:
-            return [t for t in exclude_tags.split(';') if t]
+        return settings.get_notmuch_setting('search', 'exclude_tags')
 
     def flush(self):
         """
@@ -72,7 +70,7 @@ class DBManager:
             raise DatabaseROError()
         if self.writequeue:
             # read notmuch's config regarding imap flag synchronization
-            sync = settings.get_notmuch_setting('maildir', 'synchronize_flags') == 'true'
+            sync = settings.get_notmuch_setting('maildir', 'synchronize_flags')
 
             # go through writequeue entries
             while self.writequeue:

@@ -93,13 +93,15 @@ def read_notmuch_config(path):
     The configuration value for a key under a section can be accessed with
     ``config[section][key]``.
 
-    The returned value is a dict ``config`` with
+    The returned value is a dict ``config`` with some values converted to
+    special python types.  These are the values that alot is known to use.  All
+    other values in the returned dict are just strings.
 
     :param path: path to the configuration file, which is passed as
         argument to the --config option of notmuch.
     :type path: str
     :raises: :class:`~alot.settings.errors.ConfigError`
-    :rtype: `dict`
+    :rtype: dict
     """
     cmd = ['notmuch', '--config', path, 'config', 'list']
     out, err, code = call_cmd(cmd)
@@ -112,6 +114,23 @@ def read_notmuch_config(path):
     for line in out.splitlines():
         left_hand, right_hand = line.split("=", maxsplit=1)
         section, key = left_hand.split(".", maxsplit=1)
+        if section == "maildir" and key == "synchronize_flags":
+            if right_hand == "true":
+                right_hand = True
+            elif right_hand == "false":
+                right_hand = False
+            else:
+                raise ConfigError(
+                    f"Bad value for maildir.synchronize_flags: {right_hand}")
+        if section == "search" and key == "exclude_tags":
+            try:
+                if right_hand:
+                    right_hand = [t for t in right_hand.split(';') if t]
+                else:
+                    right_hand = None
+            except:
+                raise ConfigError(
+                    "Can not split search.exclude_tags into a list: {right_hand}")
         config.setdefault(section, {})[key] = right_hand
 
     return config
