@@ -1,3 +1,10 @@
+# WARNING: This workflow is deactivated until the gpg dependency problem from
+# issue 1630 (see
+# https://github.com/pazz/alot/issues/1630#issuecomment-1938174029 and
+# onwards) is fixed.  The problem was introduced in c1137ea9: the gpg
+# dependency is required with version > 1.10.0 and such a version is not
+# currently available on PyPI but must be build from hand.
+
 name: Run tests
 
 on:

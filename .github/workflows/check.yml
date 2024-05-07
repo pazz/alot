@@ -7,6 +7,11 @@ on:
 jobs:
 
   poetry:
+
+    # TODO remove this line after the gpg dependency problem from #1630 and
+    # c1137ea9 is fixed. Until then these checks are deactivated.
+    if: false
+
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
