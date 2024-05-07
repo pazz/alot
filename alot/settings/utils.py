@@ -110,28 +110,21 @@ def read_notmuch_config(path):
         logging.error(msg)
         raise ConfigError(msg)
 
+    parsed = ConfigObj(infile=out.splitlines(), interpolation=False,
+                       list_values=False)
+
     config = {}
-    for line in out.splitlines():
-        left_hand, right_hand = line.split("=", maxsplit=1)
-        section, key = left_hand.split(".", maxsplit=1)
-        if section == "maildir" and key == "synchronize_flags":
-            if right_hand == "true":
-                right_hand = True
-            elif right_hand == "false":
-                right_hand = False
-            else:
-                raise ConfigError(
-                    f"Bad value for maildir.synchronize_flags: {right_hand}")
-        if section == "search" and key == "exclude_tags":
-            try:
-                if right_hand:
-                    right_hand = [t for t in right_hand.split(';') if t]
-                else:
-                    right_hand = None
-            except:
-                raise ConfigError(
-                    "Can not split search.exclude_tags into a list: {right_hand}")
-        config.setdefault(section, {})[key] = right_hand
+    try:
+        for dotted_key, value in parsed.items():
+            section, key = dotted_key.split(".", maxsplit=1)
+            if section == "maildir" and key == "synchronize_flags":
+                value = parsed.as_bool(dotted_key)
+            if section == "search" and key == "exclude_tags":
+                if value:
+                    value = [t for t in value.split(';') if t]
+            config.setdefault(section, {})[key] = value
+    except ValueError as e:
+        raise ConfigError(f"Bad value in notmuch config file: {e}")
 
     return config
 
