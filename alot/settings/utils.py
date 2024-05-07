@@ -93,13 +93,15 @@ def read_notmuch_config(path):
     The configuration value for a key under a section can be accessed with
     ``config[section][key]``.
 
-    The returned value is a dict ``config`` with
+    The returned value is a dict ``config`` with some values converted to
+    special python types.  These are the values that alot is known to use.  All
+    other values in the returned dict are just strings.
 
     :param path: path to the configuration file, which is passed as
         argument to the --config option of notmuch.
     :type path: str
     :raises: :class:`~alot.settings.errors.ConfigError`
-    :rtype: `dict`
+    :rtype: dict
     """
     cmd = ['notmuch', '--config', path, 'config', 'list']
     out, err, code = call_cmd(cmd)
@@ -108,11 +110,21 @@ def read_notmuch_config(path):
         logging.error(msg)
         raise ConfigError(msg)
 
+    parsed = ConfigObj(infile=out.splitlines(), interpolation=False,
+                       list_values=False)
+
     config = {}
-    for line in out.splitlines():
-        left_hand, right_hand = line.split("=", maxsplit=1)
-        section, key = left_hand.split(".", maxsplit=1)
-        config.setdefault(section, {})[key] = right_hand
+    try:
+        for dotted_key, value in parsed.items():
+            section, key = dotted_key.split(".", maxsplit=1)
+            if section == "maildir" and key == "synchronize_flags":
+                value = parsed.as_bool(dotted_key)
+            if section == "search" and key == "exclude_tags":
+                if value:
+                    value = [t for t in value.split(';') if t]
+            config.setdefault(section, {})[key] = value
+    except ValueError as e:
+        raise ConfigError(f"Bad value in notmuch config file: {e}")
 
     return config
 

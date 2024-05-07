@@ -739,9 +739,9 @@ class TestExtractBodyPart(unittest.TestCase):
     @mock.patch('alot.db.utils.settings.mailcap_find_match',
                 mock.Mock(return_value=(None, None)))
     def test_simple_utf8_file(self):
-        mail = email.message_from_binary_file(
-                open('tests/static/mail/utf8.eml', 'rb'),
-                _class=email.message.EmailMessage)
+        with open('tests/static/mail/utf8.eml', 'rb') as f:
+            mail = email.message_from_binary_file(
+                f, _class=email.message.EmailMessage)
         body_part = utils.get_body_part(mail)
         actual = utils.extract_body_part(body_part)
         expected = "Liebe Grüße!\n"
@@ -757,9 +757,9 @@ class TestExtractBodyPart(unittest.TestCase):
 
         https://github.com/pazz/alot/issues/1522
         """
-        mail = email.message_from_binary_file(
-                open('tests/static/mail/utf8.eml', 'rb'),
-                _class=email.message.EmailMessage)
+        with open('tests/static/mail/utf8.eml', 'rb') as f:
+            mail = email.message_from_binary_file(
+                f, _class=email.message.EmailMessage)
         body_part = utils.get_body_part(mail)
         actual = utils.extract_body_part(body_part)
         expected = "Liebe Grüße?\n"
