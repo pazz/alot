@@ -13,7 +13,7 @@ from configobj import ConfigObj, Section
 from ..account import SendmailAccount
 from ..addressbook.abook import AbookAddressBook
 from ..addressbook.external import ExternalAddressbook
-from ..helper import pretty_datetime, string_decode, get_xdg_env
+from ..helper import pretty_datetime, string_decode, get_xdg_env, get_xdg_data_dirs
 from ..utils import configobj as checks
 
 from .errors import ConfigError, NoMatchingAccount
@@ -23,8 +23,6 @@ from .theme import Theme
 
 
 DEFAULTSPATH = os.path.join(os.path.dirname(__file__), '..', 'defaults')
-DATA_DIRS = get_xdg_env('XDG_DATA_DIRS',
-                        '/usr/local/share:/usr/share').split(':')
 
 
 class SettingsManager:
@@ -96,28 +94,17 @@ class SettingsManager:
         logging.debug('themes directory: `%s`' % themes_dir)
 
         # if config contains theme string use that
-        data_dirs = [os.path.join(d, 'alot/themes') for d in DATA_DIRS]
         if themestring:
-            # This is a python for/else loop
-            # https://docs.python.org/3/reference/compound_stmts.html#for
-            #
-            # tl/dr; If the loop loads a theme it breaks. If it doesn't break,
-            # then it raises a ConfigError.
-            for dir_ in itertools.chain([themes_dir], data_dirs):
-                theme_path = os.path.join(dir_, themestring)
-                if not os.path.exists(os.path.expanduser(theme_path)):
-                    logging.warning('Theme `%s` does not exist.', theme_path)
-                else:
-                    try:
-                        self._theme = Theme(theme_path)
-                    except ConfigError as e:
-                        raise ConfigError('Theme file `%s` failed '
-                                          'validation:\n%s' % (theme_path, e))
-                    else:
-                        break
-            else:
-                raise ConfigError('Could not find theme {}, see log for more '
-                                  'information'.format(themestring))
+            try:
+                theme_path = Theme.find(themestring, themes_dir)
+                self._theme = Theme(theme_path)
+            except ConfigError as e:
+                raise ConfigError('Theme file `%s` failed '
+                                    'validation:\n%s' % (path, e))
+
+        # else:
+        #     raise ConfigError('Could not find theme {}, see log for more '
+        #                         'information'.format(themestring))
 
         # if still no theme is set, resort to default
         if self._theme is None:
