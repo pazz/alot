@@ -236,11 +236,11 @@ class Thread:
         if not self._messages:  # if not already cached
             with self._dbman._with_notmuch_thread(self._id) as thread:
 
-                def accumulate(acc, msg):
-                    M = Message(self._dbman, msg, thread=self)
+                def accumulate(acc, msg, parent=None):
+                    M = Message(self._dbman, msg, thread=self, parent=parent)
                     acc[M] = []
                     for m in msg.replies():
-                        acc[M].append(accumulate(acc, m))
+                        acc[M].append(accumulate(acc, m, M))
                     return M
 
                 self._messages = {}
