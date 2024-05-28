@@ -645,6 +645,8 @@ class ChangeDisplaymodeCommand(Command):
                    'help': 'let the shell interpret the command'}),
     (['--notify_stdout'], {'action': 'store_true',
                            'help': 'display cmd\'s stdout as notification'}),
+    (['--strip_ansi'], {'action': 'store_true',
+                        'help': 'remove ANSI CSI escapes from the content'}),
 ])
 class PipeCommand(Command):
 
@@ -653,7 +655,7 @@ class PipeCommand(Command):
 
     def __init__(self, cmd, all=False, separately=False, background=False,
                  shell=False, notify_stdout=False, format='raw',
-                 add_tags=False, noop_msg='no command specified',
+                 add_tags=False, strip_ansi=False, noop_msg='no command specified',
                  confirm_msg='', done_msg=None, **kwargs):
         """
         :param cmd: shellcommand to open
@@ -676,6 +678,8 @@ class PipeCommand(Command):
         :type format: str
         :param add_tags: add 'Tags' header to the message
         :type add_tags: bool
+        :param strip_ansi: remove ANSI CSI escapes from the content
+        :type strip_ansi: bool
         :param noop_msg: error notification to show if `cmd` is empty
         :type noop_msg: str
         :param confirm_msg: confirmation question to ask (continues directly if
@@ -695,6 +699,7 @@ class PipeCommand(Command):
         self.notify_stdout = notify_stdout
         self.output_format = format
         self.add_tags = add_tags
+        self.strip_ansi = strip_ansi
         self.noop_msg = noop_msg
         self.confirm_msg = confirm_msg
         self.done_msg = done_msg
@@ -744,6 +749,9 @@ class PipeCommand(Command):
                     bodytext = msg.get_body_text()
                     msgtext = '%s\n\n%s' % (headertext, bodytext)
                     pipestrings.append(msgtext)
+
+        if self.strip_ansi:
+            pipestrings = [ansi.remove_csi(s) for s in pipestrings]
 
         if not self.separately:
             pipestrings = [separator.join(pipestrings)]
