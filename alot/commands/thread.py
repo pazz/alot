@@ -361,6 +361,10 @@ class ForwardCommand(Command):
                 subject = fsp + subject
         envelope.add('Subject', subject)
 
+        # Set forwarding reference headers
+        envelope.add('References', '<%s>' % self.message.get_message_id())
+        envelope.add('X-Forwarded-Message-Id', '<%s>' % self.message.get_message_id())
+
         # set From-header and sending account
         try:
             from_header, account = determine_sender(mail, 'reply')
