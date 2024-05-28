@@ -113,8 +113,8 @@ RetagPromptCommand = registerCommand(MODE, 'retagprompt')(RetagPromptCommand)
                           'default': 'True',
                           'help': 'postpone a writeout to the index'}),
         (['--all'], {'action': 'store_true', 'dest': 'allmessages',
-            'default': False,
-            'help': 'tag all messages that match the current search query'}),
+                     'default': False,
+                     'help': 'tag all messages that match the current search query'}),
         (['tags'], {'help': 'comma separated list of tags'})],
     help='add tags to all messages in the selected thread',
 )
@@ -125,8 +125,8 @@ RetagPromptCommand = registerCommand(MODE, 'retagprompt')(RetagPromptCommand)
                           'default': 'True',
                           'help': 'postpone a writeout to the index'}),
         (['--all'], {'action': 'store_true', 'dest': 'allmessages',
-            'default': False,
-            'help': 'retag all messages that match the current query'}),
+                     'default': False,
+                     'help': 'retag all messages that match the current query'}),
         (['tags'], {'help': 'comma separated list of tags'})],
     help='set tags to all messages in the selected thread',
 )
@@ -137,8 +137,8 @@ RetagPromptCommand = registerCommand(MODE, 'retagprompt')(RetagPromptCommand)
                           'default': 'True',
                           'help': 'postpone a writeout to the index'}),
         (['--all'], {'action': 'store_true', 'dest': 'allmessages',
-            'default': False,
-            'help': 'untag all messages that match the current query'}),
+                     'default': False,
+                     'help': 'untag all messages that match the current query'}),
         (['tags'], {'help': 'comma separated list of tags'})],
     help='remove tags from all messages in the selected thread',
 )
@@ -152,6 +152,18 @@ RetagPromptCommand = registerCommand(MODE, 'retagprompt')(RetagPromptCommand)
     help='flip presence of tags on the selected thread: a tag is considered present '
          'and will be removed if at least one message in this thread is '
          'tagged with it')
+@registerCommand(
+    MODE, 'applytags', forced={'action': 'apply'},
+    arguments=[
+        (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
+                          'default': 'True',
+                          'help': 'postpone a writeout to the index'}),
+        (['--all'], {'action': 'store_true', 'dest': 'allmessages',
+                     'default': False,
+                     'help': 'tag all messages that match the current search query'}),
+        (['tags'], {'nargs': argparse.REMAINDER, 'help': 'list of tag operations'})],
+    help='add/remove tags to all messages in the selected thread',
+)
 class TagCommand(Command):
 
     """manipulate message tags"""
@@ -160,18 +172,22 @@ class TagCommand(Command):
     def __init__(self, tags='', action='add', allmessages=False, flush=True,
                  **kwargs):
         """
-        :param tags: comma separated list of tagstrings to set
-        :type tags: str
+        :param tags: comma separated list of tagstrings to set, or list of tag ops
+        :type tags: str/list
         :param action: adds tags if 'add', removes them if 'remove', adds tags
-                       and removes all other if 'set' or toggle individually if
-                       'toggle'
+                       and removes all other if 'set', toggle individually if
+                       'toggle', or add or remove tags as per list of tag operations
         :type action: str
         :param allmessages: tag all messages in search result
         :type allmessages: bool
         :param flush: immediately write out to the index
         :type flush: bool
         """
-        self.tagsstring = tags
+        if isinstance(tags, str):
+            self.tags = [x for x in tags.split(',') if x]
+        else:
+            self.tags = tags
+
         self.action = action
         self.allm = allmessages
         self.flush = flush
@@ -214,18 +230,37 @@ class TagCommand(Command):
 
             ui.update()
 
-        tags = [x for x in self.tagsstring.split(',') if x]
-
         try:
             if self.action == 'add':
-                ui.dbman.tag(testquery, tags, remove_rest=False)
+                ui.dbman.tag(testquery, self.tags, remove_rest=False)
             if self.action == 'set':
-                ui.dbman.tag(testquery, tags, remove_rest=True)
+                ui.dbman.tag(testquery, self.tags, remove_rest=True)
             elif self.action == 'remove':
-                ui.dbman.untag(testquery, tags)
+                ui.dbman.untag(testquery, self.tags)
             elif self.action == 'toggle':
                 if not self.allm:
-                    ui.dbman.toggle_tags(testquery, tags, afterwards=refresh)
+                    ui.dbman.toggle_tags(testquery, self.tags, afterwards=refresh)
+            elif self.action == "apply":
+                to_add = []
+                to_remove = []
+                for tag_op in self.tags:
+                    if len(tag_op) == 0:
+                        ui.notify('empty tag operation', priority='error')
+                    else:
+                        op = tag_op[:1]
+                        tag = tag_op[1:]
+                        if op == '+':
+                            if len(tag) > 0:
+                                to_add.append(tag)
+                        elif op == '-':
+                            if len(tag) > 0:
+                                to_remove.append(tag)
+                        else:
+                            ui.notify('applying invalid tag operation: ' + tag_op, priority='error')
+                            return
+                if len(to_add) > 0 or len(to_remove) > 0:
+                    ui.dbman.apply_tags(testquery, to_add, to_remove)
+
         except DatabaseROError:
             ui.notify('index in read-only mode', priority='error')
             return

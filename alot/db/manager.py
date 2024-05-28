@@ -119,6 +119,17 @@ class DBManager:
                             value = current_item[3]
                             db.config[key] = value
 
+                        elif cmd == 'apply':
+                            querystring, to_add, to_remove = current_item[2:]
+                            for msg in db.messages(querystring):
+                                with msg.frozen():
+                                    for tag in to_add:
+                                        msg.tags.add(tag)
+                                    for tag in to_remove:
+                                        msg.tags.discard(tag)
+                                    if sync:
+                                        msg.tags.to_maildir_flags()
+
                         else:  # tag/set/untag
                             querystring, tags = current_item[2:]
                             if cmd == 'toggle':
@@ -246,6 +257,29 @@ class DBManager:
         if self.ro:
             raise DatabaseROError()
         self.writequeue.append(('toggle', afterwards, querystring, tags))
+
+    def apply_tags(self, querystring, tags_add, tags_remove, afterwards=None):
+        """
+        adds/removes tags to messages matching `querystring`.
+        This appends an apply operation to the write queue and raises
+        :exc:`~errors.DatabaseROError` if in read only mode.
+
+        :param querystring: notmuch search string
+        :type querystring: str
+        :param tags: a list of tags operations: +tag is added, -tag is removed
+        :type tags: list of str
+        :param afterwards: callback that gets called after successful
+                           application of this tagging operation
+        :type afterwards: callable
+        :exception: :exc:`~errors.DatabaseROError`
+
+        .. note::
+            This only adds the requested operation to the write queue.
+            You need to call :meth:`DBManager.flush` to actually write out.
+        """
+        if self.ro:
+            raise DatabaseROError()
+        self.writequeue.append(('apply', afterwards, querystring, tags_add, tags_remove))
 
     def count_messages(self, querystring):
         """returns number of messages that match `querystring`"""
