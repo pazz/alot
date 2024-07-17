@@ -167,6 +167,12 @@ class TestStringSanitize(unittest.TestCase):
         actual = helper.string_sanitize(base)
         self.assertEqual(actual, expected)
 
+    def test_control_characters(self):
+        base = 'foo\u009dbar\u0007\rtest'
+        expected = 'foobartest'
+        actual = helper.string_sanitize(base)
+        self.assertEqual(actual, expected)
+
 
 class TestStringDecode(unittest.TestCase):
 
