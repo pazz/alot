@@ -7,7 +7,6 @@ from datetime import timedelta
 from datetime import datetime
 from collections import deque
 import logging
-import mimetypes
 import os
 import re
 import shlex
@@ -397,34 +396,6 @@ def try_decode(blob):
     return blob.decode(guess_encoding(blob))
 
 
-def libmagic_version_at_least(version):
-    """
-    checks if the libmagic library installed is more recent than a given
-    version.
-
-    :param version: minimum version expected in the form XYY (i.e. 5.14 -> 514)
-                    with XYY >= 513
-    """
-    if hasattr(magic, 'open'):
-        magic_wrapper = magic._libraries['magic']
-    elif hasattr(magic, 'from_buffer'):
-        magic_wrapper = magic.libmagic
-    else:
-        raise Exception('Unknown magic API')
-
-    if not hasattr(magic_wrapper, 'magic_version'):
-        # The magic_version function has been introduced in libmagic 5.13,
-        # if it's not present, we can't guess right, so let's assume False
-        return False
-
-    # Depending on the libmagic/ctypes version, magic_version is a function or
-    # a callable:
-    if callable(magic_wrapper.magic_version):
-        return magic_wrapper.magic_version() >= version
-
-    return magic_wrapper.magic_version >= version
-
-
 # TODO: make this work on blobs, not paths
 def mimewrap(path, filename=None, ctype=None):
     """Take the contents of the given path and wrap them into an email MIME
@@ -443,18 +414,7 @@ def mimewrap(path, filename=None, ctype=None):
 
     with open(path, 'rb') as f:
         content = f.read()
-    if not ctype:
-        ctype = guess_mimetype(content)
-        # libmagic < 5.12 incorrectly detects excel/powerpoint files as
-        # 'application/msword' (see #179 and #186 in libmagic bugtracker)
-        # This is a workaround, based on file extension, useful as long
-        # as distributions still ship libmagic 5.11.
-        if (ctype == 'application/msword' and
-                not libmagic_version_at_least(513)):
-            mimetype, _ = mimetypes.guess_type(path)
-            if mimetype:
-                ctype = mimetype
-
+    ctype = ctype or guess_mimetype(content)
     maintype, subtype = ctype.split('/', 1)
     if maintype == 'text':
         part = MIMEText(content.decode(guess_encoding(content), 'replace'),
