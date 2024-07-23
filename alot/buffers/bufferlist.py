@@ -13,7 +13,7 @@ class BufferlistBuffer(Buffer):
 
     modename = 'bufferlist'
 
-    def __init__(self, ui, filtfun=lambda x: x):
+    def __init__(self, ui, filtfun=lambda x: True):
         self.filtfun = filtfun
         self.ui = ui
         self.isinitialized = False
