@@ -29,9 +29,12 @@ from ..completion.path import PathCompleter
 from ..db.utils import decode_header
 from ..db.utils import formataddr
 from ..db.utils import get_body_part
+from ..db.utils import extract_body_part
 from ..db.utils import extract_headers
 from ..db.utils import clear_my_address
 from ..db.utils import ensure_unique_address
+from ..db.utils import remove_cte
+from ..db.utils import string_sanitize
 from ..db.envelope import Envelope
 from ..db.attachment import Attachment
 from ..db.errors import DatabaseROError
@@ -638,7 +641,9 @@ class ChangeDisplaymodeCommand(Command):
     (['cmd'], {'help': 'shellcommand to pipe to', 'nargs': '+'}),
     (['--all'], {'action': 'store_true', 'help': 'pass all messages'}),
     (['--format'], {'help': 'output format', 'default': 'raw',
-                    'choices': ['raw', 'decoded', 'id', 'filepath']}),
+                    'choices': [
+                        'raw', 'decoded', 'id', 'filepath', 'mimepart',
+                        'plain', 'html']}),
     (['--separately'], {'action': 'store_true',
                         'help': 'call command once for each message'}),
     (['--background'], {'action': 'store_true',
@@ -677,6 +682,7 @@ class PipeCommand(Command):
             'decoded': message content, decoded quoted printable,
             'id': message ids, separated by newlines,
             'filepath': paths to message files on disk
+            'mimepart': only pipe the currently selected mime part
         :type format: str
         :param add_tags: add 'Tags' header to the message
         :type add_tags: bool
@@ -739,15 +745,22 @@ class PipeCommand(Command):
         else:
             for msg in to_print:
                 mail = msg.get_email()
+                mimepart = (getattr(ui.get_deep_focus(), 'mimepart', False)
+                            or msg.get_mime_part())
                 if self.add_tags:
                     mail.add_header('Tags', ', '.join(msg.get_tags()))
                 if self.output_format == 'raw':
                     pipestrings.append(mail.as_string())
                 elif self.output_format == 'decoded':
                     headertext = extract_headers(mail)
-                    bodytext = msg.get_body_text()
+                    bodytext = extract_body_part(mimepart)
                     msgtext = '%s\n\n%s' % (headertext, bodytext)
                     pipestrings.append(msgtext)
+                elif self.output_format in ['mimepart', 'plain', 'html']:
+                    if self.output_format in ['plain', 'html']:
+                        mimepart = get_body_part(mail, self.output_format)
+                    pipestrings.append(string_sanitize(remove_cte(
+                        mimepart, as_string=True)))
 
         if not self.separately:
             pipestrings = [separator.join(pipestrings)]
