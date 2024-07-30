@@ -124,19 +124,19 @@ class TestExternalCommand(unittest.TestCase):
     @utilities.async_test
     async def test_no_spawn_no_stdin_attached(self):
         ui = utilities.make_ui()
-        cmd = g_commands.ExternalCommand('test -t 0', refocus=False)
+        cmd = g_commands.ExternalCommand('test -p /dev/stdin', refocus=False)
         await cmd.apply(ui)
-        ui.notify.assert_not_called()
+        ui.notify.assert_called_once_with(
+                'editor has exited with error code 1 -- No stderr output',
+                priority='error')
 
     @utilities.async_test
     async def test_no_spawn_stdin_attached(self):
         ui = utilities.make_ui()
         cmd = g_commands.ExternalCommand(
-            "test -t 0", stdin='0', refocus=False)
+            "test -p /dev/stdin", stdin='0', refocus=False)
         await cmd.apply(ui)
-        ui.notify.assert_called_once_with(
-                'editor has exited with error code 1 -- No stderr output',
-                priority='error')
+        ui.notify.assert_not_called()
 
     @utilities.async_test
     async def test_no_spawn_failure(self):
