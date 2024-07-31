@@ -21,6 +21,14 @@
             notmuch2 = pkgs.python3.pkgs.notmuch2;
           });
         };
+        checkPhase = ''
+          # In the nix sandbox stdin is not a terminal but /dev/null so we
+          # change the shell command only in this specific test.
+          sed -i '/test_no_spawn_no_stdin_attached/,/^$/s/test -t 0/sh -c "[ $(wc -l) -eq 0 ]"/' tests/commands/test_global.py
+
+          python3 -m unittest -v
+        '';
+        nativeCheckInputs = with pkgs; [ gnupg notmuch procps ];
       in
       {
         packages = {
@@ -42,6 +50,7 @@
               urwid
               urwidtrees
             ];
+            inherit checkPhase nativeCheckInputs;
           };
           alot-poetry = mkPoetryApplication (defaultArgs // {
             nativeBuildInputs = [
@@ -52,15 +61,7 @@
               pkgs.gpgme.dev
               pkgs.python3.pkgs.cffi
             ];
-
-            nativeCheckInputs = with pkgs; [ gnupg notmuch procps ];
-            checkPhase = ''
-              # In the nix sandbox stdin is not a terminal but /dev/null so we
-              # change the shell command only in this specific test.
-              sed -i '/test_no_spawn_no_stdin_attached/,/^$/s/test -t 0/sh -c "[ $(wc -l) -eq 0 ]"/' tests/commands/test_global.py
-
-              python3 -m unittest -v
-            '';
+            inherit checkPhase nativeCheckInputs;
           });
           docs = pkgs.runCommand "alot-docs" {
             src = self;
