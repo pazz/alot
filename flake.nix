@@ -24,7 +24,21 @@
       in
       {
         packages = {
-          alot = mkPoetryApplication (defaultArgs // {
+          alot-setuptools = pkgs.python3Packages.buildPythonApplication {
+            name = "alot";
+            version = "dev";
+            src = self;
+            dependencies = with pkgs.python3Packages; [
+              configobj
+              gpgme
+              notmuch2
+              python-magic
+              twisted
+              urwid
+              urwidtrees
+            ];
+          };
+          alot-poetry = mkPoetryApplication (defaultArgs // {
             nativeBuildInputs = [
               pkgs.python3.pkgs.cffi
             ];
@@ -50,7 +64,7 @@
               pkgs.gnumake
             ];
           } ''make -C $src/docs html man BUILDDIR=$out'';
-          default = self.packages.${system}.alot;
+          default = self.packages.${system}.alot-poetry;
         };
       });
 }
