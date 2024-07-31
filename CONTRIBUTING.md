@@ -42,7 +42,7 @@ To ensure timely and painless reviews please keep the following in mind.
   For new features also update the user manual in `docs/source/usage` accordingly.
 
 * Unit tests: Make sure your changes don't break any existing tests (to check
-  locally use `./setup.py test`). If you are fixing a bug or adding a new
+  locally use `python3 -m unittest`). If you are fixing a bug or adding a new
   features please provide new tests if possible.
 
 * Keep commits simple. Large individual patches are incredibly painful to review properly.

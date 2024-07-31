@@ -17,5 +17,4 @@ setup(
             'defaults/theme.spec',
         ]
     },
-    test_suite="tests",
 )
