@@ -7,21 +7,21 @@ readme = "README.md"
 license = "GPL-3.0-or-later"
 repository = "https://github.com/pazz/alot"
 documentation = "https://alot.readthedocs.io/en/latest/"
-classifiers=[
-	'Development Status :: 4 - Beta',
-	'Environment :: Console :: Curses',
-	'Framework :: AsyncIO',
-	'Intended Audience :: End Users/Desktop',
-	'Operating System :: POSIX',
-	'Programming Language :: Python :: 3 :: Only',
-	'Topic :: Communications :: Email :: Email Clients (MUA)',
-	'Topic :: Database :: Front-Ends',
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console :: Curses",
+    "Framework :: AsyncIO",
+    "Intended Audience :: End Users/Desktop",
+    "Operating System :: POSIX",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Communications :: Email :: Email Clients (MUA)",
+    "Topic :: Database :: Front-Ends",
 ]
 
 
 [tool.poetry.dependencies]
 python = ">=3.8"
-notmuch2= ">=0.1"
+notmuch2 = ">=0.1"
 urwid = ">=1.3.0"
 urwidtrees = ">=1.0.3"
 twisted = ">=18.4.0"
