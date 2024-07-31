@@ -1,3 +1,7 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
 [tool.poetry]
 name = "alot"
 version = "0.10"
@@ -43,6 +47,40 @@ sphinx = "*"
 [tool.poetry.scripts]
 alot = "alot.__main__:main"
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+
+# These sections are for setuptools
+[project]
+name = "alot"
+version = "0.10"
+description = "Terminal MUA using notmuch mail"
+authors = [ {name = "Patrick Totzke", email = "patricktotzke@gmail.com"} ]
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "GPL-3.0-or-later" }
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console :: Curses",
+    "Framework :: AsyncIO",
+    "Intended Audience :: End Users/Desktop",
+    "Operating System :: POSIX",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Communications :: Email :: Email Clients (MUA)",
+    "Topic :: Database :: Front-Ends",
+]
+dependencies = [
+    "notmuch2>=0.30",
+    "urwid>=1.3.0",
+    "urwidtrees>=1.0.3",
+    "twisted>=18.4.0",
+    "python-magic",
+    "configobj>=4.7.0",
+    "gpg>1.10.0"
+]
+
+[project.scripts]
+alot = "alot.__main__:main"
+
+[project.urls]
+Repository = "https://github.com/pazz/alot"
+Documentation = "https://alot.readthedocs.io/en/latest/"
+Issues = "https://github.com/pazz/alot/issues"
