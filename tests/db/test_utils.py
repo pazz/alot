@@ -369,7 +369,7 @@ class TestMessageFromFile(TestCaseClassCleanup):
     @classmethod
     def setUpClass(cls):
         home = tempfile.mkdtemp()
-        cls.addClassCleanup(shutil.rmtree, home)
+        cls.addClassCleanup(lambda : shutil.rmtree(home, ignore_errors=True))
         mock_home = mock.patch.dict(os.environ, {'GNUPGHOME': home})
         mock_home.start()
         cls.addClassCleanup(mock_home.stop)
