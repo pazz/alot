@@ -385,7 +385,7 @@
      where to look up hooks
 
     :type: string
-    :default: "~/.config/alot/hooks.py"
+    :default: "$XDG_CONFIG_HOME/alot/hooks.py"
 
 
 .. _initial-command:
@@ -786,6 +786,16 @@
 
     :type: option, one of ['oldest', 'notmuch']
     :default: notmuch
+
+
+.. _thread-unfold-matching:
+
+.. describe:: thread_unfold_matching
+
+     Unfold messages matching the query. If not set, will unfold all messages matching search buffer query.
+
+    :type: string
+    :default: None
 
 
 .. _timestamp-format:
