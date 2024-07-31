@@ -1,6 +1,7 @@
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
 
 [tool.poetry]
 name = "alot"
@@ -84,3 +85,5 @@ alot = "alot.__main__:main"
 Repository = "https://github.com/pazz/alot"
 Documentation = "https://alot.readthedocs.io/en/latest/"
 Issues = "https://github.com/pazz/alot/issues"
+
+[tool.setuptools.packages.find]

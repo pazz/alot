@@ -36,6 +36,11 @@
             name = "alot";
             version = "dev";
             src = self;
+            pyproject = true;
+            build-system = with pkgs.python3Packages; [
+              setuptools
+              setuptools-scm
+            ];
             dependencies = with pkgs.python3Packages; [
               configobj
               gpgme
