@@ -5,7 +5,6 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "alot"
-version = "0.10"
 description = "Terminal MUA using notmuch mail"
 authors = [
     {name="Patrick Totzke", email="patricktotzke@gmail.com"}
@@ -14,6 +13,7 @@ maintainers = [
     {name="Lucas Hoffmann", email="lucc@posteo.de"},
 ]
 readme = "README.md"
+dynamic = ["version"]
 requires-python = ">=3.8"
 license = { text = "GPL-3.0-or-later" }
 classifiers = [
@@ -49,3 +49,5 @@ Issues = "https://github.com/pazz/alot/issues"
 
 [tool.setuptools.packages.find]
 include = ["alot*"]
+
+[tool.setuptools_scm]
