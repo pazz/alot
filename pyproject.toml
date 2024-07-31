@@ -48,3 +48,4 @@ Documentation = "https://alot.readthedocs.io/en/latest/"
 Issues = "https://github.com/pazz/alot/issues"
 
 [tool.setuptools.packages.find]
+include = ["alot*"]

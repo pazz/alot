@@ -41,7 +41,8 @@ jobs:
       matrix:
         derivation:
           - default
-          - docs
+          - alot.doc
+          - alot.man
 
     steps:
     - name: Install Nix

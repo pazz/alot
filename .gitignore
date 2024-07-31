@@ -15,3 +15,4 @@ docs/source/configuration/*table.rst
 tags
 .eggs
 __pycache__
+result*/
