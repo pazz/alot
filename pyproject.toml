@@ -7,7 +7,12 @@ build-backend = "setuptools.build_meta"
 name = "alot"
 version = "0.10"
 description = "Terminal MUA using notmuch mail"
-authors = ["Patrick Totzke <patricktotzke@gmail.com>"]
+authors = [
+    {name="Patrick Totzke", email="patricktotzke@gmail.com"}
+]
+maintainers = [
+    {name="Lucas Hoffmann"},
+]
 readme = "README.md"
 license = "GPL-3.0-or-later"
 repository = "https://github.com/pazz/alot"
@@ -61,12 +66,11 @@ license = { text = "GPL-3.0-or-later" }
 classifiers = [
     "Development Status :: 4 - Beta",
     "Environment :: Console :: Curses",
-    "Framework :: AsyncIO",
     "Intended Audience :: End Users/Desktop",
-    "Operating System :: POSIX",
     "Programming Language :: Python :: 3 :: Only",
     "Topic :: Communications :: Email :: Email Clients (MUA)",
     "Topic :: Database :: Front-Ends",
+    'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
 ]
 dependencies = [
     "notmuch2>=0.30",
@@ -75,7 +79,7 @@ dependencies = [
     "twisted>=18.4.0",
     "python-magic",
     "configobj>=4.7.0",
-    "gpg>1.10.0"
+    "gpg>1.10.0",
 ]
 
 [project.scripts]
