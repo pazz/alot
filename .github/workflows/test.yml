@@ -63,7 +63,7 @@ jobs:
       #   # 1.16 is the version of gpgme that is currently available in ubuntu-latest (currently 22.04)
       #   run: sed -i 's|gpg>1.10.0|gpg @ https://dev.gnupg.org/source/gpgme.git@gpgme-1.16.0|' pyproject.toml
       - name: Clone the gpgme repository
-        run: git clone --depth 1 https://dev.gnupg.org/source/gpgme.git gpgme
+        run: git clone --depth 1 --branch gpgme-1.16.0 https://dev.gnupg.org/source/gpgme.git gpgme
 
       - name: Build the gpgme bindings
         run: |
