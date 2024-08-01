@@ -34,8 +34,15 @@
               urwid
               urwidtrees
             ];
+            postPatch = ''
+              substituteInPlace alot/settings/manager.py \
+                --replace /usr/share "$out/share"
+            '';
             postInstall = ''
               installShellCompletion --zsh --name _alot extra/completion/alot-completion.zsh
+              mkdir -p $out/share/{applications,alot}
+              cp -r extra/themes $out/share/alot
+              sed "s,/usr/bin,$out/bin,g" extra/alot.desktop > $out/share/applications/alot.desktop
             '';
             checkPhase = ''
               # In the nix sandbox stdin is not a terminal but /dev/null so we
