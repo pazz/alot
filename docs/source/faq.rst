@@ -29,7 +29,7 @@ This said, there are few CLI MUAs that could be easily and naturally adapted to 
 Rebuilding an interface from scratch using `friendly and extensible tools <https://www.python.org/>`_
 seemed easier and more promising.
 
-Update: see `mutt-kz <https://github.com/karelzak/mutt-kz>`_ for a fork of mutt..
+Update: see `neomutt <https://neomutt.org/>`_ for a fork of mutt.
 
 .. _faq_3:
 .. rubric:: 3. What's with the snotty name?
