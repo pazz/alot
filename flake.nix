@@ -34,6 +34,9 @@
               urwid
               urwidtrees
             ];
+            postInstall = ''
+              installShellCompletion --zsh --name _alot extra/completion/alot-completion.zsh
+            '';
             checkPhase = ''
               # In the nix sandbox stdin is not a terminal but /dev/null so we
               # change the shell command only in this specific test.
@@ -42,7 +45,10 @@
               python3 -m unittest -v
             '';
             nativeCheckInputs = with pkgs; [ gnupg notmuch procps ];
-            nativeBuildInputs = with pkgs.python3Packages; [ sphinxHook ];
+            nativeBuildInputs = with pkgs; [
+              python3Packages.sphinxHook
+              installShellFiles
+            ];
             sphinxBuilders = [ "html" "man" ];
           };
           docs = pkgs.lib.trivial.warn "The docs attribute moved to alot.doc"
