@@ -17,7 +17,7 @@ import os
 ###############################
 # readthedocs.org hack,
 # needed to use autodocs on their build-servers:
-# http://readthedocs.org/docs/read-the-docs/en/latest/faq.html?highlight=autodocs#where-do-i-need-to-put-my-docs-for-rtd-to-find-it
+# https://rtd-local.readthedocs.io/en/latest/faq.html#where-do-i-need-to-put-my-docs-for-rtd-to-find-it
 
 
 class Mock(object):
@@ -250,7 +250,7 @@ man_pages = [
 autodoc_member_order = 'bysource'
 autoclass_content = 'both'
 intersphinx_mapping = {
-    'python': ('http://docs.python.org/3.5', None),
-    'notmuch': ('http://packages.python.org/notmuch', None),
-    'urwid': ('http://urwid.readthedocs.org/en/latest', None),
+    'python': ('https://docs.python.org/3.8', None),
+    'notmuch': ('https://packages.python.org/notmuch', None),
+    'urwid': ('https://urwid.readthedocs.org/en/latest', None),
 }

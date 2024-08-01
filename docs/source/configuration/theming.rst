@@ -32,7 +32,7 @@ Have a look at the default theme file at :file:`alot/defaults/default.theme` and
 
 Colour Attributes
 -----------------
-Attributes are *sextuples* of `urwid Attribute strings <http://urwid.org/manual/displayattributes.html>`__
+Attributes are *sextuples* of `urwid Attribute strings <https://urwid.org/manual/displayattributes.html>`__
 that specify foreground and background for mono, 16 and 256-colour modes respectively.
 For mono-mode only the flags `blink`, `standup`, `underline` and `bold` are available,
 16c mode supports these in combination with the colour names::
@@ -43,8 +43,8 @@ For mono-mode only the flags `blink`, `standup`, `underline` and `bold` are avai
 
 In high-colour mode, you may use the above plus grayscales `g0` to `g100` and
 colour codes given as `#` followed by three hex values.
-See `here <http://urwid.org/manual/displayattributes.html>`__
-and `here <http://urwid.org/reference/attrspec.html#urwid.AttrSpec>`__
+See `here <https://urwid.org/manual/displayattributes.html>`__
+and `here <https://urwid.org/reference/attrspec.html#urwid.AttrSpec>`__
 for more details on the interpreted values.  A colour picker that makes choosing colours easy can be
 found in :file:`alot/extra/colour_picker.py`.
 
@@ -162,7 +162,7 @@ The following will make alot display the "todo" tag as "TODO" in white on red.
         translated = TODO
 
 Utf-8 symbols are welcome here, see e.g.
-http://panmental.de/symbols/info.htm for some fancy symbols. I personally display my maildir flags
+https://panmental.de/symbols/info.htm for some fancy symbols. I personally display my maildir flags
 like this:
 
 .. sourcecode:: ini
@@ -199,7 +199,7 @@ do the following:
     translation = 'notmuch::(.*)','nm:\1'
     normal = "", "", "white", "light blue", "#fff", "#88d"
 
-.. _nmbug: http://notmuchmail.org/nmbug/
+.. _nmbug: https://notmuchmail.org/nmbug/
 
 
 ANSI escape codes

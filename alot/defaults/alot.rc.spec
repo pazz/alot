@@ -77,7 +77,7 @@ thread_subject = option('oldest', 'notmuch', default='notmuch')
 # author's first or latest message in thread
 thread_authors_order_by = option('first_message', 'latest_message', default='first_message')
 
-# number of characters used to indent replies relative to original messages in thread mode 
+# number of characters used to indent replies relative to original messages in thread mode
 thread_indent_replies = integer(default=2)
 
 # set terminal command used for spawning shell commands
@@ -174,7 +174,7 @@ namedqueries_statusbar = mixed_list(string, string, default=list('[{buffer_no}: 
 # * `{displaypart}`: which body part alternative is currently in view (can be 'plaintext,'src', or 'html')
 envelope_statusbar = mixed_list(string, string, default=list('[{buffer_no}: envelope ({displaypart})]','{input_queue} total messages: {total_messages}'))
 
-# timestamp format in `strftime format syntax <http://docs.python.org/library/datetime.html#strftime-strptime-behavior>`_
+# timestamp format in `strftime format syntax <https://docs.python.org/library/datetime.html#strftime-strptime-behavior>`_
 timestamp_format = string(default=None)
 
 # how to print messages:
@@ -416,7 +416,7 @@ thread_unfold_matching = string(default=None)
         # with the key defined for this account.
         #
         # .. warning::
-        #   
+        #
         #    Before 0.6 this was controlled via gpg.conf.
         encrypt_to_self = boolean(default=True)
 

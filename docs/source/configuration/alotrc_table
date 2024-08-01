@@ -792,7 +792,7 @@
 
 .. describe:: timestamp_format
 
-     timestamp format in `strftime format syntax <http://docs.python.org/library/datetime.html#strftime-strptime-behavior>`_
+     timestamp format in `strftime format syntax <https://docs.python.org/library/datetime.html#strftime-strptime-behavior>`_
 
     :type: string
     :default: None

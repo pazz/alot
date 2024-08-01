@@ -9,7 +9,7 @@ It does however rely on a running `gpg-agent` to handle password entries.
 
   `gpg-agent` will handle passphrase entry in a secure and configurable way, and it will cache your
   passphrase for some time so you don’t have to enter it over and over again. For details on how to
-  set this up we refer to `gnupg's manual <http://www.gnupg.org/documentation/manuals/gnupg/>`_.
+  set this up we refer to `gnupg's manual <https://www.gnupg.org/documentation/manuals/gnupg/>`_.
 
 .. rubric:: Signing outgoing emails
 

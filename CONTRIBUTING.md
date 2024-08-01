@@ -56,5 +56,5 @@ To ensure timely and painless reviews please keep the following in mind.
 [GPL3]: https://www.gnu.org/licenses/gpl-3.0.en.html
 [PEP8]: https://www.python.org/dev/peps/pep-0008/
 [pycodestyle]:https://github.com/PyCQA/pycodestyle
-[sphinx]: http://sphinx.pocoo.org/domains.html#info-field-lists
+[sphinx]: https://www.sphinx-doc.org/en/master/usage/restructuredtext/field-lists.html
 [commitiquette]: https://chris.beams.io/posts/git-commit/
