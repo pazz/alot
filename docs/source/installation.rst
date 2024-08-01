@@ -47,7 +47,13 @@ On Fedora/Redhat these are packaged as::
 To set up and install the latest development version::
 
   git clone https://github.com/pazz/alot
-  poetry install --no-root
+  python3 -m venv dev-venv
+  . dev-venv/bin/activate
+  pip install -e .
+
+or you can install the development version into :file:`~/.local/bin`::
+
+  pip install --user .
 
 Make sure :file:`~/.local/bin` is in your :envvar:`PATH`. For system-wide
 installation omit the `--user` flag and call with the respective permissions.

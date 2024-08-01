@@ -3,38 +3,40 @@
 
   inputs.flake-utils.url = "github:numtide/flake-utils";
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-  inputs.poetry2nix = {
-    url = "github:nix-community/poetry2nix";
-    inputs.nixpkgs.follows = "nixpkgs";
-  };
 
-  outputs = { self, nixpkgs, flake-utils, poetry2nix }:
+  outputs = { self, nixpkgs, flake-utils }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        # see https://github.com/nix-community/poetry2nix/tree/master#api for more functions and examples.
         pkgs = nixpkgs.legacyPackages.${system};
-        inherit (poetry2nix.lib.mkPoetry2Nix { inherit pkgs; }) mkPoetryApplication mkPoetryEnv overrides;
-        defaultArgs = {
-          projectDir = self;
-          overrides = overrides.withDefaults (final: prev: {
-            gpg = prev.gpgme;
-            notmuch2 = pkgs.python3.pkgs.notmuch2;
-          });
-        };
       in
       {
         packages = {
-          alot = mkPoetryApplication (defaultArgs // {
-            nativeBuildInputs = [
-              pkgs.python3.pkgs.cffi
+          alot = pkgs.python3Packages.buildPythonApplication {
+            name = "alot";
+            version = "dev";
+            src = self;
+            pyproject = true;
+            outputs = [
+              "out"
+              "doc"
+              "man"
             ];
-            propagatedBuildInputs = with pkgs; [
+            build-system = with pkgs.python3Packages; [
+              setuptools
+              setuptools-scm
+            ];
+            dependencies = with pkgs.python3Packages; [
+              configobj
               gpgme
-              pkgs.gpgme.dev
-              pkgs.python3.pkgs.cffi
+              notmuch2
+              python-magic
+              twisted
+              urwid
+              urwidtrees
             ];
-
-            nativeCheckInputs = with pkgs; [ gnupg notmuch procps ];
+            postInstall = ''
+              installShellCompletion --zsh --name _alot extra/completion/alot-completion.zsh
+            '';
             checkPhase = ''
               # In the nix sandbox stdin is not a terminal but /dev/null so we
               # change the shell command only in this specific test.
@@ -42,14 +44,15 @@
 
               python3 -m unittest -v
             '';
-          });
-          docs = pkgs.runCommand "alot-docs" {
-            src = self;
-            nativeBuildInputs = [
-              (mkPoetryEnv (defaultArgs // { groups = ["doc"]; }))
-              pkgs.gnumake
+            nativeCheckInputs = with pkgs; [ gnupg notmuch procps ];
+            nativeBuildInputs = with pkgs; [
+              python3Packages.sphinxHook
+              installShellFiles
             ];
-          } ''make -C $src/docs html man BUILDDIR=$out'';
+            sphinxBuilders = [ "html" "man" ];
+          };
+          docs = pkgs.lib.trivial.warn "The docs attribute moved to alot.doc"
+            self.packages.${system}.alot.doc;
           default = self.packages.${system}.alot;
         };
       });
