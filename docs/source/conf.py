@@ -227,7 +227,7 @@ man_pages = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
-    'http://docs.python.org/': None,
-    'http://notmuch.readthedocs.org/en/latest/': None,
-    'http://urwid.readthedocs.org/en/latest/': None
+    'https://docs.python.org/': None,
+    'https://notmuch.readthedocs.org/en/latest/': None,
+    'https://urwid.readthedocs.org/en/latest/': None
 }

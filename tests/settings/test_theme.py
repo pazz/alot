@@ -67,7 +67,7 @@ class TestThemeGetAttribute(unittest.TestCase):
         # We use a list of strings instead of a file path to pass in the config
         # file.  This is possible because the argument is handed to
         # configobj.ConfigObj directly and that accepts eigher:
-        # http://configobj.rtfd.io/en/latest/configobj.html#reading-a-config-file
+        # https://configobj.rtfd.io/en/latest/configobj.html#reading-a-config-file
         cls.theme = theme.Theme(DUMMY_THEME.splitlines())
 
     def test_invalid_mode_raises_key_error(self):

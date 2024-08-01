@@ -5,7 +5,7 @@ Frequently Asked Questions
 .. rubric:: 1. Help! I don't see `text/html` content!
 
 You need to set up a mailcap entry to declare an external renderer for `text/html`.
-Try `w3m <http://w3m.sourceforge.net/>`_ and put the following into your
+Try `w3m <https://w3m.sourceforge.net/>`_ and put the following into your
 :file:`~/.mailcap`::
 
    text/html;  w3m -dump -o document_charset=%{charset} '%s'; nametemplate=%s.html; copiousoutput
@@ -14,19 +14,19 @@ On more recent versions of w3m, links can be parsed and appended with reference 
 
    text/html;  w3m -dump -o document_charset=%{charset} -o display_link_number=1 '%s'; nametemplate=%s.html; copiousoutput
 
-Most `text based browsers <http://en.wikipedia.org/wiki/Text-based_web_browser>`_ have
+Most `text based browsers <https://en.wikipedia.org/wiki/Text-based_web_browser>`_ have
 a dump mode that can be used here.
 
 .. _faq_2:
 .. rubric:: 2. Why reinvent the wheel? Why not extend an existing MUA to work nicely with notmuch?
 
 alot makes use of existing solutions where possible: It does not fetch, send or edit
-mails; it lets `notmuch <http://notmuchmail.org>`_ handle your mailindex and uses a
-`toolkit <http://excess.org/urwid/>`_ to render its display. You are responsible for
-`automatic initial tagging <http://notmuchmail.org/initial_tagging/>`_.
+mails; it lets `notmuch <https://notmuchmail.org>`_ handle your mailindex and uses a
+`toolkit <https://urwid.org/>`_ to render its display. You are responsible for
+`automatic initial tagging <https://notmuchmail.org/initial_tagging/>`_.
 
 This said, there are few CLI MUAs that could be easily and naturally adapted to using notmuch.
-Rebuilding an interface from scratch using `friendly and extensible tools <http://www.python.org/>`_
+Rebuilding an interface from scratch using `friendly and extensible tools <https://www.python.org/>`_
 seemed easier and more promising.
 
 Update: see `mutt-kz <https://github.com/karelzak/mutt-kz>`_ for a fork of mutt..
@@ -36,7 +36,7 @@ Update: see `mutt-kz <https://github.com/karelzak/mutt-kz>`_ for a fork of mutt.
 
 It's not meant to be presumptuous. I like the dichotomy; I like to picture the look on
 someone's face who reads the :mailheader:`User-Agent` header "notmuch/alot"; I like cookies; I like
-`this comic strip <http://hyperboleandahalf.blogspot.com/2010/04/alot-is-better-than-you-at-everything.html>`_.
+`this comic strip <https://hyperboleandahalf.blogspot.com/2010/04/alot-is-better-than-you-at-everything.html>`_.
 
 .. _faq_4:
 .. rubric:: 4. I want feature X!
@@ -50,7 +50,7 @@ give it some thought how you think we should implement it. We'll discuss it from
 .. rubric:: 5. Why are the default key bindings so counter-intuitive?
 
 Be aware that the bindings for all modes are :ref:`fully configurable <config.key_bindings>`.
-That said, I choose the bindings to be natural for me. I use `vim <http://www.vim.org>`_ and
+That said, I choose the bindings to be natural for me. I use `vim <https://www.vim.org>`_ and
 `pentadactyl <http://dactyl.sourceforge.net/pentadactyl/>`_ a lot.  However, I'd be
 interested in discussing the defaults. If you think your bindings are more intuitive or
 better suited as defaults for some reason, don't hesitate to send me your config. The same

@@ -52,11 +52,11 @@ See the [manual][docs] for more usage info.
 
 
 
-[notmuch]: http://notmuchmail.org/
-[urwid]: http://excess.org/urwid/
-[docs]: http://alot.rtfd.org
+[notmuch]: https://notmuchmail.org/
+[urwid]: https://excess.org/urwid/
+[docs]: https://alot.rtfd.org
 [wiki]: https://github.com/pazz/alot/wiki
-[FAQ]: http://alot.readthedocs.io/en/latest/faq.html
+[FAQ]: https://alot.readthedocs.io/en/latest/faq.html
 [features]: https://github.com/pazz/alot/issues?labels=feature
 
 [Build Status]: https://github.com/pazz/alot/actions/workflows/check.yml/badge.svg

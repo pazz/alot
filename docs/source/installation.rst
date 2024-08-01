@@ -5,7 +5,7 @@ These days, alot can be installed directly using your favourite package manager.
 On a recent Debian (-derived) systems for instance, just do `sudo apt install alot` and you're done.
 
 .. note::
-   Alot uses `mailcap <http://en.wikipedia.org/wiki/Mailcap>`_ to look up mime-handler for inline
+   Alot uses `mailcap <https://en.wikipedia.org/wiki/Mailcap>`_ to look up mime-handler for inline
    rendering and opening of attachments.
    To avoid surprises you should at least have an inline renderer
    (copiousoutput) set up for `text/html` in your :file:`~/.mailcap`::
@@ -26,12 +26,12 @@ Alot depends on recent versions of notmuch and urwid. Note that due to restricti
 on argparse and subprocess, you need to run *python ≥ 3.5* (see :ref:`faq <faq_7>`).
 A full list of dependencies is below:
 
-* `libmagic and python bindings <http://darwinsys.com/file/>`_, ≥ `5.04`
+* `libmagic and python bindings <https://darwinsys.com/file/>`_, ≥ `5.04`
 * `configobj <http://www.voidspace.org.uk/python/configobj.html>`_, ≥ `4.7.0`
-* `libnotmuch <http://notmuchmail.org/>`_ and it's python bindings, ≥ `0.30`
-* `urwid <http://excess.org/urwid/>`_ toolkit, ≥ `1.3.0`
+* `libnotmuch <https://notmuchmail.org/>`_ and it's python bindings, ≥ `0.30`
+* `urwid <https://urwid.org/>`_ toolkit, ≥ `1.3.0`
 * `urwidtrees <https://github.com/pazz/urwidtrees>`_, ≥ `1.0.3`
-* `gpg <http://www.gnupg.org/related_software/gpgme>`_ and it's python bindings, > `1.10.0`
+* `gpg <https://www.gnupg.org/related_software/gpgme>`_ and it's python bindings, > `1.10.0`
 * `twisted <https://twistedmatrix.com>`_, ≥ `18.4.0`
 
 
@@ -56,7 +56,7 @@ installation omit the `--user` flag and call with the respective permissions.
 Generating the Docs
 -------------------
 
-This requires `sphinx <http://sphinx.pocoo.org/>`_, ≥ `1.3` to be installed.
+This requires `sphinx <https://www.sphinx-doc.org/>`_, ≥ `1.3` to be installed.
 To generate the documentation from the source directory simply do::
 
   make -C docs html

@@ -343,7 +343,7 @@ def guess_mimetype(blob):
     # Hopefully at some point this will no longer be necessary
     #
     # the version with open() is the bindings shipped with the file source from
-    # http://darwinsys.com/file/ - this is what is used by the python-magic
+    # https://darwinsys.com/file/ - this is what is used by the python-magic
     # package on Debian/Ubuntu. However, it is not available on pypi/via pip.
     #
     # the version with from_buffer() is available at
@@ -379,7 +379,7 @@ def guess_encoding(blob):
     # Hopefully at some point this will no longer be necessary
     #
     # the version with open() is the bindings shipped with the file source from
-    # http://darwinsys.com/file/ - this is what is used by the python-magic
+    # https://darwinsys.com/file/ - this is what is used by the python-magic
     # package on Debian/Ubuntu.  However it is not available on pypi/via pip.
     #
     # the version with from_buffer() is available at
