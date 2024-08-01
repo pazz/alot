@@ -38,6 +38,23 @@ jobs:
         env:
           DEBIAN_FRONTEND: noninteractive
 
+      # - name: Update the gpg dependency in the pyproject file
+      #   # 1.16 is the version of gpgme that is currently available in ubuntu-latest (currently 22.04)
+      #   run: sed -i 's|gpg>1.10.0|gpg @ https://dev.gnupg.org/source/gpgme.git@gpgme-1.16.0|' pyproject.toml
+      - name: Clone the gpgme repository
+        run: git clone --depth 1 --branch gpgme-1.16.0 https://dev.gnupg.org/source/gpgme.git gpgme
+
+      - name: Build the gpgme bindings
+        run: |
+          set -e
+          find
+          ./autogen.sh
+          ./configure --enable-maintainer-mode
+          make
+          sudo make install
+          find
+        working-directory: gpgme
+
       - name: clone the notmuch repository
         run: git clone --depth 1 https://git.notmuchmail.org/git/notmuch notmuch
 
@@ -58,23 +75,6 @@ jobs:
       - name: Install notmuch python bindings
         run: pip install .
         working-directory: notmuch/bindings/python-cffi
-
-      # - name: Update the gpg dependency in the pyproject file
-      #   # 1.16 is the version of gpgme that is currently available in ubuntu-latest (currently 22.04)
-      #   run: sed -i 's|gpg>1.10.0|gpg @ https://dev.gnupg.org/source/gpgme.git@gpgme-1.16.0|' pyproject.toml
-      - name: Clone the gpgme repository
-        run: git clone --depth 1 --branch gpgme-1.16.0 https://dev.gnupg.org/source/gpgme.git gpgme
-
-      - name: Build the gpgme bindings
-        run: |
-          set -e
-          find
-          ./autogen.sh
-          ./configure --enable-maintainer-mode
-          make
-          sudo make install
-          find
-        working-directory: gpgme
 
       - name: Install dependencies
         run: pip install .
