@@ -38,7 +38,7 @@ jobs:
           DEBIAN_FRONTEND: noninteractive
 
       - name: clone the notmuch repository
-        run: git clone --depth 1 git://notmuchmail.org/git/notmuch notmuch
+        run: git clone --depth 1 https://git.notmuchmail.org/git/notmuch notmuch
 
       - name: build the notmuch bindings
         run: |
