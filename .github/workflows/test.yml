@@ -58,6 +58,10 @@ jobs:
         run: pip install .
         working-directory: notmuch/bindings/python-cffi
 
+      - name: Update the gpg dependency in the pyproject file
+        # 1.16 is the version of gpgme that is currently available in ubuntu-latest (currently 22.04)
+        run: sed -i 's|gpg>1.10.0|gpg @ https://dev.gnupg.org/source/gpgme.git@gpgme-1.16.0|' pyproject.toml
+
       - name: Install dependencies
         run: pip install .
 
