@@ -15,7 +15,7 @@ On a recent Debian (-derived) systems for instance, just do `sudo apt install al
    On more recent versions of w3m, links can be parsed and appended with reference numbers::
 
      text/html;  w3m -dump -o document_charset=%{charset} -o display_link_number=1 '%s'; nametemplate=%s.html; copiousoutput
-   
+
    See the manpage :manpage:`mailcap(5)` or :rfc:`1524` for more details on your mailcap setup.
 
 
@@ -28,17 +28,17 @@ A full list of dependencies is below:
 
 * `libmagic and python bindings <http://darwinsys.com/file/>`_, ≥ `5.04`
 * `configobj <http://www.voidspace.org.uk/python/configobj.html>`_, ≥ `4.7.0`
-* `libnotmuch <http://notmuchmail.org/>`_ and it's python bindings, ≥ `0.27`
+* `libnotmuch <http://notmuchmail.org/>`_ and it's python bindings, ≥ `0.30`
 * `urwid <http://excess.org/urwid/>`_ toolkit, ≥ `1.3.0`
-* `urwidtrees <https://github.com/pazz/urwidtrees>`_, ≥ `1.0`
-* `gpg <http://www.gnupg.org/related_software/gpgme>`_ and it's python bindings, ≥ `1.9.0`
+* `urwidtrees <https://github.com/pazz/urwidtrees>`_, ≥ `1.0.3`
+* `gpg <http://www.gnupg.org/related_software/gpgme>`_ and it's python bindings, > `1.10.0`
 * `twisted <https://twistedmatrix.com>`_, ≥ `18.4.0`
 
 
 On Debian/Ubuntu these are packaged as::
 
   python3-setuptools python3-magic python3-configobj python3-notmuch python3-urwid python3-urwidtrees python3-gpg python3-twisted python3-dev swig
-  
+
 On Fedora/Redhat these are packaged as::
 
   python-setuptools python-magic python-configobj python-notmuch python-urwid python-urwidtrees python-gpg python-twisted
