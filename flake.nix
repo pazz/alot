@@ -8,12 +8,19 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
+        pyproject = pkgs.lib.trivial.importTOML ./pyproject.toml;
+        # get a list of python packages by name
+        getPkgs = names: builtins.attrValues (pkgs.lib.attrsets.getAttrs names pkgs.python3Packages);
+        # extract the python dependencies from the pyprojec file, cut the version constraint
+        dependencies' = pkgs.lib.lists.concatMap (builtins.match "([^>=<]*).*") pyproject.project.dependencies;
+        # the package is called gpg on PyPI but gpgme in nixpkgs
+        dependencies = map (x: if x == "gpg" then "gpgme" else x) dependencies';
       in
       {
         packages = {
           alot = pkgs.python3Packages.buildPythonApplication {
             name = "alot";
-            version = "dev";
+            version = pyproject.project.version + "-post";
             src = self;
             pyproject = true;
             outputs = [
@@ -21,19 +28,8 @@
               "doc"
               "man"
             ];
-            build-system = with pkgs.python3Packages; [
-              setuptools
-              setuptools-scm
-            ];
-            dependencies = with pkgs.python3Packages; [
-              configobj
-              gpgme
-              notmuch2
-              python-magic
-              twisted
-              urwid
-              urwidtrees
-            ];
+            build-system = getPkgs pyproject."build-system".requires;
+            dependencies = getPkgs dependencies;
             postPatch = ''
               substituteInPlace alot/settings/manager.py \
                 --replace /usr/share "$out/share"
