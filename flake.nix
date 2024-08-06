@@ -8,8 +8,12 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
+        # we want to extract some metadata and especially the dependencies
+        # from the pyproject file, like this we do not have to maintain the
+        # list a second time
         pyproject = pkgs.lib.trivial.importTOML ./pyproject.toml;
-        # get a list of python packages by name
+        # get a list of python packages by name, used to get the nix packages
+        # for the dependency names from the pyproject file
         getPkgs = names: builtins.attrValues (pkgs.lib.attrsets.getAttrs names pkgs.python3Packages);
         # extract the python dependencies from the pyprojec file, cut the version constraint
         dependencies' = pkgs.lib.lists.concatMap (builtins.match "([^>=<]*).*") pyproject.project.dependencies;
