@@ -112,7 +112,7 @@ edit_headers_blacklist = force_list(default=list(Content-Type,MIME-Version,Refer
 flush_retry_timeout = integer(default=5)
 
 # where to look up hooks
-hooksfile = string(default='$XDG_CONFIG_HOME/alot/hooks.py')
+hooksfile = string(default=None)
 
 # time in secs to display status messages
 notify_timeout = integer(default=2)
