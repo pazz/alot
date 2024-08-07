@@ -33,15 +33,18 @@ class DBManager:
     }
     """constants representing sort orders"""
 
-    def __init__(self, path=None, ro=False):
+    def __init__(self, path=None, ro=False, config=None):
         """
         :param path: absolute path to the notmuch index
         :type path: str
         :param ro: open the index in read-only mode
         :type ro: bool
+        :param path: absolute path to the notmuch config file
+        :type path: str
         """
         self.ro = ro
         self.path = path
+        self.config = config
         self.writequeue = deque([])
         self.processes = []
 
@@ -87,7 +90,8 @@ class DBManager:
                     # acquire a writeable db handler
                     try:
                         mode = Database.MODE.READ_WRITE
-                        db = Database(path=self.path, mode=mode)
+                        db = Database(path=self.path, mode=mode,
+                                      config=self.config)
                     except NotmuchError:
                         raise DatabaseLockedError()
                     logging.debug('got write lock')
@@ -249,13 +253,15 @@ class DBManager:
 
     def count_messages(self, querystring):
         """returns number of messages that match `querystring`"""
-        db = Database(path=self.path, mode=Database.MODE.READ_ONLY)
+        db = Database(path=self.path, mode=Database.MODE.READ_ONLY,
+                      config=self.config)
         return db.count_messages(querystring,
                                  exclude_tags=self.exclude_tags)
 
     def collect_tags(self, querystring):
         """returns tags of messages that match `querystring`"""
-        db = Database(path=self.path, mode=Database.MODE.READ_ONLY)
+        db = Database(path=self.path, mode=Database.MODE.READ_ONLY,
+                      config=self.config)
         tagset = notmuch2._tags.ImmutableTagSet(
             db.messages(querystring,
                         exclude_tags=self.exclude_tags),
@@ -265,14 +271,16 @@ class DBManager:
 
     def count_threads(self, querystring):
         """returns number of threads that match `querystring`"""
-        db = Database(path=self.path, mode=Database.MODE.READ_ONLY)
+        db = Database(path=self.path, mode=Database.MODE.READ_ONLY,
+                      config=self.config)
         return db.count_threads(querystring,
                                 exclude_tags=self.exclude_tags)
 
     @contextlib.contextmanager
     def _with_notmuch_thread(self, tid):
         """returns :class:`notmuch2.Thread` with given id"""
-        with Database(path=self.path, mode=Database.MODE.READ_ONLY) as db:
+        with Database(path=self.path, mode=Database.MODE.READ_ONLY,
+                      config=self.config) as db:
             try:
                 yield next(db.threads('thread:' + tid))
             except NotmuchError:
@@ -287,8 +295,8 @@ class DBManager:
     @contextlib.contextmanager
     def _with_notmuch_message(self, mid):
         """returns :class:`notmuch2.Message` with given id"""
-        mode = Database.MODE.READ_ONLY
-        with Database(path=self.path, mode=mode) as db:
+        with Database(path=self.path, mode=Database.MODE.READ_ONLY,
+                      config=self.config) as db:
             try:
                 yield db.find_message(mid)
             except:
@@ -305,7 +313,8 @@ class DBManager:
         returns all tagsstrings used in the database
         :rtype: list of str
         """
-        db = Database(path=self.path, mode=Database.MODE.READ_ONLY)
+        db = Database(path=self.path, mode=Database.MODE.READ_ONLY,
+                      config=self.config)
         return [t for t in db.tags]
 
     def get_named_queries(self):
@@ -313,7 +322,8 @@ class DBManager:
         returns the named queries stored in the database.
         :rtype: dict (str -> str) mapping alias to full query string
         """
-        db = Database(path=self.path, mode=Database.MODE.READ_ONLY)
+        db = Database(path=self.path, mode=Database.MODE.READ_ONLY,
+                      config=self.config)
         return {k[6:]: db.config[k] for k in db.config if
                 k.startswith('query.')}
 
@@ -332,7 +342,8 @@ class DBManager:
                 :class:`multiprocessing.Process`)
         """
         assert sort in self._sort_orders
-        db = Database(path=self.path, mode=Database.MODE.READ_ONLY)
+        db = Database(path=self.path, mode=Database.MODE.READ_ONLY,
+                      config=self.config)
         thread_ids = [t.threadid for t in db.threads(querystring,
                             sort=self._sort_orders[sort],
                             exclude_tags=self.exclude_tags)]
