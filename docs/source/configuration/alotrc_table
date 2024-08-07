@@ -385,7 +385,7 @@
      where to look up hooks
 
     :type: string
-    :default: "~/.config/alot/hooks.py"
+    :default: None
 
 
 .. _initial-command:

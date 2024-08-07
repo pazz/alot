@@ -77,13 +77,21 @@ class SettingsManager:
         self._config.merge(newconfig)
         self._config.walk(self._expand_config_values)
 
-        hooks_path = os.path.expanduser(self._config.get('hooksfile'))
-        try:
-            spec = importlib.util.spec_from_file_location('hooks', hooks_path)
-            self.hooks = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(self.hooks)
-        except:
-            logging.exception('unable to load hooks file:%s', hooks_path)
+        # set up hooks module if requested
+        hooks_path = self._config.get('hooksfile')
+        if hooks_path:
+            hooks_path = os.path.expanduser(hooks_path)
+            logging.debug('hooks: loading from: %s', hooks_path)
+            try:
+                spec = importlib.util.spec_from_file_location('hooks',
+                                                              hooks_path)
+                self.hooks = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(self.hooks)
+            except:
+                logging.exception('unable to load hooks file:%s', hooks_path)
+        else:
+            logging.debug('hooks: hooksfile config option is unset')
+
         if 'bindings' in newconfig:
             self._update_bindings(newconfig['bindings'])
 

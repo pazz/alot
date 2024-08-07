@@ -3,7 +3,11 @@
 Hooks
 =====
 Hooks are python callables that live in a module specified by `hooksfile` in
-the config. Per default this points to :file:`~/.config/alot/hooks.py`.
+the config. 
+
+.. versionadded:: 0.11
+   in newer versions of alot, `hooksfile` does *not* default to :file:`~/.config/alot/hooks.py`
+   but instead needs to be explicitly set if you want to use hooks.
 
 Pre/Post Command Hooks
 ----------------------
