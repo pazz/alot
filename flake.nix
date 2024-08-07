@@ -45,10 +45,6 @@
               sed "s,/usr/bin,$out/bin,g" extra/alot.desktop > $out/share/applications/alot.desktop
             '';
             checkPhase = ''
-              # In the nix sandbox stdin is not a terminal but /dev/null so we
-              # change the shell command only in this specific test.
-              sed -i '/test_no_spawn_no_stdin_attached/,/^$/s/test -t 0/sh -c "[ $(wc -l) -eq 0 ]"/' tests/commands/test_global.py
-
               python3 -m unittest -v
             '';
             nativeCheckInputs = with pkgs; [ gnupg notmuch procps ];

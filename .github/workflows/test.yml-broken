@@ -61,13 +61,5 @@ jobs:
       - name: Install dependencies
         run: pip install .
 
-      # These tests seem to fail on github's CI, we should fix these tests in
-      # some less hacky way
-      - name: disable some tests that don't work in CI
-        run: >
-          sed -Ei
-          -e 's/^(\s*)async def test_no_spawn_no_stdin_attached/\1@unittest.skip("broken in ci")\n&/'
-          tests/commands/test_global.py
-
       - name: Run tests
         run: python3 -m unittest --verbose
