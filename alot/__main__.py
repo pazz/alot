@@ -124,7 +124,8 @@ def main():
     # get ourselves a database manager
     indexpath = settings.get_notmuch_setting('database', 'path')
     indexpath = options.mailindex_path or indexpath
-    dbman = DBManager(path=indexpath, ro=options.read_only)
+    dbman = DBManager(path=indexpath, ro=options.read_only,
+                      config=options.notmuch_config)
 
     # determine what to do
     if command is None:
