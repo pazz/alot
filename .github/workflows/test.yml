@@ -23,11 +23,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-
       # https://notmuchmail.org/releases/ notmuch-0.38.3.tar.xz
       - name: Install dependencies for the gpg and notmuch python package
         run: |
@@ -58,10 +53,6 @@ jobs:
         run: find
         working-directory: gpgme
 
-      - name: Install gpgme python bindings
-        run: pip install .
-        working-directory: gpgme/lang/python
-
       - name: clone the notmuch repository
         run: git clone --depth 1 https://git.notmuchmail.org/git/notmuch notmuch
 
@@ -79,9 +70,18 @@ jobs:
           sudo make install
         working-directory: notmuch
 
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
       - name: Install notmuch python bindings
         run: pip install .
         working-directory: notmuch/bindings/python-cffi
+
+      - name: Install gpgme python bindings
+        run: pip install .
+        working-directory: gpgme/lang/python
 
       - name: Install dependencies
         run: pip install .
