@@ -34,7 +34,8 @@ jobs:
           set -e
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            libgpgme-dev libxapian-dev libgmime-3.0-dev libtalloc-dev swig
+            libgpgme-dev libxapian-dev libgmime-3.0-dev libtalloc-dev swig \
+            python3-dev
         env:
           DEBIAN_FRONTEND: noninteractive
 
