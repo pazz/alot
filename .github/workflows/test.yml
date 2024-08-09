@@ -50,7 +50,7 @@ jobs:
           ls -l $(which -a python  python3)
           set -e
           ./autogen.sh
-          ./configure --enable-maintainer-mode --enable-languages=python
+          ./configure --enable-maintainer-mode   # --enable-languages=python
           make
           sudo make install
         working-directory: gpgme
