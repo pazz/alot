@@ -42,7 +42,7 @@ jobs:
 
       - name: Build the gpgme bindings
         run: |
-          which -a python python2 python3
+          ls -l $(which -a python  python3)
           set -e
           ./autogen.sh
           ./configure --enable-maintainer-mode --enable-languages=python
