@@ -33,10 +33,12 @@ jobs:
         run: |
           set -e
           sudo apt-get update
+          sudo apt-get install -y --no-install-recommends apt-rdepends
           sudo apt-get install -y --no-install-recommends \
             libgpgme-dev libxapian-dev libgmime-3.0-dev libtalloc-dev swig \
             python3-dev \
-            libpython3-all-dev python3-all-dev
+            libpython3-all-dev python3-all-dev \
+             $(apt-rdepends python3-gpg | grep -v "^ " |grep -v debconf | grep -v pinentry)
 
         env:
           DEBIAN_FRONTEND: noninteractive
