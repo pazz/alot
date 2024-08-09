@@ -47,13 +47,19 @@ jobs:
       - name: Build the gpgme bindings
         run: |
           set -e
-          find
           ./autogen.sh
-          ./configure --enable-maintainer-mode
+          ./configure --enable-maintainer-mode --enable-languages=python
           make
           sudo make install
-          find
         working-directory: gpgme
+
+      - name: debug gpgme result
+        run: find
+        working-directory: gpgme
+
+      - name: Install gpgme python bindings
+        run: pip install .
+        working-directory: gpgme/lang/python
 
       - name: clone the notmuch repository
         run: git clone --depth 1 https://git.notmuchmail.org/git/notmuch notmuch
