@@ -68,4 +68,4 @@ See the [manual][docs] for more usage info.
 [codeclimate-img]: https://codeclimate.com/github/pazz/alot/badges/gpa.svg
 [codeclimate]: https://codeclimate.com/github/pazz/alot
 [rtfd-img]: https://readthedocs.org/projects/alot/badge/?version=latest
-[rtfd]: https://alot.readthedocs.io/en/latest/?badge=latest
+[rtfd]: https://alot.readthedocs.io/en/latest/
