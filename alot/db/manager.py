@@ -39,7 +39,7 @@ class DBManager:
         :type path: str
         :param ro: open the index in read-only mode
         :type ro: bool
-        :param path: absolute path to the notmuch config file
+        :param config: absolute path to the notmuch config file
         :type path: str
         """
         self.ro = ro
@@ -83,7 +83,7 @@ class DBManager:
                 # watch out for notmuch errors to re-insert current_item
                 # to the queue on errors
                 try:
-                    # the first two coordinants are cnmdname and post-callback
+                    # the first two coordinates are cnmdname and post-callback
                     cmd, afterwards = current_item[:2]
                     logging.debug('cmd created')
 
