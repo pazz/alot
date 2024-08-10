@@ -251,7 +251,7 @@ man_pages = [
 autodoc_member_order = 'bysource'
 autoclass_content = 'both'
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3.8', None),
-    'notmuch': ('https://packages.python.org/notmuch', None),
-    'urwid': ('https://urwid.readthedocs.org/en/latest', None),
+    'python': ('https://docs.python.org/', None),
+    'notmuch': ('https://notmuch.readthedocs.org/en/latest/', None),
+    'urwid': ('https://urwid.readthedocs.org/en/latest/', None),
 }
