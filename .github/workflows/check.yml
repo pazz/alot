@@ -6,33 +6,28 @@ on:
 
 jobs:
 
-  poetry:
-
-    # TODO remove this line after the gpg dependency problem from #1630 and
-    # c1137ea9 is fixed. Until then these checks are deactivated.
-    if: false
+  python-build:
 
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        check:
-          - poetry check
-          - poetry build
+        python-version: ["3.8", "3.12"]
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
 
-      - name: Install poetry
-        run: |
-          python -m pip install --upgrade pip
-          pip install poetry
+      - name: Install the build module
+        run: pip install build
 
-      - name: Run check "${{ matrix.check }}"
-        run: "${{ matrix.check }}"
+      - name: Build the alot package
+        run: python3 -m build
+
 
   nix-flake:
     runs-on: ubuntu-latest
