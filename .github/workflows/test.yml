@@ -63,5 +63,12 @@ jobs:
           sed -i /gpg/d pyproject.toml
           pip install .
 
+      - name: Mock the gpg library
+        run: |
+          mkdir -p gpg/constants
+          echo from . import constants > gpg/__init__.py
+          echo from . import validity > gpg/constants/__init__.py
+          echo FULL = 4 > gpg/constants/validity.py
+
       - name: Run tests
         run: python3 -m unittest --verbose
