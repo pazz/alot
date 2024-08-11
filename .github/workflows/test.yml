@@ -59,7 +59,9 @@ jobs:
         working-directory: notmuch/bindings/python-cffi
 
       - name: Install dependencies
-        run: pip install .
+        run: |
+          sed -i /gpg/d pyproject.toml
+          pip install .
 
       - name: Run tests
         run: python3 -m unittest --verbose
