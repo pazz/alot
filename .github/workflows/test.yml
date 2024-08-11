@@ -1,10 +1,3 @@
-# WARNING: This workflow is deactivated until the gpg dependency problem from
-# issue 1630 (see
-# https://github.com/pazz/alot/issues/1630#issuecomment-1938174029 and
-# onwards) is fixed.  The problem was introduced in c1137ea9: the gpg
-# dependency is required with version > 1.10.0 and such a version is not
-# currently available on PyPI but must be build from hand.
-
 name: Run tests
 
 on:
@@ -58,21 +51,29 @@ jobs:
         run: pip install .
         working-directory: notmuch/bindings/python-cffi
 
-      - name: Install dependencies
+      - name: "Workaround for issue #1630: mock gpg instead of installing it"
+        # FIXME: It is very difficult to install a recent gpg package in ci.
+        # This is related to issue 1630 (see
+        # https://github.com/pazz/alot/issues/1630#issuecomment-1938174029 and
+        # onwards).  The problem was introduced in c1137ea9: the gpg
+        # dependency is required with version > 1.10.0 and such a version is
+        # not currently available on PyPI but must be build from hand.
         run: |
+          # do not install gpg with pip
           sed -i /gpg/d pyproject.toml
-          pip install .
-
-      - name: Mock the gpg library
-        run: |
+          # mock a minimal structure of the gpg module
           mkdir -p gpg/constants
           echo from . import constants > gpg/__init__.py
           echo from . import validity > gpg/constants/__init__.py
           echo FULL = 4 > gpg/constants/validity.py
-
+          # skip all tests that depend on gpg
           sed -i '/import unittest/araise unittest.SkipTest("gpg based test do not work in CI")\n' tests/test_crypto.py
           sed -i 's/\( *\)def setUpClass.*/&\n\1    raise unittest.SkipTest("gpg based test do not work in CI")\n/' tests/db/test_utils.py
           sed -i 's/\( *\)async def test_no_spawn_no_stdin_attached.*/\1@unittest.skip\n&/' tests/commands/test_global.py
+
+      - name: Install dependencies
+        run: |
+          pip install .
 
       - name: Run tests
         run: python3 -m unittest --verbose
