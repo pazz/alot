@@ -57,6 +57,16 @@ jobs:
 
       - name: Set up Python
         uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Remove and mock problematic dependencies
+        run: |
+          sed -i '/gpg/d;/notmuch2/d' pyproject.toml
+          touch gpg.py
+          echo NullPointerError = NotmuchError = None > notmuch2.py
+          pip install .
+          git checkout pyproject.toml
 
       - name: Regenerate all generated docs
         # We run "true" instead of "sphinx-build" to speed things up as we are
