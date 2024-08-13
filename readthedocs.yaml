@@ -7,6 +7,17 @@ build:
   os: ubuntu-22.04
   tools:
     python: "3.12"
+  apt_packages:
+    - libmagic # for python-magic
+  jobs:
+    # remove and mock problematic dependencies
+    pre_install:
+      - sed -i '/gpg/d;/notmuch2/d' pyproject.toml
+      - touch gpg.py
+      - echo NullPointerError = NotmuchError = None > notmuch2.py
+    # make the git state clean again for setuptools_scm
+    post_install:
+      - git checkout pyproject.toml
 
 # Build documentation in the "docs/" directory with Sphinx
 sphinx:
