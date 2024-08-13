@@ -24,7 +24,7 @@
         packages = {
           alot = pkgs.python3Packages.buildPythonApplication {
             name = "alot";
-            version = pyproject.project.version + "-post";
+            version = "0.dev+${if self ? shortRev then self.shortRev else "dirty"}";
             src = self;
             pyproject = true;
             outputs = [
