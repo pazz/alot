@@ -19,12 +19,14 @@
         dependencies' = pkgs.lib.lists.concatMap (builtins.match "([^>=<]*).*") pyproject.project.dependencies;
         # the package is called gpg on PyPI but gpgme in nixpkgs
         dependencies = map (x: if x == "gpg" then "gpgme" else x) dependencies';
+        version = "0.11.dev+${if self ? shortRev then self.shortRev else "dirty"}";
       in
       {
         packages = {
           alot = pkgs.python3Packages.buildPythonApplication {
             name = "alot";
-            version = pyproject.project.version + "-post";
+            inherit version;
+            SETUPTOOLS_SCM_PRETEND_VERSION = version;
             src = self;
             pyproject = true;
             outputs = [
