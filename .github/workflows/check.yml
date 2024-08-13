@@ -47,3 +47,21 @@ jobs:
 
     - name: Build the ${{ matrix.derivation }} derivation
       run: 'nix build --print-build-logs .\#${{ matrix.derivation }}'
+
+
+  generated-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+
+      - name: Regenerate all generated docs
+        # We run "true" instead of "sphinx-build" to speed things up as we are
+        # only interested in the regeneration of the docs.
+        run: make -C docs cleanall html SPHINXBUILD=true
+
+      - name: Compare the generated docs with the version committed to git
+        run: git diff --exit-code
