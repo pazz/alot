@@ -1,7 +1,5 @@
-.. glossary::
+SIGUSR1
+  Refreshes the current buffer.
 
-  SIGUSR1
-    Refreshes the current buffer.
-
-  SIGINT
-    Shuts down the user interface.
+SIGINT
+  Shuts down the user interface.

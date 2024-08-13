@@ -74,6 +74,8 @@ The following commands are available in search mode:
 
     open thread in a new buffer
 
+    optional arguments
+        :---all-folded: do not unfold matching messages
 
 .. _cmd.search.sort:
 
