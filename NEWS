@@ -1,3 +1,13 @@
+0.11:
+* breaking: hooks file now has to be set in alot's config and defaults to no hooks
+* info: forwarded mails now set Reference header to include them in original thread
+* config: new option "thread_unfold_matching" to determine which messages are unfolded initially in thread mode
+* deps: bump dependency to python-gpg to >0.10 to avoid use of outdated version from pypi
+* deps: alot now requires python v>=3.8
+* improved handling of ANSI escape codes
+* info: mail paths (sent/drafts etc) now interpret environment variables
+* lots of fixes relating to configobj, notmuch-config, theming, and the build and CI processes
+
 0.10:
 * various fixes with mailcap handling
 * info: alot now depends on the new-style cffi bindings (notmuch2, available under notmuch/bindings/python-cffi)
