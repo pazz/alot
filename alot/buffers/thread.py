@@ -1,4 +1,4 @@
-# Copyright (C) 2011-2018  Patrick Totzke <patricktotzke@gmail.com>
+# Copyright (C) Patrick Totzke <patricktotzke@gmail.com>
 # Copyright © 2018 Dylan Baker
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file

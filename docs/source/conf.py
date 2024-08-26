@@ -48,7 +48,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'alot'
-copyright = "Copyright (C) 2012-24 Patrick Totzke"
+copyright = "Copyright (C) Patrick Totzke"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

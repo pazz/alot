@@ -1,5 +1,5 @@
 # encoding=utf-8
-# Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
+# Copyright (C) Patrick Totzke <patricktotzke@gmail.com>
 # Copyright © 2017 Dylan Baker
 
 # This program is free software: you can redistribute it and/or modify
