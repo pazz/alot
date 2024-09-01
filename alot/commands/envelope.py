@@ -112,6 +112,48 @@ class RefineCommand(Command):
         await ui.apply_command(globals.PromptCommand(cmdstring))
 
 
+async def delete_previous_draft(envelope, ui):
+    try:
+        if envelope.previous_draft is None:
+            return
+    except AttributeError:
+        return
+    if settings.get('envelope_always_delete_old_drafts'):
+        del_old_draft = True
+    else:
+        msg = 'Do you want to delete the old draft?'
+        del_old_draft = (await ui.choice(msg, cancel='no',
+                                         msg_position='left'))
+        del_old_draft = (del_old_draft == 'yes')
+    if del_old_draft:
+        try:
+            message_path = envelope.previous_draft.get_filename()
+        except Exception as e:
+            logging.error(e)
+            ui.notify('could not get draft path:\n%s' % e,
+                      priority='error', block=True)
+            return
+
+        try:
+            ui.dbman.remove_message(envelope.previous_draft)
+            await ui.apply_command(globals.FlushCommand())
+        except DatabaseError as e:
+            logging.error(e)
+            ui.notify('could not remove draft from db:\n%s' % e,
+                      priority='error', block=True)
+            return
+
+        try:
+            os.unlink(message_path)
+        except OSError as e:
+            logging.error(e)
+            ui.notify('could not delete draft file:\n%s' % e,
+                      priority='error', block=True)
+            return
+
+            envelope.previous_draft = None
+
+
 @registerCommand(MODE, 'save')
 class SaveCommand(Command):
     """save draft"""
@@ -138,23 +180,26 @@ class SaveCommand(Command):
         path = account.store_draft_mail(
             mail.as_string(policy=email.policy.SMTP, maxheaderlen=sys.maxsize))
 
-        msg = 'draft saved successfully'
-
         # add mail to index if maildir path available
         if path is not None:
-            ui.notify(msg + ' to %s' % path)
+            ui.notify('draft saved successfully to %s' % path)
             logging.debug('adding new mail to index')
             try:
                 ui.dbman.add_message(path, account.draft_tags + envelope.tags)
                 await ui.apply_command(globals.FlushCommand())
-                await ui.apply_command(commands.globals.BufferCloseCommand())
             except DatabaseError as e:
                 logging.error(str(e))
                 ui.notify('could not index message:\n%s' % str(e),
                           priority='error',
                           block=True)
-        else:
-            await ui.apply_command(commands.globals.BufferCloseCommand())
+                return
+
+        await delete_previous_draft(envelope, ui)
+
+        # strip the outside '<' and '>' characters from the id
+        mid = mail['Message-ID'][1:-1]
+        envelope.previous_draft = ui.dbman.get_message(mid)
+        await ui.apply_command(commands.globals.BufferCloseCommand())
 
 
 @registerCommand(MODE, 'send')
@@ -314,6 +359,8 @@ class SendCommand(Command):
                 logging.debug('adding new mail to index')
                 ui.dbman.add_message(path, account.sent_tags + initial_tags)
                 await ui.apply_command(globals.FlushCommand())
+
+            await delete_previous_draft(self.envelope, ui)
 
 
 @registerCommand(MODE, 'edit', arguments=[
