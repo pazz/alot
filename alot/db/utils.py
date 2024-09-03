@@ -491,13 +491,23 @@ def get_body_part(mail, mimetype=None):
     return body_part
 
 
-def extract_body_part(body_part):
-    """Returns a string view of a Message."""
+def extract_body_part(body_part, render=True):
+    """
+    Returns a string view of a Message.
+
+    :param render: If true (the default), try to render the content with
+                   `render_part`; otherwise skip rendering.
+    :type render: bool
+    """
     displaystring = ""
-    rendered_payload = render_part(
-        body_part,
-        **{'field_key': 'view'} if body_part.get_content_type() == 'text/plain'
-        else {})
+    if render:
+        rendered_payload = render_part(
+            body_part,
+            **{'field_key': 'view'} if body_part.get_content_type() == 'text/plain'
+            else {})
+    else:
+        rendered_payload = None
+
     if rendered_payload:  # handler had output
         displaystring = string_sanitize(rendered_payload)
     elif body_part.get_content_type() == 'text/plain':
