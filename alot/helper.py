@@ -44,10 +44,11 @@ def split_commandstring(cmdstring):
 def unicode_printable(c):
     """
     Checks if the given character is a printable Unicode character, i.e., not a
-    private/unassigned character and not a control character other than tab or
-    newline.
+    private/unassigned character and not a control character other than tab,
+    newline or ESC (for ANSI escape sequences, e.g. HTML coloring).
     """
-    if c in ('\n', '\t'):
+    ESC = '\x1b'
+    if c in ('\n', '\t', ESC):
         return True
     return unicodedata.category(c) not in ('Cc', 'Cn', 'Co')
 
