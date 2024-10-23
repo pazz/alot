@@ -476,7 +476,7 @@ def get_body_part(mail, mimetype=None):
     :param mail: the mail to use
     :type mail: :class:`email.message.EmailMessage`
     :returns: The combined text of any parts to be used
-    :rtype: str
+    :rtype: :class:`email.message.EmailMessage`
     """
 
     if not mimetype:
@@ -486,7 +486,9 @@ def get_body_part(mail, mimetype=None):
 
     body_part = mail.get_body(preferencelist)
     if body_part is None:  # if no part matching preferredlist was found
-        return ""
+        empty = email.message.EmailMessage()
+        empty.set_payload("")
+        return empty
 
     return body_part
 
