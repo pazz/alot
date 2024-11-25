@@ -1,6 +1,8 @@
 # Copyright (C) 2011-2018  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
+import time
+
 import urwid
 from notmuch2 import NotmuchError
 
@@ -99,13 +101,13 @@ class SearchBuffer(Buffer):
         while not self.threadlist.empty:
             self.threadlist._get_next_item()
 
-    def consume_pipe_until(self, predicate, limit=0):
-        n = limit
-        while not limit or n > 0:
+    def consume_pipe_until(self, predicate, timeout=1):
+        start = time.monotonic()
+        timeout_time = start + timeout
+        while time.monotonic() < timeout_time:
             if self.threadlist.empty \
                or predicate(self.threadlist._get_next_item()):
                 break
-            n -= 1
 
     def focus_first(self):
         if not self.reversed:
@@ -130,8 +132,7 @@ class SearchBuffer(Buffer):
     def focus_thread(self, thread):
         tid = thread.get_thread_id()
         self.consume_pipe_until(lambda w:
-                                w and w.get_thread().get_thread_id() == tid,
-                                self.search_threads_rebuild_limit)
+                                w and w.get_thread().get_thread_id() == tid)
 
         for pos, threadlinewidget in enumerate(self.threadlist.get_lines()):
             if threadlinewidget.get_thread().get_thread_id() == tid:
