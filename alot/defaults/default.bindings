@@ -91,3 +91,6 @@ q = exit
     'g h' = move parent
     'g l' = move first reply
     ' ' = move next
+
+[help]
+    esc = cancel
