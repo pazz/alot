@@ -15,10 +15,14 @@
         # get a list of python packages by name, used to get the nix packages
         # for the dependency names from the pyproject file
         getPkgs = names: builtins.attrValues (pkgs.lib.attrsets.getAttrs names pkgs.python3Packages);
-        # extract the python dependencies from the pyprojec file, cut the version constraint
-        dependencies' = pkgs.lib.lists.concatMap (builtins.match "([^>=<]*).*") pyproject.project.dependencies;
+        # extract the python dependencies from the pyprojec file, cut the version constraints
+        dependencies' = pkgs.lib.lists.concatMap (builtins.match "([^>=<;]*).*") pyproject.project.dependencies;
         # the package is called gpg on PyPI but gpgme in nixpkgs
-        dependencies = map (x: if x == "gpg" then "gpgme" else x) dependencies';
+        renameGPG = x: if x == "gpg" then "gpgme" else x;
+        # mailcap has been removed from the stdlib in py3.13 and needs to be
+        # fetched from pypi
+        withMailcap = x: (pkgs.lib.strings.versionOlder "3.12" pkgs.python3.version) || (x != "standard-mailcap");
+        dependencies = map renameGPG (builtins.filter withMailcap dependencies');
       in
       {
         packages = {
