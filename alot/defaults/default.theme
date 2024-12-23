@@ -32,7 +32,7 @@
     arrow_heads = '','','dark red','','#a00',''
     arrow_bars = '','','dark red','','#800',''
     attachment = 'default','','light gray','dark gray','light gray','dark gray'
-    attachment_focus = 'underline','','light gray','light green','light gray','light green'
+    attachment_focus = 'underline','','dark gray','light green','dark gray','light green'
     body = 'default','','default','default','default','default'
     body_focus = 'default','','default,standout','default','default,standout','default'
     header = 'default','','white','dark gray','white','dark gray'
