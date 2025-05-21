@@ -29,6 +29,13 @@
     line_even = 'default','','light gray','black','default','default'
     line_odd = 'default','','light gray','black','default','default'
 [thread]
+    quote_level_1 = '','','dark cyan','','dark cyan',''
+    quote_level_2 = '','','brown','','brown',''
+    quote_level_3 = '','','dark red','','dark red',''
+    quote_level_4 = '','','dark green','','dark green',''
+    quote_level_5 = '','','dark cyan','','dark cyan',''
+    quote_level_6 = '','','brown','','brown',''
+    quote_level_7 = '','','dark red','','dark red',''
     arrow_heads = '','','dark red','','#a00',''
     arrow_bars = '','','dark red','','#800',''
     attachment = 'default','','light gray','dark gray','light gray','dark gray'
