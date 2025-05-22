@@ -15,10 +15,15 @@ def parse_text_colour(line):
     :param str line: line of text to be parsed
     :return: The theme attribute to apply
     """
+    colour = None
+
     if settings.get('parse_quotes'):
-        return parse_quotes(line)
-    else:
-        return None
+        colour = parse_quotes(line)
+
+    if colour == None and settings.get('highlight_diff'):
+        colour = parse_diff(line)
+
+    return colour
 
 
 def parse_quotes(line):
@@ -63,3 +68,17 @@ def get_quote_colour(line, max_quote_level):
             # we simply use the last level match colour
             break
     return quote_colour
+
+def parse_diff(line):
+    """Color +/- diff lines for easing patch review
+
+    :param str line: line of text to be parsed
+    :return: diff_colour (either string 'default or an AttrSpec object)
+    """
+    if line.startswith("+"):
+        return settings.get_theming_attribute('thread', 'diff_added')
+
+    if line.startswith("-"):
+        return settings.get_theming_attribute('thread', 'diff_removed')
+
+    return None
