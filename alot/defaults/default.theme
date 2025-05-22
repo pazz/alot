@@ -45,6 +45,8 @@
     header = 'default','','white','dark gray','white','dark gray'
     header_key = 'default','','white','dark gray','white','dark gray'
     header_value = 'default','','light gray','dark gray','light gray','dark gray'
+    diff_removed = '','','dark red','','#d66',''
+    diff_added = '','','dark green','','#6d6',''
 
     [[summary]]
         even = 'default','','white','light blue','white','#006'
