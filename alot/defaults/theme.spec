@@ -67,6 +67,8 @@
     header = attrtriple
     header_key = attrtriple
     header_value = attrtriple
+    diff_removed = attrtriple(default=None)
+    diff_added = attrtriple(default=None)
     [[summary]]
         even = attrtriple
         odd = attrtriple

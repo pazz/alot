@@ -26,6 +26,9 @@ parse_quotes = boolean(default=True)
 # Set what quote symbol should be used (regex symbol is possible)
 quote_symbol = string(default='>')
 
+# Enable colouring unified diffs
+highlight_diff = boolean(default=True)
+
 # confirm exit
 bug_on_exit = boolean(default=False)
 

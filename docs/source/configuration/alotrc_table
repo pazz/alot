@@ -345,6 +345,15 @@
     :type: boolean
     :default: False
 
+.. _highlight-diff:
+
+.. describe:: highlight_diff
+
+     Enable colouring patches based on unified diff format
+
+    :type: boolean
+    :default: True
+
 
 .. _history-size:
 
