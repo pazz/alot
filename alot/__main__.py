@@ -6,6 +6,7 @@ import locale
 import logging
 import os
 import sys
+import asyncio
 
 import alot
 from alot.settings.const import settings
@@ -18,7 +19,8 @@ from alot.commands import CommandParseError, COMMANDS
 from alot.utils import argparse as cargparse
 
 from twisted.internet import asyncioreactor
-asyncioreactor.install()
+EVENT_LOOP = asyncio.new_event_loop()
+asyncioreactor.install(EVENT_LOOP)
 
 
 _SUBCOMMANDS = ['search', 'compose', 'bufferlist', 'taglist', 'namedqueries',
@@ -137,7 +139,7 @@ def main():
         cmdstring = ' '.join(options.command)
 
     # set up and start interface
-    UI(dbman, cmdstring)
+    UI(dbman, cmdstring, EVENT_LOOP)
 
     # run the exit hook
     exit_hook = settings.get_hook('exit')
