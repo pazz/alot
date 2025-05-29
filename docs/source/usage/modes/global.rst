@@ -106,7 +106,7 @@ The following commands are available globally:
 .. describe:: help
 
     display help for a command (use 'bindings' to display all keybindings
-    interpreted in current mode)
+interpreted in current mode)
 
     argument
         command or 'bindings'
@@ -198,7 +198,7 @@ The following commands are available globally:
 .. describe:: search
 
     open a new search buffer. Search obeys the notmuch
-    :ref:`search.exclude_tags <search.exclude_tags>` setting.
+:ref:`search.exclude_tags <search.exclude_tags>` setting.
 
     argument
         search string
