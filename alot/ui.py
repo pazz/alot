@@ -44,7 +44,7 @@ class UI:
     responsible for opening, closing and focussing buffers.
     """
 
-    def __init__(self, dbman, initialcmdline):
+    def __init__(self, dbman, initialcmdline, loop):
         """
         :param dbman: :class:`~alot.db.DBManager`
         :param initialcmdline: commandline applied after setting up interface
@@ -121,7 +121,6 @@ class UI:
             unhandled_input=self._unhandled_input,
             input_filter=self._input_filter)
 
-        loop = asyncio.get_event_loop()
         # Create a task for the periodic hook
         loop_hook = settings.get_hook('loop_hook')
         if loop_hook:
