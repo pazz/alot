@@ -1,6 +1,7 @@
 import argparse
 import sys
 from pathlib import Path
+import textwrap
 
 HERE = Path(__file__).parent
 sys.path.insert(0, str(HERE.parent.parent))
@@ -29,6 +30,14 @@ class HF(argparse.HelpFormatter):
         return format
 
 
+def indent(string, indent):
+    """Indent a (doc) string for rst"""
+    if sys.version_info.major >= 3 and sys.version_info.minor >= 13:
+        return textwrap.indent(string, indent)
+    else:
+        return indent + string
+
+
 def rstify_parser(parser):
     parser.formatter_class = HF
 
@@ -45,13 +54,13 @@ def rstify_parser(parser):
     out += '.. describe:: %s\n\n' % parser.prog
 
     # description
-    out += ' ' * 4 + parser.description
+    out += indent(parser.description, ' ' * 4)
     out += '\n\n'
 
     if len(parser._positionals._group_actions) == 1:
         out += "    argument\n"
         a = parser._positionals._group_actions[0]
-        out += ' '*8 + str(parser._positionals._group_actions[0].help)
+        out += indent(str(parser._positionals._group_actions[0].help), ' ' * 8)
         if a.choices:
             out += "; valid choices are: %s" % ','.join(['\'%s\'' % s for s
                                                          in a.choices])
