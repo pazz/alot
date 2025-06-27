@@ -8,25 +8,28 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
+        # reuse this python version throughout the nix code, for easier
+        # switching (thus we just pick python3 by default)
+        python = pkgs.python3;
         # we want to extract some metadata and especially the dependencies
         # from the pyproject file, like this we do not have to maintain the
         # list a second time
         pyproject = pkgs.lib.trivial.importTOML ./pyproject.toml;
         # get a list of python packages by name, used to get the nix packages
         # for the dependency names from the pyproject file
-        getPkgs = names: builtins.attrValues (pkgs.lib.attrsets.getAttrs names pkgs.python3Packages);
+        getPkgs = names: builtins.attrValues (pkgs.lib.attrsets.getAttrs names python.pkgs);
         # extract the python dependencies from the pyprojec file, cut the version constraints
         dependencies' = pkgs.lib.lists.concatMap (builtins.match "([^>=<;]*).*") pyproject.project.dependencies;
         # the package is called gpg on PyPI but gpgme in nixpkgs
         renameGPG = x: if x == "gpg" then "gpgme" else x;
         # mailcap has been removed from the stdlib in py3.13 and needs to be
         # fetched from pypi
-        withMailcap = x: (pkgs.lib.strings.versionOlder "3.12" pkgs.python3.version) || (x != "standard-mailcap");
+        withMailcap = x: (pkgs.lib.strings.versionOlder "3.12" python.version) || (x != "standard-mailcap");
         dependencies = map renameGPG (builtins.filter withMailcap dependencies');
       in
       {
         packages = {
-          alot = pkgs.python3Packages.buildPythonApplication {
+          alot = python.pkgs.buildPythonApplication {
             name = "alot";
             version = "0.dev+${if self ? shortRev then self.shortRev else "dirty"}";
             src = self;
@@ -53,7 +56,7 @@
             '';
             nativeCheckInputs = with pkgs; [ gnupg notmuch procps ];
             nativeBuildInputs = with pkgs; [
-              python3Packages.sphinxHook
+              python.pkgs.sphinxHook
               installShellFiles
             ];
             sphinxBuilders = [ "html" "man" ];

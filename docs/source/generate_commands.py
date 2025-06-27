@@ -1,9 +1,10 @@
 import argparse
 import sys
-import os
+from pathlib import Path
+import textwrap
 
-HERE = os.path.dirname(__file__)
-sys.path.insert(0, os.path.join(HERE, '..', '..'))
+HERE = Path(__file__).parent
+sys.path.insert(0, str(HERE.parent.parent))
 
 from alot.commands import *
 from alot.commands import COMMANDS
@@ -29,6 +30,14 @@ class HF(argparse.HelpFormatter):
         return format
 
 
+def indent(string, indent):
+    """Indent a (doc) string for rst"""
+    if sys.version_info.major >= 3 and sys.version_info.minor >= 13:
+        return textwrap.indent(string, indent)
+    else:
+        return indent + string
+
+
 def rstify_parser(parser):
     parser.formatter_class = HF
 
@@ -45,13 +54,13 @@ def rstify_parser(parser):
     out += '.. describe:: %s\n\n' % parser.prog
 
     # description
-    out += ' ' * 4 + parser.description
+    out += indent(parser.description, ' ' * 4)
     out += '\n\n'
 
     if len(parser._positionals._group_actions) == 1:
         out += "    argument\n"
         a = parser._positionals._group_actions[0]
-        out += ' '*8 + str(parser._positionals._group_actions[0].help)
+        out += indent(str(parser._positionals._group_actions[0].help), ' ' * 8)
         if a.choices:
             out += "; valid choices are: %s" % ','.join(['\'%s\'' % s for s
                                                          in a.choices])
@@ -100,25 +109,23 @@ if __name__ == "__main__":
 
     modes = []
     for mode, modecommands in sorted(COMMANDS.items()):
-        modefilename = mode+'.rst'
-        modefile = open(os.path.join(HERE, 'usage', 'modes', modefilename),
-                        'w')
-        modefile.write(NOTE)
-        if mode != 'global':
-            modes.append(mode)
-            header = 'Commands in \'%s\' mode' % mode
-            modefile.write('%s\n%s\n' % (header, '-' * len(header)))
-            modefile.write('The following commands are available in %s mode:'
-                           '\n\n' % mode)
-        else:
-            header = 'Global commands'
-            modefile.write('%s\n%s\n' % (header, '-' * len(header)))
-            modefile.write('The following commands are available globally:'
-                           '\n\n')
-        for cmdstring, struct in sorted(modecommands.items()):
-            cls, parser, forced_args = struct
-            labelline = '.. _cmd.%s.%s:\n\n' % (mode, cmdstring.replace('_',
-                                                                        '-'))
-            modefile.write(labelline)
-            modefile.write(rstify_parser(parser))
-        modefile.close()
+        path = (HERE / "usage" / "modes" / mode).with_suffix('.rst')
+        with path.open("w") as modefile:
+            modefile.write(NOTE)
+            if mode != 'global':
+                modes.append(mode)
+                header = 'Commands in \'%s\' mode' % mode
+                intro = 'The following commands are available in %s mode:' % mode
+            else:
+                header = 'Global commands'
+                intro = 'The following commands are available globally:'
+            modefile.write(header)
+            modefile.write('\n%s\n' % ('-' * len(header)))
+            modefile.write(intro)
+            modefile.write('\n\n')
+            for cmdstring, struct in sorted(modecommands.items()):
+                cls, parser, forced_args = struct
+                labelline = '.. _cmd.%s.%s:\n\n' % (mode, cmdstring.replace('_',
+                                                                            '-'))
+                modefile.write(labelline)
+                modefile.write(rstify_parser(parser))

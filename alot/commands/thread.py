@@ -1062,10 +1062,12 @@ class MoveFocusCommand(MoveCommand):
 @registerCommand(MODE, 'select')
 class ThreadSelectCommand(Command):
 
-    """select focussed element:
+    """
+    select focussed element:
         - if it is a message summary, toggle visibility of the message;
         - if it is an attachment line, open the attachment
-        - if it is a mimepart, toggle visibility of the mimepart"""
+        - if it is a mimepart, toggle visibility of the mimepart
+    """
     async def apply(self, ui):
         focus = ui.get_deep_focus()
         if isinstance(focus, AttachmentWidget):
