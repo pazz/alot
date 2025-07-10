@@ -30,8 +30,11 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from typing import Any, Callable, Optional, TypeVar, Union
 
-_missing = object()
+T = TypeVar('T')
+
+_missing: object = object()
 
 
 class cached_property:
@@ -59,13 +62,13 @@ class cached_property:
     # will still work as expected because the lookup logic is replicated
     # in __get__ for manual invocation.
 
-    def __init__(self, func, name=None, doc=None):
+    def __init__(self, func: Callable[[Any], T], name: Optional[str] = None, doc: Optional[str] = None) -> None:
         self.__name__ = name or func.__name__
         self.__module__ = func.__module__
         self.__doc__ = doc or func.__doc__
         self.func = func
 
-    def __get__(self, obj, type=None):
+    def __get__(self, obj: Any, type: Optional[type] = None) -> Any:
         if obj is None:
             return self
         value = obj.__dict__.get(self.__name__, _missing)

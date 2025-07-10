@@ -29,6 +29,27 @@ jobs:
         run: python3 -m build
 
 
+  type-check:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install mypy
+          pip install -e .[typing]
+
+      - name: Run type checking
+        run: mypy --ignore-missing-imports alot/errors.py alot/__init__.py alot/utils/cached_property.py
+
+
   nix-flake:
     runs-on: ubuntu-latest
     strategy:
