@@ -26,6 +26,7 @@ The following commands are available in search mode:
 
     optional arguments
         :---sort: sort order; valid choices are: 'oldest_first','newest_first','message_id','unsorted'
+        :---limit: limit number of results
 
 .. _cmd.search.refineprompt:
 
