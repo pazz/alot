@@ -68,10 +68,32 @@ def string_sanitize(string, tab_width=8):
     'foo             bar'
     """
 
-    string = ''.join([c for c in string if unicode_printable(c)])
+    preprocessed_string = ''
+    i = 0
+    while i < len(string):
+        # Check if this is the start of an allowed ANSI escape sequence. For
+        # security reasons, we only allow SGR (Select Graphic Rendition)
+        # parameters; i.e., sequences used for basic formatting such as
+        # coloring and font variants.
+        if string[i:i + 2] == '\x1b[':
+            j = i + 2
+            # Skip over all "parameter bytes" and "intermediate bytes"
+            for skip_chars in ('0123456789:;<=>?', ' !"#$%&\'()*+,-./'):
+                while j < len(string) and string[j] in skip_chars:
+                    j += 1
+            # Keep only SGR sequences in the preprocessed string
+            if j < len(string) and string[j] == 'm':
+                preprocessed_string += string[i:j + 1]
+            i = j + 1
+            continue
+
+        # Not a valid ANSI escape sequence, only allow printable characters.
+        if unicode_printable(string[i]):
+            preprocessed_string += string[i]
+        i += 1
 
     lines = list()
-    for line in string.split('\n'):
+    for line in preprocessed_string.split('\n'):
         tab_count = line.count('\t')
 
         if tab_count > 0:
