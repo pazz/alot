@@ -173,6 +173,18 @@ class TestStringSanitize(unittest.TestCase):
         actual = helper.string_sanitize(base)
         self.assertEqual(actual, expected)
 
+    def test_valid_ansi_escape_seq(self):
+        base = 'foo\x1b[1;31mred\x1b[0mreset'
+        expected = 'foo\x1b[1;31mred\x1b[0mreset'
+        actual = helper.string_sanitize(base)
+        self.assertEqual(actual, expected)
+
+    def test_invalid_ansi_escape_seq(self):
+        base = 'cursor\x1b[2A manipulation'
+        expected = 'cursor manipulation'
+        actual = helper.string_sanitize(base)
+        self.assertEqual(actual, expected)
+
 
 class TestStringDecode(unittest.TestCase):
 
