@@ -364,7 +364,7 @@ class EditCommand(Command):
         edit_headers = edit_headers - blacklist
         logging.info('editable headers: %s', edit_headers)
 
-        def openEnvelopeFromTmpfile():
+        def openEnvelopeFromTmpfile(*args):
             # This parses the input from the tempfile.
             # we do this ourselves here because we want to be able to
             # just type utf-8 encoded stuff into the tempfile and let alot
