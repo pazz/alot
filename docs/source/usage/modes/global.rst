@@ -226,6 +226,10 @@ The following commands are available globally:
 
     opens taglist buffer
 
+    argument
+        regular expression to match tags against
+
     optional arguments
+        :---global: list all tags globally instead of just those from the buffer
         :---tags: tags to display
 
