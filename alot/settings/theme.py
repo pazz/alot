@@ -2,13 +2,18 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 import os
+import logging
+import itertools
 
 from ..utils import configobj as checks
 from .utils import read_config
 from .errors import ConfigError
+from ..helper import get_xdg_data_dirs
 
 DEFAULTSPATH = os.path.join(os.path.dirname(__file__), '..', 'defaults')
 DUMMYDEFAULT = ('default',) * 6
+
+# TODO share this one from utils maybe ?
 
 
 class Theme:
@@ -20,11 +25,45 @@ class Theme:
         :raises: :class:`~alot.settings.errors.ConfigError`
         """
         self._spec = os.path.join(DEFAULTSPATH, 'theme.spec')
+        logging.debug("Loading theme spec %s", self._spec)
+
+        self._colours = [1, 16, 256]
+
+        # path = self.find(theme_name)
+        # if path is not None:
+            # return Theme(theme_path)
+        self._load_theme(path)
+        # else:
+        #     raise ConfigError('Could not find theme {}, see log for more '
+        #                     'information'.format(theme_name))
+
+
+    """Returns (Boolean, abspath)"""
+    @staticmethod
+    # def exists(themestring):
+    def find(themestring: str, themes_dir=None):
+        # This is a python for/else loop
+        # https://docs.python.org/3/reference/compound_stmts.html#for
+        #
+        # tl/dr; If the loop loads a theme it breaks. If it doesn't break,
+        # then it raises a ConfigError.
+
+        data_dirs = [os.path.join(d, 'alot/themes') for d in get_xdg_data_dirs()]
+
+        for dir_ in itertools.chain([themes_dir] if themes_dir else [], data_dirs):
+            theme_path = os.path.join(dir_, themestring)
+            if not os.path.exists(os.path.expanduser(theme_path)):
+                logging.warning('Theme `%s` does not exist.', theme_path)
+            else:
+                return theme_path
+
+    def _load_theme(self, path):
         self._config = read_config(path, self._spec, report_extra=True,
                                    checks={'align': checks.align_mode,
                                            'widthtuple': checks.width_tuple,
                                            'force_list': checks.force_list,
                                            'attrtriple': checks.attr_triple})
+        logging.info("TOTO", self._config)
         self._colours = [1, 16, 256]
         # make sure every entry in 'order' lists have their own subsections
         threadline = self._config['search']['threadline']
