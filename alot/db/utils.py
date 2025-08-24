@@ -429,7 +429,10 @@ def remove_cte(part, as_string=False):
     # decoding into a str is done at the end if requested
     elif '8bit' in cte:
         logging.debug('assuming Content-Transfer-Encoding: 8bit')
-        bp = payload.encode('utf8')
+        try:
+            bp = payload.encode(part.get_content_charset() or 'utf8')
+        except (LookupError, UnicodeEncodeError):
+            bp = payload.encode('utf8', 'backslashreplace')
 
     elif 'quoted-printable' in cte:
         logging.debug('assuming Content-Transfer-Encoding: quoted-printable')
