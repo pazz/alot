@@ -5,6 +5,16 @@ Commands in 'search' mode
 -------------------------
 The following commands are available in search mode:
 
+.. _cmd.search.limit:
+
+.. describe:: limit
+
+    limit number of results
+
+    argument
+        the thread count limit
+
+
 .. _cmd.search.move:
 
 .. describe:: move

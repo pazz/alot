@@ -64,6 +64,9 @@ class OpenThreadCommand(Command):
     (['sort'], {'help': 'sort order', 'choices': [
         'oldest_first', 'newest_first', 'message_id', 'unsorted']}),
 ])
+@registerCommand(MODE, 'limit', help='limit number of results', arguments=[
+    (['limit'], {'help': 'the thread count limit', 'type': int}),
+])
 class RefineCommand(Command):
 
     """refine the querystring of this buffer"""
