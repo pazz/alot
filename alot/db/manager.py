@@ -339,6 +339,8 @@ class DBManager:
         :param limit: Limit the number of threads returned.
         :type limit: int
         :returns: a thread ID iterator and the number of matched messages
+            (the iterator will have at most limit many items and the counted
+            messages are also influenced by this limit)
         :rtype: Tuple[Iterator[str], int]
         """
         assert sort in self._sort_orders
