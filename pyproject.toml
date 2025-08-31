@@ -14,7 +14,7 @@ maintainers = [
 ]
 readme = "README.md"
 dynamic = ["version"]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 license = { text = "GPL-3.0-or-later" }
 classifiers = [
     "Development Status :: 4 - Beta",
