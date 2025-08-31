@@ -835,8 +835,7 @@ class TestRemoveCte(unittest.TestCase):
             utils.remove_cte(mail, as_string=True)
 
         # We expect no Exceptions but a complaint in the log
-        logmsg = 'DEBUG:root:failed to interpret Content-Transfer-Encoding: '\
-                 '"normal"'
+        logmsg = 'INFO:root:Unknown Content-Transfer-Encoding: "normal"'
         self.assertIn(logmsg, cm.output)
 
 
