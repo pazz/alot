@@ -34,7 +34,7 @@ from typing import Any, Callable, Optional, TypeVar, Union
 
 T = TypeVar('T')
 
-_missing: object = object()
+_missing = object()
 
 
 class cached_property:

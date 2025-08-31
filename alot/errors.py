@@ -6,17 +6,17 @@ from typing import Any
 
 
 class GPGCode:
-    AMBIGUOUS_NAME: int = 1
-    NOT_FOUND: int = 2
-    BAD_PASSPHRASE: int = 3
-    KEY_REVOKED: int = 4
-    KEY_EXPIRED: int = 5
-    KEY_INVALID: int = 6
-    KEY_CANNOT_ENCRYPT: int = 7
-    KEY_CANNOT_SIGN: int = 8
-    INVALID_HASH: int = 9
-    INVALID_HASH_ALGORITHM: int = 10
-    BAD_SIGNATURE: int = 11
+    AMBIGUOUS_NAME = 1
+    NOT_FOUND = 2
+    BAD_PASSPHRASE = 3
+    KEY_REVOKED = 4
+    KEY_EXPIRED = 5
+    KEY_INVALID = 6
+    KEY_CANNOT_ENCRYPT = 7
+    KEY_CANNOT_SIGN = 8
+    INVALID_HASH = 9
+    INVALID_HASH_ALGORITHM = 10
+    BAD_SIGNATURE = 11
 
 
 class GPGProblem(Exception):
