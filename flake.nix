@@ -53,5 +53,15 @@
         self.packages.${system}.alot.doc;
       default = self.packages.${system}.alot;
     });
+    devShells = eachSystem (system: let
+      pkgs = nixpkgs.legacyPackages.${system};
+      arg = project.renderers.withPackages {
+        python = pkgs.python3.override {inherit packageOverrides;};
+        extras = builtins.attrNames project.dependencies.extras;
+      };
+      pythonEnv = pkgs.python3.withPackages arg;
+    in {
+      default = pkgs.mkShell {packages = [pythonEnv];};
+    });
   };
 }
