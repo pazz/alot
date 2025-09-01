@@ -91,6 +91,7 @@ class ExitCommand(Command):
 @registerCommand(MODE, 'search', usage='search query', arguments=[
     (['--sort'], {'help': 'sort order', 'choices': [
         'oldest_first', 'newest_first', 'message_id', 'unsorted']}),
+    (['--limit'], {'help': 'limit number of results', 'type': int}),
     (['query'], {'nargs': argparse.REMAINDER, 'help': 'search string'})])
 class SearchCommand(Command):
 
@@ -98,7 +99,7 @@ class SearchCommand(Command):
     :ref:`search.exclude_tags <search.exclude_tags>` setting."""
     repeatable = True
 
-    def __init__(self, query, sort=None, **kwargs):
+    def __init__(self, query, sort=None, limit=None, **kwargs):
         """
         :param query: notmuch querystring
         :type query: str
@@ -106,9 +107,12 @@ class SearchCommand(Command):
                      'oldest_first', 'newest_first', 'message_id' or
                      'unsorted'.
         :type sort: str
+        :param limit: limit the number of results
+        :type limit: int
         """
         self.query = ' '.join(query)
         self.order = sort
+        self.limit = limit
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
@@ -127,7 +131,8 @@ class SearchCommand(Command):
                     ui.update()
             else:
                 ui.buffer_open(buffers.SearchBuffer(ui, self.query,
-                                                    sort_order=self.order))
+                                                    sort_order=self.order,
+                                                    limit=self.limit))
         else:
             ui.notify('empty query string')
 

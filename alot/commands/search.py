@@ -58,29 +58,40 @@ class OpenThreadCommand(Command):
 @registerCommand(MODE, 'refine', help='refine query', arguments=[
     (['--sort'], {'help': 'sort order', 'choices': [
         'oldest_first', 'newest_first', 'message_id', 'unsorted']}),
+    (['--limit'], {'help': 'limit number of results', 'type': int}),
     (['query'], {'nargs': argparse.REMAINDER, 'help': 'search string'})])
 @registerCommand(MODE, 'sort', help='set sort order', arguments=[
     (['sort'], {'help': 'sort order', 'choices': [
         'oldest_first', 'newest_first', 'message_id', 'unsorted']}),
 ])
+@registerCommand(MODE, 'limit', help='limit number of results', arguments=[
+    (['limit'], {'help': 'the thread count limit', 'type': int}),
+])
 class RefineCommand(Command):
 
     """refine the querystring of this buffer"""
-    def __init__(self, query=None, sort=None, **kwargs):
+    def __init__(self, query=None, sort=None, limit=None, **kwargs):
         """
         :param query: new querystring given as list of strings as returned by
                       argparse
         :type query: list of str
+        :param sort: how to order results. Must be one of
+                     'oldest_first', 'newest_first', 'message_id' or
+                     'unsorted'.
+        :type sort: str
+        :param limit: limit the number of results
+        :type limit: int
         """
         if query is None:
             self.querystring = None
         else:
             self.querystring = ' '.join(query)
         self.sort_order = sort
+        self.limit = limit
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        if self.querystring or self.sort_order:
+        if self.querystring or self.sort_order or self.limit is not None:
             sbuffer = ui.current_buffer
             oldquery = sbuffer.querystring
             if self.querystring not in [None, oldquery]:
@@ -88,6 +99,9 @@ class RefineCommand(Command):
                 sbuffer = ui.current_buffer
             if self.sort_order:
                 sbuffer.sort_order = self.sort_order
+            if self.limit not in [None, sbuffer.limit]:
+                sbuffer.limit = self.limit
+                sbuffer = ui.current_buffer
             sbuffer.rebuild()
             ui.update()
         else:

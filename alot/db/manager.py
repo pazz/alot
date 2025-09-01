@@ -4,6 +4,7 @@
 # For further details see the COPYING file
 from collections import deque
 import contextlib
+import itertools
 import logging
 
 from notmuch2 import Database, NotmuchError, XapianError
@@ -255,8 +256,7 @@ class DBManager:
         """returns number of messages that match `querystring`"""
         db = Database(path=self.path, mode=Database.MODE.READ_ONLY,
                       config=self.config)
-        return db.count_messages(querystring,
-                                 exclude_tags=self.exclude_tags)
+        return db.count_messages(querystring, exclude_tags=self.exclude_tags)
 
     def collect_tags(self, querystring):
         """returns tags of messages that match `querystring`"""
@@ -327,7 +327,7 @@ class DBManager:
         return {k[6:]: db.config[k] for k in db.config if
                 k.startswith('query.')}
 
-    def get_threads(self, querystring, sort='newest_first'):
+    def get_threads(self, querystring, sort='newest_first', limit=None):
         """
         asynchronously look up thread ids matching `querystring`.
 
@@ -335,20 +335,26 @@ class DBManager:
         :type querystring: str.
         :param sort: Sort order. one of ['oldest_first', 'newest_first',
                      'message_id', 'unsorted']
-        :type query: str
-        :returns: a pipe together with the process that asynchronously
-                  writes to it.
-        :rtype: (:class:`multiprocessing.Pipe`,
-                :class:`multiprocessing.Process`)
+        :type sort: str
+        :param limit: Limit the number of threads returned.
+        :type limit: int
+        :returns: a thread ID iterator and the number of matched messages
+            (the iterator will have at most limit many items and the counted
+            messages are also influenced by this limit)
+        :rtype: Tuple[Iterator[str], int]
         """
         assert sort in self._sort_orders
         db = Database(path=self.path, mode=Database.MODE.READ_ONLY,
                       config=self.config)
-        thread_ids = [t.threadid for t in db.threads(querystring,
-                            sort=self._sort_orders[sort],
-                            exclude_tags=self.exclude_tags)]
-        for t in thread_ids:
-            yield t
+        thread_iterator = db.threads(querystring,
+                                     sort=self._sort_orders[sort],
+                                     exclude_tags=self.exclude_tags)
+        threads = []
+        message_count = 0
+        for thread in itertools.islice(thread_iterator, limit or None):
+            threads.append(thread.threadid)
+            message_count += thread.matched
+        return iter(threads), message_count
 
     def add_message(self, path, tags=None, afterwards=None):
         """

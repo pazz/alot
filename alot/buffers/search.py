@@ -18,12 +18,14 @@ class SearchBuffer(Buffer):
     _REVERSE = {'oldest_first': 'newest_first',
                 'newest_first': 'oldest_first'}
 
-    def __init__(self, ui, initialquery='', sort_order=None):
+    def __init__(self, ui, initialquery='', sort_order=None, limit=None):
         self.dbman = ui.dbman
         self.ui = ui
         self.querystring = initialquery
         default_order = settings.get('search_threads_sort_order')
         self.sort_order = sort_order or default_order
+        default_limit = settings.get('search_threads_limit')
+        self.limit = limit if limit is not None else default_limit
         self.result_count = 0
         self.search_threads_rebuild_limit = \
             settings.get('search_threads_rebuild_limit')
@@ -60,8 +62,8 @@ class SearchBuffer(Buffer):
             selected_thread = self.get_selected_thread()
 
         try:
-            self.result_count = self.dbman.count_messages(self.querystring)
-            threads = self.dbman.get_threads(self.querystring, order)
+            threads, self.result_count = self.dbman.get_threads(
+                self.querystring, order, self.limit)
         except NotmuchError:
             self.ui.notify('malformed query string: %s' % self.querystring,
                            'error')
