@@ -749,6 +749,18 @@ class TestExtractBodyPart(unittest.TestCase):
         self.assertEqual(actual, expected)
 
     @mock.patch('alot.db.utils.settings.mailcap_find_match',
+                mock.Mock(return_value=(None, None)))
+    def test_simple_iso_8859_1_file(self):
+        with open('tests/static/mail/iso-8859-1.eml', 'rb') as f:
+            mail = email.message_from_binary_file(
+                f, _class=email.message.EmailMessage)
+        body_part = utils.get_body_part(mail)
+        actual = utils.extract_body_part(body_part)
+        expected = "Liebe Grüße!\n"
+
+        self.assertEqual(actual, expected)
+
+    @mock.patch('alot.db.utils.settings.mailcap_find_match',
                 mock.Mock(return_value=(
                     None, {'view': 'sed "s/!/?/"'})))
     def test_utf8_plaintext_mailcap(self):
@@ -823,8 +835,7 @@ class TestRemoveCte(unittest.TestCase):
             utils.remove_cte(mail, as_string=True)
 
         # We expect no Exceptions but a complaint in the log
-        logmsg = 'DEBUG:root:failed to interpret Content-Transfer-Encoding: '\
-                 '"normal"'
+        logmsg = 'INFO:root:Unknown Content-Transfer-Encoding: "normal"'
         self.assertIn(logmsg, cm.output)
 
 
