@@ -37,7 +37,7 @@ jobs:
         run: |
           set -x
           rev=master
-          if [[ -n ${{ matrix.notmuch-version }} && ${{ matrix.notmuch-version }} = oldest ]]; then
+          if [ -n "${{ matrix.notmuch-version }}" ] && [ "${{ matrix.notmuch-version }}" = oldest ]; then
             rev=$(sed -n 's/"notmuch2>=\(.*\)"/\1/p' pyproject.toml)
           fi
           git clone --depth 1 --revision="$rev" https://git.notmuchmail.org/git/notmuch notmuch
