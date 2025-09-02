@@ -63,5 +63,21 @@
     in {
       default = pkgs.mkShell {packages = [pythonEnv];};
     });
+    checks = eachSystem (system: let
+      pkgs = nixpkgs.legacyPackages.${system};
+
+      arg = project.renderers.withPackages {
+        python = pkgs.python3.override {inherit packageOverrides;};
+        extras = ["typing"];
+      };
+      pythonEnv = pkgs.python3.withPackages arg;
+    in {
+      alot = self.packages.${system}.alot;
+      types = pkgs.runCommand "alot-type-check" {buildInputs = [pythonEnv];} ''
+        cd ${self}
+        mypy --ignore-missing-imports alot/errors.py alot/__init__.py alot/utils/cached_property.py
+        touch $out
+      '';
+    });
   };
 }

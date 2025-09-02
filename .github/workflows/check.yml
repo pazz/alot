@@ -29,6 +29,20 @@ jobs:
         run: python3 -m build
 
 
+  type-check:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install Nix
+        uses: cachix/install-nix-action@v22
+
+      - uses: actions/checkout@v4
+
+      - name: Run type checking
+        run: 'nix build --print-build-logs .\#checks.x86_64-linux.types'
+
+
   nix-flake:
     runs-on: ubuntu-latest
     strategy:
@@ -40,13 +54,13 @@ jobs:
           - alot.man
 
     steps:
-    - name: Install Nix
-      uses: cachix/install-nix-action@v22
+      - name: Install Nix
+        uses: cachix/install-nix-action@v22
 
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Build the ${{ matrix.derivation }} derivation
-      run: 'nix build --print-build-logs .\#${{ matrix.derivation }}'
+      - name: Build the ${{ matrix.derivation }} derivation
+        run: 'nix build --print-build-logs .\#${{ matrix.derivation }}'
 
 
   generated-docs:

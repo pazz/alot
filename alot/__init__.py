@@ -1,11 +1,13 @@
 from importlib.metadata import version, PackageNotFoundError
+from typing import Optional
 
 # this requires python >=3.8
+__version__: Optional[str]
 try:
     __version__ = version("alot")
 except PackageNotFoundError:
     # package is not installed
-    pass
+    __version__ = None
 
 
 __productname__ = 'alot'

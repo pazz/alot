@@ -39,6 +39,7 @@ dependencies = [
 [project.optional-dependencies]
 docs = ["sphinx"]
 tests = ["pytest"]
+typing = ["mypy"]
 
 [project.scripts]
 alot = "alot.__main__:main"
@@ -52,3 +53,24 @@ Issues = "https://github.com/pazz/alot/issues"
 include = ["alot*"]
 
 [tool.setuptools_scm]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+check_untyped_defs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+show_error_codes = true
+namespace_packages = true
+
+# Start with a minimal set of typed modules
+# We'll gradually add more as we improve type coverage
+[[tool.mypy.overrides]]
+module = [
+    "alot.errors",
+    "alot.__init__",
+    "alot.utils.cached_property",
+]
+disallow_untyped_defs = true

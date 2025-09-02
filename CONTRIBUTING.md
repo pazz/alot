@@ -50,6 +50,20 @@ To ensure timely and painless reviews please keep the following in mind.
   and include [sensible commit messages][commitiquette].
 
 
+Type Hints
+----------
+Alot uses [Python type hints][typing] with [mypy] for static type checking.
+Type hints are gradually being added to the codebase, starting with core isolated modules.
+
+When contributing:
+* Add type hints to new modules when possible
+* Update the mypy configuration in `pyproject.toml` for newly typed modules  
+* Run `mypy --ignore-missing-imports your_module.py` to check for type errors locally
+* Type checking runs automatically in CI
+
+Currently typed modules: `alot.errors`, `alot.__init__`, `alot.utils.cached_property`
+
+
 [Github]: https://github.com/pazz/alot
 [Issues]: https://github.com/pazz/alot/issues
 [Libera]: https://web.libera.chat/#alot
@@ -58,3 +72,5 @@ To ensure timely and painless reviews please keep the following in mind.
 [pycodestyle]:https://github.com/PyCQA/pycodestyle
 [sphinx]: https://www.sphinx-doc.org/en/master/usage/restructuredtext/field-lists.html
 [commitiquette]: https://chris.beams.io/posts/git-commit/
+[typing]: https://typing.python.org/en/latest/
+[mypy]: https://www.mypy-lang.org/
