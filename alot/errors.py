@@ -2,6 +2,8 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 
+from typing import Any
+
 
 class GPGCode:
     AMBIGUOUS_NAME = 1
@@ -20,7 +22,7 @@ class GPGCode:
 class GPGProblem(Exception):
     """GPG Error"""
 
-    def __init__(self, message, code):
+    def __init__(self, message: str, code: int) -> None:
         self.code = code
         super(GPGProblem, self).__init__(message)
 
