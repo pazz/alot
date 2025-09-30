@@ -199,7 +199,8 @@ class ExternalCommand(Command):
     repeatable = True
 
     def __init__(self, cmd, stdin=None, shell=False, spawn=False,
-                 refocus=True, thread=False, on_success=None, **kwargs):
+                 refocus=True, thread=False, on_success=None, on_exit=None,
+                 **kwargs):
         """
         :param cmd: the command to call
         :type cmd: list or str
@@ -215,6 +216,8 @@ class ExternalCommand(Command):
         :type refocus: bool
         :param on_success: code to execute after command successfully exited
         :type on_success: callable
+        :param on_exit: code to execute after command exited
+        :type on_exit: callable
         """
         logging.debug({'spawn': spawn})
         # make sure cmd is a list of str
@@ -248,6 +251,7 @@ class ExternalCommand(Command):
         self.refocus = refocus
         self.in_thread = thread
         self.on_success = on_success
+        self.on_exit = on_exit
         Command.__init__(self, **kwargs)
 
     async def apply(self, ui):
@@ -320,6 +324,10 @@ class ExternalCommand(Command):
                     "None" if proc is None else proc.returncode,
                     ret or "No stderr output")
             ui.notify(msg, priority='error')
+
+        if self.on_exit is not None:
+            self.on_exit()
+
         if self.refocus and callerbuffer in ui.buffers:
             logging.info('refocussing')
             ui.buffer_focus(callerbuffer)
