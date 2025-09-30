@@ -31,6 +31,7 @@ from ..completion.accounts import AccountCompleter
 from ..completion.tags import TagsCompleter
 from ..widgets.utils import DialogBox
 from ..db.errors import DatabaseLockedError
+from ..db.errors import DatabaseROError
 from ..db.envelope import Envelope
 from ..settings.const import settings
 from ..settings.errors import ConfigError, NoMatchingAccount
@@ -1134,7 +1135,7 @@ class SaveQueryCommand(Command):
         self.flush = flush
         Command.__init__(self, **kwargs)
 
-    def apply(self, ui):
+    async def apply(self, ui):
         msg = 'saved alias "%s" for query string "%s"' % (self.alias,
                                                           self.query)
 
@@ -1148,7 +1149,7 @@ class SaveQueryCommand(Command):
 
         # flush index
         if self.flush:
-            ui.apply_command(commands.globals.FlushCommand())
+            return await ui.apply_command(commands.globals.FlushCommand())
 
 
 @registerCommand(
@@ -1165,7 +1166,7 @@ class RemoveQueryCommand(Command):
     """remove named query string for given alias"""
     repeatable = False
 
-    def __init__(self, alias, flush=True, **kwargs):
+    def __init__(self, alias, afterwards=None, flush=True, **kwargs):
         """
         :param alias: name to use for query string
         :type alias: str
@@ -1174,13 +1175,14 @@ class RemoveQueryCommand(Command):
         """
         self.alias = alias
         self.flush = flush
+        self.afterwards = afterwards
         Command.__init__(self, **kwargs)
 
-    def apply(self, ui):
+    async def apply(self, ui):
         msg = 'removed alias "%s"' % (self.alias)
 
         try:
-            ui.dbman.remove_named_query(self.alias)
+            ui.dbman.remove_named_query(self.alias, afterwards=self.afterwards)
             logging.debug(msg)
             ui.notify(msg)
         except DatabaseROError:
@@ -1189,7 +1191,7 @@ class RemoveQueryCommand(Command):
 
         # flush index
         if self.flush:
-            ui.apply_command(commands.globals.FlushCommand())
+            await ui.apply_command(commands.globals.FlushCommand())
 
 
 @registerCommand(
