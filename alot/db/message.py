@@ -68,6 +68,10 @@ class Message:
             self._from = '"{}" <{}>'.format(acc.realname, str(acc.address))
         else:
             self._from = '"Unknown" <>'
+        try:
+            self._subject = decode_header(msg.header('Subject'))
+        except (NullPointerError, LookupError):
+            self._subject = ''
 
     def __str__(self):
         """prettyprint the message"""
@@ -131,6 +135,9 @@ class Message:
         for msg in self.get_email().walk():
             if not msg.is_multipart():
                 yield msg
+
+    def get_subject(self):
+        return self._subject
 
     def get_tags(self):
         """returns tags attached to this message as list of strings"""
