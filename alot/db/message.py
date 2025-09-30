@@ -251,8 +251,18 @@ class Message:
                             'application/pgp-encrypted'):
                         self._attachments.pop()
 
+                # handle calendar invites from outlook by adding a
+                # content-disposition header if not present
+                if ct.lower() == 'text/calendar':
+                    cd = part.get('Content-Disposition', '')
+                    if not cd:
+                        part.add_header('Content-Disposition', 'inline',
+                                        filename='inline-{}.ics'.format(
+                                            len(self._attachments)))
+
                 if self._is_attachment(part, ct):
                     self._attachments.append(Attachment(part))
+
         return self._attachments
 
     @staticmethod
