@@ -928,3 +928,9 @@ class TestFormataddr(unittest.TestCase):
                 utils.formataddr(("Last, Name", self.address)),
                 "\"Last, Name\" <me@example.com>"
                 )
+
+    def test_name_and_address_with_at_sign(self):
+        self.assertEqual(
+                utils.formataddr((self.address, self.address)),
+                '"me@example.com" <me@example.com>'
+                )
