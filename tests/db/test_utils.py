@@ -731,6 +731,12 @@ class TestExtractBodyPart(unittest.TestCase):
         expected = "MA-EYESご利用者各位\n\nBIRD-BOの河和です。お疲れ様です。\n"
         self.assertEqual(actual, expected)
 
+    def test_simple_iso_8859_1_mail(self):
+        with open("tests/static/mail/iso-8859-1-qp.eml", "rb") as file:
+            mail = email.message_from_binary_file(file)
+        actual = utils.extract_body_part(mail)
+        expected = "müßig\nfleißig\n"
+        self.assertEqual(actual, expected)
 
     def test_text_plain_with_attachment_text(self):
         mail = EmailMessage()
