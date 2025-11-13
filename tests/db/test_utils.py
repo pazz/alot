@@ -35,6 +35,12 @@ def set_basic_headers(mail):
     mail['From'] = 'bar@example.com'
 
 
+def message_from_binary_file(filename):
+    with (Path("tests/static/mail") / filename).open("rb") as file:
+        return email.message_from_binary_file(
+            file, _class=email.message.EmailMessage)
+
+
 class TestGetParams(unittest.TestCase):
 
     mailstring = '\n'.join([
@@ -725,15 +731,13 @@ class TestExtractBodyPart(unittest.TestCase):
         self.assertEqual(actual, expected)
 
     def test_simple_japanese_file(self):
-        with open('tests/static/mail/japanese.eml', 'rb') as file:
-            mail = email.message_from_binary_file(file)
+        mail = message_from_binary_file('japanese.eml')
         actual = utils.extract_body_part(mail)
         expected = "MA-EYESご利用者各位\n\nBIRD-BOの河和です。お疲れ様です。\n"
         self.assertEqual(actual, expected)
 
     def test_simple_iso_8859_1_mail(self):
-        with open("tests/static/mail/iso-8859-1-qp.eml", "rb") as file:
-            mail = email.message_from_binary_file(file)
+        mail = message_from_binary_file("iso-8859-1-qp.eml")
         actual = utils.extract_body_part(mail)
         expected = "müßig\nfleißig\n"
         self.assertEqual(actual, expected)
@@ -753,9 +757,7 @@ class TestExtractBodyPart(unittest.TestCase):
     @mock.patch('alot.db.utils.settings.mailcap_find_match',
                 mock.Mock(return_value=(None, None)))
     def test_simple_utf8_file(self):
-        with open('tests/static/mail/utf8.eml', 'rb') as f:
-            mail = email.message_from_binary_file(
-                f, _class=email.message.EmailMessage)
+        mail = message_from_binary_file('utf8.eml')
         body_part = utils.get_body_part(mail)
         actual = utils.extract_body_part(body_part)
         expected = "Liebe Grüße!\n"
@@ -765,9 +767,7 @@ class TestExtractBodyPart(unittest.TestCase):
     @mock.patch('alot.db.utils.settings.mailcap_find_match',
                 mock.Mock(return_value=(None, None)))
     def test_simple_iso_8859_1_file(self):
-        with open('tests/static/mail/iso-8859-1.eml', 'rb') as f:
-            mail = email.message_from_binary_file(
-                f, _class=email.message.EmailMessage)
+        mail = message_from_binary_file('iso-8859-1.eml')
         body_part = utils.get_body_part(mail)
         actual = utils.extract_body_part(body_part)
         expected = "Liebe Grüße!\n"
@@ -783,9 +783,7 @@ class TestExtractBodyPart(unittest.TestCase):
 
         https://github.com/pazz/alot/issues/1522
         """
-        with open('tests/static/mail/utf8.eml', 'rb') as f:
-            mail = email.message_from_binary_file(
-                f, _class=email.message.EmailMessage)
+        mail = message_from_binary_file('utf8.eml')
         body_part = utils.get_body_part(mail)
         actual = utils.extract_body_part(body_part)
         expected = "Liebe Grüße?\n"
