@@ -719,21 +719,16 @@ class TestExtractBodyPart(unittest.TestCase):
         mail.attach(email.mime.text.MIMEText('This is a second part'))
         body_part = utils.get_body_part(mail)
 
-        actual = utils.extract_body(body_part)
+        actual = utils.extract_body_part(body_part)
         expected = 'This is an email\n\nThis is a second part'
 
         self.assertEqual(actual, expected)
 
-    @unittest.expectedFailure
     def test_simple_japanese_file(self):
-        mail = email.message_from_binary_file(
-                open('tests/static/mail/japanese.eml', 'rb'))
-        actual = utils.extract_body(mail)
-        expected = """
-            MA-EYESご利用者各位
-
-            BIRD-BOの河和です。お疲れ様です。
-        """
+        with open('tests/static/mail/japanese.eml', 'rb') as file:
+            mail = email.message_from_binary_file(file)
+        actual = utils.extract_body_part(mail)
+        expected = "MA-EYESご利用者各位\n\nBIRD-BOの河和です。お疲れ様です。\n"
         self.assertEqual(actual, expected)
 
 
