@@ -724,6 +724,19 @@ class TestExtractBodyPart(unittest.TestCase):
 
         self.assertEqual(actual, expected)
 
+    @unittest.expectedFailure
+    def test_simple_japanese_file(self):
+        mail = email.message_from_binary_file(
+                open('tests/static/mail/japanese.eml', 'rb'))
+        actual = utils.extract_body(mail)
+        expected = """
+            MA-EYESご利用者各位
+
+            BIRD-BOの河和です。お疲れ様です。
+        """
+        self.assertEqual(actual, expected)
+
+
     def test_text_plain_with_attachment_text(self):
         mail = EmailMessage()
         set_basic_headers(mail)
