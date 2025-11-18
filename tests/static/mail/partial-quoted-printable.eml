@@ -1,0 +1,10 @@
+From: josch@github
+To: test@alot
+Subject: 'ascii' codec can't encode character '\u200c' in position 17:
+ ordinal not in range(128)
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="UTF-8"
+
+Some zwnj chars: ‌ =E2=80=8C &=
+zwnj;

@@ -815,6 +815,18 @@ class TestExtractBodyPart(unittest.TestCase):
         expected = 'test body\n'
         self.assertEqual(actual, expected)
 
+    def test_partial_quoted_printable_encoding(self):
+        # this file contains a byte that should be quoted printable escaped but
+        # is not
+        with open("tests/static/mail/partial-quoted-printable.eml") as fp:
+            mail = email.message_from_file(fp,
+                    _class=email.message.EmailMessage)
+        body_part = utils.get_body_part(mail)
+        actual = utils.extract_body_part(body_part)
+        expected = "Some zwnj chars: \\u200c \u200c &zwnj;\n"
+        self.assertEqual(actual, expected)
+
+
 class TestRemoveCte(unittest.TestCase):
 
     def test_char_vs_cte_mismatch(self):  # #1291
