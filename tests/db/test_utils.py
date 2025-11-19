@@ -35,6 +35,12 @@ def set_basic_headers(mail):
     mail['From'] = 'bar@example.com'
 
 
+def message_from_binary_file(filename):
+    with (Path("tests/static/mail") / filename).open("rb") as file:
+        return email.message_from_binary_file(
+            file, _class=email.message.EmailMessage)
+
+
 class TestGetParams(unittest.TestCase):
 
     mailstring = '\n'.join([
@@ -719,9 +725,21 @@ class TestExtractBodyPart(unittest.TestCase):
         mail.attach(email.mime.text.MIMEText('This is a second part'))
         body_part = utils.get_body_part(mail)
 
-        actual = utils.extract_body(body_part)
+        actual = utils.extract_body_part(body_part)
         expected = 'This is an email\n\nThis is a second part'
 
+        self.assertEqual(actual, expected)
+
+    def test_simple_japanese_file(self):
+        mail = message_from_binary_file('japanese.eml')
+        actual = utils.extract_body_part(mail)
+        expected = "MA-EYESご利用者各位\n\nBIRD-BOの河和です。お疲れ様です。\n"
+        self.assertEqual(actual, expected)
+
+    def test_simple_iso_8859_1_mail(self):
+        mail = message_from_binary_file("iso-8859-1-qp.eml")
+        actual = utils.extract_body_part(mail)
+        expected = "müßig\nfleißig\n"
         self.assertEqual(actual, expected)
 
     def test_text_plain_with_attachment_text(self):
@@ -739,9 +757,17 @@ class TestExtractBodyPart(unittest.TestCase):
     @mock.patch('alot.db.utils.settings.mailcap_find_match',
                 mock.Mock(return_value=(None, None)))
     def test_simple_utf8_file(self):
-        with open('tests/static/mail/utf8.eml', 'rb') as f:
-            mail = email.message_from_binary_file(
-                f, _class=email.message.EmailMessage)
+        mail = message_from_binary_file('utf8.eml')
+        body_part = utils.get_body_part(mail)
+        actual = utils.extract_body_part(body_part)
+        expected = "Liebe Grüße!\n"
+
+        self.assertEqual(actual, expected)
+
+    @mock.patch('alot.db.utils.settings.mailcap_find_match',
+                mock.Mock(return_value=(None, None)))
+    def test_simple_iso_8859_1_file(self):
+        mail = message_from_binary_file('iso-8859-1.eml')
         body_part = utils.get_body_part(mail)
         actual = utils.extract_body_part(body_part)
         expected = "Liebe Grüße!\n"
@@ -757,9 +783,7 @@ class TestExtractBodyPart(unittest.TestCase):
 
         https://github.com/pazz/alot/issues/1522
         """
-        with open('tests/static/mail/utf8.eml', 'rb') as f:
-            mail = email.message_from_binary_file(
-                f, _class=email.message.EmailMessage)
+        mail = message_from_binary_file('utf8.eml')
         body_part = utils.get_body_part(mail)
         actual = utils.extract_body_part(body_part)
         expected = "Liebe Grüße?\n"
@@ -790,6 +814,18 @@ class TestExtractBodyPart(unittest.TestCase):
         actual = utils.extract_body_part(body_part)
         expected = 'test body\n'
         self.assertEqual(actual, expected)
+
+    def test_partial_quoted_printable_encoding(self):
+        # this file contains a byte that should be quoted printable escaped but
+        # is not
+        with open("tests/static/mail/partial-quoted-printable.eml") as fp:
+            mail = email.message_from_file(fp,
+                    _class=email.message.EmailMessage)
+        body_part = utils.get_body_part(mail)
+        actual = utils.extract_body_part(body_part)
+        expected = "Some zwnj chars: \\u200c \u200c &zwnj;\n"
+        self.assertEqual(actual, expected)
+
 
 class TestRemoveCte(unittest.TestCase):
 
@@ -823,8 +859,7 @@ class TestRemoveCte(unittest.TestCase):
             utils.remove_cte(mail, as_string=True)
 
         # We expect no Exceptions but a complaint in the log
-        logmsg = 'DEBUG:root:failed to interpret Content-Transfer-Encoding: '\
-                 '"normal"'
+        logmsg = 'INFO:root:Unknown Content-Transfer-Encoding: "normal"'
         self.assertIn(logmsg, cm.output)
 
 

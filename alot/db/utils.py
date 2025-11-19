@@ -395,10 +395,7 @@ def remove_cte(part, as_string=False):
     the payload accordingly.
 
     Incorrect header values (common in spam messages) will be interpreted as
-    lenient as possible and will result in INFO-level debug messages.
-
-    ..Note:: All this may be depricated in favour of
-             `email.contentmanager.raw_data_manager` (v3.6+)
+    lenient as possible.
 
     :param email.message.EmailMessage part: The part to decode
     :param bool as_string: If true return a str, otherwise return bytes
@@ -407,41 +404,15 @@ def remove_cte(part, as_string=False):
     """
     enc = part.get_content_charset() or 'ascii'
     cte = str(part.get('content-transfer-encoding', '7bit')).lower().strip()
-    payload = part.get_payload()
-    sp = ''  # string variant of return value
-    bp = b''  # bytestring variant
-
     logging.debug('Content-Transfer-Encoding: "{}"'.format(cte))
     if cte not in ['quoted-printable', 'base64', '7bit', '8bit', 'binary']:
         logging.info('Unknown Content-Transfer-Encoding: "{}"'.format(cte))
 
-    # switch through all sensible cases
-    # starting with those where payload is already a str
-    if '7bit' in cte or 'binary' in cte:
-        logging.debug('assuming Content-Transfer-Encoding: 7bit')
-        sp = payload
-        if as_string:
-            return sp
-        bp = payload.encode('utf-8')
-        return bp
-
-    # the remaining cases need decoding and define only bt;
-    # decoding into a str is done at the end if requested
-    elif '8bit' in cte:
-        logging.debug('assuming Content-Transfer-Encoding: 8bit')
-        bp = payload.encode('utf8')
-
-    elif 'quoted-printable' in cte:
-        logging.debug('assuming Content-Transfer-Encoding: quoted-printable')
-        bp = quopri.decodestring(payload.encode('ascii'))
-
-    elif 'base64' in cte:
-        logging.debug('assuming Content-Transfer-Encoding: base64')
-        bp = base64.b64decode(payload)
-
-    else:
-        logging.debug('failed to interpret Content-Transfer-Encoding: '
-                      '"{}"'.format(cte))
+    # Nowadays decoding is delegated to the email library directly, because its
+    # internal representation is closer to raw binary than the non-decoded
+    # `get_payload()` result, which is deprecated. This is fairly similar to
+    # the internal workings in python 3.13 of their new `raw_data_manager` API.
+    bp = part.get_payload(decode=True)
 
     # by now, bp is defined, sp is not.
     if as_string:
@@ -486,6 +457,7 @@ def get_body_part(mail, mimetype=None):
 
     body_part = mail.get_body(preferencelist)
     if body_part is None:  # if no part matching preferredlist was found
+        # or fall back to an empty part
         empty = email.message.EmailMessage()
         empty.set_payload("")
         return empty
