@@ -915,6 +915,8 @@ class TestFormataddr(unittest.TestCase):
         ('"me@example.com" <me@example.com>', (address, address)),
         ('"Ö, Ä" <a@b.c>', ("Ö, Ä", "a@b.c")),
         ("'single quote' <me@example.com>", ("'single quote'", address)),
+        ('"open list:RISC-V ARCHITECTURE:Keyword:riscv" <linux-riscv@lists.infradead.org>',
+         ("open list:RISC-V ARCHITECTURE:Keyword:riscv", "linux-riscv@lists.infradead.org"))
     ]
 
     def test_simple_cases(self):
