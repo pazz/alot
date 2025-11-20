@@ -510,6 +510,12 @@ def extract_body_part(body_part):
     return displaystring
 
 
+# This is the list of special characters according to RFC 5322 §3.2.3. The dot
+# is omitted because it is handled elsewhere and the double quote is omitted
+# because it does not fix the parsing.
+SPECIAL_ADDRESS_CHARS = r'()<>@,:;\[]'
+
+
 def formataddr(pair):
     """ this is the inverse of email.utils.parseaddr:
     other than email.utils.formataddr, this
@@ -519,7 +525,7 @@ def formataddr(pair):
     name, address = pair
     if not name:
         return address
-    elif any(special in name for special in '()<>@,:;\[]'):
+    elif any(special in name for special in SPECIAL_ADDRESS_CHARS):
         name = "\"" + name + "\""
     return "{0} <{1}>".format(name, address)
 
