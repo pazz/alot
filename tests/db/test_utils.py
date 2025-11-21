@@ -942,24 +942,21 @@ class TestClearMyAddress(unittest.TestCase):
 class TestFormataddr(unittest.TestCase):
 
     address = 'me@example.com'
-    umlauts_and_comma = '"Ö, Ä" <a@b.c>'
 
-    def test_is_inverse(self):
-        self.assertEqual(
-                utils.formataddr(email.utils.parseaddr(self.umlauts_and_comma)),
-                self.umlauts_and_comma
-                )
+    test_data = [
+        (address, ("", address)),
+        ("Me <me@example.com>", ("Me", address)),
+        ("\"Last, Name\" <me@example.com>", ("Last, Name", address)),
+        ('"me@example.com" <me@example.com>', (address, address)),
+        ('"Ö, Ä" <a@b.c>', ("Ö, Ä", "a@b.c")),
+        ("'single quote' <me@example.com>", ("'single quote'", address)),
+        ('"open list:RISC-V ARCHITECTURE:Keyword:riscv" <linux-riscv@lists.infradead.org>',
+         ("open list:RISC-V ARCHITECTURE:Keyword:riscv", "linux-riscv@lists.infradead.org"))
+    ]
 
-    def test_address_only(self):
-        self.assertEqual(utils.formataddr(("", self.address)), self.address)
-
-    def test_name_and_address_no_comma(self):
-        self.assertEqual(
-                utils.formataddr(("Me", self.address)),
-                "Me <me@example.com>"
-                )
-    def test_name_and_address_with_comma(self):
-        self.assertEqual(
-                utils.formataddr(("Last, Name", self.address)),
-                "\"Last, Name\" <me@example.com>"
-                )
+    def test_simple_cases(self):
+        for formatted, args in self.test_data:
+            with self.subTest(formatted=formatted):
+                self.assertEqual(utils.formataddr(args), formatted)
+                self.assertEqual(utils.formataddr(email.utils.parseaddr(formatted)), formatted)
+                self.assertEqual(email.utils.parseaddr(utils.formataddr(args)), args)
