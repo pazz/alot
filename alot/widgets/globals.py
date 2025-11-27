@@ -287,14 +287,21 @@ class TagWidget(urwid.AttrMap):
         :type tag: str
     """
 
-    def __init__(self, tag, fallback_normal=None, fallback_focus=None):
+    def __init__(self, tag, fallback_normal=None, fallback_focus=None,
+                 amend=False):
         self.tag = tag
         representation = settings.get_tagstring_representation(tag,
                                                                fallback_normal,
                                                                fallback_focus)
         self.translated = representation['translated']
         self.hidden = self.translated == ''
-        self.txt = urwid.Text(self.translated, wrap='clip')
+        txt = self.translated
+        if amend:
+            if self.hidden:
+                txt += self.tag + ' [hidden]'
+            elif self.translated is not self.tag:
+                txt += ' (%s)' % self.tag
+        self.txt = urwid.Text(txt, wrap='clip')
         self.__hash = hash((self.translated, self.txt))
         normal_att = representation['normal']
         focus_att = representation['focussed']

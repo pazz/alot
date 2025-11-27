@@ -155,9 +155,14 @@ thread_statusbar = mixed_list(string, string, default=list('[{buffer_no}: thread
 
 # Format of the status-bar in taglist mode.
 # This is a pair of strings to be left and right aligned in the status-bar.
-# These strings may contain variables listed at :ref:`bufferlist_statusbar <bufferlist-statusbar>`
-# that will be substituted accordingly.
-taglist_statusbar = mixed_list(string, string, default=list('[{buffer_no}: taglist]','{input_queue} total messages: {total_messages}'))
+# Apart from the global variables listed at :ref:`bufferlist_statusbar <bufferlist-statusbar>`
+# these strings may contain variables:
+#
+# * `{querystring}`: search string
+# * `{match}`: match expression
+# * `{result_count}`: number of matching messages
+# * `{result_count_positive}`: 's' if result count is greater than 0.
+taglist_statusbar = mixed_list(string, string, default=list('[{buffer_no}: taglist] for "{querystring}" matching "{match}"','{input_queue} {result_count} of {total_messages} messages'))
 
 # Format of the status-bar in named query list mode.
 # This is a pair of strings to be left and right aligned in the status-bar.
