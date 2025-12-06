@@ -1,3 +1,16 @@
+0.12:
+* breaking: drop support for python 3.8, add support for python 3.13 & 3.14
+* deps: Increase required version of notmuch2 to 0.34.2
+* deps(nix): use pyproject-nix to parse the pyproject.toml file
+* feature: Introduce a configurable thread search limit and :limit command
+* info: start adding type hints to the code and type checking to CI
+* info: various fixes around content transfer encoding
+* info: Allow SGR ANSI control sequences
+* info: improved contrast of focused attachments
+* info: parse real names containing special characters in email addresses
+* info: add .git_archival.txt
+* info: fix return type of message without a preferred body
+
 0.11:
 * breaking: hooks file now has to be set in alot's config and defaults to no hooks
 * info: forwarded mails now set Reference header to include them in original thread
