@@ -58,6 +58,7 @@
       arg = project.renderers.withPackages {
         python = pkgs.python3.override {inherit packageOverrides;};
         extras = builtins.attrNames project.dependencies.extras;
+        extraPackages = ps: [ps.twine ps.build];
       };
       pythonEnv = pkgs.python3.withPackages arg;
     in {
