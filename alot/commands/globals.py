@@ -7,6 +7,7 @@ import code
 import email
 import email.utils
 import glob
+import re
 import logging
 import os
 import subprocess
@@ -544,7 +545,7 @@ class BufferFocusCommand(Command):
 class OpenBufferlistCommand(Command):
 
     """open a list of active buffers"""
-    def __init__(self, filtfun=lambda x: x, **kwargs):
+    def __init__(self, filtfun=lambda x: True, **kwargs):
         """
         :param filtfun: filter to apply to displayed list
         :type filtfun: callable (str->bool)
@@ -562,45 +563,62 @@ class OpenBufferlistCommand(Command):
 
 
 @registerCommand(MODE, 'taglist', arguments=[
+    (['--global'], {'action': 'store_true',
+                    'help': 'list all tags globally instead of just those from the buffer',
+                    'dest': 'globally'}),
     (['--tags'], {'nargs': '+', 'help': 'tags to display'}),
+    (['match'], {'nargs': '?',
+                 'help': 'regular expression to match tags against'}),
 ])
 class TagListCommand(Command):
 
     """opens taglist buffer"""
-    def __init__(self, filtfun=lambda x: x, tags=None, **kwargs):
+
+    def __init__(self, filtfun=lambda x: True, tags=None, match=None, globally=False, **kwargs):
         """
         :param filtfun: filter to apply to displayed list
         :type filtfun: callable (str->bool)
+        :param match: regular expression to match tags against
+        :type match: string
+        :param globally: list all tags globally instead of just those from the buffer
+        :type globally: bool
         """
-        self.filtfun = filtfun
+        if match:
+            pattern = re.compile(match)
+            self.filtfun = lambda x: pattern.search(x) is not None
+        else:
+            self.filtfun = filtfun
+        self.globally = globally
+        self.match = match
         self.tags = tags
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        tags = self.tags or ui.dbman.get_all_tags()
-        blists = ui.get_buffers_of_type(buffers.TagListBuffer)
-        if blists:
-            buf = blists[0]
-            buf.tags = tags
-            buf.rebuild()
-            ui.buffer_focus(buf)
-        else:
-            ui.buffer_open(buffers.TagListBuffer(ui, tags, self.filtfun))
+        querystring = None
+        if self.tags:
+            tags = self.tags
+        elif (not self.globally) and isinstance(ui.current_buffer, buffers.SearchBuffer):
+            tags = ui.dbman.collect_tags(ui.current_buffer.querystring)
+            querystring = ui.current_buffer.querystring
+        elif (not self.globally) and isinstance(ui.current_buffer, buffers.ThreadBuffer):
+            tags = list(ui.current_buffer.thread.get_tags())
+            querystring = 'thread:%s' % ui.current_buffer.thread.get_thread_id()
+        else:  # self.globally or otherBuffer
+            tags = ui.dbman.get_all_tags()
+        ui.buffer_open(buffers.TagListBuffer(
+            ui, tags, self.filtfun, querystring, self.match))
 
 
 @registerCommand(MODE, 'namedqueries')
 class NamedQueriesCommand(Command):
     """opens named queries buffer"""
-    def __init__(self, filtfun=bool, **kwargs):
+    def __init__(self, **kwargs):
         """
-        :param filtfun: filter to apply to displayed list
-        :type filtfun: callable (str->bool)
         """
-        self.filtfun = filtfun
         Command.__init__(self, **kwargs)
 
     def apply(self, ui):
-        ui.buffer_open(buffers.NamedQueriesBuffer(ui, self.filtfun))
+        ui.buffer_open(buffers.NamedQueriesBuffer(ui))
 
 
 @registerCommand(MODE, 'flush')
