@@ -1,14 +1,18 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
+import logging
 import os
 
+from ..helper import get_xdg_env
 from ..utils import configobj as checks
 from .utils import read_config
 from .errors import ConfigError
 
 DEFAULTSPATH = os.path.join(os.path.dirname(__file__), '..', 'defaults')
 DUMMYDEFAULT = ('default',) * 6
+DATA_DIRS = get_xdg_env('XDG_DATA_DIRS',
+                        '/usr/local/share:/usr/share').split(':')
 
 
 class Theme:
@@ -128,3 +132,28 @@ class Theme:
             res[part]['normal'] = pickcolour(fill('normal'))
             res[part]['focus'] = pickcolour(fill('focus'))
         return res
+
+
+def get_theme(themes_dir, theme_name) -> Theme:
+    data_dirs = [
+        themes_dir,
+        *(os.path.join(d, 'alot/themes') for d in DATA_DIRS),
+        DEFAULTSPATH
+    ]
+    theme_paths = [os.path.join(d, theme_name) for d in data_dirs]
+    theme_path = next(
+        (theme_path
+         for theme_path in theme_paths
+         if os.path.exists(os.path.expanduser(theme_path))),
+        None
+    )
+    if theme_path is None:
+        raise ConfigError(
+            f"Could not find theme {theme_name}, see log for more information."
+        )
+    try:
+        return Theme(theme_path)
+    except ConfigError as e:
+        raise ConfigError(
+            f'Theme file `{theme_path}` failed validation:\n{e}'
+        ) from e
