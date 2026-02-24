@@ -16,6 +16,8 @@ import shlex
 
 import urwid
 
+from alot.settings.theme import get_theme
+
 from . import Command, registerCommand
 from . import CommandCanceled, SequenceCanceled
 from .utils import update_keys
@@ -1217,3 +1219,34 @@ class ConfirmCommand(Command):
         if (await ui.choice(self.msg, select='yes', cancel='no',
                             msg_position='left')) == 'no':
             raise SequenceCanceled()
+
+@registerCommand(
+    MODE, "theme",
+    arguments=[
+        (["theme_name"], {"help": "Name of the theme"})
+    ],
+    help="change theme")
+class ThemeCommand(Command):
+    """Change theme."""
+
+    def __init__(self, theme_name, **kwargs):
+        """
+        :param theme_name: Name of theme.
+        :type theme_name: str
+        """
+        super(ThemeCommand, self).__init__(**kwargs)
+        self.theme_name = theme_name
+
+    def apply(self, ui):
+        try:
+            themes_dir = settings.get("themes_dir")
+            settings.theme = get_theme(themes_dir, self.theme_name)
+            for buffer in ui.buffers:
+                buffer.rebuild()
+            ui.update()
+            logging.info(f"Applied theme {self.theme_name}")
+        except ConfigError as e:
+            ui.notify(
+                f"Error when loading theme:\n {e}",
+                priority="error"
+            )
