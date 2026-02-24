@@ -137,7 +137,7 @@ class Theme:
 def get_theme(themes_dir, theme_name) -> Theme:
     data_dirs = [
         themes_dir,
-        *(os.path.join(d, 'alot/themes') for d in DATA_DIRS),
+        *(os.path.join(d, "alot/themes") for d in DATA_DIRS),
         DEFAULTSPATH
     ]
     theme_paths = [os.path.join(d, theme_name) for d in data_dirs]
@@ -149,11 +149,11 @@ def get_theme(themes_dir, theme_name) -> Theme:
     )
     if theme_path is None:
         raise ConfigError(
-            f"Could not find theme {theme_name}, see log for more information."
+            f"Could not find theme {theme_name}."
         )
     try:
         return Theme(theme_path)
     except ConfigError as e:
-        raise ConfigError(
-            f'Theme file `{theme_path}` failed validation:\n{e}'
-        ) from e
+        msg = f"Theme file `{theme_path}` failed validation: {e}"
+        logging.error(msg)
+        raise ConfigError(msg) from e
