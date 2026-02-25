@@ -138,12 +138,12 @@ class Theme:
 
 
 def get_theme(themes_dir, theme_name) -> Theme:
-    data_dirs = [
+    theme_dirs = [
         themes_dir,
         *(os.path.join(d, "alot/themes") for d in DATA_DIRS),
         DEFAULTSPATH
     ]
-    theme_paths = [os.path.join(d, theme_name) for d in data_dirs]
+    theme_paths = [os.path.join(d, theme_name) for d in theme_dirs]
     theme_path = next(
         (theme_path
          for theme_path in theme_paths
