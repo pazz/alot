@@ -44,6 +44,9 @@ class Theme:
                         msg = 'missing threadline parts: %s' % ', '.join(diff)
                         raise ConfigError(msg)
 
+    def __eq__(self, other):
+        return self._config == other._config
+
     def get_attribute(self, colourmode, mode, name, part=None):
         """
         returns requested attribute
