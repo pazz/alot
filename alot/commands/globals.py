@@ -1240,7 +1240,12 @@ class ThemeCommand(Command):
     def apply(self, ui):
         try:
             themes_dir = settings.get("themes_dir")
-            settings.theme = get_theme(themes_dir, self.theme_name)
+            theme = get_theme(themes_dir, self.theme_name)
+            if theme == settings.theme:
+                # Skip the update and don't rebuild buffers
+                # unnecessarily.
+                return
+            settings.theme = theme
             for buffer in ui.buffers:
                 buffer.rebuild()
             ui.update()
