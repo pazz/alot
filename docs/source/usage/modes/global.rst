@@ -237,4 +237,6 @@ The following commands are available globally:
     change theme
 
     argument
-        theme name to load
+        Name of the theme
+
+
