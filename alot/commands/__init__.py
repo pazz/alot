@@ -207,5 +207,5 @@ def commandfactory(cmdline, mode='global'):
     return cmd
 
 
-pyfiles = glob.glob1(os.path.dirname(__file__), '*.py')
-__all__ = list(filename[:-3] for filename in pyfiles)
+pyfiles = glob.glob(os.path.join(os.path.dirname(__file__), '*.py'))
+__all__ = list(os.path.basename(filename[:-3]) for filename in pyfiles)

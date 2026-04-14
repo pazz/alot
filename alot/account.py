@@ -299,10 +299,9 @@ class Account:
         if isinstance(mbx, mailbox.Maildir):
             # this is a dirty hack to get the path to the newly added file
             # I wish the mailbox module were more helpful...
-            plist = glob.glob1(os.path.join(mbx._path, 'new'),
-                               message_id + '*')
+            plist = glob.glob(os.path.join(mbx._path, 'new', message_id + '*'))
             if plist:
-                path = os.path.join(mbx._path, 'new', plist[0])
+                path = plist[0]
                 logging.debug('path of saved msg: %s', path)
         return path
 
