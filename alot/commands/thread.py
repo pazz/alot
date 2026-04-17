@@ -469,9 +469,15 @@ class EditNewCommand(Command):
         tags.difference_update({'inbox', 'sent', 'draft', 'killed', 'replied',
                                 'signed', 'encrypted', 'unread', 'attachment'})
         tags = list(tags)
+
+        draft = None
+        if 'draft' in self.message.get_tags():
+            draft = self.message
+
         # set body text
         mailcontent = self.message.get_body_text()
-        envelope = Envelope(bodytext=mailcontent, tags=tags)
+        envelope = Envelope(bodytext=mailcontent, tags=tags,
+                            previous_draft=draft)
 
         # copy selected headers
         to_copy = ['Subject', 'From', 'To', 'Cc', 'Bcc', 'In-Reply-To',
