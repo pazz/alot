@@ -2,7 +2,6 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 import importlib.util
-import itertools
 import logging
 import mailcap
 import os
@@ -19,12 +18,10 @@ from ..utils import configobj as checks
 from .errors import ConfigError, NoMatchingAccount
 from .utils import read_config, read_notmuch_config
 from .utils import resolve_att
-from .theme import Theme
+from .theme import get_theme
 
 
 DEFAULTSPATH = os.path.join(os.path.dirname(__file__), '..', 'defaults')
-DATA_DIRS = get_xdg_env('XDG_DATA_DIRS',
-                        '/usr/local/share:/usr/share').split(':')
 
 
 class SettingsManager:
@@ -32,7 +29,7 @@ class SettingsManager:
     def __init__(self):
         self.hooks = None
         self._mailcaps = mailcap.getcaps()
-        self._theme = None
+        self.theme = None
         self._accounts = None
         self._accountmap = None
         self._notmuchconfig = None
@@ -99,38 +96,15 @@ class SettingsManager:
         logging.debug('template directory: `%s`' % tempdir)
 
         # themes
-        themestring = newconfig['theme']
+        theme_name = newconfig['theme']
         themes_dir = self._config.get('themes_dir')
         logging.debug('themes directory: `%s`' % themes_dir)
 
-        # if config contains theme string use that
-        data_dirs = [os.path.join(d, 'alot/themes') for d in DATA_DIRS]
-        if themestring:
-            # This is a python for/else loop
-            # https://docs.python.org/3/reference/compound_stmts.html#for
-            #
-            # tl/dr; If the loop loads a theme it breaks. If it doesn't break,
-            # then it raises a ConfigError.
-            for dir_ in itertools.chain([themes_dir], data_dirs):
-                theme_path = os.path.join(dir_, themestring)
-                if not os.path.exists(os.path.expanduser(theme_path)):
-                    logging.warning('Theme `%s` does not exist.', theme_path)
-                else:
-                    try:
-                        self._theme = Theme(theme_path)
-                    except ConfigError as e:
-                        raise ConfigError('Theme file `%s` failed '
-                                          'validation:\n%s' % (theme_path, e))
-                    else:
-                        break
-            else:
-                raise ConfigError('Could not find theme {}, see log for more '
-                                  'information'.format(themestring))
-
-        # if still no theme is set, resort to default
-        if self._theme is None:
-            theme_path = os.path.join(DEFAULTSPATH, 'default.theme')
-            self._theme = Theme(theme_path)
+        self.theme = (
+            get_theme(themes_dir, theme_name)
+            if theme_name else
+            get_theme(DEFAULTSPATH, 'default.theme')
+        )
 
         self._accounts = self._parse_accounts(self._config)
         self._accountmap = self._account_table(self._accounts)
@@ -306,7 +280,7 @@ class SettingsManager:
         :rtype: urwid.AttrSpec
         """
         colours = int(self._config.get('colourmode'))
-        return self._theme.get_attribute(colours, mode, name, part)
+        return self.theme.get_attribute(colours, mode, name, part)
 
     def get_threadline_theming(self, thread):
         """
@@ -318,7 +292,7 @@ class SettingsManager:
         :type thread: alot.db.thread.Thread
         """
         colours = int(self._config.get('colourmode'))
-        return self._theme.get_threadline_theming(thread, colours)
+        return self.theme.get_threadline_theming(thread, colours)
 
     def get_tagstring_representation(self, tag, onebelow_normal=None,
                                      onebelow_focus=None):
@@ -341,7 +315,7 @@ class SettingsManager:
             :translated: to an alternative string representation
         """
         colourmode = int(self._config.get('colourmode'))
-        theme = self._theme
+        theme = self.theme
         cfg = self._config
         colours = [1, 16, 256]
 

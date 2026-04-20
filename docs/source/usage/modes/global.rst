@@ -230,3 +230,13 @@ The following commands are available globally:
     optional arguments
         :---tags: tags to display
 
+.. _cmd.global.theme:
+
+.. describe:: theme
+
+    change theme
+
+    argument
+        Name of the theme
+
+
