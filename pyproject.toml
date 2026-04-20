@@ -52,7 +52,8 @@ Issues = "https://github.com/pazz/alot/issues"
 [tool.setuptools.packages.find]
 include = ["alot*"]
 
-[tool.setuptools_scm]
+[setuptools.package-data]
+alot = ["defaults/*"]
 
 [tool.mypy]
 python_version = "3.9"
