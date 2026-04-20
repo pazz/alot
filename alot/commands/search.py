@@ -202,10 +202,36 @@ class TagCommand(Command):
         if threadline_widget is None:
             return
 
+        tags = [x for x in self.tagsstring.split(',') if x]
+
         testquery = searchbuffer.querystring
         thread = threadline_widget.get_thread()
         if not self.allm:
             testquery = "thread:%s" % thread.get_thread_id()
+
+        # Reduce time for tagging long threads by selecting only messages that
+        # need the update.
+        if self.action == 'add':
+            testquery += ' AND NOT ('
+            testquery += ' AND '.join(f'tag:{x}' for x in tags)
+            testquery += ')'
+        elif self.action == 'remove':
+            testquery += ' AND ('
+            testquery += ' OR '.join(f'tag:{x}' for x in tags)
+            testquery += ')'
+        elif self.action == 'set':
+            # The "set" action means replacing the current set of tags with the
+            # one passed on the command. We could skip messages where the
+            # current set is the same as the one passed, but there is no
+            # efficient and simple way of doing that.
+            pass
+        elif self.action == 'toggle':
+            # The "toggle" affects all matched messages, so there is no further
+            # filtering to do here.
+            pass
+        else:
+            logging.warning('unandled action %s', self.action)
+
         logging.debug('all? %s', self.allm)
         logging.debug('q: %s', testquery)
 
@@ -230,8 +256,6 @@ class TagCommand(Command):
                 searchbuffer.rebuild()
 
             ui.update()
-
-        tags = [x for x in self.tagsstring.split(',') if x]
 
         try:
             if self.action == 'add':
