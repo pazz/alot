@@ -292,6 +292,18 @@ envelope_html2txt = string(default=None)
 # messages in that thread.
 msg_summary_hides_threadwide_tags = boolean(default=True)
 
+# In a thread buffer, show each message's Subject on its summary line.
+# Valid values are:
+#
+# * 'never' (the default), do not show subjects in the summary
+# * 'always', always show the subject
+# * 'different', show the subject of each reply only when it differs from
+#   its parent message's subject after normalisation (localised reply/forward
+#   prefixes such as 'Re:', 'Fwd:', 'Aw:'... and ``[list-name]`` mailing-list
+#   tags are stripped before comparison). Root messages always show their
+#   subject in this mode, to provide thread context when the thread is folded.
+msg_summary_show_subject = option('never', 'always', 'different', default='never')
+
 # The list of headers to match to determine sending account for a reply.
 # Headers are searched in the order in which they are specified here, and the first header
 # containing a match is used. If multiple accounts match in that header, the one defined

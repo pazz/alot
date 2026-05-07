@@ -481,3 +481,57 @@ class TestParseMailto(unittest.TestCase):
                      'Subject': ['Re: Hello'],
                      'In-reply-to': ['<C8CE9EFD-CB23-4BC0-B70D-9B7FEAD59F8C@example.org>']}, '')
         self.assertEqual(actual, expected)
+
+
+class TestNormalizeSubject(unittest.TestCase):
+
+    def test_empty(self):
+        self.assertEqual(helper.normalize_subject(''), '')
+
+    def test_no_prefix(self):
+        self.assertEqual(helper.normalize_subject('Hello'), 'Hello')
+
+    def test_re_prefix(self):
+        self.assertEqual(helper.normalize_subject('Re: Hello'), 'Hello')
+
+    def test_case_insensitive(self):
+        self.assertEqual(helper.normalize_subject('RE:  Hello'), 'Hello')
+        self.assertEqual(helper.normalize_subject('rE: Hello'), 'Hello')
+
+    def test_recursive(self):
+        self.assertEqual(
+            helper.normalize_subject('Re: Re: Re: Hello'), 'Hello')
+
+    def test_mixed_recursive(self):
+        self.assertEqual(
+            helper.normalize_subject('Fwd: Re: Aw: Hello'), 'Hello')
+
+    def test_localized_prefixes(self):
+        for prefix in ('Fwd', 'Fw', 'Aw', 'Wg', 'Tr', 'Sv', 'Vs',
+                       'Odp', 'Rv', 'Res', 'Rif'):
+            with self.subTest(prefix=prefix):
+                self.assertEqual(
+                    helper.normalize_subject(f'{prefix}: Hello'), 'Hello')
+
+    def test_strips_leading_list_tag(self):
+        self.assertEqual(
+            helper.normalize_subject('[list-name] Hello'), 'Hello')
+
+    def test_strips_re_then_list(self):
+        self.assertEqual(
+            helper.normalize_subject('Re: [list-name] Hello'), 'Hello')
+
+    def test_strips_list_then_re(self):
+        self.assertEqual(
+            helper.normalize_subject('[list-name] Re: Hello'), 'Hello')
+
+    def test_strips_multiple_list_tags(self):
+        self.assertEqual(
+            helper.normalize_subject('[list] [other] Hello'), 'Hello')
+
+    def test_counter_form(self):
+        self.assertEqual(helper.normalize_subject('Re[2]: Hello'), 'Hello')
+
+    def test_strips_whitespace(self):
+        self.assertEqual(helper.normalize_subject('   Re:  Hello   '),
+                         'Hello')

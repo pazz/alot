@@ -83,6 +83,33 @@ class TestSettingsManager(unittest.TestCase):
 
         manager.get_theming_attribute('global', 'body')
 
+    def test_thread_summary_subject_even_odd_theming_present(self):
+        """The default theme must define 'subject_even' and 'subject_odd'
+        attributes under thread.summary so the widget can colour the
+        subject column with a background matching the alternating
+        even/odd row backgrounds."""
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
+            f.write('')
+        self.addCleanup(os.unlink, f.name)
+        manager = SettingsManager()
+        manager.read_config(f.name)
+        even_attr = manager.get_theming_attribute(
+            'thread', 'summary', 'subject_even')
+        odd_attr = manager.get_theming_attribute(
+            'thread', 'summary', 'subject_odd')
+        self.assertIsNotNone(even_attr)
+        self.assertIsNotNone(odd_attr)
+
+    def test_msg_summary_show_subject_default_never(self):
+        """The msg_summary_show_subject option defaults to 'never' so the
+        thread view stays unchanged for users who don't opt in."""
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
+            f.write('')
+        self.addCleanup(os.unlink, f.name)
+        manager = SettingsManager()
+        manager.read_config(f.name)
+        self.assertEqual(manager.get('msg_summary_show_subject'), 'never')
+
     def test_unknown_settings_in_config_are_logged(self):
         # todo: For py3, don't mock the logger, use assertLogs
         unknown_settings = ['templates_dir', 'unknown_section', 'unknown_1',

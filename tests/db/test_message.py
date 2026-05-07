@@ -120,3 +120,23 @@ class TestMessage(unittest.TestCase):
                         mock.Mock(return_value=[acc])):
             msg = message.Message(mock.Mock(), MockNotmuchMessage())
         self.assertEqual(msg.get_author(), ('Unknown', ''))
+
+    def test_get_subject_missing(self):
+        """Message.get_subject() returns the empty string when the Subject
+        header is absent."""
+        msg = message.Message(mock.Mock(), MockNotmuchMessage())
+        self.assertEqual(msg.get_subject(), '')
+
+    def test_get_subject_plain(self):
+        """Message.get_subject() returns the Subject header verbatim when
+        no encoding is involved."""
+        msg = message.Message(
+            mock.Mock(), MockNotmuchMessage({'Subject': 'Hello world'}))
+        self.assertEqual(msg.get_subject(), 'Hello world')
+
+    def test_get_subject_rfc2047(self):
+        """Message.get_subject() decodes RFC 2047 encoded-words."""
+        msg = message.Message(
+            mock.Mock(),
+            MockNotmuchMessage({'Subject': '=?utf-8?Q?H=C3=A9?='}))
+        self.assertEqual(msg.get_subject(), 'Hé')

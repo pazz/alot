@@ -64,6 +64,8 @@
         even = attrtriple
         odd = attrtriple
         focus = attrtriple
+        subject_even = attrtriple(default=None)
+        subject_odd = attrtriple(default=None)
 [envelope]
     body = attrtriple
     header = attrtriple

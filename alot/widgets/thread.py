@@ -16,7 +16,7 @@ from .globals import AttachmentWidget
 from ..settings.const import settings
 from ..db.attachment import Attachment
 from ..db.utils import decode_header, X_SIGNATURE_MESSAGE_HEADER
-from ..helper import string_sanitize
+from ..helper import string_sanitize, normalize_subject
 
 ANSI_BACKGROUND = settings.get("interpret_ansi_background")
 
@@ -26,12 +26,17 @@ class MessageSummaryWidget(urwid.WidgetWrap):
     one line summary of a :class:`~alot.db.message.Message`.
     """
 
-    def __init__(self, message, even=True):
+    def __init__(self, message, even=True, parent_message=None):
         """
         :param message: a message
         :type message: alot.db.Message
         :param even: even entry in a pile of messages? Used for theming.
         :type even: bool
+        :param parent_message: the message this is a reply to, or ``None`` if
+            this is a root of the thread. Used by the ``'different'``
+            mode of ``msg_summary_show_subject`` to decide whether to show
+            the subject; root messages always show their subject.
+        :type parent_message: alot.db.Message or None
         """
         self.message = message
         self.even = even
@@ -46,6 +51,26 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         sumstr = self.__str__()
         txt = urwid.Text(sumstr)
         cols.append(txt)
+
+        subject_mode = settings.get('msg_summary_show_subject')
+        if subject_mode != 'never':
+            msg_subject = message.get_subject() or ''
+            show_subject = False
+            if subject_mode == 'always':
+                show_subject = bool(msg_subject)
+            elif subject_mode == 'different':
+                if parent_message is None:
+                    show_subject = bool(msg_subject)
+                else:
+                    parent_subject = parent_message.get_subject() or ''
+                    show_subject = (normalize_subject(msg_subject)
+                                    != normalize_subject(parent_subject))
+            if show_subject:
+                subj_attr = settings.get_theming_attribute(
+                    'thread', 'summary',
+                    'subject_even' if even else 'subject_odd')
+                cols.append(urwid.Text((subj_attr, msg_subject),
+                                       wrap='ellipsis'))
 
         if settings.get('msg_summary_hides_threadwide_tags'):
             thread_tags = message.get_thread().get_tags(intersection=True)
@@ -158,15 +183,21 @@ class MessageTree(CollapsibleTree):
 
     Collapsing this message corresponds to showing the summary only.
     """
-    def __init__(self, message, odd=True):
+    def __init__(self, message, odd=True, parent_message=None):
         """
         :param message: Message to display
         :type message: alot.db.Message
         :param odd: theme summary widget as if this is an odd line
                     (in the message-pile)
         :type odd: bool
+        :param parent_message: the message ``message`` is a reply to, or
+            ``None`` if this is a thread root. Forwarded to
+            :class:`MessageSummaryWidget` so 'different' mode can compare
+            the subject against the actual parent.
+        :type parent_message: alot.db.Message or None
         """
         self._message = message
+        self._parent_message = parent_message
         self._odd = odd
         self.display_source = False
         self._summaryw = None
@@ -252,7 +283,8 @@ class MessageTree(CollapsibleTree):
     def _get_summary(self):
         if self._summaryw is None:
             self._summaryw = MessageSummaryWidget(
-                self._message, even=(not self._odd))
+                self._message, even=(not self._odd),
+                parent_message=self._parent_message)
         return self._summaryw
 
     def _get_source(self):
@@ -382,10 +414,10 @@ class ThreadTree(Tree):
         self._prev_sibling_of = {}
         self._message = {}
 
-        def accumulate(msg, odd=True):
+        def accumulate(msg, odd=True, parent=None):
             """recursively read msg and its replies"""
             mid = msg.get_message_id()
-            self._message[mid] = MessageTree(msg, odd)
+            self._message[mid] = MessageTree(msg, odd, parent_message=parent)
             odd = not odd
             last = None
             self._first_child_of[mid] = None
@@ -397,7 +429,7 @@ class ThreadTree(Tree):
                 self._prev_sibling_of[rid] = last
                 self._next_sibling_of[last] = rid
                 last = rid
-                odd = accumulate(reply, odd)
+                odd = accumulate(reply, odd, parent=msg)
             self._last_child_of[mid] = last
             return odd
 

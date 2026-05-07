@@ -439,6 +439,25 @@
     :default: True
 
 
+.. _msg-summary-show-subject:
+
+.. describe:: msg_summary_show_subject
+
+     In a thread buffer, show each message's Subject on its summary line.
+     Valid values are:
+
+     * 'never' (the default), do not show subjects in the summary
+     * 'always', always show the subject
+     * 'different', show the subject of each reply only when it differs from
+       its parent message's subject after normalisation (localised reply/forward
+       prefixes such as 'Re:', 'Fwd:', 'Aw:'... and ``[list-name]`` mailing-list
+       tags are stripped before comparison). Root messages always show their
+       subject in this mode, to provide thread context when the thread is folded.
+
+    :type: option, one of ['never', 'always', 'different']
+    :default: never
+
+
 .. _namedqueries-statusbar:
 
 .. describe:: namedqueries_statusbar

@@ -69,6 +69,11 @@ class Message:
         else:
             self._from = '"Unknown" <>'
 
+        try:
+            self._subject = decode_header(msg.header('Subject'))
+        except (NullPointerError, LookupError):
+            self._subject = ''
+
     def __str__(self):
         """prettyprint the message"""
         aname, aaddress = self.get_author()
@@ -173,6 +178,15 @@ class Message:
         :rtype: (str,str)
         """
         return email.utils.parseaddr(self._from)
+
+    def get_subject(self):
+        """
+        returns the decoded :mailheader:`Subject` header for this message,
+        captured at construction time. Empty string if absent or unreadable.
+
+        :rtype: str
+        """
+        return self._subject
 
     def add_tags(self, tags, afterwards=None, remove_rest=False):
         """

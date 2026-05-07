@@ -1,3 +1,9 @@
+unreleased:
+* feature: new config setting "msg_summary_show_subject" to display each
+  message's Subject on its summary line in thread mode. The 'different'
+  mode shows the subject of a reply only when it diverges from its parent
+  message; (issue #566).
+
 0.12:
 * breaking: drop support for python 3.8, add support for python 3.13 & 3.14
 * deps: Increase required version of notmuch2 to 0.34.2

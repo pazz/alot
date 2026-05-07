@@ -43,6 +43,8 @@
         even = 'default','','white','light blue','white','#006'
         odd = 'default','','white','dark blue','white','#068'
         focus = 'standout','','white','light gray','#ff8','g58'
+        subject_even = 'default','','light gray','light blue','light gray','#006'
+        subject_odd = 'default','','light gray','dark blue','light gray','#068'
 
 [envelope]
     body = 'default','','light gray','default','light gray','default'

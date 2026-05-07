@@ -585,6 +585,34 @@ def get_xdg_env(env_name, fallback):
     return env if env else fallback
 
 
+_SUBJECT_PREFIX_RE = re.compile(
+    r'^\s*(?:'
+    r'(?:re|aw|wg|fwd|fw|tr|sv|vs|odp|rv|res|rif)'
+    r'\s*(?:\[\d+\])?\s*:'
+    r'|'
+    r'\[[^\]]+\]'
+    r')\s*',
+    re.IGNORECASE,
+)
+
+
+def normalize_subject(subject):
+    """Strip leading reply/forward prefixes and bracketed list tags from a
+    subject line.
+
+    Recognises common localised prefixes (en/de/fr/it/es/pl/no/da/fi/nl) plus
+    the ``Re[2]:`` counter form, and ``[list-name]`` style mailing-list tags.
+    Stripping is recursive, case-insensitive and whitespace-tolerant, so
+    ``"Re: [list] Re: Hello"`` and ``"[list] Re: Hello"`` both reduce to
+    ``"Hello"``. This matches the way notmuch normalises thread subjects.
+    """
+    prev = None
+    while subject and subject != prev:
+        prev = subject
+        subject = _SUBJECT_PREFIX_RE.sub('', subject).strip()
+    return subject
+
+
 def get_notmuch_config_path():
     """ Find the notmuch config file via env vars and default locations """
     # This code is modeled after the description in nomtuch-config(1)
