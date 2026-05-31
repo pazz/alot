@@ -35,7 +35,7 @@ jobs:
 
     steps:
       - name: Install Nix
-        uses: cachix/install-nix-action@v22
+        uses: cachix/install-nix-action@v31
 
       - uses: actions/checkout@v4
 
@@ -55,7 +55,7 @@ jobs:
 
     steps:
       - name: Install Nix
-        uses: cachix/install-nix-action@v22
+        uses: cachix/install-nix-action@v31
 
       - uses: actions/checkout@v4
 
