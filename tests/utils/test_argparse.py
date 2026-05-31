@@ -23,6 +23,7 @@ import shutil
 import tempfile
 import unittest
 from unittest import mock
+import io
 
 from alot.utils import argparse as cargparse
 
@@ -50,7 +51,7 @@ class TestValidatedStore(unittest.TestCase):
             'foo',
             action=cargparse.ValidatedStoreAction,
             validator=validator)
-        with mock.patch('sys.stderr', mock.Mock()):
+        with mock.patch('sys.stderr', io.StringIO()):
             return parser.parse_args(args)
 
     def test_validates(self):
