@@ -92,6 +92,11 @@ def get_text(t, colourmode):
     return txt
 
 
+def input_handler(key: str) -> None:
+    "exit on any key press"
+    raise urwid.ExitMainLoop()
+
+
 def main():
     """
     Theme tester
@@ -108,7 +113,7 @@ def main():
         txt += get_text(t, colourmode)
     fill = urwid.Filler(urwid.Text(txt), "top")
 
-    loop = urwid.MainLoop(fill)
+    loop = urwid.MainLoop(fill, unhandled_input=input_handler)
     loop.run()
 
 
