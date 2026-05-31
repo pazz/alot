@@ -16,6 +16,7 @@
     eachSystem = nixpkgs.lib.genAttrs (import systems);
     # the package is called gpg on PyPI and gpgme in nixpkgs
     packageOverrides = final: prev: {gpg = final.gpgme;};
+    version = "0.dev+" + self.shortRev or self.dirtyShortRev or "override";
   in {
     packages = eachSystem (system: let
       pkgs = nixpkgs.legacyPackages.${system};
@@ -27,7 +28,7 @@
       };
       # overwrite these attributes in the buildPythonApplication call
       overrides = {
-        version = "0.dev+${self.shortRev or self.dirtyShortRev}";
+        inherit version;
         outputs = ["out" "doc" "man"];
         postPatch = ''
           substituteInPlace alot/settings/manager.py \
