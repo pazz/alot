@@ -47,12 +47,22 @@
         nativeBuildInputs = [python3.pkgs.sphinxHook pkgs.installShellFiles];
         sphinxBuilders = ["html" "man"];
       };
+      alot-pkg = python3.pkgs.buildPythonPackage (attrs // overrides);
+      alot-app = python3.pkgs.toPythonApplication alot-pkg;
     in {
-      alot = python3.pkgs.buildPythonApplication (attrs // overrides);
+      alot = alot-app;
       docs =
         pkgs.lib.trivial.warn "The docs attribute moved to alot.doc"
         self.packages.${system}.alot.doc;
-      default = self.packages.${system}.alot;
+      default = alot-app;
+      theme-test = pkgs.runCommand "theme-test.py" {
+        propagatedBuildInputs = [
+          (python3.withPackages (ps: [ alot-pkg ]))
+        ];
+      } ''
+        install -Dm755 ${./extra/theme_test.py} $out/bin/theme-test.py
+        patchShebangs $out/bin
+      '';
     });
     devShells = eachSystem (system: let
       pkgs = nixpkgs.legacyPackages.${system};
