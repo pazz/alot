@@ -14,18 +14,14 @@
   }: let
     project = pyproject-nix.lib.project.loadPyproject {projectRoot = ./.;};
     eachSystem = nixpkgs.lib.genAttrs (import systems);
-    # the package is called gpg on PyPI and gpgme in nixpkgs
-    packageOverrides = final: prev: {gpg = final.gpgme;};
     version = "0.dev+" + self.shortRev or self.dirtyShortRev or "override";
   in {
     packages = eachSystem (system: let
       pkgs = nixpkgs.legacyPackages.${system};
-      python3 = pkgs.python3;
+      python = pkgs.python3;
       # let pyproject-nix generate the argument for buildPythonApplication
       # from our pyproject.toml file
-      attrs = project.renderers.buildPythonPackage {
-        python = python3.override {inherit packageOverrides;};
-      };
+      attrs = project.renderers.buildPythonPackage {inherit python;};
       # overwrite these attributes in the buildPythonApplication call
       overrides = {
         inherit version;
@@ -44,17 +40,17 @@
           python3 -m unittest -v
         '';
         nativeCheckInputs = with pkgs; [gnupg notmuch procps];
-        nativeBuildInputs = [python3.pkgs.sphinxHook pkgs.installShellFiles];
+        nativeBuildInputs = [python.pkgs.sphinxHook pkgs.installShellFiles];
         sphinxBuilders = ["html" "man"];
       };
-      alot-pkg = python3.pkgs.buildPythonPackage (attrs // overrides);
-      alot-app = python3.pkgs.toPythonApplication alot-pkg;
+      alot-pkg = python.pkgs.buildPythonPackage (attrs // overrides);
+      alot-app = python.pkgs.toPythonApplication alot-pkg;
     in {
       alot = alot-app;
       default = alot-app;
       theme-test = pkgs.runCommand "theme-test.py" {
         propagatedBuildInputs = [
-          (python3.withPackages (ps: [ alot-pkg ]))
+          (python.withPackages (ps: [ alot-pkg ]))
         ];
       } ''
         install -Dm755 ${./extra/theme_test.py} $out/bin/theme-test.py
@@ -64,7 +60,7 @@
     devShells = eachSystem (system: let
       pkgs = nixpkgs.legacyPackages.${system};
       arg = project.renderers.withPackages {
-        python = pkgs.python3.override {inherit packageOverrides;};
+        python = pkgs.python3;
         extras = builtins.attrNames project.dependencies.extras;
         extraPackages = ps: [ps.twine ps.build];
       };
@@ -76,7 +72,7 @@
       pkgs = nixpkgs.legacyPackages.${system};
 
       arg = project.renderers.withPackages {
-        python = pkgs.python3.override {inherit packageOverrides;};
+        python = pkgs.python3;
         extras = ["typing"];
       };
       pythonEnv = pkgs.python3.withPackages arg;
