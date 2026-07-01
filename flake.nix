@@ -2,6 +2,8 @@
   description = "alot: Terminal-based Mail User Agent";
 
   inputs.nixpkgs.url = "https://channels.nixos.org/nixpkgs-unstable/nixexprs.tar.zst";
+  inputs.flake-utils.url = "github:numtide/flake-utils";
+  inputs.flake-utils.inputs.systems.follows = "systems";
   inputs.pyproject-nix.url = "github:pyproject-nix/pyproject.nix";
   inputs.pyproject-nix.inputs.nixpkgs.follows = "nixpkgs";
   inputs.systems.url = "github:nix-systems/default";
@@ -9,15 +11,15 @@
   outputs = {
     self,
     nixpkgs,
+    flake-utils,
     pyproject-nix,
-    systems,
+    ...
   }: let
     project = pyproject-nix.lib.project.loadPyproject {projectRoot = ./.;};
-    eachSystem = nixpkgs.lib.genAttrs (import systems);
     version = "0.dev+" + self.shortRev or self.dirtyShortRev or "override";
-  in {
-    packages = eachSystem (system: let
-      pkgs = nixpkgs.legacyPackages.${system};
+  in
+    flake-utils.lib.eachDefaultSystem (system: let
+      pkgs = import nixpkgs {inherit system;};
       python = pkgs.python3;
       # let pyproject-nix generate the argument for buildPythonApplication
       # from our pyproject.toml file
@@ -45,44 +47,36 @@
       };
       alot-pkg = python.pkgs.buildPythonPackage (attrs // overrides);
       alot-app = python.pkgs.toPythonApplication alot-pkg;
-    in {
-      alot = alot-app;
-      default = alot-app;
-      theme-test = pkgs.runCommand "theme-test.py" {
-        propagatedBuildInputs = [
-          (python.withPackages (ps: [ alot-pkg ]))
-        ];
-      } ''
-        install -Dm755 ${./extra/theme_test.py} $out/bin/theme-test.py
-        patchShebangs $out/bin
-      '';
-    });
-    devShells = eachSystem (system: let
-      pkgs = nixpkgs.legacyPackages.${system};
-      arg = project.renderers.withPackages {
-        python = pkgs.python3;
+      pythonEnv = renderArgs: python.withPackages (
+        project.renderers.withPackages (renderArgs // {inherit python;})
+      );
+      devEnv = pythonEnv {
         extras = builtins.attrNames project.dependencies.extras;
         extraPackages = ps: [ps.twine ps.build];
       };
-      pythonEnv = pkgs.python3.withPackages arg;
+      typingEnv = pythonEnv {extras = ["typing"];};
     in {
-      default = pkgs.mkShell {packages = [pythonEnv];};
-    });
-    checks = eachSystem (system: let
-      pkgs = nixpkgs.legacyPackages.${system};
-
-      arg = project.renderers.withPackages {
-        python = pkgs.python3;
-        extras = ["typing"];
+      packages = {
+        alot = alot-app;
+        default = alot-app;
+        theme-test = pkgs.runCommand "theme-test.py" {
+          propagatedBuildInputs = [
+            (python.withPackages (ps: [alot-pkg]))
+          ];
+        } ''
+          install -Dm755 ${./extra/theme_test.py} $out/bin/theme-test.py
+          patchShebangs $out/bin
+        '';
       };
-      pythonEnv = pkgs.python3.withPackages arg;
-    in {
-      alot = self.packages.${system}.alot;
-      types = pkgs.runCommand "alot-type-check" {buildInputs = [pythonEnv];} ''
-        cd ${self}
-        mypy --ignore-missing-imports alot/errors.py alot/__init__.py alot/helper.py alot/db/utils.py alot/db/attachment.py alot/db/message.py alot/db/thread.py alot/db/manager.py alot/db/envelope.py alot/crypto.py alot/account.py
-        touch $out
-      '';
-    });
-  };
+      devShells.default = pkgs.mkShell {packages = [devEnv];};
+      checks = {
+        alot = self.packages.${system}.alot;
+        types = pkgs.runCommand "alot-type-check" {buildInputs = [typingEnv];} ''
+          cd ${self}
+          mypy --ignore-missing-imports alot/errors.py alot/__init__.py alot/helper.py alot/db/utils.py alot/db/attachment.py alot/db/message.py alot/db/thread.py alot/db/manager.py alot/db/envelope.py alot/crypto.py alot/account.py
+          touch $out
+        '';
+      };
+    }
+  );
 }
