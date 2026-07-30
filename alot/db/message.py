@@ -282,9 +282,9 @@ class Message:
     def set_mime_part(self, mime_part):
         self._mime_part = mime_part
 
-    def get_body_text(self):
+    def get_body_text(self, render=True):
         """ returns bodystring extracted from this mail """
-        return extract_body_part(self.get_mime_part())
+        return extract_body_part(self.get_mime_part(), render=render)
 
     def matches(self, querystring):
         """tests if this messages is in the resultset for `querystring`"""

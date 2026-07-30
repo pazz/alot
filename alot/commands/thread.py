@@ -470,7 +470,7 @@ class EditNewCommand(Command):
                                 'signed', 'encrypted', 'unread', 'attachment'})
         tags = list(tags)
         # set body text
-        mailcontent = self.message.get_body_text()
+        mailcontent = self.message.get_body_text(render=False)
         envelope = Envelope(bodytext=mailcontent, tags=tags)
 
         # copy selected headers
