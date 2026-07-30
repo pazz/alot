@@ -627,13 +627,14 @@ class UI:
 
         if block:
             # put "cancel to continue" widget as overlay on main widget
-            txt = build_line('(escape continues)', priority)
+            txt = build_line('(%s continues)' % settings.help_cancel_key,
+                             priority)
             overlay = urwid.Overlay(txt, self.root_widget,
                                     ('fixed left', 0),
                                     ('fixed right', 0),
                                     ('fixed bottom', 0),
                                     None)
-            self.show_as_root_until_keypress(overlay, 'esc',
+            self.show_as_root_until_keypress(overlay, settings.help_cancel_key,
                                              afterwards=clear)
         else:
             if timeout >= 0:
