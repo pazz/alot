@@ -42,10 +42,22 @@ class TestWidthTuple(unittest.TestCase):
         with self.assertRaises(VdtTypeError):
             checks.width_tuple(['weight'])
 
-    def test_arg_for_width_must_be_a_number(self):
+    def test_arg_for_weight_must_be_a_number(self):
         with self.assertRaises(VdtValueError):
             checks.width_tuple(['weight', 'not-a-number'])
 
-    def test_width_with_a_number(self):
+    def test_weight_with_a_number(self):
         weight_result = checks.width_tuple(['weight', 123])
         self.assertEqual(('weight', 123), weight_result)
+
+    def test_validates_width_tuple_for_wrap_requires_four_args(self):
+        with self.assertRaises(VdtTypeError):
+            checks.width_tuple(['wrap', 123, 456, 789])
+
+    def test_validates_width_tuple_for_wrap_must_be_numbers(self):
+        with self.assertRaises(VdtValueError):
+            checks.width_tuple(['wrap', 12, 34, 56, 'not-a-number'])
+
+    def test_wrap_with_four_numbers(self):
+        fit_result = checks.width_tuple(['wrap', 12, 34, 56, 78])
+        self.assertEqual(('wrap', 12, 34, 56, 78), fit_result)

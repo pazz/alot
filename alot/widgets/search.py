@@ -5,6 +5,7 @@
 Widgets specific to search mode
 """
 import urwid
+import textwrap
 
 from ..settings.const import settings
 from ..helper import shorten_author_string
@@ -137,22 +138,39 @@ def build_text_part(name, thread, struct):
     # extract min and max allowed width from theme
     minw = 0
     maxw = None
+    min_lines = 1
+    max_lines = 1
     width_tuple = struct['width']
     if width_tuple is not None:
         if width_tuple[0] == 'fit':
             minw, maxw = width_tuple[1:]
+        elif width_tuple[0] == 'wrap':
+            minw, maxw, min_lines, max_lines = width_tuple[1:]
 
-    content = prepare_string(name, thread, maxw)
+    content = prepare_string(name, thread, max_lines * maxw)
+    alignment = struct['alignment']
+    if width_tuple[0] == 'wrap':
+        lines = textwrap.wrap(
+            content,
+            width=maxw,
+            max_lines=max_lines,
+            expand_tabs=False,
+            placeholder='',
+        )
 
-    # pad content if not long enough
-    if minw:
-        alignment = struct['alignment']
-        if alignment == 'left':
-            content = content.ljust(minw)
-        elif alignment == 'center':
-            content = content.center(minw)
-        else:
-            content = content.rjust(minw)
+        # ensure minimum number of lines
+        if len(lines) < min_lines:
+            lines = lines + [''] * (min_lines - len(lines))
+
+        # pad content line by line if not long enough
+        if minw:
+            lines = [pad_content(line, alignment, minw) for line in lines]
+
+        content = '\n'.join(lines)
+    else:
+        # pad content if not long enough
+        if minw:
+            content = pad_content(content, alignment, minw)
 
     # define width and part_w
     text = urwid.Text(content, wrap='clip')
@@ -160,6 +178,18 @@ def build_text_part(name, thread, struct):
     part_w = AttrFlipWidget(text, struct)
 
     return width, part_w
+
+
+def pad_content(content, alignment, min_width):
+    """
+    pad 'content' to 'min_width' justified according to 'alignment'.
+    """
+    if alignment == 'left':
+        return content.ljust(min_width)
+    elif alignment == 'center':
+        return content.center(min_width)
+    else:
+        return content.rjust(min_width)
 
 
 def prepare_date_string(thread):
