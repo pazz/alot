@@ -347,9 +347,11 @@ def render_part(part, field_key='copiousoutput'):
     # get mime handler
     _, entry = settings.mailcap_find_match(ctype, key=field_key)
     if entry is not None:
+        logging.debug('full matching mailcap entry: %s', entry)
         tempfile_name = None
         stdin = None
-        handler_raw_commandstring = entry['view']
+        handler_raw_commandstring = entry.get('x-alot-attachmenttotext', '') or entry['view']
+        logging.debug('mailcap entry to render part: %s', handler_raw_commandstring)
         # in case the mailcap defined command contains no '%s',
         # we pipe the files content to the handling command via stdin
         if '%s' in handler_raw_commandstring:
@@ -368,7 +370,7 @@ def render_part(part, field_key='copiousoutput'):
         parms = tuple('='.join(p) for p in part.get_params(failobj=[]))
 
         # create and call external command
-        cmd = mailcap.subst(entry['view'], ctype,
+        cmd = mailcap.subst(handler_raw_commandstring, ctype,
                             filename=tempfile_name, plist=parms)
         logging.debug('command: %s', cmd)
         logging.debug('parms: %s', str(parms))
