@@ -169,7 +169,6 @@ def commandfactory(cmdline, mode='global'):
     # allow to shellescape without a space after '!'
     if cmdline.startswith('!'):
         cmdline = 'shellescape \'%s\'' % cmdline[1:]
-    cmdline = re.sub(r'"(.*)"', r'"\\"\1\\""', cmdline)
     try:
         args = split_commandstring(cmdline)
     except ValueError as e:
