@@ -647,6 +647,9 @@ class UI:
         # get the main urwid.Frame widget
         mainframe = self.root_widget.original_widget
 
+        global_att = settings.get_theming_attribute('global', 'body')
+        self.root_widget.set_attr_map({None: global_att})
+
         # body
         if self.current_buffer:
             mainframe.set_body(self.current_buffer)
