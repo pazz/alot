@@ -105,6 +105,9 @@ class TestComposeCommand(unittest.TestCase):
 
 
 class TestExternalCommand(unittest.TestCase):
+    NO_STDERR_MSG = (
+        'external command has exited with error code 1 -- No stderr output'
+    )
 
     @utilities.async_test
     async def test_no_spawn_no_stdin_success(self):
@@ -126,9 +129,7 @@ class TestExternalCommand(unittest.TestCase):
         ui = utilities.make_ui()
         cmd = g_commands.ExternalCommand('test -p /dev/stdin', refocus=False)
         await cmd.apply(ui)
-        ui.notify.assert_called_once_with(
-                'editor has exited with error code 1 -- No stderr output',
-                priority='error')
+        ui.notify.assert_called_once_with(self.NO_STDERR_MSG, priority='error')
 
     @utilities.async_test
     async def test_no_spawn_stdin_attached(self):
@@ -143,9 +144,7 @@ class TestExternalCommand(unittest.TestCase):
         ui = utilities.make_ui()
         cmd = g_commands.ExternalCommand('false', refocus=False)
         await cmd.apply(ui)
-        ui.notify.assert_called_once_with(
-                'editor has exited with error code 1 -- No stderr output',
-                priority='error')
+        ui.notify.assert_called_once_with(self.NO_STDERR_MSG, priority='error')
 
     @utilities.async_test
     @mock.patch(
@@ -177,9 +176,7 @@ class TestExternalCommand(unittest.TestCase):
         ui = utilities.make_ui()
         cmd = g_commands.ExternalCommand('false', refocus=False, spawn=True)
         await cmd.apply(ui)
-        ui.notify.assert_called_once_with(
-                'editor has exited with error code 1 -- No stderr output',
-                priority='error')
+        ui.notify.assert_called_once_with(self.NO_STDERR_MSG, priority='error')
 
 
 class TestCallCommand(unittest.TestCase):
