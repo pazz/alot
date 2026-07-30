@@ -13,9 +13,8 @@ class NamedQueriesBuffer(Buffer):
 
     modename = 'namedqueries'
 
-    def __init__(self, ui, filtfun):
+    def __init__(self, ui):
         self.ui = ui
-        self.filtfun = filtfun
         self.isinitialized = False
         self.querylist = None
         self.rebuild()
