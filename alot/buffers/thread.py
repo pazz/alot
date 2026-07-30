@@ -107,11 +107,18 @@ class ThreadBuffer(Buffer):
 
         if settings.get('auto_remove_unread'):
             logging.debug('Tbuffer: auto remove unread tag from msg?')
+
             msg = self.get_selected_message()
             mid = msg.get_message_id()
-            focus_pos = self.body.get_focus()[1]
-            summary_pos = (self.body.get_focus()[1][0], (0,))
-            cursor_on_non_summary = (focus_pos != summary_pos)
+
+            if self.message_count > 1:
+                focus_pos = self.body.get_focus()[1]
+                summary_pos = (self.body.get_focus()[1][0], (0,))
+                cursor_on_non_summary = (focus_pos != summary_pos)
+            else:
+                # Immediately remove unread tag from single-message threads
+                cursor_on_non_summary = True
+
             if cursor_on_non_summary:
                 if mid not in self._auto_unread_dont_touch_mids:
                     if 'unread' in msg.get_tags():
