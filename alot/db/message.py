@@ -85,11 +85,6 @@ class Message:
             return self._id == other.get_message_id()
         return NotImplemented
 
-    def __ne__(self, other):
-        if isinstance(other, type(self)):
-            return self._id != other.get_message_id()
-        return NotImplemented
-
     def __lt__(self, other):
         if isinstance(other, type(self)):
             return self._id < other.get_message_id()

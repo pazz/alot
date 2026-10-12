@@ -315,33 +315,18 @@ class TagWidget(urwid.AttrMap):
     def keypress(self, size, key):
         return key
 
-    def __cmp(self, other, comparitor):
-        """Shared comparison method."""
-        if not isinstance(other, TagWidget):
-            return NotImplemented
-
-        self_len = len(self.translated)
-        oth_len = len(other.translated)
-
-        if (self_len == 1) is not (oth_len == 1):
-            return comparitor(self_len, oth_len)
-        return comparitor(self.translated.lower(), other.translated.lower())
-
     def __lt__(self, other):
         """Groups tags of 1 character first, then alphabetically.
 
         This groups tags unicode characters at the begnining.
         """
-        return self.__cmp(other, operator.lt)
-
-    def __gt__(self, other):
-        return self.__cmp(other, operator.gt)
-
-    def __ge__(self, other):
-        return self.__cmp(other, operator.ge)
-
-    def __le__(self, other):
-        return self.__cmp(other, operator.le)
+        if not isinstance(other, TagWidget):
+            return NotImplemented
+        self_len = len(self.translated)
+        oth_len = len(other.translated)
+        if (self_len == 1) is not (oth_len == 1):
+            return self_len < oth_len
+        return self.translated.lower() < other.translated.lower()
 
     def __eq__(self, other):
         if not isinstance(other, TagWidget):
@@ -349,11 +334,6 @@ class TagWidget(urwid.AttrMap):
         if len(self.translated) != len(other.translated):
             return False
         return self.translated.lower() == other.translated.lower()
-
-    def __ne__(self, other):
-        if not isinstance(other, TagWidget):
-            return NotImplemented
-        return self.translated.lower() != other.translated.lower()
 
     def __hash__(self):
         return self.__hash
