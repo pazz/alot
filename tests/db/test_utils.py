@@ -755,6 +755,15 @@ class TestExtractBodyPart(unittest.TestCase):
                 self.assertEqual(utils.extract_body_part(mail),
                                  "müßig\nfleißig\n")
 
+    @mock.patch('alot.db.utils.settings.mailcap_find_match',
+                mock.Mock(return_value=(None, {'view': 'cat %{charset}'})))
+    def test_handler_with_unsafe_parameter(self):
+        mail = EmailMessage()
+        mail.set_content('<p>x</p>', subtype='html')
+        mail.set_param('charset', 'a;b')
+        self.assertEqual(utils.extract_body_part(mail),
+                         utils.MISSING_HTML_MSG)
+
     def test_text_plain_with_attachment_text(self):
         mail = EmailMessage()
         set_basic_headers(mail)

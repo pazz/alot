@@ -399,3 +399,13 @@ class TestEditCommand(unittest.TestCase):
         self.addCleanup(os.unlink, ui.current_buffer.envelope.tmpfile.name)
         with open(ui.current_buffer.envelope.tmpfile.name) as f:
             self.assertEqual(f.read(), 'To: you\nFrom: me\n\n')
+
+
+class TestBodyConvertCommand(unittest.TestCase):
+
+    @mock.patch('alot.commands.envelope.settings.get', return_value=None)
+    def test_no_converter_configured(self, _):
+        ui = utilities.make_ui()
+        ui.current_buffer.envelope = Envelope(bodytext='x')
+        envelope.BodyConvertCommand('txt2html').apply(ui)
+        self.assertEqual(ui.current_buffer.envelope.body_html, None)

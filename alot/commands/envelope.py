@@ -763,13 +763,13 @@ class BodyConvertCommand(Command):
 
         if self.action == "txt2html":
             fallbackcmd = settings.get('envelope_txt2html')
-            cmd = self.cmd or split_commandstring(fallbackcmd)
+            cmd = self.cmd or split_commandstring(fallbackcmd or '')
             if cmd:
                 envelope.body_html = self.convert(cmd, envelope.body_txt)
 
         elif self.action == "html2txt":
             fallbackcmd = settings.get('envelope_html2txt')
-            cmd = self.cmd or split_commandstring(fallbackcmd)
+            cmd = self.cmd or split_commandstring(fallbackcmd or '')
             if cmd:
                 envelope.body_txt = self.convert(cmd, envelope.body_html)
 
