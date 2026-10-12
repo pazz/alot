@@ -138,7 +138,7 @@ Apart from command pre- and posthooks, the following hooks will be interpreted:
 
     used to reformat the subject header on reply
 
-    :param subject: subject to reformat
+    :param subject: subject of the original message, without a prefix
     :type subject: str
     :rtype: str
 
@@ -146,7 +146,7 @@ Apart from command pre- and posthooks, the following hooks will be interpreted:
 
     used to reformat the subject header on forward
 
-    :param subject: subject to reformat
+    :param subject: subject of the original message, without a prefix
     :type subject: str
     :rtype: str
 
