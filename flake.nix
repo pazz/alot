@@ -51,9 +51,6 @@
       alot-app = python3.pkgs.toPythonApplication alot-pkg;
     in {
       alot = alot-app;
-      docs =
-        pkgs.lib.trivial.warn "The docs attribute moved to alot.doc"
-        self.packages.${system}.alot.doc;
       default = alot-app;
       theme-test = pkgs.runCommand "theme-test.py" {
         propagatedBuildInputs = [
