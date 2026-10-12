@@ -4,6 +4,8 @@
 """
 Widgets specific to search mode
 """
+import re
+
 import urwid
 
 from ..settings.const import settings
@@ -182,9 +184,7 @@ def prepare_subject_string(thread):
 def prepare_content_string(thread):
     msgs = sorted(thread.get_messages().keys(),
                   key=lambda msg: msg.get_date(), reverse=True)
-    lastcontent = ' '.join(m.get_body_text() for m in msgs)
-    lastcontent = lastcontent.replace('^>.*$', '')
-    return lastcontent
+    return ' '.join(re.sub(r'(?m)^>.*\n?', '', m.get_body_text()) for m in msgs)
 
 
 def prepare_string(partname, thread, maxw):
