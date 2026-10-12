@@ -216,6 +216,20 @@ class TestTryDecode(unittest.TestCase):
         self.assertIn('abc', actual)
 
 
+class TestGuessMimetype(unittest.TestCase):
+
+    def test_empty_libmagic_result(self):
+        for magic in [
+                mock.Mock(spec=['from_buffer'], **{
+                    'from_buffer.return_value': ''}),
+                mock.Mock(spec=['open', 'MAGIC_MIME_TYPE'], **{
+                    'open.return_value.buffer.return_value': None})]:
+            with self.subTest(magic=magic), \
+                    mock.patch('alot.helper.magic', magic):
+                self.assertEqual(helper.guess_mimetype(b'x'),
+                                 'application/octet-stream')
+
+
 class TestPrettyDatetime(unittest.TestCase):
 
     # TODO: Currently these tests use the ampm format based on whether or not
