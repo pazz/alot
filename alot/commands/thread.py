@@ -993,6 +993,12 @@ class OpenAttachmentCommand(Command):
             # create handler command list
             handler_cmd = mailcap.subst(handler_raw_commandstring, mimetype,
                                         filename=tempfile_name, plist=parms)
+            if handler_cmd is None:
+                if afterwards:
+                    afterwards()
+                ui.notify('mailcap entry for %s refused unsafe parameters'
+                          % mimetype, priority='error')
+                return
 
             handler_cmdlist = split_commandstring(handler_cmd)
 

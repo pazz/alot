@@ -171,3 +171,20 @@ class TestForwardCommand(unittest.TestCase):
                 await thread.ForwardCommand(msg, attach=True).apply(ui)
                 envelope = ui.apply_command.await_args.args[0].envelope
                 self.assertEqual(envelope.get('Subject'), expected)
+
+
+class TestOpenAttachmentCommand(unittest.TestCase):
+
+    @mock.patch('alot.commands.thread.settings.mailcap_find_match',
+                return_value=(None, {'view': 'cat %{charset}'}))
+    @utilities.async_test
+    async def test_unsafe_parameter(self, _):
+        part = email.message.Message()
+        part['Content-Type'] = 'text/plain; charset="a;b"'
+        attachment = mock.Mock(**{
+            'get_content_type.return_value': 'text/plain',
+            'get_mime_representation.return_value': part})
+        ui = utilities.make_ui(apply_command=mock.AsyncMock())
+        await thread.OpenAttachmentCommand(attachment).apply(ui)
+        ui.apply_command.assert_not_awaited()
+        ui.notify.assert_called_once()

@@ -378,11 +378,15 @@ def render_part(part, field_key='copiousoutput'):
                             filename=tempfile_name, plist=parms)
         logging.debug('command: %s', cmd)
         logging.debug('parms: %s', str(parms))
-        cmdlist = split_commandstring(cmd)
-        # call handler
-        stdout, _, _ = helper.call_cmd(cmdlist, stdin=stdin)
-        if stdout:
-            rendered_payload = stdout
+        # mailcap.subst returns None if a parameter is unsafe for the shell
+        if cmd is None:
+            logging.warning('mailcap entry for %s refused unsafe parameters',
+                            ctype)
+        else:
+            stdout, _, _ = helper.call_cmd(split_commandstring(cmd),
+                                           stdin=stdin)
+            if stdout:
+                rendered_payload = stdout
 
         # remove tempfile
         if tempfile_name:
