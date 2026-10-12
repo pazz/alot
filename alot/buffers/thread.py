@@ -153,13 +153,6 @@ class ThreadBuffer(Buffer):
         """Return focussed :class:`~alot.db.message.Message`."""
         return self.get_selected_messagetree()._message
 
-    def get_messagetree_positions(self):
-        """
-        Return a Generator to walk through all positions of
-        :class:`MessageTree` in the :class:`ThreadTree` of this buffer.
-        """
-        return [(pos,) for pos in self._tree.positions()]
-
     def messagetrees(self):
         """
         returns a Generator of all :class:`MessageTree` in the
@@ -298,26 +291,6 @@ class ThreadBuffer(Buffer):
         """focus previous unfolded message in depth first order"""
         self.focus_property(lambda x: not x.is_collapsed(x.root),
                             self._tree.prev_position)
-
-    def expand(self, msgpos):
-        """expand message at given position"""
-        MT = self._tree[msgpos]
-        MT.expand(MT.root)
-
-    def messagetree_at_position(self, pos):
-        """get :class:`MessageTree` for given position"""
-        return self._tree[pos[0]]
-
-    def expand_all(self):
-        """expand all messages in thread"""
-        for MT in self.messagetrees():
-            MT.expand(MT.root)
-
-    def collapse(self, msgpos):
-        """collapse message at given position"""
-        MT = self._tree[msgpos]
-        MT.collapse(MT.root)
-        self.focus_selected_message()
 
     def collapse_all(self):
         """collapse all messages in thread"""

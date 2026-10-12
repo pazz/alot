@@ -47,7 +47,6 @@ class DBManager:
         self.path = path
         self.config = config
         self.writequeue = deque([])
-        self.processes = []
 
     @property
     def exclude_tags(self):

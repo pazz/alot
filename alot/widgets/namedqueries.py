@@ -25,6 +25,3 @@ class QuerylineWidget(urwid.Columns):
 
     def keypress(self, size, key):
         return key
-
-    def get_query(self):
-        return self.query
