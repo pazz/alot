@@ -643,16 +643,6 @@
     :default: True
 
 
-.. _tabwidth:
-
-.. describe:: tabwidth
-
-     number of spaces used to replace tab characters
-
-    :type: integer
-    :default: 8
-
-
 .. _taglist-statusbar:
 
 .. describe:: taglist_statusbar
