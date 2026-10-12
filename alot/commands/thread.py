@@ -114,8 +114,7 @@ class ReplyCommand(Command):
     """reply to message"""
     repeatable = True
 
-    def __init__(self, message=None, all=False, listreply=None, spawn=None,
-                 **kwargs):
+    def __init__(self, message=None, all=False, listreply=None, spawn=None):
         """
         :param message: message to reply to (defaults to selected message)
         :type message: `alot.db.message.Message`
@@ -131,7 +130,6 @@ class ReplyCommand(Command):
         self.groupreply = all
         self.listreply = listreply
         self.force_spawn = spawn
-        Command.__init__(self, **kwargs)
 
     async def apply(self, ui):
         # get message to reply to if not given in constructor
@@ -294,7 +292,7 @@ class ForwardCommand(Command):
     """forward message"""
     repeatable = True
 
-    def __init__(self, message=None, attach=True, spawn=None, **kwargs):
+    def __init__(self, message=None, attach=True, spawn=None):
         """
         :param message: message to forward (defaults to selected message)
         :type message: `alot.db.message.Message`
@@ -306,7 +304,6 @@ class ForwardCommand(Command):
         self.message = message
         self.inline = not attach
         self.force_spawn = spawn
-        Command.__init__(self, **kwargs)
 
     async def apply(self, ui):
         # get message to forward if not given in constructor
@@ -384,13 +381,12 @@ class BounceMailCommand(Command):
     """directly re-send selected message"""
     repeatable = True
 
-    def __init__(self, message=None, **kwargs):
+    def __init__(self, message=None):
         """
         :param message: message to bounce (defaults to selected message)
         :type message: `alot.db.message.Message`
         """
         self.message = message
-        Command.__init__(self, **kwargs)
 
     async def apply(self, ui):
         # get mail to bounce
@@ -448,7 +444,7 @@ class BounceMailCommand(Command):
 class EditNewCommand(Command):
 
     """edit message in as new"""
-    def __init__(self, message=None, spawn=None, **kwargs):
+    def __init__(self, message=None, spawn=None):
         """
         :param message: message to reply to (defaults to selected message)
         :type message: `alot.db.message.Message`
@@ -457,7 +453,6 @@ class EditNewCommand(Command):
         """
         self.message = message
         self.force_spawn = spawn
-        Command.__init__(self, **kwargs)
 
     async def apply(self, ui):
         if not self.message:
@@ -527,7 +522,7 @@ class ChangeDisplaymodeCommand(Command):
     repeatable = True
 
     def __init__(self, query=None, visible=None, raw=None, all_headers=None,
-                 indent=None, mimetree=None, mimepart=False, **kwargs):
+                 indent=None, mimetree=None, mimepart=False):
         """
         :param query: notmuch query string used to filter messages to affect
         :type query: str
@@ -551,7 +546,6 @@ class ChangeDisplaymodeCommand(Command):
         self.indent = indent
         self.mimetree = mimetree
         self.mimepart = mimepart
-        Command.__init__(self, **kwargs)
 
     def _matches(self, msgt):
         if self.query is None or self.query == '*':
@@ -656,7 +650,7 @@ class PipeCommand(Command):
     def __init__(self, cmd, all=False, separately=False, background=False,
                  shell=False, notify_stdout=False, format='raw',
                  add_tags=False, noop_msg='no command specified',
-                 confirm_msg='', done_msg=None, **kwargs):
+                 confirm_msg='', done_msg=None):
         """
         :param cmd: shellcommand to open
         :type cmd: str or list of str
@@ -686,7 +680,6 @@ class PipeCommand(Command):
         :param done_msg: notification message to show upon success
         :type done_msg: str
         """
-        Command.__init__(self, **kwargs)
         if isinstance(cmd, str):
             cmd = shlex.split(cmd)
         self.cmd = cmd
@@ -790,12 +783,11 @@ class RemoveCommand(Command):
     """remove message(s) from the index"""
     repeatable = True
 
-    def __init__(self, all=False, **kwargs):
+    def __init__(self, all=False):
         """
         :param all: remove all messages from thread, not just selected one
         :type all: bool
         """
-        Command.__init__(self, **kwargs)
         self.all = all
 
     async def apply(self, ui):
@@ -842,8 +834,7 @@ class PrintCommand(PipeCommand):
     """print message(s)"""
     repeatable = True
 
-    def __init__(self, all=False, separately=False, raw=False, add_tags=False,
-                 **kwargs):
+    def __init__(self, all=False, separately=False, raw=False, add_tags=False):
         """
         :param all: print all, not only selected messages
         :type all: bool
@@ -875,7 +866,7 @@ class PrintCommand(PipeCommand):
                              format='raw' if raw else 'decoded',
                              add_tags=add_tags,
                              noop_msg=noop_msg, confirm_msg=confirm_msg,
-                             done_msg=ok_msg, **kwargs)
+                             done_msg=ok_msg)
 
 
 @registerCommand(MODE, 'save', arguments=[
@@ -884,7 +875,7 @@ class PrintCommand(PipeCommand):
 class SaveAttachmentCommand(Command):
 
     """save attachment(s)"""
-    def __init__(self, all=False, path=None, **kwargs):
+    def __init__(self, all=False, path=None):
         """
         :param all: save all, not only selected attachment
         :type all: bool
@@ -892,7 +883,6 @@ class SaveAttachmentCommand(Command):
                      directory.
         :type path: str
         """
-        Command.__init__(self, **kwargs)
         self.all = all
         self.path = path
 
@@ -943,12 +933,11 @@ class SaveAttachmentCommand(Command):
 class OpenAttachmentCommand(Command):
 
     """displays an attachment according to mailcap"""
-    def __init__(self, attachment, **kwargs):
+    def __init__(self, attachment):
         """
         :param attachment: attachment to open
         :type attachment: :class:`~alot.db.attachment.Attachment`
         """
-        Command.__init__(self, **kwargs)
         self.attachment = attachment
 
     async def apply(self, ui):
@@ -1135,8 +1124,7 @@ class TagCommand(Command):
     """manipulate message tags"""
     repeatable = True
 
-    def __init__(self, tags='', action='add', all=False, flush=True,
-                 **kwargs):
+    def __init__(self, tags='', action='add', all=False, flush=True):
         """
         :param tags: comma separated list of tagstrings to set
         :type tags: str
@@ -1153,7 +1141,6 @@ class TagCommand(Command):
         self.all = all
         self.action = action
         self.flush = flush
-        Command.__init__(self, **kwargs)
 
     async def apply(self, ui):
         tbuffer = ui.current_buffer

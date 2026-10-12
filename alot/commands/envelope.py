@@ -42,12 +42,11 @@ class AttachCommand(Command):
     """attach files to the mail"""
     repeatable = True
 
-    def __init__(self, path, **kwargs):
+    def __init__(self, path):
         """
         :param path: files to attach (globable string)
         :type path: str
         """
-        Command.__init__(self, **kwargs)
         self.path = path
 
     def apply(self, ui):
@@ -75,12 +74,11 @@ class DetachCommand(Command):
     """remove attachments from current envelope"""
     repeatable = True
 
-    def __init__(self, files=None, **kwargs):
+    def __init__(self, files=None):
         """
         :param files: attached file glob to remove
         :type files: str
         """
-        Command.__init__(self, **kwargs)
         self.files = files or '*'
 
     def apply(self, ui):
@@ -96,12 +94,11 @@ class DetachCommand(Command):
     (['key'], {'help': 'header to refine'})])
 class RefineCommand(Command):
     """prompt to change the value of a header"""
-    def __init__(self, key='', **kwargs):
+    def __init__(self, key=''):
         """
         :param key: key of the header to change
         :type key: str
         """
-        Command.__init__(self, **kwargs)
         self.key = key
 
     async def apply(self, ui):
@@ -158,7 +155,7 @@ class SaveCommand(Command):
 @registerCommand(MODE, 'send')
 class SendCommand(Command):
     """send mail"""
-    def __init__(self, mail=None, envelope=None, **kwargs):
+    def __init__(self, mail=None, envelope=None):
         """
         :param mail: email to send
         :type email: email.message.Message
@@ -166,7 +163,6 @@ class SendCommand(Command):
                          will be ignored in case the mail parameter is set.
         :type envelope: alot.db.envelope.envelope
         """
-        Command.__init__(self, **kwargs)
         self.mail = mail
         self.envelope = envelope
         self.envelope_buffer = None
@@ -324,8 +320,7 @@ class SendCommand(Command):
 ])
 class EditCommand(Command):
     """edit mail"""
-    def __init__(self, envelope=None, spawn=None, refocus=True, part=None,
-                 **kwargs):
+    def __init__(self, envelope=None, spawn=None, refocus=True, part=None):
         """
         :param envelope: email to edit
         :type envelope: :class:`~alot.db.envelope.Envelope`
@@ -344,8 +339,6 @@ class EditCommand(Command):
         if part in ['html', 'plaintext']:
             self.edit_part = part
         logging.debug('edit_part: %s ' % self.edit_part)
-
-        Command.__init__(self, **kwargs)
 
     async def apply(self, ui):
         ebuffer = ui.current_buffer
@@ -460,7 +453,7 @@ class EditCommand(Command):
     (['value'], {'nargs': '+', 'help': 'value'})])
 class SetCommand(Command):
     """set header value"""
-    def __init__(self, key, value, append=False, **kwargs):
+    def __init__(self, key, value, append=False):
         """
         :param key: key of the header to change
         :type key: str
@@ -470,7 +463,6 @@ class SetCommand(Command):
         self.key = key
         self.value = ' '.join(value)
         self.reset = not append
-        Command.__init__(self, **kwargs)
 
     async def apply(self, ui):
         envelope = ui.current_buffer.envelope
@@ -491,13 +483,12 @@ class SetCommand(Command):
     (['key'], {'help': 'header to refine'})])
 class UnsetCommand(Command):
     """remove header field"""
-    def __init__(self, key, **kwargs):
+    def __init__(self, key):
         """
         :param key: key of the header to remove
         :type key: str
         """
         self.key = key
-        Command.__init__(self, **kwargs)
 
     async def apply(self, ui):
         del ui.current_buffer.envelope[self.key]
@@ -536,7 +527,7 @@ class SignCommand(Command):
     """toggle signing this email"""
     repeatable = True
 
-    def __init__(self, action=None, keyid=None, **kwargs):
+    def __init__(self, action=None, keyid=None):
         """
         :param action: whether to sign/unsign/toggle
         :type action: str
@@ -545,7 +536,6 @@ class SignCommand(Command):
         """
         self.action = action
         self.keyid = keyid
-        Command.__init__(self, **kwargs)
 
     def apply(self, ui):
         sign = None
@@ -619,7 +609,7 @@ class SignCommand(Command):
                       'help': 'keyid of the key to encrypt with'})],
     help='do not encrypt to given recipient key')
 class EncryptCommand(Command):
-    def __init__(self, action=None, keyids=None, trusted=False, **kwargs):
+    def __init__(self, action=None, keyids=None, trusted=False):
         """
         :param action: wether to encrypt/unencrypt/toggleencrypt
         :type action: str
@@ -632,7 +622,6 @@ class EncryptCommand(Command):
         self.encrypt_keys = keyids
         self.action = action
         self.trusted = trusted
-        Command.__init__(self, **kwargs)
 
     async def apply(self, ui):
         envelope = ui.current_buffer.envelope
@@ -694,7 +683,7 @@ class TagCommand(Command):
     """manipulate message tags"""
     repeatable = True
 
-    def __init__(self, tags='', action='add', **kwargs):
+    def __init__(self, tags='', action='add'):
         """
         :param tags: comma separated list of tagstrings to set
         :type tags: str
@@ -706,7 +695,6 @@ class TagCommand(Command):
         assert isinstance(tags, str), 'tags should be a unicode string'
         self.tagsstring = tags
         self.action = action
-        Command.__init__(self, **kwargs)
 
     def apply(self, ui):
         ebuffer = ui.current_buffer
@@ -742,7 +730,6 @@ class BodyConvertCommand(Command):
     def __init__(self, action=None, cmd=None):
         self.action = action
         self.cmd = cmd  # this comes as a space separated list
-        Command.__init__(self)
 
     def convert(self, cmdlist, inputstring):
         logging.debug("converting using %s" % cmdlist)
@@ -783,13 +770,12 @@ class ChangeDisplaymodeCommand(Command):
 
     """change wich body alternative is shown"""
 
-    def __init__(self, part=None, **kwargs):
+    def __init__(self, part=None):
         """
         :param part: which part to show
         :type indent: 'plaintext', 'src', or 'html'
         """
         self.part = part
-        Command.__init__(self, **kwargs)
 
     async def apply(self, ui):
         ebuffer = ui.current_buffer
