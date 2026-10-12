@@ -626,7 +626,6 @@ class ChangeDisplaymodeCommand(Command):
                 mt.display_all_headers = all_headers
             if mimetree is not None:
                 mt.display_mimetree = mimetree
-            mt.debug()
             # let the messagetree reassemble itself
             mt.reassemble()
         # refresh the buffer (clears Tree caches etc)

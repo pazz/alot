@@ -897,27 +897,6 @@ class ComposeCommand(Command):
         except self.ApplyError:
             return
 
-    def _get_account(self, ui):
-        # find out the right account
-        sender = self.envelope.get('From')
-        _, addr = email.utils.parseaddr(sender)
-        try:
-            account = settings.get_account_by_address(addr)
-        except NoMatchingAccount:
-            msg = 'Cannot compose mail - no account found for `%s`' % addr
-            logging.error(msg)
-            ui.notify(msg, priority='error')
-            raise CommandCanceled()
-
-        if account is None:
-            accounts = settings.get_accounts()
-            if not accounts:
-                ui.notify('no accounts set.', priority='error')
-                raise self.ApplyError
-            account = accounts[0]
-
-        return account
-
     def _set_envelope(self):
         if self.envelope is None:
             if self.rest:

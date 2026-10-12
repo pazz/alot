@@ -315,12 +315,6 @@ class TagWidget(urwid.AttrMap):
     def keypress(self, size, key):
         return key
 
-    def set_focussed(self):
-        self.set_attr_map(self.attmaps['focus'])
-
-    def set_unfocussed(self):
-        self.set_attr_map(self.attmaps['normal'])
-
     def __cmp(self, other, comparitor):
         """Shared comparison method."""
         if not isinstance(other, TagWidget):

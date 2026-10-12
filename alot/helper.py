@@ -563,26 +563,6 @@ def mailto_to_envelope(mailto_str):
     return Envelope(bodytext=body, headers=headers)
 
 
-def RFC3156_canonicalize(text):
-    """
-    Canonicalizes plain text (MIME-encoded usually) according to RFC3156.
-
-    This function works as follows (in that order):
-
-    1. Convert all line endings to \\\\r\\\\n (DOS line endings).
-    2. Encode all occurrences of "From " at the beginning of a line
-       to "From=20" in order to prevent other mail programs to replace
-       this with "> From" (to avoid MBox conflicts) and thus invalidate
-       the signature.
-
-    :param text: text to canonicalize (already encoded as quoted-printable)
-    :rtype: str
-    """
-    text = re.sub("\r?\n", "\r\n", text)
-    text = re.sub("^From ", "From=20", text, flags=re.MULTILINE)
-    return text
-
-
 def get_xdg_env(env_name, fallback):
     """ Used for XDG_* env variables to return fallback if unset *or* empty """
     env = os.environ.get(env_name)

@@ -14,9 +14,6 @@ import re
 import locale
 import logging
 import mailcap
-import io
-import base64
-import quopri
 
 from .. import crypto
 from .. import helper

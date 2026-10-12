@@ -20,3 +20,9 @@ class TestPrepareContentString(unittest.TestCase):
         msg = mock.Mock(**{'get_body_text.return_value': '> quote\nreply'})
         thread = mock.Mock(**{'get_messages.return_value': {msg: []}})
         self.assertEqual(search.prepare_content_string(thread), 'reply')
+
+
+class TestBuildTagsPart(unittest.TestCase):
+
+    def test_no_visible_tags(self):
+        self.assertEqual(search.build_tags_part([], None, None), (-1, None))

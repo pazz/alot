@@ -31,7 +31,6 @@ class SettingsManager:
         self._mailcaps = mailcap.getcaps()
         self.theme = None
         self._accounts = None
-        self._accountmap = None
         self._notmuchconfig = None
         self._notmuchconfig_path = None
         self._config = ConfigObj()
@@ -107,7 +106,6 @@ class SettingsManager:
         )
 
         self._accounts = self._parse_accounts(self._config)
-        self._accountmap = self._account_table(self._accounts)
 
     @staticmethod
     def _expand_config_values(section, key):
@@ -200,24 +198,6 @@ class SettingsManager:
                 newacc = SendmailAccount(cmd, **args)
                 accounts.append(newacc)
         return accounts
-
-    @staticmethod
-    def _account_table(accounts):
-        """
-        creates a lookup table (emailaddress -> account) for a given list of
-        accounts
-
-        :param accounts: list of accounts
-        :type accounts: list of `alot.account.Account`
-        :returns: hashtable
-        :rvalue: dict (str -> `alot.account.Account`)
-        """
-        accountmap = {}
-        for acc in accounts:
-            accountmap[acc.address] = acc
-            for alias in acc.aliases:
-                accountmap[alias] = acc
-        return accountmap
 
     def get(self, key, fallback=None):
         """
@@ -470,10 +450,6 @@ class SettingsManager:
                 # Fall through
                 pass
         raise NoMatchingAccount
-
-    def get_main_addresses(self):
-        """returns addresses of known accounts without its aliases"""
-        return [a.address for a in self._accounts]
 
     def get_addressbooks(self, order=None, append_remaining=True):
         """returns list of all defined :class:`AddressBook` objects"""

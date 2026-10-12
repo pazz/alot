@@ -14,7 +14,6 @@ class SearchBuffer(Buffer):
     """shows a result list of threads for a query"""
 
     modename = 'search'
-    threads = []
     _REVERSE = {'oldest_first': 'newest_first',
                 'newest_first': 'oldest_first'}
 
@@ -31,7 +30,6 @@ class SearchBuffer(Buffer):
             settings.get('search_threads_rebuild_limit')
         self.search_threads_move_last_limit = \
             settings.get('search_threads_move_last_limit')
-        self.isinitialized = False
         self.threadlist = None
         self.rebuild()
         Buffer.__init__(self, ui, self.body)
@@ -49,7 +47,6 @@ class SearchBuffer(Buffer):
         return info
 
     def rebuild(self, reverse=False, restore_focus=True):
-        self.isinitialized = True
         self.reversed = reverse
         selected_thread = None
 

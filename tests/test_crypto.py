@@ -93,7 +93,7 @@ def make_uid(email, revoked=False, invalid=False,
 
 class TestHashAlgorithmHelper(unittest.TestCase):
 
-    """Test cases for the helper function RFC3156_canonicalize."""
+    """Test cases for crypto.RFC3156_micalg_from_algo."""
 
     def test_returned_string_starts_with_pgp(self):
         result = crypto.RFC3156_micalg_from_algo(gpg.constants.md.MD5)

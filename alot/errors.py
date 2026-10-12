@@ -2,8 +2,6 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 
-from typing import Any
-
 
 class GPGCode:
     AMBIGUOUS_NAME = 1

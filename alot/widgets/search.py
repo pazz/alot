@@ -23,7 +23,6 @@ class ThreadlineWidget(urwid.AttrMap):
         self.dbman = dbman
         self.tid = tid
         self.thread = None  # will be set by refresh()
-        self.tag_widgets = []
         self.structure = None
         self.rebuild()
         normal = self.structure['normal']
@@ -94,9 +93,6 @@ def build_tags_part(tags, attr_normal, attr_focus):
     :return: overall width in characters and a Columns widget.
     :rtype: tuple[int, urwid.Columns]
     """
-    part_w = None
-    width = None
-    tag_widgets = []
     cols = []
     width = -1
 
@@ -106,13 +102,10 @@ def build_tags_part(tags, attr_normal, attr_focus):
 
     for tag_widget in tag_widgets:
         if not tag_widget.hidden:
-            wrapped_tagwidget = tag_widget
             tag_width = tag_widget.width()
-            cols.append(('fixed', tag_width, wrapped_tagwidget))
+            cols.append(('fixed', tag_width, tag_widget))
             width += tag_width + 1
-    if cols:
-        part_w = urwid.Columns(cols, dividechars=1)
-    return width, part_w
+    return width, urwid.Columns(cols, dividechars=1) if cols else None
 
 
 def build_text_part(name, thread, struct):

@@ -175,7 +175,6 @@ class MessageTree(CollapsibleTree):
         self.display_all_headers = False
         self._all_headers_tree = None
         self._default_headers_tree = None
-        self.display_attachments = True
         self._mimetree = None
         self._attachments = None
         self._maintree = SimpleTree(self._assemble_structure(True))
@@ -191,16 +190,6 @@ class MessageTree(CollapsibleTree):
     def refresh(self):
         self._summaryw = None
         self.reassemble()
-
-    def debug(self):
-        logging.debug('collapsed %s', self.is_collapsed(self.root))
-        logging.debug('display_source %s', self.display_source)
-        logging.debug('display_all_headers %s', self.display_all_headers)
-        logging.debug('display_attachements %s', self.display_attachments)
-        logging.debug('display_mimetree %s', self.display_mimetree)
-        logging.debug('AHT %s', str(self._all_headers_tree))
-        logging.debug('DHT %s', str(self._default_headers_tree))
-        logging.debug('MAINTREE %s', str(self._maintree._treelist))
 
     def expand(self, pos):
         """
