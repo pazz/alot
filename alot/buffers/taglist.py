@@ -13,8 +13,7 @@ class TagListBuffer(Buffer):
 
     modename = 'taglist'
 
-    def __init__(self, ui, alltags=None, filtfun=lambda x: x):
-        self.filtfun = filtfun
+    def __init__(self, ui, alltags=None):
         self.ui = ui
         self.tags = alltags or []
         self.isinitialized = False
@@ -29,8 +28,7 @@ class TagListBuffer(Buffer):
             self.isinitialized = True
 
         lines = list()
-        displayedtags = sorted((t for t in self.tags if self.filtfun(t)),
-                               key=str.lower)
+        displayedtags = sorted(filter(None, self.tags), key=str.lower)
         for (num, b) in enumerate(displayedtags):
             attr = settings.get_theming_attribute(
                 'taglist', 'line_odd' if num % 2 else 'line_even')

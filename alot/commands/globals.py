@@ -535,19 +535,12 @@ class BufferFocusCommand(Command):
 class OpenBufferlistCommand(Command):
 
     """open a list of active buffers"""
-    def __init__(self, filtfun=lambda x: x):
-        """
-        :param filtfun: filter to apply to displayed list
-        :type filtfun: callable (str->bool)
-        """
-        self.filtfun = filtfun
-
     def apply(self, ui):
         blists = ui.get_buffers_of_type(buffers.BufferlistBuffer)
         if blists:
             ui.buffer_focus(blists[0])
         else:
-            bl = buffers.BufferlistBuffer(ui, self.filtfun)
+            bl = buffers.BufferlistBuffer(ui)
             ui.buffer_open(bl)
 
 
@@ -557,12 +550,7 @@ class OpenBufferlistCommand(Command):
 class TagListCommand(Command):
 
     """opens taglist buffer"""
-    def __init__(self, filtfun=lambda x: x, tags=None):
-        """
-        :param filtfun: filter to apply to displayed list
-        :type filtfun: callable (str->bool)
-        """
-        self.filtfun = filtfun
+    def __init__(self, tags=None):
         self.tags = tags
 
     def apply(self, ui):
@@ -574,21 +562,14 @@ class TagListCommand(Command):
             buf.rebuild()
             ui.buffer_focus(buf)
         else:
-            ui.buffer_open(buffers.TagListBuffer(ui, tags, self.filtfun))
+            ui.buffer_open(buffers.TagListBuffer(ui, tags))
 
 
 @registerCommand(MODE, 'namedqueries')
 class NamedQueriesCommand(Command):
     """opens named queries buffer"""
-    def __init__(self, filtfun=bool):
-        """
-        :param filtfun: filter to apply to displayed list
-        :type filtfun: callable (str->bool)
-        """
-        self.filtfun = filtfun
-
     def apply(self, ui):
-        ui.buffer_open(buffers.NamedQueriesBuffer(ui, self.filtfun))
+        ui.buffer_open(buffers.NamedQueriesBuffer(ui))
 
 
 @registerCommand(MODE, 'flush')
