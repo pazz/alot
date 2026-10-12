@@ -1,5 +1,4 @@
 [![Build Status]][ghactions]
-[![Code Climate][codeclimate-img]][codeclimate]
 [![Documentation Status][rtfd-img]][rtfd]
 
 
@@ -59,7 +58,5 @@ See the [manual][docs] for more usage info.
 
 [Build Status]: https://github.com/pazz/alot/actions/workflows/check.yml/badge.svg
 [ghactions]: https://github.com/pazz/alot/actions
-[codeclimate-img]: https://codeclimate.com/github/pazz/alot/badges/gpa.svg
-[codeclimate]: https://codeclimate.com/github/pazz/alot
 [rtfd-img]: https://readthedocs.org/projects/alot/badge/?version=latest
 [rtfd]: https://alot.readthedocs.io/en/latest/
