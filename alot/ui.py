@@ -321,16 +321,6 @@ class UI:
         """
         history = history or []
 
-        fut = asyncio.get_event_loop().create_future()
-        oldroot = self.mainloop.widget
-
-        def select_or_cancel(text):
-            """Restore the main screen and invoce the callback (delayed return)
-            with the given text."""
-            self.mainloop.widget = oldroot
-            self._passall = False
-            fut.set_result(text)
-
         def cerror(e):
             logging.error(e)
             self.notify('completion error: %s' % str(e),
@@ -339,31 +329,37 @@ class UI:
 
         prefix = prefix + settings.get('prompt_suffix')
 
-        # set up widgets
-        leftpart = urwid.Text(prefix, align='left')
-        editpart = CompleteEdit(completer, on_exit=select_or_cancel,
-                                edit_text=text, history=history,
-                                on_error=cerror)
+        def build(on_exit):
+            leftpart = urwid.Text(prefix, align='left')
+            editpart = CompleteEdit(completer, on_exit=on_exit,
+                                    edit_text=text, history=history,
+                                    on_error=cerror)
+            for _ in range(tab):  # hit some tabs
+                editpart.keypress((0,), 'tab')
+            both = urwid.Columns([('fixed', len(prefix), leftpart),
+                                  ('weight', 1, editpart)])
+            att = settings.get_theming_attribute('global', 'prompt')
+            return urwid.AttrMap(both, att)
 
-        for _ in range(tab):  # hit some tabs
-            editpart.keypress((0,), 'tab')
+        return self._overlay_input(build)
 
-        # build promptwidget
-        both = urwid.Columns(
-            [
-                ('fixed', len(prefix), leftpart),
-                ('weight', 1, editpart),
-            ])
-        att = settings.get_theming_attribute('global', 'prompt')
-        both = urwid.AttrMap(both, att)
+    def _overlay_input(self, build):
+        """
+        Show the widget that `build(callback)` returns at the bottom of the
+        screen until the callback is called, and return a
+        :class:`asyncio.Future` that then has the callback's argument.
+        """
+        fut = asyncio.get_event_loop().create_future()
+        oldroot = self.mainloop.widget
 
-        # put promptwidget as overlay on main widget
-        overlay = urwid.Overlay(both, oldroot,
-                                ('fixed left', 0),
-                                ('fixed right', 0),
-                                ('fixed bottom', 1),
-                                None)
-        self.mainloop.widget = overlay
+        def done(value):
+            self.mainloop.widget = oldroot
+            self._passall = False
+            fut.set_result(value)
+
+        self.mainloop.widget = urwid.Overlay(
+            build(done), oldroot, ('fixed left', 0), ('fixed right', 0),
+            ('fixed bottom', 1), None)
         self._passall = True
         return fut
 
@@ -549,44 +545,22 @@ class UI:
         assert cancel is None or cancel in choices.values()
         assert msg_position in ['left', 'above']
 
-        fut = asyncio.get_event_loop().create_future()  # Create a returned future
-        oldroot = self.mainloop.widget
+        def build(callback):
+            msgpart = urwid.Text(message)
+            choicespart = ChoiceWidget(choices,
+                                       choices_to_return=choices_to_return,
+                                       callback=callback, select=select,
+                                       cancel=cancel)
+            if msg_position == 'left':
+                both = urwid.Columns([('fixed', len(message), msgpart),
+                                      ('weight', 1, choicespart)],
+                                     dividechars=1)
+            else:  # above
+                both = urwid.Pile([msgpart, choicespart])
+            att = settings.get_theming_attribute('global', 'prompt')
+            return urwid.AttrMap(both, att, att)
 
-        def select_or_cancel(text):
-            """Restore the main screen and invoce the callback (delayed return)
-            with the given text."""
-            self.mainloop.widget = oldroot
-            self._passall = False
-            fut.set_result(text)
-
-        # set up widgets
-        msgpart = urwid.Text(message)
-        choicespart = ChoiceWidget(choices,
-                                   choices_to_return=choices_to_return,
-                                   callback=select_or_cancel, select=select,
-                                   cancel=cancel)
-
-        # build widget
-        if msg_position == 'left':
-            both = urwid.Columns(
-                [
-                    ('fixed', len(message), msgpart),
-                    ('weight', 1, choicespart),
-                ], dividechars=1)
-        else:  # above
-            both = urwid.Pile([msgpart, choicespart])
-        att = settings.get_theming_attribute('global', 'prompt')
-        both = urwid.AttrMap(both, att, att)
-
-        # put promptwidget as overlay on main widget
-        overlay = urwid.Overlay(both, oldroot,
-                                ('fixed left', 0),
-                                ('fixed right', 0),
-                                ('fixed bottom', 1),
-                                None)
-        self.mainloop.widget = overlay
-        self._passall = True
-        return fut
+        return self._overlay_input(build)
 
     def notify(self, message, priority='normal', timeout=0, block=False):
         """
