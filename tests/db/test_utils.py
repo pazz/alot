@@ -742,6 +742,15 @@ class TestExtractBodyPart(unittest.TestCase):
         expected = "müßig\nfleißig\n"
         self.assertEqual(actual, expected)
 
+    def test_iso_8859_1_mail_through_text_plain_handler(self):
+        mail = message_from_binary_file("iso-8859-1-qp.eml")
+        for view in ('cat', 'iconv -f %{charset} -t utf-8'):
+            with self.subTest(view=view), mock.patch(
+                    'alot.db.utils.settings.mailcap_find_match',
+                    return_value=(None, {'view': view})):
+                self.assertEqual(utils.extract_body_part(mail),
+                                 "müßig\nfleißig\n")
+
     def test_text_plain_with_attachment_text(self):
         mail = EmailMessage()
         set_basic_headers(mail)
