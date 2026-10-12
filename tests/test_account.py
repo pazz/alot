@@ -53,6 +53,13 @@ class TestAccount(unittest.TestCase):
         self.assertTrue(acct.matches_address("to+foo@example.com"))
         self.assertFalse(acct.matches_address("to@example.com"))
 
+    def test_matches_address_with_empty_regex_alias(self):
+        acct = _AccountTestClass(address="foo@example.com", alias_regexp='')
+        self.assertFalse(acct.matches_address("bar@example.com"))
+
+    def test_unset_regex_alias(self):
+        acct = _AccountTestClass(address="foo@example.com")
+        self.assertIsNone(acct._alias_regexp)
 
     def test_deprecated_encrypt_by_default(self):
         """Tests that deprecated values are still accepted."""

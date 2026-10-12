@@ -238,10 +238,9 @@ class Account:
             logging.info(msg)
         self.encrypt_by_default = encrypt_by_default
         # cache alias_regexp regexes
-        if self.alias_regexp != "":
-            self._alias_regexp = re.compile(
-                '^' + str(self.alias_regexp) + '$',
-                flags=0 if case_sensitive_username else re.IGNORECASE)
+        self._alias_regexp = self.alias_regexp and re.compile(
+            '^' + self.alias_regexp + '$',
+            flags=0 if case_sensitive_username else re.IGNORECASE)
 
     def matches_address(self, address):
         """returns whether this account knows about an email address
