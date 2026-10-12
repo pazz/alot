@@ -7,7 +7,7 @@ import tempfile
 import email.charset as charset
 from copy import deepcopy
 
-from ..helper import string_decode, humanize_size, guess_mimetype
+from ..helper import humanize_size, guess_mimetype
 from .utils import decode_header
 
 charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
@@ -24,10 +24,9 @@ class Attachment:
         self.part = emailpart
 
     def __str__(self):
-        desc = '%s:%s (%s)' % (self.get_content_type(),
+        return '%s:%s (%s)' % (self.get_content_type(),
                                self.get_filename(),
                                humanize_size(self.get_size()))
-        return string_decode(desc)
 
     def get_filename(self):
         """

@@ -325,7 +325,6 @@ class SettingsManager:
                                     fallback_focus)
 
                 translated = cfg['tags'][sec]['translated']
-                translated = string_decode(translated, 'UTF-8')
                 if translated is None:
                     translated = tag
                 translation = cfg['tags'][sec]['translation']
@@ -478,7 +477,7 @@ class SettingsManager:
 
         fixed_format = self.get('timestamp_format')
         if fixed_format:
-            rep = string_decode(d.strftime(fixed_format), 'UTF-8')
+            rep = d.strftime(fixed_format)
         else:
             format_hook = self.get_hook('timestamp_format')
             if format_hook:

@@ -9,7 +9,6 @@ import re
 import shlex
 
 from ..settings.const import settings
-from ..helper import string_decode
 
 
 class Command:
@@ -171,7 +170,6 @@ def commandfactory(cmdline, mode='global'):
         args = shlex.split(cmdline)
     except ValueError as e:
         raise CommandParseError(str(e))
-    args = [string_decode(x, 'utf-8') for x in args]
     logging.debug('ARGS: %s', args)
     cmdname = args[0]
     args = args[1:]
