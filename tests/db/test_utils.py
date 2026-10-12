@@ -103,6 +103,10 @@ class TestIsSubdirOf(unittest.TestCase):
         result = utils.is_subdir_of(subpath, superpath)
         self.assertFalse(result)
 
+    def test_sibling_with_common_name_prefix(self):
+        result = utils.is_subdir_of('/a/bc/d.rst', '/a/b')
+        self.assertFalse(result)
+
     def test_both_paths_relative_matching(self):
         superpath = 'a/b'
         subpath = 'a/b/c/d.rst'
