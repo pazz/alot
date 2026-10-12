@@ -302,7 +302,7 @@ class TestDecodeHeader(unittest.TestCase):
 
 class TestAddSignatureHeaders(unittest.TestCase):
 
-    class FakeMail(object):
+    class FakeMail:
         def __init__(self):
             self.headers = []
 

@@ -21,14 +21,14 @@ from alot import account
 from alot.db import message
 
 
-class MockNotmuchMessage(object):
+class MockNotmuchMessage:
     """An object that looks very much like a notmuch message.
 
     All public instance variables that are not part of the notmuch Message
     class are prefaced with mock.
     """
 
-    class MockProperties(object):
+    class MockProperties:
         def getall(self, *args, **kwargs):
             return []
 

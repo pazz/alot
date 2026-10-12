@@ -125,7 +125,7 @@ class TestGetKeys(unittest.TestCase):
         ui.choice.assert_called_once()
 
 
-class _Account(object):
+class _Account:
     def __init__(self, encrypt_to_self=True, gpg_key=None):
         self.encrypt_to_self = encrypt_to_self
         self.gpg_key = gpg_key

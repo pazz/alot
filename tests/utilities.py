@@ -103,7 +103,7 @@ class TestCaseClassCleanup(unittest.TestCase):
             func(*args, **kwargs)
 
 
-class ModuleCleanup(object):
+class ModuleCleanup:
     """Class for managing module level setup and teardown fixtures.
 
     Because of the way unittest is implemented it's rather difficult to write
