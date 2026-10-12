@@ -1,3 +1,16 @@
+unreleased:
+* breaking: drop support for python 3.9
+* breaking: the forward_subject hook now receives the original subject, without a "Fwd: " prefix
+* breaking: shellcommand address books now respect the ignorecase option, also when parsing the command's output
+* config: remove the options "tabwidth" and "editor_writes_encoding", which had no effect; the editor's temporary file is always UTF-8
+* feature: new "theme" command to switch themes at runtime
+* info: the forward_subject_prefix option now takes effect
+* info: fix the charset of non-UTF-8 text/plain parts rendered by a mailcap handler
+* info: savequery and removequery now write to the index immediately
+* info: the "content" part of search thread lines now omits quoted lines
+* info: fix crashes on a read-only index (savequery, removequery), a cancelled tags prompt in compose, an empty alias_regexp, threads with out-of-range dates, undecodable bodies and empty libmagic results
+* info: messages in a sibling directory of the notmuch root (e.g. /mail2 for /mail) are no longer treated as below it
+
 0.12:
 * breaking: drop support for python 3.8, add support for python 3.13 & 3.14
 * deps: Increase required version of notmuch2 to 0.34.2
