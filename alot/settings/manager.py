@@ -349,14 +349,8 @@ class SettingsManager:
         # get all bindings in this mode
         globalmaps, modemaps = self.get_keybindings(mode)
         candidates = list(globalmaps.keys()) + list(modemaps.keys())
-        if prefix is not None:
-            prefixes = prefix + ' '
-            cand = [c for c in candidates if c.startswith(prefixes)]
-            if prefix in candidates:
-                candidates = cand + [prefix]
-            else:
-                candidates = cand
-        return candidates
+        cand = [c for c in candidates if c.startswith(prefix + ' ')]
+        return cand + [prefix] if prefix in candidates else cand
 
     def get_keybindings(self, mode):
         """look up keybindings from `MODE-maps` sections

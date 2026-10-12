@@ -9,15 +9,14 @@ from .completer import Completer
 class StringlistCompleter(Completer):
     """Completer for a fixed list of strings."""
 
-    def __init__(self, resultlist, ignorecase=True, match_anywhere=False):
+    def __init__(self, resultlist, match_anywhere=False):
         """
         :param resultlist: strings used for completion
         :type resultlist: list of str
-        :param liberal: match case insensitive and not prefix-only
-        :type liberal: bool
+        :param match_anywhere: match anywhere, not only at the start
+        :type match_anywhere: bool
         """
         self.resultlist = resultlist
-        self.flags = re.IGNORECASE if ignorecase else 0
         self.match_anywhere = match_anywhere
 
     def complete(self, original, pos):
@@ -27,6 +26,6 @@ class StringlistCompleter(Completer):
 
         def match(s, m):
             r = '{}{}.*'.format(re_prefix, re.escape(m))
-            return re.match(r, s, flags=self.flags) is not None
+            return re.match(r, s, flags=re.IGNORECASE) is not None
 
         return [(a, len(a)) for a in self.resultlist if match(a, pref)]

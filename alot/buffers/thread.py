@@ -298,14 +298,12 @@ class ThreadBuffer(Buffer):
             MT.collapse(MT.root)
         self.focus_selected_message()
 
-    def unfold_matching(self, querystring, focus_first=True):
+    def unfold_matching(self, querystring):
         """
         expand all messages that match a given querystring.
 
         :param querystring: query to match
         :type querystring: str
-        :param focus_first: set the focus to the first matching message
-        :type focus_first: bool
         """
         first = None
         for MT in self.messagetrees():

@@ -15,13 +15,12 @@ class ANSIText(urwid.WidgetWrap):
                  default_attr=None,
                  default_attr_focus=None,
                  ansi_background=True,
-                 mimepart=False,
-                 **kwds):
+                 mimepart=False):
         self.mimepart = mimepart
         ct, focus_map = parse_escapes_to_urwid(txt, default_attr,
                                                default_attr_focus,
                                                ansi_background)
-        t = urwid.Text(ct, **kwds)
+        t = urwid.Text(ct)
         attr_map = {default_attr.background: ''}
         w = urwid.AttrMap(t, attr_map, focus_map)
         urwid.WidgetWrap.__init__(self, w)

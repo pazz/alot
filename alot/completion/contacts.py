@@ -9,13 +9,10 @@ from .abooks import AbooksCompleter
 class ContactsCompleter(MultipleSelectionCompleter):
     """completes contacts from given address books"""
 
-    def __init__(self, abooks, addressesonly=False):
+    def __init__(self, abooks):
         """
         :param abooks: used to look up email addresses
         :type abooks: list of :class:`~alot.account.AddresBook`
-        :param addressesonly: only insert address, not the realname of the
-                              contact
-        :type addressesonly: bool
         """
-        self._completer = AbooksCompleter(abooks, addressesonly=addressesonly)
+        self._completer = AbooksCompleter(abooks)
         self._separator = ', '
