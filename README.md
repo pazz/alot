@@ -1,7 +1,5 @@
 [![Build Status]][ghactions]
 [![Code Climate][codeclimate-img]][codeclimate]
-[![Codacy Grade][codacy-grade-img]][codacy-grade]
-[![Codacy Coverage][codacy-coverage-img]][codacy-coverage]
 [![Documentation Status][rtfd-img]][rtfd]
 
 
@@ -61,10 +59,6 @@ See the [manual][docs] for more usage info.
 
 [Build Status]: https://github.com/pazz/alot/actions/workflows/check.yml/badge.svg
 [ghactions]: https://github.com/pazz/alot/actions
-[codacy-coverage]: https://www.codacy.com/app/patricktotzke/alot?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=pazz/alot&amp;utm_campaign=Badge_Coverage
-[codacy-coverage-img]: https://api.codacy.com/project/badge/Coverage/fa7c4a567cd546568a12e88c57f9dbd6
-[codacy-grade]: https://www.codacy.com/app/patricktotzke/alot?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=pazz/alot&amp;utm_campaign=Badge_Grade
-[codacy-grade-img]: https://api.codacy.com/project/badge/Grade/fa7c4a567cd546568a12e88c57f9dbd6
 [codeclimate-img]: https://codeclimate.com/github/pazz/alot/badges/gpa.svg
 [codeclimate]: https://codeclimate.com/github/pazz/alot
 [rtfd-img]: https://readthedocs.org/projects/alot/badge/?version=latest
