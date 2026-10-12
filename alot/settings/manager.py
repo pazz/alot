@@ -182,7 +182,8 @@ class SettingsManager:
                     if cmd is not None and regexp is not None:
                         ef = abook['shellcommand_external_filtering']
                         args['abook'] = ExternalAddressbook(
-                            cmd, regexp, external_filtering=ef)
+                            cmd, regexp, external_filtering=ef,
+                            ignorecase=abook['ignorecase'])
                     else:
                         msg = 'underspecified abook of type \'shellcommand\':'
                         msg += '\ncommand: %s\nregexp:%s' % (cmd, regexp)
