@@ -19,7 +19,6 @@ from .commands import commandfactory
 from .commands import CommandCanceled, SequenceCanceled
 from .commands import CommandParseError
 from .helper import split_commandline
-from .helper import string_decode
 from .helper import get_xdg_env
 from .widgets.globals import CompleteEdit
 from .widgets.globals import ChoiceWidget
@@ -684,9 +683,7 @@ class UI:
         lefttxt = righttxt = ''
         if cb is not None:
             lefttxt, righttxt = settings.get(btype + '_statusbar', ('', ''))
-            lefttxt = string_decode(lefttxt, 'UTF-8')
             lefttxt = lefttxt.format(**info)
-            righttxt = string_decode(righttxt, 'UTF-8')
             righttxt = righttxt.format(**info)
 
         footerleft = urwid.Text(lefttxt, align='left')
