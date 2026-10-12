@@ -38,11 +38,8 @@ class BufferlistBuffer(Buffer):
         displayedbuffers = [b for b in self.ui.buffers if self.filtfun(b)]
         for (num, b) in enumerate(displayedbuffers):
             line = BufferlineWidget(b)
-            if (num % 2) == 0:
-                attr = settings.get_theming_attribute('bufferlist',
-                                                      'line_even')
-            else:
-                attr = settings.get_theming_attribute('bufferlist', 'line_odd')
+            attr = settings.get_theming_attribute(
+                'bufferlist', 'line_odd' if num % 2 else 'line_even')
             focus_att = settings.get_theming_attribute('bufferlist',
                                                        'line_focus')
             buf = urwid.AttrMap(line, attr, focus_att)

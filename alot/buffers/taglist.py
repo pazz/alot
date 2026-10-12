@@ -32,10 +32,8 @@ class TagListBuffer(Buffer):
         displayedtags = sorted((t for t in self.tags if self.filtfun(t)),
                                key=str.lower)
         for (num, b) in enumerate(displayedtags):
-            if (num % 2) == 0:
-                attr = settings.get_theming_attribute('taglist', 'line_even')
-            else:
-                attr = settings.get_theming_attribute('taglist', 'line_odd')
+            attr = settings.get_theming_attribute(
+                'taglist', 'line_odd' if num % 2 else 'line_even')
             focus_att = settings.get_theming_attribute('taglist', 'line_focus')
 
             tw = TagWidget(b, attr, focus_att)
