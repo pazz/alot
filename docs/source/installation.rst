@@ -62,7 +62,7 @@ installation omit the `--user` flag and call with the respective permissions.
 Generating the Docs
 -------------------
 
-This requires `sphinx <https://www.sphinx-doc.org/>`_, ≥ `1.3` to be installed.
+This requires `sphinx <https://www.sphinx-doc.org/>`_ to be installed.
 To generate the documentation from the source directory simply do::
 
   make -C docs html
