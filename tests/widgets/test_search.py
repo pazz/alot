@@ -12,3 +12,11 @@ class TestPrepareDateString(unittest.TestCase):
     def test_thread_without_date(self):
         thread = mock.Mock(**{'get_newest_date.return_value': None})
         self.assertEqual(search.prepare_date_string(thread), ' ')
+
+
+class TestPrepareContentString(unittest.TestCase):
+
+    def test_quoted_lines_are_dropped(self):
+        msg = mock.Mock(**{'get_body_text.return_value': '> quote\nreply'})
+        thread = mock.Mock(**{'get_messages.return_value': {msg: []}})
+        self.assertEqual(search.prepare_content_string(thread), 'reply')
