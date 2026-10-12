@@ -18,6 +18,15 @@ from ..settings.const import settings
 
 
 MODE = 'search'
+_NO_FLUSH_ARG = (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
+                                  'default': 'True',
+                                  'help': 'postpone a writeout to the index'})
+_TAGS_ARG = (['tags'], {'help': 'comma separated list of tags'})
+
+
+def _all_arg(help):
+    return (['--all'], {'action': 'store_true', 'dest': 'allmessages',
+                        'default': False, 'help': help})
 
 
 @registerCommand(
@@ -123,47 +132,25 @@ RetagPromptCommand = registerCommand(MODE, 'retagprompt')(RetagPromptCommand)
 
 @registerCommand(
     MODE, 'tag', forced={'action': 'add'},
-    arguments=[
-        (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
-                          'default': 'True',
-                          'help': 'postpone a writeout to the index'}),
-        (['--all'], {'action': 'store_true', 'dest': 'allmessages',
-            'default': False,
-            'help': 'tag all messages that match the current search query'}),
-        (['tags'], {'help': 'comma separated list of tags'})],
+    arguments=[_NO_FLUSH_ARG, _all_arg(
+        'tag all messages that match the current search query'), _TAGS_ARG],
     help='add tags to all messages in the selected thread',
 )
 @registerCommand(
     MODE, 'retag', forced={'action': 'set'},
-    arguments=[
-        (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
-                          'default': 'True',
-                          'help': 'postpone a writeout to the index'}),
-        (['--all'], {'action': 'store_true', 'dest': 'allmessages',
-            'default': False,
-            'help': 'retag all messages that match the current query'}),
-        (['tags'], {'help': 'comma separated list of tags'})],
+    arguments=[_NO_FLUSH_ARG, _all_arg(
+        'retag all messages that match the current query'), _TAGS_ARG],
     help='set tags to all messages in the selected thread',
 )
 @registerCommand(
     MODE, 'untag', forced={'action': 'remove'},
-    arguments=[
-        (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
-                          'default': 'True',
-                          'help': 'postpone a writeout to the index'}),
-        (['--all'], {'action': 'store_true', 'dest': 'allmessages',
-            'default': False,
-            'help': 'untag all messages that match the current query'}),
-        (['tags'], {'help': 'comma separated list of tags'})],
+    arguments=[_NO_FLUSH_ARG, _all_arg(
+        'untag all messages that match the current query'), _TAGS_ARG],
     help='remove tags from all messages in the selected thread',
 )
 @registerCommand(
     MODE, 'toggletags', forced={'action': 'toggle'},
-    arguments=[
-        (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
-                          'default': 'True',
-                          'help': 'postpone a writeout to the index'}),
-        (['tags'], {'help': 'comma separated list of tags'})],
+    arguments=[_NO_FLUSH_ARG, _TAGS_ARG],
     help='flip presence of tags on the selected thread: a tag is considered present '
          'and will be removed if at least one message in this thread is '
          'tagged with it')
@@ -266,9 +253,7 @@ class MoveFocusCommand(MoveCommand):
 @registerCommand(
     MODE, 'savequery',
     arguments=[
-        (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
-                          'default': 'True',
-                          'help': 'postpone a writeout to the index'}),
+        _NO_FLUSH_ARG,
         (['alias'], {'help': 'alias to use for query string'}),
         (['query'], {'help': 'query string to store',
                      'nargs': argparse.REMAINDER,
