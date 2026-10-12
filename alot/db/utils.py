@@ -543,9 +543,7 @@ def is_subdir_of(subpath, superpath):
     superpath = os.path.realpath(superpath)
     subpath = os.path.realpath(subpath)
 
-    # return true, if the common prefix of both is equal to directory
-    # e.g. /a/b/c/d.rst and directory is /a/b, the common prefix is /a/b
-    return os.path.commonprefix([subpath, superpath]) == superpath
+    return os.path.commonpath([subpath, superpath]) == superpath
 
 
 def clear_my_address(my_account, value):
