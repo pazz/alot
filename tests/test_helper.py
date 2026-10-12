@@ -65,17 +65,6 @@ class TestHelperShortenAuthorString(unittest.TestCase):
         self.assertEqual(short, "K")
 
 
-class TestShellQuote(unittest.TestCase):
-
-    def test_all_strings_are_sourrounded_by_single_quotes(self):
-        quoted = helper.shell_quote("hello")
-        self.assertEqual(quoted, "'hello'")
-
-    def test_single_quotes_are_escaped_using_double_quotes(self):
-        quoted = helper.shell_quote("hello'there")
-        self.assertEqual(quoted, """'hello'"'"'there'""")
-
-
 class TestHumanizeSize(unittest.TestCase):
 
     def test_small_numbers_are_converted_to_strings_directly(self):
@@ -138,24 +127,6 @@ class TestSplitCommandline(unittest.TestCase):
             ' two words',
             " empty '' "
         ]
-        self._test(base, expected)
-
-
-class TestSplitCommandstring(unittest.TestCase):
-
-    def _test(self, base, expected):
-        """Shared helper to reduce some boilerplate."""
-        actual = helper.split_commandstring(base)
-        self.assertListEqual(actual, expected)
-
-    def test_bytes(self):
-        base = 'echo "foo bar"'
-        expected = ['echo', 'foo bar']
-        self._test(base, expected)
-
-    def test_unicode(self):
-        base = 'echo "foo €"'
-        expected = ['echo', 'foo €']
         self._test(base, expected)
 
 

@@ -2,9 +2,9 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 import re
+import shlex
 
 from ..helper import call_cmd
-from ..helper import split_commandstring
 from . import AddressBook, AddressbookError
 import logging
 
@@ -55,7 +55,7 @@ class ExternalAddressbook(AddressBook):
             return AddressBook.lookup(self, prefix)
 
     def _call_and_parse(self, commandline):
-        cmdlist = split_commandstring(commandline)
+        cmdlist = shlex.split(commandline)
         resultstring, errmsg, retval = call_cmd(cmdlist)
         if retval != 0:
             msg = 'abook command "%s" returned with ' % commandline

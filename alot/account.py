@@ -10,9 +10,9 @@ import mailbox
 import operator
 import os
 import re
+import shlex
 
 from .helper import call_cmd_async
-from .helper import split_commandstring
 
 
 class Address:
@@ -351,7 +351,7 @@ class SendmailAccount(Account):
         :type mail: :class:`email.message.Message` or string
         :raises: class:`SendingMailFailed` if sending failes
         """
-        cmdlist = split_commandstring(self.cmd)
+        cmdlist = shlex.split(self.cmd)
 
         try:
             # make sure self.mail is a string

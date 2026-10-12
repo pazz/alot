@@ -6,9 +6,10 @@ import glob
 import logging
 import os
 import re
+import shlex
 
 from ..settings.const import settings
-from ..helper import split_commandstring, string_decode
+from ..helper import string_decode
 
 
 class Command:
@@ -171,7 +172,7 @@ def commandfactory(cmdline, mode='global'):
         cmdline = 'shellescape \'%s\'' % cmdline[1:]
     cmdline = re.sub(r'"(.*)"', r'"\\"\1\\""', cmdline)
     try:
-        args = split_commandstring(cmdline)
+        args = shlex.split(cmdline)
     except ValueError as e:
         raise CommandParseError(str(e))
     args = [string_decode(x, 'utf-8') for x in args]

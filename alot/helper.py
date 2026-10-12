@@ -10,7 +10,6 @@ import locale
 import logging
 import os
 import re
-import shlex
 import subprocess
 import unicodedata
 import email
@@ -31,16 +30,6 @@ def split_commandline(s):
     return re.split(splitter, s)[1::4]
 
 
-def split_commandstring(cmdstring):
-    """
-    split command string into a list of strings to pass on to subprocess.Popen
-    and the like. This simply calls shlex.split but works also with unicode
-    bytestrings.
-    """
-    assert isinstance(cmdstring, str)
-    return shlex.split(cmdstring)
-
-
 def unicode_printable(c):
     """
     Checks if the given character is a printable Unicode character, i.e., not a
@@ -52,18 +41,15 @@ def unicode_printable(c):
     return unicodedata.category(c) not in ('Cc', 'Cn', 'Co')
 
 
-def string_sanitize(string, tab_width=8):
+def string_sanitize(string):
     r"""
-    strips, and replaces non-printable characters
+    strips non-printable characters and expands tabs to 8 columns
 
-    :param tab_width: number of spaces to replace tabs with
-    :type tab_width: int
-
-    >>> string_sanitize(' foo\rbar ', 8)
+    >>> string_sanitize(' foo\rbar ')
     ' foobar '
-    >>> string_sanitize('foo\tbar', 8)
+    >>> string_sanitize('foo\tbar')
     'foo     bar'
-    >>> string_sanitize('foo\t\tbar', 8)
+    >>> string_sanitize('foo\t\tbar')
     'foo             bar'
     """
 
@@ -91,26 +77,7 @@ def string_sanitize(string, tab_width=8):
             preprocessed_string += string[i]
         i += 1
 
-    lines = list()
-    for line in preprocessed_string.split('\n'):
-        tab_count = line.count('\t')
-
-        if tab_count > 0:
-            line_length = 0
-            new_line = list()
-            for i, chunk in enumerate(line.split('\t')):
-                line_length += len(chunk)
-                new_line.append(chunk)
-
-                if i < tab_count:
-                    next_tab_stop_in = tab_width - (line_length % tab_width)
-                    new_line.append(' ' * next_tab_stop_in)
-                    line_length += next_tab_stop_in
-            lines.append(''.join(new_line))
-        else:
-            lines.append(line)
-
-    return '\n'.join(lines)
+    return preprocessed_string.expandtabs(8)
 
 
 def string_decode(string, enc='ascii'):
@@ -296,21 +263,13 @@ def call_cmd(cmdlist, stdin=None):
     termenc = locale.getpreferredencoding(False)
     if isinstance(stdin, str):
         stdin = stdin.encode(termenc)
+    logging.debug("Calling %s" % cmdlist)
     try:
-
-        logging.debug("Calling %s" % cmdlist)
-        proc = subprocess.Popen(
-            cmdlist,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            stdin=subprocess.PIPE if stdin is not None else None)
+        proc = subprocess.run(cmdlist, input=stdin, capture_output=True)
     except OSError as e:
-        out = b''
-        err = e.strerror
-        ret = e.errno
+        out, err, ret = b'', e.strerror, e.errno
     else:
-        out, err = proc.communicate(stdin)
-        ret = proc.returncode
+        out, err, ret = proc.stdout, proc.stderr, proc.returncode
 
     out = string_decode(out, termenc)
     err = string_decode(err, termenc)
@@ -475,19 +434,6 @@ def mimewrap(path, filename=None, ctype=None):
     return part
 
 
-def shell_quote(text):
-    """Escape the given text for passing it to the shell for interpretation.
-    The resulting string will be parsed into one "word" (in the sense used in
-    the shell documentation, see sh(1)) by the shell.
-
-    :param text: the text to quote
-    :type text: str
-    :returns: the quoted text
-    :rtype: str
-    """
-    return "'%s'" % text.replace("'", """'"'"'""")
-
-
 def humanize_size(size):
     """Create a nice human readable representation of the given number
     (understood as bytes) using the "KiB" and "MiB" suffixes to indicate
@@ -512,14 +458,7 @@ def parse_mailcap_nametemplate(tmplate='%s'):
     """this returns a prefix and suffix to be used
     in the tempfile module for a given mailcap nametemplate string"""
     nt_list = tmplate.split('%s')
-    template_prefix = ''
-    template_suffix = ''
-    if len(nt_list) == 2:
-        template_suffix = nt_list[1]
-        template_prefix = nt_list[0]
-    else:
-        template_suffix = tmplate
-    return (template_prefix, template_suffix)
+    return tuple(nt_list) if len(nt_list) == 2 else ('', tmplate)
 
 
 def parse_mailto(mailto_str):

@@ -11,6 +11,7 @@ import glob
 import logging
 import os
 import re
+import shlex
 import tempfile
 import textwrap
 import traceback
@@ -26,7 +27,6 @@ from ..account import SendingMailFailed, StoreMailError
 from ..db.errors import DatabaseError
 from ..errors import GPGProblem, ConversionError
 from ..helper import call_cmd
-from ..helper import split_commandstring
 from ..settings.const import settings
 from ..settings.errors import NoMatchingAccount
 from ..utils import argparse as cargparse
@@ -763,13 +763,13 @@ class BodyConvertCommand(Command):
 
         if self.action == "txt2html":
             fallbackcmd = settings.get('envelope_txt2html')
-            cmd = self.cmd or split_commandstring(fallbackcmd or '')
+            cmd = self.cmd or shlex.split(fallbackcmd or '')
             if cmd:
                 envelope.body_html = self.convert(cmd, envelope.body_txt)
 
         elif self.action == "html2txt":
             fallbackcmd = settings.get('envelope_html2txt')
-            cmd = self.cmd or split_commandstring(fallbackcmd or '')
+            cmd = self.cmd or shlex.split(fallbackcmd or '')
             if cmd:
                 envelope.body_txt = self.convert(cmd, envelope.body_html)
 
