@@ -259,20 +259,15 @@ class HeadersList(urwid.WidgetWrap):
         return str(self.headers)
 
     def _build_lines(self, lines):
-        max_key_len = 1
-        headerlines = []
-        # calc max length of key-string
-        for key, value in lines:
-            if len(key) > max_key_len:
-                max_key_len = len(key)
-        for key, value in lines:
-            # todo : even/odd
-            keyw = ('fixed', max_key_len + 1,
-                    urwid.Text((self.key_attr, key)))
-            valuew = urwid.Text((self.value_attr, value))
-            line = urwid.Columns([keyw, valuew])
-            headerlines.append(line)
-        return headerlines
+        return key_value_columns(lines, self.key_attr, self.value_attr)
+
+
+def key_value_columns(pairs, key_attr, value_attr):
+    """one :class:`urwid.Columns` per (key, value) pair, keys aligned"""
+    width = max([1] + [len(key) for key, _ in pairs]) + 1
+    return [urwid.Columns([('fixed', width, urwid.Text((key_attr, key))),
+                           urwid.Text((value_attr, value))])
+            for key, value in pairs]
 
 
 class TagWidget(urwid.AttrMap):
