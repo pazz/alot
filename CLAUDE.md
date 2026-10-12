@@ -35,7 +35,7 @@ mypy runs strictly only on the modules listed under `[[tool.mypy.overrides]]` in
 
 **Settings.** `alot.settings.const.settings` is a module-level `SettingsManager` singleton imported everywhere. It validates the user config against configobj specs in `alot/defaults/` (`alot.rc.spec`, `theme.spec`, default bindings and theme), reads parts of notmuch's own config, builds `Account` objects (`alot/account.py`, sending via sendmail), and loads the optional user hooks file (`hooksfile` option) as a Python module exposed through `settings.get_hook(name)`.
 
-**Startup.** `alot/__main__.py` parses CLI args, reads settings, creates the `DBManager` and the `UI`. Twisted is only used to install its asyncio reactor on the event loop.
+**Startup.** `alot/__main__.py` parses CLI args, reads settings, creates the `DBManager` and the `UI`. urwid runs on the same asyncio event loop (`urwid.AsyncioEventLoop`).
 
 ## Tests
 

@@ -1,7 +1,7 @@
 User Interface
 ==================
 
-Alot sets up a widget tree and a :class:`mainloop <urwid.main_loop.TwistedEventLoop>`
+Alot sets up a widget tree and a :class:`mainloop <urwid.AsyncioEventLoop>`
 in the constructor of :class:`alot.ui.UI`. The visible area is
 a :class:`urwid.Frame`, where the footer is used as a status line and the body part
 displays the currently active :class:`alot.buffers.Buffer`.

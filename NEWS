@@ -17,6 +17,7 @@ unreleased:
 * info: fix crashes when a mailcap entry refuses unsafe parameters of a mail or attachment, and on txt2html/html2txt without a configured converter
 * info: editor_cmd templates that put %s inside double quotes now receive the plain file name and work
 * deps(nix): remove the "docs" package, deprecated since 0.11; use "alot.doc"
+* deps: drop twisted; require urwid >= 2.2.0, whose asyncio event loop no longer polls while idle
 
 0.12:
 * breaking: drop support for python 3.8, add support for python 3.13 & 3.14

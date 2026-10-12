@@ -96,6 +96,8 @@ class UI:
 
         signal.signal(signal.SIGINT, self._handle_signal)
         signal.signal(signal.SIGUSR1, self._handle_signal)
+        # stop the main loop on SIGTERM, so that the terminal is restored
+        loop.add_signal_handler(signal.SIGTERM, loop.stop)
 
         # load histories
         self._cache = os.path.join(
@@ -116,7 +118,7 @@ class UI:
         self.mainloop = urwid.MainLoop(
             self.root_widget,
             handle_mouse=settings.get('handle_mouse'),
-            event_loop=urwid.TwistedEventLoop(),
+            event_loop=urwid.AsyncioEventLoop(loop=loop),
             unhandled_input=self._unhandled_input,
             input_filter=self._input_filter)
 
@@ -253,13 +255,8 @@ class UI:
         # remove initial spaces
         cmdline = cmdline.lstrip()
 
-        # we pass Commands one by one to `self.apply_command`.
-        # To properly call them in sequence, even if they trigger asyncronous
-        # code (return Deferreds), these applications happen in individual
-        # callback functions which are then used as callback chain to some
-        # trivial Deferred that immediately calls its first callback. This way,
-        # one callback may return a Deferred and thus postpone the application
-        # of the next callback (and thus Command-application)
+        # apply the commands one after the other, each after the previous
+        # one has finished
 
         def apply_this_command(cmdstring):
             logging.debug('%s command string: "%s"', self.mode, str(cmdstring))

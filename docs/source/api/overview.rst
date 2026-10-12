@@ -5,7 +5,7 @@ The main component is :class:`alot.ui.UI`, which provides methods for user input
 tree and maintains the list of active buffers.
 When you start up alot, :file:`init.py` initializes logging, parses settings and commandline args
 and instantiates the :class:`UI <alot.ui.UI>` instance of that gets passes around later.
-From its constructor this instance starts the :mod:`urwid` :class:`mainloop <urwid.main_loop.TwistedEventLoop>`
+From its constructor this instance starts the :mod:`urwid` :class:`mainloop <urwid.AsyncioEventLoop>`
 that takes over.
 
 Apart from the central :class:`UI <alot.ui.UI>`, there are two other "managers" responsible for
