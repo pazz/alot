@@ -6,6 +6,7 @@ import argparse
 import logging
 import mailcap
 import os
+import shlex
 import subprocess
 import tempfile
 import email
@@ -37,7 +38,6 @@ from ..db.attachment import Attachment
 from ..db.errors import DatabaseROError
 from ..settings.const import settings
 from ..helper import parse_mailcap_nametemplate
-from ..helper import split_commandstring
 from ..utils import argparse as cargparse
 from ..utils import ansi
 from ..widgets.globals import AttachmentWidget
@@ -688,7 +688,7 @@ class PipeCommand(Command):
         """
         Command.__init__(self, **kwargs)
         if isinstance(cmd, str):
-            cmd = split_commandstring(cmd)
+            cmd = shlex.split(cmd)
         self.cmd = cmd
         self.whole_thread = all
         self.separately = separately
@@ -1000,7 +1000,7 @@ class OpenAttachmentCommand(Command):
                           % mimetype, priority='error')
                 return
 
-            handler_cmdlist = split_commandstring(handler_cmd)
+            handler_cmdlist = shlex.split(handler_cmd)
 
             # 'needsterminal' makes handler overtake the terminal
             # XXX: could this be repalced with "'needsterminal' not in entry"?

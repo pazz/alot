@@ -25,7 +25,6 @@ from .. import commands
 
 from .. import buffers
 from .. import helper
-from ..helper import split_commandstring
 from ..helper import mailto_to_envelope
 from ..completion.commandline import CommandLineCompleter
 from ..completion.contacts import ContactsCompleter
@@ -223,7 +222,7 @@ class ExternalCommand(Command):
         if isinstance(cmd, str):
             # convert cmdstring to list: in case shell==True,
             # Popen passes only the first item in the list to $SHELL
-            cmd = [cmd] if shell else split_commandstring(cmd)
+            cmd = [cmd] if shell else shlex.split(cmd)
 
         # determine complete command list to pass
         touchhook = settings.get_hook('touch_external_cmdlist')
@@ -238,7 +237,7 @@ class ExternalCommand(Command):
             if 'DISPLAY' in os.environ:
                 term_cmd = settings.get('terminal_cmd', '')
                 logging.info('spawn in terminal: %s', term_cmd)
-                termcmdlist = split_commandstring(term_cmd)
+                termcmdlist = shlex.split(term_cmd)
                 cmd = termcmdlist + cmd
             else:
                 logging.warning('unable to handle spawn outside of X11 without touch_external_cmdlist hook set')
@@ -357,10 +356,10 @@ class EditCommand(ExternalCommand):
         if editor_cmdstring:
             if '%s' in editor_cmdstring:
                 cmdstring = editor_cmdstring.replace('%s',
-                                                     helper.shell_quote(path))
-                self.cmdlist = split_commandstring(cmdstring)
+                                                     shlex.quote(path))
+                self.cmdlist = shlex.split(cmdstring)
             else:
-                self.cmdlist = split_commandstring(editor_cmdstring) + [path]
+                self.cmdlist = shlex.split(editor_cmdstring) + [path]
 
         logging.debug({'spawn: ': self.spawn, 'in_thread': self.thread})
         ExternalCommand.__init__(self, self.cmdlist,

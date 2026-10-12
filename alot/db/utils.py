@@ -11,6 +11,7 @@ import email.utils
 from email.errors import MessageError
 import tempfile
 import re
+import shlex
 import locale
 import logging
 import mailcap
@@ -22,7 +23,6 @@ from ..settings.const import settings
 from ..helper import string_sanitize
 from ..helper import string_decode
 from ..helper import parse_mailcap_nametemplate
-from ..helper import split_commandstring
 
 charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 
@@ -383,8 +383,7 @@ def render_part(part, field_key='copiousoutput'):
             logging.warning('mailcap entry for %s refused unsafe parameters',
                             ctype)
         else:
-            stdout, _, _ = helper.call_cmd(split_commandstring(cmd),
-                                           stdin=stdin)
+            stdout, _, _ = helper.call_cmd(shlex.split(cmd), stdin=stdin)
             if stdout:
                 rendered_payload = stdout
 
