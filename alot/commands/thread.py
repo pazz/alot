@@ -43,6 +43,13 @@ from ..utils import ansi
 from ..widgets.globals import AttachmentWidget
 
 MODE = 'thread'
+_QUERY_ARG = (['query'], {'help': 'query used to filter messages to affect',
+                          'nargs': '*'})
+_TAG_ARGS = [
+    (['--all'], {'action': 'store_true', 'help': 'tag all messages in thread'}),
+    (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
+                      'help': 'postpone a writeout to the index'}),
+    (['tags'], {'help': 'comma separated list of tags'})]
 
 
 def determine_sender(mail, action='reply'):
@@ -486,22 +493,18 @@ class EditNewCommand(Command):
 
 @registerCommand(
     MODE, 'fold', help='fold message(s)', forced={'visible': False},
-    arguments=[(['query'], {'help': 'query used to filter messages to affect',
-                            'nargs': '*'})])
+    arguments=[_QUERY_ARG])
 @registerCommand(
     MODE, 'unfold', help='unfold message(s)', forced={'visible': True},
-    arguments=[(['query'], {'help': 'query used to filter messages to affect',
-                            'nargs': '*'})])
+    arguments=[_QUERY_ARG])
 @registerCommand(
     MODE, 'togglesource', help='display message source',
     forced={'raw': 'toggle'},
-    arguments=[(['query'], {'help': 'query used to filter messages to affect',
-                            'nargs': '*'})])
+    arguments=[_QUERY_ARG])
 @registerCommand(
     MODE, 'toggleheaders', help='display all headers',
     forced={'all_headers': 'toggle'},
-    arguments=[(['query'], {'help': 'query used to filter messages to affect',
-                            'nargs': '*'})])
+    arguments=[_QUERY_ARG])
 @registerCommand(
     MODE, 'indent', help='change message/reply indentation',
     arguments=[(['indent'], {'action': cargparse.ValidatedStoreAction,
@@ -509,13 +512,11 @@ class EditNewCommand(Command):
 @registerCommand(
     MODE, 'togglemimetree', help='disply mime tree of the message',
     forced={'mimetree': 'toggle'},
-    arguments=[(['query'], {'help': 'query used to filter messages to affect',
-                            'nargs': '*'})])
+    arguments=[_QUERY_ARG])
 @registerCommand(
     MODE, 'togglemimepart', help='switch between html and plain text message',
     forced={'mimepart': 'toggle'},
-    arguments=[(['query'], {'help': 'query used to filter messages to affect',
-                            'nargs': '*'})])
+    arguments=[_QUERY_ARG])
 class ChangeDisplaymodeCommand(Command):
 
     """fold or unfold messages"""
@@ -1081,42 +1082,22 @@ RetagPromptCommand = registerCommand(MODE, 'retagprompt')(RetagPromptCommand)
 
 @registerCommand(
     MODE, 'tag', forced={'action': 'add'},
-    arguments=[
-        (['--all'], {'action': 'store_true',
-                     'help': 'tag all messages in thread'}),
-        (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
-                          'help': 'postpone a writeout to the index'}),
-        (['tags'], {'help': 'comma separated list of tags'})],
+    arguments=_TAG_ARGS,
     help='add tags to message(s)',
 )
 @registerCommand(
     MODE, 'retag', forced={'action': 'set'},
-    arguments=[
-        (['--all'], {'action': 'store_true',
-                     'help': 'tag all messages in thread'}),
-        (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
-                          'help': 'postpone a writeout to the index'}),
-        (['tags'], {'help': 'comma separated list of tags'})],
+    arguments=_TAG_ARGS,
     help='set message(s) tags.',
 )
 @registerCommand(
     MODE, 'untag', forced={'action': 'remove'},
-    arguments=[
-        (['--all'], {'action': 'store_true',
-                     'help': 'tag all messages in thread'}),
-        (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
-                          'help': 'postpone a writeout to the index'}),
-        (['tags'], {'help': 'comma separated list of tags'})],
+    arguments=_TAG_ARGS,
     help='remove tags from message(s)',
 )
 @registerCommand(
     MODE, 'toggletags', forced={'action': 'toggle'},
-    arguments=[
-        (['--all'], {'action': 'store_true',
-                     'help': 'tag all messages in thread'}),
-        (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
-                          'help': 'postpone a writeout to the index'}),
-        (['tags'], {'help': 'comma separated list of tags'})],
+    arguments=_TAG_ARGS,
     help='flip presence of tags on message(s)',
 )
 class TagCommand(Command):
