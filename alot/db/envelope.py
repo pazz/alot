@@ -307,27 +307,21 @@ class Envelope:
 
         return outer_msg
 
-    def parse_template(self, raw, reset=False, only_body=False,
-                       target_body='plaintext'):
+    def parse_template(self, raw, only_body=False, target_body='plaintext'):
         """Parse a template or user edited string to fills this envelope.
 
         :param raw: the string to parse.
         :type raw: str
-        :param reset: remove previous envelope content
-        :type reset: bool
         :param only_body: do not parse headers
         :type only_body: bool
         :param target_body: body text alternative this should be stored in;
             can be 'plaintext' or 'html'
-        :type reset: str
+        :type target_body: str
         """
         logging.debug('GoT: """\n%s\n"""', raw)
 
         if self.sent_time:
             self.modified_since_sent = True
-
-        if reset:
-            self.headers = {}
 
         headerEndPos = 0
         if not only_body:

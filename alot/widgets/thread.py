@@ -34,7 +34,6 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         :type even: bool
         """
         self.message = message
-        self.even = even
         if even:
             attr = settings.get_theming_attribute('thread', 'summary', 'even')
         else:
@@ -285,14 +284,14 @@ class MessageTree(CollapsibleTree):
                 self._attachments = SimpleTree(alist)
         return self._attachments
 
-    def construct_header_pile(self, headers=None, normalize=True):
+    def construct_header_pile(self, headers=None):
         mail = self._message.get_email()
         lines = []
 
         if headers is None:
             # collect all header/value pairs in the order they appear
             for key, value in mail.items():
-                dvalue = decode_header(value, normalize=normalize)
+                dvalue = decode_header(value, normalize=True)
                 lines.append((key, dvalue))
         else:
             # only a selection of headers should be displayed.
@@ -302,11 +301,11 @@ class MessageTree(CollapsibleTree):
                     if key.lower() in ['cc', 'bcc', 'to']:
                         values = mail.get_all(key)
                         values = [decode_header(
-                            v, normalize=normalize) for v in values]
+                            v, normalize=True) for v in values]
                         lines.append((key, ', '.join(values)))
                     else:
                         for value in mail.get_all(key):
-                            dvalue = decode_header(value, normalize=normalize)
+                            dvalue = decode_header(value, normalize=True)
                             lines.append((key, dvalue))
                 elif key.lower() == 'tags':
                     logging.debug('want tags header')

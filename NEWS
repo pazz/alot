@@ -12,6 +12,7 @@ unreleased:
 * info: fix crashes on a read-only index (savequery, removequery), a cancelled tags prompt in compose, an empty alias_regexp, threads with out-of-range dates, undecodable bodies and empty libmagic results
 * info: messages in a sibling directory of the notmuch root (e.g. /mail2 for /mail) are no longer treated as below it
 * breaking: remove unused API that hooks could call: helper.RFC3156_canonicalize, Message.has_replies, Message.get_replies, SettingsManager.get_main_addresses, ThreadBuffer.get_messagetree_positions, ThreadBuffer.messagetree_at_position, ThreadBuffer.expand, ThreadBuffer.expand_all, ThreadBuffer.collapse, MessageTree.debug, QuerylineWidget.get_query, TagWidget.set_focussed, TagWidget.set_unfocussed, alot.__productname__ and alot.__description__
+* breaking: remove parameters that nothing passed: reflags of ExternalAddressbook, own_accts and replace_own of Thread.get_authors_string, reset of Envelope.parse_template, focus_first of ThreadBuffer.unfold_matching, normalize of MessageTree.construct_header_pile, ignorecase of StringlistCompleter, addressesonly of ContactsCompleter and extra keyword arguments of ANSIText
 * info: fix crashes when a mailcap entry refuses unsafe parameters of a mail or attachment, and on txt2html/html2txt without a configured converter
 * info: editor_cmd templates that put %s inside double quotes now receive the plain file name and work
 

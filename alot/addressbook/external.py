@@ -12,8 +12,7 @@ import logging
 class ExternalAddressbook(AddressBook):
     """:class:`AddressBook` that parses a shell command's output"""
 
-    def __init__(self, commandline, regex, reflags=0,
-                 external_filtering=True,
+    def __init__(self, commandline, regex, external_filtering=True,
                  **kwargs):
         """
         :param commandline: commandline
@@ -22,14 +21,6 @@ class ExternalAddressbook(AddressBook):
                       output to stdout. Must define subparts named "email" and
                       "name".
         :type regex: str
-        :param reflags: flags to use with regular expression.
-                        Use the constants defined in :mod:`re` here
-                        (`re.IGNORECASE` etc.)
-                        The default (inherited) value is set via the
-                        `ignorecase` config option
-                        (defaults to `re.IGNORECASE`)
-                        Setting a value here will replace this.
-        :type reflags: str
         :param external_filtering: if True the command is fired
                         with the given search string as parameter
                         and the result is not filtered further.
@@ -41,8 +32,6 @@ class ExternalAddressbook(AddressBook):
         AddressBook.__init__(self, **kwargs)
         self.commandline = commandline
         self.regex = regex
-        if reflags:
-            self.reflags = reflags
         self.external_filtering = external_filtering
 
     def get_contacts(self):

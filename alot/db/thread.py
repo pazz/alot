@@ -180,23 +180,16 @@ class Thread:
 
         return self._authors
 
-    def get_authors_string(self, own_accts=None, replace_own=None):
+    def get_authors_string(self):
         """
         returns a string of comma-separated authors
         Depending on settings, it will substitute "me" for author name if
         address is user's own.
 
-        :param own_accts: list of own accounts to replace
-        :type own_accts: list of :class:`Account`
-        :param replace_own: whether or not to actually do replacement
-        :type replace_own: bool
         :rtype: str
         """
-        if replace_own is None:
-            replace_own = settings.get('thread_authors_replace_me')
-        if replace_own:
-            if own_accts is None:
-                own_accts = settings.get_accounts()
+        if settings.get('thread_authors_replace_me'):
+            own_accts = settings.get_accounts()
             authorslist = []
             for aname, aaddress in self.get_authors():
                 for account in own_accts:
