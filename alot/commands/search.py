@@ -281,8 +281,8 @@ class MoveFocusCommand(MoveCommand):
     help='store query string as a "named query" in the database. '
          'This falls back to the current search query in search buffers.')
 class SaveQueryCommand(GlobalSaveQueryCommand):
-    def apply(self, ui):
+    async def apply(self, ui):
         searchbuffer = ui.current_buffer
         if not self.query:
             self.query = searchbuffer.querystring
-        GlobalSaveQueryCommand.apply(self, ui)
+        await GlobalSaveQueryCommand.apply(self, ui)
