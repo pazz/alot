@@ -427,7 +427,12 @@ def try_decode(blob):
     :rtype: str
     """
     assert isinstance(blob, bytes), 'cannot decode a str or non-bytes object'
-    return blob.decode(guess_encoding(blob))
+    enc = guess_encoding(blob)
+    try:
+        return blob.decode(enc)
+    except (LookupError, UnicodeDecodeError):
+        logging.warning('cannot decode as %s, falling back to utf-8', enc)
+        return blob.decode('utf-8', errors='replace')
 
 
 # TODO: make this work on blobs, not paths

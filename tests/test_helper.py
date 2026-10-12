@@ -208,6 +208,14 @@ class TestStringDecode(unittest.TestCase):
         self._test(base, expected)
 
 
+class TestTryDecode(unittest.TestCase):
+
+    def test_binary_blob(self):
+        # libmagic guesses the encoding 'binary', which is no codec
+        actual = helper.try_decode(b'\x00\x01\xff\xfe\x80abc\x00\x9c')
+        self.assertIn('abc', actual)
+
+
 class TestPrettyDatetime(unittest.TestCase):
 
     # TODO: Currently these tests use the ampm format based on whether or not
