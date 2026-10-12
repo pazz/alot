@@ -7,7 +7,6 @@ import logging
 
 from . import Command, registerCommand
 from .globals import PromptCommand
-from .globals import MoveCommand
 from .globals import SaveQueryCommand as GlobalSaveQueryCommand
 from .common import RetagPromptCommand
 from .. import commands
@@ -234,20 +233,6 @@ class TagCommand(Command):
         if self.flush:
             await ui.apply_command(
                 commands.globals.FlushCommand(callback=refresh))
-
-
-@registerCommand(
-    MODE, 'move', help='move focus in search buffer',
-    arguments=[(['movement'], {'nargs': argparse.REMAINDER, 'help': 'last'})])
-class MoveFocusCommand(MoveCommand):
-
-    def apply(self, ui):
-        logging.debug(self.movement)
-        if self.movement == 'last':
-            ui.current_buffer.focus_last()
-            ui.update()
-        else:
-            MoveCommand.apply(self, ui)
 
 
 @registerCommand(
