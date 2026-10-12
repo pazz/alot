@@ -11,6 +11,8 @@ from unittest import mock
 from alot.commands import thread
 from alot.account import Account
 
+from .. import utilities
+
 # Good descriptive test names often don't fit PEP8, which is meant to cover
 # functions meant to be called by humans.
 # pylint: disable=invalid-name
@@ -151,3 +153,21 @@ class TestDetermineSender(unittest.TestCase):
         expected = ('to+some_tag@example.com', account2)
         self._test(accounts=[account1, account2, account3], expected=expected,
                    mail=mail)
+
+
+class TestForwardCommand(unittest.TestCase):
+
+    @mock.patch('alot.commands.thread.settings.get', return_value='Fw: ')
+    @mock.patch('alot.commands.thread.determine_sender',
+                return_value=('me', None))
+    @utilities.async_test
+    async def test_subject_prefix(self, *_):
+        for subject, expected in [('Hi', 'Fw: Hi'), ('FWD: Hi', 'FWD: Hi')]:
+            with self.subTest(subject=subject):
+                msg = mock.Mock()
+                msg.get_email.return_value = email.message_from_string(
+                    'Subject: %s\n\n' % subject)
+                ui = utilities.make_ui(apply_command=mock.AsyncMock())
+                await thread.ForwardCommand(msg, attach=True).apply(ui)
+                envelope = ui.apply_command.await_args.args[0].envelope
+                self.assertEqual(envelope.get('Subject'), expected)
