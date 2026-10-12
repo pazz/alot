@@ -2,7 +2,6 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 import re
-import abc
 
 
 class AddressbookError(Exception):
@@ -19,12 +18,9 @@ class AddressBook:
         :class:`ExternalAddressbook` for implementations.
     """
 
-    __metaclass__ = abc.ABCMeta
-
     def __init__(self, ignorecase=True):
         self.reflags = re.IGNORECASE if ignorecase else 0
 
-    @abc.abstractmethod
     def get_contacts(self):  # pragma no cover
         """list all contacts tuples in this abook as (name, email) tuples"""
         return []
