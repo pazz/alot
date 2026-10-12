@@ -6,6 +6,7 @@
 from datetime import timedelta
 from datetime import datetime
 from collections import deque
+import locale
 import logging
 import os
 import re
@@ -19,7 +20,6 @@ from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
 import asyncio
 
-import urwid
 import magic
 
 
@@ -294,7 +294,7 @@ def call_cmd(cmdlist, stdin=None):
     :return: triple of stdout, stderr, return value of the shell command
     :rtype: str, str, int
     """
-    termenc = urwid.util.detected_encoding
+    termenc = locale.getpreferredencoding(False)
     if isinstance(stdin, str):
         stdin = stdin.encode(termenc)
     try:
@@ -335,7 +335,7 @@ async def call_cmd_async(cmdlist, stdin=None):
     :return: Tuple of stdout, stderr, returncode
     :rtype: tuple[str, str, int]
     """
-    termenc = urwid.util.detected_encoding
+    termenc = locale.getpreferredencoding(False)
     cmdlist = [s.encode(termenc) for s in cmdlist]
 
     logging.debug('CMD = %s', cmdlist)
