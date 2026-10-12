@@ -11,6 +11,7 @@ import email.utils
 from email.errors import MessageError
 import tempfile
 import re
+import locale
 import logging
 import mailcap
 import io
@@ -342,11 +343,19 @@ def render_part(part, field_key='copiousoutput'):
     the mailcap entry for this part's ctype.
     """
     ctype = part.get_content_type()
-    raw_payload = remove_cte(part)
     rendered_payload = None
     # get mime handler
     _, entry = settings.mailcap_find_match(ctype, key=field_key)
     if entry is not None:
+        params = dict(part.get_params(failobj=[]))
+        if ctype == 'text/plain':
+            # the handler's output is decoded with the terminal encoding (see
+            # helper.call_cmd), so feed it text in that encoding as well
+            params['charset'] = locale.getpreferredencoding(False)
+            raw_payload = remove_cte(part, as_string=True).encode(
+                params['charset'], errors='replace')
+        else:
+            raw_payload = remove_cte(part)
         tempfile_name = None
         stdin = None
         handler_raw_commandstring = entry['view']
@@ -365,7 +374,7 @@ def render_part(part, field_key='copiousoutput'):
             stdin = raw_payload
 
         # read parameter, create handler command
-        parms = tuple('='.join(p) for p in part.get_params(failobj=[]))
+        parms = tuple('='.join(p) for p in params.items())
 
         # create and call external command
         cmd = mailcap.subst(entry['view'], ctype,
