@@ -71,6 +71,5 @@ namespace_packages = true
 module = [
     "alot.errors",
     "alot.__init__",
-    "alot.utils.cached_property",
 ]
 disallow_untyped_defs = true
