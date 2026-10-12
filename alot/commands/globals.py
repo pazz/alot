@@ -1010,11 +1010,10 @@ class ComposeCommand(Command):
             comp = TagsCompleter(ui.dbman)
             tags = ','.join(self.tags) if self.tags else ''
             tagsstring = await ui.prompt('Tags', text=tags, completer=comp)
-            tags = [t for t in tagsstring.split(',') if t]
-            if tags is None:
+            if tagsstring is None:
                 raise CommandCanceled()
 
-            self.envelope.tags = tags
+            self.envelope.tags = [t for t in tagsstring.split(',') if t]
 
     def _set_attachments(self):
         if self.attach:

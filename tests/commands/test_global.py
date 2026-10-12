@@ -103,6 +103,13 @@ class TestComposeCommand(unittest.TestCase):
                           'Subject': [subject]}, cmd.envelope.headers)
         self.assertEqual(body, cmd.envelope.body_txt)
 
+    @mock.patch('alot.commands.globals.settings.get', return_value=True)
+    @utilities.async_test
+    async def test_cancel_tags_prompt(self, _):
+        ui = utilities.make_ui(prompt=mock.AsyncMock(return_value=None))
+        with self.assertRaises(g_commands.CommandCanceled):
+            await g_commands.ComposeCommand()._set_compose_tags(ui)
+
 
 class TestExternalCommand(unittest.TestCase):
 
