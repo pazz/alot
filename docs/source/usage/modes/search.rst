@@ -15,16 +15,6 @@ The following commands are available in search mode:
         the thread count limit
 
 
-.. _cmd.search.move:
-
-.. describe:: move
-
-    move focus in search buffer
-
-    argument
-        last
-
-
 .. _cmd.search.refine:
 
 .. describe:: refine
