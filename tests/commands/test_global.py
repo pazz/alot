@@ -22,6 +22,8 @@ import unittest
 from unittest import mock
 
 from alot.commands import globals as g_commands
+from alot.commands import search as s_commands
+from alot.db.errors import DatabaseROError
 
 from .. import utilities
 
@@ -212,3 +214,26 @@ class TestCallCommand(unittest.TestCase):
             cmd = g_commands.CallCommand('hooks.func(ui)')
             await cmd.apply(ui)
             ui.assert_called_once()
+
+
+class TestNamedQueryCommands(unittest.TestCase):
+
+    commands = [g_commands.SaveQueryCommand('alias', ['tag:foo']),
+                s_commands.SaveQueryCommand('alias', ['tag:foo']),
+                g_commands.RemoveQueryCommand('alias')]
+
+    @utilities.async_test
+    async def test_flushes(self):
+        for cmd in self.commands:
+            with self.subTest(cmd=cmd):
+                ui = utilities.make_ui(apply_command=mock.AsyncMock())
+                await cmd.apply(ui)
+                ui.apply_command.assert_awaited_once()
+
+    @utilities.async_test
+    async def test_read_only_index(self):
+        ui = utilities.make_ui()
+        ui.dbman.remove_named_query.side_effect = DatabaseROError
+        await g_commands.RemoveQueryCommand('alias').apply(ui)
+        ui.notify.assert_called_once_with(
+            'index in read-only mode', priority='error')
