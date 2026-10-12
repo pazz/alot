@@ -199,16 +199,6 @@
     :default: False
 
 
-.. _editor-writes-encoding:
-
-.. describe:: editor_writes_encoding
-
-     file encoding used by your editor
-
-    :type: string
-    :default: "UTF-8"
-
-
 .. _envelope-edit-default-alternative:
 
 .. describe:: envelope_edit_default_alternative

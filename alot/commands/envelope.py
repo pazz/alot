@@ -25,7 +25,6 @@ from .. import crypto
 from ..account import SendingMailFailed, StoreMailError
 from ..db.errors import DatabaseError
 from ..errors import GPGProblem, ConversionError
-from ..helper import string_decode
 from ..helper import call_cmd
 from ..helper import split_commandstring
 from ..settings.const import settings
@@ -372,9 +371,9 @@ class EditCommand(Command):
 
             # get input
             # tempfile will be removed on buffer cleanup
-            enc = settings.get('editor_writes_encoding')
-            with open(self.envelope.tmpfile.name) as f:
-                template = string_decode(f.read(), enc)
+            with open(self.envelope.tmpfile.name, encoding='utf-8',
+                      errors='replace') as f:
+                template = f.read()
 
             # call post-edit translate hook
             translate = settings.get_hook('post_edit_translate')

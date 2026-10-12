@@ -84,9 +84,6 @@ terminal_cmd = string(default='x-terminal-emulator -e')
 # if unset, alot will first try the :envvar:`EDITOR` env variable, then :file:`/usr/bin/editor`
 editor_cmd = string(default=None)
 
-# file encoding used by your editor
-editor_writes_encoding = string(default='UTF-8')
-
 # use :ref:`terminal_cmd <terminal-cmd>` to spawn a new terminal for the editor?
 # equivalent to always providing the `--spawn=yes` parameter to compose/edit commands
 editor_spawn = boolean(default=False)
