@@ -1,6 +1,7 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 
+import signal
 import unittest
 from unittest import mock
 
@@ -40,3 +41,18 @@ class TestOverlayInput(unittest.TestCase):
         ui = self._ui()
         fut = ui.choice('question')
         self.assertEqual(self._answer(ui, fut, 'y'), 'yes')
+
+
+class TestSignals(unittest.TestCase):
+
+    @mock.patch('alot.ui.urwid.MainLoop', mock.MagicMock())
+    @mock.patch('alot.ui.signal.signal', mock.Mock())
+    @mock.patch('alot.ui.settings',
+                mock.MagicMock(**{'get_hook.return_value': None}))
+    @mock.patch('alot.ui.UI._load_history_from_file',
+                mock.Mock(return_value=[]))
+    def test_sigterm_stops_the_main_loop(self):
+        loop = mock.Mock(**{'create_task.side_effect': lambda c: c.close()})
+        UI(mock.Mock(), '', loop)
+        loop.add_signal_handler.assert_called_once_with(signal.SIGTERM,
+                                                        loop.stop)

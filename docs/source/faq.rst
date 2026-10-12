@@ -63,7 +63,6 @@ Lazyness and Ignorance: In most cases I simply did not or still don't know a bet
 I try to outsource as much as I can to well established libraries and be it only to avoid
 having to read rfc's. But there are lots
 of tasks I implemented myself, possibly overlooking a ready made and available solution.
-Twisted is such a feature-rich but gray area in my mind for example.
 If you think you know how to improve the current implementation let me know!
 
 The few exceptions to above stated rule are the following:
