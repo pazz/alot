@@ -56,9 +56,8 @@ def string_sanitize(string, tab_width=8):
     r"""
     strips, and replaces non-printable characters
 
-    :param tab_width: number of spaces to replace tabs with. Read from
-                      `globals.tabwidth` setting if `None`
-    :type tab_width: int or `None`
+    :param tab_width: number of spaces to replace tabs with
+    :type tab_width: int
 
     >>> string_sanitize(' foo\rbar ', 8)
     ' foobar '

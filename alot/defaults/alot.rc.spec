@@ -29,9 +29,6 @@ bufferclose_focus_offset = integer(default=-1)
 # number of colours to use on the terminal
 colourmode = option(1, 16, 256, default=256)
 
-# number of spaces used to replace tab characters
-tabwidth = integer(default=8)
-
 # templates directory that contains your message templates.
 # It will be used if you give `compose --template` a filename without a path prefix.
 template_dir = string(default='$XDG_CONFIG_HOME/alot/templates')
