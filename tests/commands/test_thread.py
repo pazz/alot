@@ -188,3 +188,18 @@ class TestOpenAttachmentCommand(unittest.TestCase):
         await thread.OpenAttachmentCommand(attachment).apply(ui)
         ui.apply_command.assert_not_awaited()
         ui.notify.assert_called_once()
+
+
+class TestQuoteText(unittest.TestCase):
+
+    @mock.patch('alot.commands.thread.settings.get_hook',
+                mock.Mock(return_value=None))
+    @mock.patch('alot.commands.thread.settings.get',
+                mock.Mock(return_value='> '))
+    def test_quote_prefix(self):
+        self.assertEqual(thread.quote_text('a\nb'), '> a\n> b\n')
+
+    @mock.patch('alot.commands.thread.settings.get_hook',
+                mock.Mock(return_value=str.upper))
+    def test_text_quote_hook(self):
+        self.assertEqual(thread.quote_text('a\nb'), 'A\nB')
