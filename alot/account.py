@@ -3,7 +3,6 @@
 # Copyright © 2017 Dylan Baker
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
-import abc
 import glob
 import logging
 import mailbox
@@ -171,8 +170,6 @@ class Account:
         command to send out mails.
     """
 
-    __metaclass__ = abc.ABCMeta
-
     address = None
     """this accounts main email address"""
     aliases = []
@@ -320,7 +317,6 @@ class Account:
         if self.draft_box is not None:
             return self.store_mail(self.draft_box, mail)
 
-    @abc.abstractmethod
     async def send_mail(self, mail):
         """
         sends given mail

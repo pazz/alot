@@ -1,15 +1,11 @@
 # Copyright (C) 2011-2019  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
-import abc
 
 
 class Completer:
     """base class for completers"""
 
-    __metaclass__ = abc.ABCMeta
-
-    @abc.abstractmethod
     def complete(self, original, pos):
         """returns a list of completions and cursor positions for the string
         `original` from position `pos` on.
