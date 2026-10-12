@@ -83,6 +83,24 @@ class TestSettingsManager(unittest.TestCase):
 
         manager.get_theming_attribute('global', 'body')
 
+    def test_shellcommand_abook_ignorecase(self):
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
+            f.write(textwrap.dedent("""\
+                [accounts]
+                    [[default]]
+                        realname = me
+                        address = me@example.com
+                        [[[abook]]]
+                            type = shellcommand
+                            command = true
+                            regexp = .*
+                            ignorecase = False
+                """))
+        self.addCleanup(os.unlink, f.name)
+        manager = SettingsManager()
+        manager.read_config(f.name)
+        self.assertEqual(manager.get_accounts()[0].abook.reflags, 0)
+
     def test_unknown_settings_in_config_are_logged(self):
         # todo: For py3, don't mock the logger, use assertLogs
         unknown_settings = ['templates_dir', 'unknown_section', 'unknown_1',
