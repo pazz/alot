@@ -13,6 +13,7 @@ from urwidtrees import Tree, SimpleTree, CollapsibleTree, ArrowTree
 from .ansi import ANSIText
 from .globals import TagWidget
 from .globals import AttachmentWidget
+from .globals import key_value_columns
 from ..settings.const import settings
 from ..db.attachment import Attachment
 from ..db.utils import decode_header, X_SIGNATURE_MESSAGE_HEADER
@@ -130,18 +131,8 @@ class DictList(SimpleTree):
         :param gaps_attr: theming attribute to wrap lines in
         :type gaps_attr: urwid.AttrSpec
         """
-        max_key_len = 1
         structure = []
-        # calc max length of key-string
-        for key, value in content:
-            if len(key) > max_key_len:
-                max_key_len = len(key)
-        for key, value in content:
-            # todo : even/odd
-            keyw = ('fixed', max_key_len + 1,
-                    urwid.Text((key_attr, key)))
-            valuew = urwid.Text((value_attr, value))
-            line = urwid.Columns([keyw, valuew])
+        for line in key_value_columns(content, key_attr, value_attr):
             if gaps_attr is not None:
                 line = urwid.AttrMap(line, gaps_attr)
             structure.append((line, None))
