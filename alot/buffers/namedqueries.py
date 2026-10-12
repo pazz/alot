@@ -37,12 +37,8 @@ class NamedQueriesBuffer(Buffer):
                                                         'tag:unread' % key)
             line = QuerylineWidget(key, value, count, count_unread)
 
-            if (num % 2) == 0:
-                attr = settings.get_theming_attribute('namedqueries',
-                                                      'line_even')
-            else:
-                attr = settings.get_theming_attribute('namedqueries',
-                                                      'line_odd')
+            attr = settings.get_theming_attribute(
+                'namedqueries', 'line_odd' if num % 2 else 'line_even')
             focus_att = settings.get_theming_attribute('namedqueries',
                                                        'line_focus')
 
