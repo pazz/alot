@@ -31,14 +31,13 @@ MODE = 'search'
 class OpenThreadCommand(Command):
 
     """open thread in a new buffer"""
-    def __init__(self, thread=None, all_folded=False, **kwargs):
+    def __init__(self, thread=None, all_folded=False):
         """
         :param thread: thread to open (Uses focussed thread if unset)
         :type thread: :class:`~alot.db.Thread`
         """
         self.thread = thread
         self.all_folded = all_folded
-        Command.__init__(self, **kwargs)
 
     def apply(self, ui):
         if not self.thread:
@@ -70,7 +69,7 @@ class OpenThreadCommand(Command):
 class RefineCommand(Command):
 
     """refine the querystring of this buffer"""
-    def __init__(self, query=None, sort=None, limit=None, **kwargs):
+    def __init__(self, query=None, sort=None, limit=None):
         """
         :param query: new querystring given as list of strings as returned by
                       argparse
@@ -88,7 +87,6 @@ class RefineCommand(Command):
             self.querystring = ' '.join(query)
         self.sort_order = sort
         self.limit = limit
-        Command.__init__(self, **kwargs)
 
     def apply(self, ui):
         if self.querystring or self.sort_order or self.limit is not None:
@@ -174,8 +172,7 @@ class TagCommand(Command):
     """manipulate message tags"""
     repeatable = True
 
-    def __init__(self, tags='', action='add', allmessages=False, flush=True,
-                 **kwargs):
+    def __init__(self, tags='', action='add', allmessages=False, flush=True):
         """
         :param tags: comma separated list of tagstrings to set
         :type tags: str
@@ -192,7 +189,6 @@ class TagCommand(Command):
         self.action = action
         self.allm = allmessages
         self.flush = flush
-        Command.__init__(self, **kwargs)
 
     async def apply(self, ui):
         searchbuffer = ui.current_buffer

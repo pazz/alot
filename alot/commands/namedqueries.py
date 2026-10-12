@@ -16,9 +16,8 @@ MODE = 'namedqueries'
 class NamedqueriesSelectCommand(Command):
 
     """search for messages with selected query"""
-    def __init__(self, filt=None, **kwargs):
+    def __init__(self, filt=None):
         self._filt = filt
-        Command.__init__(self, **kwargs)
 
     async def apply(self, ui):
         query_name = ui.current_buffer.get_selected_query()

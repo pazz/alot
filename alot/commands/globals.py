@@ -44,7 +44,7 @@ MODE = 'global'
 class ExitCommand(Command):
     """Shut down cleanly."""
 
-    def __init__(self, _prompt=True, **kwargs):
+    def __init__(self, _prompt=True):
         """
         :param _prompt: For internal use only, used to control prompting to
                         close without sending, and is used by the
@@ -52,7 +52,6 @@ class ExitCommand(Command):
                         the UI.
         :type _prompt: bool
         """
-        super(ExitCommand, self).__init__(**kwargs)
         self.prompt_to_send = _prompt
 
     async def apply(self, ui):
@@ -100,7 +99,7 @@ class SearchCommand(Command):
     :ref:`search.exclude_tags <search.exclude_tags>` setting."""
     repeatable = True
 
-    def __init__(self, query, sort=None, limit=None, **kwargs):
+    def __init__(self, query, sort=None, limit=None):
         """
         :param query: notmuch querystring
         :type query: str
@@ -114,7 +113,6 @@ class SearchCommand(Command):
         self.query = ' '.join(query)
         self.order = sort
         self.limit = limit
-        Command.__init__(self, **kwargs)
 
     def apply(self, ui):
         if self.query:
@@ -143,13 +141,12 @@ class SearchCommand(Command):
 class PromptCommand(Command):
 
     """prompts for commandline and interprets it upon select"""
-    def __init__(self, startwith='', **kwargs):
+    def __init__(self, startwith=''):
         """
         :param startwith: initial content of the prompt widget
         :type startwith: str
         """
         self.startwith = startwith
-        Command.__init__(self, **kwargs)
 
     async def apply(self, ui):
         logging.info('open command shell')
@@ -200,7 +197,7 @@ class ExternalCommand(Command):
     repeatable = True
 
     def __init__(self, cmd, stdin=None, shell=False, spawn=False,
-                 refocus=True, thread=False, on_success=None, **kwargs):
+                 refocus=True, thread=False, on_success=None):
         """
         :param cmd: the command to call
         :type cmd: list or str
@@ -249,7 +246,6 @@ class ExternalCommand(Command):
         self.refocus = refocus
         self.in_thread = thread
         self.on_success = on_success
-        Command.__init__(self, **kwargs)
 
     async def apply(self, ui):
         logging.debug('cmdlist: %s', self.cmdlist)
@@ -388,9 +384,6 @@ class PythonShellCommand(Command):
 class RepeatCommand(Command):
 
     """repeat the command executed last time"""
-    def __init__(self, **kwargs):
-        Command.__init__(self, **kwargs)
-
     async def apply(self, ui):
         if ui.last_commandline is not None:
             await ui.apply_commandline(ui.last_commandline)
@@ -405,12 +398,11 @@ class CallCommand(Command):
     """execute python code"""
     repeatable = True
 
-    def __init__(self, command, **kwargs):
+    def __init__(self, command):
         """
         :param command: python command string to call
         :type command: str
         """
-        Command.__init__(self, **kwargs)
         self.command = command
 
     async def apply(self, ui):
@@ -442,7 +434,7 @@ class BufferCloseCommand(Command):
     """close a buffer"""
     repeatable = True
 
-    def __init__(self, buffer=None, force=False, redraw=True, **kwargs):
+    def __init__(self, buffer=None, force=False, redraw=True):
         """
         :param buffer: the buffer to close or None for current
         :type buffer: `alot.buffers.Buffer`
@@ -452,7 +444,6 @@ class BufferCloseCommand(Command):
         self.buffer = buffer
         self.force = force
         self.redraw = redraw
-        Command.__init__(self, **kwargs)
 
     async def apply(self, ui):
         async def one_buffer(prompt=True):
@@ -510,7 +501,7 @@ class BufferFocusCommand(Command):
     """focus a :class:`~alot.buffers.Buffer`"""
     repeatable = True
 
-    def __init__(self, buffer=None, index=None, offset=0, **kwargs):
+    def __init__(self, buffer=None, index=None, offset=0):
         """
         :param buffer: the buffer to focus or None
         :type buffer: `alot.buffers.Buffer`
@@ -524,7 +515,6 @@ class BufferFocusCommand(Command):
         self.buffer = buffer
         self.index = index
         self.offset = offset
-        Command.__init__(self, **kwargs)
 
     def apply(self, ui):
         if self.buffer is None:
@@ -545,13 +535,12 @@ class BufferFocusCommand(Command):
 class OpenBufferlistCommand(Command):
 
     """open a list of active buffers"""
-    def __init__(self, filtfun=lambda x: x, **kwargs):
+    def __init__(self, filtfun=lambda x: x):
         """
         :param filtfun: filter to apply to displayed list
         :type filtfun: callable (str->bool)
         """
         self.filtfun = filtfun
-        Command.__init__(self, **kwargs)
 
     def apply(self, ui):
         blists = ui.get_buffers_of_type(buffers.BufferlistBuffer)
@@ -568,14 +557,13 @@ class OpenBufferlistCommand(Command):
 class TagListCommand(Command):
 
     """opens taglist buffer"""
-    def __init__(self, filtfun=lambda x: x, tags=None, **kwargs):
+    def __init__(self, filtfun=lambda x: x, tags=None):
         """
         :param filtfun: filter to apply to displayed list
         :type filtfun: callable (str->bool)
         """
         self.filtfun = filtfun
         self.tags = tags
-        Command.__init__(self, **kwargs)
 
     def apply(self, ui):
         tags = self.tags or ui.dbman.get_all_tags()
@@ -592,13 +580,12 @@ class TagListCommand(Command):
 @registerCommand(MODE, 'namedqueries')
 class NamedQueriesCommand(Command):
     """opens named queries buffer"""
-    def __init__(self, filtfun=bool, **kwargs):
+    def __init__(self, filtfun=bool):
         """
         :param filtfun: filter to apply to displayed list
         :type filtfun: callable (str->bool)
         """
         self.filtfun = filtfun
-        Command.__init__(self, **kwargs)
 
     def apply(self, ui):
         ui.buffer_open(buffers.NamedQueriesBuffer(ui, self.filtfun))
@@ -610,12 +597,11 @@ class FlushCommand(Command):
     """flush write operations or retry until committed"""
     repeatable = True
 
-    def __init__(self, callback=None, silent=False, **kwargs):
+    def __init__(self, callback=None, silent=False):
         """
         :param callback: function to call after successful writeout
         :type callback: callable
         """
-        Command.__init__(self, **kwargs)
         self.callback = callback
         self.silent = silent
 
@@ -654,12 +640,11 @@ class HelpCommand(Command):
 
     """display help for a command (use \'bindings\' to display all keybindings
     interpreted in current mode)"""
-    def __init__(self, commandname='', **kwargs):
+    def __init__(self, commandname=''):
         """
         :param commandname: command to document
         :type commandname: str
         """
-        Command.__init__(self, **kwargs)
         self.commandname = commandname
 
     def apply(self, ui):
@@ -742,8 +727,7 @@ class ComposeCommand(Command):
             self,
             envelope=None, headers=None, template=None, sender='',
             tags=None, subject='', to=None, cc=None, bcc=None, attach=None,
-            omit_signature=False, spawn=None, rest=None, encrypt=False,
-            **kwargs):
+            omit_signature=False, spawn=None, rest=None, encrypt=False):
         """
         :param envelope: use existing envelope
         :type envelope: :class:`~alot.db.envelope.Envelope`
@@ -778,9 +762,6 @@ class ComposeCommand(Command):
         :param encrypt: if the email should be encrypted
         :type encrypt: bool
         """
-
-        Command.__init__(self, **kwargs)
-
         self.envelope = envelope
         self.template = template
         self.headers = headers or {}
@@ -1041,12 +1022,11 @@ class ComposeCommand(Command):
 class MoveCommand(Command):
 
     """move in widget"""
-    def __init__(self, movement=None, **kwargs):
+    def __init__(self, movement=None):
         if movement is None:
             self.movement = ''
         else:
             self.movement = ' '.join(movement)
-        Command.__init__(self, **kwargs)
 
     def apply(self, ui):
         if self.movement in ['up', 'down', 'page up', 'page down']:
@@ -1096,7 +1076,7 @@ class SaveQueryCommand(Command):
     """save alias for query string"""
     repeatable = False
 
-    def __init__(self, alias, query=None, flush=True, **kwargs):
+    def __init__(self, alias, query=None, flush=True):
         """
         :param alias: name to use for query string
         :type alias: str
@@ -1111,7 +1091,6 @@ class SaveQueryCommand(Command):
         else:
             self.query = ' '.join(query)
         self.flush = flush
-        Command.__init__(self, **kwargs)
 
     async def apply(self, ui):
         msg = 'saved alias "%s" for query string "%s"' % (self.alias,
@@ -1144,7 +1123,7 @@ class RemoveQueryCommand(Command):
     """remove named query string for given alias"""
     repeatable = False
 
-    def __init__(self, alias, flush=True, **kwargs):
+    def __init__(self, alias, flush=True):
         """
         :param alias: name to use for query string
         :type alias: str
@@ -1153,7 +1132,6 @@ class RemoveQueryCommand(Command):
         """
         self.alias = alias
         self.flush = flush
-        Command.__init__(self, **kwargs)
 
     async def apply(self, ui):
         msg = 'removed alias "%s"' % (self.alias)
@@ -1181,12 +1159,11 @@ class RemoveQueryCommand(Command):
 class ConfirmCommand(Command):
     """Prompt user to confirm a sequence of commands."""
 
-    def __init__(self, msg=None, **kwargs):
+    def __init__(self, msg=None):
         """
         :param msg: Additional message to prompt the user with
         :type msg: List[str]
         """
-        super(ConfirmCommand, self).__init__(**kwargs)
         if not msg:
             self.msg = "Confirm sequence?"
         else:
@@ -1206,12 +1183,11 @@ class ConfirmCommand(Command):
 class ThemeCommand(Command):
     """Change theme."""
 
-    def __init__(self, theme_name, **kwargs):
+    def __init__(self, theme_name):
         """
         :param theme_name: Name of theme.
         :type theme_name: str
         """
-        super(ThemeCommand, self).__init__(**kwargs)
         self.theme_name = theme_name
 
     def apply(self, ui):
