@@ -61,7 +61,7 @@ When contributing:
 * Run `mypy --ignore-missing-imports your_module.py` to check for type errors locally
 * Type checking runs automatically in CI
 
-Currently typed modules: `alot.errors`, `alot.__init__`, `alot.utils.cached_property`
+Currently typed modules: `alot.errors`, `alot.__init__`
 
 
 [Github]: https://github.com/pazz/alot

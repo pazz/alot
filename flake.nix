@@ -87,7 +87,7 @@
       alot = self.packages.${system}.alot;
       types = pkgs.runCommand "alot-type-check" {buildInputs = [pythonEnv];} ''
         cd ${self}
-        mypy --ignore-missing-imports alot/errors.py alot/__init__.py alot/utils/cached_property.py
+        mypy --ignore-missing-imports alot/errors.py alot/__init__.py
         touch $out
       '';
     });

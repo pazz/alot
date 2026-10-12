@@ -2,12 +2,12 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 
+from functools import cached_property
 import logging
 
 from alot import commands
 from alot.buffers import EnvelopeBuffer
 from alot.settings.const import settings
-from alot.utils.cached_property import cached_property
 from .completer import Completer
 from .commandname import CommandNameCompleter
 from .tag import TagCompleter
