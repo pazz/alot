@@ -6,7 +6,6 @@
 import glob
 import logging
 import mailbox
-import operator
 import os
 import re
 import shlex
@@ -100,51 +99,30 @@ class Address:
     def __str__(self):
         return '{}@{}'.format(self.username, self.domainname)
 
-    def __cmp(self, other, comparitor):
-        """Shared helper for rich comparison operators.
+    def __eq__(self, other):
+        """Compare to another :class:`~alot.account.Address` or a `str`.
 
-        This allows the comparison operators to be relatively simple and share
-        the complex logic.
-
-        If the username is not considered case sensitive then lower the
-        username of both self and the other, and handle that the other can be
-        either another :class:`~alot.account.Address`, or a `str` instance.
-
-        :param other: The other address to compare against
-        :type other: str or ~alot.account.Address
-        :param callable comparitor: A function with the a signature
-            (str, str) -> bool that will compare the two instance.
-            The intention is to use functions from the operator module.
+        The username is compared case-insensitively unless the address is
+        case sensitive; the domain name always is.
         """
         if isinstance(other, str):
             try:
                 ouser, odomain = other.split('@')
             except ValueError:
                 ouser, odomain = '', ''
-        else:
+        elif isinstance(other, Address):
             ouser = other.username
             odomain = other.domainname
+        else:
+            raise TypeError('Address must be compared to Address or str')
 
+        username = self.username
         if not self.case_sensitive:
             ouser = ouser.lower()
-            username = self.username.lower()
-        else:
-            username = self.username
+            username = username.lower()
 
-        return (comparitor(username, ouser) and
-                comparitor(self.domainname.lower(), odomain.lower()))
-
-    def __eq__(self, other):
-        if not isinstance(other, (Address, str)):
-            raise TypeError('Address must be compared to Address or str')
-        return self.__cmp(other, operator.eq)
-
-    def __ne__(self, other):
-        if not isinstance(other, (Address, str)):
-            raise TypeError('Address must be compared to Address or str')
-        # != is the only rich comparitor that cannot be implemented using 'and'
-        # in self.__cmp, so it's implemented as not ==.
-        return not self.__cmp(other, operator.eq)
+        return (username == ouser and
+                self.domainname.lower() == odomain.lower())
 
     def __hash__(self):
         return hash((self.username.lower(), self.domainname.lower(),
