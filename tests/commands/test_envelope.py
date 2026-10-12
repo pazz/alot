@@ -383,3 +383,19 @@ class TestSendCommand(unittest.TestCase):
                                                          return_default=True)
         # check that the apply did run through till the end.
         account.send_mail.assert_called_once_with(mail)
+
+
+class TestEditCommand(unittest.TestCase):
+
+    @mock.patch('alot.commands.envelope.settings.get', {
+        'edit_headers_whitelist': ['To', 'From', 'To', 'Cc'],
+        'edit_headers_blacklist': ['Cc']}.get)
+    @utilities.async_test
+    async def test_editable_headers_keep_whitelist_order(self):
+        ui = utilities.make_ui(apply_command=mock.AsyncMock())
+        ui.current_buffer.envelope = Envelope(
+            headers={'From': ['me'], 'To': ['you']})
+        await envelope.EditCommand().apply(ui)
+        self.addCleanup(os.unlink, ui.current_buffer.envelope.tmpfile.name)
+        with open(ui.current_buffer.envelope.tmpfile.name) as f:
+            self.assertEqual(f.read(), 'To: you\nFrom: me\n\n')
