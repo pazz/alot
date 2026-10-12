@@ -191,73 +191,47 @@ class ThreadBuffer(Buffer):
         # move focus to summary (root of current MessageTree)
         self.set_focus(self.get_selected_message_position())
 
+    def _focus_relative(self, move, back=False):
+        """focus the position that `move` gives for the selected message;
+        moving `back` first returns to the start of the selected message"""
+        mid = self.get_selected_mid()
+        if back:
+            localroot = self._sanitize_position((mid,))
+            if localroot != self.get_focus()[1]:
+                return self.set_focus(localroot)
+        newpos = move(mid)
+        if newpos is not None:
+            self.set_focus(self._sanitize_position((newpos,)))
+
     def focus_parent(self):
         """move focus to parent of currently focussed message"""
-        mid = self.get_selected_mid()
-        newpos = self._tree.parent_position(mid)
-        if newpos is not None:
-            newpos = self._sanitize_position((newpos,))
-            self.set_focus(newpos)
+        self._focus_relative(self._tree.parent_position)
 
     def focus_first_reply(self):
         """move focus to first reply to currently focussed message"""
-        mid = self.get_selected_mid()
-        newpos = self._tree.first_child_position(mid)
-        if newpos is not None:
-            newpos = self._sanitize_position((newpos,))
-            self.set_focus(newpos)
+        self._focus_relative(self._tree.first_child_position)
 
     def focus_last_reply(self):
         """move focus to last reply to currently focussed message"""
-        mid = self.get_selected_mid()
-        newpos = self._tree.last_child_position(mid)
-        if newpos is not None:
-            newpos = self._sanitize_position((newpos,))
-            self.set_focus(newpos)
+        self._focus_relative(self._tree.last_child_position)
 
     def focus_next_sibling(self):
         """focus next sibling of currently focussed message in thread tree"""
-        mid = self.get_selected_mid()
-        newpos = self._tree.next_sibling_position(mid)
-        if newpos is not None:
-            newpos = self._sanitize_position((newpos,))
-            self.set_focus(newpos)
+        self._focus_relative(self._tree.next_sibling_position)
 
     def focus_prev_sibling(self):
         """
         focus previous sibling of currently focussed message in thread tree
         """
-        mid = self.get_selected_mid()
-        localroot = self._sanitize_position((mid,))
-        if localroot == self.get_focus()[1]:
-            newpos = self._tree.prev_sibling_position(mid)
-            if newpos is not None:
-                newpos = self._sanitize_position((newpos,))
-        else:
-            newpos = localroot
-        if newpos is not None:
-            self.set_focus(newpos)
+        self._focus_relative(self._tree.prev_sibling_position, back=True)
 
     def focus_next(self):
         """focus next message in depth first order"""
-        mid = self.get_selected_mid()
-        newpos = self._tree.next_position(mid)
-        if newpos is not None:
-            newpos = self._sanitize_position((newpos,))
-            self.set_focus(newpos)
+        self._focus_relative(self._tree.next_position)
 
     def focus_prev(self):
         """focus previous message in depth first order"""
-        mid = self.get_selected_mid()
-        localroot = self._sanitize_position((mid,))
-        if localroot == self.get_focus()[1]:
-            newpos = self._tree.prev_position(mid)
-            if newpos is not None:
-                newpos = self._sanitize_position((newpos,))
-        else:
-            newpos = localroot
-        if newpos is not None:
-            self.set_focus(newpos)
+        self._focus_relative(self._tree.prev_position, back=True)
 
     def focus_property(self, prop, direction):
         """does a walk in the given direction and focuses the
