@@ -164,9 +164,7 @@ def build_text_part(name, thread, struct):
 
 def prepare_date_string(thread):
     newest = thread.get_newest_date()
-    if newest is not None:
-        datestring = settings.represent_datetime(newest)
-    return datestring
+    return settings.represent_datetime(newest) if newest else ' '
 
 
 def prepare_mailcount_string(thread):
