@@ -52,6 +52,15 @@ _TAG_ARGS = [
     (['tags'], {'help': 'comma separated list of tags'})]
 
 
+def quote_text(text):
+    """quote text with the text_quote hook or the quote_prefix setting"""
+    quotehook = settings.get_hook('text_quote')
+    if quotehook:
+        return quotehook(text)
+    prefix = settings.get('quote_prefix')
+    return ''.join(prefix + line + '\n' for line in text.splitlines())
+
+
 def determine_sender(mail, action='reply'):
     """
     Inspect a given mail to reply/forward/bounce and find the most appropriate
@@ -153,15 +162,8 @@ class ReplyCommand(Command):
                              message=mail, ui=ui, dbm=ui.dbman)
         else:
             quotestring = 'Quoting %s (%s)\n' % (name or address, timestamp)
-        mailcontent = quotestring
-        quotehook = settings.get_hook('text_quote')
         body_text = ansi.remove_csi(self.message.get_body_text())
-        if quotehook:
-            mailcontent += quotehook(body_text)
-        else:
-            quote_prefix = settings.get('quote_prefix')
-            for line in body_text.splitlines():
-                mailcontent += quote_prefix + line + '\n'
+        mailcontent = quotestring + quote_text(body_text)
 
         envelope = Envelope(bodytext=mailcontent, replied=self.message)
 
@@ -331,16 +333,8 @@ class ForwardCommand(Command):
             else:
                 quote = 'Forwarded message from %s (%s):\n' % (
                     name or address, timestamp)
-            mailcontent = quote
-            quotehook = settings.get_hook('text_quote')
-            if quotehook:
-                mailcontent += quotehook(self.message.get_body_text())
-            else:
-                quote_prefix = settings.get('quote_prefix')
-                for line in self.message.get_body_text().splitlines():
-                    mailcontent += quote_prefix + line + '\n'
-
-            envelope.body_txt = mailcontent
+            envelope.body_txt = quote + quote_text(
+                self.message.get_body_text())
 
             for a in self.message.get_attachments():
                 envelope.attach(a)
