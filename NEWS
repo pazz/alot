@@ -14,6 +14,7 @@ unreleased:
 * breaking: remove unused API that hooks could call: helper.RFC3156_canonicalize, Message.has_replies, Message.get_replies, SettingsManager.get_main_addresses, ThreadBuffer.get_messagetree_positions, ThreadBuffer.messagetree_at_position, ThreadBuffer.expand, ThreadBuffer.expand_all, ThreadBuffer.collapse, MessageTree.debug, QuerylineWidget.get_query, TagWidget.set_focussed, TagWidget.set_unfocussed, alot.__productname__ and alot.__description__
 * info: fix crashes when a mailcap entry refuses unsafe parameters of a mail or attachment, and on txt2html/html2txt without a configured converter
 * info: editor_cmd templates that put %s inside double quotes now receive the plain file name and work
+* deps(nix): remove the "docs" package, deprecated since 0.11; use "alot.doc"
 
 0.12:
 * breaking: drop support for python 3.8, add support for python 3.13 & 3.14
