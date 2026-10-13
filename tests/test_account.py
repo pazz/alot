@@ -53,6 +53,13 @@ class TestAccount(unittest.TestCase):
         self.assertTrue(acct.matches_address("to+foo@example.com"))
         self.assertFalse(acct.matches_address("to@example.com"))
 
+    def test_matches_address_with_regex_alternatives(self):
+        acct = _AccountTestClass(address="foo@example.com",
+                                 alias_regexp=r'a@example\.com|b@example\.org')
+        self.assertTrue(acct.matches_address("b@example.org"))
+        self.assertFalse(acct.matches_address("a@example.com.evil"))
+        self.assertFalse(acct.matches_address("evil.b@example.org"))
+
     def test_matches_address_with_empty_regex_alias(self):
         acct = _AccountTestClass(address="foo@example.com", alias_regexp='')
         self.assertFalse(acct.matches_address("bar@example.com"))
