@@ -79,6 +79,9 @@ class TestAccount(unittest.TestCase):
                                      encrypt_by_default=each)
             self.assertEqual(acct.encrypt_by_default, 'none')
 
+    def test_store_mail_without_mailbox(self):
+        self.assertIsNone(account.Account.store_mail('not a mailbox', 'x'))
+
 
 class TestAddress(unittest.TestCase):
 
