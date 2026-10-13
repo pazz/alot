@@ -17,6 +17,10 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        include:
+          # test the oldest Python with the oldest urwid we claim to support
+          - python-version: "3.10"
+            oldest-urwid: true
 
     steps:
       - uses: actions/checkout@v4
@@ -79,6 +83,15 @@ jobs:
       - name: Install dependencies
         run: |
           pip install .
+
+      - name: Install the oldest supported urwid
+        if: matrix.oldest-urwid
+        run: |
+          set -e
+          version=$(sed -n 's/^ *"urwid>=\([0-9.]*\)",$/\1/p' pyproject.toml)
+          test -n "$version"
+          pip install "urwid==$version"
+          python3 -c 'import urwid; print("urwid", urwid.__version__)'
 
       - name: Run tests
         run: python3 -m unittest --verbose
