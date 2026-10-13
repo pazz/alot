@@ -118,7 +118,8 @@ show_statusbar = boolean(default=True)
 # This is a pair of strings to be left and right aligned in the status-bar that may contain variables:
 #
 # * `{buffer_no}`: index of this buffer in the global buffer list
-# * `{total_messages}`: total numer of messages indexed by notmuch
+# * `{total_messages}`: total number of messages indexed by notmuch (counting them
+#   can be slow with a very large index; leave it out to avoid that)
 # * `{pending_writes}`: number of pending write operations to the index
 bufferlist_statusbar = mixed_list(string, string, default=list('[{buffer_no}: bufferlist]','{input_queue} total messages: {total_messages}'))
 
