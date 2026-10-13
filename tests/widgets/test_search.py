@@ -1,6 +1,7 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 
+from datetime import datetime
 import unittest
 from unittest import mock
 
@@ -26,3 +27,17 @@ class TestBuildTagsPart(unittest.TestCase):
 
     def test_no_visible_tags(self):
         self.assertEqual(search.build_tags_part([], None, None), (-1, None))
+
+
+class TestPrepareContentStringDates(unittest.TestCase):
+
+    def test_messages_without_date_come_last(self):
+        def msg(date, body):
+            return mock.Mock(**{'get_date.return_value': date,
+                                'get_body_text.return_value': body})
+        msgs = [msg(None, 'undated'), msg(datetime(2024, 1, 2), 'newer'),
+                msg(datetime(2024, 1, 1), 'older')]
+        thread = mock.Mock(
+            **{'get_messages.return_value': dict.fromkeys(msgs)})
+        self.assertEqual(search.prepare_content_string(thread),
+                         'newer older undated')

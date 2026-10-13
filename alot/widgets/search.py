@@ -4,6 +4,7 @@
 """
 Widgets specific to search mode
 """
+from datetime import datetime
 import re
 
 import urwid
@@ -175,8 +176,9 @@ def prepare_subject_string(thread):
 
 
 def prepare_content_string(thread):
+    # messages without a (valid) date come last
     msgs = sorted(thread.get_messages().keys(),
-                  key=lambda msg: msg.get_date(), reverse=True)
+                  key=lambda msg: msg.get_date() or datetime.min, reverse=True)
     return ' '.join(re.sub(r'(?m)^>.*\n?', '', m.get_body_text()) for m in msgs)
 
 

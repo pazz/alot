@@ -23,6 +23,7 @@ unreleased:
 * info: alias_regexp now has to match a whole address; alternatives such as "a@x|b@y" no longer also match longer addresses, and patterns starting with an inline flag such as "(?i)" now work
 * info: fix DBManager.get_message, which hooks can call and which always failed
 * info: tags changed in thread mode now show in the message summaries straight away
+* info: fix a crash of the "content" part of search thread lines for threads with undated messages
 
 0.12:
 * breaking: drop support for python 3.8, add support for python 3.13 & 3.14
