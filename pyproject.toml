@@ -29,8 +29,8 @@ dependencies = [
     "notmuch2>=0.34.2",
     "urwid>=2.2.0",
     "urwidtrees>=1.0.3",
-    "python-magic",
-    "configobj>=4.7.0",
+    "python-magic>=0.4.12",
+    "configobj>=5.0.1",
     "gpg>1.10.0",
     "standard-mailcap; python_version>'3.12'"
 ]

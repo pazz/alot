@@ -23,12 +23,12 @@ Manual installation
 -------------------
 
 Alot depends on recent versions of notmuch and urwid. Note that due to restrictions
-on argparse and subprocess, you need to run *python ≥ 3.5* (see :ref:`faq <faq_7>`).
+on argparse and subprocess, you need to run *python ≥ 3.10* (see :ref:`faq <faq_7>`).
 A full list of dependencies is below:
 
-* `libmagic and python bindings <https://darwinsys.com/file/>`_, ≥ `5.04`
-* `configobj <http://www.voidspace.org.uk/python/configobj.html>`_, ≥ `4.7.0`
-* `libnotmuch <https://notmuchmail.org/>`_ and it's python bindings, ≥ `0.30`
+* `libmagic <https://darwinsys.com/file/>`_, ≥ `5.04`, and `python-magic <https://github.com/ahupp/python-magic>`_, ≥ `0.4.12`
+* `configobj <http://www.voidspace.org.uk/python/configobj.html>`_, ≥ `5.0.1`
+* `libnotmuch <https://notmuchmail.org/>`_ and it's python bindings, ≥ `0.34.2`
 * `urwid <https://urwid.org/>`_ toolkit, ≥ `2.2.0`
 * `urwidtrees <https://github.com/pazz/urwidtrees>`_, ≥ `1.0.3`
 * `gpg <https://www.gnupg.org/related_software/gpgme>`_ and it's python bindings, > `1.10.0`
