@@ -160,3 +160,16 @@ class TestBuildStatusbar(unittest.TestCase):
         settings.get.return_value = ('left', '{total_messages} messages')
         ui.build_statusbar()
         ui.dbman.count_messages.assert_called_once_with('*')
+class TestUpdate(unittest.TestCase):
+
+    @mock.patch('alot.ui.settings')
+    def test_applies_the_current_theme_background(self, settings):
+        ui = UI.__new__(UI)
+        ui.root_widget = urwid.AttrMap(urwid.Frame(urwid.SolidFill()), 'old')
+        ui.current_buffer = None
+        ui._notificationbar = None
+        ui._show_statusbar = False
+        ui.mainloop = mock.Mock()
+        settings.get_theming_attribute.return_value = 'new'
+        ui.update()  # e.g. after the theme command
+        self.assertEqual(ui.root_widget.attr_map, {None: 'new'})
