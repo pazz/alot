@@ -70,6 +70,22 @@ class MockNotmuchMessage:
 
 class TestMessage(unittest.TestCase):
 
+    def test_tags_are_read_from_notmuch_once(self):
+        """Iterating notmuch's tag set is slow: a thread of n messages used to
+        read tags n**2 times (#694)."""
+        class CountingTags:
+            reads = 0
+
+            def __iter__(self):
+                CountingTags.reads += 1
+                return iter(['inbox', 'unread'])
+
+        msg = message.Message(mock.Mock(),
+                              MockNotmuchMessage(tags=CountingTags()))
+        for _ in range(3):
+            self.assertEqual(msg.get_tags(), ['inbox', 'unread'])
+        self.assertEqual(CountingTags.reads, 1)
+
     def test_get_author_email_only(self):
         """Message._from is populated using the 'From' header when only an
         email address is provided.
