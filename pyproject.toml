@@ -81,5 +81,6 @@ module = [
     "alot.db.message",
     "alot.db.thread",
     "alot.db.manager",
+    "alot.db.envelope",
 ]
 disallow_untyped_defs = true

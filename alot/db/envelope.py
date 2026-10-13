@@ -2,6 +2,7 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 import glob
+from datetime import datetime
 import logging
 import os
 import re
@@ -12,6 +13,9 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 import email.charset as charset
+from email.message import Message
+from typing import IO, TYPE_CHECKING, Any
+
 import gpg
 
 from .attachment import Attachment
@@ -20,6 +24,10 @@ from .. import helper
 from .. import crypto
 from ..settings.const import settings
 from ..errors import GPGProblem, GPGCode
+
+if TYPE_CHECKING:
+    from ..account import Account
+    from .message import Message as AlotMessage
 
 charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 
@@ -34,42 +42,41 @@ class Envelope:
     'e.get_all('To')' would work for an envelope `e`..
     """
 
-    headers = None
+    headers: dict[str, list[str]]
     """
     dict containing the mail headers (a list of strings for each header key)
     """
-    body_txt = None
+    body_txt: str
     """mail body (plaintext) as unicode string"""
-    body_html = None
+    body_html: str | None = None
     """mail body (html) as unicode string"""
-    tmpfile = None
-    """template text for initial content"""
-    attachments = None
+    tmpfile: IO[str] | None = None
+    """temporary file the body is edited in"""
+    attachments: list[Attachment]
     """list of :class:`Attachments <alot.db.attachment.Attachment>`"""
-    tags = []
+    tags: list[str]
     """tags to add after successful sendout"""
-    account = None
+    account: 'Account | None'
     """account to send from"""
 
     def __init__(
-            self, bodytext=None, headers=None, attachments=None,
-            sign=False, sign_key=None, encrypt=False, tags=None, replied=None,
-            passed=None, account=None):
+            self, bodytext: str | None = None,
+            headers: dict[str, list[str]] | None = None,
+            attachments: list[Attachment] | None = None,
+            sign: bool = False, sign_key: Any = None, encrypt: bool = False,
+            tags: list[str] | None = None,
+            replied: 'AlotMessage | None' = None,
+            passed: 'AlotMessage | None' = None,
+            account: 'Account | None' = None) -> None:
         """
         :param bodytext: text used as body part
-        :type bodytext: str
         :param headers: unencoded header values
-        :type headers: dict (str -> [unicode])
         :param attachments: file attachments to include
-        :type attachments: list of :class:`~alot.db.attachment.Attachment`
+        :param sign_key: the :class:`gpg.gpgme._gpgme_key` to sign with
         :param tags: tags to add after successful sendout and saving this msg
-        :type tags: list of str
         :param replied: message being replied to
-        :type replied: :class:`~alot.db.message.Message`
         :param passed: message being passed on
-        :type replied: :class:`~alot.db.message.Message`
         :param account: account to send from
-        :type account: :class:`Account`
         """
         self.body_txt = bodytext or ''
         # TODO: if this was as collections.defaultdict a number of methods
@@ -79,19 +86,19 @@ class Envelope:
         self.sign = sign
         self.sign_key = sign_key
         self.encrypt = encrypt
-        self.encrypt_keys = {}
+        self.encrypt_keys: dict[str, Any] = {}  # fingerprint -> gpg key
         self.tags = tags or []  # tags to add after successful sendout
         self.replied = replied  # message being replied to
         self.passed = passed  # message being passed on
-        self.sent_time = None
+        self.sent_time: datetime | None = None
         self.modified_since_sent = False
         self.sending = False  # semaphore to avoid accidental double sendout
         self.account = account
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "Envelope (%s)\n%s" % (self.headers, self.body_txt)
 
-    def __setitem__(self, name, val):
+    def __setitem__(self, name: str, val: str) -> None:
         """setter for header values. This allows adding header like so:
         envelope['Subject'] = 'sm\xf8rebr\xf8d'
         """
@@ -102,40 +109,33 @@ class Envelope:
         if self.sent_time:
             self.modified_since_sent = True
 
-    def __getitem__(self, name):
+    def __getitem__(self, name: str) -> str:
         """getter for header values.
         :raises: KeyError if undefined
         """
         return self.headers[name][0]
 
-    def __delitem__(self, name):
+    def __delitem__(self, name: str) -> None:
         del self.headers[name]
 
         if self.sent_time:
             self.modified_since_sent = True
 
-    def __contains__(self, name):
+    def __contains__(self, name: object) -> bool:
         return name in self.headers
 
-    def get(self, key, fallback=None):
+    def get(self, key: str, fallback: str | None = None) -> str | None:
         """secure getter for header values that allows specifying a `fallback`
         return string (defaults to None). This returns the first matching value
         and doesn't raise KeyErrors"""
-        if key in self.headers:
-            value = self.headers[key][0]
-        else:
-            value = fallback
-        return value
+        return self.headers[key][0] if key in self.headers else fallback
 
-    def get_all(self, key, fallback=None):
+    def get_all(self, key: str,
+                fallback: list[str] | None = None) -> list[str]:
         """returns all header values for given key"""
-        if key in self.headers:
-            value = self.headers[key]
-        else:
-            value = fallback or []
-        return value
+        return self.headers.get(key, fallback or [])
 
-    def add(self, key, value):
+    def add(self, key: str, value: str) -> None:
         """add header value"""
         if key not in self.headers:
             self.headers[key] = []
@@ -144,17 +144,16 @@ class Envelope:
         if self.sent_time:
             self.modified_since_sent = True
 
-    def attach(self, attachment, filename=None, ctype=None):
+    def attach(self, attachment: Attachment | str, filename: str | None = None,
+               ctype: str | None = None) -> None:
         """
         attach a file
 
         :param attachment: File to attach, given as
             :class:`~alot.db.attachment.Attachment` object or path to a file.
-        :type attachment: :class:`~alot.db.attachment.Attachment` or str
         :param filename: filename to use in content-disposition.
             Will be ignored if `path` matches multiple files
         :param ctype: force content-type to be used for this attachment
-        :type ctype: str
         """
 
         if isinstance(attachment, Attachment):
@@ -169,16 +168,13 @@ class Envelope:
         if self.sent_time:
             self.modified_since_sent = True
 
-    def construct_mail(self):
+    def construct_mail(self) -> Message:
         """
         Compiles the information contained in this envelope into a
-        :class:`email.Message`.
+        :class:`email.message.Message`.
         """
-        # Build body text part. To properly sign/encrypt messages later on, we
-        # convert the text to its canonical format (as per RFC 2015).
-        canonical_format = self.body_txt.encode('utf-8')
-        textpart = MIMEText(canonical_format, 'plain', 'utf-8')
-        inner_msg = textpart
+        textpart = MIMEText(self.body_txt, 'plain', 'utf-8')
+        inner_msg: Message = textpart
 
         if self.body_html:
             htmlpart = MIMEText(self.body_html, 'html', 'utf-8')
@@ -211,9 +207,9 @@ class Envelope:
                     # If GPG_AGENT_INFO is unset or empty, the user just does
                     # not have gpg-agent running (properly).
                     if os.environ.get('GPG_AGENT_INFO', '').strip() == '':
-                        msg = "Got invalid passphrase and GPG_AGENT_INFO\
+                        errmsg = "Got invalid passphrase and GPG_AGENT_INFO\
                                 not set. Please set up gpg-agent."
-                        raise GPGProblem(msg, code=GPGCode.BAD_PASSPHRASE)
+                        raise GPGProblem(errmsg, code=GPGCode.BAD_PASSPHRASE)
                     else:
                         raise GPGProblem("Bad passphrase. Is gpg-agent "
                                          "running?",
@@ -221,7 +217,7 @@ class Envelope:
                 raise GPGProblem(str(e), code=GPGCode.KEY_CANNOT_SIGN)
 
             micalg = crypto.RFC3156_micalg_from_algo(signatures[0].hash_algo)
-            unencrypted_msg = MIMEMultipart(
+            unencrypted_msg: Message = MIMEMultipart(
                 'signed', micalg=micalg, protocol='application/pgp-signature')
 
             # wrap signature in MIMEcontainter
@@ -250,8 +246,8 @@ class Envelope:
             except gpg.errors.GPGMEError as e:
                 raise GPGProblem(str(e), code=GPGCode.KEY_CANNOT_ENCRYPT)
 
-            outer_msg = MIMEMultipart('encrypted',
-                                      protocol='application/pgp-encrypted')
+            outer_msg: Message = MIMEMultipart(
+                'encrypted', protocol='application/pgp-encrypted')
 
             version_str = 'Version: 1'
             encryption_mime = MIMEApplication(_data=version_str,
@@ -278,7 +274,7 @@ class Envelope:
 
         # add Message-ID
         if 'Message-ID' not in headers:
-            domain = self.account.message_id_domain
+            domain = self.account.message_id_domain if self.account else None
             headers['Message-ID'] = [email.utils.make_msgid(domain=domain)]
 
         if 'User-Agent' in headers:
@@ -298,16 +294,14 @@ class Envelope:
 
         return outer_msg
 
-    def parse_template(self, raw, only_body=False, target_body='plaintext'):
+    def parse_template(self, raw: str, only_body: bool = False,
+                       target_body: str = 'plaintext') -> None:
         """Parse a template or user edited string to fills this envelope.
 
         :param raw: the string to parse.
-        :type raw: str
         :param only_body: do not parse headers
-        :type only_body: bool
         :param target_body: body text alternative this should be stored in;
             can be 'plaintext' or 'html'
-        :type target_body: str
         """
         logging.debug('GoT: """\n%s\n"""', raw)
 

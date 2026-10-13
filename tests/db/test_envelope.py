@@ -75,6 +75,11 @@ class TestEnvelope(unittest.TestCase):
         self._test_mail(e)
 
     @mock.patch('alot.db.envelope.settings', SETTINGS)
+    def test_construct_mail_without_account(self):
+        mail = envelope.Envelope(bodytext='x').construct_mail()
+        self.assertIn('Message-ID', mail)
+
+    @mock.patch('alot.db.envelope.settings', SETTINGS)
     def test_construct_mail_with_attachment(self):
         """Very simple envelope with a To, From, Subject, body and attachment.
         """

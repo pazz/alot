@@ -84,7 +84,7 @@
       alot = self.packages.${system}.alot;
       types = pkgs.runCommand "alot-type-check" {buildInputs = [pythonEnv];} ''
         cd ${self}
-        mypy --ignore-missing-imports alot/errors.py alot/__init__.py alot/helper.py alot/db/utils.py alot/db/attachment.py alot/db/message.py alot/db/thread.py alot/db/manager.py
+        mypy --ignore-missing-imports alot/errors.py alot/__init__.py alot/helper.py alot/db/utils.py alot/db/attachment.py alot/db/message.py alot/db/thread.py alot/db/manager.py alot/db/envelope.py
         touch $out
       '';
     });
