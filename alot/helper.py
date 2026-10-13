@@ -190,27 +190,9 @@ def shorten_author_string(authors_string, maxlength):
 
 def pretty_datetime(d):
     """
-    translates :class:`datetime` `d` to a "sup-style" human readable string.
-
-    >>> now = datetime.now()
-    >>> now.strftime('%c')
-    'Sat 31 Mar 2012 14:47:26 '
-    >>> pretty_datetime(now)
-    'just now'
-    >>> pretty_datetime(now - timedelta(minutes=1))
-    '1min ago'
-    >>> pretty_datetime(now - timedelta(hours=5))
-    '5h ago'
-    >>> pretty_datetime(now - timedelta(hours=12))
-    '02:54am'
-    >>> pretty_datetime(now - timedelta(days=1))
-    'yest 02pm'
-    >>> pretty_datetime(now - timedelta(days=2))
-    'Thu 02pm'
-    >>> pretty_datetime(now - timedelta(days=7))
-    'Mar 24'
-    >>> pretty_datetime(now - timedelta(days=356))
-    'Apr 2011'
+    translates :class:`datetime` `d` to a "sup-style" human readable string,
+    such as 'just now', '1min ago', '5h ago', '02:54am', 'yest 02pm',
+    'Thu 02pm', 'Mar 24' or 'Apr 2011', depending on how long ago `d` was.
     """
     ampm = d.strftime('%p').lower()
     if len(ampm):
