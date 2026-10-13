@@ -24,7 +24,7 @@ class NamedQueriesBuffer(Buffer):
         self.queries = self.ui.dbman.get_named_queries()
 
         if self.isinitialized:
-            focusposition = self.querylist.get_focus()[1]
+            focusposition = self.querylist.get_focus()[1] or 0  # None if empty
         else:
             focusposition = 0
 
@@ -47,7 +47,8 @@ class NamedQueriesBuffer(Buffer):
         self.querylist = urwid.ListBox(urwid.SimpleListWalker(lines))
         self.body = self.querylist
 
-        self.querylist.set_focus(focusposition % len(self.queries))
+        if self.queries:
+            self.querylist.set_focus(focusposition % len(self.queries))
 
         self.isinitialized = True
 
