@@ -6,6 +6,8 @@ import os
 import tempfile
 import email.charset as charset
 from copy import deepcopy
+from email.message import Message
+from typing import IO, cast
 
 from ..helper import humanize_size, guess_mimetype
 from .utils import decode_header
@@ -16,19 +18,18 @@ charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 class Attachment:
     """represents a mail attachment"""
 
-    def __init__(self, emailpart):
+    def __init__(self, emailpart: Message) -> None:
         """
         :param emailpart: a non-multipart email that is the attachment
-        :type emailpart: :class:`email.message.Message`
         """
         self.part = emailpart
 
-    def __str__(self):
+    def __str__(self) -> str:
         return '%s:%s (%s)' % (self.get_content_type(),
                                self.get_filename(),
                                humanize_size(self.get_size()))
 
-    def get_filename(self):
+    def get_filename(self) -> str | None:
         """
         return name of attached file.
         If the content-disposition header contains no file name,
@@ -41,7 +42,7 @@ class Attachment:
                 return os.path.basename(extracted_name)
         return None
 
-    def get_content_type(self):
+    def get_content_type(self) -> str:
         """mime type of the attachment part"""
         ctype = self.part.get_content_type()
         # replace underspecified mime description by a better guess
@@ -50,17 +51,18 @@ class Attachment:
             ctype = guess_mimetype(self.get_data())
         return ctype
 
-    def get_size(self):
+    def get_size(self) -> int:
         """returns attachments size in bytes"""
         return len(self.part.get_payload())
 
-    def save(self, path):
+    def save(self, path: str) -> str:
         """
         save the attachment to disk. Uses :meth:`~get_filename` in case path
         is a directory
         """
         filename = self.get_filename()
         path = os.path.expanduser(path)
+        file_: IO[bytes]
         if os.path.isdir(path):
             if filename:
                 basename = os.path.basename(filename)
@@ -73,15 +75,15 @@ class Attachment:
         file_.close()
         return file_.name
 
-    def write(self, fhandle):
+    def write(self, fhandle: IO[bytes]) -> None:
         """writes content to a given filehandle"""
         fhandle.write(self.get_data())
 
-    def get_data(self):
+    def get_data(self) -> bytes:
         """return data blob from wrapped file"""
-        return self.part.get_payload(decode=True)
+        return cast(bytes, self.part.get_payload(decode=True))
 
-    def get_mime_representation(self):
+    def get_mime_representation(self) -> Message:
         """returns mime part that constitutes this attachment"""
         part = deepcopy(self.part)
         part.set_param('maxlinelen', '78', header='Content-Disposition')

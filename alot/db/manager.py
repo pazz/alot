@@ -3,9 +3,11 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 from collections import deque
+from collections.abc import Callable, Iterator
 import contextlib
 import itertools
 import logging
+from typing import Any, cast
 
 from notmuch2 import Database, NotmuchError, XapianError
 import notmuch2
@@ -34,29 +36,28 @@ class DBManager:
     }
     """constants representing sort orders"""
 
-    def __init__(self, path=None, ro=False, config=None):
+    def __init__(self, path: str | None = None, ro: bool = False,
+                 config: str | None = None) -> None:
         """
         :param path: absolute path to the notmuch index
-        :type path: str
         :param ro: open the index in read-only mode
-        :type ro: bool
         :param config: absolute path to the notmuch config file
-        :type path: str
         """
         self.ro = ro
         self.path = path
         self.config = config
-        self.writequeue = deque([])
+        # (command, callback, arguments...)
+        self.writequeue: deque[tuple[Any, ...]] = deque([])
 
     @property
-    def exclude_tags(self):
-        exclude_tags = settings.get('exclude_tags')
+    def exclude_tags(self) -> list[str]:
+        exclude_tags: list[str] | None = settings.get('exclude_tags')
         if exclude_tags is not None:
             return exclude_tags
+        return cast(list[str],
+                    settings.get_notmuch_setting('search', 'exclude_tags'))
 
-        return settings.get_notmuch_setting('search', 'exclude_tags')
-
-    def flush(self):
+    def flush(self) -> None:
         """
         write out all queued write-commands in order, each one in a separate
         :meth:`atomic <notmuch2.Database.atomic>` transaction.
@@ -127,8 +128,8 @@ class DBManager:
                             querystring, tags = current_item[2:]
                             if cmd == 'toggle':
                                 presenttags = self.collect_tags(querystring)
-                                to_remove = []
-                                to_add = []
+                                to_remove: list[str] = []
+                                to_add: list[str] = []
                                 for tag in tags:
                                     if tag in presenttags:
                                         to_remove.append(tag)
@@ -177,21 +178,19 @@ class DBManager:
                     raise e
                 logging.debug('flush finished')
 
-    def tag(self, querystring, tags, afterwards=None, remove_rest=False):
+    def tag(self, querystring: str, tags: list[str],
+            afterwards: Callable[[], None] | None = None,
+            remove_rest: bool = False) -> None:
         """
         add tags to messages matching `querystring`.
         This appends a tag operation to the write queue and raises
         :exc:`~errors.DatabaseROError` if in read only mode.
 
         :param querystring: notmuch search string
-        :type querystring: str
         :param tags: a list of tags to be added
-        :type tags: list of str
         :param afterwards: callback that gets called after successful
                            application of this tagging operation
-        :type afterwards: callable
         :param remove_rest: remove tags from matching messages before tagging
-        :type remove_rest: bool
         :exception: :exc:`~errors.DatabaseROError`
 
         .. note::
@@ -205,19 +204,17 @@ class DBManager:
         else:
             self.writequeue.append(('tag', afterwards, querystring, tags))
 
-    def untag(self, querystring, tags, afterwards=None):
+    def untag(self, querystring: str, tags: list[str],
+              afterwards: Callable[[], None] | None = None) -> None:
         """
         removes tags from messages that match `querystring`.
         This appends an untag operation to the write queue and raises
         :exc:`~errors.DatabaseROError` if in read only mode.
 
         :param querystring: notmuch search string
-        :type querystring: str
         :param tags: a list of tags to be added
-        :type tags: list of str
         :param afterwards: callback that gets called after successful
                            application of this tagging operation
-        :type afterwards: callable
         :exception: :exc:`~errors.DatabaseROError`
 
         .. note::
@@ -228,19 +225,17 @@ class DBManager:
             raise DatabaseROError()
         self.writequeue.append(('untag', afterwards, querystring, tags))
 
-    def toggle_tags(self, querystring, tags, afterwards=None):
+    def toggle_tags(self, querystring: str, tags: list[str],
+                    afterwards: Callable[[], None] | None = None) -> None:
         """
         toggles tags from messages that match `querystring`.
         This appends a toggle operation to the write queue and raises
         :exc:`~errors.DatabaseROError` if in read only mode.
 
         :param querystring: notmuch search string
-        :type querystring: str
         :param tags: a list of tags to be added
-        :type tags: list of str
         :param afterwards: callback that gets called after successful
                            application of this tagging operation
-        :type afterwards: callable
         :exception: :exc:`~errors.DatabaseROError`
 
         .. note::
@@ -251,13 +246,15 @@ class DBManager:
             raise DatabaseROError()
         self.writequeue.append(('toggle', afterwards, querystring, tags))
 
-    def count_messages(self, querystring):
+    def count_messages(self, querystring: str) -> int:
         """returns number of messages that match `querystring`"""
         db = Database(path=self.path, mode=Database.MODE.READ_ONLY,
                       config=self.config)
-        return db.count_messages(querystring, exclude_tags=self.exclude_tags)
+        count: int = db.count_messages(querystring,
+                                       exclude_tags=self.exclude_tags)
+        return count
 
-    def collect_tags(self, querystring):
+    def collect_tags(self, querystring: str) -> list[str]:
         """returns tags of messages that match `querystring`"""
         db = Database(path=self.path, mode=Database.MODE.READ_ONLY,
                       config=self.config)
@@ -268,15 +265,16 @@ class DBManager:
             notmuch2.capi.lib.notmuch_messages_collect_tags)
         return [t for t in tagset]
 
-    def count_threads(self, querystring):
+    def count_threads(self, querystring: str) -> int:
         """returns number of threads that match `querystring`"""
         db = Database(path=self.path, mode=Database.MODE.READ_ONLY,
                       config=self.config)
-        return db.count_threads(querystring,
-                                exclude_tags=self.exclude_tags)
+        count: int = db.count_threads(querystring,
+                                      exclude_tags=self.exclude_tags)
+        return count
 
     @contextlib.contextmanager
-    def _with_notmuch_thread(self, tid):
+    def _with_notmuch_thread(self, tid: str) -> Iterator[notmuch2.Thread]:
         """returns :class:`notmuch2.Thread` with given id"""
         with Database(path=self.path, mode=Database.MODE.READ_ONLY,
                       config=self.config) as db:
@@ -287,13 +285,13 @@ class DBManager:
                 raise NonexistantObjectError(errmsg)
             yield thread
 
-    def get_thread(self, tid):
-        """returns :class:`Thread` with given thread id (str)"""
+    def get_thread(self, tid: str) -> Thread:
+        """returns :class:`Thread` with given thread id"""
         with self._with_notmuch_thread(tid) as thread:
             return Thread(self, thread)
 
     @contextlib.contextmanager
-    def _with_notmuch_message(self, mid):
+    def _with_notmuch_message(self, mid: str) -> Iterator[notmuch2.Message]:
         """returns :class:`notmuch2.Message` with given id"""
         with Database(path=self.path, mode=Database.MODE.READ_ONLY,
                       config=self.config) as db:
@@ -304,45 +302,39 @@ class DBManager:
                 raise NonexistantObjectError(errmsg)
             yield msg
 
-    def get_message(self, mid):
-        """returns :class:`Message` with given message id (str)"""
+    def get_message(self, mid: str) -> Message:
+        """returns :class:`Message` with given message id"""
         with self._with_notmuch_message(mid) as msg:
             return Message(self, msg)
 
-    def get_all_tags(self):
-        """
-        returns all tagsstrings used in the database
-        :rtype: list of str
-        """
+    def get_all_tags(self) -> list[str]:
+        """returns all tagsstrings used in the database"""
         db = Database(path=self.path, mode=Database.MODE.READ_ONLY,
                       config=self.config)
         return [t for t in db.tags]
 
-    def get_named_queries(self):
+    def get_named_queries(self) -> dict[str, str]:
         """
-        returns the named queries stored in the database.
-        :rtype: dict (str -> str) mapping alias to full query string
+        returns the named queries stored in the database, mapping alias to
+        full query string.
         """
         db = Database(path=self.path, mode=Database.MODE.READ_ONLY,
                       config=self.config)
         return {k[6:]: db.config[k] for k in db.config if
                 k.startswith('query.')}
 
-    def get_threads(self, querystring, sort='newest_first', limit=None):
+    def get_threads(self, querystring: str, sort: str = 'newest_first',
+                    limit: int | None = None) -> tuple[Iterator[str], int]:
         """
         asynchronously look up thread ids matching `querystring`.
 
         :param querystring: The query string to use for the lookup
-        :type querystring: str.
         :param sort: Sort order. one of ['oldest_first', 'newest_first',
                      'message_id', 'unsorted']
-        :type sort: str
         :param limit: Limit the number of threads returned.
-        :type limit: int
         :returns: a thread ID iterator and the number of matched messages
             (the iterator will have at most limit many items and the counted
             messages are also influenced by this limit)
-        :rtype: Tuple[Iterator[str], int]
         """
         assert sort in self._sort_orders
         db = Database(path=self.path, mode=Database.MODE.READ_ONLY,
@@ -350,29 +342,27 @@ class DBManager:
         thread_iterator = db.threads(querystring,
                                      sort=self._sort_orders[sort],
                                      exclude_tags=self.exclude_tags)
-        threads = []
+        threads: list[str] = []
         message_count = 0
         for thread in itertools.islice(thread_iterator, limit or None):
             threads.append(thread.threadid)
             message_count += thread.matched
         return iter(threads), message_count
 
-    def add_message(self, path, tags=None, afterwards=None):
+    def add_message(self, path: str, tags: list[str] | None = None,
+                    afterwards: Callable[[], None] | None = None) -> None:
         """
         Adds a file to the notmuch index.
 
         :param path: path to the file
-        :type path: str
         :param tags: tagstrings to add
-        :type tags: list of str
         :param afterwards: callback to trigger after adding
-        :type afterwards: callable or None
         """
         tags = tags or []
 
         if self.ro:
             raise DatabaseROError()
-        if not is_subdir_of(path, self.path):
+        if self.path is None or not is_subdir_of(path, self.path):
             msg = 'message path %s ' % path
             msg += ' is not below notmuchs '
             msg += 'root path (%s)' % self.path
@@ -380,21 +370,21 @@ class DBManager:
         else:
             self.writequeue.append(('add', afterwards, path, tags))
 
-    def remove_message(self, message, afterwards=None):
+    def remove_message(self, message: Message,
+                       afterwards: Callable[[], None] | None = None) -> None:
         """
         Remove a message from the notmuch index
 
         :param message: message to remove
-        :type message: :class:`Message`
         :param afterwards: callback to trigger after removing
-        :type afterwards: callable or None
         """
         if self.ro:
             raise DatabaseROError()
         path = message.get_filename()
         self.writequeue.append(('remove', afterwards, path))
 
-    def save_named_query(self, alias, querystring, afterwards=None):
+    def save_named_query(self, alias: str, querystring: str,
+                         afterwards: Callable[[], None] | None = None) -> None:
         """
         add an alias for a query string.
 
@@ -403,25 +393,21 @@ class DBManager:
         See :manpage:`notmuch-search-terms(7)` for more info.
 
         :param alias: name of shortcut
-        :type alias: str
         :param querystring: value, i.e., the full query string
-        :type querystring: str
         :param afterwards: callback to trigger after adding the alias
-        :type afterwards: callable or None
         """
         if self.ro:
             raise DatabaseROError()
         self.writequeue.append(('setconfig', afterwards, 'query.' + alias,
                                 querystring))
 
-    def remove_named_query(self, alias, afterwards=None):
+    def remove_named_query(self, alias: str,
+                           afterwards: Callable[[], None] | None = None) -> None:
         """
         remove a named query from the notmuch database.
 
         :param alias: name of shortcut
-        :type alias: str
         :param afterwards: callback to trigger after adding the alias
-        :type afterwards: callable or None
         """
         if self.ro:
             raise DatabaseROError()

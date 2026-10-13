@@ -1,12 +1,18 @@
 # Copyright (C) 2011-2012  Patrick Totzke <patricktotzke@gmail.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
+from collections.abc import Callable
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from ..helper import string_sanitize
 from .message import Message
 from ..settings.const import settings
 from .utils import decode_header
+
+if TYPE_CHECKING:
+    import notmuch2
+    from .manager import DBManager
 
 
 class Thread:
@@ -17,22 +23,20 @@ class Thread:
     directly provide contained messages as :class:`~alot.db.message.Message`.
     """
 
-    def __init__(self, dbman, thread):
+    def __init__(self, dbman: 'DBManager', thread: 'notmuch2.Thread') -> None:
         """
         :param dbman: db manager that is used for further lookups
-        :type dbman: :class:`~alot.db.DBManager`
         :param thread: the wrapped thread
-        :type thread: :class:`notmuch2.Thread`
         """
         self._dbman = dbman
-        self._authors = None
-        self._id = thread.threadid
-        self._messages = {}
-        self._tags = set()
+        self._authors: list[tuple[str, str]] | None = None
+        self._id: str = thread.threadid
+        self._messages: dict[Message, list[Message]] = {}
+        self._tags: set[str] = set()
 
         self.refresh(thread)
 
-    def refresh(self, thread=None):
+    def refresh(self, thread: 'notmuch2.Thread | None' = None) -> None:
         """refresh thread metadata from the index"""
         if not thread:
             with self._dbman._with_notmuch_thread(self._id) as thread:
@@ -40,9 +44,9 @@ class Thread:
         else:
             self._refresh(thread)
 
-    def _refresh(self, thread):
+    def _refresh(self, thread: 'notmuch2.Thread') -> None:
         self._total_messages = len(thread)
-        self._notmuch_authors_string = thread.authors
+        self._notmuch_authors_string: str = thread.authors
 
         subject_type = settings.get('thread_subject')
         if subject_type == 'notmuch':
@@ -58,6 +62,8 @@ class Thread:
         self._authors = None
         ts = thread.first
 
+        self._oldest_date: datetime | None
+        self._newest_date: datetime | None
         try:
             self._oldest_date = datetime.fromtimestamp(ts)
         except ValueError:  # year is out of range
@@ -70,23 +76,21 @@ class Thread:
 
         self._tags = {t for t in thread.tags}
         self._messages = {}  # this maps messages to its children
-        self._toplevel_messages = []
+        self._toplevel_messages: list[Message] = []
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "thread:%s: %s" % (self._id, self.get_subject())
 
-    def get_thread_id(self):
+    def get_thread_id(self) -> str:
         """returns id of this thread"""
         return self._id
 
-    def get_tags(self, intersection=False):
+    def get_tags(self, intersection: bool = False) -> set[str]:
         """
         returns tagsstrings attached to this thread
 
         :param intersection: return tags present in all contained messages
                              instead of in at least one (union)
-        :type intersection: bool
-        :rtype: set of str
         """
         tags = set(list(self._tags))
         if intersection:
@@ -94,7 +98,9 @@ class Thread:
                 tags = tags.intersection(set(m.get_tags()))
         return tags
 
-    def add_tags(self, tags, afterwards=None, remove_rest=False):
+    def add_tags(self, tags: list[str],
+                 afterwards: Callable[[], None] | None = None,
+                 remove_rest: bool = False) -> None:
         """
         add `tags` to all messages in this thread
 
@@ -106,14 +112,11 @@ class Thread:
             to actually write out.
 
         :param tags: a list of tags to be added
-        :type tags: list of str
         :param afterwards: callback that gets called after successful
                            application of this tagging operation
-        :type afterwards: callable
         :param remove_rest: remove all other tags
-        :type remove_rest: bool
         """
-        def myafterwards():
+        def myafterwards() -> None:
             if remove_rest:
                 self._tags = set(tags)
             else:
@@ -124,7 +127,8 @@ class Thread:
         self._dbman.tag('thread:' + self._id, tags, afterwards=myafterwards,
                         remove_rest=remove_rest)
 
-    def remove_tags(self, tags, afterwards=None):
+    def remove_tags(self, tags: list[str],
+                    afterwards: Callable[[], None] | None = None) -> None:
         """
         remove `tags` (list of str) from all messages in this thread
 
@@ -136,27 +140,23 @@ class Thread:
             to actually write out.
 
         :param tags: a list of tags to be added
-        :type tags: list of str
         :param afterwards: callback that gets called after successful
                            application of this tagging operation
-        :type afterwards: callable
         """
         rmtags = set(tags).intersection(self._tags)
         if rmtags:
 
-            def myafterwards():
+            def myafterwards() -> None:
                 self._tags = self._tags.difference(tags)
                 if callable(afterwards):
                     afterwards()
             self._dbman.untag('thread:' + self._id, tags, myafterwards)
             self._tags = self._tags.difference(rmtags)
 
-    def get_authors(self):
+    def get_authors(self) -> list[tuple[str, str]]:
         """
         returns a list of authors (name, addr) of the messages.
         The authors are ordered by msg date and unique (by name/addr).
-
-        :rtype: list of (str, str)
         """
         if self._authors is None:
             # Sort messages with date first (by date ascending), and those
@@ -180,13 +180,11 @@ class Thread:
 
         return self._authors
 
-    def get_authors_string(self):
+    def get_authors_string(self) -> str:
         """
         returns a string of comma-separated authors
         Depending on settings, it will substitute "me" for author name if
         address is user's own.
-
-        :rtype: str
         """
         if settings.get('thread_authors_replace_me'):
             own_accts = settings.get_accounts()
@@ -204,34 +202,30 @@ class Thread:
         else:
             return self._notmuch_authors_string
 
-    def get_subject(self):
+    def get_subject(self) -> str:
         """returns subject string"""
         return self._subject
 
-    def get_toplevel_messages(self):
+    def get_toplevel_messages(self) -> list[Message]:
         """
         returns all toplevel messages contained in this thread.
         This are all the messages without a parent message
         (identified by 'in-reply-to' or 'references' header.
-
-        :rtype: list of :class:`~alot.db.message.Message`
         """
         if not self._messages:
             self.get_messages()
         return self._toplevel_messages
 
-    def get_messages(self):
+    def get_messages(self) -> dict[Message, list[Message]]:
         """
         returns all messages in this thread as dict mapping all contained
         messages to their direct responses.
-
-        :rtype: dict mapping :class:`~alot.db.message.Message` to a list of
-                :class:`~alot.db.message.Message`.
         """
         if not self._messages:  # if not already cached
             with self._dbman._with_notmuch_thread(self._id) as thread:
 
-                def accumulate(acc, msg):
+                def accumulate(acc: dict[Message, list[Message]],
+                               msg: 'notmuch2.Message') -> Message:
                     M = Message(self._dbman, msg, thread=self)
                     acc[M] = []
                     for m in msg.replies():
@@ -244,13 +238,11 @@ class Thread:
                                                               m))
         return self._messages
 
-    def get_replies_to(self, msg):
+    def get_replies_to(self, msg: Message) -> list[Message] | None:
         """
         returns all replies to the given message contained in this thread.
 
         :param msg: parent message to look up
-        :type msg: :class:`~alot.db.message.Message`
-        :returns: list of :class:`~alot.db.message.Message` or `None`
         """
         mid = msg.get_message_id()
         msg_hash = self.get_messages()
@@ -259,32 +251,24 @@ class Thread:
                 return msg_hash[m]
         return None
 
-    def get_newest_date(self):
-        """
-        returns date header of newest message in this thread as
-        :class:`~datetime.datetime`
-        """
+    def get_newest_date(self) -> datetime | None:
+        """returns date header of newest message in this thread"""
         return self._newest_date
 
-    def get_oldest_date(self):
-        """
-        returns date header of oldest message in this thread as
-        :class:`~datetime.datetime`
-        """
+    def get_oldest_date(self) -> datetime | None:
+        """returns date header of oldest message in this thread"""
         return self._oldest_date
 
-    def get_total_messages(self):
+    def get_total_messages(self) -> int:
         """returns number of contained messages"""
         return self._total_messages
 
-    def matches(self, query):
+    def matches(self, query: str) -> bool:
         """
         Check if this thread matches the given notmuch query.
 
         :param query: The query to check against
-        :type query: string
         :returns: True if this thread matches the given query, False otherwise
-        :rtype: bool
         """
         thread_query = 'thread:{tid} AND {subquery}'.format(tid=self._id,
                                                             subquery=query)
