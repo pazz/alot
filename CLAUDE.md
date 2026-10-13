@@ -14,7 +14,7 @@ nix build .#checks.x86_64-linux.types               # mypy check, as run in CI
 make -C docs cleanall html                          # rebuild docs, including generated tables
 ```
 
-Style is PEP8 checked with pycodestyle (config in `setup.cfg`, E501 ignored). Document signatures with Sphinx field lists (`:param:`, `:type:`, `:rtype:`).
+CI runs `ruff check` with its default rules (pyflakes and error-class pycodestyle checks); fuller PEP8 is advisory (pycodestyle config in `setup.cfg`, E501 ignored). Document signatures with Sphinx field lists (`:param:`, `:type:`, `:rtype:`).
 
 mypy runs strictly only on the modules listed under `[[tool.mypy.overrides]]` in `pyproject.toml`; the Nix `types` check in `flake.nix` hard-codes the same file list, so keep both in sync when adding typed modules.
 
