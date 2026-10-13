@@ -59,6 +59,7 @@ class EndToEndTestCase(unittest.TestCase):
             ''', marker=cls.marker)
         cls.alot_config = cls._write('alot-config', '''\
             hooksfile = {hooks}
+            editor_cmd = true
             [accounts]
                 [[test]]
                     realname = Test User
@@ -241,3 +242,34 @@ class TestRunning(EndToEndTestCase):
     def test_external_command(self):
         self.command('shellescape --thread=False true')
         self.assertResponsive()
+
+
+class TestModes(EndToEndTestCase):
+
+    def test_thread(self):
+        self.command('search subject:"test subject"')
+        self.wait_for('search] for "subject:"test subject""')
+        self.settle()
+        self.send('\r')
+        self.wait_for(': thread] test subject')
+        self.wait_for('test body')
+
+    def test_bufferlist(self):
+        self.command('bufferlist')
+        self.wait_for(': bufferlist]')
+
+    def test_taglist(self):
+        self.command('taglist')
+        self.wait_for(': taglist]')
+        self.wait_for('inbox')
+
+    def test_namedqueries(self):
+        self.command('savequery e2e-query tag:inbox')
+        self.command('namedqueries')
+        self.wait_for(': namedqueries]')
+        self.wait_for('e2e-query')
+
+    def test_envelope(self):
+        self.command('compose --to=to@example.com --subject=e2e-subject')
+        self.wait_for(': envelope (plaintext)]')
+        self.wait_for('Test User <test@example.com>')  # From, set by alot
