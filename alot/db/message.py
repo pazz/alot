@@ -48,7 +48,7 @@ class Message:
         self._attachments = None  # will be read upon first use
         self._mime_part = None  # will be read upon first use
         self._mime_tree = None  # will be read upon first use
-        self._tags = msg.tags
+        self._tags = set(msg.tags)  # copy once; iterating notmuch tags is slow
 
         self._session_keys = [
             value for _, value in msg.properties.getall(prefix="session-key",
