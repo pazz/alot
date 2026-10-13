@@ -1,13 +1,17 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 
+import asyncio
 import signal
 import unittest
 from unittest import mock
 
 import urwid
 
-from alot.ui import UI
+from alot.buffers import SearchBuffer
+from alot.commands import Command
+from alot.commands.globals import ExitCommand
+from alot.ui import UI, periodic
 
 from . import utilities
 
@@ -56,3 +60,85 @@ class TestSignals(unittest.TestCase):
         UI(mock.Mock(), '', loop)
         loop.add_signal_handler.assert_called_once_with(signal.SIGTERM,
                                                         loop.stop)
+
+
+class TestSignalDispatch(unittest.TestCase):
+
+    def test_handler_schedules_handle_signal_on_the_loop(self):
+        ui = UI.__new__(UI)
+        loop = mock.Mock()
+        with mock.patch('alot.ui.asyncio.get_event_loop', return_value=loop), \
+                mock.patch('alot.ui.asyncio.run_coroutine_threadsafe') as run:
+            ui._handle_signal(signal.SIGUSR1, None)
+        coro, target = run.call_args.args
+        self.assertIs(target, loop)
+        self.assertEqual(coro.cr_code.co_name, 'handle_signal')
+        coro.close()
+
+    @utilities.async_test
+    async def test_sigint_exits(self):
+        ui = UI.__new__(UI)
+        ui.apply_command = mock.AsyncMock()
+        await ui.handle_signal(signal.SIGINT)
+        self.assertIsInstance(ui.apply_command.await_args.args[0],
+                              ExitCommand)
+
+    @utilities.async_test
+    async def test_sigusr1_refreshes_a_search_buffer(self):
+        ui = UI.__new__(UI)
+        ui.current_buffer = mock.Mock(spec=SearchBuffer)
+        ui.update = mock.Mock()
+        await ui.handle_signal(signal.SIGUSR1)
+        ui.current_buffer.rebuild.assert_called_once_with()
+        ui.update.assert_called_once_with()
+
+
+class FailingCommand(Command):
+    def apply(self, ui):
+        raise RuntimeError('apply failed')
+
+
+class TestErrorContainment(unittest.TestCase):
+    """Exceptions must not escape alot's tasks: urwid's asyncio event loop
+    would stop and re-raise them."""
+
+    def _ui(self):
+        ui = UI.__new__(UI)
+        ui.mode = 'global'
+        ui._error_handler = mock.Mock()
+        return ui
+
+    @utilities.async_test
+    async def test_failing_command(self):
+        ui = self._ui()
+        with mock.patch('alot.ui.commandfactory',
+                        return_value=FailingCommand()):
+            await ui.apply_commandline('anything')
+        ui._error_handler.assert_called_once()
+
+    @utilities.async_test
+    async def test_failing_hooks(self):
+        for hook in ('prehook', 'posthook'):
+            with self.subTest(hook=hook):
+                ui = self._ui()
+                cmd = Command()
+                setattr(cmd, hook, mock.AsyncMock(side_effect=RuntimeError))
+                with mock.patch('alot.ui.commandfactory', return_value=cmd):
+                    await ui.apply_commandline('anything')
+                ui._error_handler.assert_called_once()
+
+    @utilities.async_test
+    async def test_failing_loop_hook_is_logged_and_retried(self):
+        calls = []
+
+        def hook():
+            calls.append(None)
+            if len(calls) < 3:
+                raise RuntimeError('hook failed')
+            raise asyncio.CancelledError
+
+        with self.assertLogs(level='ERROR') as logs, \
+                self.assertRaises(asyncio.CancelledError):
+            await periodic(hook, 0)
+        self.assertEqual(len(calls), 3)
+        self.assertEqual(len(logs.records), 2)
