@@ -41,3 +41,14 @@ class TestPrepareContentStringDates(unittest.TestCase):
             **{'get_messages.return_value': dict.fromkeys(msgs)})
         self.assertEqual(search.prepare_content_string(thread),
                          'newer older undated')
+
+
+class TestBuildTextPart(unittest.TestCase):
+
+    def test_zero_width_subject(self):
+        # combining characters only, as in spam subjects; cut to 10 columns
+        thread = mock.Mock(**{'get_subject.return_value': '\u0300' * 36})
+        struct = {'width': ('fit', 0, 10), 'alignment': 'left',
+                  'normal': None, 'focus': None}
+        _, widget = search.build_text_part('subject', thread, struct)
+        widget.render((10,))

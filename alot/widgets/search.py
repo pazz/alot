@@ -150,6 +150,10 @@ def build_text_part(name, thread, struct):
         else:
             content = content.rjust(minw)
 
+    # urwid cannot clip text of no width, e.g. only combining characters
+    if not urwid.calc_width(content, 0, len(content)):
+        content = ' '
+
     # define width and part_w
     text = urwid.Text(content, wrap='clip')
     width = text.pack((maxw or minw,))[0]
