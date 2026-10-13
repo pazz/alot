@@ -647,13 +647,15 @@ class UI:
             btype = cb.modename
             info['buffer_no'] = self.buffers.index(cb)
             info['buffer_type'] = btype
-        info['total_messages'] = self.dbman.count_messages('*')
         info['pending_writes'] = len(self.dbman.writequeue)
         info['input_queue'] = ' '.join(self.input_queue)
 
         lefttxt = righttxt = ''
         if cb is not None:
             lefttxt, righttxt = settings.get(btype + '_statusbar', ('', ''))
+            # counting can take a second on a large index: only when shown
+            if 'total_messages' in lefttxt + righttxt:
+                info['total_messages'] = self.dbman.count_messages('*')
             lefttxt = lefttxt.format(**info)
             righttxt = righttxt.format(**info)
 

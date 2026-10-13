@@ -142,3 +142,21 @@ class TestErrorContainment(unittest.TestCase):
             await periodic(hook, 0)
         self.assertEqual(len(calls), 3)
         self.assertEqual(len(logs.records), 2)
+
+
+class TestBuildStatusbar(unittest.TestCase):
+
+    @mock.patch('alot.ui.settings')
+    def test_counts_messages_only_when_shown(self, settings):
+        ui = UI.__new__(UI)
+        ui.current_buffer = mock.Mock(modename='search',
+                                      **{'get_info.return_value': {}})
+        ui.buffers = [ui.current_buffer]
+        ui.dbman = mock.Mock(writequeue=[], **{'count_messages.return_value': 7})
+        ui.input_queue = []
+        settings.get.return_value = ('left', 'right')
+        ui.build_statusbar()
+        ui.dbman.count_messages.assert_not_called()
+        settings.get.return_value = ('left', '{total_messages} messages')
+        ui.build_statusbar()
+        ui.dbman.count_messages.assert_called_once_with('*')
