@@ -76,5 +76,6 @@ module = [
     "alot.errors",
     "alot.__init__",
     "alot.helper",
+    "alot.db.utils",
 ]
 disallow_untyped_defs = true

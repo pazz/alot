@@ -9,12 +9,14 @@ import email.charset as charset
 import email.policy
 import email.utils
 from email.errors import MessageError
+from email.message import EmailMessage, Message, MIMEPart
 import tempfile
 import re
 import shlex
 import locale
 import logging
 import mailcap
+from typing import TYPE_CHECKING, Any, Literal, cast, overload
 
 from .. import crypto
 from .. import helper
@@ -24,11 +26,14 @@ from ..helper import string_sanitize
 from ..helper import string_decode
 from ..helper import parse_mailcap_nametemplate
 
+if TYPE_CHECKING:
+    from ..account import Account
+
 charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 
 
 class _Policy(email.policy.EmailPolicy):
-    def header_fetch_parse(self, name, value):
+    def header_fetch_parse(self, name: str, value: str) -> Any:
         try:
             return super().header_fetch_parse(name, value)
         except AttributeError:
@@ -46,14 +51,14 @@ _APP_PGP_SIG = 'application/pgp-signature'
 _APP_PGP_ENC = 'application/pgp-encrypted'
 
 
-def add_signature_headers(mail, sigs, error_msg):
+def add_signature_headers(mail: Message, sigs: list[Any],
+                          error_msg: str | None) -> None:
     '''Add pseudo headers to the mail indicating whether the signature
     verification was successful.
 
-    :param mail: :class:`email.message.Message` the message to entitle
+    :param mail: the message to entitle
     :param sigs: list of :class:`gpg.results.Signature`
-    :param error_msg: An error message if there is one, or None
-    :type error_msg: :class:`str` or `None`
+    :param error_msg: An error message if there is one
     '''
     sig_from = ''
     sig_known = True
@@ -90,23 +95,24 @@ def add_signature_headers(mail, sigs, error_msg):
     mail.add_header(X_SIGNATURE_MESSAGE_HEADER, msg)
 
 
-def get_params(mail, failobj=None, header='content-type', unquote=True):
+def get_params(mail: Message, failobj: list[tuple[str, str]] | None = None,
+               header: str = 'content-type',
+               unquote: bool = True) -> dict[str, str]:
     '''Get Content-Type parameters as dict.
 
     RFC 2045 specifies that parameter names are case-insensitive, so
     we normalize them here.
 
-    :param mail: :class:`email.message.Message`
     :param failobj: object to return if no such header is found
     :param header: the header to search for parameters, default
     :param unquote: unquote the values
-    :returns: a `dict` containing the parameters
     '''
     failobj = failobj or []
     return {k.lower(): v for k, v in mail.get_params(failobj, header, unquote)}
 
 
-def _handle_signatures(original_bytes, original, message, params):
+def _handle_signatures(original_bytes: bytes, original: Message,
+                       message: MIMEPart, params: dict[str, str]) -> None:
     """Shared code for handling message signatures.
 
     RFC 3156 is quite strict:
@@ -118,22 +124,18 @@ def _handle_signatures(original_bytes, original, message, params):
         containing the segments against which signatures will be verified.
         Necessary because parsing and re-serialising a Message isn't
         byte-perfect, which interferes with signature validation.
-    :type original_bytes: bytes
     :param original: The original top-level mail. This is required to attache
         special headers to
-    :type original: :class:`email.message.Message`
     :param message: The multipart/signed payload to verify
-    :type message: :class:`email.message.Message`
     :param params: the message parameters as returned by :func:`get_params`
-    :type params: dict[str, str]
     """
     try:
-        nb_parts = len(message.get_payload()) if message.is_multipart() else 1
-        if nb_parts != 2:
+        parts = list(message.iter_parts())
+        if len(parts) != 2:
             raise MessageError(
-                f'expected exactly two messages, got {nb_parts}')
+                f'expected exactly two messages, got {len(parts)}')
 
-        signature_part = message.get_payload(1)
+        signature_part = parts[1]
         ct = signature_part.get_content_type()
         if ct != _APP_PGP_SIG:
             raise MessageError(
@@ -160,7 +162,7 @@ def _handle_signatures(original_bytes, original, message, params):
         # produced by Python's standard lib (in the number of blank lines
         # between multipart segments...). We therefore need to extract the
         # signed part directly from the original byte string.
-        signed_boundary = b'\r\n--' + message.get_boundary().encode()
+        signed_boundary = b'\r\n--' + str(message.get_boundary()).encode()
         original_chunks = original_bytes.split(signed_boundary)
         nb_chunks = len(original_chunks)
         if nb_chunks != 4:
@@ -181,7 +183,8 @@ def _handle_signatures(original_bytes, original, message, params):
         add_signature_headers(original, [], str(error))
 
 
-def _handle_encrypted(original, message, session_keys=None):
+def _handle_encrypted(original: Message, message: MIMEPart,
+                      session_keys: list[str] | None = None) -> None:
     """Handle encrypted messages helper.
 
     RFC 3156 is quite strict:
@@ -193,27 +196,25 @@ def _handle_encrypted(original, message, session_keys=None):
 
     :param original: The original top-level mail. This is required to attache
         special headers to
-    :type original: :class:`email.message.Message`
     :param message: The multipart/signed payload to verify
-    :type message: :class:`email.message.Message`
     :param session_keys: a list OpenPGP session keys
-    :type session_keys: [str]
     """
-    malformed = False
+    malformed = ''
 
-    ct = message.get_payload(0).get_content_type()
+    parts = list(message.iter_parts())
+    ct = parts[0].get_content_type()
     if ct != _APP_PGP_ENC:
         malformed = 'expected Content-Type: {0}, got: {1}'.format(
             _APP_PGP_ENC, ct)
 
     want = 'application/octet-stream'
-    ct = message.get_payload(1).get_content_type()
+    ct = parts[1].get_content_type()
     if ct != want:
         malformed = 'expected Content-Type: {0}, got: {1}'.format(want, ct)
 
     if not malformed:
         # This should be safe because PGP uses US-ASCII characters only
-        payload = message.get_payload(1).get_payload().encode('ascii')
+        payload = str(parts[1].get_payload()).encode('ascii')
         try:
             sigs, d = crypto.decrypt_verify(payload, session_keys)
         except GPGProblem as e:
@@ -252,14 +253,14 @@ def _handle_encrypted(original, message, session_keys=None):
 
     if malformed:
         msg = 'Malformed OpenPGP message: {0}'.format(malformed)
-        content = email.message_from_string(msg,
-                                            _class=email.message.EmailMessage,
-                                            policy=email.policy.SMTP)
+        content = email.message_from_string(msg, policy=_SMTP)
         content.set_charset('utf-8')
         original.attach(content)
 
 
-def _decrypted_message_from_message(original_bytes, m, session_keys=None):
+def _decrypted_message_from_message(
+        original_bytes: bytes, m: EmailMessage,
+        session_keys: list[str] | None = None) -> EmailMessage:
     '''Detect and decrypt OpenPGP encrypted data in an email object. If this
     succeeds, any mime messages found in the recovered plaintext
     message are added to the returned message object.
@@ -268,11 +269,9 @@ def _decrypted_message_from_message(original_bytes, m, session_keys=None):
         containing the segments against which signatures will be verified.
         Necessary because parsing and re-serialising a Message isn't
         byte-perfect, which interferes with signature validation.
-    :type original_bytes: bytes
     :param m: an email object
     :param session_keys: a list OpenPGP session keys
-    :returns: :class:`email.message.Message` possibly augmented with
-              decrypted data
+    :returns: `m`, possibly augmented with decrypted data
     '''
     # make sure no one smuggles a token in (data from m is untrusted)
     del m[X_SIGNATURE_VALID_HEADER]
@@ -289,13 +288,13 @@ def _decrypted_message_from_message(original_bytes, m, session_keys=None):
         # handle OpenPGP encrypted data
         elif (m.get_content_subtype() == 'encrypted' and
               p.get('protocol') == _APP_PGP_ENC and
-              'Version: 1' in m.get_payload(0).get_payload()):
+              'Version: 1' in str(next(m.iter_parts()).get_payload())):
             _handle_encrypted(m, m, session_keys)
 
         # It is also possible to put either of the abov into a multipart/mixed
         # segment
         elif m.get_content_subtype() == 'mixed':
-            sub = m.get_payload(0)
+            sub = next(m.iter_parts())
 
             if sub.is_multipart():
                 p = get_params(sub)
@@ -310,30 +309,30 @@ def _decrypted_message_from_message(original_bytes, m, session_keys=None):
     return m
 
 
-def decrypted_message_from_bytes(bytestring, session_keys=None):
+def decrypted_message_from_bytes(
+        bytestring: bytes,
+        session_keys: list[str] | None = None) -> EmailMessage:
     """Create a Message from bytes.
 
-    :param bytes bytestring: an email message as raw bytes
+    :param bytestring: an email message as raw bytes
     :param session_keys: a list OpenPGP session keys
     """
     return _decrypted_message_from_message(
         bytestring,
         email.message_from_bytes(bytestring,
                                  _class=email.message.EmailMessage,
-                                 policy=_SMTP),
+                                 policy=_SMTP),  # type: ignore[arg-type]
         session_keys)
 
 
-def extract_headers(mail, headers=None):
+def extract_headers(mail: Message, headers: list[str] | None = None) -> str:
     """
     returns subset of this messages headers as human-readable format:
     all header values are decoded, the resulting string has
     one line "KEY: VALUE" for each requested header present in the mail.
 
     :param mail: the mail to use
-    :type mail: :class:`email.message.EmailMessage`
     :param headers: headers to extract
-    :type headers: list of str
     """
     headertext = ''
     if headers is None:
@@ -346,7 +345,7 @@ def extract_headers(mail, headers=None):
     return headertext
 
 
-def render_part(part, field_key='copiousoutput'):
+def render_part(part: Message, field_key: str = 'copiousoutput') -> str | None:
     """
     renders a non-multipart email part into displayable plaintext by piping its
     payload through an external script. The handler itself is determined by
@@ -387,8 +386,8 @@ def render_part(part, field_key='copiousoutput'):
         parms = tuple('='.join(p) for p in params.items())
 
         # create and call external command
-        cmd = mailcap.subst(entry['view'], ctype,
-                            filename=tempfile_name, plist=parms)
+        cmd = mailcap.subst(  # type: ignore[attr-defined]  # not in typeshed
+            entry['view'], ctype, filename=tempfile_name, plist=parms)
         logging.debug('command: %s', cmd)
         logging.debug('parms: %s', str(parms))
         # mailcap.subst returns None if a parameter is unsafe for the shell
@@ -407,7 +406,13 @@ def render_part(part, field_key='copiousoutput'):
     return rendered_payload
 
 
-def remove_cte(part, as_string=False):
+@overload
+def remove_cte(part: Message, as_string: Literal[False] = False) -> bytes: ...
+@overload
+def remove_cte(part: Message, as_string: Literal[True]) -> str: ...
+
+
+def remove_cte(part: Message, as_string: bool = False) -> str | bytes:
     """Interpret MIME-part according to it's Content-Transfer-Encodings.
 
     This returns the payload of `part` as string or bytestring for display, or
@@ -419,10 +424,9 @@ def remove_cte(part, as_string=False):
     Incorrect header values (common in spam messages) will be interpreted as
     lenient as possible.
 
-    :param email.message.EmailMessage part: The part to decode
-    :param bool as_string: If true return a str, otherwise return bytes
+    :param part: The part to decode
+    :param as_string: If true return a str, otherwise return bytes
     :returns: The mail with any Content-Transfer-Encoding removed
-    :rtype: Union[str, bytes]
     """
     enc = part.get_content_charset() or 'ascii'
     cte = str(part.get('content-transfer-encoding', '7bit')).lower().strip()
@@ -434,7 +438,7 @@ def remove_cte(part, as_string=False):
     # internal representation is closer to raw binary than the non-decoded
     # `get_payload()` result, which is deprecated. This is fairly similar to
     # the internal workings in python 3.13 of their new `raw_data_manager` API.
-    bp = part.get_payload(decode=True)
+    bp = cast(bytes, part.get_payload(decode=True))
 
     # by now, bp is defined, sp is not.
     if as_string:
@@ -459,17 +463,16 @@ MISSING_HTML_MSG = ("This message contains a text/html part that was not "
                     "https://alot.rtfd.io/en/latest/faq.html")
 
 
-def get_body_part(mail, mimetype=None):
-    """Returns an EmailMessage.
+def get_body_part(mail: EmailMessage,
+                  mimetype: str | None = None) -> MIMEPart:
+    """Returns the body part of `mail`.
 
     This consults :ref:`prefer_plaintext <prefer-plaintext>`
     to determine if a "text/plain" alternative is preferred over a "text/html"
     part.
 
     :param mail: the mail to use
-    :type mail: :class:`email.message.EmailMessage`
     :returns: The combined text of any parts to be used
-    :rtype: :class:`email.message.EmailMessage`
     """
 
     if not mimetype:
@@ -487,7 +490,7 @@ def get_body_part(mail, mimetype=None):
     return body_part
 
 
-def extract_body_part(body_part):
+def extract_body_part(body_part: Message) -> str:
     """Returns a string view of a Message."""
     displaystring = ""
     rendered_payload = render_part(
@@ -510,7 +513,7 @@ def extract_body_part(body_part):
 SPECIAL_ADDRESS_CHARS = r'()<>@,:;\[]'
 
 
-def formataddr(pair):
+def formataddr(pair: tuple[str, str]) -> str:
     """ this is the inverse of email.utils.parseaddr:
     other than email.utils.formataddr, this
     - *will not* re-encode unicode strings, and
@@ -524,7 +527,7 @@ def formataddr(pair):
     return "{0} <{1}>".format(name, address)
 
 
-def decode_header(header, normalize=False):
+def decode_header(header: str, normalize: bool = False) -> str:
     """
     decode a header value to a unicode string
 
@@ -533,10 +536,7 @@ def decode_header(header, normalize=False):
     This turns it into a single unicode string
 
     :param header: the header value
-    :type header: str
     :param normalize: replace trailing spaces after newlines
-    :type normalize: bool
-    :rtype: str
     """
     logging.debug("unquoted header: |%s|", header)
 
@@ -551,7 +551,7 @@ def decode_header(header, normalize=False):
     return value
 
 
-def is_subdir_of(subpath, superpath):
+def is_subdir_of(subpath: str, superpath: str) -> bool:
     # make both absolute
     superpath = os.path.realpath(superpath)
     subpath = os.path.realpath(subpath)
@@ -559,16 +559,13 @@ def is_subdir_of(subpath, superpath):
     return os.path.commonpath([subpath, superpath]) == superpath
 
 
-def clear_my_address(my_account, value):
+def clear_my_address(my_account: 'Account', value: list[str]) -> list[str]:
     """return recipient header without the addresses in my_account
 
     :param my_account: my account
-    :type my_account: :class:`Account`
     :param value: a list of recipient or sender strings (with or without
         real names as taken from email headers)
-    :type value: list(str)
     :returns: a new, potentially shortend list
-    :rtype: list(str)
     """
     new_value = []
     for name, address in email.utils.getaddresses(value):
@@ -577,7 +574,7 @@ def clear_my_address(my_account, value):
     return new_value
 
 
-def ensure_unique_address(recipients):
+def ensure_unique_address(recipients: list[str]) -> list[str]:
     """
     clean up a list of name,address pairs so that
     no address appears multiple times.
