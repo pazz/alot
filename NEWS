@@ -20,6 +20,7 @@ unreleased:
 * deps: drop twisted; require urwid >= 2.2.0, whose asyncio event loop no longer polls while idle
 * deps: require configobj >= 5.0.1 and python-magic >= 0.4.12; older versions fail alot's tests
 * info: opening and scrolling long threads is much faster: a 300-message thread opens in 0.2s instead of 4s (#694)
+* info: alias_regexp now has to match a whole address; alternatives such as "a@x|b@y" no longer also match longer addresses, and patterns starting with an inline flag such as "(?i)" now work
 
 0.12:
 * breaking: drop support for python 3.8, add support for python 3.13 & 3.14

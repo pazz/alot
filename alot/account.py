@@ -214,7 +214,7 @@ class Account:
         self.encrypt_by_default = encrypt_by_default
         # cache alias_regexp regexes
         self._alias_regexp = self.alias_regexp and re.compile(
-            '^' + self.alias_regexp + '$',
+            self.alias_regexp,
             flags=0 if case_sensitive_username else re.IGNORECASE)
 
     def matches_address(self, address):
@@ -228,7 +228,7 @@ class Account:
         for alias in self.aliases:
             if alias == address:
                 return True
-        if self._alias_regexp and self._alias_regexp.match(address):
+        if self._alias_regexp and self._alias_regexp.fullmatch(address):
             return True
         return False
 
