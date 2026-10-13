@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-Alot is a terminal mail user agent built on the notmuch indexer (via the `notmuch2` cffi bindings), urwid/urwidtrees for the UI, and an asyncio event loop. Python >= 3.10.
+Alot is a terminal mail user agent built on the notmuch indexer (via the `notmuch2` cffi bindings), urwid/urwidtrees for the UI, and an asyncio event loop.
 
 ## Commands
 
@@ -10,7 +10,6 @@ Alot is a terminal mail user agent built on the notmuch indexer (via the `notmuc
 python3 -m pytest                                   # full test suite (tests are unittest-style)
 python3 -m pytest tests/db/test_utils.py::TestExtractBodyPart::test_simple_iso_8859_1_mail
 python3 -m unittest                                 # what CONTRIBUTING.md documents
-python3 -m build                                    # build sdist/wheel (version from setuptools-scm)
 nix build .#checks.x86_64-linux.types               # mypy check, as run in CI
 make -C docs cleanall html                          # rebuild docs, including generated tables
 ```
@@ -29,17 +28,13 @@ mypy runs strictly only on the modules listed under `[[tool.mypy.overrides]]` in
 
 **UI loop.** `alot/ui.py:UI` owns the urwid main loop, the buffer list, prompts and notifications. Keys are resolved through `settings.get_keybinding(mode, keyseq)` into command lines, then `apply_commandline` (supports `;`-separated sequences) and `apply_command` run them; `Command.apply(ui)` may be `async`. Commands interact with the user through `ui.prompt`, `ui.choice` and `ui.notify`.
 
-**Buffers and widgets.** `alot/buffers/` has one buffer class per mode; `alot/widgets/` holds the urwid widgets they render. Thread mode uses urwidtrees for nested message/MIME trees.
-
 **Database.** `alot/db/manager.py:DBManager` opens notmuch read-only for every query. Writes (tag, untag, add/remove message, named queries) are appended to `writequeue` and applied by `flush()`, each in its own atomic transaction; on a locked DB the entry stays queued for a later retry. `alot/db/{thread,message}.py` wrap notmuch objects; `alot/db/utils.py` does MIME body extraction, charset decoding, mailcap rendering and crypto verification/decryption; `alot/db/envelope.py` is an unsent mail being composed.
 
 **Settings.** `alot.settings.const.settings` is a module-level `SettingsManager` singleton imported everywhere. It validates the user config against configobj specs in `alot/defaults/` (`alot.rc.spec`, `theme.spec`, default bindings and theme), reads parts of notmuch's own config, builds `Account` objects (`alot/account.py`, sending via sendmail), and loads the optional user hooks file (`hooksfile` option) as a Python module exposed through `settings.get_hook(name)`.
 
-**Startup.** `alot/__main__.py` parses CLI args, reads settings, creates the `DBManager` and the `UI`. urwid runs on the same asyncio event loop (`urwid.AsyncioEventLoop`).
-
 ## Tests
 
-Tests live in `tests/`, mirroring the package layout. Test mails are in `tests/static/mail/`. Many tests patch the global `settings` singleton with `unittest.mock`; `tests/utilities.py` has shared helpers (class-level cleanups, `async_test`, mock key and UI factories).
+Many tests patch the global `settings` singleton with `unittest.mock`; `tests/utilities.py` has shared helpers (class-level cleanups, `async_test`, mock key and UI factories).
 
 ## Scope
 
