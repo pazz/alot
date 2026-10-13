@@ -216,8 +216,11 @@ class MessageTree(CollapsibleTree):
             if bodytree is not None:
                 mainstruct.append((bodytree, None))
 
+        # urwidtrees cannot display empty subtrees or child lists, as with no
+        # displayed headers or an empty message file
+        mainstruct = [s for s in mainstruct if s[0].root is not None]
         structure = [
-            (self._get_summary(), mainstruct)
+            (self._get_summary(), mainstruct or None)
         ]
         return structure
 

@@ -273,3 +273,37 @@ class TestModes(EndToEndTestCase):
         self.command('compose --to=to@example.com --subject=e2e-subject')
         self.wait_for(': envelope (plaintext)]')
         self.wait_for('Test User <test@example.com>')  # From, set by alot
+
+
+
+class TestEmptyMessageFile(EndToEndTestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cur = os.path.join(cls.dir, 'mail', 'cur')
+        for mid, extra in (('parent', ''),
+                           ('reply', 'In-Reply-To: <parent@e2e>')):
+            cls._write(os.path.join(cur, mid + ':2,S'), '''\
+                From: a@example.com
+                Subject: e2e-empty
+                Message-ID: <{mid}@e2e>
+                {extra}
+
+                {mid} body
+                ''', mid=mid, extra=extra)
+        subprocess.run(['notmuch', 'new', '--quiet', '--no-hooks'],
+                       env=cls.env, check=True)
+        cls.thread_count += 2
+        # the file vanishes into nothing after indexing
+        open(os.path.join(cur, 'parent:2,S'), 'w').close()
+
+    def test_open_and_move(self):
+        self.command('search subject:e2e-empty')
+        self.wait_for('search] for "subject:e2e-empty"')
+        self.settle()
+        self.send('\r')
+        self.wait_for('reply body')
+        for move in ('move up', 'move down', 'move first', 'move last'):
+            self.command(move)
+        self.assertResponsive()
