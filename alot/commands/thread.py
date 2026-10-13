@@ -864,6 +864,18 @@ class PrintCommand(PipeCommand):
                              done_msg=ok_msg)
 
 
+async def _may_overwrite(ui, attachment, path):
+    """ask before saving `attachment` to `path` replaces an existing file"""
+    path = os.path.expanduser(path)
+    name = attachment.get_filename()
+    if os.path.isdir(path):
+        if not name:
+            return True  # Attachment.save picks a new temporary name
+        path = os.path.join(path, os.path.basename(name))
+    return (not os.path.exists(path) or await ui.choice(
+        'overwrite %s?' % path, select='yes', cancel='no') == 'yes')
+
+
 @registerCommand(MODE, 'save', arguments=[
     (['--all'], {'action': 'store_true', 'help': 'save all attachments'}),
     (['path'], {'nargs': '?', 'help': 'path to save to'})])
@@ -893,6 +905,8 @@ class SaveAttachmentCommand(Command):
             if self.path:
                 if os.path.isdir(os.path.expanduser(self.path)):
                     for a in msg.get_attachments():
+                        if not await _may_overwrite(ui, a, self.path):
+                            continue
                         dest = a.save(self.path)
                         name = a.get_filename()
                         if name:
@@ -916,6 +930,8 @@ class SaveAttachmentCommand(Command):
                                                 completer=pcomplete,
                                                 text=initialtext)
                 if self.path:
+                    if not await _may_overwrite(ui, attachment, self.path):
+                        raise CommandCanceled()
                     try:
                         dest = attachment.save(self.path)
                         ui.notify('saved attachment as: %s' % dest)
