@@ -137,9 +137,19 @@ class EndToEndTestCase(unittest.TestCase):
     def send(self, keys):
         os.write(self.fd, keys.encode())
 
+    def settle(self):
+        """Wait until alot has stopped drawing."""
+        deadline = time.monotonic() + TIMEOUT
+        while self._read(0.3) and time.monotonic() < deadline:
+            pass
+
     def command(self, cmdline):
+        # a ':' drawn earlier, e.g. in 'tag:inbox', must not pass for the
+        # prompt, which opens asynchronously
+        self.settle()
+        self.output = b''
         self.send(':')
-        self.wait_for(':')  # the prompt opens asynchronously
+        self.wait_for(':')
         self.send(cmdline + '\r')
 
     def wait_for_exit(self):
@@ -193,9 +203,7 @@ class TestRunning(EndToEndTestCase):
             with open('/proc/%d/status' % self.pid) as f:
                 return sum(int(line.split()[1]) for line in f
                            if 'ctxt_switches' in line)
-        deadline = time.monotonic() + TIMEOUT
-        while self._read(0.5) and time.monotonic() < deadline:
-            pass  # let it settle
+        self.settle()
         before = switches()
         time.sleep(2)
         # an idle event loop that polls wakes up dozens of times a second
