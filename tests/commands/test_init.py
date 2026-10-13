@@ -35,6 +35,12 @@ class TestCommandFactory(unittest.TestCase):
         self.assertTrue(cmd.all)
         self.assertEqual(cmd.path, '/foo')
 
+    def test_double_quotes_are_kept(self):
+        for value in ('"foo bar" <foo@bar.com>',
+                      '"foo bar" <foo@bar.com>, "blub bla" <blub@bla.com>'):
+            cmd = commands.commandfactory('set To ' + value, mode='envelope')
+            self.assertEqual(cmd.value, value)
+
 
 class TestRegisterCommand(unittest.TestCase):
     """Tests for the registerCommand class."""

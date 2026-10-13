@@ -165,7 +165,8 @@ def commandfactory(cmdline, mode='global'):
     # allow to shellescape without a space after '!'
     if cmdline.startswith('!'):
         cmdline = 'shellescape \'%s\'' % cmdline[1:]
-    cmdline = re.sub(r'"(.*)"', r'"\\"\1\\""', cmdline)
+    # keep double quotes, e.g. around real names in addresses, in the value
+    cmdline = re.sub(r'"(.*?)"', r'"\\"\1\\""', cmdline)
     try:
         args = shlex.split(cmdline)
     except ValueError as e:
