@@ -4,7 +4,7 @@ about: Create a report to help us improve
 
 ---
 
-Before you submit a bug report, please make sure that the issue still exists on the master branch!
+Before you submit a bug report, please make sure that the issue still exists on the main branch!
 
 **Describe the bug**
 A clear and concise description of what the bug is.
