@@ -419,6 +419,11 @@ class TestMessageFromFile(TestCaseClassCleanup):
         message = utils.decrypted_message_from_bytes(m.as_bytes())
         self.assertEqual(message.get_payload(), 'This is some text')
 
+    def test_empty_group_with_comment(self):
+        message = utils.decrypted_message_from_bytes(
+            b'To: undisclosed-recipients:; (no To-header on input)\n\n')
+        self.assertIn('undisclosed-recipients:;', message.get_all('To')[0])
+
     def _make_signed(self):
         """Create a signed message that is multipart/signed."""
         text = b'This is some text'

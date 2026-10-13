@@ -26,6 +26,19 @@ from ..helper import parse_mailcap_nametemplate
 
 charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 
+
+class _Policy(email.policy.EmailPolicy):
+    def header_fetch_parse(self, name, value):
+        try:
+            return super().header_fetch_parse(name, value)
+        except AttributeError:
+            # Python < 3.13 fails on an empty group followed by a comment,
+            # as in "To: undisclosed-recipients:; (no To-header on input)"
+            return email.policy.compat32.header_fetch_parse(name, value)
+
+
+_SMTP = _Policy(linesep='\r\n')
+
 X_SIGNATURE_VALID_HEADER = 'X-Alot-OpenPGP-Signature-Valid'
 X_SIGNATURE_MESSAGE_HEADER = 'X-Alot-OpenPGP-Signature-Message'
 
@@ -307,7 +320,7 @@ def decrypted_message_from_bytes(bytestring, session_keys=None):
         bytestring,
         email.message_from_bytes(bytestring,
                                  _class=email.message.EmailMessage,
-                                 policy=email.policy.SMTP),
+                                 policy=_SMTP),
         session_keys)
 
 
