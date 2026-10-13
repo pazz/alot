@@ -1045,7 +1045,6 @@ class ReloadCommand(Command):
     MODE, 'savequery',
     arguments=[
         (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
-                          'default': 'True',
                           'help': 'postpone a writeout to the index'}),
         (['alias'], {'help': 'alias to use for query string'}),
         (['query'], {'help': 'query string to store',
@@ -1094,7 +1093,6 @@ class SaveQueryCommand(Command):
     MODE, 'removequery',
     arguments=[
         (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
-                          'default': 'True',
                           'help': 'postpone a writeout to the index'}),
         (['alias'], {'help': 'alias to remove'}),
     ],

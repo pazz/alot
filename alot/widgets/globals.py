@@ -9,7 +9,6 @@ import re
 import operator
 import urwid
 
-from ..helper import string_decode
 from ..settings.const import settings
 from ..db.attachment import Attachment
 from ..errors import CompletionError
@@ -130,8 +129,6 @@ class CompleteEdit(urwid.Edit):
         self.historypos = None
         self.focus_in_clist = 0
 
-        if not isinstance(edit_text, str):
-            edit_text = string_decode(edit_text)
         self.start_completion_pos = len(edit_text)
         self.completions = None
         urwid.Edit.__init__(self, edit_text=edit_text, **kwargs)

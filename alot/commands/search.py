@@ -18,7 +18,6 @@ from ..settings.const import settings
 
 MODE = 'search'
 _NO_FLUSH_ARG = (['--no-flush'], {'action': 'store_false', 'dest': 'flush',
-                                  'default': 'True',
                                   'help': 'postpone a writeout to the index'})
 _TAGS_ARG = (['tags'], {'help': 'comma separated list of tags'})
 
