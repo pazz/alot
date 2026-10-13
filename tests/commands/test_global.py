@@ -24,6 +24,7 @@ from unittest import mock
 from alot.commands import globals as g_commands
 from alot.commands import search as s_commands
 from alot.db.errors import DatabaseROError
+from alot.ui import UI
 
 from .. import utilities
 
@@ -111,6 +112,17 @@ class TestComposeCommand(unittest.TestCase):
         ui = utilities.make_ui(prompt=mock.AsyncMock(return_value=None))
         with self.assertRaises(g_commands.CommandCanceled):
             await g_commands.ComposeCommand()._set_compose_tags(ui)
+
+    @utilities.async_test
+    async def test_missing_signature_prompt(self):
+        envelope = self._make_envelope_mock()
+        envelope.account = self._make_account_mock()
+        envelope.account.signature = '/nonexistent/signature'
+        ui = utilities.make_ui(_overlay_input=mock.AsyncMock(return_value='no'))
+        ui.choice = lambda *args, **kwargs: UI.choice(ui, *args, **kwargs)
+        cmd = g_commands.ComposeCommand(envelope=envelope)
+        with self.assertRaises(cmd.ApplyError):
+            await cmd._set_signature(ui)
 
 
 class TestExternalCommand(unittest.TestCase):

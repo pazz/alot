@@ -848,8 +848,8 @@ class ComposeCommand(Command):
             else:
                 ui.notify('could not locate signature: %s' % sig,
                           priority='error')
-                if (await ui.choice('send without signature?', 'yes',
-                                    'no')) == 'no':
+                if (await ui.choice('send without signature?', select='yes',
+                                    cancel='no')) == 'no':
                     raise self.ApplyError
 
     async def apply(self, ui):
