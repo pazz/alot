@@ -18,11 +18,15 @@ from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
 import asyncio
+from typing import TYPE_CHECKING
 
 import magic
 
+if TYPE_CHECKING:
+    from alot.db.envelope import Envelope
 
-def split_commandline(s):
+
+def split_commandline(s: str) -> list[str]:
     """
     splits semi-colon separated commandlines, ignoring quoted separators
     """
@@ -30,7 +34,7 @@ def split_commandline(s):
     return re.split(splitter, s)[1::4]
 
 
-def unicode_printable(c):
+def unicode_printable(c: str) -> bool:
     """
     Checks if the given character is a printable Unicode character, i.e., not a
     private/unassigned character and not a control character other than tab or
@@ -41,7 +45,7 @@ def unicode_printable(c):
     return unicodedata.category(c) not in ('Cc', 'Cn', 'Co')
 
 
-def string_sanitize(string):
+def string_sanitize(string: str) -> str:
     r"""
     strips non-printable characters and expands tabs to 8 columns
 
@@ -80,38 +84,28 @@ def string_sanitize(string):
     return preprocessed_string.expandtabs(8)
 
 
-def string_decode(string, enc='ascii'):
+def string_decode(string: str | bytes, enc: str | None = 'ascii') -> str:
     """
-    safely decodes string to unicode bytestring, respecting `enc` as a hint.
+    safely decodes bytes to str, respecting `enc` as a hint.
 
-    :param string: the string to decode
-    :type string: str or unicode
     :param enc: a hint what encoding is used in string ('ascii', 'utf-8', ...)
-    :type enc: str
-    :returns: the unicode decoded input string
-    :rtype: unicode
-
     """
-
-    if enc is None:
-        enc = 'ascii'
+    if isinstance(string, str):
+        return string
     try:
-        string = str(string, enc, errors='replace')
+        return string.decode(enc or 'ascii', errors='replace')
     except LookupError:  # malformed enc string
-        string = string.decode('ascii', errors='replace')
-    except TypeError:  # already str
-        pass
-    return string
+        return string.decode('ascii', errors='replace')
 
 
-def shorten(string, maxlen):
+def shorten(string: str, maxlen: int) -> str:
     """shortens string if longer than maxlen, appending ellipsis"""
     if 1 < maxlen < len(string):
         string = string[:maxlen - 1] + '…'
     return string[:maxlen]
 
 
-def shorten_author_string(authors_string, maxlength):
+def shorten_author_string(authors_string: str, maxlength: int) -> str:
     """
     Parse a list of authors concatenated as a text string (comma
     separated) and smartly adjust them to maxlength.
@@ -135,7 +129,7 @@ def shorten_author_string(authors_string, maxlength):
 
     # I will create a list of authors by parsing author_string. I use
     # deque to do popleft without performance penalties
-    authors = deque()
+    authors: deque[str] = deque()
 
     # If author list is too long, it uses only the first part of each
     # name (gmail style)
@@ -150,7 +144,7 @@ def shorten_author_string(authors_string, maxlength):
 
     # Author chain will contain the list of author strings to be
     # concatenated using commas for the final formatted author_string.
-    authors_chain = deque()
+    authors_chain: deque[str] = deque()
 
     if len(authors) == 0:
         return ''
@@ -188,7 +182,7 @@ def shorten_author_string(authors_string, maxlength):
     return authorsstring
 
 
-def pretty_datetime(d):
+def pretty_datetime(d: datetime) -> str:
     """
     translates :class:`datetime` `d` to a "sup-style" human readable string,
     such as 'just now', '1min ago', '5h ago', '02:54am', 'yest 02pm',
@@ -225,7 +219,8 @@ def pretty_datetime(d):
     return string
 
 
-def call_cmd(cmdlist, stdin=None):
+def call_cmd(cmdlist: list[str],
+             stdin: str | bytes | None = None) -> tuple[str, str, int]:
     """
     get a shell commands output, error message and return value and immediately
     return.
@@ -236,11 +231,8 @@ def call_cmd(cmdlist, stdin=None):
 
     :param cmdlist: shellcommand to call, already splitted into a list accepted
                     by :meth:`subprocess.Popen`
-    :type cmdlist: list of str
     :param stdin: string to pipe to the process
-    :type stdin: str, bytes, or None
     :return: triple of stdout, stderr, return value of the shell command
-    :rtype: str, str, int
     """
     termenc = locale.getpreferredencoding(False)
     if isinstance(stdin, str):
@@ -249,16 +241,13 @@ def call_cmd(cmdlist, stdin=None):
     try:
         proc = subprocess.run(cmdlist, input=stdin, capture_output=True)
     except OSError as e:
-        out, err, ret = b'', e.strerror, e.errno
-    else:
-        out, err, ret = proc.stdout, proc.stderr, proc.returncode
-
-    out = string_decode(out, termenc)
-    err = string_decode(err, termenc)
-    return out, err, ret
+        return '', e.strerror or str(e), e.errno or 1
+    return (string_decode(proc.stdout, termenc),
+            string_decode(proc.stderr, termenc), proc.returncode)
 
 
-async def call_cmd_async(cmdlist, stdin=None):
+async def call_cmd_async(cmdlist: list[str],
+                         stdin: str | None = None) -> tuple[str, str, int]:
     """Given a command, call that command asynchronously and return the output.
 
     This function only handles `OSError` when creating the subprocess, any
@@ -269,36 +258,31 @@ async def call_cmd_async(cmdlist, stdin=None):
     If such an `OSError` is caught, then returncode will be set to 1, and the
     error value will be set to the str() value of the exception.
 
-    :type cmdlist: list of str
     :param stdin: string to pipe to the process
-    :type stdin: str
     :return: Tuple of stdout, stderr, returncode
-    :rtype: tuple[str, str, int]
     """
     termenc = locale.getpreferredencoding(False)
-    cmdlist = [s.encode(termenc) for s in cmdlist]
+    args = [s.encode(termenc) for s in cmdlist]
 
-    logging.debug('CMD = %s', cmdlist)
+    logging.debug('CMD = %s', args)
     try:
         proc = await asyncio.create_subprocess_exec(
-            *cmdlist,
+            *args,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
             stdin=asyncio.subprocess.PIPE if stdin else None)
     except OSError as e:
         return ('', str(e), 1)
     out, err = await proc.communicate(stdin.encode(termenc) if stdin else None)
-    return (out.decode(termenc), err.decode(termenc), proc.returncode)
+    return (out.decode(termenc), err.decode(termenc), await proc.wait())
 
 
-def guess_mimetype(blob):
+def guess_mimetype(blob: bytes) -> str:
     """
     uses file magic to determine the mime-type of the given data blob.
 
     :param blob: file content as read by file.read()
-    :type blob: data
     :returns: mime-type, falls back to 'application/octet-stream'
-    :rtype: str
     """
     mimetype = 'application/octet-stream'
     # this is a bit of a hack to support different versions of python magic.
@@ -328,14 +312,11 @@ def guess_mimetype(blob):
     return mimetype
 
 
-def guess_encoding(blob):
+def guess_encoding(blob: bytes) -> str:
     """
     uses file magic to determine the encoding of the given data blob.
 
     :param blob: file content as read by file.read()
-    :type blob: data
-    :returns: encoding
-    :rtype: str
     """
     # this is a bit of a hack to support different versions of python magic.
     # Hopefully at some point this will no longer be necessary
@@ -351,21 +332,16 @@ def guess_encoding(blob):
     if hasattr(magic, 'open'):
         m = magic.open(magic.MAGIC_MIME_ENCODING)
         m.load()
-        return m.buffer(blob)
+        enc: str = m.buffer(blob)
     elif hasattr(magic, 'from_buffer'):
-        m = magic.Magic(mime_encoding=True)
-        return m.from_buffer(blob)
+        enc = magic.Magic(mime_encoding=True).from_buffer(blob)
     else:
         raise Exception('Unknown magic API')
+    return enc
 
 
-def try_decode(blob):
-    """Guess the encoding of blob and try to decode it into a str.
-
-    :param bytes blob: The bytes to decode
-    :returns: the decoded blob
-    :rtype: str
-    """
+def try_decode(blob: bytes) -> str:
+    """Guess the encoding of blob and try to decode it into a str."""
     assert isinstance(blob, bytes), 'cannot decode a str or non-bytes object'
     enc = guess_encoding(blob)
     try:
@@ -376,19 +352,16 @@ def try_decode(blob):
 
 
 # TODO: make this work on blobs, not paths
-def mimewrap(path, filename=None, ctype=None):
+def mimewrap(path: str, filename: str | None = None,
+             ctype: str | None = None) -> MIMEBase:
     """Take the contents of the given path and wrap them into an email MIME
     part according to the content type.  The content type is auto detected from
     the actual file contents and the file name if it is not given.
 
     :param path: the path to the file contents
-    :type path: str
     :param filename: the file name to use in the generated MIME part
-    :type filename: str or None
     :param ctype: the content type of the file contents in path
-    :type ctype: str or None
     :returns: the message MIME part storing the data from path
-    :rtype: subclasses of email.mime.base.MIMEBase
     """
 
     with open(path, 'rb') as f:
@@ -396,9 +369,9 @@ def mimewrap(path, filename=None, ctype=None):
     ctype = ctype or guess_mimetype(content)
     maintype, subtype = ctype.split('/', 1)
     if maintype == 'text':
-        part = MIMEText(content.decode(guess_encoding(content), 'replace'),
-                        _subtype=subtype,
-                        _charset='utf-8')
+        part: MIMEBase = MIMEText(
+            content.decode(guess_encoding(content), 'replace'),
+            _subtype=subtype, _charset='utf-8')
     elif maintype == 'image':
         part = MIMEImage(content, _subtype=subtype)
     elif maintype == 'audio':
@@ -416,7 +389,7 @@ def mimewrap(path, filename=None, ctype=None):
     return part
 
 
-def humanize_size(size):
+def humanize_size(size: int) -> str:
     """Create a nice human readable representation of the given number
     (understood as bytes) using the "KiB" and "MiB" suffixes to indicate
     kibibytes and mebibytes. A kibibyte is defined as 1024 bytes (as opposed to
@@ -424,9 +397,7 @@ def humanize_size(size):
     to a megabyte which is 1000**2 bytes).
 
     :param size: the number to convert
-    :type size: int
     :returns: the human readable representation of size
-    :rtype: str
     """
     for factor, format_string in ((1, '%i'),
                                   (1024, '%iKiB'),
@@ -436,27 +407,25 @@ def humanize_size(size):
     return format_string % (size / factor)
 
 
-def parse_mailcap_nametemplate(tmplate='%s'):
+def parse_mailcap_nametemplate(tmplate: str = '%s') -> tuple[str, str]:
     """this returns a prefix and suffix to be used
     in the tempfile module for a given mailcap nametemplate string"""
     nt_list = tmplate.split('%s')
-    return tuple(nt_list) if len(nt_list) == 2 else ('', tmplate)
+    return (nt_list[0], nt_list[1]) if len(nt_list) == 2 else ('', tmplate)
 
 
-def parse_mailto(mailto_str):
+def parse_mailto(mailto_str: str) -> (
+        tuple[dict[str, list[str]], str] | tuple[None, None]):
     """
     Interpret mailto-string
 
     :param mailto_str: the string to interpret. Must conform to :rfc:2368.
-    :type mailto_str: str
-    :return: the header fields and the body found in the mailto link as a tuple
-        of length two
-    :rtype: tuple(dict(str->list(str)), str)
+    :return: the header fields and the body found in the mailto link
     """
     if mailto_str.startswith('mailto:'):
         import urllib.parse
         to_str, parms_str = mailto_str[7:].partition('?')[::2]
-        headers = {}
+        headers: dict[str, list[str]] = {}
         body = ''
 
         to = urllib.parse.unquote(to_str)
@@ -475,7 +444,7 @@ def parse_mailto(mailto_str):
         return (None, None)
 
 
-def mailto_to_envelope(mailto_str):
+def mailto_to_envelope(mailto_str: str) -> 'Envelope':
     """
     Interpret mailto-string into a :class:`alot.db.envelope.Envelope`
     """
@@ -484,13 +453,13 @@ def mailto_to_envelope(mailto_str):
     return Envelope(bodytext=body, headers=headers)
 
 
-def get_xdg_env(env_name, fallback):
+def get_xdg_env(env_name: str, fallback: str) -> str:
     """ Used for XDG_* env variables to return fallback if unset *or* empty """
     env = os.environ.get(env_name)
     return env if env else fallback
 
 
-def get_notmuch_config_path():
+def get_notmuch_config_path() -> str:
     """ Find the notmuch config file via env vars and default locations """
     # This code is modeled after the description in nomtuch-config(1)
     # Case 1 is only applicable for the notmuch CLI

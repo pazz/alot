@@ -67,6 +67,7 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 show_error_codes = true
 namespace_packages = true
+follow_imports = "silent"
 
 # Start with a minimal set of typed modules
 # We'll gradually add more as we improve type coverage
@@ -74,5 +75,6 @@ namespace_packages = true
 module = [
     "alot.errors",
     "alot.__init__",
+    "alot.helper",
 ]
 disallow_untyped_defs = true

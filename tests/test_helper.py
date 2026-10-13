@@ -402,6 +402,13 @@ class TestCallCmd(unittest.TestCase):
         self.assertEqual(err, 'foobar')
         self.assertEqual(code, 42)
 
+    def test_os_errors_without_errno(self):
+        with mock.patch('subprocess.Popen',
+                        mock.Mock(side_effect=OSError('foobar'))):
+            out, err, code = helper.call_cmd(
+                ['does_not_matter_as_subprocess_popen_is_mocked'])
+        self.assertEqual((out, err, code), ('', 'foobar', 1))
+
 
 class TestShorten(unittest.TestCase):
 
