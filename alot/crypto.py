@@ -2,32 +2,34 @@
 # Copyright © 2017-2018 Dylan Baker <dylan@pnwbakers.com>
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
+from collections.abc import Iterator
+from typing import Any
+
 import gpg
 
 from .errors import GPGProblem, GPGCode
 
 
-def RFC3156_micalg_from_algo(hash_algo):
+def RFC3156_micalg_from_algo(hash_algo: int) -> str:
     """
     Converts a GPGME hash algorithm name to one conforming to RFC3156.
 
     GPGME returns hash algorithm names such as "SHA256", but RFC3156 says that
     programs need to use names such as "pgp-sha256" instead.
 
-    :param str hash_algo: GPGME hash_algo
+    :param hash_algo: GPGME hash algorithm constant
     :returns: the lowercase name of of the algorithm with "pgp-" prepended
-    :rtype: str
     """
     # hash_algo will be something like SHA256, but we need pgp-sha256.
-    algo = gpg.core.hash_algo_name(hash_algo)
+    algo: str | None = gpg.core.hash_algo_name(hash_algo)
     if algo is None:
         raise GPGProblem('Unknown hash algorithm {}'.format(algo),
                          code=GPGCode.INVALID_HASH_ALGORITHM)
     return 'pgp-' + algo.lower()
 
 
-def get_key(keyid, validate=False, encrypt=False, sign=False,
-            signed_only=False):
+def get_key(keyid: str, validate: bool = False, encrypt: bool = False,
+            sign: bool = False, signed_only: bool = False) -> Any:
     """
     Gets a key from the keyring by filtering for the specified keyid, but
     only if the given keyid is specific enough (if it matches multiple
@@ -42,18 +44,12 @@ def get_key(keyid, validate=False, encrypt=False, sign=False,
     the key fingerprint.
 
     :param keyid: filter term for the keyring (usually a key ID)
-    :type keyid: str
     :param validate: validate that returned keyid is valid
-    :type validate: bool
     :param encrypt: when validating confirm that returned key can encrypt
-    :type encrypt: bool
     :param sign: when validating confirm that returned key can sign
-    :type sign: bool
     :param signed_only: only return keys  whose uid is signed (trusted to
         belong to the key)
-    :type signed_only: bool
-    :returns: A gpg key matching the given parameters
-    :rtype: gpg.gpgme._gpgme_key
+    :returns: A :class:`gpg.gpgme._gpgme_key` matching the given parameters
     :raises ~alot.errors.GPGProblem: if the keyid is ambiguous
     :raises ~alot.errors.GPGProblem: if there is no key that matches the
         parameters
@@ -116,7 +112,7 @@ def get_key(keyid, validate=False, encrypt=False, sign=False,
     return key
 
 
-def list_keys(hint=None, private=False):
+def list_keys(hint: str | None = None, private: bool = False) -> Iterator[Any]:
     """
     Returns a generator of all keys containing the fingerprint, or all keys if
     hint is None.
@@ -125,28 +121,26 @@ def list_keys(hint=None, private=False):
     is the caller's responsibility to handle them.
 
     :param hint: Part of a fingerprint to usee to search
-    :type hint: str or None
     :param private: Whether to return public keys or secret keys
-    :type private: bool
-    :returns: A generator that yields keys.
-    :rtype: Generator[gpg.gpgme.gpgme_key_t, None, None]
+    :returns: A generator that yields :class:`gpg.gpgme._gpgme_key` objects.
     """
     ctx = gpg.core.Context()
-    return ctx.keylist(hint, private)
+    keys: Iterator[Any] = ctx.keylist(hint, private)
+    return keys
 
 
-def detached_signature_for(plaintext_str, keys):
+def detached_signature_for(plaintext_str: bytes,
+                           keys: list[Any]) -> tuple[list[Any], bytes]:
     """
     Signs the given plaintext string and returns the detached signature.
 
     A detached signature in GPG speak is a separate blob of data containing
     a signature for the specified plaintext.
 
-    :param bytes plaintext_str: bytestring to sign
-    :param keys: list of one or more key to sign with.
-    :type keys: list[gpg.gpgme._gpgme_key]
-    :returns: A list of signature and the signed blob of data
-    :rtype: tuple[list[gpg.results.NewSignature], str]
+    :param plaintext_str: bytestring to sign
+    :param keys: list of one or more :class:`gpg.gpgme._gpgme_key` to sign
+        with.
+    :returns: A list of :class:`gpg.results.NewSignature` and the signature
     """
     ctx = gpg.core.Context(armor=True)
     ctx.signers = keys
@@ -155,31 +149,27 @@ def detached_signature_for(plaintext_str, keys):
     return sign_result.signatures, sigblob
 
 
-def encrypt(plaintext_str, keys):
+def encrypt(plaintext_str: bytes, keys: list[Any]) -> bytes:
     """Encrypt data and return the encrypted form.
 
-    :param bytes plaintext_str: the mail to encrypt
-    :param key: optionally, a list of keys to encrypt with
-    :type key: list[gpg.gpgme.gpgme_key_t] or None
+    :param plaintext_str: the mail to encrypt
+    :param keys: a list of :class:`gpg.gpgme._gpgme_key` to encrypt with
     :returns: encrypted mail
-    :rtype: str
     """
     assert keys, 'Must provide at least one key to encrypt with'
     ctx = gpg.core.Context(armor=True)
-    out = ctx.encrypt(plaintext_str, recipients=keys, sign=False,
-                      always_trust=True)[0]
+    out: bytes = ctx.encrypt(plaintext_str, recipients=keys, sign=False,
+                             always_trust=True)[0]
     return out
 
 
 NO_ERROR = None
 
 
-def bad_signatures_to_str(error):
+def bad_signatures_to_str(error: 'gpg.errors.BadSignatures') -> str:
     """
     Convert a bad signature exception to a text message.
     This is a workaround for gpg not handling non-ascii data correctly.
-
-    :param BadSignatures error: BadSignatures exception
     """
     return ", ".join("{}: {}".format(s.fpr,
                                      "Bad signature for key(s)")
@@ -187,33 +177,32 @@ def bad_signatures_to_str(error):
                      if s.status != NO_ERROR)
 
 
-def verify_detached(message, signature):
+def verify_detached(message: bytes, signature: bytes) -> list[Any]:
     """Verifies whether the message is authentic by checking the signature.
 
-    :param bytes message: The message to be verified, in canonical form.
-    :param bytes signature: the OpenPGP signature to verify
-    :returns: a list of signatures
-    :rtype: list[gpg.results.Signature]
+    :param message: The message to be verified, in canonical form.
+    :param signature: the OpenPGP signature to verify
+    :returns: a list of :class:`gpg.results.Signature`
     :raises alot.errors.GPGProblem: if the verification fails
     """
     ctx = gpg.core.Context()
     try:
-        verify_results = ctx.verify(message, signature)[1]
-        return verify_results.signatures
+        signatures: list[Any] = ctx.verify(message, signature)[1].signatures
+        return signatures
     except gpg.errors.BadSignatures as e:
         raise GPGProblem(bad_signatures_to_str(e), code=GPGCode.BAD_SIGNATURE)
     except gpg.errors.GPGMEError as e:
         raise GPGProblem(str(e), code=e.getcode())
 
 
-def decrypt_verify(encrypted, session_keys=None):
+def decrypt_verify(encrypted: bytes, session_keys: list[str] | None = None
+                   ) -> tuple[list[Any], bytes]:
     """Decrypts the given ciphertext string and returns both the
     signatures (if any) and the plaintext.
 
-    :param bytes encrypted: the mail to decrypt
-    :param list[str] session_keys: a list OpenPGP session keys
-    :returns: the signatures and decrypted plaintext data
-    :rtype: tuple[list[gpg.resuit.Signature], str]
+    :param encrypted: the mail to decrypt
+    :param session_keys: a list OpenPGP session keys
+    :returns: the :class:`gpg.results.Signature` list and decrypted plaintext
     :raises alot.errors.GPGProblem: if the decryption fails
     """
     if session_keys is not None:
@@ -226,14 +215,14 @@ def decrypt_verify(encrypted, session_keys=None):
     return _decrypt_verify_with_context(ctx, encrypted)
 
 
-def _decrypt_verify_session_keys(encrypted, session_keys):
+def _decrypt_verify_session_keys(encrypted: bytes, session_keys: list[str]
+                                 ) -> tuple[list[Any], bytes]:
     """Decrypts the given ciphertext string using the session_keys
     and returns both the signatures (if any) and the plaintext.
 
-    :param bytes encrypted: the mail to decrypt
-    :param list[str] session_keys: a list OpenPGP session keys
+    :param encrypted: the mail to decrypt
+    :param session_keys: a list OpenPGP session keys
     :returns: the signatures and decrypted plaintext data
-    :rtype: tuple[list[gpg.resuit.Signature], str]
     :raises alot.errors.GPGProblem: if the decryption fails
     """
     for key in session_keys:
@@ -246,14 +235,14 @@ def _decrypt_verify_session_keys(encrypted, session_keys):
     raise GPGProblem("No valid session key", code=GPGCode.NOT_FOUND)
 
 
-def _decrypt_verify_with_context(ctx, encrypted):
+def _decrypt_verify_with_context(ctx: 'gpg.Context', encrypted: bytes
+                                 ) -> tuple[list[Any], bytes]:
     """Decrypts the given ciphertext string using the gpg context
     and returns both the signatures (if any) and the plaintext.
 
-    :param gpg.Context ctx: the gpg context
-    :param bytes encrypted: the mail to decrypt
+    :param ctx: the gpg context
+    :param encrypted: the mail to decrypt
     :returns: the signatures and decrypted plaintext data
-    :rtype: tuple[list[gpg.resuit.Signature], str]
     :raises alot.errors.GPGProblem: if the decryption fails
     """
     try:
@@ -268,16 +257,13 @@ def _decrypt_verify_with_context(ctx, encrypted):
     return sigs, plaintext
 
 
-def validate_key(key, sign=False, encrypt=False):
+def validate_key(key: Any, sign: bool = False, encrypt: bool = False) -> None:
     """Assert that a key is valide and optionally that it can be used for
     signing or encrypting.  Raise GPGProblem otherwise.
 
-    :param key: the GPG key to check
-    :type key: gpg.gpgme._gpgme_key
+    :param key: the :class:`gpg.gpgme._gpgme_key` to check
     :param sign: whether the key should be able to sign
-    :type sign: bool
     :param encrypt: whether the key should be able to encrypt
-    :type encrypt: bool
     :raises ~alot.errors.GPGProblem: If the key is revoked, expired, or invalid
     :raises ~alot.errors.GPGProblem: If encrypt is true and the key cannot be
         used to encrypt
@@ -303,19 +289,17 @@ def validate_key(key, sign=False, encrypt=False):
             code=GPGCode.KEY_CANNOT_SIGN)
 
 
-def check_uid_validity(key, email):
+def check_uid_validity(key: Any, email: str) -> bool:
     """Check that a the email belongs to the given key.  Also check the trust
     level of this connection.  Only if the trust level is high enough (>=4) the
     email is assumed to belong to the key.
 
-    :param key: the GPG key to which the email should belong
-    :type key: gpg.gpgme._gpgme_key
+    :param key: the :class:`gpg.gpgme._gpgme_key` to which the email should
+        belong
     :param email: the email address that should belong to the key
-    :type email: str
     :returns: whether the key can be assumed to belong to the given email
-    :rtype: bool
     """
-    def check(key_uid):
+    def check(key_uid: Any) -> bool:
         return (email == key_uid.email and
                 not key_uid.revoked and
                 not key_uid.invalid and

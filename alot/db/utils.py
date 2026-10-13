@@ -175,7 +175,7 @@ def _handle_signatures(original_bytes: bytes, original: Message,
 
         sigs = crypto.verify_detached(
             signed_chunk[len(b'\r\n'):],
-            signature_part.get_payload(decode=True))
+            cast(bytes, signature_part.get_payload(decode=True)))
 
         add_signature_headers(original, sigs, None)
 

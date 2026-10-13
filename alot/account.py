@@ -9,7 +9,10 @@ import mailbox
 import os
 import re
 import shlex
+from email.message import Message
+from typing import Any
 
+from .addressbook import AddressBook
 from .helper import call_cmd_async
 
 
@@ -69,7 +72,8 @@ class Address:
         regard to case. If True then it will.
     """
 
-    def __init__(self, user, domain, case_sensitive=False):
+    def __init__(self, user: str, domain: str,
+                 case_sensitive: bool = False) -> None:
         assert isinstance(user, str), 'Username must be str'
         assert isinstance(domain, str), 'Domain name must be str'
         self.username = user
@@ -77,29 +81,27 @@ class Address:
         self.case_sensitive = case_sensitive
 
     @classmethod
-    def from_string(cls, address, case_sensitive=False):
+    def from_string(cls, address: str, case_sensitive: bool = False) -> 'Address':
         """Alternate constructor for building from a string.
 
-        :param str address: An email address in <user>@<domain> form
-        :param bool case_sensitive: passed directly to the constructor argument
+        :param address: An email address in <user>@<domain> form
+        :param case_sensitive: passed directly to the constructor argument
             of the same name.
-        :returns: An account from the given arguments
-        :rtype: :class:`Account`
         """
         assert isinstance(address, str), 'address must be str'
         username, domainname = address.split('@')
         return cls(username, domainname, case_sensitive=case_sensitive)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'Address({!r}, {!r}, case_sensitive={})'.format(
             self.username,
             self.domainname,
             str(self.case_sensitive))
 
-    def __str__(self):
+    def __str__(self) -> str:
         return '{}@{}'.format(self.username, self.domainname)
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         """Compare to another :class:`~alot.account.Address` or a `str`.
 
         The username is compared case-insensitively unless the address is
@@ -124,7 +126,7 @@ class Address:
         return (username == ouser and
                 self.domainname.lower() == odomain.lower())
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((self.username.lower(), self.domainname.lower(),
                      self.case_sensitive))
 
@@ -148,37 +150,45 @@ class Account:
         command to send out mails.
     """
 
-    address = None
+    address: Address
     """this accounts main email address"""
-    aliases = []
+    aliases: list[Address]
     """list of alternative addresses"""
-    alias_regexp = ""
+    alias_regexp: str | None
     """regex matching alternative addresses"""
-    realname = None
+    realname: str | None
     """real name used to format from-headers"""
-    encrypt_to_self = None
+    encrypt_to_self: bool | None
     """encrypt outgoing encrypted emails to this account's private key"""
-    gpg_key = None
-    """gpg fingerprint for this account's private key"""
-    signature = None
+    gpg_key: Any
+    """the :class:`gpg.gpgme._gpgme_key` for this account's private key"""
+    signature: str | None
     """signature to append to outgoing mails"""
-    signature_filename = None
+    signature_filename: str | None
     """filename of signature file in attachment"""
-    signature_as_attachment = None
+    signature_as_attachment: bool
     """attach signature file instead of appending its content to body text"""
-    abook = None
-    """addressbook (:class:`addressbook.AddressBook`)
-       managing this accounts contacts"""
+    abook: AddressBook | None
+    """addressbook managing this accounts contacts"""
 
-    def __init__(self, address=None, aliases=None, alias_regexp=None,
-                 realname=None, gpg_key=None, signature=None,
-                 signature_filename=None, signature_as_attachment=False,
-                 sent_box=None, sent_tags=None, draft_box=None,
-                 draft_tags=None, replied_tags=None, passed_tags=None,
-                 abook=None, sign_by_default=False,
-                 encrypt_by_default="none", encrypt_to_self=None,
-                 message_id_domain=None,
-                 case_sensitive_username=False, **_):
+    def __init__(self, address: str, aliases: list[str] | None = None,
+                 alias_regexp: str | None = None,
+                 realname: str | None = None, gpg_key: Any = None,
+                 signature: str | None = None,
+                 signature_filename: str | None = None,
+                 signature_as_attachment: bool = False,
+                 sent_box: mailbox.Mailbox | None = None,
+                 sent_tags: list[str] | None = None,
+                 draft_box: mailbox.Mailbox | None = None,
+                 draft_tags: list[str] | None = None,
+                 replied_tags: list[str] | None = None,
+                 passed_tags: list[str] | None = None,
+                 abook: AddressBook | None = None,
+                 sign_by_default: bool = False,
+                 encrypt_by_default: str = "none",
+                 encrypt_to_self: bool | None = None,
+                 message_id_domain: str | None = None,
+                 case_sensitive_username: bool = False, **_: Any) -> None:
         self.address = Address.from_string(
             address, case_sensitive=case_sensitive_username)
         self.aliases = [
@@ -217,11 +227,10 @@ class Account:
             self.alias_regexp,
             flags=0 if case_sensitive_username else re.IGNORECASE)
 
-    def matches_address(self, address):
+    def matches_address(self, address: str) -> bool:
         """returns whether this account knows about an email address
 
-        :param str address: address to look up
-        :rtype: bool
+        :param address: address to look up
         """
         if self.address == address:
             return True
@@ -233,25 +242,23 @@ class Account:
         return False
 
     @staticmethod
-    def store_mail(mbx, mail):
+    def store_mail(mbx: mailbox.Mailbox, mail: Message | str) -> str | None:
         """
         stores given mail in mailbox. If mailbox is maildir, set the S-flag and
         return path to newly added mail. Oherwise this will return `None`.
 
         :param mbx: mailbox to use
-        :type mbx: :class:`mailbox.Mailbox`
         :param mail: the mail to store
-        :type mail: :class:`email.message.Message` or str
         :returns: absolute path of mail-file for Maildir or None if mail was
                   successfully stored
-        :rtype: str or None
         :raises: StoreMailError
         """
         if not isinstance(mbx, mailbox.Mailbox):
             logging.debug('Not a mailbox')
-            return False
+            return None
 
         mbx.lock()
+        msg: mailbox.Message
         if isinstance(mbx, mailbox.Maildir):
             logging.debug('Maildir')
             msg = mailbox.MaildirMessage(mail)
@@ -279,28 +286,29 @@ class Account:
                 logging.debug('path of saved msg: %s', path)
         return path
 
-    def store_sent_mail(self, mail):
+    def store_sent_mail(self, mail: Message | str) -> str | None:
         """
         stores mail (:class:`email.message.Message` or str) in send-store if
         :attr:`sent_box` is set.
         """
         if self.sent_box is not None:
             return self.store_mail(self.sent_box, mail)
+        return None
 
-    def store_draft_mail(self, mail):
+    def store_draft_mail(self, mail: Message | str) -> str | None:
         """
         stores mail (:class:`email.message.Message` or str) as draft if
         :attr:`draft_box` is set.
         """
         if self.draft_box is not None:
             return self.store_mail(self.draft_box, mail)
+        return None
 
-    async def send_mail(self, mail):
+    async def send_mail(self, mail: Message | str) -> None:
         """
         sends given mail
 
         :param mail: the mail to send
-        :type mail: :class:`email.message.Message` or string
         :raises SendingMailFailed: if sending fails
         """
         pass
@@ -310,19 +318,17 @@ class SendmailAccount(Account):
     """:class:`Account` that pipes a message to a `sendmail` shell command for
     sending"""
 
-    def __init__(self, cmd, **kwargs):
+    def __init__(self, cmd: str, **kwargs: Any) -> None:
         """
         :param cmd: sendmail command to use for this account
-        :type cmd: str
         """
         super(SendmailAccount, self).__init__(**kwargs)
         self.cmd = cmd
 
-    async def send_mail(self, mail):
+    async def send_mail(self, mail: Message | str) -> None:
         """Pipe the given mail to the configured sendmail command.  Display a
         short message on success or a notification on error.
         :param mail: the mail to send out
-        :type mail: :class:`email.message.Message` or string
         :raises: class:`SendingMailFailed` if sending failes
         """
         cmdlist = shlex.split(self.cmd)
