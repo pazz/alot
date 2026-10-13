@@ -21,6 +21,7 @@ unreleased:
 * deps: require configobj >= 5.0.1 and python-magic >= 0.4.12; older versions fail alot's tests
 * info: opening and scrolling long threads is much faster: a 300-message thread opens in 0.2s instead of 4s (#694)
 * info: alias_regexp now has to match a whole address; alternatives such as "a@x|b@y" no longer also match longer addresses, and patterns starting with an inline flag such as "(?i)" now work
+* info: fix DBManager.get_message, which hooks can call and which always failed
 
 0.12:
 * breaking: drop support for python 3.8, add support for python 3.13 & 3.14
