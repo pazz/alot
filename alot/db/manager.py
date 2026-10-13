@@ -281,10 +281,11 @@ class DBManager:
         with Database(path=self.path, mode=Database.MODE.READ_ONLY,
                       config=self.config) as db:
             try:
-                yield next(db.threads('thread:' + tid))
-            except NotmuchError:
+                thread = next(db.threads('thread:' + tid))
+            except (StopIteration, NotmuchError):
                 errmsg = 'no thread with id %s exists!' % tid
                 raise NonexistantObjectError(errmsg)
+            yield thread
 
     def get_thread(self, tid):
         """returns :class:`Thread` with given thread id (str)"""
@@ -297,10 +298,11 @@ class DBManager:
         with Database(path=self.path, mode=Database.MODE.READ_ONLY,
                       config=self.config) as db:
             try:
-                yield db.find_message(mid)
-            except:
+                msg = db.find(mid)
+            except (LookupError, NotmuchError):
                 errmsg = 'no message with id %s exists!' % mid
                 raise NonexistantObjectError(errmsg)
+            yield msg
 
     def get_message(self, mid):
         """returns :class:`Message` with given message id (str)"""

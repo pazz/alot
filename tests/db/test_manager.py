@@ -10,6 +10,7 @@ import tempfile
 import textwrap
 from unittest import mock
 
+from alot.db.errors import NonexistantObjectError
 from alot.db.manager import DBManager
 from alot.settings.const import settings
 from notmuch2 import Database
@@ -34,14 +35,30 @@ class TestDBManager(utilities.TestCaseClassCleanup):
         # define an empty notmuch database in a temporary directory
         cls.dbpath = tempfile.mkdtemp()
         cls.db = Database.create(path=cls.dbpath)
+        mail = os.path.join(cls.dbpath, 'mail')
+        with open(mail, 'w') as f:
+            f.write('Message-ID: <known@example.com>\nSubject: hi\n\nbody\n')
+        cls.db.add(mail)
         cls.db.close()
-        cls.manager = DBManager(cls.dbpath)
+        cls.manager = DBManager(cls.dbpath, config=Database.CONFIG.EMPTY)
 
         # clean up temporary database
         cls.addClassCleanup(shutil.rmtree, cls.dbpath)
 
         # let global settings manager read our temporary notmuch config
         settings.read_notmuch_config(cls.notmuch_config_path)
+
+    def test_get_message(self):
+        msg = self.manager.get_message('known@example.com')
+        self.assertEqual(msg.get_message_id(), 'known@example.com')
+
+    def test_get_unknown_message(self):
+        with self.assertRaises(NonexistantObjectError):
+            self.manager.get_message('unknown@example.com')
+
+    def test_get_unknown_thread(self):
+        with self.assertRaises(NonexistantObjectError):
+            self.manager.get_thread('0000000000000000')
 
     def test_save_named_query(self):
         with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
