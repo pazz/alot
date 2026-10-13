@@ -131,6 +131,11 @@ class Message:
         """returns tags attached to this message as list of strings"""
         return sorted(self._tags)
 
+    def refresh(self):
+        """re-read this message's tags from the index"""
+        with self._dbman._with_notmuch_message(self._id) as msg:
+            self._tags = set(msg.tags)
+
     def get_thread(self):
         """returns the :class:`~alot.db.Thread` this msg belongs to"""
         if not self._thread:

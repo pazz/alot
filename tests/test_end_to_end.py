@@ -229,6 +229,15 @@ class TestRunning(EndToEndTestCase):
         os.kill(self.pid, signal.SIGCONT)
         self.assertResponsive()
 
+    def test_tag_in_thread_mode_is_shown(self):
+        self.send('\r')  # open the first thread
+        self.wait_for('thread]')
+        while self._read(0.5):  # let the thread view settle
+            pass
+        self.output = b''
+        self.command('tag e2e-tag')
+        self.wait_for('e2e-tag')
+
     def test_external_command(self):
         self.command('shellescape --thread=False true')
         self.assertResponsive()
