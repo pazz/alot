@@ -18,6 +18,7 @@ unreleased:
 * info: editor_cmd templates that put %s inside double quotes now receive the plain file name and work
 * deps(nix): remove the "docs" package, deprecated since 0.11; use "alot.doc"
 * deps: drop twisted; require urwid >= 2.2.0, whose asyncio event loop no longer polls while idle
+* deps: require configobj >= 5.0.1 and python-magic >= 0.4.12; older versions fail alot's tests
 
 0.12:
 * breaking: drop support for python 3.8, add support for python 3.13 & 3.14

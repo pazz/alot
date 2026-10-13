@@ -16,7 +16,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.10", "3.12", "3.13", "3.14"]
+        include:
+          # the oldest Python with the oldest dependencies we claim to support
+          - python-version: "3.10"
+            oldest: true
 
     steps:
       - uses: actions/checkout@v4
@@ -25,6 +29,17 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+
+      - name: Pin the oldest supported dependency versions
+        if: matrix.oldest
+        run: |
+          # every "name>=version" in pyproject.toml becomes "name==version"
+          sed -n 's/^ *"\([A-Za-z0-9_.-]*\)>=\([0-9.]*\)".*/\1==\2/p' \
+            pyproject.toml | tee constraints.txt
+          test -s constraints.txt
+          echo "PIP_CONSTRAINT=$PWD/constraints.txt" >> "$GITHUB_ENV"
+          echo "NOTMUCH_REF=$(sed -n 's/^notmuch2==//p' constraints.txt)" \
+            >> "$GITHUB_ENV"
 
       - name: Install dependencies for the gpg and notmuch python package
         run: |
@@ -36,7 +51,9 @@ jobs:
           DEBIAN_FRONTEND: noninteractive
 
       - name: clone the notmuch repository
-        run: git clone --depth 1 https://git.notmuchmail.org/git/notmuch notmuch
+        run: |
+          git clone --depth 1 ${NOTMUCH_REF:+--branch "$NOTMUCH_REF"} \
+            https://git.notmuchmail.org/git/notmuch notmuch
 
       - name: build the notmuch bindings
         run: |
@@ -79,6 +96,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install .
+          pip list
 
       - name: Run tests
         run: python3 -m unittest --verbose
