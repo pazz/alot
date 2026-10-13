@@ -59,8 +59,8 @@ class ExternalAddressbook(AddressBook):
         lines = resultstring.splitlines()
         res = []
         logging.debug("Apply %s on %d results" % (self.regex, len(lines)))
-        for l in lines:
-            m = re.match(self.regex, l, self.reflags)
+        for line in lines:
+            m = re.match(self.regex, line, self.reflags)
             if m:
                 info = m.groupdict()
                 if 'email' in info and 'name' in info:

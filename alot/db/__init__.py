@@ -3,3 +3,5 @@
 # For further details see the COPYING file
 from .thread import Thread
 from .message import Message
+
+__all__ = ['Thread', 'Message']

@@ -53,6 +53,10 @@ include = ["alot*"]
 
 [tool.setuptools_scm]
 
+[tool.ruff.lint.per-file-ignores]
+# imports alot only after putting the source tree on sys.path
+"docs/source/generate_commands.py" = ["E402"]
+
 [tool.mypy]
 python_version = "3.10"
 warn_return_any = true

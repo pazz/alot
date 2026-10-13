@@ -14,7 +14,7 @@ from alot.settings.errors import ConfigError
 from alot.helper import get_xdg_env, get_notmuch_config_path
 from alot.db.manager import DBManager
 from alot.ui import UI
-from alot.commands import *
+from alot.commands import *  # noqa: F403 (registers all commands)
 from alot.commands import CommandParseError, COMMANDS
 from alot.utils import argparse as cargparse
 
