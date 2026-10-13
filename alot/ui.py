@@ -505,9 +505,9 @@ class UI:
                          what :meth:`notify` returned when creating the popup
         """
         newpile = self._notificationbar.widget_list
-        for l in messages:
-            if l in newpile:
-                newpile.remove(l)
+        for popup in messages:
+            if popup in newpile:
+                newpile.remove(popup)
         if newpile:
             self._notificationbar = urwid.Pile(newpile)
         else:

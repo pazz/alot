@@ -83,7 +83,7 @@ class SettingsManager:
                                                               hooks_path)
                 self.hooks = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(self.hooks)
-            except:
+            except Exception:
                 logging.exception('unable to load hooks file:%s', hooks_path)
         else:
             logging.debug('hooks: hooksfile config option is unset')

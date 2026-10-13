@@ -1,4 +1,3 @@
-import sys
 import os
 import re
 
@@ -6,10 +5,6 @@ from configobj import ConfigObj
 from validate import Validator
 
 HERE = os.path.dirname(__file__)
-sys.path.insert(0, os.path.join(HERE, '..', '..'))
-
-from alot.commands import COMMANDS
-
 
 NOTE = """
 .. CAUTION: THIS FILE IS AUTO-GENERATED

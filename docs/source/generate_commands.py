@@ -6,7 +6,7 @@ import textwrap
 HERE = Path(__file__).parent
 sys.path.insert(0, str(HERE.parent.parent))
 
-from alot.commands import *
+from alot.commands import *  # noqa: F403 (registers all commands)
 from alot.commands import COMMANDS
 import alot.buffers
 from alot.utils.argparse import BooleanAction
