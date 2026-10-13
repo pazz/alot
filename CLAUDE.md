@@ -45,4 +45,5 @@ Per CONTRIBUTING.md, contact management, fetching and sending mail are out of sc
 - `master` is the human-only line and stays untouched. AI-assisted work integrates into `main` (branched from `master`); one concern per branch off `main`, one PR each into `main`. Ask before pushing.
 - Small is beautiful: the smallest clean diff that solves the problem. Prefer deletion, stdlib and existing helpers; no speculative parameters, layers or abstractions.
 - Bug fixes come with a regression test that fails without the fix.
+- Do not edit `NEWS` in branches; it is updated in one go before a release. Put a ready-to-paste "NEWS: ..." line for user-facing changes in the PR description instead.
 - Every branch gets two fresh-context reviews before a PR: one for correctness, one that doubts the change for over-engineering.
