@@ -70,6 +70,15 @@ class MockNotmuchMessage:
 
 class TestMessage(unittest.TestCase):
 
+    def test_refresh_rereads_tags(self):
+        dbman = mock.MagicMock()
+        msg = message.Message(dbman, MockNotmuchMessage(tags=['inbox']))
+        changed = MockNotmuchMessage(tags=['inbox', 'new'])
+        dbman._with_notmuch_message.return_value.__enter__.return_value = \
+            changed
+        msg.refresh()
+        self.assertEqual(msg.get_tags(), ['inbox', 'new'])
+
     def test_tags_are_read_from_notmuch_once(self):
         """Iterating notmuch's tag set is slow: a thread of n messages used to
         read tags n**2 times (#694)."""

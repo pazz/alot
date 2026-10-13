@@ -178,6 +178,7 @@ class MessageTree(CollapsibleTree):
         self._maintree._treelist = self._assemble_structure()
 
     def refresh(self):
+        self._message.refresh()
         self._summaryw = None
         self.reassemble()
 
