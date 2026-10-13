@@ -5,11 +5,15 @@
 
 """Test suite for alot.commands.thread module."""
 import email
+import email.mime.text
+import os
+import tempfile
 import unittest
 from unittest import mock
 
 from alot.commands import thread
 from alot.account import Account
+from alot.db.attachment import Attachment
 
 from .. import utilities
 
@@ -188,6 +192,28 @@ class TestOpenAttachmentCommand(unittest.TestCase):
         await thread.OpenAttachmentCommand(attachment).apply(ui)
         ui.apply_command.assert_not_awaited()
         ui.notify.assert_called_once()
+
+
+class TestSaveAttachmentCommand(unittest.TestCase):
+
+    @utilities.async_test
+    async def test_asks_before_overwriting(self):
+        part = email.mime.text.MIMEText('new')
+        part.add_header('Content-Disposition', 'attachment', filename='a.txt')
+        attachment = Attachment(part)
+        with tempfile.TemporaryDirectory() as d:
+            target = os.path.join(d, 'a.txt')
+            for answer, content in (('no', 'old'), ('yes', 'new')):
+                with open(target, 'w') as f:
+                    f.write('old')
+                ui = utilities.make_ui(choice=mock.AsyncMock(
+                    return_value=answer))
+                ui.current_buffer.get_selected_message.return_value.\
+                    get_attachments.return_value = [attachment]
+                await thread.SaveAttachmentCommand(all=True, path=d).apply(ui)
+                ui.choice.assert_awaited_once()
+                with open(target) as f:
+                    self.assertEqual(f.read(), content)
 
 
 class TestQuoteText(unittest.TestCase):
