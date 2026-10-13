@@ -36,6 +36,7 @@ This will trigger consistency checks and unit tests to be run on our CI system.
 To ensure timely and painless reviews please keep the following in mind.
 
 * Follow [PEP8]. You can use [automatic tools][pycodestyle] to verify your code.
+  CI runs `ruff check`, which must pass.
 
 * Document your code! We want readable and well documented code.
   Please use [sphinx] directives to document the signatures of your methods.

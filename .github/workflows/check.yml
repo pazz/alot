@@ -34,6 +34,17 @@ jobs:
         run: python3 -m build
 
 
+  lint:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run ruff
+        run: pipx run ruff==0.15.0 check --output-format=github
+
+
   type-check:
 
     runs-on: ubuntu-latest
