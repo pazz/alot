@@ -52,14 +52,10 @@ class Envelope:
     """account to send from"""
 
     def __init__(
-            self, template=None, bodytext=None, headers=None, attachments=None,
+            self, bodytext=None, headers=None, attachments=None,
             sign=False, sign_key=None, encrypt=False, tags=None, replied=None,
             passed=None, account=None):
         """
-        :param template: if not None, the envelope will be initialised by
-                         :meth:`parsing <parse_template>` this string before
-                         setting any other values given to this constructor.
-        :type template: str
         :param bodytext: text used as body part
         :type bodytext: str
         :param headers: unencoded header values
@@ -75,11 +71,6 @@ class Envelope:
         :param account: account to send from
         :type account: :class:`Account`
         """
-        logging.debug('TEMPLATE: %s', template)
-        if template:
-            self.parse_template(template)
-            logging.debug('PARSED TEMPLATE: %s', template)
-            logging.debug('BODY: %s', self.body_txt)
         self.body_txt = bodytext or ''
         # TODO: if this was as collections.defaultdict a number of methods
         # could be simplified.
