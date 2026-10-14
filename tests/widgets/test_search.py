@@ -52,3 +52,19 @@ class TestBuildTextPart(unittest.TestCase):
                   'normal': None, 'focus': None}
         _, widget = search.build_text_part('subject', thread, struct)
         widget.render((10,))
+
+    def test_weight_column(self):
+        thread = mock.Mock(**{'get_subject.return_value': 'a subject'})
+        struct = {'width': ('weight', 1), 'alignment': 'left',
+                  'normal': None, 'focus': None}
+        _, widget = search.build_text_part('subject', thread, struct)
+        self.assertEqual(widget.render((9,)).text, [b'a subject'])
+
+    def test_wrap_column(self):
+        thread = mock.Mock(**{'get_subject.return_value': 'aaa bbb ccc ddd'})
+        struct = {'width': ('wrap', 0, 7, 3, 2), 'alignment': 'left',
+                  'normal': None, 'focus': None}
+        width, widget = search.build_text_part('subject', thread, struct)
+        self.assertEqual(width, 7)
+        self.assertEqual(widget.render((7,)).text,
+                         [b'aaa bbb', b'ccc ddd', b'       '])

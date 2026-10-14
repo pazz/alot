@@ -89,6 +89,8 @@ def width_tuple(value):
             res = 'fit', int(value[1]), int(value[2])
         elif value[0] == 'wrap':
             res = 'wrap', int(value[1]), int(value[2]), int(value[3]), int(value[4])
+            if res[2] < 1:
+                raise ValueError
         else:
             res = 'weight', int(value[1])
     except IndexError:
