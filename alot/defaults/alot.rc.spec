@@ -188,9 +188,10 @@ search_threads_sort_order = option('oldest_first', 'newest_first', 'message_id',
 # when set to 0, no limit is set (can be very slow in searches that yield thousands of results)
 search_threads_limit = integer(default=0)
 
-# maximum amount of threads that will be consumed to try to restore the focus, upon triggering a search buffer rebuild
-# when set to 0, no limit is set (can be very slow in searches that yield thousands of results)
-search_threads_rebuild_limit = integer(default=0)
+# maximum amount of threads that will be consumed to try to restore the focus, upon triggering a search buffer rebuild;
+# if the focussed thread lies further down, the focus moves to the first thread instead.
+# When set to 0, no limit is set (can be very slow in searches that yield thousands of results)
+search_threads_rebuild_limit = integer(default=1000)
 
 # Maximum number of results in a search buffer before 'move last' builds the
 # thread list in reversed order as a heuristic. The resulting order will be
