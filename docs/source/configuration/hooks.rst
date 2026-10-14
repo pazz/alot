@@ -41,6 +41,17 @@ message::
         else:
             logging.info('goodbye!')
 
+A pre-hook can cancel its command by raising
+:class:`alot.commands.CommandCanceled`. The command, its post-hook and any
+commands after it in a `;` sequence are then not run, and alot shows the notice
+"operation cancelled". For example, this
+hook asks for confirmation before sending::
+
+    from alot.commands import CommandCanceled
+    async def pre_envelope_send(ui=None, **kwargs):
+        if (await ui.choice('really send?', select='yes', cancel='no')) == 'no':
+            raise CommandCanceled()
+
 Other Hooks
 -----------
 
