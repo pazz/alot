@@ -99,6 +99,15 @@ class TestEnvelope(unittest.TestCase):
         self._test_mail(e)
 
     @mock.patch('alot.db.envelope.settings', SETTINGS)
+    def test_construct_mail_keeps_generated_mime_headers(self):
+        e = envelope.Envelope(account=test_account, bodytext='x', headers={
+            'Content-Type': ['text/html'], 'MIME-Version': ['1.0']})
+        mail = e.construct_mail()
+        self.assertEqual(mail.get_all('Content-Type'),
+                         ['text/plain; charset="utf-8"'])
+        self.assertEqual(len(mail.get_all('MIME-Version')), 1)
+
+    @mock.patch('alot.db.envelope.settings', SETTINGS)
     def test_parse_template(self):
         """Tests multi-line header and body parsing"""
         raw = (

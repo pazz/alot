@@ -287,8 +287,11 @@ class Envelope:
 
         # set policy on outer_msg to ease encoding headers
         outer_msg.policy = email.policy.default
-        # copy headers from envelope to mail
+        # copy headers from envelope to mail, keeping the generated MIME
+        # structure headers (Content-Type etc.) rather than duplicating them
         for k, vlist in headers.items():
+            if k in outer_msg:
+                continue
             for v in vlist:
                 outer_msg.add_header(k, v)
 
