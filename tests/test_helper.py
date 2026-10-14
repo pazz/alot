@@ -129,6 +129,9 @@ class TestSplitCommandline(unittest.TestCase):
         ]
         self._test(base, expected)
 
+    def test_unbalanced_quote(self):
+        self._test('search a";', ['search a";'])
+
 
 class TestStringSanitize(unittest.TestCase):
 

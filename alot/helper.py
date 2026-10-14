@@ -30,7 +30,7 @@ def split_commandline(s: str) -> list[str]:
     """
     splits semi-colon separated commandlines, ignoring quoted separators
     """
-    splitter = r'''((?:[^;"']|"(\\\\|\\"|[^"])*"|'(\\\\|\\'|[^'])*')+)'''
+    splitter = r'''((?:[^;"']|"(\\\\|\\"|[^"])*(?:"|$)|'(\\\\|\\'|[^'])*(?:'|$))+)'''
     return re.split(splitter, s)[1::4]
 
 
