@@ -37,9 +37,10 @@ class ExternalAddressbook(AddressBook):
     def get_contacts(self):
         return self._call_and_parse(self.commandline)
 
-    def lookup(self, prefix):  # pragma: no cover
+    def lookup(self, prefix):
         if self.external_filtering:
-            return self._call_and_parse(self.commandline + " " + prefix)
+            return self._call_and_parse(
+                self.commandline + " " + shlex.quote(prefix))
         else:
             return AddressBook.lookup(self, prefix)
 
