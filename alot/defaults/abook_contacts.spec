@@ -3,5 +3,5 @@
    version = string
 
 [__many__]
-    name = string(default=None)
+    name = force_list(default=list())
     email = force_list(default=list())

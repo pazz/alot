@@ -36,3 +36,20 @@ class TestAbookAddressBook(unittest.TestCase):
         expected = [('me', 'me@example.com'), ('you', 'you@other.domain'),
                     ('you', 'you@example.com')]
         self.assertListEqual(actual, expected)
+
+    def test_name_with_comma(self):
+        data = """
+        [format]
+        version = unknown
+        program = alot-test-suite
+        [1]
+        name = Doe, John
+        email = john@example.com
+        """
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as tmp:
+            tmp.write(data)
+            path = tmp.name
+            self.addCleanup(os.unlink, path)
+        addressbook = abook.AbookAddressBook(path)
+        self.assertListEqual(addressbook.get_contacts(),
+                             [('Doe, John', 'john@example.com')])

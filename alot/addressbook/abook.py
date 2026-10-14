@@ -27,5 +27,5 @@ class AbookAddressBook(AddressBook):
         for id in c.sections:
             for email in c[id]['email']:
                 if email:
-                    res.append((c[id]['name'], email))
+                    res.append((', '.join(c[id]['name']), email))
         return res
