@@ -143,6 +143,9 @@ class SettingsManager:
                                  .replace('${%s}' % xdg_name, xdg_value)
             return os.path.expanduser(os.path.expandvars(value))
 
+        if section.depth == 2 and section.parent.name == 'tags':  # display text
+            return
+
         value = section[key]
 
         if isinstance(value, str):
