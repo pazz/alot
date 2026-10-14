@@ -470,8 +470,8 @@ class EditNewCommand(Command):
         tags.difference_update({'inbox', 'sent', 'draft', 'killed', 'replied',
                                 'signed', 'encrypted', 'unread', 'attachment'})
         tags = list(tags)
-        # set body text
-        mailcontent = self.message.get_body_text()
+        # set body text, without the escapes a mailcap renderer may add
+        mailcontent = ansi.remove_csi(self.message.get_body_text())
         envelope = Envelope(bodytext=mailcontent, tags=tags)
 
         # copy selected headers
