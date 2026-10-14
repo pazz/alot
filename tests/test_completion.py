@@ -8,6 +8,7 @@ import unittest
 from unittest import mock
 
 from alot.completion.abooks import AbooksCompleter
+from alot.completion.query import QueryCompleter
 from alot.completion.stringlist import StringlistCompleter
 
 # Good descriptive test names often don't fit PEP8, which is meant to cover
@@ -102,3 +103,13 @@ class StringlistCompleterTest(unittest.TestCase):
         actual = completer.complete('[', 1)
         expected = [(tags[0], len(tags[0]))]
         self.assertListEqual(actual, expected)
+
+
+class QueryCompleterTest(unittest.TestCase):
+    @mock.patch('alot.completion.query.settings')
+    def test_completes_date_prefix(self, settings):
+        settings.get_addressbooks.return_value = []
+        dbman = mock.Mock()
+        dbman.get_named_queries.return_value = {}
+        completer = QueryCompleter(dbman)
+        self.assertEqual(completer.complete('da', 2), [('date:', 5)])

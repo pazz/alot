@@ -24,7 +24,9 @@ class QueryCompleter(Completer):
         self._tagcompleter = TagCompleter(dbman)
         self._nquerycompleter = NamedQueryCompleter(dbman)
         self.keywords = ['tag', 'from', 'to', 'subject', 'attachment',
-                         'is', 'id', 'thread', 'folder', 'query']
+                         'is', 'id', 'thread', 'folder', 'query', 'body',
+                         'mimetype', 'mid', 'path', 'date', 'lastmod',
+                         'property']
 
     def complete(self, original, pos):
         mypart, start, end, mypos = self.relevant_part(original, pos)
