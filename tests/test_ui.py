@@ -50,16 +50,21 @@ class TestOverlayInput(unittest.TestCase):
 class TestSignals(unittest.TestCase):
 
     @mock.patch('alot.ui.urwid.MainLoop', mock.MagicMock())
-    @mock.patch('alot.ui.signal.signal', mock.Mock())
     @mock.patch('alot.ui.settings',
                 mock.MagicMock(**{'get_hook.return_value': None}))
     @mock.patch('alot.ui.UI._load_history_from_file',
                 mock.Mock(return_value=[]))
-    def test_sigterm_stops_the_main_loop(self):
+    @mock.patch('alot.ui.UI.cleanup', mock.Mock())
+    def test_sigterm_and_sighup_stop_the_main_loop(self):
         loop = mock.Mock(**{'create_task.side_effect': lambda c: c.close()})
-        UI(mock.Mock(), '', loop)
-        loop.add_signal_handler.assert_called_once_with(signal.SIGTERM,
-                                                        loop.stop)
+        with mock.patch('alot.ui.signal.signal') as install, \
+                mock.patch('alot.ui.signal.getsignal'):  # not SIG_IGN
+            ui = UI(mock.Mock(), '', loop)
+        handlers = {args[0]: args[1] for args, _ in install.call_args_list}
+        self.assertEqual(handlers[signal.SIGTERM], ui._terminate)
+        self.assertEqual(handlers[signal.SIGHUP], ui._terminate)
+        ui._terminate(signal.SIGTERM, None)
+        loop.call_soon_threadsafe.assert_called_once_with(loop.stop)
 
 
 class TestSignalDispatch(unittest.TestCase):
