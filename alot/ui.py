@@ -150,7 +150,7 @@ class UI:
         if isinstance(exception, CommandParseError):
             self.notify(str(exception), priority='error')
         elif isinstance(exception, CommandCanceled):
-            self.notify("operation cancelled", priority='error')
+            self.notify("operation cancelled")
         elif isinstance(exception, SequenceCanceled):
             # This exception needs to trickle up to apply_commandline,
             # then be handled explicitly.
