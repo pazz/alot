@@ -17,6 +17,7 @@
 import tempfile
 import os
 import shutil
+import subprocess
 import unittest
 from unittest import mock
 
@@ -65,7 +66,8 @@ def setUpModule():
 
 @MOD_CLEAN.wrap_teardown
 def tearDownModule():
-    pass
+    # Stop the gpg-agent started for GNUPGHOME before it is removed
+    subprocess.run(['gpgconf', '--kill', 'gpg-agent'], check=False)
 
 
 class TestGetKeys(unittest.TestCase):
