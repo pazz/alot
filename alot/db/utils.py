@@ -349,13 +349,15 @@ def render_part(part: Message) -> str | None:
     """
     renders a non-multipart email part into displayable plaintext by piping its
     payload through an external script. The handler itself is determined by
-    the mailcap entry for this part's ctype.
+    the mailcap entry for this part's ctype. Returns None if there is no
+    such entry and an empty string if the handler failed or printed nothing.
     """
     ctype = part.get_content_type()
     rendered_payload = None
     # get mime handler
     _, entry = settings.mailcap_find_match(ctype, key='copiousoutput')
     if entry is not None:
+        rendered_payload = ''
         params = dict(part.get_params(failobj=[]))
         if ctype == 'text/plain':
             # the handler's output is decoded with the terminal encoding (see
@@ -395,9 +397,8 @@ def render_part(part: Message) -> str | None:
             logging.warning('mailcap entry for %s refused unsafe parameters',
                             ctype)
         else:
-            stdout, _, _ = helper.call_cmd(shlex.split(cmd), stdin=stdin)
-            if stdout:
-                rendered_payload = stdout
+            rendered_payload, _, _ = helper.call_cmd(shlex.split(cmd),
+                                                     stdin=stdin)
 
         # remove tempfile
         if tempfile_name:
@@ -461,6 +462,9 @@ MISSING_HTML_MSG = ("This message contains a text/html part that was not "
                     "rendered due to a missing mailcap entry. "
                     "Please refer to item 1 in our FAQ: "
                     "https://alot.rtfd.io/en/latest/faq.html")
+FAILED_HTML_MSG = ("This message contains a text/html part that was not "
+                   "rendered because its mailcap handler failed or "
+                   "produced no output.")
 
 
 def get_body_part(mail: EmailMessage,
@@ -500,7 +504,8 @@ def extract_body_part(body_part: Message) -> str:
         displaystring = string_sanitize(remove_cte(body_part, as_string=True))
     else:
         if body_part.get_content_type() == 'text/html':
-            displaystring = MISSING_HTML_MSG
+            displaystring = (MISSING_HTML_MSG if rendered_payload is None
+                             else FAILED_HTML_MSG)
     return displaystring
 
 
