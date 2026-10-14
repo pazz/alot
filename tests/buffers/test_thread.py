@@ -4,7 +4,10 @@
 import unittest
 from unittest import mock
 
+import alot.commands.globals  # noqa: F401, render() refers to it
 from alot.buffers import ThreadBuffer
+
+from .. import utilities
 
 
 class TestFocusMovement(unittest.TestCase):
@@ -52,3 +55,21 @@ class TestFocusMovement(unittest.TestCase):
                 buf = self._buffer(('sane', 'm'), **{tree_method: None})
                 getattr(buf, method)()
                 buf.set_focus.assert_not_called()
+
+
+class TestAutoRemoveUnread(unittest.TestCase):
+
+    @mock.patch('alot.buffers.thread.settings.get', return_value=True)
+    @utilities.async_test
+    async def test_single_message_thread(self, _):
+        """The cursor stays on the summary of the only, expanded message."""
+        buf = ThreadBuffer.__new__(ThreadBuffer)
+        buf.message_count = 1
+        buf._auto_unread_dont_touch_mids = set()
+        buf._auto_unread_writing = False
+        buf.ui = utilities.make_ui(apply_command=mock.AsyncMock())
+        buf.body = mock.Mock(**{'get_focus.return_value': (None, ('m', (0,)))})
+        msg = mock.Mock(**{'get_tags.return_value': ['unread']})
+        buf.get_selected_message = lambda: msg
+        buf.render((80, 24))
+        msg.remove_tags.assert_called_once_with(['unread'], afterwards=mock.ANY)
