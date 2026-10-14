@@ -61,3 +61,7 @@ class TestWidthTuple(unittest.TestCase):
     def test_wrap_with_four_numbers(self):
         fit_result = checks.width_tuple(['wrap', 12, 34, 56, 78])
         self.assertEqual(('wrap', 12, 34, 56, 78), fit_result)
+
+    def test_wrap_needs_a_maximum_width(self):
+        with self.assertRaises(VdtValueError):
+            checks.width_tuple(['wrap', 0, 0, 1, 1])

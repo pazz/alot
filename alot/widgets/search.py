@@ -6,9 +6,9 @@ Widgets specific to search mode
 """
 from datetime import datetime
 import re
+import textwrap
 
 import urwid
-import textwrap
 
 from ..settings.const import settings
 from ..helper import shorten_author_string
@@ -136,18 +136,22 @@ def build_text_part(name, thread, struct):
     maxw = None
     min_lines = 1
     max_lines = 1
+    wrap = False
     width_tuple = struct['width']
     if width_tuple is not None:
         if width_tuple[0] == 'fit':
             minw, maxw = width_tuple[1:]
         elif width_tuple[0] == 'wrap':
             minw, maxw, min_lines, max_lines = width_tuple[1:]
+            wrap = True
 
-    content = prepare_string(name, thread, max_lines * maxw)
+    # wrapped content is cut to max_lines by textwrap below
+    content = prepare_string(name, thread, None if wrap else maxw)
     alignment = struct['alignment']
-    if width_tuple[0] == 'wrap':
+    if wrap:
+        # textwrap splits all of its input: keep generously more than fits
         lines = textwrap.wrap(
-            content,
+            content[:maxw * max_lines * 4],
             width=maxw,
             max_lines=max_lines,
             expand_tabs=False,
@@ -155,8 +159,7 @@ def build_text_part(name, thread, struct):
         )
 
         # ensure minimum number of lines
-        if len(lines) < min_lines:
-            lines = lines + [''] * (min_lines - len(lines))
+        lines += [''] * (min_lines - len(lines))
 
         # pad content line by line if not long enough
         if minw:
