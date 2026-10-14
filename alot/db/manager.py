@@ -126,6 +126,9 @@ class DBManager:
 
                         else:  # tag/set/untag
                             querystring, tags = current_item[2:]
+                            if cmd in ('tag', 'untag') and tags:
+                                querystring = self._needing_change(
+                                    querystring, tags, cmd == 'tag')
                             if cmd == 'toggle':
                                 presenttags = self.collect_tags(querystring)
                                 to_remove: list[str] = []
@@ -177,6 +180,20 @@ class DBManager:
                     self.writequeue.appendleft(current_item)
                     raise e
                 logging.debug('flush finished')
+
+    @staticmethod
+    def _needing_change(querystring: str, tags: list[str], add: bool) -> str:
+        """narrow `querystring` to the messages whose tags change when
+        adding (or removing) `tags`: notmuch rewrites each message it
+        touches, which is slow on large result sets"""
+        terms = ['tag:"%s"' % t.replace('"', '""') for t in tags]
+        if add:
+            change = 'NOT (%s)' % ' AND '.join(terms)
+        else:
+            change = '(%s)' % ' OR '.join(terms)
+        if querystring in ('', '*'):  # notmuch's match-all queries
+            return change
+        return '(%s) AND %s' % (querystring, change)
 
     def tag(self, querystring: str, tags: list[str],
             afterwards: Callable[[], None] | None = None,
