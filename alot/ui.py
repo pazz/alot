@@ -7,6 +7,7 @@ import signal
 import codecs
 import contextlib
 import asyncio
+import inspect
 import traceback
 
 import urwid
@@ -22,6 +23,13 @@ from .helper import split_commandline
 from .helper import get_xdg_env
 from .widgets.globals import CompleteEdit
 from .widgets.globals import ChoiceWidget
+
+
+async def _call_hook(hook, **kwargs):
+    """call a user hook, which may be a plain function or a coroutine"""
+    result = hook(**kwargs)
+    if inspect.isawaitable(result):
+        await result
 
 
 async def periodic(callable_, period, *args, **kwargs):
@@ -688,7 +696,7 @@ class UI:
         # allowed as a value fo cmd.
         if cmd:
             if cmd.prehook:
-                await cmd.prehook(ui=self, dbm=self.dbman, cmd=cmd)
+                await _call_hook(cmd.prehook, ui=self, dbm=self.dbman, cmd=cmd)
             try:
                 if asyncio.iscoroutinefunction(cmd.apply):
                     await cmd.apply(self)
@@ -699,7 +707,8 @@ class UI:
             else:
                 if cmd.posthook:
                     logging.info('calling post-hook')
-                    await cmd.posthook(ui=self, dbm=self.dbman, cmd=cmd)
+                    await _call_hook(cmd.posthook, ui=self, dbm=self.dbman,
+                                     cmd=cmd)
 
     def _handle_signal(self, signum, _frame):
         """

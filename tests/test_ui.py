@@ -140,6 +140,18 @@ class TestErrorContainment(unittest.TestCase):
         ui.notify.assert_called_once_with('operation cancelled')
 
     @utilities.async_test
+    async def test_plain_function_hooks(self):
+        ui = self._ui()
+        ui.dbman = mock.Mock()
+        cmd = Command()
+        cmd.prehook = mock.Mock(return_value=None)
+        cmd.posthook = mock.Mock(return_value=None)
+        with mock.patch('alot.ui.commandfactory', return_value=cmd):
+            await ui.apply_commandline('anything')
+        ui._error_handler.assert_not_called()
+        cmd.posthook.assert_called_once()
+
+    @utilities.async_test
     async def test_failing_loop_hook_is_logged_and_retried(self):
         calls = []
 
