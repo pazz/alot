@@ -240,7 +240,11 @@ class MessageTree(CollapsibleTree):
 
     def _get_source(self):
         if self._sourcetree is None:
-            sourcetxt = self._message.get_email().as_string()
+            try:
+                with open(self._message.get_filename(), 'rb') as f:
+                    sourcetxt = f.read().decode('utf-8', 'backslashreplace')
+            except OSError:
+                sourcetxt = self._message.get_email().as_string()
             sourcetxt = string_sanitize(sourcetxt)
             att = settings.get_theming_attribute('thread', 'body')
             att_focus = settings.get_theming_attribute('thread', 'body_focus')
