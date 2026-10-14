@@ -85,6 +85,4 @@ class Attachment:
 
     def get_mime_representation(self) -> Message:
         """returns mime part that constitutes this attachment"""
-        part = deepcopy(self.part)
-        part.set_param('maxlinelen', '78', header='Content-Disposition')
-        return part
+        return deepcopy(self.part)
