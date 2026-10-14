@@ -87,6 +87,8 @@ class Theme:
             :width: to a tuple indicating the width of the subpart.
                     This is either `('fit', min, max)` to force the widget
                     to be at least `min` and at most `max` characters wide,
+                    `('wrap', min, max, minlines, maxlines)` to also wrap
+                    content wider than `max` over several lines,
                     or `('weight', n)` which makes it share remaining space
                     with other 'weight' parts.
             :alignment: where to place the content if shorter than the widget.
