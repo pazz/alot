@@ -96,6 +96,7 @@ class UI:
 
         signal.signal(signal.SIGINT, self._handle_signal)
         signal.signal(signal.SIGUSR1, self._handle_signal)
+        signal.signal(signal.SIGCONT, self._handle_signal)
         # stop the main loop on SIGTERM, so that the terminal is restored
         loop.add_signal_handler(signal.SIGTERM, loop.stop)
 
@@ -726,6 +727,10 @@ class UI:
             if isinstance(self.current_buffer, SearchBuffer):
                 self.current_buffer.rebuild()
                 self.update()
+        elif signum == signal.SIGCONT:
+            # the shell may have reset the terminal while we were stopped
+            with self.paused():
+                pass
 
     def cleanup(self):
         """Do the final clean up before shutting down."""

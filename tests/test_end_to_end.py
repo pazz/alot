@@ -224,10 +224,13 @@ class TestRunning(EndToEndTestCase):
     def test_stop_and_continue(self):
         # ctrl-z cannot be tested here: alot leads its own session, so the
         # kernel discards SIGTSTP; SIGSTOP stops it all the same
+        self.settle()
         os.kill(self.pid, signal.SIGSTOP)
         _, status = os.waitpid(self.pid, os.WUNTRACED)
         self.assertTrue(os.WIFSTOPPED(status))
+        self.output = b''
         os.kill(self.pid, signal.SIGCONT)
+        self.wait_for('%d of %d' % (self.thread_count, self.thread_count))
         self.assertResponsive()
 
     def test_tag_in_thread_mode_is_shown(self):
