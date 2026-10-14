@@ -17,6 +17,17 @@ and be able to toggle this tag in search mode, you'd add this to your config
       [[search]]
       t = toggletags todo
 
+The config file is read by configobj, which treats an unquoted value containing
+commas as a list. A global binding such as `d = retag deleted,inbox` therefore
+fails validation when alot starts. In mode sections alot joins the list items
+with commas again, but drops any whitespace around them. Quote command lines
+that contain commas:
+
+.. sourcecode:: ini
+
+    [bindings]
+      d = "retag deleted,inbox"
+
 .. _modes:
 
 Known modes are:
