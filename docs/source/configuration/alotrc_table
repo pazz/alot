@@ -139,6 +139,8 @@
 .. describe:: displayed_headers
 
      headers that get displayed by default
+     The pseudo header `Tags` shows the message's tags in thread mode,
+     e.g. `displayed_headers = From,To,Cc,Bcc,Subject,Tags`.
 
     :type: string list
     :default: From, To, Cc, Bcc, Subject

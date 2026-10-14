@@ -48,6 +48,8 @@ theme = string(default=None)
 handle_mouse = boolean(default=False)
 
 # headers that get displayed by default
+# The pseudo header `Tags` shows the message's tags in thread mode,
+# e.g. `displayed_headers = From,To,Cc,Bcc,Subject,Tags`.
 displayed_headers = force_list(default=list(From,To,Cc,Bcc,Subject))
 
 # headers that are hidden in envelope buffers by default
