@@ -65,7 +65,6 @@
             focus = 'standout','','black,bold','dark cyan','black,bold','dark cyan'
             alignment = right
             width = 'fit', 5,5
-            template = '{%d}'
         [[[tags]]]
             normal = '','','brown','black','brown','g0'
             focus = 'standout','','yellow,bold','dark cyan','yellow,bold','dark cyan'
@@ -78,7 +77,7 @@
             normal = '','','light gray','black','light gray','g0'
             focus = 'standout','','black,bold','dark cyan','black,bold','dark cyan'
             alignment = left
-            width = 'fit', 0, 0
+            width = 'fit', 0, 30
         [[[content]]]
             normal = '','','dark cyan','black','dark cyan','g0'
             focus = 'standout','','black','dark cyan','black','dark cyan'
