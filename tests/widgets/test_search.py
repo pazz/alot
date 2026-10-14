@@ -29,6 +29,23 @@ class TestBuildTagsPart(unittest.TestCase):
         self.assertEqual(search.build_tags_part([], None, None), (-1, None))
 
 
+class TestThreadlineWidget(unittest.TestCase):
+
+    @mock.patch('alot.widgets.globals.settings')
+    @mock.patch('alot.widgets.search.settings')
+    def test_tag_widgets_are_collected(self, settings, tag_settings):
+        settings.get_threadline_theming.return_value = {
+            'parts': ['tags'], 'normal': None, 'focus': None,
+            'tags': {'width': ('fit', 0, 0), 'normal': None, 'focus': None}}
+        tag_settings.get_tagstring_representation.side_effect = \
+            lambda tag, *_: {'translated': tag, 'normal': None,
+                             'focussed': None}
+        dbman = mock.Mock()
+        dbman.get_thread.return_value.get_tags.return_value = ['b', 'a']
+        widget = search.ThreadlineWidget('tid', dbman)
+        self.assertEqual([w.tag for w in widget.widgets], ['a', 'b'])
+
+
 class TestPrepareContentStringDates(unittest.TestCase):
 
     def test_messages_without_date_come_last(self):

@@ -24,7 +24,8 @@ class NamedQueriesBuffer(Buffer):
         self.queries = self.ui.dbman.get_named_queries()
 
         if self.isinitialized:
-            focusposition = self.querylist.get_focus()[1] or 0  # None if empty
+            # the position is None if the list is empty
+            focusposition = self.querylist.body.get_focus()[1] or 0
         else:
             focusposition = 0
 
@@ -64,7 +65,7 @@ class NamedQueriesBuffer(Buffer):
 
     def get_selected_query(self):
         """returns selected query"""
-        return self.querylist.get_focus()[0].original_widget.query
+        return self.querylist.focus.original_widget.query
 
     def get_info(self):
         info = {}

@@ -22,7 +22,7 @@ class TagListBuffer(Buffer):
 
     def rebuild(self):
         if self.isinitialized:
-            focusposition = self.taglist.get_focus()[1]
+            focusposition = self.taglist.body.get_focus()[1]
         else:
             focusposition = 0
             self.isinitialized = True
@@ -61,6 +61,6 @@ class TagListBuffer(Buffer):
 
     def get_selected_tag(self):
         """returns selected tagstring"""
-        cols, _ = self.taglist.get_focus()
-        tagwidget = cols.original_widget.get_focus()
+        cols = self.taglist.focus
+        tagwidget = cols.original_widget.focus
         return tagwidget.tag

@@ -28,7 +28,7 @@ class BufferlistBuffer(Buffer):
 
     def rebuild(self):
         if self.isinitialized:
-            focusposition = self.bufferlist.get_focus()[1]
+            focusposition = self.bufferlist.body.get_focus()[1]
         else:
             focusposition = 0
             self.isinitialized = True
@@ -51,8 +51,8 @@ class BufferlistBuffer(Buffer):
 
     def get_selected_buffer(self):
         """returns currently selected :class:`Buffer` element from list"""
-        linewidget, _ = self.bufferlist.get_focus()
-        bufferlinewidget = linewidget.get_focus().original_widget
+        linewidget = self.bufferlist.focus
+        bufferlinewidget = linewidget.focus.original_widget
         return bufferlinewidget.get_buffer()
 
     def focus_first(self):

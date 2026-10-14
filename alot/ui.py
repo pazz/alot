@@ -486,12 +486,16 @@ class UI:
         """return the bottom most focussed widget of the widget tree"""
         if not startfrom:
             startfrom = self.current_buffer
-        if 'get_focus' in dir(startfrom):
+        if isinstance(startfrom, urwid.Widget):
+            focus = startfrom.focus
+        elif 'get_focus' in dir(startfrom):
             focus = startfrom.get_focus()
             if isinstance(focus, tuple):
                 focus = focus[0]
-            if isinstance(focus, urwid.Widget):
-                return self.get_deep_focus(startfrom=focus)
+        else:
+            focus = None
+        if isinstance(focus, urwid.Widget):
+            return self.get_deep_focus(startfrom=focus)
         return startfrom
 
     def get_buffers_of_type(self, t):
@@ -513,7 +517,7 @@ class UI:
         :param messages: The popups to remove. This should be exactly
                          what :meth:`notify` returned when creating the popup
         """
-        newpile = self._notificationbar.widget_list
+        newpile = [w for w, _ in self._notificationbar.contents]
         for popup in messages:
             if popup in newpile:
                 newpile.remove(popup)
@@ -597,7 +601,7 @@ class UI:
         if not self._notificationbar:
             self._notificationbar = urwid.Pile(msgs)
         else:
-            newpile = self._notificationbar.widget_list + msgs
+            newpile = [w for w, _ in self._notificationbar.contents] + msgs
             self._notificationbar = urwid.Pile(newpile)
         self.update()
 
@@ -631,7 +635,7 @@ class UI:
 
         # body
         if self.current_buffer:
-            mainframe.set_body(self.current_buffer)
+            mainframe.body = self.current_buffer
 
         # footer
         lines = []
@@ -641,9 +645,9 @@ class UI:
             lines.append(self.build_statusbar())
 
         if lines:
-            mainframe.set_footer(urwid.Pile(lines))
+            mainframe.footer = urwid.Pile(lines)
         else:
-            mainframe.set_footer(None)
+            mainframe.footer = None
         # force a screen redraw
         if self.mainloop.screen.started and redraw:
             self.mainloop.draw_screen()

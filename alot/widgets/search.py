@@ -56,7 +56,7 @@ class ThreadlineWidget(urwid.AttrMap):
                                               self.structure['tags']['focus'])
                 if part:
                     add_column(width, part)
-                    for w in part.widget_list:
+                    for w, _ in part.contents:
                         self.widgets.append(w)
             else:
                 width, part = build_text_part(partname, self.thread,
