@@ -204,3 +204,28 @@ class TestUpdate(unittest.TestCase):
         settings.get_theming_attribute.return_value = 'new'
         ui.update()  # e.g. after the theme command
         self.assertEqual(ui.root_widget.attr_map, {None: 'new'})
+
+
+class TestNotify(unittest.TestCase):
+
+    @mock.patch('alot.ui.settings')
+    def test_clear_notify_keeps_the_other_messages(self, _):
+        ui = UI.__new__(UI)
+        ui._notificationbar = None
+        ui.update = mock.Mock()
+        first = ui.notify('first', timeout=-1)
+        second = ui.notify('second', timeout=-1)
+        ui.clear_notify([first])
+        self.assertEqual([w for w, _ in ui._notificationbar.contents],
+                         [second])
+
+
+class TestGetDeepFocus(unittest.TestCase):
+
+    def test_follows_the_focus_into_containers(self):
+        leaf = urwid.Edit()
+        line = urwid.Columns([urwid.Text('>'), urwid.Pile([leaf])])
+        line.focus_position = 1
+        ui = UI.__new__(UI)
+        ui.current_buffer = mock.Mock(**{'get_focus.return_value': (line, 0)})
+        self.assertIs(ui.get_deep_focus(), leaf)
