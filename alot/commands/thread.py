@@ -55,6 +55,7 @@ _TAG_ARGS = [
 
 def quote_text(text):
     """quote text with the text_quote hook or the quote_prefix setting"""
+    text = ansi.remove_csi(text)
     quotehook = settings.get_hook('text_quote')
     if quotehook:
         return quotehook(text)
@@ -163,8 +164,7 @@ class ReplyCommand(Command):
                              message=mail, ui=ui, dbm=ui.dbman)
         else:
             quotestring = 'Quoting %s (%s)\n' % (name or address, timestamp)
-        body_text = ansi.remove_csi(self.message.get_body_text())
-        mailcontent = quotestring + quote_text(body_text)
+        mailcontent = quotestring + quote_text(self.message.get_body_text())
 
         envelope = Envelope(bodytext=mailcontent, replied=self.message)
 
