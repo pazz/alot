@@ -150,7 +150,9 @@ The following commands are available in thread mode:
 
     select focussed element:
         - if it is a message summary, toggle visibility of the message;
-        - if it is an attachment line, open the attachment
+        - if it is an attachment line, open the attachment with its mailcap
+          entry; the copy handed to it is kept in a private temporary
+          directory until alot exits
         - if it is a mimepart, toggle visibility of the mimepart
 
 

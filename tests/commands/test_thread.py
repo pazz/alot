@@ -11,6 +11,7 @@ import tempfile
 import unittest
 from unittest import mock
 
+from alot import helper
 from alot.commands import thread
 from alot.account import Account
 from alot.db.attachment import Attachment
@@ -297,6 +298,24 @@ class TestPipeCommand(unittest.TestCase):
             cmd = thread.PipeCommand(['cat > ' + out.name], format='mimepart')
             await cmd.apply(ui)
             self.assertEqual(out.read(), data)
+
+
+class TestOpenAttachmentLifetime(unittest.TestCase):
+
+    @mock.patch('alot.commands.thread.settings.mailcap_find_match',
+                return_value=(None, {'view': 'true %s'}))
+    @utilities.async_test
+    async def test_copy_outlives_the_handler(self, _):
+        attachment = Attachment(email.mime.text.MIMEText('content'))
+        ui = utilities.make_ui(apply_command=mock.AsyncMock())
+        await thread.OpenAttachmentCommand(attachment).apply(ui)
+        cmd = ui.apply_command.await_args.args[0]
+        copy = cmd.cmdlist[-1]
+        # xdg-open and the like may return before the viewer reads the copy
+        self.assertIsNone(cmd.on_success)
+        self.assertEqual(os.path.dirname(copy), helper.attachment_dir())
+        with open(copy) as f:
+            self.assertEqual(f.read(), 'content')
 
 
 class TestQuoteText(unittest.TestCase):
