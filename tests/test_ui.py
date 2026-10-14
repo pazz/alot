@@ -9,7 +9,7 @@ from unittest import mock
 import urwid
 
 from alot.buffers import SearchBuffer
-from alot.commands import Command
+from alot.commands import Command, CommandCanceled
 from alot.commands.globals import ExitCommand
 from alot.ui import UI, periodic
 
@@ -126,6 +126,18 @@ class TestErrorContainment(unittest.TestCase):
                 with mock.patch('alot.ui.commandfactory', return_value=cmd):
                     await ui.apply_commandline('anything')
                 ui._error_handler.assert_called_once()
+
+    @utilities.async_test
+    async def test_cancelled_command_is_not_an_error(self):
+        ui = UI.__new__(UI)
+        ui.mode = 'global'
+        ui.dbman = None
+        ui.notify = mock.Mock()
+        cmd = Command()
+        cmd.prehook = mock.AsyncMock(side_effect=CommandCanceled)
+        with mock.patch('alot.ui.commandfactory', return_value=cmd):
+            await ui.apply_commandline('anything')
+        ui.notify.assert_called_once_with('operation cancelled')
 
     @utilities.async_test
     async def test_failing_loop_hook_is_logged_and_retried(self):
