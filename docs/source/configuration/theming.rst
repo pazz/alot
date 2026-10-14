@@ -82,7 +82,10 @@ For every listed part there must be a subsection with the same name, defining
         `('wrap', min, max, minlines, maxlines)` which behaves like 'fit' but wraps
         content wider than `max` onto at least `minlines` and at most `maxlines` lines,
         or `('weight', n)` which makes it share remaining space
-        with other 'weight' parts.
+        with other 'weight' parts. A part without a width, or with a maximum of 0,
+        is as wide as its content; if that does not fit on the line, neither this
+        part nor the parts after it are shown, so give long parts such as the
+        subject a maximum or a weight.
 :alignment: how to place the content string if the widget space is larger.
             This must be one of 'right', 'left' or 'center'.
 

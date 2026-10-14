@@ -53,6 +53,14 @@ class TestBuildTextPart(unittest.TestCase):
         _, widget = search.build_text_part('subject', thread, struct)
         widget.render((10,))
 
+    def test_fit_column_without_maximum(self):
+        # the theme's default width for a part without one
+        thread = mock.Mock(**{'get_subject.return_value': 'a subject'})
+        struct = {'width': ('fit', 0, 0), 'alignment': 'left',
+                  'normal': None, 'focus': None}
+        width, widget = search.build_text_part('subject', thread, struct)
+        self.assertEqual(width, 9)
+
     def test_weight_column(self):
         thread = mock.Mock(**{'get_subject.return_value': 'a subject'})
         struct = {'width': ('weight', 1), 'alignment': 'left',
