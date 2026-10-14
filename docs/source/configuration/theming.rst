@@ -79,6 +79,8 @@ For every listed part there must be a subsection with the same name, defining
 :focus: :ref:`attribute <config.theming.attributes>` used for this part if focussed
 :width: tuple indicating the width of the part. This is either `('fit', min, max)` to force the widget
         to be at least `min` and at most `max` characters wide,
+        `('wrap', min, max, minlines, maxlines)` which behaves like 'fit' but wraps
+        content wider than `max` onto at least `minlines` and at most `maxlines` lines,
         or `('weight', n)` which makes it share remaining space
         with other 'weight' parts.
 :alignment: how to place the content string if the widget space is larger.
