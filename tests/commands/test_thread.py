@@ -198,6 +198,21 @@ class TestReplyCommand(unittest.TestCase):
         self.assertEqual(envelope.get('To'), 'post@example.org')
 
 
+class TestEditNewCommand(unittest.TestCase):
+
+    @utilities.async_test
+    async def test_strips_csi(self):
+        msg = mock.Mock()
+        msg.get_tags.return_value = []
+        msg.get_attachments.return_value = []
+        msg.get_body_text.return_value = '\x1b[1ma\x1b[0m'
+        msg.get_email.return_value = email.message_from_string('\n')
+        ui = utilities.make_ui(apply_command=mock.AsyncMock())
+        await thread.EditNewCommand(msg).apply(ui)
+        envelope = ui.apply_command.await_args.args[0].envelope
+        self.assertEqual(envelope.body_txt, 'a')
+
+
 class TestOpenAttachmentCommand(unittest.TestCase):
 
     @mock.patch('alot.commands.thread.settings.mailcap_find_match',
