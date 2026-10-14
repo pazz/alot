@@ -177,7 +177,9 @@ def build_text_part(name, thread, struct):
 
     # define width and part_w
     text = urwid.Text(content, wrap='clip')
-    width = text.pack((maxw or minw,))[0]
+    # cap double-width content at maxw columns; without a maximum the part
+    # gets its natural width (content is already padded to minw)
+    width = text.pack((maxw,) if maxw else None)[0]
     part_w = AttrFlipWidget(text, struct)
 
     return width, part_w
