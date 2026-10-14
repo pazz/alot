@@ -6,6 +6,7 @@ import argparse
 import logging
 import mailcap
 import os
+import re
 import shlex
 import subprocess
 import tempfile
@@ -245,7 +246,11 @@ class ReplyCommand(Command):
             # Reply-To is standart reply target RFC 2822:, RFC 1036: 2.2.1
             # X-BeenThere is needed by sourceforge ML also winehq
             # X-Mailing-List is also standart and is used by git-send-mail
-            to = mail['Reply-To'] or mail['X-BeenThere'] or mail['X-Mailing-List']
+            # List-Post is the RFC 2369 header, e.g. <mailto:list@example.org>
+            list_post = re.search(r'<mailto:([^>?]+)', mail['List-Post'] or '',
+                                  re.I)
+            to = (mail['Reply-To'] or mail['X-BeenThere'] or
+                  mail['X-Mailing-List'] or (list_post and list_post[1]))
 
             # Some mail server (gmail) will not resend you own mail, so you
             # have to deal with the one in sent
