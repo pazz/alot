@@ -53,9 +53,9 @@ class SettingsManager:
     def _update_bindings(self, newbindings):
         assert isinstance(newbindings, Section)
 
-        self._bindings = ConfigObj(os.path.join(DEFAULTSPATH,
-                                                'default.bindings'))
-        self._bindings.merge(newbindings)
+        # user bindings, then the defaults: the first one that defines a key
+        self._bindings = (newbindings, ConfigObj(
+            os.path.join(DEFAULTSPATH, 'default.bindings')))
 
     def read_config(self, path):
         """
@@ -354,6 +354,16 @@ class SettingsManager:
         cand = [c for c in candidates if c.startswith(prefix + ' ')]
         return cand + [prefix] if prefix in candidates else cand
 
+    def _binding_sections(self, mode):
+        """bindings sections for `mode` in order of precedence: the user's
+        mode and global bindings, then the default mode and global ones"""
+        sections = []
+        for bindings in self._bindings:
+            if mode in bindings.sections:
+                sections.append(bindings[mode])
+            sections.append(bindings)
+        return sections
+
     def get_keybindings(self, mode):
         """look up keybindings from `MODE-maps` sections
 
@@ -363,33 +373,22 @@ class SettingsManager:
         :rtype: 2-tuple of dicts
         """
         globalmaps, modemaps = {}, {}
-        bindings = self._bindings
-        # get bindings for mode `mode`
-        # retain empty assignations to silence corresponding global mappings
-        if mode in bindings.sections:
-            for key in bindings[mode].scalars:
-                value = bindings[mode][key]
-                if isinstance(value, list):
-                    value = ','.join(value)
-                modemaps[key] = value
-        # get global bindings
-        # ignore the ones already mapped in mode bindings
-        for key in bindings.scalars:
-            if key not in modemaps:
-                value = bindings[key]
-                if isinstance(value, list):
-                    value = ','.join(value)
-                if value and value != '':
-                    globalmaps[key] = value
-        # get rid of empty commands left in mode bindings
-        for k, v in list(modemaps.items()):
-            if not v:
-                del modemaps[k]
-
+        seen = set()
+        for section in self._binding_sections(mode):
+            maps = modemaps if section.name == mode else globalmaps
+            for key in section.scalars:
+                if key not in seen:
+                    seen.add(key)
+                    cmdline = self.get_keybinding(mode, key)
+                    if cmdline:
+                        maps[key] = cmdline
         return globalmaps, modemaps
 
     def get_keybinding(self, mode, key):
         """look up keybinding from `MODE-maps` sections
+
+        The first section defining `key` decides, see
+        :meth:`_binding_sections`; an empty value there unbinds the key.
 
         :param mode: mode identifier
         :type mode: str
@@ -398,23 +397,15 @@ class SettingsManager:
         :returns: a command line to be applied upon keypress
         :rtype: str
         """
-        cmdline = None
-        bindings = self._bindings
-        if key in bindings.scalars:
-            cmdline = bindings[key]
-        if mode in bindings.sections:
-            if key in bindings[mode].scalars:
-                value = bindings[mode][key]
-                if value:
-                    cmdline = value
-                else:
-                    # to be sure it isn't mapped globally
-                    cmdline = None
-        # Workaround for ConfigObj misbehaviour. cf issue #500
-        # this ensures that we get at least strings only as commandlines
-        if isinstance(cmdline, list):
-            cmdline = ','.join(cmdline)
-        return cmdline
+        for section in self._binding_sections(mode):
+            if key in section.scalars:
+                cmdline = section[key]
+                # Workaround for ConfigObj misbehaviour. cf issue #500
+                # this ensures that we get at least strings only as commandlines
+                if isinstance(cmdline, list):
+                    cmdline = ','.join(cmdline)
+                return cmdline or None
+        return None
 
     def get_accounts(self):
         """

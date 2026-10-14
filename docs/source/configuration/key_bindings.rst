@@ -58,16 +58,28 @@ Ctrl-u                      Deletes everything from the cursor to the beginning 
 Overwriting defaults
 --------------------
 
-To disable a global binding you can redefine it in your config to point to an empty command string.
-For example, to add a new global binding for key `a`, which is bound to `toggletags inbox` in search
-mode by default, you can remap it as follows.
+Your bindings take precedence over the default ones. When you press a key, alot
+uses the first binding of that key it finds in
+
+1. your bindings for the current mode,
+2. your global bindings,
+3. the default bindings for the current mode,
+4. the default global bindings.
+
+A binding to an empty command string unbinds the key. For example, `a` is bound to
+`toggletags inbox` in search mode by default. A new global binding
 
 .. sourcecode:: ini
 
     [bindings]
       a = NEW GLOBAL COMMAND
 
+makes `a` run the new command in all modes, search mode included. To leave `a`
+unbound in search mode, add
+
+.. sourcecode:: ini
+
       [[search]]
         a =
 
-If you omit the last two lines, `a` will still be bound to the default binding in search mode.
+To remove a default global binding, such as `q`, set `q =` in the `[bindings]` section.

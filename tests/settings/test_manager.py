@@ -244,6 +244,40 @@ class TestSettingsManager(unittest.TestCase):
         self.assertEqual(
             manager.get_tagstring_representation('inbox')['translated'], '~')
 
+    def test_keybinding_precedence(self):
+        # user mode binding, user global binding, default mode binding,
+        # default global binding: the first that defines a key decides
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
+            f.write(textwrap.dedent("""\
+                [bindings]
+                    a = flush
+                    q =
+                    [[thread]]
+                        a =
+                    [[envelope]]
+                        a = refresh
+                """))
+        self.addCleanup(os.unlink, f.name)
+        manager = SettingsManager()
+        manager.read_config(f.name)
+        cases = [
+            ('envelope', 'a', 'refresh'),  # user mode binding
+            ('search', 'a', 'flush'),  # user global beats default mode
+            ('thread', 'a', None),  # user mode binding unbinds
+            ('search', 'q', None),  # user global binding unbinds a default
+            ('search', '&', 'toggletags killed'),  # default mode binding
+            ('search', '@', 'refresh'),  # default global binding
+            ('search', 'X', None),  # no binding
+        ]
+        for mode, key, cmdline in cases:
+            with self.subTest(mode=mode, key=key):
+                self.assertEqual(manager.get_keybinding(mode, key), cmdline)
+                globalmaps, modemaps = manager.get_keybindings(mode)
+                self.assertEqual({**globalmaps, **modemaps}.get(key), cmdline)
+        globalmaps, modemaps = manager.get_keybindings('search')
+        self.assertEqual((globalmaps['a'], modemaps['&']),
+                         ('flush', 'toggletags killed'))
+
 
 class TestSettingsManagerExpandEnvironment(unittest.TestCase):
     """ Tests SettingsManager._expand_config_values """
