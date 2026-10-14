@@ -313,9 +313,9 @@ thread_unfold_matching = string(default=None)
 
 # Key bindings
 [bindings]
-    __many__ = string(default=None)
-    [[___many___]]
-        __many__ = string(default=None)
+    ___many___ = string(default=None)
+    [[__many__]]
+        __many__ = pass
 
 [tags]
     # for each tag
