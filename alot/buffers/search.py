@@ -69,7 +69,9 @@ class SearchBuffer(Buffer):
             self.body = self.listbox
             return
 
-        self.threadlist = IterableWalker(threads, ThreadlineWidget,
+        self.thread_ids = list(threads)  # get_threads has read them all
+        self.threadlist = IterableWalker(iter(self.thread_ids),
+                                         ThreadlineWidget,
                                          dbman=self.dbman,
                                          reverse=reverse)
 
@@ -145,6 +147,11 @@ class SearchBuffer(Buffer):
 
     def focus_thread(self, thread):
         tid = thread.get_thread_id()
+        # building a threadline per thread is slow: look for the thread in
+        # the ids first, which is cheap, e.g. when it has just been archived
+        limit = self.search_threads_rebuild_limit
+        if tid not in self.thread_ids[:limit or None]:
+            return
         self.consume_pipe_until(lambda w:
                                 w and w.get_thread().get_thread_id() == tid,
                                 self.search_threads_rebuild_limit)
