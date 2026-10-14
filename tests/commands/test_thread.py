@@ -216,6 +216,19 @@ class TestSaveAttachmentCommand(unittest.TestCase):
                     self.assertEqual(f.read(), content)
 
 
+class TestPipeCommand(unittest.TestCase):
+
+    @utilities.async_test
+    async def test_foreground_notifies_stdout_and_leaves_stderr(self):
+        ui = utilities.make_ui()
+        ui.current_buffer.get_selected_message.return_value.\
+            get_message_id.return_value = 'id'
+        cmd = thread.PipeCommand(['echo out; echo warning >&2'],
+                                 notify_stdout=True, format='id')
+        await cmd.apply(ui)
+        ui.notify.assert_called_once_with('out\n')
+
+
 class TestQuoteText(unittest.TestCase):
 
     @mock.patch('alot.commands.thread.settings.get_hook',

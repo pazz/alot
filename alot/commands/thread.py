@@ -38,6 +38,7 @@ from ..db.attachment import Attachment
 from ..db.errors import DatabaseROError
 from ..settings.const import settings
 from ..helper import parse_mailcap_nametemplate
+from ..helper import string_decode
 from ..utils import argparse as cargparse
 from ..utils import ansi
 from ..widgets.globals import AttachmentWidget
@@ -750,20 +751,22 @@ class PipeCommand(Command):
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.PIPE)
                 out, err = proc.communicate(encoded_mail)
-                if self.notify_stdout:
-                    ui.notify(out)
             else:
                 with ui.paused():
                     logging.debug('call: %s', self.cmd)
-                    # if proc.stdout is defined later calls to communicate
-                    # seem to be non-blocking!
+                    # stderr stays on the terminal, programs like vim need it
+                    stdout = subprocess.PIPE if self.notify_stdout else None
                     proc = subprocess.Popen(self.cmd, shell=True,
                                             stdin=subprocess.PIPE,
-                                            # stdout=subprocess.PIPE,
-                                            stderr=subprocess.PIPE)
+                                            stdout=stdout)
                     out, err = proc.communicate(encoded_mail)
-            if err:
-                ui.notify(err, priority='error')
+            if self.notify_stdout:
+                ui.notify(string_decode(out, urwid.util.detected_encoding))
+            if err or proc.returncode:
+                ui.notify(string_decode(err, urwid.util.detected_encoding)
+                          if err else
+                          'command exited with status %d' % proc.returncode,
+                          priority='error')
                 return
 
         # display 'done' message
