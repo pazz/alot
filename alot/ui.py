@@ -19,6 +19,7 @@ from .commands import globals
 from .commands import commandfactory
 from .commands import CommandCanceled, SequenceCanceled
 from .commands import CommandParseError
+from .db.errors import DatabaseError
 from .helper import split_commandline
 from .helper import get_xdg_env
 from .widgets.globals import CompleteEdit
@@ -105,8 +106,14 @@ class UI:
         signal.signal(signal.SIGINT, self._handle_signal)
         signal.signal(signal.SIGUSR1, self._handle_signal)
         signal.signal(signal.SIGCONT, self._handle_signal)
-        # stop the main loop on SIGTERM, so that the terminal is restored
-        loop.add_signal_handler(signal.SIGTERM, loop.stop)
+        # quit without questions on SIGTERM or when the terminal is closed;
+        # a Python-level handler, as urwid 3.0 spins reading a closed
+        # terminal, so handlers registered with the event loop would not run
+        self._loop = loop
+        self._terminating = False
+        signal.signal(signal.SIGTERM, self._terminate)
+        if signal.getsignal(signal.SIGHUP) is not signal.SIG_IGN:  # nohup
+            signal.signal(signal.SIGHUP, self._terminate)
 
         # load histories
         self._cache = os.path.join(
@@ -152,7 +159,24 @@ class UI:
         loop.create_task(self.apply_commandline(initialcmdline))
 
         # start urwids mainloop
-        self.mainloop.run()
+        try:
+            self.mainloop.run()
+        except Exception:
+            # urwid may fail on a closed terminal before SIGHUP arrives
+            # (a hung-up terminal is no tty any more, on stdin nor stdout)
+            if not self._terminating and (os.isatty(0) or os.isatty(1)):
+                raise
+            logging.exception('main loop ended on a closed terminal')
+            self._terminating = True
+        if self._terminating:
+            # write pending changes and histories; unlike the exit command,
+            # ask nothing and keep the files of unsent envelopes
+            try:
+                if self.dbman.writequeue and not self.dbman.ro:
+                    self.dbman.flush()
+            except DatabaseError:
+                logging.exception('could not write pending changes on exit')
+            self.cleanup()
 
     def _error_handler(self, exception):
         if isinstance(exception, CommandParseError):
@@ -740,6 +764,38 @@ class UI:
             # the shell may have reset the terminal while we were stopped
             with self.paused():
                 pass
+
+    def _terminate(self, signum, _frame):
+        """Signal handler for SIGTERM and SIGHUP: stop the main loop, after
+        which the constructor writes pending changes and saves histories.
+        It runs between any two Python statements, so it does no more than
+        set a flag and schedule the stop."""
+        logging.info('terminating on signal %d', signum)
+        self._terminating = True
+        if signum == signal.SIGHUP:
+            # The terminal is gone, but stdin, stdout and stderr (file
+            # descriptors 0, 1 and 2) still refer to it. Reading it returns
+            # end of file at once, every time, and urwid 3.0 reads "while
+            # input is ready", so it would spin in one callback and the main
+            # loop would never stop; writing to it fails, so urwid's restoring
+            # of the screen on the way out would raise. os.dup2(new, fd)
+            # points fd at new instead, within this process only.
+            #
+            # stdin: the read end of a pipe nobody writes to, so there is
+            # never input and urwid's read loop ends. The write end is kept
+            # open (closing it would mean end of file again), and the read
+            # end is non-blocking, so a read urwid has already started
+            # returns instead of waiting forever.
+            silent, self._silent = os.pipe()
+            os.set_blocking(silent, False)
+            os.dup2(silent, 0)
+            # stdout and stderr: /dev/null, where urwid's escape codes and
+            # any last messages go without error.
+            null = os.open(os.devnull, os.O_WRONLY)
+            os.dup2(null, 1)
+            os.dup2(null, 2)
+        # the loop may be busy; this wakes it up safely from a signal handler
+        self._loop.call_soon_threadsafe(self._loop.stop)
 
     def cleanup(self):
         """Do the final clean up before shutting down."""

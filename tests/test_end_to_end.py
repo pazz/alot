@@ -30,6 +30,8 @@ MAILS = os.path.join(os.path.dirname(__file__), 'static', 'mail')
 @unittest.skipUnless(shutil.which('notmuch'), 'needs the notmuch command')
 class EndToEndTestCase(unittest.TestCase):
 
+    shell_parent = False  # run alot from a shell, as in a terminal emulator
+
     @classmethod
     def setUpClass(cls):
         cls.dir = tempfile.mkdtemp()
@@ -96,10 +98,12 @@ class EndToEndTestCase(unittest.TestCase):
                 path = [os.path.dirname(os.path.dirname(alot.__file__))]
                 env = dict(self.env, TERM='xterm', PYTHONPATH=os.pathsep.join(
                     path + [p for p in sys.path if p]))
-                os.execve(sys.executable,
-                          [sys.executable, '-m', 'alot',
-                           '-n', self.notmuch_config, '-c', self.alot_config,
-                           'search', 'tag:inbox'], env)
+                argv = [sys.executable, '-m', 'alot',
+                        '-n', self.notmuch_config, '-c', self.alot_config,
+                        'search', 'tag:inbox']
+                if self.shell_parent:
+                    argv = ['/bin/sh', '-c', '"$@"; true', 'sh'] + argv
+                os.execve(argv[0], argv, env)
             finally:
                 os._exit(127)  # never return into the test runner
         self.addCleanup(self._kill)
@@ -109,7 +113,8 @@ class EndToEndTestCase(unittest.TestCase):
         if self.pid is not None:
             os.kill(self.pid, signal.SIGKILL)
             os.waitpid(self.pid, 0)
-        os.close(self.fd)
+        if self.fd is not None:
+            os.close(self.fd)
 
     def _read(self, timeout):
         """Read what alot wrote within `timeout` seconds."""
@@ -313,3 +318,28 @@ class TestEmptyMessageFile(EndToEndTestCase):
         for move in ('move up', 'move down', 'move first', 'move last'):
             self.command(move)
         self.assertResponsive()
+
+
+class TestClosedTerminal(EndToEndTestCase):
+
+    def test_closed_terminal(self):
+        self.command('search NOT tag:inbox')
+        self.wait_for('search] for "NOT tag:inbox"')
+        os.close(self.fd)  # the terminal emulator goes away: SIGHUP
+        self.fd = None
+        # wait for alot itself: with a shell parent, self.pid is the shell
+        deadline = time.monotonic() + TIMEOUT
+        while not os.path.exists(self.marker):
+            if time.monotonic() > deadline:
+                self.fail('exit hook did not run')
+            time.sleep(0.1)
+        history = os.path.join(self.dir, '.cache', 'alot', 'history',
+                               'commands')
+        with open(history) as f:
+            self.assertIn('search NOT tag:inbox', f.read())
+
+
+class TestClosedTerminalWithShell(TestClosedTerminal):
+    """the shell, not alot, leads the session and gets SIGHUP first"""
+
+    shell_parent = True
