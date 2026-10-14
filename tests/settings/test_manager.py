@@ -215,6 +215,20 @@ class TestSettingsManager(unittest.TestCase):
         manager.read_config(f.name)
         self.assertEqual(manager.get_tagstring_representation(tag)['translated'], translated_goal)
 
+    def test_translated_tilde_is_not_expanded(self):
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
+            f.write(textwrap.dedent("""\
+                [tags]
+                    [[inbox]]
+                        translated = ~
+                """))
+        self.addCleanup(os.unlink, f.name)
+        manager = SettingsManager()
+        manager.read_config(f.name)
+        self.assertEqual(
+            manager.get_tagstring_representation('inbox')['translated'], '~')
+
+
 class TestSettingsManagerExpandEnvironment(unittest.TestCase):
     """ Tests SettingsManager._expand_config_values """
     setting_name = 'template_dir'
