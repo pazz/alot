@@ -177,6 +177,27 @@ class TestForwardCommand(unittest.TestCase):
                 self.assertEqual(envelope.get('Subject'), expected)
 
 
+class TestReplyCommand(unittest.TestCase):
+
+    @mock.patch('alot.commands.thread.settings.get_hook',
+                mock.Mock(return_value=None))
+    @mock.patch('alot.commands.thread.settings.get',
+                mock.Mock(side_effect={'reply_subject_prefix': 'Re: '}.get))
+    @mock.patch('alot.commands.thread.determine_sender',
+                mock.Mock(return_value=('me@example.com', mock.Mock())))
+    @utilities.async_test
+    async def test_list_reply_uses_list_post(self):
+        msg = mock.Mock()
+        msg.get_body_text.return_value = ''
+        msg.get_email.return_value = email.message_from_string(
+            'From: a@example.com\nTo: list@example.org\n'
+            'List-Post: <mailto:post@example.org?subject=x>\n\n')
+        ui = utilities.make_ui(apply_command=mock.AsyncMock())
+        await thread.ReplyCommand(msg, listreply=True).apply(ui)
+        envelope = ui.apply_command.await_args.args[0].envelope
+        self.assertEqual(envelope.get('To'), 'post@example.org')
+
+
 class TestOpenAttachmentCommand(unittest.TestCase):
 
     @mock.patch('alot.commands.thread.settings.mailcap_find_match',
