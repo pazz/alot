@@ -172,6 +172,8 @@ class TestBuildStatusbar(unittest.TestCase):
         settings.get.return_value = ('left', '{total_messages} messages')
         ui.build_statusbar()
         ui.dbman.count_messages.assert_called_once_with('*')
+
+
 class TestUpdate(unittest.TestCase):
 
     @mock.patch('alot.ui.settings')
