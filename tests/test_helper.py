@@ -21,6 +21,7 @@ import datetime
 import errno
 import os
 import random
+import shutil
 import unittest
 from unittest import mock
 
@@ -484,3 +485,17 @@ class TestParseMailto(unittest.TestCase):
                      'Subject': ['Re: Hello'],
                      'In-reply-to': ['<C8CE9EFD-CB23-4BC0-B70D-9B7FEAD59F8C@example.org>']}, '')
         self.assertEqual(actual, expected)
+
+
+class TestAttachmentDir(unittest.TestCase):
+
+    def test_private_and_removed_at_exit(self):
+        helper.attachment_dir.cache_clear()
+        self.addCleanup(helper.attachment_dir.cache_clear)
+        with mock.patch('alot.helper.atexit.register') as register:
+            path = helper.attachment_dir()
+            self.assertEqual(helper.attachment_dir(), path)
+        self.addCleanup(shutil.rmtree, path)
+        self.assertEqual(os.stat(path).st_mode & 0o777, 0o700)
+        register.assert_called_once_with(shutil.rmtree, path,
+                                         ignore_errors=True)

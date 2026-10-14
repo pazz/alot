@@ -40,6 +40,7 @@ from ..db.envelope import Envelope
 from ..db.attachment import Attachment
 from ..db.errors import DatabaseROError
 from ..settings.const import settings
+from ..helper import attachment_dir
 from ..helper import parse_mailcap_nametemplate
 from ..helper import string_decode
 from ..utils import argparse as cargparse
@@ -986,7 +987,6 @@ class OpenAttachmentCommand(Command):
         # more info. We only use the dict and construct the command ourselves
         _, entry = settings.mailcap_find_match(mimetype)
         if entry:
-            afterwards = None  # callback, will rm tempfile if used
             handler_stdin = None
             tempfile_name = None
             handler_raw_commandstring = entry['view']
@@ -1006,13 +1006,13 @@ class OpenAttachmentCommand(Command):
                     filename = self.attachment.get_filename()
                     prefix, suffix = fn_hook(filename, prefix, suffix)
 
-                with tempfile.NamedTemporaryFile(delete=False, prefix=prefix,
-                                                 suffix=suffix) as tmpfile:
+                # kept until alot exits: the handler may return before the
+                # program it starts has read the copy
+                with tempfile.NamedTemporaryFile(
+                        delete=False, prefix=prefix, suffix=suffix,
+                        dir=attachment_dir()) as tmpfile:
                     tempfile_name = tmpfile.name
                     self.attachment.write(tmpfile)
-
-                def afterwards():
-                    os.unlink(tempfile_name)
             else:
                 handler_stdin = BytesIO()
                 self.attachment.write(handler_stdin)
@@ -1021,8 +1021,6 @@ class OpenAttachmentCommand(Command):
             handler_cmd = mailcap.subst(handler_raw_commandstring, mimetype,
                                         filename=tempfile_name, plist=parms)
             if handler_cmd is None:
-                if afterwards:
-                    afterwards()
                 ui.notify('mailcap entry for %s refused unsafe parameters'
                           % mimetype, priority='error')
                 return
@@ -1035,7 +1033,6 @@ class OpenAttachmentCommand(Command):
 
             await ui.apply_command(ExternalCommand(handler_cmdlist,
                                                    stdin=handler_stdin,
-                                                   on_success=afterwards,
                                                    thread=overtakes))
         else:
             ui.notify('unknown mime type')
@@ -1096,7 +1093,9 @@ class ThreadSelectCommand(Command):
     """
     select focussed element:
         - if it is a message summary, toggle visibility of the message;
-        - if it is an attachment line, open the attachment
+        - if it is an attachment line, open the attachment with its mailcap
+          entry; the copy handed to it is kept in a private temporary
+          directory until alot exits
         - if it is a mimepart, toggle visibility of the mimepart
     """
     async def apply(self, ui):

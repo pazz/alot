@@ -3,6 +3,7 @@
 # Copyright © 2017-2018 Dylan Baker
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
+import atexit
 from datetime import timedelta
 from datetime import datetime
 from collections import deque
@@ -10,9 +11,12 @@ import locale
 import logging
 import os
 import re
+import shutil
 import subprocess
+import tempfile
 import unicodedata
 import email
+import functools
 from email.mime.audio import MIMEAudio
 from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
@@ -442,6 +446,17 @@ def parse_mailto(mailto_str: str) -> (
         return (headers, body)
     else:
         return (None, None)
+
+
+@functools.cache
+def attachment_dir() -> str:
+    """Return a private directory for copies of attachments handed to
+    external programs. Programs such as xdg-open may return before the
+    viewer has read its copy, so the directory is only removed when alot
+    exits."""
+    path = tempfile.mkdtemp(prefix='alot-')
+    atexit.register(shutil.rmtree, path, ignore_errors=True)
+    return path
 
 
 def mailto_to_envelope(mailto_str: str) -> 'Envelope':
