@@ -70,3 +70,9 @@ class TestExternalAddressbookGetContacts(unittest.TestCase):
     def test_default_ignorecase(self):
         abook = external.ExternalAddressbook('foobar', '')
         self.assertIs(abook.reflags, re.IGNORECASE)
+
+    def test_lookup_passes_prefix_with_unbalanced_quote_as_one_argument(self):
+        abook = external.ExternalAddressbook('foo --bar', self.regex)
+        with self._patch_call_cmd(('', '', 0)) as call_cmd:
+            abook.lookup('"baz')
+        call_cmd.assert_called_once_with(['foo', '--bar', '"baz'])
