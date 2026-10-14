@@ -130,6 +130,22 @@ class TestSettingsManager(unittest.TestCase):
                         ' logging.info:\n{}'.format(
                             unknown_settings, mock_logger.info.call_args_list))
 
+    def test_mode_bindings_are_not_unknown(self):
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
+            f.write(textwrap.dedent("""\
+                [bindings]
+                    q = bclose
+                    [[search]]
+                        t = toggletags todo
+                """))
+        self.addCleanup(os.unlink, f.name)
+
+        with mock.patch('alot.settings.utils.logging') as mock_logger:
+            manager = SettingsManager()
+            manager.read_config(f.name)
+
+        mock_logger.info.assert_not_called()
+
     def test_read_notmuch_config_doesnt_exist(self):
         with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
             f.write(textwrap.dedent("""\
