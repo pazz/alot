@@ -76,3 +76,28 @@ class TestDBManager(utilities.TestCaseClassCleanup):
 
             named_queries_dict = self.manager.get_named_queries()
             self.assertDictEqual(named_queries_dict, {alias: querystring})
+
+    def test_tag_skips_unchanged_messages(self):
+        query = 'id:known@example.com OR id:unknown@example.com'
+        tags = ['a b"c', 'd']
+
+        def revision():
+            with Database(self.dbpath, config=Database.CONFIG.EMPTY) as db:
+                return db.revision().rev
+
+        self.manager.tag(query, tags)
+        self.manager.flush()
+        msg = self.manager.get_message('known@example.com')
+        self.assertTrue(set(tags) <= set(msg.get_tags()))
+        before = revision()
+        self.manager.tag(query, tags)
+        self.manager.untag(query, ['e'])
+        self.manager.flush()
+        self.assertEqual(revision(), before)
+        self.manager.untag(query, tags)
+        self.manager.flush()
+        msg = self.manager.get_message('known@example.com')
+        self.assertFalse(set(tags) & set(msg.get_tags()))
+        self.manager.tag('*', ['f'])  # a bare '*' still matches everything
+        self.manager.flush()
+        self.assertIn('f', self.manager.get_message('known@example.com').get_tags())
