@@ -6,6 +6,7 @@ from datetime import datetime
 import logging
 import os
 import re
+import time
 import email
 import email.policy
 from email.encoders import encode_7or8bit
@@ -270,6 +271,7 @@ class Envelope:
 
         # add Date header
         if 'Date' not in headers:
+            time.tzset()  # pick up a changed local timezone
             headers['Date'] = [email.utils.formatdate(localtime=True)]
 
         # add Message-ID

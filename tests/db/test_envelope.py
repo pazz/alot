@@ -18,6 +18,7 @@ import email.parser
 import email.policy
 import os
 import tempfile
+import time
 import unittest
 from unittest import mock
 import sys
@@ -106,6 +107,20 @@ class TestEnvelope(unittest.TestCase):
         self.assertEqual(mail.get_all('Content-Type'),
                          ['text/plain; charset="utf-8"'])
         self.assertEqual(len(mail.get_all('MIME-Version')), 1)
+
+    @mock.patch('alot.db.envelope.settings', SETTINGS)
+    def test_construct_mail_date_follows_timezone_change(self):
+        def restore(tz):
+            if tz is None:
+                os.environ.pop('TZ', None)
+            else:
+                os.environ['TZ'] = tz
+            time.tzset()
+        self.addCleanup(restore, os.environ.get('TZ'))
+        for tz, offset in [('AAA+5', '-0500'), ('BBB-3', '+0300')]:
+            os.environ['TZ'] = tz
+            mail = envelope.Envelope(bodytext='x').construct_mail()
+            self.assertTrue(mail['Date'].endswith(offset), mail['Date'])
 
     @mock.patch('alot.db.envelope.settings', SETTINGS)
     def test_parse_template(self):
