@@ -60,6 +60,9 @@ class EndToEndTestCase(unittest.TestCase):
         cls.alot_config = cls._write('alot-config', '''\
             hooksfile = {hooks}
             editor_cmd = true
+            # an expiring notification redraws the screen, which can happen
+            # just after command() has sent ':' and pass for the prompt
+            notify_timeout = 3600
             [accounts]
                 [[test]]
                     realname = Test User
