@@ -609,11 +609,12 @@
 
 .. describe:: search_threads_rebuild_limit
 
-     maximum amount of threads that will be consumed to try to restore the focus, upon triggering a search buffer rebuild
-     when set to 0, no limit is set (can be very slow in searches that yield thousands of results)
+     maximum amount of threads that will be consumed to try to restore the focus, upon triggering a search buffer rebuild;
+     if the focussed thread lies further down, the focus moves to the first thread instead.
+     When set to 0, no limit is set (can be very slow in searches that yield thousands of results)
 
     :type: integer
-    :default: 0
+    :default: 1000
 
 
 .. _search-threads-sort-order:

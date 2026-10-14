@@ -83,6 +83,14 @@ class TestSettingsManager(unittest.TestCase):
 
         manager.get_theming_attribute('global', 'body')
 
+    def test_search_threads_rebuild_limit_default(self):
+        with tempfile.NamedTemporaryFile(delete=False) as f:
+            pass
+        self.addCleanup(os.unlink, f.name)
+        manager = SettingsManager()
+        manager.read_config(f.name)
+        self.assertEqual(manager.get('search_threads_rebuild_limit'), 1000)
+
     def test_shellcommand_abook_ignorecase(self):
         with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
             f.write(textwrap.dedent("""\
