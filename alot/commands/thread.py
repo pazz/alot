@@ -949,18 +949,55 @@ class SaveAttachmentCommand(Command):
                     raise CommandCanceled()
 
 
+@registerCommand(MODE, 'open-attachment', arguments=[
+    (['cmd'], {'nargs': argparse.REMAINDER,
+               'help': 'command to open the attachment with; the path of a '
+                       'temporary copy is appended to it, which is removed '
+                       'when the command returns, so the command must not '
+                       'return before it has read the file. Without one, the '
+                       "mailcap entry for the attachment's type is used"})])
 class OpenAttachmentCommand(Command):
 
-    """displays an attachment according to mailcap"""
-    def __init__(self, attachment):
+    """open the focussed attachment with a command or according to mailcap"""
+    def __init__(self, attachment=None, cmd=None):
         """
-        :param attachment: attachment to open
+        :param attachment: attachment to open, defaults to the focussed one
         :type attachment: :class:`~alot.db.attachment.Attachment`
+        :param cmd: command to open the attachment with
+        :type cmd: list of str
         """
         self.attachment = attachment
+        self.cmd = cmd
+
+    def _write_tempfile(self, prefix, suffix):
+        fn_hook = settings.get_hook('sanitize_attachment_filename')
+        if fn_hook:
+            filename = self.attachment.get_filename()
+            prefix, suffix = fn_hook(filename, prefix, suffix)
+        with tempfile.NamedTemporaryFile(delete=False, prefix=prefix,
+                                         suffix=suffix) as tmpfile:
+            self.attachment.write(tmpfile)
+        return tmpfile.name
 
     async def apply(self, ui):
         logging.info('open attachment')
+        if self.attachment is None:
+            focus = ui.get_deep_focus()
+            if isinstance(focus, AttachmentWidget):
+                self.attachment = focus.get_attachment()
+            elif isinstance(getattr(focus, 'mimepart', None), Attachment):
+                self.attachment = focus.mimepart
+            else:
+                ui.notify('no attachment focussed', priority='error')
+                return
+        if self.cmd:
+            tempfile_name = self._write_tempfile('', '')
+            try:
+                await ui.apply_command(ExternalCommand(
+                    self.cmd + [tempfile_name]))
+            finally:
+                os.unlink(tempfile_name)
+            return
         mimetype = self.attachment.get_content_type()
 
         # returns pair of preliminary command string and entry dict containing
@@ -980,17 +1017,7 @@ class OpenAttachmentCommand(Command):
             if '%s' in handler_raw_commandstring:
                 nametemplate = entry.get('nametemplate', '%s')
                 prefix, suffix = parse_mailcap_nametemplate(nametemplate)
-
-                fn_hook = settings.get_hook('sanitize_attachment_filename')
-                if fn_hook:
-                    # get filename
-                    filename = self.attachment.get_filename()
-                    prefix, suffix = fn_hook(filename, prefix, suffix)
-
-                with tempfile.NamedTemporaryFile(delete=False, prefix=prefix,
-                                                 suffix=suffix) as tmpfile:
-                    tempfile_name = tmpfile.name
-                    self.attachment.write(tmpfile)
+                tempfile_name = self._write_tempfile(prefix, suffix)
 
                 def afterwards():
                     os.unlink(tempfile_name)

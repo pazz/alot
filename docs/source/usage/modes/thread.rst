@@ -61,6 +61,16 @@ The following commands are available in thread mode:
         up, down, [half]page up, [half]page down, first, last,                   parent, first reply, last reply,                   next sibling, previous sibling, next, previous,                   next unfolded, previous unfolded,                   next NOTMUCH_QUERY, previous NOTMUCH_QUERY
 
 
+.. _cmd.thread.open-attachment:
+
+.. describe:: open-attachment
+
+    open the focussed attachment with a command or according to mailcap
+
+    argument
+        command to open the attachment with; the path of a temporary copy is appended to it, which is removed when the command returns, so the command must not return before it has read the file. Without one, the mailcap entry for the attachment's type is used
+
+
 .. _cmd.thread.pipeto:
 
 .. describe:: pipeto

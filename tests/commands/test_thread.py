@@ -14,6 +14,7 @@ from unittest import mock
 from alot.commands import thread
 from alot.account import Account
 from alot.db.attachment import Attachment
+from alot.widgets.globals import AttachmentWidget
 
 from .. import utilities
 
@@ -213,6 +214,24 @@ class TestOpenAttachmentCommand(unittest.TestCase):
         await thread.OpenAttachmentCommand(attachment).apply(ui)
         ui.apply_command.assert_not_awaited()
         ui.notify.assert_called_once()
+
+    @utilities.async_test
+    async def test_open_with_command(self):
+        attachment = Attachment(email.mime.text.MIMEText('content'))
+        focus = mock.Mock(AttachmentWidget, **{
+            'get_attachment.return_value': attachment})
+        seen = []
+
+        async def run(cmd):
+            with open(cmd.cmdlist[1]) as f:
+                seen.append((cmd.cmdlist[0], f.read()))
+
+        ui = utilities.make_ui(apply_command=run, get_deep_focus=lambda: focus)
+        cmd = thread.OpenAttachmentCommand(cmd=['xdg-open'])
+        with mock.patch('alot.commands.thread.os.unlink') as unlink:
+            await cmd.apply(ui)
+        self.assertEqual(seen, [('xdg-open', 'content')])
+        os.remove(unlink.call_args.args[0])  # the temporary copy is removed
 
 
 class TestSaveAttachmentCommand(unittest.TestCase):
