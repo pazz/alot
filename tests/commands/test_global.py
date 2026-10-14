@@ -148,7 +148,7 @@ class TestExternalCommand(unittest.TestCase):
         cmd = g_commands.ExternalCommand('test -p /dev/stdin', refocus=False)
         await cmd.apply(ui)
         ui.notify.assert_called_once_with(
-                'editor has exited with error code 1 -- No stderr output',
+                'command has exited with error code 1 -- No stderr output',
                 priority='error')
 
     @utilities.async_test
@@ -165,7 +165,17 @@ class TestExternalCommand(unittest.TestCase):
         cmd = g_commands.ExternalCommand('false', refocus=False)
         await cmd.apply(ui)
         ui.notify.assert_called_once_with(
-                'editor has exited with error code 1 -- No stderr output',
+                'command has exited with error code 1 -- No stderr output',
+                priority='error')
+
+    @utilities.async_test
+    async def test_shell_in_thread(self):
+        ui = utilities.make_ui()
+        cmd = g_commands.ExternalCommand('exit 3', shell=True, thread=True,
+                                         refocus=False)
+        await cmd.apply(ui)
+        ui.notify.assert_called_once_with(
+                'command has exited with error code 3 -- No stderr output',
                 priority='error')
 
     @utilities.async_test
@@ -199,7 +209,7 @@ class TestExternalCommand(unittest.TestCase):
         cmd = g_commands.ExternalCommand('false', refocus=False, spawn=True)
         await cmd.apply(ui)
         ui.notify.assert_called_once_with(
-                'editor has exited with error code 1 -- No stderr output',
+                'command has exited with error code 1 -- No stderr output',
                 priority='error')
 
 

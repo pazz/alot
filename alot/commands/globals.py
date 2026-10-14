@@ -273,10 +273,7 @@ class ExternalCommand(Command):
             try:
                 if self.shell:
                     _cmd = asyncio.create_subprocess_shell
-                    # The shell function wants a single string or bytestring,
-                    # we could just join it, but lets be extra safe and use
-                    # shlex.quote to avoid suprises.
-                    cmdlist = [shlex.quote(' '.join(self.cmdlist))]
+                    cmdlist = [' '.join(self.cmdlist)]
                 else:
                     _cmd = asyncio.create_subprocess_exec
                     cmdlist = self.cmdlist
@@ -313,7 +310,7 @@ class ExternalCommand(Command):
             if self.on_success is not None:
                 self.on_success()
         else:
-            msg = "editor has exited with error code {} -- {}".format(
+            msg = "command has exited with error code {} -- {}".format(
                     "None" if proc is None else proc.returncode,
                     ret or "No stderr output")
             ui.notify(msg, priority='error')
