@@ -36,7 +36,6 @@ from ..db.utils import extract_headers
 from ..db.utils import clear_my_address
 from ..db.utils import ensure_unique_address
 from ..db.utils import remove_cte
-from ..db.utils import string_sanitize
 from ..db.envelope import Envelope
 from ..db.attachment import Attachment
 from ..db.errors import DatabaseROError
@@ -674,8 +673,9 @@ class PipeCommand(Command):
             'raw': message content as is,
             'decoded': message content, decoded quoted printable,
             'id': message ids, separated by newlines,
-            'filepath': paths to message files on disk
-            'mimepart': only pipe the currently selected mime part
+            'filepath': paths to message files on disk,
+            'mimepart': the selected mime part, decoded,
+            'plain', 'html': the text/plain or text/html part, decoded
         :type format: str
         :param add_tags: add 'Tags' header to the message
         :type add_tags: bool
@@ -735,10 +735,14 @@ class PipeCommand(Command):
             pipestrings = [e.get_filename() for e in to_print]
             separator = '\n'
         else:
+            focus = getattr(ui.get_deep_focus(), 'mimepart', None)
+            if isinstance(focus, Attachment):
+                focus = focus.part
             for msg in to_print:
                 mail = msg.get_email()
-                mimepart = (getattr(ui.get_deep_focus(), 'mimepart', False)
-                            or msg.get_mime_part())
+                mimepart = msg.get_mime_part()
+                if isinstance(focus, Message) and not self.whole_thread:
+                    mimepart = focus
                 if self.add_tags:
                     mail.add_header('Tags', ', '.join(msg.get_tags()))
                 if self.output_format == 'raw':
@@ -748,20 +752,22 @@ class PipeCommand(Command):
                     bodytext = extract_body_part(mimepart)
                     msgtext = '%s\n\n%s' % (headertext, bodytext)
                     pipestrings.append(msgtext)
-                elif self.output_format in ['mimepart', 'plain', 'html']:
-                    if self.output_format in ['plain', 'html']:
-                        mimepart = get_body_part(mail, self.output_format)
-                    pipestrings.append(string_sanitize(remove_cte(
-                        mimepart, as_string=True)))
+                elif self.output_format == 'mimepart':
+                    pipestrings.append(remove_cte(mimepart))  # bytes as sent
+                elif self.output_format in ['plain', 'html']:
+                    pipestrings.append(remove_cte(
+                        get_body_part(mail, self.output_format), as_string=True))
 
+        enc = urwid.util.detected_encoding
+        pipestrings = [s if isinstance(s, bytes) else s.encode(enc)
+                       for s in pipestrings]
         if not self.separately:
-            pipestrings = [separator.join(pipestrings)]
+            pipestrings = [separator.encode(enc).join(pipestrings)]
         if self.shell:
             self.cmd = [' '.join(self.cmd)]
 
         # do the monkey
-        for mail in pipestrings:
-            encoded_mail = mail.encode(urwid.util.detected_encoding)
+        for encoded_mail in pipestrings:
             if self.background:
                 logging.debug('call in background: %s', self.cmd)
                 proc = subprocess.Popen(self.cmd,

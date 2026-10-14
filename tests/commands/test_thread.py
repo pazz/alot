@@ -264,6 +264,40 @@ class TestPipeCommand(unittest.TestCase):
         await cmd.apply(ui)
         ui.notify.assert_called_once_with('out\n')
 
+    @utilities.async_test
+    async def test_pipes_mime_parts(self):
+        mail = email.message.EmailMessage()
+        mail.set_content('plain\ttext\n')
+        mail.add_alternative('<p>html</p>\n', subtype='html')
+        plain, html = mail.get_payload()
+        cases = [('plain', None, 'plain\ttext\n'),
+                 ('html', None, '<p>html</p>\n'),
+                 ('mimepart', None, '<p>html</p>\n'),
+                 ('mimepart', Attachment(plain), 'plain\ttext\n')]
+        for fmt, focus, expected in cases:
+            ui = utilities.make_ui()
+            ui.get_deep_focus.return_value.mimepart = focus
+            msg = ui.current_buffer.get_selected_message.return_value
+            msg.get_email.return_value = mail
+            msg.get_mime_part.return_value = html
+            cmd = thread.PipeCommand(['cat'], notify_stdout=True, format=fmt)
+            await cmd.apply(ui)
+            ui.notify.assert_called_once_with(expected)
+
+    @utilities.async_test
+    async def test_pipes_binary_mimepart_unchanged(self):
+        data = bytes(range(256))
+        part = email.message.EmailMessage()
+        part.set_content(data, maintype='application', subtype='octet-stream')
+        with tempfile.NamedTemporaryFile() as out:
+            ui = utilities.make_ui()
+            ui.get_deep_focus.return_value.mimepart = part
+            msg = ui.current_buffer.get_selected_message.return_value
+            msg.get_email.return_value = part
+            cmd = thread.PipeCommand(['cat > ' + out.name], format='mimepart')
+            await cmd.apply(ui)
+            self.assertEqual(out.read(), data)
+
 
 class TestQuoteText(unittest.TestCase):
 
