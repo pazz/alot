@@ -345,7 +345,7 @@ def extract_headers(mail: Message, headers: list[str] | None = None) -> str:
     return headertext
 
 
-def render_part(part: Message, field_key: str = 'copiousoutput') -> str | None:
+def render_part(part: Message) -> str | None:
     """
     renders a non-multipart email part into displayable plaintext by piping its
     payload through an external script. The handler itself is determined by
@@ -354,7 +354,7 @@ def render_part(part: Message, field_key: str = 'copiousoutput') -> str | None:
     ctype = part.get_content_type()
     rendered_payload = None
     # get mime handler
-    _, entry = settings.mailcap_find_match(ctype, key=field_key)
+    _, entry = settings.mailcap_find_match(ctype, key='copiousoutput')
     if entry is not None:
         params = dict(part.get_params(failobj=[]))
         if ctype == 'text/plain':
@@ -493,10 +493,7 @@ def get_body_part(mail: EmailMessage,
 def extract_body_part(body_part: Message) -> str:
     """Returns a string view of a Message."""
     displaystring = ""
-    rendered_payload = render_part(
-        body_part,
-        **{'field_key': 'view'} if body_part.get_content_type() == 'text/plain'
-        else {})
+    rendered_payload = render_part(body_part)
     if rendered_payload:  # handler had output
         displaystring = string_sanitize(rendered_payload)
     elif body_part.get_content_type() == 'text/plain':

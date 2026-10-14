@@ -831,6 +831,14 @@ class TestExtractBodyPart(unittest.TestCase):
 
         self.assertEqual(actual, expected)
 
+    @mock.patch('alot.db.utils.settings._mailcaps',
+                {'text/*': [{'view': 'echo interactive'}]})
+    def test_plaintext_ignores_mailcap_without_copiousoutput(self):
+        # https://github.com/pazz/alot/issues/1544
+        mail = EmailMessage()
+        mail.set_content('This is an email')
+        self.assertEqual(utils.extract_body_part(mail), 'This is an email\n')
+
     @mock.patch('alot.db.utils.settings.mailcap_find_match',
                 mock.Mock(return_value=(None, {'view': 'cat'})))
     def test_plaintext_mailcap_wo_content_type(self):
