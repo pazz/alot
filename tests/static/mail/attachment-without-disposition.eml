@@ -1,0 +1,22 @@
+From: <foo@bar.com>
+To: <blub@bla.org>
+Date: Mon, 15 Apr 2013 19:03:14 +0200
+Subject: test
+Content-Type: multipart/mixed;
+	boundary="--boundary_0_b95f290d-6246-4188-9d06-f1c7e6be7f6b"
+Message-ID: <0af75c76-0889-4d6b-91e4-45f549f350d5>
+MIME-Version: 1.0
+
+----boundary_0_b95f290d-6246-4188-9d06-f1c7e6be7f6b
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+
+RGVhciBTdHVkZW50LAoKUGxlYXNlIGZpbmQgeW91ciBjdXJyZW50IFN0dWRlbnQgQWNjb3VudCBT
+
+----boundary_0_b95f290d-6246-4188-9d06-f1c7e6be7f6b
+Content-Type: application/octet-stream; name="20328884_2013.pdf"
+Content-Transfer-Encoding: base64
+
+JVBERi0xLjMNCjEgMCBvYmoNClsvUERGIC9UZXh0IC9JbWFnZUIgL0ltYWdlQyAvSW1hZ2VJXQ0K
+
+----boundary_0_b95f290d-6246-4188-9d06-f1c7e6be7f6b--

@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import email.message
 import unittest
 from unittest import mock
 
@@ -145,3 +146,15 @@ class TestMessage(unittest.TestCase):
                         mock.Mock(return_value=[acc])):
             msg = message.Message(mock.Mock(), MockNotmuchMessage())
         self.assertEqual(msg.get_author(), ('Unknown', ''))
+
+    def test_attachment_without_content_disposition(self):
+        nm = MockNotmuchMessage()
+        nm.mock_filename = 'tests/static/mail/attachment-without-disposition.eml'
+        msg = message.Message(mock.Mock(), nm)
+        self.assertEqual([a.get_filename() for a in msg.get_attachments()],
+                         ['20328884_2013.pdf'])
+
+    def test_signature_without_content_disposition_is_no_attachment(self):
+        part = email.message.Message()
+        part['Content-Type'] = 'application/pgp-signature; name="signature.asc"'
+        self.assertFalse(message.Message._is_attachment(part))

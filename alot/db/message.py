@@ -227,8 +227,8 @@ class Message:
         Derived from the leaves of the email mime tree
         that and are not part of :rfc:`2015` syntax for encrypted/signed mails
         and either have :mailheader:`Content-Disposition` `attachment`
-        or have :mailheader:`Content-Disposition` `inline` but specify
-        a filename (as parameter to `Content-Disposition`).
+        or have :mailheader:`Content-Disposition` `inline` or none at all
+        but specify a filename.
         """
         if not self._attachments:
             self._attachments = []
@@ -261,8 +261,9 @@ class Message:
         if cd.lower().startswith('attachment'):
             if ct.lower() not in ['application/pgp-signature']:
                 return True
-        elif cd.lower().startswith('inline'):
-            if (filename is not None and ct.lower() != 'application/pgp'):
+        elif not cd or cd.lower().startswith('inline'):
+            if (filename is not None and ct.lower() not in
+                    ['application/pgp', 'application/pgp-signature']):
                 return True
 
         return False
