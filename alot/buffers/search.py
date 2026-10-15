@@ -64,6 +64,7 @@ class SearchBuffer(Buffer):
         except NotmuchError:
             self.ui.notify('malformed query string: %s' % self.querystring,
                            'error')
+            self.threadlist = None
             self.listbox = urwid.ListBox([])
             self.body = self.listbox
             return
@@ -83,8 +84,24 @@ class SearchBuffer(Buffer):
         returns curently focussed :class:`alot.widgets.ThreadlineWidget`
         from the result list.
         """
+        if self.threadlist is None:  # malformed query
+            return None
         threadlinewidget, _ = self.threadlist.get_focus()
         return threadlinewidget
+
+    def refresh_threadline(self, threadline):
+        """
+        rebuild `threadline` from the index, or remove it if its thread
+        no longer matches the query, and update an unlimited result count
+        """
+        query = '(%s) AND thread:%s' % (self.querystring, threadline.tid)
+        if self.dbman.count_messages(query) == 0:
+            if threadline in self.threadlist:
+                self.threadlist.remove(threadline)
+        else:
+            threadline.rebuild()
+        if not self.limit:  # a limited count comes only from get_threads
+            self.result_count = self.dbman.count_messages(self.querystring)
 
     def get_selected_thread(self):
         """returns currently selected :class:`~alot.db.Thread`"""
