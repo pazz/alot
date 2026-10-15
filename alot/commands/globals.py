@@ -55,6 +55,10 @@ class ExitCommand(Command):
         self.prompt_to_send = _prompt
 
     async def apply(self, ui):
+        if ui.editors:
+            ui.notify('close the editor first', priority='error')
+            return
+
         if settings.get('bug_on_exit'):
             msg = 'really quit?'
             if (await ui.choice(msg, select='yes', cancel='no',
@@ -362,8 +366,12 @@ class EditCommand(ExternalCommand):
     async def apply(self, ui):
         if self.cmdlist is None:
             ui.notify('no editor set', priority='error')
-        else:
-            return await ExternalCommand.apply(self, ui)
+            return
+        ui.editors += 1
+        try:
+            await ExternalCommand.apply(self, ui)
+        finally:
+            ui.editors -= 1
 
 
 @registerCommand(MODE, 'pyshell')
