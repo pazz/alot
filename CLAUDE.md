@@ -46,4 +46,29 @@ Per CONTRIBUTING.md, contact management, fetching and sending mail are out of sc
 - Small is beautiful: the smallest clean diff that solves the problem. Prefer deletion, stdlib and existing helpers; no speculative parameters, layers or abstractions.
 - Bug fixes come with a regression test that fails without the fix.
 - Do not edit `NEWS` in branches; it is updated in one go before a release. Put a ready-to-paste "NEWS: ..." line for user-facing changes in the PR description instead.
-- Every branch gets two fresh-context reviews before a PR: one for correctness, one that doubts the change for over-engineering.
+
+## Reviews
+
+This section applies to AI-assisted contributions; human contributors are welcome without it.
+
+Reviewers are the agents in `.claude/agents/`. Each runs in a fresh context and gets only the branch or commit and the issue or PR numbers, never the author's summary, so that the author's assumptions do not frame the review. Run the agents of a tier in parallel. CI already runs the test matrix (including Python 3.10 with the oldest dependencies), ruff, mypy and the generated docs; the reviewers cover what CI cannot (tests failing without the fix, the tests CI skips, behaviour, design, security).
+
+- **Trivial** (documentation, comments): `review-correctness`.
+- **Normal** (everything else, including CI workflows): `review-correctness` and `review-design`.
+- **High risk**: also `review-security`, a second opinion from a non-Anthropic model, and a request for a human co-maintainer's review in the PR. High risk means anything that handles untrusted mail content (headers, MIME parts, attachments, HTML, terminal output), temporary files, shell, mailcap or external commands, crypto, or signals and process lifetime.
+
+When unsure, take the higher tier.
+
+The second opinion uses the Copilot CLI with only its read-only file tools (`view`, `glob`, `rg`): no shell, no writes, no network, no MCP servers. The model is named because Copilot defaults to Claude models; `gpt-6-luna` or any other non-Anthropic model the plan offers will do. Give it the diff and the issue or PR text, or a statement of the goal:
+
+```sh
+copilot -s --model gpt-6-luna --available-tools view glob rg \
+  -p "$(awk 'f>=2; /^---$/{f++}' .claude/agents/review-correctness.md)
+You can only read files; skip the checks that need running code.
+Diff: $(git diff origin/main...HEAD)
+Issue: $(gh issue view N --comments)"
+```
+
+For a PR use `gh pr view N --comments`; with neither, replace that line with a statement of the goal. Alternatively, once the PR is open, request Copilot's online review with `gh pr edit N --add-reviewer @copilot`.
+
+Every finding is either fixed or left with a reason. The PR description ends with a "Review findings and resolution" section: for each reviewer, its findings and what was done with each (fixed, or left and why).
