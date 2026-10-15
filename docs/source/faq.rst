@@ -99,3 +99,34 @@ Alot does not yet have this feature built-in. However, you can pipe a mail to yo
 Using less, you search with '/' and save with 's'.
 See :ref:`here <cmd.thread.pipeto>` or `help pipeto` for help on this command.
 
+
+.. _faq_10:
+.. rubric:: 10. How do I open attachments with my desktop's default programs?
+
+When you :ref:`select <cmd.thread.select>` an attachment, alot opens it with the matching mailcap entry.
+To let the desktop's file associations choose the program, put these lines into your :file:`~/.mailcap`::
+
+   application/*; gio open %s
+   audio/*; gio open %s
+   image/*; gio open %s
+   text/*; gio open %s
+   video/*; gio open %s
+
+mailcap has no catch-all `*/*`, so add a line for any other type you need.
+These entries have no `copiousoutput` flag, so they are only used to open attachments and do not affect how mails are displayed.
+Opened attachments are copied to a private temporary directory that is kept until alot exits, so programs started by `gio open` can still read them after it returns.
+
+Use `gio open` (part of GLib) rather than `xdg-open` here: without a desktop environment (for example under sway or i3, or over ssh), `xdg-open` falls back to `run-mailcap` for types without an associated program, and `run-mailcap` reads these same lines and calls `xdg-open` again, without end.
+The program is chosen from the file's detected type, so check your desktop's associations: with Wine installed, for example, opening a Windows executable attachment runs it.
+
+The copy has no file extension by default, so its type is guessed from the content, and office documents, for example, open as zip archives.
+To keep the extension of common document types, add a :ref:`sanitize_attachment_filename <config.hooks>` hook to your hooks file::
+
+   import os
+
+   def sanitize_attachment_filename(filename=None, prefix='', suffix=''):
+       # the filename is chosen by the sender: keep only known extensions
+       ext = os.path.splitext(filename or '')[1].lower()
+       documents = ('.csv', '.doc', '.docx', '.odp', '.ods', '.odt',
+                    '.ppt', '.pptx', '.xls', '.xlsx')
+       return prefix, ext if ext in documents else suffix
