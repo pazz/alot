@@ -125,6 +125,28 @@ class TestComposeCommand(unittest.TestCase):
             await cmd._set_signature(ui)
 
 
+class TestExitCommand(unittest.TestCase):
+
+    @utilities.async_test
+    async def test_refuses_while_editor_runs(self):
+        ui = utilities.make_ui(buffers=[], editors=0, db_was_locked=False)
+
+        async def quit_from_editor(cmd, ui):
+            await g_commands.ExitCommand().apply(ui)
+
+        config = {'editor_cmd': 'vi', 'editor_spawn': False,
+                  'editor_in_thread': True, 'bug_on_exit': False}
+        with mock.patch('alot.commands.globals.settings.get', config.get), \
+                mock.patch('alot.commands.globals.settings.get_hook',
+                           return_value=None), \
+                mock.patch.object(g_commands.ExternalCommand, 'apply',
+                                  quit_from_editor):
+            await g_commands.EditCommand('/tmp/draft').apply(ui)
+        ui.exit.assert_not_called()
+        ui.apply_command.assert_not_called()
+        self.assertEqual(ui.editors, 0)
+
+
 class TestExternalCommand(unittest.TestCase):
 
     @utilities.async_test

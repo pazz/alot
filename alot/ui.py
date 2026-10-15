@@ -68,6 +68,8 @@ class UI:
         """points to currently active :class:`~alot.buffers.Buffer`"""
         self.db_was_locked = False
         """flag used to prevent multiple 'index locked' notifications"""
+        self.editors = 0
+        """number of editors currently running"""
         self.mode = 'global'
         """interface mode identifier - type of current buffer"""
         self.commandprompthistory = []
