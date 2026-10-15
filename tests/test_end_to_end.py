@@ -250,6 +250,29 @@ class TestRunning(EndToEndTestCase):
         self.command('tag e2e-tag')
         self.wait_for('e2e-tag')
 
+    def test_thread_mode_tags_shown_back_in_search(self):
+        self.send('\r')  # open the first thread
+        self.wait_for('thread]')
+        self.command('tag e2e-back')
+        self.wait_for('e2e-back')
+        self.command('bclose')
+        self.wait_for('search] for "tag:inbox"')
+        self.settle()
+        # the threadline in the search buffer shows the new tag
+        self.assertRegex(self.screen_text(),
+                         r'\(1\) +[\w -]*e2e-back[\w -]* foo@bar\.com test')
+
+    def test_back_to_search_with_malformed_query(self):
+        self.command('refine date:foo..bar')
+        self.wait_for('malformed query string')
+        self.command('taglist')
+        self.wait_for('taglist]')
+        self.command('bclose')
+        self.wait_for('search] for "date:foo..bar"')
+        self.settle()
+        # returning must not query the index with the malformed query
+        self.assertNotIn('Xapian exception', self.screen_text())
+
     def test_external_command(self):
         self.command('shellescape --thread=False true')
         self.assertResponsive()

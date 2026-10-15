@@ -498,6 +498,12 @@ class UI:
             self.mode = buf.modename
             if isinstance(self.current_buffer, BufferlistBuffer):
                 self.current_buffer.rebuild()
+            elif isinstance(buf, SearchBuffer):
+                # its thread may have changed in another buffer, e.g. read
+                # or tagged in thread mode
+                threadline = buf.get_selected_threadline()
+                if threadline:
+                    buf.refresh_threadline(threadline)
             self.update()
             success = True
 

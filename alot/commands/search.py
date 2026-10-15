@@ -191,22 +191,8 @@ class TagCommand(Command):
         logging.debug('q: %s', testquery)
 
         def refresh():
-            # update total result count
             if not self.allm:
-                # remove thread from resultset if it doesn't match the search query
-                # any more and refresh selected threadline otherwise
-                countquery = "(%s) AND thread:%s" % (searchbuffer.querystring,
-                                                     thread.get_thread_id())
-                hitcount_after = ui.dbman.count_messages(countquery)
-                if hitcount_after == 0:
-                    logging.debug('remove thread from result list: %s', thread)
-                    if threadline_widget in searchbuffer.threadlist:
-                        # remove this thread from result list
-                        searchbuffer.threadlist.remove(threadline_widget)
-                else:
-                    threadline_widget.rebuild()
-                searchbuffer.result_count = searchbuffer.dbman.count_messages(
-                    searchbuffer.querystring)
+                searchbuffer.refresh_threadline(threadline_widget)
             else:
                 searchbuffer.rebuild()
 
