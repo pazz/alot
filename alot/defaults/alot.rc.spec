@@ -373,7 +373,10 @@ thread_unfold_matching = string(default=None)
         # list of tags to automatically add to outgoing messages
         sent_tags = force_list(default='sent')
 
-        # list of tags to automatically add to draft messages
+        # list of tags to automatically add to draft messages.
+        # A draft opened with :ref:`editnew <cmd.thread.editnew>` is tagged
+        # `deleted` once its new version has been saved or sent, which hides
+        # it from searches if `deleted` is among the excluded tags.
         draft_tags = force_list(default='draft')
 
         # list of tags to automatically add to replied messages
