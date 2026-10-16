@@ -132,6 +132,8 @@ class SaveCommand(Command):
         # store mail locally
         path = account.store_draft_mail(
             mail.as_string(policy=email.policy.SMTP, maxheaderlen=sys.maxsize))
+        if envelope.draft:
+            envelope.draft.add_tags(['deleted'])
 
         msg = 'draft saved successfully'
 
@@ -298,6 +300,8 @@ class SendCommand(Command):
                     self.envelope.replied.add_tags(account.replied_tags)
                 if self.envelope.passed:
                     self.envelope.passed.add_tags(account.passed_tags)
+                if self.envelope.draft:
+                    self.envelope.draft.add_tags(['deleted'])
 
             # store mail locally
             # This can raise StoreMailError
