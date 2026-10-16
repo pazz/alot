@@ -120,16 +120,15 @@ class DictList(SimpleTree):
     its sibblings will be the other pairs and first|last_child will always
     be None.
     """
-    def __init__(self, content, key_attr, value_attr, gaps_attr=None):
+    def __init__(self, content: list[tuple[str, str]],
+                 key_attr: urwid.AttrSpec,
+                 value_attr: urwid.AttrSpec,
+                 gaps_attr: urwid.AttrSpec | None = None):
         """
         :param headerslist: list of key/value pairs to display
-        :type headerslist: list of (str, str)
         :param key_attr: theming attribute to use for keys
-        :type key_attr: urwid.AttrSpec
         :param value_attr: theming attribute to use for values
-        :type value_attr: urwid.AttrSpec
         :param gaps_attr: theming attribute to wrap lines in
-        :type gaps_attr: urwid.AttrSpec
         """
         structure = []
         for line in key_value_columns(content, key_attr, value_attr):
