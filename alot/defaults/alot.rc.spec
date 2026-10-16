@@ -20,6 +20,15 @@ exclude_tags = force_list(default=None)
 # display background colors set by ANSI character escapes
 interpret_ansi_background = boolean(default=True)
 
+# Enable colouring message based on quote-level
+parse_quotes = boolean(default=True)
+
+# Set what quote symbol should be used (regex symbol is possible)
+quote_symbol = string(default='>')
+
+# Enable colouring unified diffs
+highlight_diff = boolean(default=True)
+
 # confirm exit
 bug_on_exit = boolean(default=False)
 
