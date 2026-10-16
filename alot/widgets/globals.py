@@ -5,6 +5,7 @@
 """
 This contains alot-specific :class:`urwid.Widget` used in more than one mode.
 """
+from typing import Generator
 import re
 import operator
 import urwid
@@ -245,7 +246,7 @@ class HeadersList(urwid.WidgetWrap):
         self.headers = headerslist
         self.key_attr = key_attr
         self.value_attr = value_attr
-        pile = urwid.Pile(self._build_lines(headerslist))
+        pile = urwid.Pile(key_value_columns(headerslist, key_attr, value_attr))
         if gaps_attr is None:
             gaps_attr = key_attr
         pile = urwid.AttrMap(pile, gaps_attr)
@@ -254,18 +255,15 @@ class HeadersList(urwid.WidgetWrap):
     def __str__(self):
         return str(self.headers)
 
-    def _build_lines(self, lines: list[tuple[str, str]]):
-        return key_value_columns(lines, self.key_attr, self.value_attr)
-
 
 def key_value_columns(pairs: list[tuple[str, str]],
                       key_attr: urwid.AttrSpec,
-                      value_attr: urwid.AttrSpec) -> list[urwid.Columns]:
+                      value_attr: urwid.AttrSpec) -> Generator[urwid.Columns, None, None]:
     """one :class:`urwid.Columns` per (key, value) pair, keys aligned"""
     width = max([1] + [len(key) for key, _ in pairs]) + 1
-    return [urwid.Columns([('fixed', width, urwid.Text((key_attr, key))),
-                           urwid.Text((value_attr, value))])
-            for key, value in pairs]
+    for key, value in pairs:
+        yield urwid.Columns([('fixed', width, urwid.Text((key_attr, key))),
+                             urwid.Text((value_attr, value))])
 
 
 class TagWidget(urwid.AttrMap):
