@@ -201,6 +201,8 @@ class TestReplyCommand(unittest.TestCase):
 
 class TestEditNewCommand(unittest.TestCase):
 
+    @mock.patch('alot.commands.thread.settings.get_accounts',
+                mock.Mock(return_value=[]))
     @utilities.async_test
     async def test_strips_csi(self):
         msg = mock.Mock()
@@ -212,6 +214,24 @@ class TestEditNewCommand(unittest.TestCase):
         await thread.EditNewCommand(msg).apply(ui)
         envelope = ui.apply_command.await_args.args[0].envelope
         self.assertEqual(envelope.body_txt, 'a')
+
+    @utilities.async_test
+    async def test_remembers_draft(self):
+        account = mock.Mock(draft_tags=['drafts'])
+        for tags, is_draft in [(['drafts', 'foo'], True), (['foo'], False)]:
+            with self.subTest(tags=tags):
+                msg = mock.Mock()
+                msg.get_tags.return_value = tags
+                msg.get_attachments.return_value = []
+                msg.get_body_text.return_value = ''
+                msg.get_email.return_value = email.message_from_string('\n')
+                ui = utilities.make_ui(apply_command=mock.AsyncMock())
+                with mock.patch('alot.commands.thread.settings.get_accounts',
+                                return_value=[account]):
+                    await thread.EditNewCommand(msg).apply(ui)
+                envelope = ui.apply_command.await_args.args[0].envelope
+                self.assertIs(envelope.draft, msg if is_draft else None)
+                self.assertEqual(envelope.tags, ['foo'])
 
 
 class TestOpenAttachmentCommand(unittest.TestCase):

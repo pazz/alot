@@ -470,12 +470,17 @@ class EditNewCommand(Command):
         mail = self.message.get_email()
         # copy most tags to the envelope
         tags = set(self.message.get_tags())
+        draft_tags = {t for a in settings.get_accounts() for t in a.draft_tags}
+        is_draft = not tags.isdisjoint(draft_tags)
         tags.difference_update({'inbox', 'sent', 'draft', 'killed', 'replied',
                                 'signed', 'encrypted', 'unread', 'attachment'})
+        tags.difference_update(draft_tags)
         tags = list(tags)
         # set body text, without the escapes a mailcap renderer may add
         mailcontent = ansi.remove_csi(self.message.get_body_text())
         envelope = Envelope(bodytext=mailcontent, tags=tags)
+        if is_draft:
+            envelope.draft = self.message
 
         # copy selected headers
         to_copy = ['Subject', 'From', 'To', 'Cc', 'Bcc', 'In-Reply-To',
