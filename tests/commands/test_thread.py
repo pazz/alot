@@ -230,6 +230,20 @@ class TestOpenAttachmentCommand(unittest.TestCase):
         ui.apply_command.assert_not_awaited()
         ui.notify.assert_called_once()
 
+    @mock.patch.dict(os.environ, {'PAGER': 'more'})
+    @mock.patch('alot.commands.thread.settings.mailcap_find_match',
+                return_value=(None, {'view': 'cat', 'copiousoutput': ''}))
+    @utilities.async_test
+    async def test_copiousoutput_is_paged_sanitised(self, _):
+        attachment = Attachment(email.mime.text.MIMEText(
+            'a\x1b[2Jb\x07\x1b[1mc'))
+        ui = utilities.make_ui(apply_command=mock.AsyncMock())
+        await thread.OpenAttachmentCommand(attachment).apply(ui)
+        cmd = ui.apply_command.await_args.args[0]
+        self.assertEqual(cmd.cmdlist, ['more'])
+        self.assertFalse(cmd.in_thread)
+        self.assertEqual(cmd.stdin.read(), b'ab\x1b[1mc')
+
 
 class TestSaveAttachmentCommand(unittest.TestCase):
 
