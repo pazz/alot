@@ -16,3 +16,10 @@ class TestBufferlistBuffer(unittest.TestCase):
         buf.body.set_focus(1)
         buf.rebuild()
         self.assertIs(buf.get_selected_buffer(), ui.buffers[1])
+
+    @mock.patch('alot.buffers.bufferlist.settings')
+    def test_focus_last(self, _):
+        ui = mock.Mock(buffers=[mock.Mock(), mock.Mock()])
+        buf = BufferlistBuffer(ui)
+        buf.focus_last()
+        self.assertIs(buf.get_selected_buffer(), ui.buffers[1])

@@ -58,3 +58,7 @@ class BufferlistBuffer(Buffer):
     def focus_first(self):
         """Focus the first line in the buffer list."""
         self.body.set_focus(0)
+
+    def focus_last(self):
+        """Focus the last line in the buffer list."""
+        self.body.set_focus(len(self.body.body) - 1)

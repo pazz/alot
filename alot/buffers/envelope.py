@@ -93,11 +93,19 @@ class EnvelopeBuffer(Buffer):
             self.attachment_wgt = urwid.Pile(lines)
             displayed_widgets.append(self.attachment_wgt)
 
-        # message body
-        txt = self._find_body_text()
-        self.body_wgt = urwid.Text(string_sanitize(txt))
-        displayed_widgets.append(self.body_wgt)
+        # message body, one widget per line so that move last can reach the end
+        txt = string_sanitize(self._find_body_text())
+        displayed_widgets.extend(urwid.Text(line) for line in txt.split('\n'))
         self.body = urwid.ListBox(displayed_widgets)
+
+    def focus_first(self):
+        """Scroll to the top of the envelope."""
+        self.body.set_focus(0)
+        self.body.set_focus_valign('top')
+
+    def focus_last(self):
+        """Scroll to the end of the message body."""
+        self.body.set_focus(len(self.body.body) - 1)
 
     def toggle_all_headers(self):
         """Toggle visibility of all envelope headers."""
@@ -122,5 +130,4 @@ class EnvelopeBuffer(Buffer):
         the requested part is 'html' or 'src'!
         """
         self.displaypart = part
-        txt = self._find_body_text()
-        self.body_wgt.set_text(txt)
+        self.rebuild()
