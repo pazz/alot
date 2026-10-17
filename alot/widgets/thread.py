@@ -16,7 +16,7 @@ from .globals import AttachmentWidget
 from .globals import key_value_columns
 from ..settings.const import settings
 from ..db.attachment import Attachment
-from ..db.utils import decode_header, X_SIGNATURE_MESSAGE_HEADER
+from ..db.utils import decode_header, X_SIGNATURE_MESSAGE_HEADER, X_SIGNATURE_VALID_HEADER
 from ..helper import string_sanitize
 
 ANSI_BACKGROUND = settings.get("interpret_ansi_background")
@@ -317,9 +317,9 @@ class MessageTree(CollapsibleTree):
 
         # OpenPGP pseudo headers
         if mail[X_SIGNATURE_MESSAGE_HEADER]:
-            status, _ = mail[X_SIGNATURE_MESSAGE_HEADER].split(':')
+            status = mail[X_SIGNATURE_VALID_HEADER]
             value = mail[X_SIGNATURE_MESSAGE_HEADER]
-            if status != 'Valid':
+            if status != 'True':
                 attr = settings.get_theming_attribute('global', 'notify_error')
                 value = urwid.Text((attr, value))
             lines.append(('PGP-Signature', value))
