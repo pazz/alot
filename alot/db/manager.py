@@ -300,8 +300,19 @@ class DBManager:
                 raise NonexistantObjectError(errmsg)
             yield thread
 
-    def get_thread(self, tid: str) -> Thread:
-        """returns :class:`Thread` with given thread id"""
+    def get_thread(self, tid: str, query: str = '') -> Thread:
+        """
+        returns :class:`Thread` with given thread id
+
+        :param query: if the thread matches this query, take its dates
+            from the matching messages only, as `notmuch search` does
+        """
+        if query:
+            with Database(path=self.path, mode=Database.MODE.READ_ONLY,
+                          config=self.config) as db:
+                for thread in db.threads(narrow_query(query, 'thread:' + tid),
+                                         exclude_tags=self.exclude_tags):
+                    return Thread(self, thread)
         with self._with_notmuch_thread(tid) as thread:
             return Thread(self, thread)
 
