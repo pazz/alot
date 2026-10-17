@@ -152,7 +152,8 @@ The following commands are available in thread mode:
         - if it is a message summary, toggle visibility of the message;
         - if it is an attachment line, open the attachment with its mailcap
           entry; the copy handed to it is kept in a private temporary
-          directory until alot exits
+          directory until alot exits, and the output of a copiousoutput
+          entry is shown in $PAGER (default less -R)
         - if it is a mimepart, toggle visibility of the mimepart
 
 

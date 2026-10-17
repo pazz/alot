@@ -3,6 +3,8 @@
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
 import argparse
+import asyncio
+import locale
 import logging
 import mailcap
 import os
@@ -41,8 +43,10 @@ from ..db.attachment import Attachment
 from ..db.errors import DatabaseROError
 from ..settings.const import settings
 from ..helper import attachment_dir
+from ..helper import call_cmd
 from ..helper import parse_mailcap_nametemplate
 from ..helper import string_decode
+from ..helper import string_sanitize
 from ..utils import argparse as cargparse
 from ..utils import ansi
 from ..widgets.globals import AttachmentWidget
@@ -1027,6 +1031,23 @@ class OpenAttachmentCommand(Command):
 
             handler_cmdlist = shlex.split(handler_cmd)
 
+            if 'copiousoutput' in entry and 'needsterminal' not in entry:
+                # page the output (RFC 1524), sanitised as it derives from
+                # the attachment
+                out, err, code = await asyncio.to_thread(
+                    call_cmd, handler_cmdlist,
+                    handler_stdin.getvalue() if handler_stdin else b'')
+                if code != 0:
+                    ui.notify('mailcap handler failed: %s'
+                              % string_sanitize(err), priority='error')
+                    return
+                pager = shlex.split(os.environ.get('PAGER') or 'less -R')
+                text = string_sanitize(out).encode(
+                    locale.getpreferredencoding(False), errors='replace')
+                await ui.apply_command(ExternalCommand(
+                    pager, stdin=BytesIO(text)))
+                return
+
             # 'needsterminal' makes handler overtake the terminal
             # XXX: could this be repalced with "'needsterminal' not in entry"?
             overtakes = entry.get('needsterminal') is None
@@ -1095,7 +1116,8 @@ class ThreadSelectCommand(Command):
         - if it is a message summary, toggle visibility of the message;
         - if it is an attachment line, open the attachment with its mailcap
           entry; the copy handed to it is kept in a private temporary
-          directory until alot exits
+          directory until alot exits, and the output of a copiousoutput
+          entry is shown in $PAGER (default less -R)
         - if it is a mimepart, toggle visibility of the mimepart
     """
     async def apply(self, ui):
