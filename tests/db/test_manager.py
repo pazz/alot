@@ -39,6 +39,19 @@ class TestDBManager(utilities.TestCaseClassCleanup):
         with open(mail, 'w') as f:
             f.write('Message-ID: <known@example.com>\nSubject: hi\n\nbody\n')
         cls.db.add(mail)
+        # a thread whose newer reply does not match tag:inbox
+        for name, headers in [
+                ('first', 'Message-ID: <first@example.com>\n'
+                          'Date: Mon, 01 Jan 2024 10:00:00 +0000\n'),
+                ('reply', 'Message-ID: <reply@example.com>\n'
+                          'In-Reply-To: <first@example.com>\n'
+                          'Date: Wed, 03 Jan 2024 10:00:00 +0000\n')]:
+            path = os.path.join(cls.dbpath, name)
+            with open(path, 'w') as f:
+                f.write(headers + 'Subject: thread\n\nbody\n')
+            msg, _ = cls.db.add(path)
+            if name == 'first':
+                msg.tags.add('inbox')
         cls.db.close()
         cls.manager = DBManager(cls.dbpath, config=Database.CONFIG.EMPTY)
 
@@ -59,6 +72,21 @@ class TestDBManager(utilities.TestCaseClassCleanup):
     def test_get_unknown_thread(self):
         with self.assertRaises(NonexistantObjectError):
             self.manager.get_thread('0000000000000000')
+
+    @mock.patch('alot.db.thread.settings',
+                **{'get.return_value': 'notmuch'})
+    def test_thread_dates_from_matching_messages(self, _):
+        tids, _ = self.manager.get_threads('tag:inbox')
+        tid = next(tids)
+        thread = self.manager.get_thread(tid, 'tag:inbox')
+        self.assertEqual(thread.get_newest_date(),
+                         thread.get_oldest_date())
+        self.assertEqual(thread.get_total_messages(), 2)
+        # the whole thread without a query, or when it no longer matches
+        for query in ['', '*', 'tag:nosuchtag']:
+            thread = self.manager.get_thread(tid, query)
+            self.assertGreater(thread.get_newest_date(),
+                               thread.get_oldest_date())
 
     def test_save_named_query(self):
         with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
