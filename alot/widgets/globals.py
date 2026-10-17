@@ -5,6 +5,7 @@
 """
 This contains alot-specific :class:`urwid.Widget` used in more than one mode.
 """
+from typing import Generator, Sequence
 import re
 import operator
 import urwid
@@ -232,21 +233,20 @@ class CompleteEdit(urwid.Edit):
 class HeadersList(urwid.WidgetWrap):
     """ renders a pile of header values as key/value list """
 
-    def __init__(self, headerslist, key_attr, value_attr, gaps_attr=None):
+    def __init__(self, headerslist: list[tuple[str, str]],
+                 key_attr: urwid.AttrSpec,
+                 value_attr: urwid.AttrSpec,
+                 gaps_attr: urwid.AttrSpec | None = None) -> None:
         """
         :param headerslist: list of key/value pairs to display
-        :type headerslist: list of (str, str)
         :param key_attr: theming attribute to use for keys
-        :type key_attr: urwid.AttrSpec
         :param value_attr: theming attribute to use for values
-        :type value_attr: urwid.AttrSpec
         :param gaps_attr: theming attribute to wrap lines in
-        :type gaps_attr: urwid.AttrSpec
         """
         self.headers = headerslist
         self.key_attr = key_attr
         self.value_attr = value_attr
-        pile = urwid.Pile(self._build_lines(headerslist))
+        pile = urwid.Pile(key_value_columns(headerslist, key_attr, value_attr))
         if gaps_attr is None:
             gaps_attr = key_attr
         pile = urwid.AttrMap(pile, gaps_attr)
@@ -255,16 +255,28 @@ class HeadersList(urwid.WidgetWrap):
     def __str__(self):
         return str(self.headers)
 
-    def _build_lines(self, lines):
-        return key_value_columns(lines, self.key_attr, self.value_attr)
 
+def key_value_columns(pairs: Sequence[tuple[str, str | urwid.Text]],
+                      key_attr: urwid.AttrSpec,
+                      value_attr: urwid.AttrSpec) -> Generator[urwid.Columns, None, None]:
+    """Align a list of pairs by the width of the first column
 
-def key_value_columns(pairs, key_attr, value_attr):
-    """one :class:`urwid.Columns` per (key, value) pair, keys aligned"""
+    The second element of each tuple can already be a Text object with its own
+    styling applied.  This makes it possible to have some "cells" on the right
+    with different styling than the uniform value_attr.
+
+    :param pairs: the rows with to columns each
+    :param key_attr: styling of the first column
+    :param value_attr: styling of the second column
+    """
     width = max([1] + [len(key) for key, _ in pairs]) + 1
-    return [urwid.Columns([('fixed', width, urwid.Text((key_attr, key))),
-                           urwid.Text((value_attr, value))])
-            for key, value in pairs]
+    for key, value in pairs:
+        key_widget = ('fixed', width, urwid.Text((key_attr, key)))
+        if isinstance(value, urwid.Text):
+            value_widget = value
+        else:
+            value_widget = urwid.Text((value_attr, value))
+        yield urwid.Columns([key_widget, value_widget])
 
 
 class TagWidget(urwid.AttrMap):
