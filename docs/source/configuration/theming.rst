@@ -87,7 +87,9 @@ For every listed part there must be a subsection with the same name, defining
         part nor the parts after it are shown, so give long parts such as the
         subject a maximum or a weight.
 :alignment: how to place the content string if the widget space is larger.
-            This must be one of 'right', 'left' or 'center'.
+            This must be one of 'right', 'left' or 'center'. Text in a 'weight'
+            part that is narrower than the text is cut on the side opposite
+            the alignment (on both sides if centred).
 
 Dynamic theming of thread lines based on query matching
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
