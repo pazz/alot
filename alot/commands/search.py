@@ -190,13 +190,18 @@ class TagCommand(Command):
         logging.debug('all? %s', self.allm)
         logging.debug('q: %s', testquery)
 
-        def refresh():
+        def refresh_now():
             if not self.allm:
                 searchbuffer.refresh_threadline(threadline_widget)
             else:
                 searchbuffer.rebuild()
 
             ui.update()
+
+        def refresh():
+            # keep the threadline until the whole command line has run,
+            # so that later commands in a sequence act on the same thread
+            ui.defer(refresh_now)
 
         tags = [x for x in self.tagsstring.split(',') if x]
 

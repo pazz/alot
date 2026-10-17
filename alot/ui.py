@@ -43,6 +43,9 @@ async def periodic(callable_, period, *args, **kwargs):
             logging.error('error in loop hook %s', str(e))
         await asyncio.sleep(period)
 
+# callbacks to run after the command line each task applies, see UI.defer
+_deferred = {}
+
 
 class UI:
     """
@@ -302,6 +305,11 @@ class UI:
                 self.last_commandline = cmdline
             return self.apply_command(cmd)
 
+        # per task, so that concurrent command lines do not share it
+        task = asyncio.current_task()
+        outermost = task not in _deferred
+        if outermost:
+            _deferred[task] = []
         try:
             for c in split_commandline(cmdline):
                 await apply_this_command(c)
@@ -311,6 +319,30 @@ class UI:
                             priority='error')
             else:
                 self._error_handler(e)
+        finally:
+            if outermost:
+                for callback in _deferred.pop(task):
+                    try:
+                        callback()
+                    except Exception as e:
+                        self._error_handler(e)
+
+    def defer(self, callback):
+        """
+        call `callback` once the command line being applied has finished,
+        or right away if there is none
+
+        :param callback: function to call without arguments
+        :type callback: callable
+        """
+        try:
+            deferred = _deferred.get(asyncio.current_task())
+        except RuntimeError:  # no event loop, as in the flush at exit
+            deferred = None
+        if deferred is None:
+            callback()
+        else:
+            deferred.append(callback)
 
     @staticmethod
     def _unhandled_input(key):

@@ -10,6 +10,7 @@ import urwid
 
 from alot.buffers import SearchBuffer
 from alot.commands import Command, CommandCanceled
+from alot.commands import search  # noqa: F401, registers its commands
 from alot.commands.globals import ExitCommand
 from alot.ui import UI, periodic
 
@@ -171,6 +172,80 @@ class TestErrorContainment(unittest.TestCase):
             await periodic(hook, 0)
         self.assertEqual(len(calls), 3)
         self.assertEqual(len(logs.records), 2)
+
+
+class TestCommandSequence(unittest.TestCase):
+
+    @utilities.async_test
+    async def test_tag_sequence_keeps_the_thread(self):
+        """A thread leaving the search result after the first command of a
+        sequence is still the one the next command tags (issue #769)."""
+        ui = UI.__new__(UI)
+        ui.mode = 'search'
+        ui.dbman = mock.Mock()
+        ui.update = mock.Mock()
+        ui._error_handler = mock.Mock()
+        ui.db_was_locked = False
+        lines = [mock.Mock(), mock.Mock()]
+        for line, tid in zip(lines, 'ab'):
+            line.get_thread.return_value.get_thread_id.return_value = tid
+        ui.current_buffer = mock.Mock()
+        ui.current_buffer.get_selected_threadline.side_effect = \
+            lambda: lines[0]
+        # untagging drops the thread from the result and focuses the next
+        ui.current_buffer.refresh_threadline.side_effect = \
+            lambda line: line in lines and lines.remove(line)
+        await ui.apply_commandline('untag inbox; tag killed')
+        ui._error_handler.assert_not_called()
+        ui.dbman.tag.assert_called_once_with(
+            'thread:a', ['killed'], remove_rest=False)
+        self.assertEqual(ui.current_buffer.refresh_threadline.call_count, 2)
+
+    @utilities.async_test
+    async def test_refresh_not_held_by_concurrent_command_line(self):
+        ui = UI.__new__(UI)
+        ui.mode = 'search'
+        ui.dbman = mock.Mock()
+        ui.update = mock.Mock()
+        ui._error_handler = mock.Mock()
+        ui.db_was_locked = False
+        ui.current_buffer = mock.Mock()
+        editing = asyncio.Event()
+
+        class Waiting(Command):  # like an editor running in a thread
+            async def apply(self, ui):
+                await editing.wait()
+
+        with mock.patch('alot.ui.commandfactory', return_value=Waiting()):
+            waiting = asyncio.ensure_future(ui.apply_commandline('wait'))
+            await asyncio.sleep(0)
+        await ui.apply_commandline('tag killed')
+        ui.current_buffer.refresh_threadline.assert_called_once()
+        editing.set()
+        await waiting
+
+    def test_refresh_without_event_loop(self):
+        """e.g. the flush after the main loop has ended"""
+        refresh = mock.Mock()
+        UI.__new__(UI).defer(refresh)
+        refresh.assert_called_once()
+
+    @utilities.async_test
+    async def test_refresh_after_the_command_line_ends(self):
+        """e.g. a flush retried later because the index was locked"""
+        ui = UI.__new__(UI)
+        ui.mode = 'global'
+        ui._error_handler = mock.Mock()
+        refresh = mock.Mock()
+
+        class Retry(Command):
+            def apply(self, ui):
+                asyncio.get_running_loop().call_soon(ui.defer, refresh)
+
+        with mock.patch('alot.ui.commandfactory', return_value=Retry()):
+            await ui.apply_commandline('flush')
+        await asyncio.sleep(0)
+        refresh.assert_called_once()
 
 
 class TestBuildStatusbar(unittest.TestCase):
