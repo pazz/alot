@@ -482,6 +482,39 @@ FAILED_HTML_MSG = ("This message contains a text/html part that was not "
                    "produced no output.")
 
 
+def _covered_part(mail: MIMEPart) -> MIMEPart:
+    """Returns the part of `mail` that its OpenPGP status refers to.
+
+    The status shown for a message covers only the signed data, or the
+    decrypted message that :func:`_handle_encrypted` appends as the last
+    part. Text that a sender adds next to it, inside the multipart/signed or
+    multipart/encrypted or in a multipart/mixed wrapping it, is not covered
+    and must not be shown as the body in its place. Attachments are not
+    restricted.
+
+    This mirrors the structures :func:`_decrypted_message_from_message`
+    recognises, except for its "Version: 1" check: without it no status is
+    set, so there is nothing to spoof.
+
+    :param mail: a message as returned by :func:`decrypted_message_from_bytes`
+    :rtype: :class:`email.message.MIMEPart`
+    """
+    parts = list(mail.iter_parts())
+    part = mail
+    if mail.get_content_subtype() == 'mixed' and parts:
+        part = parts[0]
+    subparts = list(part.iter_parts())
+    if not subparts:  # also covers non-multipart parts
+        return mail
+    protocol = get_params(part).get('protocol')
+    if part.get_content_subtype() == 'signed' and protocol == _APP_PGP_SIG:
+        return subparts[0]
+    if (part.get_content_subtype() == 'encrypted' and
+            protocol == _APP_PGP_ENC):
+        return _covered_part(parts[-1])
+    return mail
+
+
 def get_body_part(mail: EmailMessage,
                   mimetype: str | None = None) -> MIMEPart:
     """Returns the body part of `mail`.
@@ -499,7 +532,7 @@ def get_body_part(mail: EmailMessage,
     preferencelist = {
         'plain': ('plain', 'html'), 'html': ('html', 'plain')}[mimetype]
 
-    body_part = mail.get_body(preferencelist)
+    body_part = _covered_part(mail).get_body(preferencelist)
     if body_part is None:  # if no part matching preferredlist was found
         # or fall back to an empty part
         empty = email.message.EmailMessage()
