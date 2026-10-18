@@ -201,6 +201,8 @@ class TestReplyCommand(unittest.TestCase):
 
 class TestEditNewCommand(unittest.TestCase):
 
+    @mock.patch('alot.commands.thread.settings.get_accounts',
+                mock.Mock(return_value=[]))
     @utilities.async_test
     async def test_strips_csi(self):
         msg = mock.Mock()
@@ -212,6 +214,25 @@ class TestEditNewCommand(unittest.TestCase):
         await thread.EditNewCommand(msg).apply(ui)
         envelope = ui.apply_command.await_args.args[0].envelope
         self.assertEqual(envelope.body_txt, 'a')
+
+    @mock.patch('alot.commands.thread.settings.get_accounts',
+                mock.Mock(return_value=[mock.Mock(
+                    sent_tags=['outbox'], draft_tags=['drafts'],
+                    replied_tags=['answered'], passed_tags=['fwd'])]))
+    @utilities.async_test
+    async def test_copies_only_the_messages_own_tags(self):
+        msg = mock.Mock()
+        msg.get_tags.return_value = [
+            'todo', 'killed', 'outbox', 'drafts', 'answered', 'fwd',
+            'inbox', 'unread', 'flagged', 'passed', 'replied', 'draft',
+            'attachment', 'signed', 'encrypted']
+        msg.get_attachments.return_value = []
+        msg.get_body_text.return_value = ''
+        msg.get_email.return_value = email.message_from_string('\n')
+        ui = utilities.make_ui(apply_command=mock.AsyncMock())
+        await thread.EditNewCommand(msg).apply(ui)
+        envelope = ui.apply_command.await_args.args[0].envelope
+        self.assertEqual(sorted(envelope.tags), ['flagged', 'killed', 'todo'])
 
 
 class TestOpenAttachmentCommand(unittest.TestCase):
