@@ -5,6 +5,7 @@ from datetime import datetime
 import unittest
 from unittest import mock
 
+from alot.buffers import SearchBuffer
 from alot.widgets import search
 
 
@@ -44,6 +45,16 @@ class TestThreadlineWidget(unittest.TestCase):
         dbman.get_thread.return_value.get_tags.return_value = ['b', 'a']
         widget = search.ThreadlineWidget('tid', dbman)
         self.assertEqual([w.tag for w in widget.widgets], ['a', 'b'])
+
+    @mock.patch('alot.widgets.search.settings')
+    def test_thread_is_fetched_with_the_search_query(self, settings):
+        settings.get_threadline_theming.return_value = {
+            'parts': [], 'normal': None, 'focus': None}
+        ui = mock.Mock(**{'dbman.get_threads.return_value': (iter(['t']), 1)})
+        with mock.patch('alot.buffers.search.settings'):
+            buf = SearchBuffer(ui, 'tag:inbox')
+        buf.get_selected_threadline()
+        ui.dbman.get_thread.assert_called_once_with('t', 'tag:inbox')
 
 
 class TestPrepareContentStringDates(unittest.TestCase):
