@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 from ..helper import string_sanitize
 from .message import Message
 from ..settings.const import settings
-from .utils import decode_header
+from .utils import decode_header, narrow_query
 
 if TYPE_CHECKING:
     import notmuch2
@@ -270,7 +270,6 @@ class Thread:
         :param query: The query to check against
         :returns: True if this thread matches the given query, False otherwise
         """
-        thread_query = 'thread:{tid} AND {subquery}'.format(tid=self._id,
-                                                            subquery=query)
+        thread_query = narrow_query(query, 'thread:' + self._id)
         num_matches = self._dbman.count_messages(thread_query)
         return num_matches > 0
