@@ -89,6 +89,17 @@ class TestGetParams(unittest.TestCase):
         self.assertEqual(actual, expected)
 
 
+class TestNarrowQuery(unittest.TestCase):
+
+    def test_match_all_queries_are_dropped(self):
+        for query, expected in [
+                ('*', 'thread:1'), ('', 'thread:1'), (' * ', '( * ) AND thread:1'),
+                ('tag:a OR tag:b', '(tag:a OR tag:b) AND thread:1')]:
+            with self.subTest(query=query):
+                self.assertEqual(utils.narrow_query(query, 'thread:1'),
+                                 expected)
+
+
 class TestIsSubdirOf(unittest.TestCase):
 
     def test_both_paths_absolute_matching(self):
