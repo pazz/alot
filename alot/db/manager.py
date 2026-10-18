@@ -18,7 +18,7 @@ from .errors import DatabaseROError
 from .errors import NonexistantObjectError
 from .message import Message
 from .thread import Thread
-from .utils import is_subdir_of
+from .utils import is_subdir_of, narrow_query
 from ..settings.const import settings
 
 
@@ -191,9 +191,7 @@ class DBManager:
             change = 'NOT (%s)' % ' AND '.join(terms)
         else:
             change = '(%s)' % ' OR '.join(terms)
-        if querystring in ('', '*'):  # notmuch's match-all queries
-            return change
-        return '(%s) AND %s' % (querystring, change)
+        return narrow_query(querystring, change)
 
     def tag(self, querystring: str, tags: list[str],
             afterwards: Callable[[], None] | None = None,
