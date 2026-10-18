@@ -217,21 +217,27 @@ def _handle_encrypted(original: Message, message: MIMEPart,
     malformed = ''
 
     parts = list(message.iter_parts())
-    ct = parts[0].get_content_type()
-    if ct != _APP_PGP_ENC:
-        malformed = 'expected Content-Type: {0}, got: {1}'.format(
-            _APP_PGP_ENC, ct)
+    if len(parts) < 2:  # the sender controls the structure
+        malformed = 'expected two parts, got: {0}'.format(len(parts))
+    else:
+        ct = parts[0].get_content_type()
+        if ct != _APP_PGP_ENC:
+            malformed = 'expected Content-Type: {0}, got: {1}'.format(
+                _APP_PGP_ENC, ct)
 
-    want = 'application/octet-stream'
-    ct = parts[1].get_content_type()
-    if ct != want:
-        malformed = 'expected Content-Type: {0}, got: {1}'.format(want, ct)
+        want = 'application/octet-stream'
+        ct = parts[1].get_content_type()
+        if ct != want:
+            malformed = 'expected Content-Type: {0}, got: {1}'.format(
+                want, ct)
 
     if not malformed:
-        # This should be safe because PGP uses US-ASCII characters only
-        payload = str(parts[1].get_payload()).encode('ascii')
         try:
+            # armoured PGP data is US-ASCII, but the sender decides that
+            payload = str(parts[1].get_payload()).encode('ascii')
             sigs, d = crypto.decrypt_verify(payload, session_keys)
+        except UnicodeEncodeError:
+            malformed = 'non-ASCII data in the encrypted part'
         except GPGProblem as e:
             # signature verification failures end up here too if the combined
             # method is used, currently this prevents the interpretation of the
