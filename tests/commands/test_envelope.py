@@ -385,29 +385,42 @@ class TestSendCommand(unittest.TestCase):
         account.send_mail.assert_called_once_with(mail)
 
     @utilities.async_test
-    async def test_tags_superseded_draft_deleted(self):
-        env = Envelope()
-        env.draft = mock.Mock()
-        cmd = envelope.SendCommand(mail=self.mail, envelope=env)
-        with mock.patch(
-                'alot.commands.envelope.settings.account_matching_address',
-                mock.Mock(return_value=self.MockedAccount())):
-            await cmd.apply(utilities.make_ui(apply_command=mock.AsyncMock()))
-        env.draft.add_tags.assert_called_once_with(['deleted'])
+    async def test_tags_superseded_draft(self):
+        for tags in (['obsolete'], []):
+            with self.subTest(tags=tags):
+                env = Envelope()
+                env.draft = mock.Mock()
+                account = self.MockedAccount()
+                account.superseded_draft_tags = tags
+                cmd = envelope.SendCommand(mail=self.mail, envelope=env)
+                with mock.patch('alot.commands.envelope.settings'
+                                '.account_matching_address',
+                                mock.Mock(return_value=account)):
+                    await cmd.apply(
+                        utilities.make_ui(apply_command=mock.AsyncMock()))
+                if tags:
+                    env.draft.add_tags.assert_called_once_with(tags)
+                else:
+                    env.draft.add_tags.assert_not_called()
 
 
 class TestSaveCommand(unittest.TestCase):
 
     @utilities.async_test
-    async def test_tags_superseded_draft_deleted(self):
-        env = Envelope(account=mock.Mock())
-        env.account.store_draft_mail.return_value = None
-        env.construct_mail = mock.Mock()
-        env.draft = mock.Mock()
-        ui = utilities.make_ui(apply_command=mock.AsyncMock())
-        ui.current_buffer.envelope = env
-        await envelope.SaveCommand().apply(ui)
-        env.draft.add_tags.assert_called_once_with(['deleted'])
+    async def test_tags_superseded_draft(self):
+        for tags in (['obsolete'], []):
+            with self.subTest(tags=tags):
+                env = Envelope(account=mock.Mock(superseded_draft_tags=tags))
+                env.account.store_draft_mail.return_value = None
+                env.construct_mail = mock.Mock()
+                env.draft = mock.Mock()
+                ui = utilities.make_ui(apply_command=mock.AsyncMock())
+                ui.current_buffer.envelope = env
+                await envelope.SaveCommand().apply(ui)
+                if tags:
+                    env.draft.add_tags.assert_called_once_with(tags)
+                else:
+                    env.draft.add_tags.assert_not_called()
 
 
 class TestEditCommand(unittest.TestCase):
