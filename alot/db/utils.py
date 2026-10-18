@@ -385,39 +385,39 @@ def render_part(part: Message) -> str | None:
         tempfile_name = None
         stdin = None
         handler_raw_commandstring = entry['view']
-        # in case the mailcap defined command contains no '%s',
-        # we pipe the files content to the handling command via stdin
-        if '%s' in handler_raw_commandstring:
-            # open tempfile, respect mailcaps nametemplate
-            nametemplate = entry.get('nametemplate', '%s')
-            prefix, suffix = parse_mailcap_nametemplate(nametemplate)
-            with tempfile.NamedTemporaryFile(
-                    delete=False, prefix=prefix, suffix=suffix) \
-                    as tmpfile:
-                tmpfile.write(raw_payload)
-                tempfile_name = tmpfile.name
-        else:
-            stdin = raw_payload
-
         # read parameter, create handler command
         parms = tuple('='.join(p) for p in params.items())
+        # the tempfile holds the part, possibly decrypted, so remove it
+        # whatever happens, also if writing it fails
+        try:
+            # in case the mailcap defined command contains no '%s',
+            # we pipe the files content to the handling command via stdin
+            if '%s' in handler_raw_commandstring:
+                # open tempfile, respect mailcaps nametemplate
+                nametemplate = entry.get('nametemplate', '%s')
+                prefix, suffix = parse_mailcap_nametemplate(nametemplate)
+                with tempfile.NamedTemporaryFile(
+                        delete=False, prefix=prefix, suffix=suffix) \
+                        as tmpfile:
+                    tempfile_name = tmpfile.name
+                    tmpfile.write(raw_payload)
+            else:
+                stdin = raw_payload
 
-        # create and call external command
-        cmd = mailcap.subst(  # type: ignore[attr-defined]  # not in typeshed
-            entry['view'], ctype, filename=tempfile_name, plist=parms)
-        logging.debug('command: %s', cmd)
-        logging.debug('parms: %s', str(parms))
-        # mailcap.subst returns None if a parameter is unsafe for the shell
-        if cmd is None:
-            logging.warning('mailcap entry for %s refused unsafe parameters',
-                            ctype)
-        else:
-            rendered_payload, _, _ = helper.call_cmd(shlex.split(cmd),
-                                                     stdin=stdin)
-
-        # remove tempfile
-        if tempfile_name:
-            os.unlink(tempfile_name)
+            cmd = mailcap.subst(  # type: ignore[attr-defined]  # not in typeshed
+                entry['view'], ctype, filename=tempfile_name, plist=parms)
+            logging.debug('command: %s', cmd)
+            logging.debug('parms: %s', str(parms))
+            # mailcap.subst returns None if a parameter is unsafe for the shell
+            if cmd is None:
+                logging.warning(
+                    'mailcap entry for %s refused unsafe parameters', ctype)
+            else:
+                rendered_payload, _, _ = helper.call_cmd(shlex.split(cmd),
+                                                         stdin=stdin)
+        finally:
+            if tempfile_name:
+                os.unlink(tempfile_name)
 
     return rendered_payload
 
