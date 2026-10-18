@@ -154,6 +154,15 @@ class TestMessage(unittest.TestCase):
         self.assertEqual([a.get_filename() for a in msg.get_attachments()],
                          ['20328884_2013.pdf'])
 
+    def test_selected_mime_part_without_headers_is_kept(self):
+        # a part without headers, such as an implicit text/plain part,
+        # has length 0 and so is false
+        part = email.message.EmailMessage()
+        part.set_payload('chosen')
+        msg = message.Message(mock.Mock(), MockNotmuchMessage())
+        msg.set_mime_part(part)
+        self.assertIs(msg.get_mime_part(), part)
+
     def test_signature_without_content_disposition_is_no_attachment(self):
         part = email.message.Message()
         part['Content-Type'] = 'application/pgp-signature; name="signature.asc"'

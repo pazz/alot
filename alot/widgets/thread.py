@@ -341,7 +341,7 @@ class MessageTree(CollapsibleTree):
         label, subtrees = tree
         label = ANSIText(
             label, att, att_focus, ANSI_BACKGROUND, mimepart=mimepart)
-        if subtrees is None or mimepart:
+        if subtrees is None or mimepart is not None:
             return label, None
         else:
             return label, [self._text_tree_to_widget_tree(s) for s in subtrees]

@@ -15,7 +15,7 @@ class ANSIText(urwid.WidgetWrap):
                  default_attr=None,
                  default_attr_focus=None,
                  ansi_background=True,
-                 mimepart=False):
+                 mimepart=None):
         self.mimepart = mimepart
         ct, focus_map = parse_escapes_to_urwid(txt, default_attr,
                                                default_attr_focus,

@@ -269,7 +269,7 @@ class Message:
         return False
 
     def get_mime_part(self) -> email.message.Message:
-        if not self._mime_part:
+        if self._mime_part is None:
             self._mime_part = get_body_part(self.get_email())
         return self._mime_part
 

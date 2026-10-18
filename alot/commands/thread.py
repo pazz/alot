@@ -1132,7 +1132,7 @@ class ThreadSelectCommand(Command):
         if isinstance(focus, AttachmentWidget):
             logging.info('open attachment')
             await ui.apply_command(OpenAttachmentCommand(focus.get_attachment()))
-        elif getattr(focus, 'mimepart', False):
+        elif getattr(focus, 'mimepart', None) is not None:
             if isinstance(focus.mimepart, Attachment):
                 await ui.apply_command(OpenAttachmentCommand(focus.mimepart))
             else:
