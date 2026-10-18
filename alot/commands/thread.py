@@ -472,10 +472,16 @@ class EditNewCommand(Command):
         if not self.message:
             self.message = ui.current_buffer.get_selected_message()
         mail = self.message.get_email()
-        # copy most tags to the envelope
+        # copy the message's own tags to the envelope, but not those that
+        # describe how this copy was sent, received or indexed
         tags = set(self.message.get_tags())
-        tags.difference_update({'inbox', 'sent', 'draft', 'killed', 'replied',
-                                'signed', 'encrypted', 'unread', 'attachment'})
+        for a in settings.get_accounts():  # the new mail's is not known yet
+            tags.difference_update(a.sent_tags + a.draft_tags +
+                                   a.replied_tags + a.passed_tags)
+        # notmuch sets these itself, from the content and the maildir flags,
+        # and inbox is the usual arrival tag
+        tags.difference_update({'attachment', 'signed', 'encrypted', 'draft',
+                                'passed', 'replied', 'unread', 'inbox'})
         tags = list(tags)
         # set body text, without the escapes a mailcap renderer may add
         mailcontent = ansi.remove_csi(self.message.get_body_text())
