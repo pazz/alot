@@ -51,6 +51,21 @@ _APP_PGP_SIG = 'application/pgp-signature'
 _APP_PGP_ENC = 'application/pgp-encrypted'
 
 
+def narrow_query(query: str, clause: str) -> str:
+    """
+    restrict the notmuch `query` to the messages matching `clause`
+
+    :param query: a user's query, such as a search buffer's
+    :param clause: a self-contained query term, such as `thread:...`
+    """
+    # notmuch reads only a bare '*' (or an empty query) as "all messages";
+    # in parentheses Xapian parses '*' as a wildcard term that matches no
+    # or only some messages, so '(*) AND clause' would silently miss others
+    if query in ('', '*'):
+        return clause
+    return '(%s) AND %s' % (query, clause)
+
+
 def add_signature_headers(mail: Message, sigs: list[Any],
                           error_msg: str | None) -> None:
     '''Add pseudo headers to the mail indicating whether the signature
