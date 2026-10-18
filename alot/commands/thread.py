@@ -475,6 +475,11 @@ class EditNewCommand(Command):
         # copy the message's own tags to the envelope, but not those that
         # describe how this copy was sent, received or indexed
         tags = set(self.message.get_tags())
+        # the draft's account is not known here (its From may be any address,
+        # or none), so a message counts as a draft if any account's
+        # draft_tags mark it as one
+        is_draft = any(not tags.isdisjoint(a.draft_tags)
+                       for a in settings.get_accounts())
         for a in settings.get_accounts():  # the new mail's is not known yet
             tags.difference_update(a.sent_tags + a.draft_tags +
                                    a.replied_tags + a.passed_tags)
@@ -486,6 +491,8 @@ class EditNewCommand(Command):
         # set body text, without the escapes a mailcap renderer may add
         mailcontent = ansi.remove_csi(self.message.get_body_text())
         envelope = Envelope(bodytext=mailcontent, tags=tags)
+        if is_draft:
+            envelope.draft = self.message
 
         # copy selected headers
         to_copy = ['Subject', 'From', 'To', 'Cc', 'Bcc', 'In-Reply-To',

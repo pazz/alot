@@ -376,6 +376,14 @@ thread_unfold_matching = string(default=None)
         # list of tags to automatically add to draft messages
         draft_tags = force_list(default='draft')
 
+        # list of tags to add to a draft opened with
+        # :ref:`editnew <cmd.thread.editnew>` once its new version has been
+        # saved or sent. The default hides it from searches if `deleted` is
+        # among the excluded tags (see :ref:`exclude_tags <exclude-tags>`);
+        # leave it empty to keep the old draft untouched, for instance when
+        # drafts serve as reusable templates.
+        superseded_draft_tags = force_list(default='deleted')
+
         # list of tags to automatically add to replied messages
         replied_tags = force_list(default='replied')
 
