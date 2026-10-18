@@ -440,6 +440,21 @@ class TestGetBodyPartCovered(unittest.TestCase):
             '--S--\n--M\nContent-Type: text/plain\n\ninjected\n--M--\n')
         self.assertEqual(self._body(self.ENC % decrypted), '<p>signed</p>')
 
+    def test_incomplete_or_non_ascii_encrypted_is_malformed(self):
+        enc = ('Content-Type: multipart/encrypted; '
+               'protocol="application/pgp-encrypted"; boundary="E"\n\n'
+               '--E\nContent-Type: application/pgp-encrypted\n\n'
+               'Version: 1\n--E--\n')
+        eight_bit = enc.replace(
+            '--E--', '--E\nContent-Type: application/octet-stream\n'
+            'Content-Transfer-Encoding: 8bit\n\n-----BEGIN \u00e9\n--E--')
+        for raw in (enc, 'Content-Type: multipart/mixed; boundary="M"\n\n'
+                         '--M\n%s--M--\n' % enc, eight_bit):
+            with self.subTest(raw=raw):
+                mail = utils.decrypted_message_from_bytes(raw.encode())
+                self.assertIn('Malformed OpenPGP message', self._body(
+                    mail.as_string()))
+
     def test_unrelated_mixed_is_unchanged(self):
         mixed = ('Content-Type: multipart/mixed; boundary="M"\n\n'
                  '--M\nContent-Type: text/plain\n\nfirst\n'
