@@ -68,10 +68,7 @@
 
 .. describe:: draft_tags
 
-     list of tags to automatically add to draft messages.
-     A draft opened with :ref:`editnew <cmd.thread.editnew>` is tagged
-     `deleted` once its new version has been saved or sent, which hides
-     it from searches if `deleted` is among the excluded tags.
+     list of tags to automatically add to draft messages
 
     :type: string list
     :default: draft
@@ -245,4 +242,19 @@
 
     :type: string
     :default: None
+
+
+.. _superseded-draft-tags:
+
+.. describe:: superseded_draft_tags
+
+     list of tags to add to a draft opened with
+     :ref:`editnew <cmd.thread.editnew>` once its new version has been
+     saved or sent. The default hides it from searches if `deleted` is
+     among the excluded tags (see :ref:`exclude_tags <exclude-tags>`);
+     leave it empty to keep the old draft untouched, for instance when
+     drafts serve as reusable templates.
+
+    :type: string list
+    :default: deleted
 
