@@ -73,3 +73,14 @@ class TestThreadGetAuthor(unittest.TestCase):
             self.assertEqual(
                 self.thread.get_authors(),
                 ['arf', 'oof', 'bar', 'foo', 'ooh'])
+
+
+class TestThreadMatches(unittest.TestCase):
+
+    def test_query_is_parenthesised(self):
+        t = thread.Thread.__new__(thread.Thread)
+        t._id = '42'
+        t._dbman = mock.Mock(**{'count_messages.return_value': 1})
+        self.assertTrue(t.matches('tag:a OR tag:b'))
+        t._dbman.count_messages.assert_called_once_with(
+            '(tag:a OR tag:b) AND thread:42')
