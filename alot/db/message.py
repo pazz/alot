@@ -13,7 +13,7 @@ from notmuch2 import NullPointerError
 
 from . import utils
 from .utils import get_body_part, extract_body_part
-from .utils import decode_header
+from .utils import decode_header, narrow_query
 from .attachment import Attachment
 from .. import helper
 from ..settings.const import settings
@@ -282,7 +282,7 @@ class Message:
 
     def matches(self, querystring: str) -> bool:
         """tests if this messages is in the resultset for `querystring`"""
-        searchfor = '( {} ) AND id:{}'.format(querystring, self._id)
+        searchfor = narrow_query(querystring, 'id:' + self._id)
         return self._dbman.count_messages(searchfor) > 0
 
     def get_mime_tree(self) -> MimeTree:
