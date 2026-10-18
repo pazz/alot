@@ -244,6 +244,23 @@ class TestOpenAttachmentCommand(unittest.TestCase):
         self.assertFalse(cmd.in_thread)
         self.assertEqual(cmd.stdin.read(), b'ab\x1b[1mc')
 
+    @utilities.async_test
+    async def test_copiousoutput_without_output_opens_no_pager(self):
+        for view, msg in [
+                ('true', 'mailcap handler produced no output'),
+                ("python3 -c 'print(chr(27) + \"[2J\")'",
+                 'mailcap handler produced no output'),
+                ("sh -c 'echo oops >&2'",
+                 'mailcap handler produced no output: oops\n')]:
+            with self.subTest(view=view), mock.patch(
+                    'alot.commands.thread.settings.mailcap_find_match',
+                    return_value=(None, {'view': view, 'copiousoutput': ''})):
+                attachment = Attachment(email.mime.text.MIMEText('a'))
+                ui = utilities.make_ui(apply_command=mock.AsyncMock())
+                await thread.OpenAttachmentCommand(attachment).apply(ui)
+                ui.apply_command.assert_not_awaited()
+                ui.notify.assert_called_once_with(msg)
+
 
 class TestSaveAttachmentCommand(unittest.TestCase):
 
