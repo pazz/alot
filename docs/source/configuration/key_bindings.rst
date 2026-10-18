@@ -94,3 +94,24 @@ unbound in search mode, add
         a =
 
 To remove a default global binding, such as `q`, set `q =` in the `[bindings]` section.
+
+.. _config.key_bindings.sequences:
+
+Command sequences
+-----------------
+A binding can run several commands separated by `;`, which are applied one
+after the other. In search mode, a tag command (`tag`, `untag`, `retag` or
+`toggletags`) writes its change to the index at once and then refreshes the
+focused threadline. If the thread no longer matches the search, its line
+disappears and a neighbouring thread, usually the next one, is focused, so a
+following command in the same sequence acts on that thread.
+
+To change several tags of one thread, add `--no-flush` to all but the last tag
+command. The last one writes all the changes and refreshes once, after every
+command has acted on the same thread:
+
+.. sourcecode:: ini
+
+    [bindings]
+      [[search]]
+        d = "tag --no-flush deleted; untag undeleted,unread,inbox"
