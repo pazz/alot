@@ -132,8 +132,6 @@ class SaveCommand(Command):
         # store mail locally
         path = account.store_draft_mail(
             mail.as_string(policy=email.policy.SMTP, maxheaderlen=sys.maxsize))
-        if envelope.draft and account.superseded_draft_tags:
-            envelope.draft.add_tags(account.superseded_draft_tags)
 
         msg = 'draft saved successfully'
 
@@ -143,6 +141,10 @@ class SaveCommand(Command):
             logging.debug('adding new mail to index')
             try:
                 ui.dbman.add_message(path, account.draft_tags + envelope.tags)
+                # queued after the new draft, so that a failure to index it
+                # leaves the old draft untouched
+                if envelope.draft and account.superseded_draft_tags:
+                    envelope.draft.add_tags(account.superseded_draft_tags)
                 await ui.apply_command(globals.FlushCommand())
                 await ui.apply_command(commands.globals.BufferCloseCommand())
             except DatabaseError as e:
