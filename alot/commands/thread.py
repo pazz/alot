@@ -1041,11 +1041,18 @@ class OpenAttachmentCommand(Command):
                     ui.notify('mailcap handler failed: %s'
                               % string_sanitize(err), priority='error')
                     return
+                text = string_sanitize(out)
+                if not ansi.remove_csi(text).strip():
+                    # e.g. a viewer wrongly marked copiousoutput
+                    msg = 'mailcap handler produced no output'
+                    if err.strip():
+                        msg += ': ' + string_sanitize(err)
+                    ui.notify(msg)
+                    return
                 pager = shlex.split(os.environ.get('PAGER') or 'less -R')
-                text = string_sanitize(out).encode(
-                    locale.getpreferredencoding(False), errors='replace')
-                await ui.apply_command(ExternalCommand(
-                    pager, stdin=BytesIO(text)))
+                await ui.apply_command(ExternalCommand(pager, stdin=BytesIO(
+                    text.encode(locale.getpreferredencoding(False),
+                                errors='replace'))))
                 return
 
             # 'needsterminal' makes handler overtake the terminal
