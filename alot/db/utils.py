@@ -217,15 +217,19 @@ def _handle_encrypted(original: Message, message: MIMEPart,
     malformed = ''
 
     parts = list(message.iter_parts())
-    ct = parts[0].get_content_type()
-    if ct != _APP_PGP_ENC:
-        malformed = 'expected Content-Type: {0}, got: {1}'.format(
-            _APP_PGP_ENC, ct)
+    if len(parts) < 2:  # the sender controls the structure
+        malformed = 'expected two parts, got: {0}'.format(len(parts))
+    else:
+        ct = parts[0].get_content_type()
+        if ct != _APP_PGP_ENC:
+            malformed = 'expected Content-Type: {0}, got: {1}'.format(
+                _APP_PGP_ENC, ct)
 
-    want = 'application/octet-stream'
-    ct = parts[1].get_content_type()
-    if ct != want:
-        malformed = 'expected Content-Type: {0}, got: {1}'.format(want, ct)
+        want = 'application/octet-stream'
+        ct = parts[1].get_content_type()
+        if ct != want:
+            malformed = 'expected Content-Type: {0}, got: {1}'.format(
+                want, ct)
 
     if not malformed:
         payload = cast(bytes, parts[1].get_payload(decode=True))

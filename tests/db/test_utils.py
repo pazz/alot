@@ -439,6 +439,18 @@ class TestGetBodyPartCovered(unittest.TestCase):
             '--S--\n--M\nContent-Type: text/plain\n\ninjected\n--M--\n')
         self.assertEqual(self._body(self.ENC % decrypted), '<p>signed</p>')
 
+    def test_incomplete_encrypted_is_malformed(self):
+        enc = ('Content-Type: multipart/encrypted; '
+               'protocol="application/pgp-encrypted"; boundary="E"\n\n'
+               '--E\nContent-Type: application/pgp-encrypted\n\n'
+               'Version: 1\n--E--\n')
+        for raw in (enc, 'Content-Type: multipart/mixed; boundary="M"\n\n'
+                         '--M\n%s--M--\n' % enc):
+            with self.subTest(raw=raw):
+                mail = utils.decrypted_message_from_bytes(raw.encode())
+                self.assertIn('Malformed OpenPGP message', self._body(
+                    mail.as_string()))
+
     def test_signed_data_after_another_part_gets_no_status(self):
         # only the first part of a multipart/mixed is verified, so putting
         # text or an attachment before signed data leaves nothing to spoof
