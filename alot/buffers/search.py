@@ -5,6 +5,7 @@ import urwid
 from notmuch2 import NotmuchError
 
 from .buffer import Buffer
+from ..db.utils import narrow_query
 from ..settings.const import settings
 from ..walker import IterableWalker
 from ..widgets.search import ThreadlineWidget
@@ -94,7 +95,7 @@ class SearchBuffer(Buffer):
         rebuild `threadline` from the index, or remove it if its thread
         no longer matches the query, and update an unlimited result count
         """
-        query = '(%s) AND thread:%s' % (self.querystring, threadline.tid)
+        query = narrow_query(self.querystring, 'thread:' + threadline.tid)
         if self.dbman.count_messages(query) == 0:
             if threadline in self.threadlist:
                 self.threadlist.remove(threadline)
