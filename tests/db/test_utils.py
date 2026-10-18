@@ -723,6 +723,36 @@ class TestGetBodyPart(unittest.TestCase):
         self.assertEqual(actual, expected)
 
 
+class TestRenderPart(unittest.TestCase):
+
+    def test_tempfile_is_removed_when_the_handler_fails(self):
+        part = email.message_from_string(
+            'Content-Type: text/html\n\n<p>secret</p>\n',
+            policy=email.policy.SMTP)
+        with tempfile.TemporaryDirectory() as d, \
+                mock.patch('tempfile.tempdir', d), \
+                mock.patch('alot.db.utils.settings.mailcap_find_match',
+                           return_value=(None, {'view': "cat '%s"})):
+            with self.assertRaises(ValueError):  # unbalanced quote
+                utils.render_part(part)
+            self.assertEqual(os.listdir(d), [])
+
+    def test_tempfile_is_removed_when_writing_it_fails(self):
+        part = email.message_from_string(
+            'Content-Type: text/html\n\n<p>secret</p>\n',
+            policy=email.policy.SMTP)
+        # a str payload cannot be written to the binary tempfile, standing
+        # in for a write that fails, e.g. on a full disk
+        with tempfile.TemporaryDirectory() as d, \
+                mock.patch('tempfile.tempdir', d), \
+                mock.patch('alot.db.utils.settings.mailcap_find_match',
+                           return_value=(None, {'view': 'cat %s'})), \
+                mock.patch('alot.db.utils.remove_cte', return_value='x'):
+            with self.assertRaises(TypeError):
+                utils.render_part(part)
+            self.assertEqual(os.listdir(d), [])
+
+
 class TestExtractBodyPart(unittest.TestCase):
 
     def test_single_text_plain(self):
