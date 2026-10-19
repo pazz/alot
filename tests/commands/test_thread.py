@@ -283,6 +283,21 @@ class TestOpenAttachmentCommand(unittest.TestCase):
                 ui.notify.assert_called_once_with(msg)
 
 
+class TestThreadSelectCommand(unittest.TestCase):
+
+    @utilities.async_test
+    async def test_selects_mimepart_without_headers(self):
+        part = email.message.EmailMessage()  # no headers, so length 0
+        part.set_payload('implicit text/plain')
+        ui = utilities.make_ui(apply_command=mock.AsyncMock())
+        ui.get_deep_focus.return_value = mock.Mock(spec=['mimepart'],
+                                                   mimepart=part)
+        await thread.ThreadSelectCommand().apply(ui)
+        cmd = ui.apply_command.await_args.args[0]
+        self.assertIsInstance(cmd, thread.ChangeDisplaymodeCommand)
+        self.assertIs(cmd.mimepart, True)
+
+
 class TestSaveAttachmentCommand(unittest.TestCase):
 
     @utilities.async_test

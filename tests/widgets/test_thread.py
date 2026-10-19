@@ -24,3 +24,13 @@ class TestMessageTree(unittest.TestCase):
         tree._sourcetree = None
         tree._get_source()
         self.assertEqual(textlines.call_args.args[0], raw.decode())
+
+    @mock.patch('alot.widgets.thread.settings', mock.Mock())
+    @mock.patch('alot.widgets.thread.ANSIText')
+    def test_mimepart_without_headers_is_a_leaf(self, ansitext):
+        part = decrypted_message_from_bytes(b'\n\nimplicit text/plain\n')
+        self.assertFalse(part)  # no headers, so length 0
+        tree = thread.MessageTree.__new__(thread.MessageTree)
+        _, subtrees = tree._text_tree_to_widget_tree(('text/plain', part))
+        self.assertIsNone(subtrees)
+        self.assertIs(ansitext.call_args.kwargs['mimepart'], part)
