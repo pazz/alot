@@ -155,7 +155,7 @@ class SearchBuffer(Buffer):
             return
         self.consume_pipe_until(lambda w:
                                 w and w.get_thread().get_thread_id() == tid,
-                                self.search_threads_rebuild_limit)
+                                limit)
 
         for pos, threadlinewidget in enumerate(self.threadlist.get_lines()):
             if threadlinewidget.get_thread().get_thread_id() == tid:
