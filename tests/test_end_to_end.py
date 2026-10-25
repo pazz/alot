@@ -366,3 +366,33 @@ class TestClosedTerminalWithShell(TestClosedTerminal):
     """the shell, not alot, leads the session and gets SIGHUP first"""
 
     shell_parent = True
+
+
+class TestNoDisplayedHeaders(EndToEndTestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        with open(cls.alot_config) as f:
+            config = f.read()
+        cls._write('alot-config', 'displayed_headers = X-None,\n' + config)
+        cls._write(os.path.join('mail', 'cur', 'noheaders:2,S'), '''\
+            From: a@example.com
+            Subject: e2e-noheaders
+            Message-ID: <noheaders@e2e>
+
+            noheaders body
+            ''')
+        subprocess.run(['notmuch', 'new', '--quiet', '--no-hooks'],
+                       env=cls.env, check=True)
+        cls.thread_count += 1
+
+    def test_open_and_move(self):
+        self.command('search subject:e2e-noheaders')
+        self.wait_for('search] for "subject:e2e-noheaders"')
+        self.settle()
+        self.send('\r')
+        self.wait_for('noheaders body')
+        for move in ('move up', 'move down', 'move first', 'move last'):
+            self.command(move)
+        self.assertResponsive()
