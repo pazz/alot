@@ -204,6 +204,31 @@ class TestGuessMimetype(unittest.TestCase):
                 self.assertEqual(helper.guess_mimetype(b'x'),
                                  'application/octet-stream')
 
+    def test_prefers_from_buffer_to_the_deprecated_open_shim(self):
+        # python-magic has both; its open() warns and loads libmagic each call
+        magic = mock.Mock(**{'from_buffer.return_value': 'text/plain'})
+        with mock.patch('alot.helper.magic', magic):
+            self.assertEqual(helper.guess_mimetype(b'x'), 'text/plain')
+        magic.open.assert_not_called()
+
+    def test_libmagic_error(self):
+        # e.g. a crafted attachment that trips one of libmagic's limits
+        magic = mock.Mock(MagicException=Exception,
+                          **{'from_buffer.side_effect': Exception})
+        with mock.patch('alot.helper.magic', magic):
+            self.assertEqual(helper.guess_mimetype(b'x'),
+                             'application/octet-stream')
+
+
+class TestGuessEncoding(unittest.TestCase):
+
+    def test_prefers_from_buffer_to_the_deprecated_open_shim(self):
+        magic = mock.Mock(**{
+            'Magic.return_value.from_buffer.return_value': 'us-ascii'})
+        with mock.patch('alot.helper.magic', magic):
+            self.assertEqual(helper.guess_encoding(b'x'), 'us-ascii')
+        magic.open.assert_not_called()
+
 
 class TestPrettyDatetime(unittest.TestCase):
 
