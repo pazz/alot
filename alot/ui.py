@@ -477,8 +477,8 @@ class UI:
             buf.cleanup()
             success = True
 
-        # call post_buffer_closed hook
-        posthook = settings.get_hook('post_buffer_closed')
+        # call post_buffer_close hook
+        posthook = settings.get_hook('post_buffer_close')
         if posthook is not None:
             posthook(ui=self, dbm=self.dbman, buf=buf, success=success)
 
