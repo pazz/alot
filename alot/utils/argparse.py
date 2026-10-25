@@ -18,8 +18,6 @@
 """Custom extensions of the argparse module."""
 
 import argparse
-import collections
-import functools
 import itertools
 import os
 import stat
@@ -45,23 +43,6 @@ def _boolean(string):
             ', '.join(itertools.chain(iter(_TRUEISH), iter(_FALSISH)))))
 
 
-def _path_factory(check):
-    """Create a function that checks paths."""
-
-    @functools.wraps(check)
-    def validator(paths):
-        if isinstance(paths, str):
-            check(paths)
-        elif isinstance(paths, collections.Sequence):
-            for path in paths:
-                check(path)
-        else:
-            raise Exception('expected either basestr or sequenc of basstr')
-
-    return validator
-
-
-@_path_factory
 def require_file(path):
     """Validator that asserts that a file exists.
 
@@ -71,7 +52,6 @@ def require_file(path):
         raise ValidationFailed('{} is not a valid file.'.format(path))
 
 
-@_path_factory
 def optional_file_like(path):
     """Validator that ensures that if a file exists it regular, a fifo, or a
     character device. The file is not required to exist.
@@ -85,7 +65,6 @@ def optional_file_like(path):
             '{} is not a valid file, character device, or fifo.'.format(path))
 
 
-@_path_factory
 def require_dir(path):
     """Validator that asserts that a directory exists.
 
