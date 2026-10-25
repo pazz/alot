@@ -289,24 +289,20 @@ def guess_mimetype(blob: bytes) -> str:
     :returns: mime-type, falls back to 'application/octet-stream'
     """
     mimetype = 'application/octet-stream'
-    # this is a bit of a hack to support different versions of python magic.
-    # Hopefully at some point this will no longer be necessary
-    #
-    # the version with open() is the bindings shipped with the file source from
-    # https://darwinsys.com/file/ - this is what is used by the python-magic
-    # package on Debian/Ubuntu. However, it is not available on pypi/via pip.
-    #
-    # the version with from_buffer() is available at
-    # https://github.com/ahupp/python-magic and directly installable via pip.
-    #
-    # for more detail see https://github.com/pazz/alot/pull/588
-    if hasattr(magic, 'open'):
+    # python-magic (https://github.com/ahupp/python-magic) has from_buffer();
+    # it also offers open(), but only as a deprecated shim for the bindings
+    # shipped with file (https://darwinsys.com/file/), which have only open().
+    # cf. https://github.com/pazz/alot/pull/588
+    if hasattr(magic, 'from_buffer'):
+        try:
+            magictype = magic.from_buffer(blob, mime=True) or mimetype
+        except magic.MagicException:  # open() returned None instead
+            magictype = mimetype
+    elif hasattr(magic, 'open'):
         m = magic.open(magic.MAGIC_MIME_TYPE)
         m.load()
-        magictype = m.buffer(blob) or mimetype
-    elif hasattr(magic, 'from_buffer'):
         # cf. issue #841
-        magictype = magic.from_buffer(blob, mime=True) or mimetype
+        magictype = m.buffer(blob) or mimetype
     else:
         raise Exception('Unknown magic API')
 
@@ -322,23 +318,13 @@ def guess_encoding(blob: bytes) -> str:
 
     :param blob: file content as read by file.read()
     """
-    # this is a bit of a hack to support different versions of python magic.
-    # Hopefully at some point this will no longer be necessary
-    #
-    # the version with open() is the bindings shipped with the file source from
-    # https://darwinsys.com/file/ - this is what is used by the python-magic
-    # package on Debian/Ubuntu.  However it is not available on pypi/via pip.
-    #
-    # the version with from_buffer() is available at
-    # https://github.com/ahupp/python-magic and directly installable via pip.
-    #
-    # for more detail see https://github.com/pazz/alot/pull/588
-    if hasattr(magic, 'open'):
+    # cf. guess_mimetype
+    if hasattr(magic, 'from_buffer'):
+        enc: str = magic.Magic(mime_encoding=True).from_buffer(blob)
+    elif hasattr(magic, 'open'):
         m = magic.open(magic.MAGIC_MIME_ENCODING)
         m.load()
-        enc: str = m.buffer(blob)
-    elif hasattr(magic, 'from_buffer'):
-        enc = magic.Magic(mime_encoding=True).from_buffer(blob)
+        enc = m.buffer(blob)
     else:
         raise Exception('Unknown magic API')
     return enc
