@@ -20,7 +20,20 @@
   in
     flake-utils.lib.eachDefaultSystem (system: let
       pkgs = import nixpkgs {inherit system;};
-      python = pkgs.python3;
+      python = pkgs.python3.override {
+        # nixpkgs has urwidtrees 1.0.4; drop this once it has 1.1.1
+        packageOverrides = final: prev: {
+          urwidtrees = prev.urwidtrees.overridePythonAttrs rec {
+            version = "1.1.1";
+            src = pkgs.fetchFromGitHub {
+              owner = "pazz";
+              repo = "urwidtrees";
+              tag = version;
+              hash = "sha256-wpExbu3kRUarmUTPBJE9QgTePfOw4L7lwQfWMnDI3CU=";
+            };
+          };
+        };
+      };
       # let pyproject-nix generate the argument for buildPythonApplication
       # from our pyproject.toml file
       attrs = project.renderers.buildPythonPackage {inherit python;};
