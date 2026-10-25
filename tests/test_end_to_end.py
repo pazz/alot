@@ -153,12 +153,12 @@ class EndToEndTestCase(unittest.TestCase):
             pass
 
     def command(self, cmdline):
-        # a ':' drawn earlier, e.g. in 'tag:inbox', must not pass for the
-        # prompt, which opens asynchronously
+        # the prompt opens asynchronously; wait for the cursor it shows, as
+        # a ':' could also come from a redraw, e.g. after an index write
         self.settle()
         self.output = b''
         self.send(':')
-        self.wait_for(':')
+        self.wait_for(b'\x1b[?25h')
         self.send(cmdline + '\r')
 
     def wait_for_exit(self):
