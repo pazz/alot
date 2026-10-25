@@ -92,14 +92,10 @@ def main():
     locale.setlocale(locale.LC_ALL, '')
 
     # logging
-    root_logger = logging.getLogger()
-    for log_handler in root_logger.handlers:
-        root_logger.removeHandler(log_handler)
-    root_logger = None
     numeric_loglevel = getattr(logging, options.debug_level.upper(), None)
     logformat = '%(levelname)s:%(module)s:%(message)s'
     logging.basicConfig(level=numeric_loglevel, filename=options.logfile,
-                        filemode='w', format=logformat)
+                        filemode='w', format=logformat, force=True)
 
     # locate alot config files
     cpath = options.config
