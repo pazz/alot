@@ -190,8 +190,7 @@ class ThreadBuffer(Buffer):
         self.set_focus(next(self._nested_tree.positions(reverse=True)))
 
     def _sanitize_position(self, pos):
-        return self._nested_tree._sanitize_position(pos,
-                                                    self._nested_tree._tree)
+        return self._nested_tree._sanitize_position(pos)
 
     def focus_selected_message(self):
         """focus the summary line of currently focussed message"""
