@@ -4,7 +4,6 @@
 import logging
 import os
 import signal
-import codecs
 import contextlib
 import asyncio
 import inspect
@@ -834,7 +833,7 @@ class UI:
         if size == 0:
             return []
         if os.path.exists(path):
-            with codecs.open(path, 'r', encoding='utf-8') as histfile:
+            with open(path, 'r', encoding='utf-8') as histfile:
                 lines = [line.rstrip('\n') for line in histfile]
             if size > 0:
                 lines = lines[-size:]
@@ -864,7 +863,7 @@ class UI:
         if not os.path.exists(directory):
             os.makedirs(directory)
         # Write linewise to avoid building a large string in menory.
-        with codecs.open(path, 'w', encoding='utf-8') as histfile:
+        with open(path, 'w', encoding='utf-8') as histfile:
             for line in history:
                 histfile.write(line)
                 histfile.write('\n')
