@@ -2,8 +2,11 @@
 # For further details see the COPYING file
 
 import asyncio
+import os
 import signal
+import tempfile
 import unittest
+import warnings
 from unittest import mock
 
 import urwid
@@ -171,6 +174,17 @@ class TestErrorContainment(unittest.TestCase):
             await periodic(hook, 0)
         self.assertEqual(len(calls), 3)
         self.assertEqual(len(logs.records), 2)
+
+
+class TestHistoryFiles(unittest.TestCase):
+
+    def test_round_trip_without_deprecated_codecs_open(self):
+        with tempfile.TemporaryDirectory() as d, warnings.catch_warnings():
+            warnings.simplefilter('error', DeprecationWarning)
+            path = os.path.join(d, 'sub', 'history')
+            UI._save_history_to_file(['tag inbox', 'search ä'], path)
+            self.assertEqual(UI._load_history_from_file(path),
+                             ['tag inbox', 'search ä'])
 
 
 class TestBuildStatusbar(unittest.TestCase):
