@@ -187,6 +187,25 @@ class TestHistoryFiles(unittest.TestCase):
                              ['tag inbox', 'search ä'])
 
 
+class TestBufferHooks(unittest.TestCase):
+
+    def _close_with_hooks(self, hooks):
+        ui = UI.__new__(UI)
+        ui.dbman = mock.Mock()
+        buf = mock.Mock()
+        ui.current_buffer = mock.Mock()
+        ui.buffers = [buf, ui.current_buffer]
+        with mock.patch('alot.ui.settings.get_hook', hooks.get):
+            ui.buffer_close(buf)
+        return buf
+
+    def test_post_buffer_close_is_called_as_documented(self):
+        hook = mock.Mock()
+        buf = self._close_with_hooks({'post_buffer_close': hook})
+        hook.assert_called_once_with(ui=mock.ANY, dbm=mock.ANY, buf=buf,
+                                     success=True)
+
+
 class TestBuildStatusbar(unittest.TestCase):
 
     @mock.patch('alot.ui.settings')
