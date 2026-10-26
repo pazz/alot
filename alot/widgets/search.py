@@ -145,13 +145,16 @@ def build_text_part(name, thread, struct):
             minw, maxw, min_lines, max_lines = width_tuple[1:]
             wrap = True
 
+    # textwrap splits all of its input: keep generously more than fits;
+    # a part without a maximum keeps 1000 characters, wider than any
+    # terminal, so that 'content' need not read every message of the thread
+    limit = maxw * max_lines * 4 if wrap else maxw or 1000
     # wrapped content is cut to max_lines by textwrap below
-    content = prepare_string(name, thread, None if wrap else maxw)
+    content = prepare_string(name, thread, None if wrap else maxw, limit)
     alignment = struct['alignment']
     if wrap:
-        # textwrap splits all of its input: keep generously more than fits
         lines = textwrap.wrap(
-            content[:maxw * max_lines * 4],
+            content[:limit],
             width=maxw,
             max_lines=max_lines,
             expand_tabs=False,
@@ -214,17 +217,28 @@ def prepare_subject_string(thread):
     return thread.get_subject() or ' '
 
 
-def prepare_content_string(thread):
+def prepare_content_string(thread, limit=None):
     # messages without a (valid) date come last
     msgs = sorted(thread.get_messages().keys(),
                   key=lambda msg: msg.get_date() or datetime.min, reverse=True)
-    return ' '.join(re.sub(r'(?m)^>.*\n?', '', m.get_body_text()) for m in msgs)
+    # reading a body can mean decrypting it or running a mailcap handler:
+    # stop once the text is longer than 'limit', as the rest is cut anyway
+    bodies = []
+    length = -1
+    for m in msgs:
+        if limit is not None and length >= limit:
+            break
+        body = re.sub(r'(?m)^>.*\n?', '', m.get_body_text()).replace('\r', '')
+        bodies.append(body)
+        length += 1 + len(body)
+    return ' '.join(bodies)
 
 
-def prepare_string(partname, thread, maxw):
+def prepare_string(partname, thread, maxw, limit=None):
     """
     extract a content string for part 'partname' from 'thread' of maximal
-    length 'maxw'.
+    length 'maxw'; 'content' reads messages only until it has 'limit'
+    characters.
     """
     # map part names to function extracting content string and custom shortener
     prep = {
@@ -232,7 +246,7 @@ def prepare_string(partname, thread, maxw):
         'date': (prepare_date_string, None),
         'authors': (prepare_authors_string, shorten_author_string),
         'subject': (prepare_subject_string, None),
-        'content': (prepare_content_string, None),
+        'content': (lambda t: prepare_content_string(t, limit), None),
     }
 
     s = ' '  # fallback value
