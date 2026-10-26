@@ -23,6 +23,32 @@ class TestPrepareContentString(unittest.TestCase):
         self.assertEqual(search.prepare_content_string(thread), 'reply')
 
 
+class TestBuildContentPart(unittest.TestCase):
+
+    def _thread(self, *bodies):
+        msgs = [mock.Mock(**{'get_date.return_value': datetime(2024, 1, d),
+                             'get_body_text.return_value': b})
+                for d, b in enumerate(bodies, 1)]
+        thread = mock.Mock(
+            **{'get_messages.return_value': dict.fromkeys(msgs)})
+        return thread, msgs
+
+    def test_reads_only_the_messages_it_shows(self):
+        # #795: reading a body may decrypt it or run a mailcap handler
+        for width, text in [(('fit', 0, 12), 'newest older'),
+                            (('wrap', 0, 6, 1, 2), 'newest\nolder'),
+                            (('weight', 1), 'newest older xxx')]:
+            with self.subTest(width=width):
+                thread, (oldest, _, _) = self._thread(
+                    'oldest', 'older\r\n> quote\n' + 'x' * 2000,
+                    'newest' + '\r' * 10)  # cut before counting
+                struct = {'width': width, 'alignment': 'left',
+                          'normal': None, 'focus': None}
+                _, widget = search.build_text_part('content', thread, struct)
+                self.assertTrue(widget.original_widget.text.startswith(text))
+                oldest.get_body_text.assert_not_called()
+
+
 class TestBuildTagsPart(unittest.TestCase):
 
     def test_no_visible_tags(self):
