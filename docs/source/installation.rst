@@ -30,7 +30,7 @@ A full list of dependencies is below:
 * `configobj <http://www.voidspace.org.uk/python/configobj.html>`_, ≥ `5.0.1`
 * `libnotmuch <https://notmuchmail.org/>`_ and it's python bindings, ≥ `0.34.2`
 * `urwid <https://urwid.org/>`_ toolkit, ≥ `2.2.0`
-* `urwidtrees <https://github.com/pazz/urwidtrees>`_, ≥ `1.0.3`
+* `urwidtrees <https://github.com/pazz/urwidtrees>`_, ≥ `1.1.0`
 * `gpg <https://www.gnupg.org/related_software/gpgme>`_ and it's python bindings, > `1.10.0`
 
 
