@@ -280,14 +280,6 @@ class DBManager:
             notmuch2.capi.lib.notmuch_messages_collect_tags)
         return [t for t in tagset]
 
-    def count_threads(self, querystring: str) -> int:
-        """returns number of threads that match `querystring`"""
-        db = Database(path=self.path, mode=Database.MODE.READ_ONLY,
-                      config=self.config)
-        count: int = db.count_threads(querystring,
-                                      exclude_tags=self.exclude_tags)
-        return count
-
     @contextlib.contextmanager
     def _with_notmuch_thread(self, tid: str) -> Iterator[notmuch2.Thread]:
         """returns :class:`notmuch2.Thread` with given id"""

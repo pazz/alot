@@ -19,13 +19,6 @@ class BufferlistBuffer(Buffer):
         self.rebuild()
         Buffer.__init__(self, ui, self.body)
 
-    def index_of(self, b):
-        """
-        returns the index of :class:`Buffer` `b` in the global list of active
-        buffers.
-        """
-        return self.ui.buffers.index(b)
-
     def rebuild(self):
         if self.isinitialized:
             focusposition = self.bufferlist.body.get_focus()[1]

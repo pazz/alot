@@ -224,14 +224,6 @@ class MessageTree(CollapsibleTree):
         ]
         return structure
 
-    def collapse_if_matches(self, querystring):
-        """
-        collapse (and show summary only) if the :class:`alot.db.Message`
-        matches given `querystring`
-        """
-        self.set_position_collapsed(
-            self.root, self._message.matches(querystring))
-
     def _get_summary(self):
         if self._summaryw is None:
             self._summaryw = MessageSummaryWidget(

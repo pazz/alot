@@ -60,14 +60,7 @@ class Thread:
         self._subject = subject
 
         self._authors = None
-        ts = thread.first
-
-        self._oldest_date: datetime | None
         self._newest_date: datetime | None
-        try:
-            self._oldest_date = datetime.fromtimestamp(ts)
-        except ValueError:  # year is out of range
-            self._oldest_date = None
         try:
             timestamp = thread.last
             self._newest_date = datetime.fromtimestamp(timestamp)
@@ -249,10 +242,6 @@ class Thread:
     def get_newest_date(self) -> datetime | None:
         """returns date header of newest message in this thread"""
         return self._newest_date
-
-    def get_oldest_date(self) -> datetime | None:
-        """returns date header of oldest message in this thread"""
-        return self._oldest_date
 
     def get_total_messages(self) -> int:
         """returns number of contained messages"""
