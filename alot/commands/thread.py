@@ -188,15 +188,9 @@ class ReplyCommand(Command):
         envelope.add('Subject', subject)
 
         # Auto-detect ML
-        auto_replyto_mailinglist = settings.get('auto_replyto_mailinglist')
         if mail['List-Id'] and self.listreply is None:
             # mail['List-Id'] is need to enable reply-to-list
-            self.listreply = auto_replyto_mailinglist
-        elif mail['List-Id'] and self.listreply is True:
-            self.listreply = True
-        elif self.listreply is False:
-            # In this case we only need the sender
-            self.listreply = False
+            self.listreply = settings.get('auto_replyto_mailinglist')
 
         # set From-header and sending account
         try:
