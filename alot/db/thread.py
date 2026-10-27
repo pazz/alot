@@ -244,12 +244,7 @@ class Thread:
 
         :param msg: parent message to look up
         """
-        mid = msg.get_message_id()
-        msg_hash = self.get_messages()
-        for m in msg_hash.keys():
-            if m.get_message_id() == mid:
-                return msg_hash[m]
-        return None
+        return self.get_messages().get(msg)
 
     def get_newest_date(self) -> datetime | None:
         """returns date header of newest message in this thread"""
