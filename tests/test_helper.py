@@ -229,6 +229,17 @@ class TestGuessEncoding(unittest.TestCase):
             self.assertEqual(helper.guess_encoding(b'x'), 'us-ascii')
         magic.open.assert_not_called()
 
+    def test_libmagic_error(self):
+        # from_buffer raises, the open() bindings return None
+        for magic in [
+                mock.Mock(MagicException=Exception, **{
+                    'Magic.return_value.from_buffer.side_effect': Exception}),
+                mock.Mock(spec=['open', 'MAGIC_MIME_ENCODING'], **{
+                    'open.return_value.buffer.return_value': None})]:
+            with self.subTest(magic=magic), \
+                    mock.patch('alot.helper.magic', magic):
+                self.assertEqual(helper.try_decode(b'abc'), 'abc')
+
 
 class TestPrettyDatetime(unittest.TestCase):
 

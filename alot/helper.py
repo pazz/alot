@@ -317,17 +317,21 @@ def guess_encoding(blob: bytes) -> str:
     uses file magic to determine the encoding of the given data blob.
 
     :param blob: file content as read by file.read()
+    :returns: encoding name, falls back to 'utf-8'
     """
     # cf. guess_mimetype
     if hasattr(magic, 'from_buffer'):
-        enc: str = magic.Magic(mime_encoding=True).from_buffer(blob)
+        try:
+            enc = magic.Magic(mime_encoding=True).from_buffer(blob)
+        except magic.MagicException:
+            enc = None
     elif hasattr(magic, 'open'):
         m = magic.open(magic.MAGIC_MIME_ENCODING)
         m.load()
         enc = m.buffer(blob)
     else:
         raise Exception('Unknown magic API')
-    return enc
+    return enc or 'utf-8'
 
 
 def try_decode(blob: bytes) -> str:
