@@ -99,17 +99,6 @@ class Envelope:
     def __str__(self) -> str:
         return "Envelope (%s)\n%s" % (self.headers, self.body_txt)
 
-    def __setitem__(self, name: str, val: str) -> None:
-        """setter for header values. This allows adding header like so:
-        envelope['Subject'] = 'sm\xf8rebr\xf8d'
-        """
-        if name not in self.headers:
-            self.headers[name] = []
-        self.headers[name].append(val)
-
-        if self.sent_time:
-            self.modified_since_sent = True
-
     def __getitem__(self, name: str) -> str:
         """getter for header values.
         :raises: KeyError if undefined
@@ -137,13 +126,15 @@ class Envelope:
         return self.headers.get(key, fallback or [])
 
     def add(self, key: str, value: str) -> None:
-        """add header value"""
+        """add header value; also as envelope['Subject'] = 'sm\xf8rebr\xf8d'"""
         if key not in self.headers:
             self.headers[key] = []
         self.headers[key].append(value)
 
         if self.sent_time:
             self.modified_since_sent = True
+
+    __setitem__ = add
 
     def attach(self, attachment: Attachment | str, filename: str | None = None,
                ctype: str | None = None) -> None:
