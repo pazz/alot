@@ -122,14 +122,15 @@ class CommandCompleter(Completer):
                     res = self._commandnamecompleter.complete(params, localpos)
                 elif cmd in ['compose']:
                     res = self._contactscompleter.complete(params, localpos)
-                # search
-                elif self.mode == 'search' and cmd == 'refine':
-                    res = self._querycompleter.complete(params, localpos)
-                elif self.mode == 'search' and cmd in ['tag', 'retag', 'untag',
-                                                       'toggletags']:
+                # search, envelope and thread
+                elif (self.mode in ['search', 'envelope', 'thread'] and
+                      cmd in ['tag', 'retag', 'untag', 'toggletags']):
                     localcomp = MultipleSelectionCompleter(self._tagcompleter,
                                                            separator=',')
                     res = localcomp.complete(params, localpos)
+                # search
+                elif self.mode == 'search' and cmd == 'refine':
+                    res = self._querycompleter.complete(params, localpos)
                 elif self.mode == 'search' and cmd == 'toggletag':
                     localcomp = MultipleSelectionCompleter(self._tagcompleter,
                                                            separator=' ')
@@ -183,11 +184,6 @@ class CommandCompleter(Completer):
                                                          'rmencrypt',
                                                          'toggleencrypt']:
                     res = self._publickeyscompleter.complete(params, localpos)
-                elif self.mode == 'envelope' and cmd in ['tag', 'toggletags',
-                                                         'untag', 'retag']:
-                    localcomp = MultipleSelectionCompleter(self._tagcompleter,
-                                                           separator=',')
-                    res = localcomp.complete(params, localpos)
                 # thread
                 elif self.mode == 'thread' and cmd == 'save':
                     res = self._pathcompleter.complete(params, localpos)
@@ -197,11 +193,6 @@ class CommandCompleter(Completer):
                                                        'togglemimetree',
                                                        'togglemimepart']:
                     res = self._querycompleter.complete(params, localpos)
-                elif self.mode == 'thread' and cmd in ['tag', 'retag', 'untag',
-                                                       'toggletags']:
-                    localcomp = MultipleSelectionCompleter(self._tagcompleter,
-                                                           separator=',')
-                    res = localcomp.complete(params, localpos)
                 elif cmd == 'move':
                     directions = ['up', 'down', 'page up', 'page down',
                                   'halfpage up', 'halfpage down', 'first',
