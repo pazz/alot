@@ -733,7 +733,7 @@ class UI:
             if cmd.prehook:
                 await _call_hook(cmd.prehook, ui=self, dbm=self.dbman, cmd=cmd)
             try:
-                if asyncio.iscoroutinefunction(cmd.apply):
+                if inspect.iscoroutinefunction(cmd.apply):
                     await cmd.apply(self)
                 else:
                     cmd.apply(self)
