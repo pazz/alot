@@ -41,7 +41,7 @@ class BufferlistBuffer(Buffer):
             focus_att = settings.get_theming_attribute('bufferlist',
                                                        'line_focus')
             buf = urwid.AttrMap(line, attr, focus_att)
-            num = urwid.Text('%3d:' % self.index_of(b))
+            num = urwid.Text('%3d:' % num)
             lines.append(urwid.Columns([('fixed', 4, num), buf]))
         self.bufferlist = urwid.ListBox(urwid.SimpleListWalker(lines))
         num_buffers = len(self.ui.buffers)
