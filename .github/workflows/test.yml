@@ -34,7 +34,7 @@ jobs:
         if: matrix.oldest
         run: |
           # every "name>=version" in pyproject.toml becomes "name==version"
-          sed -n 's/^ *"\([A-Za-z0-9_.-]*\)>=\([0-9.]*\)".*/\1==\2/p' \
+          sed -n 's/^ *"\([A-Za-z0-9_.-]*\)>=\([0-9.]*\)[",].*/\1==\2/p' \
             pyproject.toml | tee constraints.txt
           test -s constraints.txt
           echo "PIP_CONSTRAINT=$PWD/constraints.txt" >> "$GITHUB_ENV"
