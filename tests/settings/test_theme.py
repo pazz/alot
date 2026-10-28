@@ -118,3 +118,17 @@ class GetThemeTest(TestCase):
             "Theme file `test/test.theme` failed validation: test error"
         ):
             module.get_theme("test", "test.theme")
+
+
+class TestShippedThemes(TestCase):
+    """The themes in extra/themes must validate."""
+
+    EXTRA = os.path.join(os.path.dirname(__file__), '..', '..', 'extra',
+                         'themes')
+
+    def test_extra_themes_load(self):
+        if not os.path.isdir(self.EXTRA):
+            self.skipTest('extra/themes is not in this source tree')
+        for name in sorted(os.listdir(self.EXTRA)):
+            with self.subTest(theme=name):
+                module.Theme(os.path.join(self.EXTRA, name))
