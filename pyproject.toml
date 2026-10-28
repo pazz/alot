@@ -27,7 +27,7 @@ classifiers = [
 ]
 dependencies = [
     "notmuch2>=0.34.2",
-    "urwid>=2.2.0",
+    "urwid>=2.2.0,<5",
     "urwidtrees>=1.0.3",
     "python-magic>=0.4.12",
     "configobj>=5.0.1",
