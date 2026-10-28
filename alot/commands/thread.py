@@ -635,7 +635,7 @@ class ChangeDisplaymodeCommand(Command):
 
 
 @registerCommand(MODE, 'pipeto', arguments=[
-    (['cmd'], {'help': 'shellcommand to pipe to', 'nargs': '+'}),
+    (['cmd'], {'help': 'command to pipe to', 'nargs': '+'}),
     (['--all'], {'action': 'store_true', 'help': 'pass all messages'}),
     (['--format'], {'help': 'output format', 'default': 'raw',
                     'choices': [
@@ -654,7 +654,7 @@ class ChangeDisplaymodeCommand(Command):
 ])
 class PipeCommand(Command):
 
-    """pipe message(s) to stdin of a shellcommand"""
+    """pipe message(s) to stdin of a command"""
     repeatable = True
 
     def __init__(self, cmd, all=False, separately=False, background=False,
@@ -662,7 +662,7 @@ class PipeCommand(Command):
                  add_tags=False, noop_msg='no command specified',
                  confirm_msg='', done_msg=None):
         """
-        :param cmd: shellcommand to open
+        :param cmd: command to open
         :type cmd: str or list of str
         :param all: pipe all, not only selected message
         :type all: bool
@@ -775,8 +775,8 @@ class PipeCommand(Command):
         for encoded_mail in pipestrings:
             if self.background:
                 logging.debug('call in background: %s', self.cmd)
-                proc = subprocess.Popen(self.cmd,
-                                        shell=True, stdin=subprocess.PIPE,
+                proc = subprocess.Popen(self.cmd, shell=self.shell,
+                                        stdin=subprocess.PIPE,
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.PIPE)
                 out, err = proc.communicate(encoded_mail)
@@ -785,7 +785,7 @@ class PipeCommand(Command):
                     logging.debug('call: %s', self.cmd)
                     # stderr stays on the terminal, programs like vim need it
                     stdout = subprocess.PIPE if self.notify_stdout else None
-                    proc = subprocess.Popen(self.cmd, shell=True,
+                    proc = subprocess.Popen(self.cmd, shell=self.shell,
                                             stdin=subprocess.PIPE,
                                             stdout=stdout)
                     out, err = proc.communicate(encoded_mail)
@@ -889,7 +889,8 @@ class PrintCommand(PipeCommand):
 
         PipeCommand.__init__(self, [cmd], all=all, separately=separately,
                              background=True,
-                             shell=False,
+                             # print_cmd is one string, e.g. 'lpr -P office'
+                             shell=True,
                              format='raw' if raw else 'decoded',
                              add_tags=add_tags,
                              noop_msg=noop_msg, confirm_msg=confirm_msg,

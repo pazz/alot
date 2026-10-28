@@ -65,10 +65,10 @@ The following commands are available in thread mode:
 
 .. describe:: pipeto
 
-    pipe message(s) to stdin of a shellcommand
+    pipe message(s) to stdin of a command
 
     argument
-        shellcommand to pipe to
+        command to pipe to
 
     optional arguments
         :---all: pass all messages

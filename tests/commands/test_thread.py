@@ -327,7 +327,7 @@ class TestPipeCommand(unittest.TestCase):
         ui = utilities.make_ui()
         ui.current_buffer.get_selected_message.return_value.\
             get_message_id.return_value = 'id'
-        cmd = thread.PipeCommand(['echo out; echo warning >&2'],
+        cmd = thread.PipeCommand(['echo out; echo warning >&2'], shell=True,
                                  notify_stdout=True, format='id')
         await cmd.apply(ui)
         ui.notify.assert_called_once_with('out\n')
@@ -362,9 +362,37 @@ class TestPipeCommand(unittest.TestCase):
             ui.get_deep_focus.return_value.mimepart = part
             msg = ui.current_buffer.get_selected_message.return_value
             msg.get_email.return_value = part
-            cmd = thread.PipeCommand(['cat > ' + out.name], format='mimepart')
+            cmd = thread.PipeCommand(['cat > ' + out.name], shell=True,
+                                     format='mimepart')
             await cmd.apply(ui)
             self.assertEqual(out.read(), data)
+
+    @utilities.async_test
+    async def test_passes_all_words_without_shell(self):
+        # cf. #1569: only the first word reached the program
+        with tempfile.NamedTemporaryFile() as out:
+            ui = utilities.make_ui()
+            ui.current_buffer.get_selected_message.return_value.\
+                get_message_id.return_value = 'id'
+            cmd = thread.PipeCommand(['tee', out.name], format='id')
+            await cmd.apply(ui)
+            self.assertEqual(out.read(), b'id')
+
+    @utilities.async_test
+    async def test_print_cmd_keeps_its_arguments(self):
+        # print_cmd is one string that the shell splits
+        mail = email.message.EmailMessage()
+        mail.set_content('text\n')
+        with tempfile.NamedTemporaryFile() as out, \
+                mock.patch('alot.commands.thread.settings.get',
+                           return_value='tee ' + out.name):
+            ui = utilities.make_ui()
+            ui.choice = mock.AsyncMock(return_value='yes')
+            ui.get_deep_focus.return_value.mimepart = None
+            ui.current_buffer.get_selected_message.return_value.\
+                get_email.return_value = mail
+            await thread.PrintCommand(raw=True).apply(ui)
+            self.assertIn(b'text', out.read())
 
 
 class TestOpenAttachmentLifetime(unittest.TestCase):
