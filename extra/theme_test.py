@@ -92,9 +92,10 @@ def get_text(t, colourmode):
     return txt
 
 
-def input_handler(key: str) -> None:
-    "exit on any key press"
-    raise urwid.ExitMainLoop()
+def input_handler(key) -> None:
+    "exit on q or escape; ignore other input, such as focus or mouse events"
+    if key in ('q', 'Q', 'esc'):
+        raise urwid.ExitMainLoop()
 
 
 def main():
