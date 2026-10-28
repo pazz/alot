@@ -181,6 +181,7 @@ class Account:
                  sent_tags: list[str] | None = None,
                  draft_box: mailbox.Mailbox | None = None,
                  draft_tags: list[str] | None = None,
+                 superseded_draft_tags: list[str] | None = None,
                  replied_tags: list[str] | None = None,
                  passed_tags: list[str] | None = None,
                  abook: AddressBook | None = None,
@@ -206,6 +207,7 @@ class Account:
         self.sent_tags = sent_tags
         self.draft_box = draft_box
         self.draft_tags = draft_tags
+        self.superseded_draft_tags = superseded_draft_tags
         self.replied_tags = replied_tags
         self.passed_tags = passed_tags
         self.abook = abook
