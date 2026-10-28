@@ -9,14 +9,14 @@
     footer = 'standout,bold','','white,bold','dark blue','white,bold','dark blue'
     body = '','','light gray','black','light gray','g0'
     notify_error = 'standout','','light gray','dark red','light gray','dark red'
-    notify_normal = '','','light gray','black','light gray','#68a'
+    notify_normal = '','','light gray','black','light gray','g0'
     prompt = '','','light gray','black','light gray','g0'
     tag = '','','yellow','','yellow',''
-    tag_focus = 'standout, bold','','yellow','','yellow',''
+    tag_focus = 'standout','','black','dark cyan','black','dark cyan'
 [help]
-    text = '','','light gray','dark gray','light gray','dark gray'
-    section = 'underline','','white,underline','dark gray','white,underline','dark gray'
-    title = 'standout','','white,underline','dark gray','white,underline','dark gray'
+    text = '','','light gray','black','light gray','g0'
+    section = 'bold','','white,bold','black','white,bold','g0'
+    title = 'standout','','white,bold','dark blue','white,bold','dark blue'
 [bufferlist]
     line_even = '','','light gray','black','light gray','g0'
     line_odd = '','','light gray','black','light gray','g0'
@@ -30,19 +30,20 @@
     line_odd = '','','light gray','black','light gray','g0'
     line_focus = 'standout','','black','dark cyan','black','dark cyan'
 [thread]
+    # like sup, no thread tree: the arrows are drawn black on black
     arrow_heads = '','','black','black','g0','g0'
     arrow_bars = '','','black','black','g0','g0'
     attachment = '','','dark cyan','black','dark cyan','g0'
     attachment_focus = 'standout','','black','dark cyan','black','dark cyan'
     body = '','','light gray','black','light gray','g0'
-    body_focus = '','','light gray','black','light gray','dark gray'
+    body_focus = 'standout','','black','dark cyan','black','dark cyan'
     header = '','','dark cyan','black','dark cyan','g0'
     header_key = '','','brown','black','brown','g0'
     header_value = '','','brown','black','brown','g0'
 
     [[summary]]
-        even = '','','light gray','dark green','black','dark green'
-        odd = '','','light gray','dark green','black','dark green'
+        even = '','','black','dark green','black','dark green'
+        odd = '','','black','dark green','black','dark green'
         focus = 'standout','','black','dark cyan','black','dark cyan'
 
 [envelope]
@@ -67,7 +68,7 @@
             width = 'fit', 5,5
         [[[tags]]]
             normal = '','','brown','black','brown','g0'
-            focus = 'standout','','yellow,bold','dark cyan','yellow,bold','dark cyan'
+            focus = 'standout','','black,bold','dark cyan','black,bold','dark cyan'
         [[[authors]]]
             normal = '','','light gray','black','light gray','g0'
             focus = 'standout','','black,bold','dark cyan','black,bold','dark cyan'
@@ -80,7 +81,7 @@
             width = 'fit', 0, 30
         [[[content]]]
             normal = '','','dark cyan','black','dark cyan','g0'
-            focus = 'standout','','black','dark cyan','black','dark cyan'
+            focus = 'standout','','black,bold','dark cyan','black,bold','dark cyan'
             width = 'weight', 1
     [[threadline-unread]]
         tagged_with = unread
