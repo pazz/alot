@@ -6,6 +6,7 @@ Widgets specific to thread mode
 """
 import email
 import logging
+import re
 import urwid
 
 from urwidtrees import Tree, SimpleTree, CollapsibleTree, ArrowTree
@@ -21,20 +22,59 @@ from ..helper import string_sanitize
 
 ANSI_BACKGROUND = settings.get("interpret_ansi_background")
 
+# reply prefixes, such as AW (German), SV (Scandinavian), VS (Finnish),
+# Antw (Dutch), Odp (Polish), R and RIF (Italian), Réf (French), RES
+# (Portuguese), YNT (Turkish) and 回复 (Chinese)
+REPLY_PREFIXES = re.compile(
+    r'^((re|aw|sv|vs|antw|odp|r|rif|ref|réf|res|ynt|回复|回覆)\s*[:：]\s*)+',
+    re.IGNORECASE)
+
+
+def trim_subject(subject, parent_subject):
+    """
+    replace the parent's subject at the end of a reply's subject by '...',
+    if what comes before it is empty or ends in whitespace or a colon.
+    If the parent's subject has reply prefixes, a reply's subject that is
+    only reply prefixes and what follows them is trimmed too, so that
+    'Re: foo' under 'AW: foo' shows as 'Re: ...'
+
+    :param subject: the reply's subject
+    :type subject: str
+    :param parent_subject: the subject of the message it replies to
+    :type parent_subject: str or None
+    :rtype: str
+    """
+    if not parent_subject:
+        return subject
+    if subject.endswith(parent_subject):
+        prefix = subject[:-len(parent_subject)]
+        if not prefix or prefix[-1].isspace() or prefix[-1] in ':：':
+            return prefix + '...'
+    rest = REPLY_PREFIXES.sub('', parent_subject)
+    if rest and subject.endswith(rest):
+        prefix = subject[:-len(rest)]
+        # only after reply prefixes: 'Re: Say Hi' under 'AW: Hi' stays
+        if not REPLY_PREFIXES.sub('', prefix):
+            return prefix + '...'
+    return subject
+
 
 class MessageSummaryWidget(urwid.WidgetWrap):
     """
     one line summary of a :class:`~alot.db.message.Message`.
     """
 
-    def __init__(self, message, even=True):
+    def __init__(self, message, even=True, parent=None):
         """
         :param message: a message
         :type message: alot.db.Message
         :param even: even entry in a pile of messages? Used for theming.
         :type even: bool
+        :param parent: the message this one replies to
+        :type parent: alot.db.Message or None
         """
         self.message = message
+        self.parent = parent
         if even:
             attr = settings.get_theming_attribute('thread', 'summary', 'even')
         else:
@@ -44,7 +84,7 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         cols = []
 
         sumstr = self.__str__()
-        txt = urwid.Text(sumstr)
+        txt = urwid.Text(sumstr, wrap='clip')
         cols.append(txt)
 
         if settings.get('msg_summary_hides_threadwide_tags'):
@@ -81,6 +121,13 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         rep = author if author != '' else address
         if date is not None:
             rep += " (%s)" % date
+        mode = settings.get('thread_message_subjects')
+        subject = self.message.get_subject()
+        if mode == 'trimmed':
+            subject = trim_subject(
+                subject, self.parent.get_subject() if self.parent else None)
+        if mode != 'none' and subject:
+            rep += ": " + subject
         return rep
 
     def selectable(self):
@@ -148,16 +195,19 @@ class MessageTree(CollapsibleTree):
 
     Collapsing this message corresponds to showing the summary only.
     """
-    def __init__(self, message, odd=True):
+    def __init__(self, message, odd=True, parent=None):
         """
         :param message: Message to display
         :type message: alot.db.Message
         :param odd: theme summary widget as if this is an odd line
                     (in the message-pile)
         :type odd: bool
+        :param parent: the message this one replies to
+        :type parent: alot.db.Message or None
         """
         self._message = message
         self._odd = odd
+        self._parent = parent
         self.display_source = False
         self._summaryw = None
         self._bodytree = None
@@ -235,7 +285,8 @@ class MessageTree(CollapsibleTree):
     def _get_summary(self):
         if self._summaryw is None:
             self._summaryw = MessageSummaryWidget(
-                self._message, even=(not self._odd))
+                self._message, even=(not self._odd),
+                parent=self._parent)
         return self._summaryw
 
     def _get_source(self):
@@ -369,10 +420,10 @@ class ThreadTree(Tree):
         self._prev_sibling_of = {}
         self._message = {}
 
-        def accumulate(msg, odd=True):
+        def accumulate(msg, odd=True, parent=None):
             """recursively read msg and its replies"""
             mid = msg.get_message_id()
-            self._message[mid] = MessageTree(msg, odd)
+            self._message[mid] = MessageTree(msg, odd, parent)
             odd = not odd
             last = None
             self._first_child_of[mid] = None
@@ -384,7 +435,7 @@ class ThreadTree(Tree):
                 self._prev_sibling_of[rid] = last
                 self._next_sibling_of[last] = rid
                 last = rid
-                odd = accumulate(reply, odd)
+                odd = accumulate(reply, odd, msg)
             self._last_child_of[mid] = last
             return odd
 

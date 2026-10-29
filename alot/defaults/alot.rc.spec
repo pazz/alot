@@ -72,6 +72,14 @@ thread_authors_me = string(default='Me')
 #   the thread subject
 thread_subject = option('oldest', 'notmuch', default='notmuch')
 
+# Show each message's subject in its summary line in thread mode.
+# 'all' shows every subject. 'trimmed' shortens the subject of a reply that
+# ends with its parent's subject, so that 'Re: [PATCH 1/2] fix it' under
+# '[PATCH 1/2] fix it' shows as 'Re: ...'; other subjects are shown in full.
+# The parent's reply prefixes in common languages are ignored, so that
+# 'Re: Termin' under 'AW: Termin' shows as 'Re: ...' too.
+thread_message_subjects = option('none', 'all', 'trimmed', default='none')
+
 # When constructing the unique list of thread authors, order by date of
 # author's first or latest message in thread
 thread_authors_order_by = option('first_message', 'latest_message', default='first_message')
