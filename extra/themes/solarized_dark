@@ -8,25 +8,20 @@
 #
 # Define mappings from solarized colour names to urwid attribute names for 16
 # and 256 colour modes. These work well assuming you use the solarized term
-# colours via Xressources/Xdefaults
-# For urxvt, set 'URxvt.intensityStyles: false' in your ~/.Xdresources
+# colours via Xresources/Xdefaults.
+# For urxvt, set 'URxvt.intensityStyles: false' in your ~/.Xresources
 
 base03 = 'dark gray'
 base02 = 'black'
 base01 = 'light green'
-base00 = 'yellow'
 base0 = 'default'
-base1 = 'dark gray'
+base1 = 'light cyan'
 base2 = 'light gray'
 base3 = 'white'
 yellow = 'brown'
-orange = 'light red'
 red = 'dark red'
-magenta = 'dark magenta'
-violet = 'light magenta'
 blue = 'dark blue'
 cyan = 'dark cyan'
-green = 'dark green'
 
 
 [global]
@@ -36,37 +31,36 @@ green = 'dark green'
     notify_normal = 'default','default','%(blue)s','%(base02)s','%(blue)s','%(base02)s'
     prompt = 'default','default','%(base0)s','%(base02)s','%(base0)s','%(base02)s'
     tag = 'default','default','%(yellow)s','%(base03)s','%(yellow)s','%(base03)s'
-    tag_focus = 'standout','default','%(base03)s','%(yellow)s','%(base03)s','%(yellow)s'
+    tag_focus = 'standout','default','%(base03)s','%(base1)s','%(base03)s','%(base1)s'
 [help]
     text = 'default','default','%(base0)s','%(base02)s','%(base0)s','%(base02)s'
-    section = 'underline','default','%(cyan)s,bold','%(base02)s','%(cyan)s,bold','%(base02)s'
+    section = 'bold','default','%(cyan)s,bold','%(base02)s','%(cyan)s,bold','%(base02)s'
     title = 'standout','default','%(yellow)s','%(base02)s','%(yellow)s','%(base02)s'
-    frame = 'standout','default','%(base1)s','%(base02)s','%(base1)s,bold','%(base02)s'
 [namedqueries]
     line_even = 'default','default','%(base0)s','%(base02)s','%(base0)s','%(base02)s'
-    line_focus = 'standout','default','%(base1)s','%(base01)s','%(base1)s','%(base01)s'
+    line_focus = 'standout','default','%(base03)s','%(base1)s','%(base03)s','%(base1)s'
     line_odd = 'default','default','%(base0)s','%(base03)s','%(base0)s','%(base03)s'
 [taglist]
     line_even = 'default','default','%(base0)s','%(base02)s','%(base0)s','%(base02)s'
-    line_focus = 'standout','default','%(base1)s','%(base01)s','%(base1)s','%(base01)s'
+    line_focus = 'standout','default','%(base03)s','%(base1)s','%(base03)s','%(base1)s'
     line_odd = 'default','default','%(base0)s','%(base03)s','%(base0)s','%(base03)s'
 [bufferlist]
     line_even = 'default','default','%(base0)s','%(base02)s','%(base0)s','%(base02)s'
-    line_focus = 'standout','default','%(base1)s','%(base01)s','%(base1)s','%(base01)s'
+    line_focus = 'standout','default','%(base03)s','%(base1)s','%(base03)s','%(base1)s'
     line_odd = 'default','default','%(base0)s','%(base03)s','%(base0)s','%(base03)s'
 [thread]
     attachment = 'default','default','%(base0)s','%(base03)s','%(base0)s','%(base03)s'
-    attachment_focus = 'underline','default','%(base02)s','%(yellow)s','%(base02)s','%(yellow)s'
+    attachment_focus = 'standout','default','%(base03)s','%(base1)s','%(base03)s','%(base1)s'
     arrow_bars = 'default','default','%(yellow)s','%(base03)s','%(yellow)s','%(base03)s'
     arrow_heads = 'default','default','%(yellow)s','%(base03)s','%(yellow)s','%(base03)s'
     body = 'default','default','%(base0)s','%(base03)s','%(base0)s','%(base03)s'
-    body_focus = 'default','default','%(base0)s','%(base02)s','%(base0)s','%(base02)s'
+    body_focus = 'standout','default','%(base03)s','%(base1)s','%(base03)s','%(base1)s'
     header = 'default','default','%(base0)s','%(base03)s','%(base0)s','%(base03)s'
     header_key = 'default','default','%(red)s','%(base03)s','%(red)s','%(base03)s'
     header_value = 'default','default','%(blue)s','%(base03)s','%(blue)s','%(base03)s'
     [[summary]]
       even = 'default','default','%(base0)s','%(base02)s','%(base0)s','%(base02)s'
-      focus = 'standout','default','%(base1)s','%(base01)s','%(base1)s','%(base01)s'
+      focus = 'standout','default','%(base03)s','%(base1)s','%(base03)s','%(base1)s'
       odd = 'default','default','%(base0)s','%(base03)s','%(base0)s','%(base03)s'
 [envelope]
     body = 'default','default','%(base0)s','%(base03)s','%(base0)s','%(base03)s'
@@ -76,30 +70,30 @@ green = 'dark green'
 [search]
     [[threadline]]
         normal = 'default','default','%(base1)s','%(base03)s','%(base1)s','%(base03)s'
-        focus = 'standout','default','%(base02)s','%(base01)s','%(base02)s','%(base01)s'
+        focus = 'standout','default','%(base03)s','%(base1)s','%(base03)s','%(base1)s'
         parts = date,mailcount,tags,authors,subject
         [[[date]]]
             normal = 'default','default','%(yellow)s','%(base03)s','%(yellow)s','%(base03)s'
-            focus = 'standout','default','%(base02)s,bold','%(base01)s','%(base02)s,bold','%(base01)s'
+            focus = 'standout','default','%(base03)s','%(base1)s','%(base03)s','%(base1)s'
             alignment = right
             width = fit, 9, 9
         [[[mailcount]]]
             normal = 'default','default','%(blue)s','%(base03)s','%(blue)s','%(base03)s'
-            focus = 'standout','default','%(base02)s','%(base01)s','%(base02)s','%(base01)s'
+            focus = 'standout','default','%(base03)s','%(base1)s','%(base03)s','%(base1)s'
         [[[tags]]]
             normal = 'default','default','%(cyan)s','%(base03)s','%(cyan)s','%(base03)s'
-            focus = 'standout','default','%(base02)s','%(base01)s','%(base02)s','%(base01)s'
+            focus = 'standout','default','%(base03)s','%(base1)s','%(base03)s','%(base1)s'
         [[[authors]]]
-            normal = 'default,underline','default','%(blue)s','%(base03)s','%(blue)s','%(base03)s'
-            focus = 'standout','default','%(base02)s','%(base01)s','%(base02)s','%(base01)s'
+            normal = 'default','default','%(blue)s','%(base03)s','%(blue)s','%(base03)s'
+            focus = 'standout','default','%(base03)s','%(base1)s','%(base03)s','%(base1)s'
             width = 'fit',0,30
         [[[subject]]]
             normal = 'default','default','%(base0)s','%(base03)s','%(base0)s','%(base03)s'
-            focus = 'standout','default','%(base02)s,bold','%(base01)s','%(base02)s,bold','%(base01)s'
+            focus = 'standout','default','%(base03)s','%(base1)s','%(base03)s','%(base1)s'
             width = 'weight',1
         [[[content]]]
             normal = 'default','default','%(base01)s','%(base03)s','%(base01)s','%(base03)s'
-            focus = 'standout','default','%(base02)s','%(base01)s','%(base02)s','%(base01)s'
+            focus = 'standout','default','%(base03)s','%(base1)s','%(base03)s','%(base1)s'
     [[threadline-unread]]
         normal = 'default','default','%(base1)s,bold','%(base03)s','%(base1)s,bold','%(base03)s'
         tagged_with = 'unread'
@@ -108,9 +102,9 @@ green = 'dark green'
         [[[mailcount]]]
             normal = 'default','default','%(blue)s,bold','%(base03)s','%(blue)s,bold','%(base03)s'
         [[[tags]]]
-            normal = 'bold','default','light cyan','%(base03)s','light cyan','%(base03)s'
+            normal = 'bold','default','%(base1)s','%(base03)s','%(base1)s','%(base03)s'
         [[[authors]]]
-            normal = 'default,underline','default','%(blue)s','%(base03)s','%(blue)s,bold','%(base03)s'
+            normal = 'default','default','%(blue)s','%(base03)s','%(blue)s,bold','%(base03)s'
         [[[subject]]]
             normal = 'default','default','%(base2)s','%(base03)s','%(base2)s','%(base03)s'
         [[[content]]]
