@@ -385,6 +385,83 @@ class TestAddSignatureHeaders(unittest.TestCase):
             mail.headers)
 
 
+class TestGetBodyPartCovered(unittest.TestCase):
+    """Text a sender adds next to signed or encrypted data must not be
+    shown as the body under the OpenPGP status of that data."""
+
+    ENC = ('Content-Type: multipart/encrypted; '
+           'protocol="application/pgp-encrypted"; boundary="E"\n\n'
+           '--E\nContent-Type: application/pgp-encrypted\n\nVersion: 1\n'
+           '--E\nContent-Type: application/octet-stream\n\n-----BEGIN\n'
+           '%s--E--\n')
+    # what _handle_encrypted leaves: the decrypted message as the last part
+    DECRYPTED = '--E\nContent-Type: text/plain\n\ndecrypted\n'
+    INJECTED = '--E\nContent-Type: text/plain\n\ninjected\n'
+
+    def _body(self, raw):
+        mail = email.message_from_string(raw, policy=email.policy.SMTP)
+        with mock.patch('alot.db.utils.settings.get',
+                        mock.Mock(return_value=True)):  # prefer_plaintext
+            return utils.get_body_part(mail).get_content().strip()
+
+    def test_text_inside_multipart_encrypted(self):
+        self.assertEqual(
+            self._body(self.ENC % (self.INJECTED + self.DECRYPTED)),
+            'decrypted')
+
+    def test_text_next_to_multipart_encrypted(self):
+        mixed = ('Content-Type: multipart/mixed; boundary="M"\n\n'
+                 '--M\n%s--M\nContent-Type: text/plain\n\ninjected\n'
+                 '--M\nContent-Type: text/plain\n\ndecrypted\n--M--\n')
+        self.assertEqual(self._body(mixed % (self.ENC % '')), 'decrypted')
+
+    def test_text_next_to_multipart_signed(self):
+        signed = ('Content-Type: multipart/signed; micalg=pgp-sha256; '
+                  'protocol="application/pgp-signature"; boundary="S"\n\n'
+                  '--S\nContent-Type: text/html\n\n<p>signed</p>\n'
+                  '--S\nContent-Type: application/pgp-signature\n\nsig\n'
+                  '%s--S--\n')
+        injected = '--S\nContent-Type: text/plain\n\ninjected\n'
+        self.assertEqual(self._body(signed % injected), '<p>signed</p>')
+        mixed = ('Content-Type: multipart/mixed; boundary="M"\n\n'
+                 '--M\n%s--M\nContent-Type: text/plain\n\ninjected\n'
+                 '--M--\n')
+        self.assertEqual(self._body(mixed % (signed % '')), '<p>signed</p>')
+
+    def test_text_next_to_signed_data_inside_encryption(self):
+        # anyone can encrypt someone else's signed message together with
+        # their own text; the status shows the inner signature
+        decrypted = (
+            '--E\nContent-Type: multipart/mixed; boundary="M"\n\n'
+            '--M\nContent-Type: multipart/signed; micalg=pgp-sha256; '
+            'protocol="application/pgp-signature"; boundary="S"\n\n'
+            '--S\nContent-Type: text/html\n\n<p>signed</p>\n'
+            '--S\nContent-Type: application/pgp-signature\n\nsig\n'
+            '--S--\n--M\nContent-Type: text/plain\n\ninjected\n--M--\n')
+        self.assertEqual(self._body(self.ENC % decrypted), '<p>signed</p>')
+
+    def test_incomplete_or_non_ascii_encrypted_is_malformed(self):
+        enc = ('Content-Type: multipart/encrypted; '
+               'protocol="application/pgp-encrypted"; boundary="E"\n\n'
+               '--E\nContent-Type: application/pgp-encrypted\n\n'
+               'Version: 1\n--E--\n')
+        eight_bit = enc.replace(
+            '--E--', '--E\nContent-Type: application/octet-stream\n'
+            'Content-Transfer-Encoding: 8bit\n\n-----BEGIN \u00e9\n--E--')
+        for raw in (enc, 'Content-Type: multipart/mixed; boundary="M"\n\n'
+                         '--M\n%s--M--\n' % enc, eight_bit):
+            with self.subTest(raw=raw):
+                mail = utils.decrypted_message_from_bytes(raw.encode())
+                self.assertIn('Malformed OpenPGP message', self._body(
+                    mail.as_string()))
+
+    def test_unrelated_mixed_is_unchanged(self):
+        mixed = ('Content-Type: multipart/mixed; boundary="M"\n\n'
+                 '--M\nContent-Type: text/plain\n\nfirst\n'
+                 '--M\nContent-Type: text/plain\n\nsecond\n--M--\n')
+        self.assertEqual(self._body(mixed), 'first')
+
+
 class TestMessageFromFile(TestCaseClassCleanup):
 
     @classmethod
@@ -541,6 +618,23 @@ class TestMessageFromFile(TestCaseClassCleanup):
         m.set_param('protocol', 'application/pgp-encrypted')
 
         return m
+
+    @mock.patch('alot.db.utils.settings.get', mock.Mock(return_value=True))
+    def test_injected_cleartext_is_not_the_body(self):
+        for wrap in (False, True):
+            with self.subTest(wrap=wrap):
+                m = self._make_encrypted(signed=True)
+                injected = email.mime.text.MIMEText('injected')
+                if wrap:
+                    m = email.mime.multipart.MIMEMultipart(
+                        'mixed', None, [m, injected])
+                else:
+                    m.attach(injected)
+                m = utils.decrypted_message_from_bytes(m.as_bytes())
+                self.assertEqual(m[utils.X_SIGNATURE_VALID_HEADER], 'True')
+                body = utils.get_body_part(m)
+                self.assertEqual(body.get_payload(decode=True),
+                                 b'This is some text')
 
     def test_encrypted_length(self):
         # It seems string that we just attach the unsigned message to the end
