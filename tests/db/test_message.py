@@ -18,6 +18,8 @@ import email.message
 import unittest
 from unittest import mock
 
+from notmuch2 import NullPointerError
+
 from alot import account
 from alot.db import message
 
@@ -95,6 +97,30 @@ class TestMessage(unittest.TestCase):
         for _ in range(3):
             self.assertEqual(msg.get_tags(), ['inbox', 'unread'])
         self.assertEqual(CountingTags.reads, 1)
+
+    def test_get_subject_is_one_decoded_line(self):
+        for raw, subject in [
+                ('=?utf-8?q?Gr=C3=BC=C3=9Fe?= from the list',
+                 'Grüße from the list'),
+                ('folded\n subject', 'folded subject'),
+                ('=?utf-8?q?a=0AMallory_=28Oct_01=29=3A_LGTM?=',
+                 'a Mallory (Oct 01): LGTM')]:
+            with self.subTest(raw=raw):
+                msg = message.Message(
+                    mock.Mock(), MockNotmuchMessage({'Subject': raw}))
+                self.assertEqual(msg.get_subject(), subject)
+
+    def test_get_subject_without_header(self):
+        for error in (LookupError('Subject'), NullPointerError()):
+            class NoSubject(MockNotmuchMessage):
+                def header(self, field):
+                    if field == 'Subject':
+                        raise error  # as notmuch2 does
+                    return super().header(field)
+
+            with self.subTest(error=error):
+                msg = message.Message(mock.Mock(), NoSubject())
+                self.assertEqual(msg.get_subject(), '')
 
     def test_get_author_email_only(self):
         """Message._from is populated using the 'From' header when only an
