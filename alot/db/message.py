@@ -67,6 +67,13 @@ class Message:
         ]
 
         try:
+            # one line: a newline in the subject would fake another summary
+            self._subject = ' '.join(
+                decode_header(msg.header('Subject')).split())
+        except (NullPointerError, LookupError):  # no Subject header
+            self._subject = ''
+
+        try:
             sender = decode_header(msg.header('From'))
             if not sender:
                 sender = decode_header(msg.header('Sender'))
@@ -119,6 +126,10 @@ class Message:
     def get_date(self) -> datetime | None:
         """returns Date header value as :class:`~datetime.datetime`"""
         return self._datetime
+
+    def get_subject(self) -> str:
+        """returns the decoded Subject header, or '' if there is none"""
+        return self._subject
 
     def get_filename(self) -> str:
         """returns absolute path of message files location"""
