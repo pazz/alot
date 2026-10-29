@@ -6,7 +6,7 @@ import os
 
 from .buffer import Buffer
 from ..settings.const import settings
-from ..widgets.globals import HeadersList
+from ..widgets.globals import key_value_columns
 from ..widgets.globals import AttachmentWidget
 from ..helper import shorten_author_string
 from ..helper import string_sanitize
@@ -82,7 +82,9 @@ class EnvelopeBuffer(Buffer):
             value_att = settings.get_theming_attribute('envelope',
                                                        'header_value')
             gaps_att = settings.get_theming_attribute('envelope', 'header')
-            self.header_wgt = HeadersList(lines, key_att, value_att, gaps_att)
+            self.header_wgt = urwid.AttrMap(
+                urwid.Pile(key_value_columns(lines, key_att, value_att)),
+                gaps_att)
             displayed_widgets.append(self.header_wgt)
 
         # display attachments
