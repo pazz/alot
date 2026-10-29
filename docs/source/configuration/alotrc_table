@@ -746,6 +746,21 @@
     :default: 2
 
 
+.. _thread-message-subjects:
+
+.. describe:: thread_message_subjects
+
+     Show each message's subject in its summary line in thread mode.
+     'all' shows every subject. 'trimmed' shortens the subject of a reply that
+     ends with its parent's subject, so that 'Re: [PATCH 1/2] fix it' under
+     '[PATCH 1/2] fix it' shows as 'Re: ...'; other subjects are shown in full.
+     The parent's reply prefixes in common languages are ignored, so that
+     'Re: Termin' under 'AW: Termin' shows as 'Re: ...' too.
+
+    :type: option, one of ['none', 'all', 'trimmed']
+    :default: none
+
+
 .. _thread-statusbar:
 
 .. describe:: thread_statusbar
