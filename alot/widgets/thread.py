@@ -16,7 +16,7 @@ from .globals import AttachmentWidget
 from .globals import key_value_columns
 from ..settings.const import settings
 from ..db.attachment import Attachment
-from ..db.utils import decode_header, X_SIGNATURE_MESSAGE_HEADER
+from ..db.utils import decode_header, X_SIGNATURE_MESSAGE_HEADER, X_SIGNATURE_VALID_HEADER
 from ..helper import string_sanitize
 
 ANSI_BACKGROUND = settings.get("interpret_ansi_background")
@@ -120,16 +120,15 @@ class DictList(SimpleTree):
     its sibblings will be the other pairs and first|last_child will always
     be None.
     """
-    def __init__(self, content, key_attr, value_attr, gaps_attr=None):
+    def __init__(self, content: list[tuple[str, str | urwid.Text]],
+                 key_attr: urwid.AttrSpec,
+                 value_attr: urwid.AttrSpec,
+                 gaps_attr: urwid.AttrSpec | None = None):
         """
         :param headerslist: list of key/value pairs to display
-        :type headerslist: list of (str, str)
         :param key_attr: theming attribute to use for keys
-        :type key_attr: urwid.AttrSpec
         :param value_attr: theming attribute to use for values
-        :type value_attr: urwid.AttrSpec
         :param gaps_attr: theming attribute to wrap lines in
-        :type gaps_attr: urwid.AttrSpec
         """
         structure = []
         for line in key_value_columns(content, key_attr, value_attr):
@@ -318,7 +317,12 @@ class MessageTree(CollapsibleTree):
 
         # OpenPGP pseudo headers
         if mail[X_SIGNATURE_MESSAGE_HEADER]:
-            lines.append(('PGP-Signature', mail[X_SIGNATURE_MESSAGE_HEADER]))
+            status = mail[X_SIGNATURE_VALID_HEADER]
+            value = mail[X_SIGNATURE_MESSAGE_HEADER]
+            if status != 'True':
+                attr = settings.get_theming_attribute('global', 'notify_error')
+                value = urwid.Text((attr, value))
+            lines.append(('PGP-Signature', value))
 
         key_att = settings.get_theming_attribute('thread', 'header_key')
         value_att = settings.get_theming_attribute('thread', 'header_value')
