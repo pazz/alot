@@ -165,6 +165,20 @@ class TestFlushAsync(utilities.TestCaseClassCleanup):
         self.assertGreater(ticks, 5)
 
     @utilities.async_test
+    async def test_status_bar_counts_the_write_in_progress(self):
+        ui = mock.Mock(dbman=self.manager, db_was_locked=False)
+        counts = []
+        ui.update.side_effect = lambda: counts.append(
+            len(self.manager.writequeue))
+        self.manager.tag('id:0@example.com', ['g'])
+        with self.slow_atomic():
+            flush = asyncio.create_task(FlushCommand().apply(ui))
+            await asyncio.sleep(0.1)  # the worker thread is writing
+            self.assertEqual(len(self.manager.writequeue), 1)
+            await flush
+        self.assertEqual(counts, [1, 0])  # before and after the write
+
+    @utilities.async_test
     async def test_callbacks_run_in_the_event_loop(self):
         loop_thread = threading.get_ident()
         calls = []

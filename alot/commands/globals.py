@@ -596,6 +596,8 @@ class FlushCommand(Command):
 
     async def apply(self, ui):
         try:
+            if ui.dbman.writequeue:
+                ui.update()  # show the pending writes in the status bar
             await ui.dbman.flush_async()
             if callable(self.callback):
                 self.callback()
