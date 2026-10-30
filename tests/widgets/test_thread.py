@@ -65,7 +65,7 @@ class TestTrimSubject(unittest.TestCase):
 
 class TestMessageSummaryWidget(unittest.TestCase):
 
-    def summary(self, mode, subject, parent_subject='foo'):
+    def summary(self, mode, subject, parent_subject='foo', hook=None):
         parent = mock.Mock(**{'get_subject.return_value': parent_subject})
         msg = mock.Mock(**{'get_author.return_value': ('Ada', 'ada@x'),
                            'get_datestring.return_value': 'Sep 21',
@@ -75,7 +75,9 @@ class TestMessageSummaryWidget(unittest.TestCase):
         widget.message = msg
         widget.parent = parent
         with mock.patch('alot.widgets.thread.settings.get',
-                        return_value=mode):
+                        return_value=mode), \
+                mock.patch('alot.widgets.thread.settings.get_hook',
+                           return_value=hook):
             return str(widget)
 
     def test_modes(self):
@@ -84,6 +86,19 @@ class TestMessageSummaryWidget(unittest.TestCase):
                          'Ada (Sep 21): Re: foo')
         self.assertEqual(self.summary('trimmed', 'Re: foo'),
                          'Ada (Sep 21): Re: ...')
+
+    def test_hook_replaces_the_text(self):
+        def hook(message, parent):
+            return '%s|%s' % (message.get_subject(), parent.get_subject())
+        for mode in ('none', 'all', 'trimmed'):
+            self.assertEqual(self.summary(mode, 'Re: foo', hook=hook),
+                             'Re: foo|foo')
+
+    def test_hook_text_is_one_line(self):
+        def hook(message, parent):
+            return 'Ada\nMallory (Oct 01): LGTM\x07'
+        self.assertEqual(self.summary('none', 'foo', hook=hook),
+                         'Ada Mallory (Oct 01): LGTM')
 
     def test_no_separator_without_subject(self):
         self.assertEqual(self.summary('all', ''), 'Ada (Sep 21)')
@@ -112,6 +127,7 @@ class TestThreadTreeSubjects(unittest.TestCase):
         with mock.patch('alot.widgets.thread.settings') as settings:
             settings.get.side_effect = config.get
             settings.get_theming_attribute.return_value = None
+            settings.get_hook.return_value = None
             tree = thread.ThreadTree(thr)
             summary = tree['r']._get_summary()
             text = str(summary)

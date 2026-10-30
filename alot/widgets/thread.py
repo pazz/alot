@@ -116,6 +116,11 @@ class MessageSummaryWidget(urwid.WidgetWrap):
         urwid.WidgetWrap.__init__(self, line)
 
     def __str__(self):
+        hook = settings.get_hook('thread_message_summary')
+        if hook:
+            # one line: a newline from a mail header would fake a summary
+            text = string_sanitize(hook(self.message, self.parent))
+            return ' '.join(text.splitlines())
         author, address = self.message.get_author()
         date = self.message.get_datestring()
         rep = author if author != '' else address
