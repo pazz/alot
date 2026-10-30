@@ -591,9 +591,9 @@ class FlushCommand(Command):
         self.callback = callback
         self.silent = silent
 
-    def apply(self, ui):
+    async def apply(self, ui):
         try:
-            ui.dbman.flush()
+            await ui.dbman.flush_async()
             if callable(self.callback):
                 self.callback()
             logging.debug('flush complete')
@@ -608,7 +608,7 @@ class FlushCommand(Command):
 
             if timeout > 0:
                 def f(*_):
-                    self.apply(ui)
+                    asyncio.get_event_loop().create_task(ui.apply_command(self))
                 ui.mainloop.set_alarm_in(timeout, f)
                 if not ui.db_was_locked:
                     if not self.silent:

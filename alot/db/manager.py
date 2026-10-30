@@ -2,6 +2,7 @@
 # Copyright © Dylan Baker
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
+import asyncio
 from collections import deque
 from collections.abc import Callable, Iterator
 import contextlib
@@ -48,6 +49,7 @@ class DBManager:
         self.config = config
         # (command, callback, arguments...)
         self.writequeue: deque[tuple[Any, ...]] = deque([])
+        self._flush_lock = asyncio.Lock()
 
     @property
     def exclude_tags(self) -> list[str]:
@@ -66,12 +68,17 @@ class DBManager:
         queue and an exception is raised.
         You are responsible to retry flushing at a later time if you want to
         ensure that the cached changes are applied to the database.
+        This blocks until the writes are done, interface included; alot's
+        own commands use :meth:`flush_async`. While that is writing, this
+        leaves the queue to it, which keeps the writes in order.
 
         :exception: :exc:`~errors.DatabaseROError` if db is opened read-only
         :exception: :exc:`~errors.DatabaseLockedError` if db is locked
         """
         if self.ro:
             raise DatabaseROError()
+        if self._flush_lock.locked():
+            return
         while self.writequeue:
             current_item = self.writequeue[0]
             logging.debug('write-out item: %s', str(current_item))
@@ -84,6 +91,31 @@ class DBManager:
                 logging.debug(str(afterwards))
                 afterwards()
                 logging.debug('called callback')
+        logging.debug('flush finished')
+
+    async def flush_async(self) -> None:
+        """
+        like :meth:`flush`, but write in a worker thread, so that the
+        interface keeps responding while the index is slow to write;
+        callbacks still run in the event loop. Concurrent calls take turns.
+
+        :exception: :exc:`~errors.DatabaseROError` if db is opened read-only
+        :exception: :exc:`~errors.DatabaseLockedError` if db is locked
+        """
+        if self.ro:
+            raise DatabaseROError()
+        # one write at a time: the entry being written stays at the head of
+        # the queue, and a second flush would write it again
+        async with self._flush_lock:
+            while self.writequeue:
+                current_item = self.writequeue[0]
+                logging.debug('write-out item: %s', str(current_item))
+                await asyncio.to_thread(self._write, current_item)
+                self.writequeue.popleft()
+
+                afterwards = current_item[1]
+                if callable(afterwards):
+                    afterwards()
         logging.debug('flush finished')
 
     def _write(self, current_item: tuple[Any, ...]) -> None:

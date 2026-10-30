@@ -16,6 +16,7 @@
 
 """Tests for global commands."""
 
+import asyncio
 import os
 import tempfile
 import unittest
@@ -23,7 +24,7 @@ from unittest import mock
 
 from alot.commands import globals as g_commands
 from alot.commands import search as s_commands
-from alot.db.errors import DatabaseROError
+from alot.db.errors import DatabaseLockedError, DatabaseROError
 from alot.ui import UI
 
 from .. import utilities
@@ -145,6 +146,24 @@ class TestExitCommand(unittest.TestCase):
         ui.exit.assert_not_called()
         ui.apply_command.assert_not_called()
         self.assertEqual(ui.editors, 0)
+
+
+class TestFlushCommand(unittest.TestCase):
+
+    @utilities.async_test
+    async def test_retries_through_apply_command_when_locked(self):
+        ui = mock.Mock(db_was_locked=False)
+        ui.dbman.flush_async = mock.AsyncMock(side_effect=DatabaseLockedError)
+        ui.apply_command = mock.AsyncMock()
+        cmd = g_commands.FlushCommand(silent=True)
+        with mock.patch('alot.commands.globals.settings.get', return_value=5):
+            await cmd.apply(ui)
+        timeout, retry = ui.mainloop.set_alarm_in.call_args.args
+        self.assertEqual(timeout, 5)
+        self.assertTrue(ui.db_was_locked)
+        retry(None, None)  # the alarm fires
+        await asyncio.sleep(0)
+        ui.apply_command.assert_awaited_once_with(cmd)
 
 
 class TestExternalCommand(unittest.TestCase):
