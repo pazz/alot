@@ -161,6 +161,39 @@ Apart from command pre- and posthooks, the following hooks will be interpreted:
     :type subject: str
     :rtype: str
 
+.. py:function:: thread_message_summary(message, parent)
+
+    used instead of the built-in text of a message's summary line in thread
+    mode, which is the author, the date and, depending on
+    `thread_message_subjects`, the subject. The message's tags are still
+    shown after it. For example, to show the date first and the subject
+    trimmed as by the built-in 'trimmed':
+
+    .. code-block:: python
+
+        from alot.widgets.thread import trim_subject
+
+        def thread_message_summary(message, parent):
+            name, address = message.get_author()
+            subject = trim_subject(message.get_subject(),
+                                   parent.get_subject() if parent else None)
+            return '%s %s: %s' % (message.get_datestring() or '',
+                                  name or address, subject)
+
+    The text is shown on one line, with non-printable characters removed.
+    The hook is called for each message when a thread is opened, and again
+    for a message whose tags change. Data from the index, such as author,
+    date, subject and tags, is quick to get; `message.get_email()` reads
+    the mail file, and verifies or decrypts it, which makes large threads
+    slow to open.
+
+    :param message: the message
+    :type message: :class:`alot.db.message.Message`
+    :param parent: the message it replies to, or None for a message that
+        starts the thread
+    :type parent: :class:`alot.db.message.Message` or None
+    :rtype: str
+
 .. py:function:: pre_buffer_open(ui= None, dbm=None, buf=buf)
 
     run before a new buffer is opened

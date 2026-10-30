@@ -78,6 +78,7 @@ thread_subject = option('oldest', 'notmuch', default='notmuch')
 # '[PATCH 1/2] fix it' shows as 'Re: ...'; other subjects are shown in full.
 # The parent's reply prefixes in common languages are ignored, so that
 # 'Re: Termin' under 'AW: Termin' shows as 'Re: ...' too.
+# The `thread_message_summary` hook can replace the whole summary text.
 thread_message_subjects = option('none', 'all', 'trimmed', default='none')
 
 # When constructing the unique list of thread authors, order by date of
