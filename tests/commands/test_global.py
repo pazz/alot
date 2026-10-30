@@ -22,6 +22,8 @@ import tempfile
 import unittest
 from unittest import mock
 
+from alot.buffers import EnvelopeBuffer
+from alot.commands import CommandCanceled
 from alot.commands import globals as g_commands
 from alot.commands import search as s_commands
 from alot.db.errors import DatabaseLockedError, DatabaseROError
@@ -131,6 +133,7 @@ class TestExitCommand(unittest.TestCase):
     @utilities.async_test
     async def test_refuses_while_editor_runs(self):
         ui = utilities.make_ui(buffers=[], editors=0, db_was_locked=False)
+        ui.dbman = mock.Mock(ro=False, writequeue=[])
 
         async def quit_from_editor(cmd, ui):
             await g_commands.ExitCommand().apply(ui)
@@ -164,6 +167,66 @@ class TestFlushCommand(unittest.TestCase):
         retry(None, None)  # the alarm fires
         await asyncio.sleep(0)
         ui.apply_command.assert_awaited_once_with(cmd)
+
+
+class TestExitWhileWriting(unittest.TestCase):
+    """#1365: the interface keeps running while the exit command waits
+    for the index to be written"""
+
+    def _ui(self, flush):
+        ui = utilities.make_ui(buffers=[], editors=0, db_was_locked=False)
+        ui.dbman = mock.Mock(ro=False, writequeue=['tag'])
+        ui.apply_command.side_effect = flush
+        ui.choice = mock.AsyncMock(return_value='no')
+        return ui
+
+    @utilities.async_test
+    async def test_quits_after_the_flush(self):
+        buf = mock.Mock()
+
+        async def flush(cmd):
+            self.assertIsInstance(cmd, g_commands.FlushCommand)
+            ui.exit.assert_not_called()
+            buf.cleanup.assert_not_called()  # still usable meanwhile
+            ui.dbman.writequeue.clear()
+
+        ui = self._ui(flush)
+        ui.buffers.append(buf)
+        with mock.patch('alot.commands.globals.settings.get',
+                        return_value=False):
+            await g_commands.ExitCommand().apply(ui)
+        ui.notify.assert_called_once()
+        ui.exit.assert_called_once_with()
+        buf.cleanup.assert_called_once_with()
+
+    @utilities.async_test
+    async def test_asks_about_what_happened_during_the_flush(self):
+        envelope = EnvelopeBuffer.__new__(EnvelopeBuffer)
+        envelope.envelope = mock.Mock(sent_time=None)
+        cases = {
+            'mail composed': lambda ui: ui.buffers.append(envelope),
+            'editor started': lambda ui: setattr(ui, 'editors', 1),
+            'write failed': lambda ui: ui.dbman.writequeue.append('tag'),
+        }
+        for case, happens in cases.items():
+            with self.subTest(case=case):
+                async def flush(cmd):
+                    ui.dbman.writequeue.clear()
+                    happens(ui)
+                    if cmd.callback and not ui.dbman.writequeue:  # written
+                        cmd.callback()
+
+                ui = self._ui(flush)
+                with mock.patch('alot.commands.globals.settings.get',
+                                return_value=False):
+                    try:
+                        await g_commands.ExitCommand().apply(ui)
+                    except CommandCanceled:
+                        pass
+                ui.exit.assert_not_called()
+                if case == 'write failed':
+                    ui.choice.assert_awaited_once()
+                    self.assertIn('not written', ui.choice.await_args.args[0])
 
 
 class TestExternalCommand(unittest.TestCase):
