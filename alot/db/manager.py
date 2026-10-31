@@ -2,6 +2,7 @@
 # Copyright © Dylan Baker
 # This file is released under the GNU GPL, version 3 or a later revision.
 # For further details see the COPYING file
+import asyncio
 from collections import deque
 from collections.abc import Callable, Iterator
 import contextlib
@@ -48,6 +49,7 @@ class DBManager:
         self.config = config
         # (command, callback, arguments...)
         self.writequeue: deque[tuple[Any, ...]] = deque([])
+        self._flush_lock = asyncio.Lock()
 
     @property
     def exclude_tags(self) -> list[str]:
@@ -66,120 +68,149 @@ class DBManager:
         queue and an exception is raised.
         You are responsible to retry flushing at a later time if you want to
         ensure that the cached changes are applied to the database.
+        This blocks until the writes are done, interface included; alot's
+        own commands use :meth:`flush_async`. While that is writing, this
+        leaves the queue to it, which keeps the writes in order.
 
         :exception: :exc:`~errors.DatabaseROError` if db is opened read-only
         :exception: :exc:`~errors.DatabaseLockedError` if db is locked
         """
         if self.ro:
             raise DatabaseROError()
-        if self.writequeue:
-            # read notmuch's config regarding imap flag synchronization
-            sync = settings.get_notmuch_setting('maildir', 'synchronize_flags')
+        if self._flush_lock.locked():
+            return
+        while self.writequeue:
+            current_item = self.writequeue[0]
+            logging.debug('write-out item: %s', str(current_item))
+            self._write(current_item)
+            self.writequeue.popleft()
 
-            # go through writequeue entries
+            # call post-callback
+            afterwards = current_item[1]
+            if callable(afterwards):
+                logging.debug(str(afterwards))
+                afterwards()
+                logging.debug('called callback')
+        logging.debug('flush finished')
+
+    async def flush_async(self) -> None:
+        """
+        like :meth:`flush`, but write in a worker thread, so that the
+        interface keeps responding while the index is slow to write;
+        callbacks still run in the event loop. Concurrent calls take turns.
+
+        :exception: :exc:`~errors.DatabaseROError` if db is opened read-only
+        :exception: :exc:`~errors.DatabaseLockedError` if db is locked
+        """
+        if self.ro:
+            raise DatabaseROError()
+        # one write at a time: the entry being written stays at the head of
+        # the queue, and a second flush would write it again
+        async with self._flush_lock:
             while self.writequeue:
-                current_item = self.writequeue.popleft()
+                current_item = self.writequeue[0]
                 logging.debug('write-out item: %s', str(current_item))
+                await asyncio.to_thread(self._write, current_item)
+                self.writequeue.popleft()
 
-                # watch out for notmuch errors to re-insert current_item
-                # to the queue on errors
-                try:
-                    # the first two coordinates are cnmdname and post-callback
-                    cmd, afterwards = current_item[:2]
-                    logging.debug('cmd created')
+                afterwards = current_item[1]
+                if callable(afterwards):
+                    afterwards()
+        logging.debug('flush finished')
 
-                    # acquire a writeable db handler
-                    try:
-                        mode = Database.MODE.READ_WRITE
-                        db = Database(path=self.path, mode=mode,
-                                      config=self.config)
-                    except NotmuchError:
-                        raise DatabaseLockedError()
-                    logging.debug('got write lock')
+    def _write(self, current_item: tuple[Any, ...]) -> None:
+        """
+        apply one write-queue entry in an atomic transaction
 
-                    # make this a transaction
-                    with db.atomic():
-                        logging.debug('got atomic')
+        :exception: :exc:`~errors.DatabaseLockedError` if db is locked
+        :exception: :exc:`~errors.DatabaseError` on other notmuch errors
+        """
+        # read notmuch's config regarding imap flag synchronization
+        sync = settings.get_notmuch_setting('maildir', 'synchronize_flags')
+        # the first coordinate is the command name, the second the callback
+        cmd = current_item[0]
+        try:
+            # acquire a writeable db handler
+            try:
+                mode = Database.MODE.READ_WRITE
+                db = Database(path=self.path, mode=mode, config=self.config)
+            except NotmuchError:
+                raise DatabaseLockedError()
+            logging.debug('got write lock')
 
-                        if cmd == 'add':
-                            logging.debug('add')
-                            path, tags = current_item[2:]
-                            msg, _ = db.add(path, sync_flags=sync)
-                            logging.debug('added msg')
-                            with msg.frozen():
-                                logging.debug('freeze')
-                                for tag in tags:
-                                    msg.tags.add(tag)
-                                if sync:
-                                    msg.tags.to_maildir_flags()
-                                logging.debug('added tags ')
-                            logging.debug('thaw')
+            # make this a transaction
+            with db.atomic():
+                logging.debug('got atomic')
 
-                        elif cmd == 'remove':
-                            path = current_item[2]
-                            db.remove(path)
+                if cmd == 'add':
+                    logging.debug('add')
+                    path, tags = current_item[2:]
+                    msg, _ = db.add(path, sync_flags=sync)
+                    logging.debug('added msg')
+                    with msg.frozen():
+                        logging.debug('freeze')
+                        for tag in tags:
+                            msg.tags.add(tag)
+                        if sync:
+                            msg.tags.to_maildir_flags()
+                        logging.debug('added tags ')
+                    logging.debug('thaw')
 
-                        elif cmd == 'setconfig':
-                            key = current_item[2]
-                            value = current_item[3]
-                            db.config[key] = value
+                elif cmd == 'remove':
+                    path = current_item[2]
+                    db.remove(path)
 
-                        else:  # tag/set/untag
-                            querystring, tags = current_item[2:]
-                            if cmd in ('tag', 'untag') and tags:
-                                querystring = self._needing_change(
-                                    querystring, tags, cmd == 'tag')
+                elif cmd == 'setconfig':
+                    key = current_item[2]
+                    value = current_item[3]
+                    db.config[key] = value
+
+                else:  # tag/set/untag
+                    querystring, tags = current_item[2:]
+                    if cmd in ('tag', 'untag') and tags:
+                        querystring = self._needing_change(
+                            querystring, tags, cmd == 'tag')
+                    if cmd == 'toggle':
+                        presenttags = self.collect_tags(querystring)
+                        to_remove: list[str] = []
+                        to_add: list[str] = []
+                        for tag in tags:
+                            if tag in presenttags:
+                                to_remove.append(tag)
+                            else:
+                                to_add.append(tag)
+
+                    for msg in db.messages(querystring):
+                        with msg.frozen():
                             if cmd == 'toggle':
-                                presenttags = self.collect_tags(querystring)
-                                to_remove: list[str] = []
-                                to_add: list[str] = []
+                                for tag in to_remove:
+                                    msg.tags.discard(tag)
+                                for tag in to_add:
+                                    msg.tags.add(tag)
+                            else:
+                                if cmd == 'set':
+                                    msg.tags.clear()
+
                                 for tag in tags:
-                                    if tag in presenttags:
-                                        to_remove.append(tag)
-                                    else:
-                                        to_add.append(tag)
+                                    if cmd == 'tag' or cmd == 'set':
+                                        msg.tags.add(tag)
+                                    elif cmd == 'untag':
+                                        msg.tags.discard(tag)
+                            if sync:
+                                msg.tags.to_maildir_flags()
 
-                            for msg in db.messages(querystring):
-                                with msg.frozen():
-                                    if cmd == 'toggle':
-                                        for tag in to_remove:
-                                            msg.tags.discard(tag)
-                                        for tag in to_add:
-                                            msg.tags.add(tag)
-                                    else:
-                                        if cmd == 'set':
-                                            msg.tags.clear()
+                logging.debug('ended atomic')
 
-                                        for tag in tags:
-                                            if cmd == 'tag' or cmd == 'set':
-                                                msg.tags.add(tag)
-                                            elif cmd == 'untag':
-                                                msg.tags.discard(tag)
-                                    if sync:
-                                        msg.tags.to_maildir_flags()
+            # close db
+            db.close()
+            logging.debug('closed db')
 
-                        logging.debug('ended atomic')
-
-                    # close db
-                    db.close()
-                    logging.debug('closed db')
-
-                    # call post-callback
-                    if callable(afterwards):
-                        logging.debug(str(afterwards))
-                        afterwards()
-                        logging.debug('called callback')
-
-                # re-insert item to the queue upon Xapian/NotmuchErrors
-                except (XapianError, NotmuchError) as e:
-                    logging.exception(e)
-                    self.writequeue.appendleft(current_item)
-                    raise DatabaseError(str(e))
-                except DatabaseLockedError as e:
-                    logging.debug('index temporarily locked')
-                    self.writequeue.appendleft(current_item)
-                    raise e
-                logging.debug('flush finished')
+        except (XapianError, NotmuchError) as e:
+            logging.exception(e)
+            raise DatabaseError(str(e))
+        except DatabaseLockedError:
+            logging.debug('index temporarily locked')
+            raise
 
     @staticmethod
     def _needing_change(querystring: str, tags: list[str], add: bool) -> str:

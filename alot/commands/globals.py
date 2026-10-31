@@ -55,15 +55,22 @@ class ExitCommand(Command):
         self.prompt_to_send = _prompt
 
     async def apply(self, ui):
-        if ui.editors:
-            ui.notify('close the editor first', priority='error')
-            return
-
         if settings.get('bug_on_exit'):
             msg = 'really quit?'
             if (await ui.choice(msg, select='yes', cancel='no',
                                 msg_position='left')) == 'no':
                 return
+
+        # write pending changes first; the interface keeps running meanwhile,
+        # e.g. while 'notmuch new' holds the index's write lock, so look for
+        # editors and unsent messages only afterwards
+        if not ui.dbman.ro and ui.dbman.writequeue:
+            ui.notify('writing changes to the index before quitting')
+            await ui.apply_command(FlushCommand())
+
+        if ui.editors:
+            ui.notify('close the editor first', priority='error')
+            return
 
         # check if there are any unsent messages
         if self.prompt_to_send:
@@ -75,20 +82,16 @@ class ExitCommand(Command):
                                         msg_position='left')) == 'no':
                         raise CommandCanceled()
 
-        for b in ui.buffers:
-            b.cleanup()
-
-        if ui.db_was_locked:
-            msg = 'Database locked. Exit without saving?'
+        if ui.dbman.writequeue:  # e.g. the index was locked
+            msg = 'Changes not written to the index. Exit without saving?'
             response = await ui.choice(msg, msg_position='left', cancel='no')
             if response == 'no':
                 return
 
         # stop event loop
-        if ui.dbman.ro:  # do it now if DB is read only
-            ui.exit()
-        else:  # trigger and wait for DB flush otherwise
-            await ui.apply_command(FlushCommand(callback=ui.exit))
+        ui.exit()
+        for b in ui.buffers:
+            b.cleanup()
         ui.cleanup()
 
 
@@ -591,9 +594,11 @@ class FlushCommand(Command):
         self.callback = callback
         self.silent = silent
 
-    def apply(self, ui):
+    async def apply(self, ui):
         try:
-            ui.dbman.flush()
+            if ui.dbman.writequeue:
+                ui.update()  # show the pending writes in the status bar
+            await ui.dbman.flush_async()
             if callable(self.callback):
                 self.callback()
             logging.debug('flush complete')
@@ -608,7 +613,7 @@ class FlushCommand(Command):
 
             if timeout > 0:
                 def f(*_):
-                    self.apply(ui)
+                    asyncio.get_event_loop().create_task(ui.apply_command(self))
                 ui.mainloop.set_alarm_in(timeout, f)
                 if not ui.db_was_locked:
                     if not self.silent:
