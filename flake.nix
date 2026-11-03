@@ -73,7 +73,19 @@
         alot = self.packages.${system}.alot;
         types = pkgs.runCommand "alot-type-check" {buildInputs = [typingEnv];} ''
           cd ${self}
-          mypy --ignore-missing-imports alot/errors.py alot/__init__.py alot/helper.py alot/db/utils.py alot/db/attachment.py alot/db/message.py alot/db/thread.py alot/db/manager.py alot/db/envelope.py alot/crypto.py alot/account.py
+          mypy --cache-dir=/dev/null --ignore-missing-imports \
+            alot/__init__.py \
+            alot/account.py \
+            alot/crypto.py \
+            alot/db/attachment.py \
+            alot/db/envelope.py \
+            alot/db/manager.py \
+            alot/db/message.py \
+            alot/db/thread.py \
+            alot/db/utils.py \
+            alot/errors.py \
+            alot/helper.py \
+
           touch $out
         '';
       };
