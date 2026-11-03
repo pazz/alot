@@ -75,12 +75,7 @@ module = [
     "alot.errors",
     "alot.__init__",
     "alot.helper",
-    "alot.db.utils",
-    "alot.db.attachment",
-    "alot.db.message",
-    "alot.db.thread",
-    "alot.db.manager",
-    "alot.db.envelope",
+    "alot.db.*",
     "alot.crypto",
     "alot.account",
 ]

@@ -77,12 +77,7 @@
             alot/__init__.py \
             alot/account.py \
             alot/crypto.py \
-            alot/db/attachment.py \
-            alot/db/envelope.py \
-            alot/db/manager.py \
-            alot/db/message.py \
-            alot/db/thread.py \
-            alot/db/utils.py \
+            alot/db \
             alot/errors.py \
             alot/helper.py \
 
