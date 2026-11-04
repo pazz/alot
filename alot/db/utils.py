@@ -228,8 +228,7 @@ def _handle_encrypted(original: Message, message: MIMEPart,
         malformed = 'expected Content-Type: {0}, got: {1}'.format(want, ct)
 
     if not malformed:
-        # This should be safe because PGP uses US-ASCII characters only
-        payload = str(parts[1].get_payload()).encode('ascii')
+        payload = cast(bytes, parts[1].get_payload(decode=True))
         try:
             sigs, d = crypto.decrypt_verify(payload, session_keys)
         except GPGProblem as e:

@@ -454,6 +454,21 @@ class TestGetBodyPartCovered(unittest.TestCase):
         self.assertNotIn(utils.X_SIGNATURE_VALID_HEADER, mail)
         self.assertNotIn(utils.X_SIGNATURE_MESSAGE_HEADER, mail)
 
+    def test_non_ascii_encrypted_data_is_malformed(self):
+        # the bytes reach gpg as they are; gpg, mocked here, rejects them
+        raw = ('Content-Type: multipart/encrypted; '
+               'protocol="application/pgp-encrypted"; boundary="E"\n\n'
+               '--E\nContent-Type: application/pgp-encrypted\n\nVersion: 1\n'
+               '--E\nContent-Type: application/octet-stream\n'
+               'Content-Transfer-Encoding: 8bit\n\n-----BEGIN \u00e9\n--E--\n')
+        with mock.patch('alot.db.utils.crypto.decrypt_verify',
+                        side_effect=GPGProblem('no data', 0)) as decrypt:
+            mail = utils.decrypted_message_from_bytes(raw.encode())
+        self.assertEqual(decrypt.call_args.args[0],
+                         '-----BEGIN \u00e9'.encode())
+        self.assertIn('Malformed OpenPGP message', self._body(
+            mail.as_string()))
+
     def test_unrelated_mixed_is_unchanged(self):
         mixed = ('Content-Type: multipart/mixed; boundary="M"\n\n'
                  '--M\nContent-Type: text/plain\n\nfirst\n'
@@ -599,7 +614,8 @@ class TestMessageFromFile(TestCaseClassCleanup):
     # TODO: The case of more than two payloads, or the payloads being out of
     # order. Also for the encrypted case.
 
-    def _make_encrypted(self, signed=False):
+    def _make_encrypted(self, signed=False,
+                        encoder=email.encoders.encode_7or8bit):
         """Create an encrypted (and optionally signed) message."""
         if signed:
             t = self._make_signed()
@@ -607,8 +623,7 @@ class TestMessageFromFile(TestCaseClassCleanup):
             text = b'This is some text'
             t = email.mime.text.MIMEText(text, 'plain', 'utf-8')
         enc = crypto.encrypt(t.as_bytes(policy=email.policy.SMTP), self.keys)
-        e = email.mime.application.MIMEApplication(
-            enc, 'octet-stream', email.encoders.encode_7or8bit)
+        e = email.mime.application.MIMEApplication(enc, 'octet-stream', encoder)
 
         f = email.mime.application.MIMEApplication(
             b'Version: 1', 'pgp-encrypted', email.encoders.encode_7or8bit)
@@ -649,6 +664,15 @@ class TestMessageFromFile(TestCaseClassCleanup):
         # Check using m.walk, since we're not checking for ordering, just
         # existence.
         self.assertIn('This is some text', [n.get_payload() for n in m.walk()])
+
+    def test_encrypted_part_with_transfer_encoding_is_decrypted(self):
+        for encoder in (email.encoders.encode_base64,
+                        email.encoders.encode_quopri):
+            with self.subTest(encoder=encoder.__name__):
+                m = self._make_encrypted(encoder=encoder)
+                m = utils.decrypted_message_from_bytes(m.as_bytes())
+                self.assertIn('This is some text',
+                              [n.get_payload() for n in m.walk()])
 
     def test_encrypted_unsigned_doesnt_add_signed_headers(self):
         """Since the message isn't signed, it shouldn't have headers saying
