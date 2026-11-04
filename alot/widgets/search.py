@@ -56,9 +56,12 @@ class ThreadlineWidget(urwid.AttrMap):
                                               self.structure['tags']['normal'],
                                               self.structure['tags']['focus'])
                 if part:
-                    add_column(width, part)
                     for w, _ in part.contents:
                         self.widgets.append(w)
+                    tags = self.structure['tags']
+                    if tags['width'][0] == 'weight':
+                        part = TagsPadding(part, tags['alignment'], width)
+                    add_column(width, part)
             else:
                 width, part = build_text_part(partname, self.thread,
                                               self.structure[partname])
@@ -81,6 +84,17 @@ class ThreadlineWidget(urwid.AttrMap):
 
     def get_thread(self):
         return self.thread
+
+
+class TagsPadding(urwid.Padding):
+    """
+    aligns the tags part within a wider 'weight' column; in a narrower one,
+    the tags that do not fit are dropped, as without padding
+    """
+    def render(self, size, focus=False):
+        if size[0] < self.width:  # avoids urwid's PaddingWarning
+            return self.original_widget.render(size, focus)
+        return super().render(size, focus)
 
 
 def build_tags_part(tags, attr_normal, attr_focus):
@@ -179,7 +193,9 @@ def build_text_part(name, thread, struct):
         content = ' '
 
     # define width and part_w
-    text = urwid.Text(content, wrap='clip')
+    # only a 'weight' column can be wider than its (padded) content
+    weight = width_tuple is not None and width_tuple[0] == 'weight'
+    text = urwid.Text(content, alignment if weight else 'left', wrap='clip')
     # cap double-width content at maxw columns; without a maximum the part
     # gets its natural width (content is already padded to minw)
     width = text.pack((maxw,) if maxw else None)[0]

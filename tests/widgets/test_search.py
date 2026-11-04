@@ -4,6 +4,7 @@
 from datetime import datetime
 import unittest
 from unittest import mock
+import warnings
 
 from alot.widgets import search
 
@@ -71,6 +72,26 @@ class TestThreadlineWidget(unittest.TestCase):
         widget = search.ThreadlineWidget('tid', dbman)
         self.assertEqual([w.tag for w in widget.widgets], ['a', 'b'])
 
+    @mock.patch('alot.widgets.globals.settings')
+    @mock.patch('alot.widgets.search.settings')
+    def test_weighted_tags_are_aligned(self, settings, tag_settings):
+        settings.get_threadline_theming.return_value = {
+            'parts': ['tags'], 'normal': None, 'focus': None,
+            'tags': {'width': ('weight', 1), 'alignment': 'right',
+                     'normal': None, 'focus': None}}
+        tag_settings.get_tagstring_representation.side_effect = \
+            lambda tag, *_: {'translated': tag, 'normal': None,
+                             'focussed': None}
+        dbman = mock.Mock()
+        dbman.get_thread.return_value.get_tags.return_value = ['b', 'a']
+        widget = search.ThreadlineWidget('tid', dbman)
+        self.assertEqual(widget.render((6,)).text, [b'   a b'])
+        # too narrow: tags that do not fit are dropped, not cut, and urwid
+        # does not warn (on the terminal)
+        with warnings.catch_warnings():
+            warnings.simplefilter('error')
+            self.assertEqual(widget.render((2,)).text, [b'a '])
+
 
 class TestPrepareContentStringDates(unittest.TestCase):
 
@@ -110,6 +131,22 @@ class TestBuildTextPart(unittest.TestCase):
                   'normal': None, 'focus': None}
         _, widget = search.build_text_part('subject', thread, struct)
         self.assertEqual(widget.render((9,)).text, [b'a subject'])
+
+    def test_weight_column_alignment(self):
+        thread = mock.Mock(**{'get_subject.return_value': 'subj'})
+        struct = {'width': ('weight', 1), 'alignment': 'right',
+                  'normal': None, 'focus': None}
+        _, widget = search.build_text_part('subject', thread, struct)
+        self.assertEqual(widget.render((6,)).text, [b'  subj'])
+
+    def test_fit_column_keeps_start_of_wide_content(self):
+        # double-width content is cut to maxw columns at its end
+        thread = mock.Mock(**{'get_subject.return_value': '山田太郎'})
+        struct = {'width': ('fit', 0, 4), 'alignment': 'right',
+                  'normal': None, 'focus': None}
+        width, widget = search.build_text_part('subject', thread, struct)
+        self.assertEqual(widget.render((width,)).text,
+                         ['山田'.encode()])
 
     def test_wrap_column(self):
         thread = mock.Mock(**{'get_subject.return_value': 'aaa bbb ccc ddd'})
