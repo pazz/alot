@@ -169,16 +169,23 @@ def _handle_signatures(original_bytes: bytes, original: Message,
 
         # The transmitted content and therefore the signed content are using
         # CRLF as line delimiter, but our eml file has most likely been
-        # converted to UNIX LF line ending in the local storage.
-        if b'\r\n' not in original_bytes:
-            original_bytes = original_bytes.replace(b'\n', b'\r\n')
+        # converted to UNIX LF line ending in the local storage. Convert every
+        # line ending the parser accepts, so that the split below sees the
+        # same lines as the parser.
+        original_bytes = original_bytes.replace(b'\r\n', b'\n').replace(
+            b'\r', b'\n').replace(b'\n', b'\r\n')
 
         # The sender's signed canonical form often differs from the one
         # produced by Python's standard lib (in the number of blank lines
         # between multipart segments...). We therefore need to extract the
-        # signed part directly from the original byte string.
-        signed_boundary = b'\r\n--' + str(message.get_boundary()).encode()
-        original_chunks = original_bytes.split(signed_boundary)
+        # signed part directly from the original byte string. Split only at
+        # whole delimiter lines, as the parser does: a line that merely
+        # starts with the boundary would let the verified bytes differ from
+        # the part that is shown as signed.
+        boundary = re.escape(str(message.get_boundary()).encode())
+        original_chunks = re.split(
+            rb'\r\n--' + boundary + rb'(?:--)?[ \t]*(?=\r\n|$)',
+            original_bytes)
         nb_chunks = len(original_chunks)
         if nb_chunks != 4:
             raise MessageError(

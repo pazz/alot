@@ -481,6 +481,41 @@ class TestGetBodyPartCovered(unittest.TestCase):
         self.assertIn('Malformed OpenPGP message', self._body(
             mail.as_string()))
 
+    def test_verified_bytes_are_the_shown_part(self):
+        # the parser shows the first part between its delimiter lines; the
+        # bytes verified against the signature must be that part, also when
+        # a copy of signed data sits where the parser does not look
+        def signed(eol, before=b'', after=b''):
+            return (
+                b'Content-Type: multipart/signed; micalg=pgp-sha256; '
+                b'protocol="application/pgp-signature"; boundary="foo"' +
+                eol + eol + before + b'--foo' + eol +
+                b'Content-Type: text/plain' + eol + eol + b'injected' + eol +
+                b'--foo' + eol + b'Content-Type: application/pgp-signature' +
+                eol + eol + b'sig' + eol + after)
+        hidden = b'Content-Type: text/plain\r\n\r\nsigned\r\n'
+        epilogue = (b'--foo--\r\n\r\n--foo\r\n' + hidden +
+                    b'--foo\r\nx\r\n--foo--\r\n')
+        cases = [
+            # a line that only starts with the boundary is preamble
+            (signed(b'\r\n', before=b'--fooXX\r\n' + hidden), False),
+            (signed(b'\r\n', b'--fooXX\r\n' + hidden, b'--foo--\r\n'),
+             True),
+            # delimiter lines ending in a bare CR or LF, data in the epilogue
+            (signed(b'\r', after=epilogue), False),
+            (signed(b'\n', after=epilogue), False),
+        ]
+        for raw, verified in cases:
+            with self.subTest(raw=raw), mock.patch(
+                    'alot.db.utils.crypto.verify_detached',
+                    return_value=[]) as verify:
+                utils.decrypted_message_from_bytes(raw)
+                self.assertEqual(verify.called, verified)
+                for call in verify.call_args_list:
+                    self.assertEqual(
+                        call.args[0],
+                        b'Content-Type: text/plain\r\n\r\ninjected')
+
     def test_unrelated_mixed_is_unchanged(self):
         mixed = ('Content-Type: multipart/mixed; boundary="M"\n\n'
                  '--M\nContent-Type: text/plain\n\nfirst\n'
@@ -563,6 +598,20 @@ class TestMessageFromFile(TestCaseClassCleanup):
         m = self._make_signed()
         m = utils.decrypted_message_from_bytes(m.as_bytes())
         self.assertEqual(m[utils.X_SIGNATURE_VALID_HEADER], 'True')
+
+    def test_signed_data_hidden_before_the_first_boundary(self):
+        # a line that only starts with the boundary is not one: the parser
+        # sees the signed data there as preamble and shows the next part
+        text = email.mime.text.MIMEText('This is some text')
+        signed = text.as_bytes(policy=email.policy.SMTP)
+        _, sig = crypto.detached_signature_for(signed, self.keys)
+        raw = (b'Content-Type: multipart/signed; micalg=pgp-sha256; '
+               b'protocol="application/pgp-signature"; boundary="foo"\r\n'
+               b'\r\n--fooXX' + signed + b'\r\n--foo\r\n'
+               b'Content-Type: text/plain\r\n\r\ninjected\r\n--foo\r\n'
+               b'Content-Type: application/pgp-signature\r\n\r\n' + sig)
+        m = utils.decrypted_message_from_bytes(raw)
+        self.assertEqual(m[utils.X_SIGNATURE_VALID_HEADER], 'False')
 
     def test_signed_correct_from(self):
         """Test that the signature is valid."""
