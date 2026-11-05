@@ -57,6 +57,8 @@ class Envelope:
     """list of :class:`Attachments <alot.db.attachment.Attachment>`"""
     tags: list[str]
     """tags to add after successful sendout"""
+    draft: 'AlotMessage | None' = None
+    """draft this envelope was opened from, tagged deleted once superseded"""
     account: 'Account | None'
     """account to send from"""
 
