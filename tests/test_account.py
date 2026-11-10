@@ -16,7 +16,9 @@
 
 
 import logging
+import mailbox
 import unittest
+from unittest import mock
 
 from alot import account
 
@@ -81,6 +83,14 @@ class TestAccount(unittest.TestCase):
 
     def test_store_mail_without_mailbox(self):
         self.assertIsNone(account.Account.store_mail('not a mailbox', 'x'))
+
+    def test_store_mail_unlocks_mailbox_on_error(self):
+        mbx = mock.MagicMock(spec=mailbox.Maildir)
+        mbx.add.side_effect = OSError('disk full')
+        with self.assertRaises(account.StoreMailError):
+            account.Account.store_mail(mbx, 'x')
+        mbx.lock.assert_called_once_with()
+        mbx.unlock.assert_called_once_with()
 
 
 class TestAddress(unittest.TestCase):
