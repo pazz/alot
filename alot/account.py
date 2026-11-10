@@ -270,10 +270,11 @@ class Account:
         try:
             message_id = mbx.add(msg)
             mbx.flush()
-            mbx.unlock()
             logging.debug('got mailbox msg id : %s', message_id)
         except Exception as e:
             raise StoreMailError(e)
+        finally:
+            mbx.unlock()
 
         path = None
         # add new Maildir message to index and add tags
