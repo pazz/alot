@@ -29,8 +29,8 @@
         inherit version;
         outputs = ["out" "doc" "man"];
         postPatch = ''
-          substituteInPlace alot/settings/manager.py \
-            --replace /usr/share "$out/share"
+          substituteInPlace alot/settings/theme.py \
+            --replace-fail /usr/share "$out/share"
         '';
         postInstall = ''
           installShellCompletion --zsh --name _alot extra/completion/alot-completion.zsh
