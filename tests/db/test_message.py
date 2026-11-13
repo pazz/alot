@@ -16,6 +16,7 @@
 
 import email.message
 import unittest
+from email.utils import parsedate_to_datetime
 from unittest import mock
 
 from notmuch2 import NullPointerError
@@ -72,6 +73,38 @@ class MockNotmuchMessage:
 
 
 class TestMessage(unittest.TestCase):
+
+    def test_received_date_is_used_when_date_header_is_missing(self):
+        received = (
+            'from newer.example; Fri, 19 Jun 2020 12:00:00 +0000 '
+            'from older.example; Fri, 19 Jun 2020 08:00:00 +0000'
+        )
+        msg = message.Message(
+            mock.Mock(), MockNotmuchMessage({'Received': received}))
+
+        self.assertEqual(
+            msg.get_date().timestamp(),
+            parsedate_to_datetime('Fri, 19 Jun 2020 08:00:00 +0000').timestamp())
+
+    def test_received_date_is_used_when_date_header_is_invalid(self):
+        received = 'from mx.example; Fri, 19 Jun 2020 08:00:00 +0000'
+        msg = message.Message(
+            mock.Mock(),
+            MockNotmuchMessage({'Date': 'not a date', 'Received': received}))
+
+        self.assertEqual(
+            msg.get_date().timestamp(),
+            parsedate_to_datetime('Fri, 19 Jun 2020 08:00:00 +0000').timestamp())
+
+    def test_date_header_takes_precedence_over_received_date(self):
+        received = 'from mx.example; Fri, 19 Jun 2020 08:00:00 +0000'
+        notmuch_msg = MockNotmuchMessage(
+            {'Date': 'Fri, 19 Jun 2020 09:00:00 +0000',
+             'Received': received})
+        notmuch_msg.mock_date = 1_592_557_200
+        msg = message.Message(mock.Mock(), notmuch_msg)
+
+        self.assertEqual(msg.get_date().timestamp(), notmuch_msg.mock_date)
 
     def test_refresh_rereads_tags(self):
         dbman = mock.MagicMock()
