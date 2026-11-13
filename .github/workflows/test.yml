@@ -12,7 +12,9 @@ concurrency:
 jobs:
 
   test:
-    runs-on: ubuntu-latest
+    # 26.04: notmuch master fails its GMime session key check, 0.34.2 its
+    # strcasestr check; unpin once notmuch builds there
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
