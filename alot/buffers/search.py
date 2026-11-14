@@ -74,6 +74,7 @@ class SearchBuffer(Buffer):
         self.threadlist = IterableWalker(iter(self.thread_ids),
                                          ThreadlineWidget,
                                          dbman=self.dbman,
+                                         query=self.querystring,
                                          reverse=reverse)
 
         self.listbox = urwid.ListBox(self.threadlist)
