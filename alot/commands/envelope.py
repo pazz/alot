@@ -141,6 +141,10 @@ class SaveCommand(Command):
             logging.debug('adding new mail to index')
             try:
                 ui.dbman.add_message(path, account.draft_tags + envelope.tags)
+                # queued after the new draft, so that a failure to index it
+                # leaves the old draft untouched
+                if envelope.draft and account.superseded_draft_tags:
+                    envelope.draft.add_tags(account.superseded_draft_tags)
                 await ui.apply_command(globals.FlushCommand())
                 await ui.apply_command(commands.globals.BufferCloseCommand())
             except DatabaseError as e:
@@ -298,6 +302,9 @@ class SendCommand(Command):
                     self.envelope.replied.add_tags(account.replied_tags)
                 if self.envelope.passed:
                     self.envelope.passed.add_tags(account.passed_tags)
+                if self.envelope.draft and account.superseded_draft_tags:
+                    self.envelope.draft.add_tags(
+                        account.superseded_draft_tags)
 
             # store mail locally
             # This can raise StoreMailError
