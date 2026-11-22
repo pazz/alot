@@ -27,6 +27,8 @@ classifiers = [
 dependencies = [
     "notmuch2>=0.34.2",
     "urwid>=2.2.0",
+    # older urwid reads the terminal size into too short a buffer
+    "urwid>=3.0.3; python_version>='3.14'",
     "urwidtrees>=1.1.1",
     "python-magic>=0.4.12",
     "configobj>=5.0.1",
