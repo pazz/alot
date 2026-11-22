@@ -127,6 +127,8 @@ class SearchBuffer(Buffer):
             n -= 1
 
     def focus_first(self):
+        if self.body.focus is None:  # no threads to move to
+            return
         if not self.reversed:
             self.body.set_focus(0)
         else:
@@ -134,6 +136,8 @@ class SearchBuffer(Buffer):
             self.body.set_focus(0)
 
     def focus_last(self):
+        if self.body.focus is None:  # no threads to move to
+            return
         if self.reversed:
             self.body.set_focus(0)
         elif self.search_threads_move_last_limit == 0 \

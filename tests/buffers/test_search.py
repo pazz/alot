@@ -4,6 +4,8 @@
 import unittest
 from unittest import mock
 
+from notmuch2 import NotmuchError
+
 from alot.buffers.search import SearchBuffer
 
 
@@ -46,3 +48,20 @@ class TestRestoreFocus(unittest.TestCase):
             buf.rebuild()
         # the focused thread was e.g. archived: nothing to look for
         self.assertEqual(built, [])
+
+
+@mock.patch('alot.buffers.search.settings', **{'get.return_value': 0})
+class TestMoveInEmptyResults(unittest.TestCase):
+
+    def assertMovesWithoutError(self, get_threads):
+        ui = mock.Mock(**{'dbman.get_threads': get_threads})
+        buf = SearchBuffer(ui, 'tag:none')
+        buf.focus_first()  # nothing to move to
+        buf.focus_last()
+
+    def test_no_results(self, _):
+        self.assertMovesWithoutError(
+            mock.Mock(return_value=(iter([]), 0)))
+
+    def test_malformed_query(self, _):
+        self.assertMovesWithoutError(mock.Mock(side_effect=NotmuchError))
