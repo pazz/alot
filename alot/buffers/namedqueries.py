@@ -55,7 +55,8 @@ class NamedQueriesBuffer(Buffer):
 
     def focus_first(self):
         """Focus the first line in the query list."""
-        self.body.set_focus(0)
+        if self.queries:
+            self.body.set_focus(0)
 
     def focus_last(self):
         allpos = self.querylist.body.positions(reverse=True)

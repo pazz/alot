@@ -14,6 +14,8 @@ class TestNamedQueriesBuffer(unittest.TestCase):
         ui = mock.Mock()
         ui.dbman.get_named_queries.return_value = {}
         buf = NamedQueriesBuffer(ui)
+        buf.focus_first()  # nothing to move to
+        buf.focus_last()
         ui.dbman.get_named_queries.return_value = {'q': 'tag:inbox'}
         ui.dbman.count_messages.return_value = 0
         buf.rebuild()  # the first query appears
