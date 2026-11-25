@@ -112,6 +112,7 @@ class UI:
         # terminal, so handlers registered with the event loop would not run
         self._loop = loop
         self._terminating = False
+        self._writing_out = False  # pending changes, on the way out
         signal.signal(signal.SIGTERM, self._terminate)
         if signal.getsignal(signal.SIGHUP) is not signal.SIG_IGN:  # nohup
             signal.signal(signal.SIGHUP, self._terminate)
@@ -169,13 +170,20 @@ class UI:
                 raise
             logging.exception('main loop ended on a closed terminal')
             self._terminating = True
+            # urwid left its input watch on the event loop, which runs again
+            # below: reading the closed terminal would stop it at once
+            self.mainloop.screen.unhook_event_loop(self.mainloop.event_loop)
         if self._terminating:
             # write pending changes and histories; unlike the exit command,
             # ask nothing and keep the files of unsent envelopes
             try:
-                if self.dbman.writequeue and not self.dbman.ro:
-                    self.dbman.flush()
-            except DatabaseError:
+                if not self.dbman.ro:
+                    # waits for a flush still in progress; RuntimeError:
+                    # something else stopped the loop before the writes
+                    # were done
+                    self._writing_out = True
+                    self._loop.run_until_complete(self.dbman.flush_async())
+            except (DatabaseError, RuntimeError):
                 logging.exception('could not write pending changes on exit')
             self.cleanup()
 
@@ -805,8 +813,13 @@ class UI:
             null = os.open(os.devnull, os.O_WRONLY)
             os.dup2(null, 1)
             os.dup2(null, 2)
-        # the loop may be busy; this wakes it up safely from a signal handler
-        self._loop.call_soon_threadsafe(self._loop.stop)
+        # the loop may be busy; this wakes it up safely from a signal handler.
+        # The constructor runs the loop again to write pending changes; a
+        # stop left over from now, or from a second signal (closing a
+        # terminal can bring SIGHUP from the kernel and from the shell),
+        # must not cut that short
+        self._loop.call_soon_threadsafe(
+            lambda: self._writing_out or self._loop.stop())
 
     def cleanup(self):
         """Do the final clean up before shutting down."""

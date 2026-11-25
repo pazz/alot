@@ -5,6 +5,7 @@ import asyncio
 import os
 import signal
 import tempfile
+import time
 import unittest
 import warnings
 from unittest import mock
@@ -14,6 +15,8 @@ import urwid
 from alot.buffers import SearchBuffer
 from alot.commands import Command, CommandCanceled
 from alot.commands.globals import ExitCommand
+from alot.db.errors import DatabaseError
+from alot.db.manager import DBManager
 from alot.ui import UI, periodic
 
 from . import utilities
@@ -67,7 +70,83 @@ class TestSignals(unittest.TestCase):
         self.assertEqual(handlers[signal.SIGTERM], ui._terminate)
         self.assertEqual(handlers[signal.SIGHUP], ui._terminate)
         ui._terminate(signal.SIGTERM, None)
-        loop.call_soon_threadsafe.assert_called_once_with(loop.stop)
+        stop, = loop.call_soon_threadsafe.call_args.args
+        stop()
+        loop.stop.assert_called_once_with()
+
+
+class TestTerminate(unittest.TestCase):
+
+    @mock.patch('alot.ui.settings',
+                mock.MagicMock(**{'get_hook.return_value': None}))
+    @mock.patch('alot.ui.UI._load_history_from_file',
+                mock.Mock(return_value=[]))
+    @mock.patch('alot.ui.UI.cleanup', mock.Mock())
+    def test_waits_for_a_flush_in_progress(self):
+        # #1365: SIGTERM while a flush writes in a worker thread; the
+        # write fails and stays queued, then is written on the way out,
+        # with the rest of the queue, also after a second signal
+        loop = asyncio.new_event_loop()
+        self.addCleanup(loop.close)
+        dbman = DBManager('/nonexistent')
+        written = []
+
+        def write(item):
+            time.sleep(0.05)
+            if not written:
+                written.append('failed')
+                raise DatabaseError()
+            written.append(item[3])
+
+        dbman._write = write
+        dbman.tag('*', ['a'])
+
+        def run():
+            loop.create_task(dbman.flush_async())  # e.g. after tagging
+            dbman.tag('*', ['b'])
+            loop.call_soon(ui._terminate, signal.SIGTERM, None)
+            loop.run_forever()
+            ui._terminate(signal.SIGTERM, None)  # another one, while writing
+
+        with mock.patch('alot.ui.signal.signal'), \
+                mock.patch('alot.ui.urwid.MainLoop') as mainloop, \
+                mock.patch.object(UI, 'apply_commandline', mock.AsyncMock()):
+            mainloop.return_value.run.side_effect = run
+            ui = UI.__new__(UI)
+            ui.__init__(dbman, '', loop)
+        self.assertEqual(written, ['failed', ['a'], ['b']])
+
+
+    @mock.patch('alot.ui.settings',
+                mock.MagicMock(**{'get_hook.return_value': None}))
+    @mock.patch('alot.ui.UI._load_history_from_file',
+                mock.Mock(return_value=[]))
+    @mock.patch('alot.ui.UI.cleanup', mock.Mock())
+    def test_writes_after_the_terminal_closed(self):
+        # urwid 2.2 may fail reading a closed terminal, before or after a
+        # signal: neither its input watch nor a stop the signal queued may
+        # stop the loop that writes the changes
+        loop = asyncio.new_event_loop()
+        self.addCleanup(loop.close)
+        dbman = DBManager('/nonexistent')
+        dbman._write = mock.Mock(side_effect=lambda item: time.sleep(0.05))
+        dbman.tag('*', ['a'])
+        dbman.tag('*', ['b'])
+        with mock.patch('alot.ui.signal.signal'), \
+                mock.patch('alot.ui.os.isatty', return_value=False), \
+                mock.patch('alot.ui.urwid.MainLoop') as mainloop, \
+                mock.patch.object(UI, 'apply_commandline', mock.AsyncMock()):
+            def run():
+                ui._terminate(signal.SIGTERM, None)  # its stop is queued
+                raise OSError('closed')
+
+            mainloop.return_value.run.side_effect = run
+            ui = UI.__new__(UI)
+            ui.__init__(dbman, '', loop)
+        screen = mainloop.return_value.screen
+        screen.unhook_event_loop.assert_called_once_with(
+            mainloop.return_value.event_loop)
+        self.assertEqual(dbman._write.call_count, 2)
 
 
 class TestSignalDispatch(unittest.TestCase):
