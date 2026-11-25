@@ -384,6 +384,65 @@ class TestSendCommand(unittest.TestCase):
         # check that the apply did run through till the end.
         account.send_mail.assert_called_once_with(mail)
 
+    @utilities.async_test
+    async def test_tags_superseded_draft(self):
+        for tags in (['obsolete'], []):
+            with self.subTest(tags=tags):
+                env = Envelope()
+                env.draft = mock.Mock()
+                account = self.MockedAccount()
+                account.superseded_draft_tags = tags
+                cmd = envelope.SendCommand(mail=self.mail, envelope=env)
+                with mock.patch('alot.commands.envelope.settings'
+                                '.account_matching_address',
+                                mock.Mock(return_value=account)):
+                    await cmd.apply(
+                        utilities.make_ui(apply_command=mock.AsyncMock()))
+                if tags:
+                    env.draft.add_tags.assert_called_once_with(tags)
+                else:
+                    env.draft.add_tags.assert_not_called()
+
+
+class TestSaveCommand(unittest.TestCase):
+
+    @utilities.async_test
+    async def test_tags_superseded_draft(self):
+        # without an index path the new draft is not indexed, so the old
+        # one must stay visible
+        for path, tags, tagged in [('/new', ['obsolete'], True),
+                                   ('/new', [], False),
+                                   (None, ['obsolete'], False)]:
+            with self.subTest(path=path, tags=tags):
+                env = Envelope(account=mock.Mock(superseded_draft_tags=tags,
+                                                 draft_tags=['draft']))
+                env.account.store_draft_mail.return_value = path
+                env.construct_mail = mock.Mock()
+                env.draft = mock.Mock()
+                ui = utilities.make_ui(apply_command=mock.AsyncMock())
+                ui.current_buffer.envelope = env
+                await envelope.SaveCommand().apply(ui)
+                if tagged:
+                    env.draft.add_tags.assert_called_once_with(tags)
+                else:
+                    env.draft.add_tags.assert_not_called()
+
+    @utilities.async_test
+    async def test_supersedes_draft_after_indexing_new_one(self):
+        env = Envelope(account=mock.Mock(superseded_draft_tags=['deleted'],
+                                         draft_tags=['draft']))
+        env.account.store_draft_mail.return_value = '/new'
+        env.construct_mail = mock.Mock()
+        env.draft = mock.Mock()
+        ui = utilities.make_ui(apply_command=mock.AsyncMock())
+        ui.current_buffer.envelope = env
+        order = mock.Mock()
+        order.attach_mock(ui.dbman.add_message, 'add_message')
+        order.attach_mock(env.draft.add_tags, 'add_tags')
+        await envelope.SaveCommand().apply(ui)
+        self.assertEqual([c[0] for c in order.mock_calls],
+                         ['add_message', 'add_tags'])
+
 
 class TestEditCommand(unittest.TestCase):
 
