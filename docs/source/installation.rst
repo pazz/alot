@@ -36,14 +36,31 @@ A full list of dependencies is below:
 
 On Debian/Ubuntu these are packaged as::
 
-  python3-setuptools python3-magic python3-configobj python3-notmuch python3-urwid python3-urwidtrees python3-gpg python3-dev swig
+  python3-setuptools python3-magic python3-configobj python3-notmuch2 python3-urwid python3-urwidtrees python3-gpg python3-dev swig
 
 On Fedora/Redhat these are packaged as::
 
-  python-setuptools python-magic python-configobj python-notmuch python-urwid python-urwidtrees python-gpg
+  python-setuptools python-magic python-configobj python-notmuch2 python-urwid python-urwidtrees python-gpg
 
 Distributions may package an older urwidtrees than alot needs; if so, install
 urwidtrees from PyPI instead.
+
+
+From version 0.13 on, releases are published on
+`PyPI <https://pypi.org/project/alot/>`_.
+The bindings for notmuch and gpg are compiled against the system libraries,
+so take them from your distribution and install alot with
+`pipx <https://pipx.pypa.io/>`_, letting it see the system packages.
+On Debian/Ubuntu::
+
+  sudo apt install pipx python3-notmuch2 python3-gpg python3-magic
+  PIPX_DEFAULT_BACKEND=pip pipx install --system-site-packages alot
+
+The other dependencies are then installed from PyPI if the system lacks
+them or has too old a version.
+(The backend setting matters only if `uv<https://docs.astral.sh/uv/>`_ is installed: in that case pipx then uses it instead of pip by default, and uv tries
+to build gpg from source instead of using the system's bindings.)
+
 
 
 To set up and install the latest development version::
