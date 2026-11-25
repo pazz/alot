@@ -1,0 +1,52 @@
+name: Publish to PyPI
+
+# Uploads with PyPI Trusted Publishing, so no API token is stored here.
+# PyPI accepts only this file name (publish.yml) from pazz/alot.
+# Release by publishing a GitHub release for a version tag; setuptools-scm
+# takes the version from that tag.
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Build sdist and wheel
+        run: |
+          python3 -m pip install build
+          python3 -m build
+
+      - name: Check the version is the release tag
+        env:
+          TAG: ${{ github.ref_name }}
+        run: test -f "dist/alot-${TAG#v}.tar.gz"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist/
+
+      - uses: pypa/gh-action-pypi-publish@release/v1
