@@ -7,6 +7,7 @@ import email.message
 import functools
 from collections.abc import Callable, Iterator
 from datetime import datetime
+from email.utils import parsedate_to_datetime
 from typing import TYPE_CHECKING, Union, cast
 
 from notmuch2 import NullPointerError
@@ -30,6 +31,21 @@ MimeTree = tuple[str, Union[list['MimeTree'], email.message.Message,
 charset.add_charset('utf-8', charset.QP, charset.QP, 'utf-8')
 
 
+def _get_received_datetime(msg: 'notmuch2.Message') -> datetime | None:
+    """Return the timestamp from the oldest Received header, if available."""
+    try:
+        received = msg.header('Received')
+        # notmuch concatenates repeated Received headers in their original
+        # order, so the date after the final semicolon belongs to the oldest.
+        received_date = received.rsplit(';', 1)[1].strip()
+        parsed_date = parsedate_to_datetime(received_date)
+        # Message dates are naive local datetimes throughout alot.
+        return datetime.fromtimestamp(parsed_date.timestamp())
+    except (IndexError, LookupError, NullPointerError, OSError, OverflowError,
+            TypeError, ValueError):
+        return None
+
+
 @functools.total_ordering
 class Message:
     """
@@ -49,10 +65,22 @@ class Message:
         self._thread_id: str = msg.threadid
         self._thread = thread
         self._datetime: datetime | None
+        timestamp = msg.date
         try:
-            self._datetime = datetime.fromtimestamp(msg.date)
+            self._datetime = datetime.fromtimestamp(timestamp)
         except ValueError:
             self._datetime = None
+        if timestamp == 0:
+            try:
+                date_header = msg.header('Date')
+            except (LookupError, NullPointerError):
+                date_header = ''
+            try:
+                parsedate_to_datetime(date_header)
+            except (TypeError, ValueError):
+                received_datetime = _get_received_datetime(msg)
+                if received_datetime is not None:
+                    self._datetime = received_datetime
         self._filename = str(msg.path)
         # read upon first use
         self._email: email.message.EmailMessage | None = None
